@@ -68,12 +68,12 @@ async def km_execute_macro(
     try:
         # Validate and sanitize inputs
         if not identifier or not identifier.strip():
-            raise ValidationError("Macro identifier cannot be empty")
+            raise ValidationError("identifier", identifier, "cannot be empty")
         
         # Create macro ID from identifier
         clean_identifier = identifier.strip()
         if len(clean_identifier) == 0:
-            raise ValidationError("Macro identifier cannot be empty after trimming")
+            raise ValidationError("identifier", clean_identifier, "cannot be empty after trimming")
         
         macro_id = MacroId(clean_identifier)
         
@@ -410,15 +410,15 @@ async def km_variable_manager(
     
     try:
         if operation in ["get", "set", "delete"] and not name:
-            raise ValidationError("Variable name is required for get, set, and delete operations")
+            raise ValidationError("name", name, "Variable name is required for get, set, and delete operations")
         
         if operation == "set" and value is None:
-            raise ValidationError("Variable value is required for set operation")
+            raise ValidationError("value", value, "Variable value is required for set operation")
         
         # Validate variable name format
         if name and not name.replace("_", "").replace(" ", "").isalnum():
             if not (scope == "password" and ("password" in name.lower() or "pw" in name.lower())):
-                raise ValidationError("Invalid variable name format")
+                raise ValidationError("name", name, "Invalid variable name format")
         
         # Mock implementation - would integrate with actual KM variable system
         if operation == "get":
@@ -598,7 +598,7 @@ async def km_variable_manager(
                 }
         
         else:
-            raise ValidationError(f"Unknown operation: {operation}")
+            raise ValidationError("operation", operation, f"Unknown operation: {operation}")
             
     except ValidationError as e:
         if ctx:

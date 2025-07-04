@@ -17,7 +17,7 @@ from hypothesis.stateful import RuleBasedStateMachine, Bundle, rule, initialize
 
 from src.core.ai_integration import (
     AIOperation, AIModelType, ProcessingMode, OutputFormat,
-    AIRequest, AIResponse, AIModel, AIModelId, TokenCount,
+    AIRequest, AIResponse, AIModel, AIModelId, AIRequestId, TokenCount,
     CostAmount, ConfidenceScore, create_ai_request, create_ai_session
 )
 from src.ai.model_manager import AIModelManager, AIError, ModelUsageTracker
@@ -239,7 +239,8 @@ class TestSecurityValidatorProperties:
                 severity=SecurityThreatLevel.MEDIUM,
                 description=desc,
                 detected_content=desc[:20],
-                confidence=0.5
+                confidence=0.5,
+                mitigation=f"Apply security filter for {desc[:10]}"
             )
             threats.append(threat)
         
@@ -492,7 +493,8 @@ class TestAIIntegrationE2E:
         )))
         
         # Test processing
-        result = await manager.process_request("analyze", input_text)
+        from src.core.ai_integration import AIOperation
+        result = await manager.process_ai_request(AIOperation.ANALYZE, input_text)
         
         # Should handle the request
         assert result.is_left() or result.is_right()

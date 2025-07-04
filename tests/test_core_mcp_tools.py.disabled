@@ -1,0 +1,517 @@
+"""
+Comprehensive test coverage for core MCP tools - TASK_69 Coverage Expansion.
+
+This module provides extensive testing for all FastMCP-based tools to achieve
+near-100% test coverage as required by the user's testing directive.
+"""
+
+import pytest
+import asyncio
+from unittest.mock import AsyncMock, patch, MagicMock
+from typing import Dict, Any, List
+from fastmcp import Context
+
+# Import core tool modules for testing with error handling
+try:
+    from src.server.tools.quantum_ready_tools import (
+        mcp, km_analyze_quantum_readiness, km_upgrade_to_post_quantum,
+        km_prepare_quantum_interface, km_manage_quantum_security, 
+        km_simulate_quantum_algorithms
+    )
+    QUANTUM_TOOLS_AVAILABLE = True
+except ImportError as e:
+    # Skip quantum tools tests if imports fail
+    QUANTUM_TOOLS_AVAILABLE = False
+    # Create mock placeholders for tests
+    mcp = None
+    km_analyze_quantum_readiness = None
+    km_upgrade_to_post_quantum = None
+    km_prepare_quantum_interface = None
+    km_manage_quantum_security = None
+    km_simulate_quantum_algorithms = None
+
+
+@pytest.mark.skipif(not QUANTUM_TOOLS_AVAILABLE, reason="Quantum tools imports not available")
+class TestQuantumReadyTools:
+    """Comprehensive test coverage for quantum ready MCP tools."""
+    
+    @pytest.fixture
+    def mock_context(self):
+        """Provide mock FastMCP context for tests."""
+        context = AsyncMock(spec=Context)
+        context.info = AsyncMock()
+        context.warn = AsyncMock()
+        context.error = AsyncMock()
+        context.report_progress = AsyncMock()
+        return context
+    
+    @pytest.mark.asyncio
+    async def test_km_analyze_quantum_readiness_basic(self, mock_context):
+        """Test basic quantum readiness analysis functionality."""
+        # Test with valid system scope
+        result = await km_analyze_quantum_readiness(
+            analysis_scope="system",
+            security_level="current",
+            include_vulnerabilities=True,
+            algorithm_assessment=True,
+            migration_planning=True,
+            compliance_check=True,
+            risk_analysis=True,
+            timeline_estimation=True,
+            ctx=mock_context
+        )
+        
+        # Verify result structure
+        assert isinstance(result, dict)
+        assert "analysis_id" in result
+        assert "scope" in result
+        assert result["scope"] == "system"
+        assert "security_level" in result
+        assert result["security_level"] == "current"
+        assert "timestamp" in result
+        
+        # Verify context was used for logging
+        mock_context.info.assert_called()
+    
+    @pytest.mark.asyncio
+    async def test_km_analyze_quantum_readiness_all_scopes(self, mock_context):
+        """Test quantum readiness analysis with all valid scopes."""
+        valid_scopes = ["system", "application", "cryptography", "protocols"]
+        
+        for scope in valid_scopes:
+            result = await km_analyze_quantum_readiness(
+                analysis_scope=scope,
+                ctx=mock_context
+            )
+            
+            assert isinstance(result, dict)
+            assert result["scope"] == scope
+            assert "success" not in result or result.get("success", True) is not False
+    
+    @pytest.mark.asyncio
+    async def test_km_analyze_quantum_readiness_invalid_scope(self, mock_context):
+        """Test quantum readiness analysis with invalid scope."""
+        result = await km_analyze_quantum_readiness(
+            analysis_scope="invalid_scope",
+            ctx=mock_context
+        )
+        
+        assert isinstance(result, dict)
+        assert result["success"] is False
+        assert "error" in result
+        assert "Invalid analysis scope" in result["error"]
+    
+    @pytest.mark.asyncio
+    async def test_km_analyze_quantum_readiness_security_levels(self, mock_context):
+        """Test quantum readiness analysis with different security levels."""
+        security_levels = ["current", "post_quantum", "quantum_safe"]
+        
+        for level in security_levels:
+            result = await km_analyze_quantum_readiness(
+                analysis_scope="system",
+                security_level=level,
+                ctx=mock_context
+            )
+            
+            assert isinstance(result, dict)
+            assert result["security_level"] == level
+    
+    @pytest.mark.asyncio
+    async def test_km_analyze_quantum_readiness_feature_toggles(self, mock_context):
+        """Test quantum readiness analysis with various feature combinations."""
+        # Test with all features disabled
+        result = await km_analyze_quantum_readiness(
+            analysis_scope="system",
+            include_vulnerabilities=False,
+            algorithm_assessment=False,
+            migration_planning=False,
+            compliance_check=False,
+            risk_analysis=False,
+            timeline_estimation=False,
+            ctx=mock_context
+        )
+        
+        assert isinstance(result, dict)
+        assert result["scope"] == "system"
+        
+        # Test with selective feature enabling
+        result = await km_analyze_quantum_readiness(
+            analysis_scope="cryptography",
+            include_vulnerabilities=True,
+            algorithm_assessment=False,
+            migration_planning=True,
+            ctx=mock_context
+        )
+        
+        assert isinstance(result, dict)
+        assert result["scope"] == "cryptography"
+    
+    @pytest.mark.asyncio
+    async def test_km_upgrade_to_post_quantum_basic(self, mock_context):
+        """Test basic post-quantum upgrade functionality."""
+        result = await km_upgrade_to_post_quantum(
+            component_type="application",
+            upgrade_scope="selective",
+            ctx=mock_context
+        )
+        
+        assert isinstance(result, dict)
+        assert "upgrade_id" in result
+        assert "component_type" in result
+        assert result["component_type"] == "application"
+        assert "upgrade_scope" in result
+        assert result["upgrade_scope"] == "selective"
+    
+    @pytest.mark.asyncio
+    async def test_km_upgrade_to_post_quantum_all_components(self, mock_context):
+        """Test post-quantum upgrade with all component types."""
+        component_types = ["application", "system", "network", "database", "communication"]
+        
+        for component in component_types:
+            result = await km_upgrade_to_post_quantum(
+                component_type=component,
+                upgrade_scope="full",
+                ctx=mock_context
+            )
+            
+            assert isinstance(result, dict)
+            assert result["component_type"] == component
+            assert "upgrade_id" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_upgrade_to_post_quantum_invalid_component(self, mock_context):
+        """Test post-quantum upgrade with invalid component type."""
+        result = await km_upgrade_to_post_quantum(
+            component_type="invalid_component",
+            upgrade_scope="full",
+            ctx=mock_context
+        )
+        
+        assert isinstance(result, dict)
+        assert result["success"] is False
+        assert "error" in result
+        assert "Invalid component type" in result["error"]
+    
+    @pytest.mark.asyncio
+    async def test_km_prepare_quantum_interface_basic(self, mock_context):
+        """Test basic quantum interface preparation."""
+        result = await km_prepare_quantum_interface(
+            interface_type="qpu_connection",
+            quantum_backend="simulator",
+            ctx=mock_context
+        )
+        
+        assert isinstance(result, dict)
+        assert "interface_id" in result
+        assert "interface_type" in result
+        assert result["interface_type"] == "qpu_connection"
+        assert "quantum_backend" in result
+        assert result["quantum_backend"] == "simulator"
+    
+    @pytest.mark.asyncio
+    async def test_km_prepare_quantum_interface_all_types(self, mock_context):
+        """Test quantum interface preparation with all interface types."""
+        interface_types = ["qpu_connection", "quantum_network", "hybrid_classical_quantum", "quantum_simulator"]
+        
+        for interface in interface_types:
+            result = await km_prepare_quantum_interface(
+                interface_type=interface,
+                quantum_backend="simulator",
+                ctx=mock_context
+            )
+            
+            assert isinstance(result, dict)
+            assert result["interface_type"] == interface
+            assert "interface_id" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_prepare_quantum_interface_backends(self, mock_context):
+        """Test quantum interface preparation with different backends."""
+        backends = ["simulator", "qpu", "cloud", "hybrid"]
+        
+        for backend in backends:
+            result = await km_prepare_quantum_interface(
+                interface_type="qpu_connection",
+                quantum_backend=backend,
+                ctx=mock_context
+            )
+            
+            assert isinstance(result, dict)
+            assert result["quantum_backend"] == backend
+    
+    @pytest.mark.asyncio
+    async def test_km_manage_quantum_security_basic(self, mock_context):
+        """Test basic quantum security management."""
+        result = await km_manage_quantum_security(
+            security_action="assess",
+            policy_level="standard",
+            ctx=mock_context
+        )
+        
+        assert isinstance(result, dict)
+        assert "security_id" in result
+        assert "security_action" in result
+        assert result["security_action"] == "assess"
+        assert "policy_level" in result
+        assert result["policy_level"] == "standard"
+    
+    @pytest.mark.asyncio
+    async def test_km_manage_quantum_security_all_actions(self, mock_context):
+        """Test quantum security management with all security actions."""
+        security_actions = ["assess", "implement", "monitor", "audit", "update"]
+        
+        for action in security_actions:
+            result = await km_manage_quantum_security(
+                security_action=action,
+                policy_level="strict",
+                ctx=mock_context
+            )
+            
+            assert isinstance(result, dict)
+            assert result["security_action"] == action
+            assert "security_id" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_manage_quantum_security_policy_levels(self, mock_context):
+        """Test quantum security management with different policy levels."""
+        policy_levels = ["basic", "standard", "strict", "maximum"]
+        
+        for level in policy_levels:
+            result = await km_manage_quantum_security(
+                security_action="implement",
+                policy_level=level,
+                ctx=mock_context
+            )
+            
+            assert isinstance(result, dict)
+            assert result["policy_level"] == level
+    
+    @pytest.mark.asyncio
+    async def test_km_simulate_quantum_algorithms_basic(self, mock_context):
+        """Test basic quantum algorithm simulation."""
+        result = await km_simulate_quantum_algorithms(
+            algorithm_type="grovers",
+            problem_size=4,
+            ctx=mock_context
+        )
+        
+        assert isinstance(result, dict)
+        assert "simulation_id" in result
+        assert "algorithm_type" in result
+        assert result["algorithm_type"] == "grovers"
+        assert "problem_size" in result
+        assert result["problem_size"] == 4
+    
+    @pytest.mark.asyncio
+    async def test_km_simulate_quantum_algorithms_all_types(self, mock_context):
+        """Test quantum algorithm simulation with all algorithm types."""
+        algorithm_types = ["grovers", "shors", "vqe", "qaoa", "quantum_fourier_transform"]
+        
+        for algorithm in algorithm_types:
+            result = await km_simulate_quantum_algorithms(
+                algorithm_type=algorithm,
+                problem_size=8,
+                ctx=mock_context
+            )
+            
+            assert isinstance(result, dict)
+            assert result["algorithm_type"] == algorithm
+            assert "simulation_id" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_simulate_quantum_algorithms_problem_sizes(self, mock_context):
+        """Test quantum algorithm simulation with various problem sizes."""
+        problem_sizes = [2, 4, 8, 16, 32]
+        
+        for size in problem_sizes:
+            result = await km_simulate_quantum_algorithms(
+                algorithm_type="grovers",
+                problem_size=size,
+                ctx=mock_context
+            )
+            
+            assert isinstance(result, dict)
+            assert result["problem_size"] == size
+    
+    @pytest.mark.asyncio
+    async def test_km_simulate_quantum_algorithms_with_options(self, mock_context):
+        """Test quantum algorithm simulation with various options."""
+        result = await km_simulate_quantum_algorithms(
+            algorithm_type="vqe",
+            problem_size=8,
+            simulation_backend="statevector",
+            optimization_level=2,
+            noise_model=True,
+            shot_count=1000,
+            ctx=mock_context
+        )
+        
+        assert isinstance(result, dict)
+        assert result["algorithm_type"] == "vqe"
+        assert "simulation_backend" in result
+        assert "optimization_level" in result
+        assert "noise_model" in result
+        assert "shot_count" in result
+    
+    @pytest.mark.asyncio
+    async def test_mcp_instance_configuration(self):
+        """Test that the FastMCP instance is properly configured."""
+        # Verify the MCP instance exists and has the correct name
+        assert mcp is not None
+        assert hasattr(mcp, '_name')
+        
+        # Verify tools are properly registered
+        tool_names = ['km_analyze_quantum_readiness', 'km_upgrade_to_post_quantum', 
+                      'km_prepare_quantum_interface', 'km_manage_quantum_security',
+                      'km_simulate_quantum_algorithms']
+        
+        for tool_name in tool_names:
+            # Verify the tool functions exist
+            assert tool_name in globals(), f"Tool {tool_name} should be available"
+    
+    @pytest.mark.asyncio
+    async def test_error_handling_patterns(self, mock_context):
+        """Test error handling patterns across quantum tools."""
+        # Test with None context (should not crash)
+        result = await km_analyze_quantum_readiness(
+            analysis_scope="system",
+            ctx=None
+        )
+        assert isinstance(result, dict)
+        
+        # Test with malformed parameters
+        result = await km_upgrade_to_post_quantum(
+            component_type="",  # Empty string
+            upgrade_scope="invalid",
+            ctx=mock_context
+        )
+        assert isinstance(result, dict)
+    
+    @pytest.mark.asyncio
+    async def test_concurrent_tool_execution(self, mock_context):
+        """Test concurrent execution of quantum tools."""
+        # Create multiple concurrent tasks
+        tasks = [
+            km_analyze_quantum_readiness("system", ctx=mock_context),
+            km_upgrade_to_post_quantum("application", "selective", ctx=mock_context),
+            km_prepare_quantum_interface("qpu_connection", "simulator", ctx=mock_context),
+            km_manage_quantum_security("assess", "standard", ctx=mock_context),
+            km_simulate_quantum_algorithms("grovers", 4, ctx=mock_context)
+        ]
+        
+        # Execute all tasks concurrently
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Verify all tasks completed successfully
+        for result in results:
+            assert not isinstance(result, Exception)
+            assert isinstance(result, dict)
+            
+    @pytest.mark.asyncio
+    async def test_tool_performance_characteristics(self, mock_context):
+        """Test performance characteristics of quantum tools."""
+        import time
+        
+        # Test response time for quantum readiness analysis
+        start_time = time.time()
+        result = await km_analyze_quantum_readiness(
+            analysis_scope="system",
+            ctx=mock_context
+        )
+        end_time = time.time()
+        
+        # Should complete within reasonable time (< 1 second for mock)
+        assert (end_time - start_time) < 1.0
+        assert isinstance(result, dict)
+        
+        # Test response time for simulation
+        start_time = time.time()
+        result = await km_simulate_quantum_algorithms(
+            algorithm_type="grovers",
+            problem_size=4,
+            ctx=mock_context
+        )
+        end_time = time.time()
+        
+        # Should complete within reasonable time
+        assert (end_time - start_time) < 1.0
+        assert isinstance(result, dict)
+
+
+class TestMCPToolIntegration:
+    """Integration tests for FastMCP tool functionality."""
+    
+    @pytest.mark.asyncio
+    async def test_fastmcp_decorator_pattern(self):
+        """Test that FastMCP decorator pattern is correctly implemented."""
+        # This test verifies that our fix for FastMCP.tool() → mcp.tool() is working
+        
+        # Import the quantum tools module and verify the MCP instance
+        from src.server.tools import quantum_ready_tools
+        
+        # Verify MCP instance exists and has correct type
+        assert hasattr(quantum_ready_tools, 'mcp')
+        assert quantum_ready_tools.mcp is not None
+        
+        # Verify the instance is properly configured
+        mcp_instance = quantum_ready_tools.mcp
+        assert hasattr(mcp_instance, '_name')
+        
+        # The tools should be directly callable (they are decorated functions)
+        tools = [
+            quantum_ready_tools.km_analyze_quantum_readiness,
+            quantum_ready_tools.km_upgrade_to_post_quantum,
+            quantum_ready_tools.km_prepare_quantum_interface,
+            quantum_ready_tools.km_manage_quantum_security,
+            quantum_ready_tools.km_simulate_quantum_algorithms
+        ]
+        
+        for tool in tools:
+            assert callable(tool)
+            assert hasattr(tool, '__name__')
+    
+    @pytest.mark.asyncio
+    async def test_tool_context_integration(self):
+        """Test that tools properly integrate with FastMCP context."""
+        from src.server.tools.quantum_ready_tools import km_analyze_quantum_readiness
+        
+        # Create a proper mock context
+        mock_context = AsyncMock(spec=Context)
+        mock_context.info = AsyncMock()
+        mock_context.warn = AsyncMock()
+        mock_context.error = AsyncMock()
+        mock_context.report_progress = AsyncMock()
+        
+        # Execute tool with context
+        result = await km_analyze_quantum_readiness(
+            analysis_scope="system",
+            ctx=mock_context
+        )
+        
+        # Verify context methods were called
+        assert mock_context.info.called
+        assert isinstance(result, dict)
+        
+    def test_import_structure(self):
+        """Test that all necessary imports are working correctly."""
+        # These imports should not raise any exceptions
+        from src.server.tools.quantum_ready_tools import mcp
+        from src.server.tools.quantum_ready_tools import (
+            km_analyze_quantum_readiness,
+            km_upgrade_to_post_quantum,
+            km_prepare_quantum_interface,
+            km_manage_quantum_security,
+            km_simulate_quantum_algorithms
+        )
+        
+        # Verify imports are valid
+        assert mcp is not None
+        assert km_analyze_quantum_readiness is not None
+        assert km_upgrade_to_post_quantum is not None
+        assert km_prepare_quantum_interface is not None
+        assert km_manage_quantum_security is not None
+        assert km_simulate_quantum_algorithms is not None
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])

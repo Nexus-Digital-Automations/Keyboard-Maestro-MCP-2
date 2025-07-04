@@ -279,6 +279,7 @@ class TestControlFlowValidator:
         nodes = []
         for depth in range(5):
             node = IfThenElseNode(
+                flow_type=ControlFlowType.IF_THEN_ELSE,
                 condition=ConditionExpression.create_safe("test", ComparisonOperator.EQUALS, "value"),
                 then_actions=ActionBlock.empty(),
                 depth=depth
@@ -289,6 +290,7 @@ class TestControlFlowValidator:
         
         # Add node with excessive depth
         deep_node = IfThenElseNode(
+            flow_type=ControlFlowType.IF_THEN_ELSE,
             condition=ConditionExpression.create_safe("test", ComparisonOperator.EQUALS, "value"),
             then_actions=ActionBlock.empty(),
             depth=15
@@ -301,6 +303,7 @@ class TestControlFlowValidator:
         """Test loop bounds validation."""
         # Valid for loop
         for_loop = ForLoopNode(
+            flow_type=ControlFlowType.FOR_LOOP,
             loop_config=LoopConfiguration(
                 iterator_variable=IteratorVariable("i"),
                 collection_expression="items",
@@ -311,20 +314,17 @@ class TestControlFlowValidator:
         
         assert self.validator.validate_loop_bounds(for_loop) is True
         
-        # Invalid for loop (too many iterations)
-        invalid_for_loop = ForLoopNode(
-            loop_config=LoopConfiguration(
+        # Test that contract violation occurs for excessive iterations
+        with pytest.raises(ContractViolationError):
+            LoopConfiguration(
                 iterator_variable=IteratorVariable("i"),
                 collection_expression="items",
-                max_iterations=20000
-            ),
-            loop_actions=ActionBlock.empty()
-        )
-        
-        assert self.validator.validate_loop_bounds(invalid_for_loop) is False
+                max_iterations=20000  # This should violate security contract
+            )
         
         # Valid while loop
         while_loop = WhileLoopNode(
+            flow_type=ControlFlowType.WHILE_LOOP,
             condition=ConditionExpression.create_safe("test", ComparisonOperator.EQUALS, "value"),
             loop_actions=ActionBlock.empty(),
             max_iterations=800
@@ -332,14 +332,14 @@ class TestControlFlowValidator:
         
         assert self.validator.validate_loop_bounds(while_loop) is True
         
-        # Invalid while loop
-        invalid_while_loop = WhileLoopNode(
-            condition=ConditionExpression.create_safe("test", ComparisonOperator.EQUALS, "value"),
-            loop_actions=ActionBlock.empty(),
-            max_iterations=15000
-        )
-        
-        assert self.validator.validate_loop_bounds(invalid_while_loop) is False
+        # Test that contract violation occurs for excessive while loop iterations
+        with pytest.raises(ContractViolationError):
+            WhileLoopNode(
+                flow_type=ControlFlowType.WHILE_LOOP,
+                condition=ConditionExpression.create_safe("test", ComparisonOperator.EQUALS, "value"),
+                loop_actions=ActionBlock.empty(),
+                max_iterations=15000  # This should violate security contract
+            )
     
     def test_action_count_validation(self):
         """Test action count validation."""
@@ -348,22 +348,28 @@ class TestControlFlowValidator:
         action_block = ActionBlock.from_actions(actions)
         
         if_node = IfThenElseNode(
+            flow_type=ControlFlowType.IF_THEN_ELSE,
             condition=ConditionExpression.create_safe("test", ComparisonOperator.EQUALS, "value"),
             then_actions=action_block
         )
         
         assert self.validator.validate_action_count(if_node) is True
         
-        # Create node with too many actions
+        # Test that ActionBlock.from_actions() automatically limits to 100 actions
         many_actions = [{"type": "test", "id": i} for i in range(200)]
         large_action_block = ActionBlock.from_actions(many_actions)
         
+        # ActionBlock should automatically limit to 100 actions (security constraint)
+        assert len(large_action_block.actions) == 100
+        
         large_if_node = IfThenElseNode(
+            flow_type=ControlFlowType.IF_THEN_ELSE,
             condition=ConditionExpression.create_safe("test", ComparisonOperator.EQUALS, "value"),
             then_actions=large_action_block
         )
         
-        assert self.validator.validate_action_count(large_if_node) is False
+        # Validator should return True because ActionBlock already enforced the limit
+        assert self.validator.validate_action_count(large_if_node) is True
     
     def test_condition_security_validation(self):
         """Test condition security validation."""
@@ -556,8 +562,8 @@ class TestControlFlowBuilder:
                 "dangerous"
             )
         
-        # Test excessive loop iterations rejection
-        with pytest.raises(ValueError, match="security validation"):
+        # Test excessive loop iterations rejection (caught by contract validation)
+        with pytest.raises(ContractViolationError):
             self.builder.while_condition(
                 "condition",
                 ComparisonOperator.EQUALS,

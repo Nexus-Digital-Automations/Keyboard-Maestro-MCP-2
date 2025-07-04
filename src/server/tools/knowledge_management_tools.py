@@ -1051,9 +1051,9 @@ async def km_export_knowledge(
 @mcp.tool()
 async def km_schedule_content_review(
     content_id: str,
-    review_type: str = "accuracy",  # accuracy|completeness|relevance|quality
     review_date: str,
     reviewers: List[str],
+    review_type: str = "accuracy",  # accuracy|completeness|relevance|quality
     review_criteria: Optional[Dict[str, Any]] = None,
     auto_reminders: bool = True,
     escalation_rules: Optional[Dict[str, Any]] = None,

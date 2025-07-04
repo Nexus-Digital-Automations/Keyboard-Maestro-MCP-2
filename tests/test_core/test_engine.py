@@ -94,8 +94,14 @@ class TestMacroEngine:
         
         context = ExecutionContext.create_test_context()
         
-        with pytest.raises((ValidationError, ExecutionError, ContractViolationError)):
-            engine.execute_macro(invalid_macro, context)
+        # Invalid macros should return failed execution result
+        result = engine.execute_macro(invalid_macro, context)
+        
+        # Verify the macro was rejected and marked as failed
+        assert result.status == ExecutionStatus.FAILED
+        assert result.error_details is not None
+        assert "validation" in result.error_details.lower()
+        assert "empty commands" in result.error_details.lower() or "non-empty commands" in result.error_details.lower()
     
     def test_execution_status_tracking(self):
         """Test that execution status is properly tracked."""

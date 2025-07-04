@@ -661,7 +661,7 @@ class TestCommunicationIntegration:
         )
         
         # Security validation
-        security_result = await security_manager.validate_communication_security(
+        security_result = security_manager.validate_communication_security(
             request, "system_sender"
         )
         assert security_result.is_right()

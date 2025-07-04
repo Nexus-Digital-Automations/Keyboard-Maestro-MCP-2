@@ -533,6 +533,7 @@ class ControlFlowBuilder:
             default_block = ActionBlock.from_actions(default_actions)
         
         node = SwitchCaseNode(
+            flow_type=ControlFlowType.SWITCH_CASE,
             switch_variable=variable,
             cases=switch_cases,
             default_case=default_block,
@@ -560,6 +561,7 @@ class ControlFlowBuilder:
             finally_block = ActionBlock.from_actions(finally_actions)
         
         node = TryCatchNode(
+            flow_type=ControlFlowType.TRY_CATCH,
             try_actions=try_block,
             catch_actions=catch_block,
             finally_actions=finally_block,

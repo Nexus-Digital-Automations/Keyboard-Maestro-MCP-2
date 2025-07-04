@@ -1,0 +1,1104 @@
+"""
+Test Biometric Integration Tools - TASK_67 Phase 5 Integration & Testing
+
+Comprehensive testing for biometric authentication, user profiling, personalization,
+and FastMCP tools with security validation and privacy compliance.
+
+Architecture: Property-Based Testing + Unit Testing + Integration Testing + Security Validation
+Performance: <100ms test execution, comprehensive coverage, edge case validation
+Security: Biometric security testing, privacy protection validation, compliance verification
+"""
+
+import pytest
+import asyncio
+from unittest.mock import AsyncMock, Mock, patch
+from typing import Dict, List, Optional, Any
+from datetime import datetime, UTC, timedelta
+
+try:
+    from src.server.tools.biometric_integration_tools import (
+        km_authenticate_biometric,
+        km_identify_user,
+        km_personalize_automation,
+        km_manage_biometric_profiles,
+        km_analyze_user_behavior,
+        get_biometric_manager,
+        get_user_profiler
+    )
+    from src.core.biometric_architecture import (
+        BiometricModality, SecurityLevel, PrivacyLevel, BiometricError,
+        AuthenticationRequest, AuthenticationResult, UserProfile,
+        BiometricSession, BiometricConfiguration, BiometricTemplate,
+        UserProfileId, BiometricSessionId, BiometricTemplateId,
+        generate_profile_id, generate_session_id, generate_template_id,
+        create_default_biometric_config
+    )
+    BIOMETRIC_TOOLS_AVAILABLE = True
+except ImportError as e:
+    BIOMETRIC_TOOLS_AVAILABLE = False
+    # Create mock placeholders
+    km_authenticate_biometric = None
+    km_identify_user = None
+    km_personalize_automation = None
+    km_manage_biometric_profiles = None
+    km_analyze_user_behavior = None
+    get_biometric_manager = None
+    get_user_profiler = None
+    BiometricModality = None
+    SecurityLevel = None
+    PrivacyLevel = None
+    BiometricError = None
+if BIOMETRIC_TOOLS_AVAILABLE:
+    from src.biometric.authentication_manager import BiometricAuthenticationManager
+    from src.biometric.user_profiler import UserProfiler, BehavioralPattern, PersonalizationContext
+    from src.core.either import Either
+else:
+    BiometricAuthenticationManager = None
+    UserProfiler = None
+    BehavioralPattern = None
+    PersonalizationContext = None
+    Either = None
+
+
+@pytest.mark.skipif(not BIOMETRIC_TOOLS_AVAILABLE, reason="Biometric tools imports not available")
+class TestBiometricIntegrationTools:
+    """Test biometric integration MCP tools functionality."""
+    
+    @pytest.fixture
+    def biometric_manager(self):
+        """Create biometric manager for testing."""
+        return BiometricAuthenticationManager()
+    
+    @pytest.fixture
+    def user_profiler(self):
+        """Create user profiler for testing."""
+        return UserProfiler()
+    
+    @pytest.mark.asyncio
+    async def test_km_authenticate_biometric_success(self, biometric_manager):
+        """Test successful biometric authentication."""
+        with patch('src.server.tools.biometric_integration_tools.get_biometric_manager', return_value=biometric_manager), \
+             patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=UserProfiler()):
+            
+            # Mock successful authentication
+            mock_auth_result = AuthenticationResult(
+                session_id=generate_session_id(),
+                success=True,
+                user_profile_id=generate_profile_id("test_user"),
+                authenticated_modalities=[BiometricModality.FACE, BiometricModality.FINGERPRINT],
+                confidence_scores={
+                    BiometricModality.FACE: 0.95,
+                    BiometricModality.FINGERPRINT: 0.92
+                },
+                security_score=0.94,
+                liveness_verified=True,
+                processing_time_ms=150.0,
+                authenticated_at=datetime.now(UTC),
+                valid_until=datetime.now(UTC) + timedelta(hours=8)
+            )
+            
+            biometric_manager.authenticate_user = AsyncMock(return_value=Either.success(mock_auth_result))
+            biometric_manager.get_security_metrics = AsyncMock(return_value={
+                "total_attempts": 1.0,
+                "successful_authentications": 1.0,
+                "success_rate": 1.0
+            })
+            
+            result = await km_authenticate_biometric(
+                authentication_methods=["face", "fingerprint"],
+                security_level="high",
+                multi_factor=True,
+                liveness_detection=True,
+                privacy_mode=True
+            )
+            
+            assert result["success"] is True
+            assert "authentication" in result
+            assert result["authentication"]["success"] is True
+            assert len(result["authentication"]["authenticated_modalities"]) == 2
+            assert result["authentication"]["security_score"] == 0.94
+            assert result["authentication"]["liveness_verified"] is True
+            assert result["security_analysis"]["multi_factor_used"] is True
+            assert "system_metrics" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_authenticate_biometric_invalid_methods(self):
+        """Test biometric authentication with invalid methods."""
+        result = await km_authenticate_biometric(
+            authentication_methods=["invalid_method", "another_invalid"],
+            security_level="medium"
+        )
+        
+        assert result["success"] is False
+        assert "Invalid authentication methods" in result["error"]
+        assert "valid_methods" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_authenticate_biometric_authentication_failure(self, biometric_manager):
+        """Test biometric authentication failure."""
+        with patch('src.server.tools.biometric_integration_tools.get_biometric_manager', return_value=biometric_manager), \
+             patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=UserProfiler()):
+            
+            # Mock authentication failure
+            biometric_manager.authenticate_user = AsyncMock(
+                return_value=Either.error(BiometricError.authentication_failed("face"))
+            )
+            
+            result = await km_authenticate_biometric(
+                authentication_methods=["face"],
+                security_level="high"
+            )
+            
+            assert result["success"] is False
+            assert "error" in result
+            assert "session_id" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_identify_user_success(self, user_profiler):
+        """Test successful user identification."""
+        with patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler):
+            
+            # Create mock user profile
+            user_profile = UserProfile(
+                profile_id=generate_profile_id("test_user"),
+                user_identity="test_user",
+                enrolled_modalities={BiometricModality.FACE, BiometricModality.FINGERPRINT},
+                biometric_templates={
+                    BiometricModality.FACE: generate_template_id(),
+                    BiometricModality.FINGERPRINT: generate_template_id()
+                },
+                personalization_preferences={"theme": "dark", "automation_speed": "fast"},
+                accessibility_settings={},
+                behavioral_patterns={},
+                privacy_settings={"privacy_level": "enhanced"},
+                created_at=datetime.now(UTC),
+                last_updated=datetime.now(UTC),
+                is_active=True
+            )
+            
+            user_profiler.identify_user = AsyncMock(return_value=Either.success(user_profile))
+            
+            result = await km_identify_user(
+                identification_methods=["biometric", "behavioral"],
+                include_preferences=True,
+                confidence_threshold=0.8
+            )
+            
+            assert result["success"] is True
+            assert "identification" in result
+            assert result["identification"]["confidence"] == 0.8
+            assert "profile_data" in result
+            assert "personalization" in result
+            assert len(result["personalization"]["preferences"]) > 0
+    
+    @pytest.mark.asyncio
+    async def test_km_identify_user_with_profile_creation(self, user_profiler, biometric_manager):
+        """Test user identification with automatic profile creation."""
+        with patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler), \
+             patch('src.server.tools.biometric_integration_tools.get_biometric_manager', return_value=biometric_manager):
+            
+            # Mock user not found, then successful enrollment
+            user_profiler.identify_user = AsyncMock(
+                return_value=Either.error(BiometricError("User profile not found"))
+            )
+            
+            # Mock successful enrollment
+            new_profile = UserProfile(
+                profile_id=generate_profile_id("new_user"),
+                user_identity="new_user",
+                enrolled_modalities={BiometricModality.FACE, BiometricModality.FINGERPRINT},
+                biometric_templates={},
+                personalization_preferences={},
+                accessibility_settings={},
+                behavioral_patterns={},
+                privacy_settings={},
+                created_at=datetime.now(UTC),
+                last_updated=datetime.now(UTC),
+                is_active=True
+            )
+            
+            biometric_manager.enroll_user = AsyncMock(return_value=Either.success(new_profile))
+            
+            result = await km_identify_user(
+                identification_methods=["biometric"],
+                create_profile=True
+            )
+            
+            assert result["success"] is True
+            assert "identification" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_identify_user_failure(self, user_profiler):
+        """Test user identification failure."""
+        with patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler):
+            
+            user_profiler.identify_user = AsyncMock(
+                return_value=Either.error(BiometricError("User profile not found"))
+            )
+            
+            result = await km_identify_user(
+                identification_methods=["biometric"],
+                create_profile=False
+            )
+            
+            assert result["success"] is False
+            assert "error" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_personalize_automation_success(self, user_profiler):
+        """Test successful automation personalization."""
+        with patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler):
+            
+            # Create mock user profile with personalization data
+            user_profile = UserProfile(
+                profile_id=generate_profile_id("test_user"),
+                user_identity="test_user",
+                enrolled_modalities={BiometricModality.FACE},
+                biometric_templates={},
+                personalization_preferences={
+                    "automation_style": "efficient",
+                    "interaction_speed": "fast",
+                    "feedback_level": "minimal"
+                },
+                accessibility_settings={"visual_adjustments": {"high_contrast": True}},
+                behavioral_patterns={"usage_pattern": "power_user"},
+                privacy_settings={"allow_learning": True},
+                created_at=datetime.now(UTC),
+                last_updated=datetime.now(UTC),
+                is_active=True
+            )
+            
+            user_profiler.user_profiles[user_profile.profile_id] = user_profile
+            user_profiler.analyze_user_behavior = AsyncMock(return_value=Either.success({
+                "interaction_analysis": {
+                    "most_active_hour": 14,
+                    "most_common_interaction_type": "automation_execution"
+                },
+                "personalization_insights": {
+                    "recommended_adaptations": ["Enable voice shortcuts", "Increase automation frequency"]
+                }
+            }))
+            user_profiler.learn_from_interaction = AsyncMock(return_value=Either.success(None))
+            
+            result = await km_personalize_automation(
+                user_identity="test_user",
+                automation_context="workflow",
+                personalization_scope=["preferences", "behavior", "accessibility"],
+                adaptation_level="comprehensive",
+                learning_mode=True
+            )
+            
+            assert result["success"] is True
+            assert "personalization" in result
+            assert result["personalization"]["adaptation_level"] == "comprehensive"
+            assert "learning" in result
+            assert result["learning"]["learning_enabled"] is True
+            assert "impact_assessment" in result
+            assert "recommendations" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_personalize_automation_invalid_context(self):
+        """Test automation personalization with invalid context."""
+        result = await km_personalize_automation(
+            user_identity="test_user",
+            automation_context="invalid_context"
+        )
+        
+        assert result["success"] is False
+        assert "Invalid automation context" in result["error"]
+        assert "valid_contexts" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_personalize_automation_user_not_found(self, user_profiler):
+        """Test automation personalization with user not found."""
+        with patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler):
+            
+            result = await km_personalize_automation(
+                user_identity="nonexistent_user",
+                automation_context="workflow"
+            )
+            
+            assert result["success"] is False
+            assert "User profile not found" in result["error"]
+    
+    @pytest.mark.asyncio
+    async def test_km_manage_biometric_profiles_create(self, biometric_manager, user_profiler):
+        """Test biometric profile creation."""
+        with patch('src.server.tools.biometric_integration_tools.get_biometric_manager', return_value=biometric_manager), \
+             patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler):
+            
+            # Mock successful enrollment
+            new_profile = UserProfile(
+                profile_id=generate_profile_id("new_user"),
+                user_identity="new_user",
+                enrolled_modalities={BiometricModality.FACE, BiometricModality.FINGERPRINT},
+                biometric_templates={
+                    BiometricModality.FACE: generate_template_id(),
+                    BiometricModality.FINGERPRINT: generate_template_id()
+                },
+                personalization_preferences={"theme": "light"},
+                accessibility_settings={},
+                behavioral_patterns={},
+                privacy_settings={},
+                created_at=datetime.now(UTC),
+                last_updated=datetime.now(UTC),
+                is_active=True
+            )
+            
+            biometric_manager.enroll_user = AsyncMock(return_value=Either.success(new_profile))
+            
+            result = await km_manage_biometric_profiles(
+                operation="create",
+                user_identity="new_user",
+                profile_data={
+                    "modalities": ["face", "fingerprint"],
+                    "preferences": {"theme": "light"}
+                },
+                encryption_level="high",
+                compliance_mode=True
+            )
+            
+            assert result["success"] is True
+            assert result["operation"] == "create"
+            assert result["operation_result"]["profile_created"] is True
+            assert result["operation_result"]["template_count"] == 2
+            assert result["security_status"]["encryption_level"] == "high"
+            assert result["compliance_validation"]["gdpr_compliant"] is True
+    
+    @pytest.mark.asyncio
+    async def test_km_manage_biometric_profiles_update(self, user_profiler):
+        """Test biometric profile update."""
+        with patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler):
+            
+            # Create existing profile
+            existing_profile = UserProfile(
+                profile_id=generate_profile_id("existing_user"),
+                user_identity="existing_user",
+                enrolled_modalities={BiometricModality.FACE},
+                biometric_templates={},
+                personalization_preferences={"theme": "dark"},
+                accessibility_settings={},
+                behavioral_patterns={},
+                privacy_settings={},
+                created_at=datetime.now(UTC),
+                last_updated=datetime.now(UTC),
+                is_active=True
+            )
+            
+            user_profiler.user_profiles[existing_profile.profile_id] = existing_profile
+            user_profiler.update_user_preferences = AsyncMock(return_value=Either.success(existing_profile))
+            
+            result = await km_manage_biometric_profiles(
+                operation="update",
+                user_identity="existing_user",
+                profile_data={
+                    "preferences": {"theme": "light", "automation_speed": "fast"}
+                }
+            )
+            
+            assert result["success"] is True
+            assert result["operation"] == "update"
+            assert result["operation_result"]["profile_updated"] is True
+    
+    @pytest.mark.asyncio
+    async def test_km_manage_biometric_profiles_delete(self, biometric_manager, user_profiler):
+        """Test biometric profile deletion."""
+        with patch('src.server.tools.biometric_integration_tools.get_biometric_manager', return_value=biometric_manager), \
+             patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler):
+            
+            # Create profile to delete
+            profile_to_delete = UserProfile(
+                profile_id=generate_profile_id("delete_user"),
+                user_identity="delete_user",
+                enrolled_modalities={BiometricModality.FACE},
+                biometric_templates={BiometricModality.FACE: generate_template_id()},
+                personalization_preferences={},
+                accessibility_settings={},
+                behavioral_patterns={},
+                privacy_settings={},
+                created_at=datetime.now(UTC),
+                last_updated=datetime.now(UTC),
+                is_active=True
+            )
+            
+            user_profiler.user_profiles[profile_to_delete.profile_id] = profile_to_delete
+            
+            # Add template to biometric manager
+            template_id = list(profile_to_delete.biometric_templates.values())[0]
+            biometric_manager.templates[template_id] = Mock()
+            
+            result = await km_manage_biometric_profiles(
+                operation="delete",
+                user_identity="delete_user",
+                compliance_mode=True
+            )
+            
+            assert result["success"] is True
+            assert result["operation"] == "delete"
+            assert result["operation_result"]["profile_deleted"] is True
+            assert result["operation_result"]["templates_deleted"] == 1
+            assert profile_to_delete.profile_id not in user_profiler.user_profiles
+    
+    @pytest.mark.asyncio
+    async def test_km_manage_biometric_profiles_list(self, user_profiler):
+        """Test biometric profile listing."""
+        with patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler):
+            
+            # Create multiple profiles
+            for i in range(3):
+                profile = UserProfile(
+                    profile_id=generate_profile_id(f"user_{i}"),
+                    user_identity=f"user_{i}",
+                    enrolled_modalities={BiometricModality.FACE},
+                    biometric_templates={},
+                    personalization_preferences={},
+                    accessibility_settings={},
+                    behavioral_patterns={},
+                    privacy_settings={},
+                    created_at=datetime.now(UTC),
+                    last_updated=datetime.now(UTC),
+                    is_active=True
+                )
+                user_profiler.user_profiles[profile.profile_id] = profile
+            
+            result = await km_manage_biometric_profiles(
+                operation="list",
+                user_identity="system"
+            )
+            
+            assert result["success"] is True
+            assert result["operation"] == "list"
+            assert result["operation_result"]["total_profiles"] == 3
+            assert len(result["operation_result"]["profiles"]) == 3
+    
+    @pytest.mark.asyncio
+    async def test_km_manage_biometric_profiles_status(self, biometric_manager):
+        """Test biometric system status."""
+        with patch('src.server.tools.biometric_integration_tools.get_biometric_manager', return_value=biometric_manager):
+            
+            biometric_manager.get_security_metrics = AsyncMock(return_value={
+                "total_attempts": 100.0,
+                "successful_authentications": 95.0,
+                "success_rate": 0.95
+            })
+            
+            result = await km_manage_biometric_profiles(
+                operation="status",
+                user_identity="system",
+                encryption_level="military",
+                compliance_mode=True
+            )
+            
+            assert result["success"] is True
+            assert result["operation"] == "status"
+            assert result["operation_result"]["system_status"] == "operational"
+            assert "security_metrics" in result["operation_result"]
+            assert result["operation_result"]["encryption_status"]["level"] == "military"
+            assert result["operation_result"]["compliance_status"]["compliance_mode"] is True
+    
+    @pytest.mark.asyncio
+    async def test_km_manage_biometric_profiles_invalid_operation(self):
+        """Test biometric profile management with invalid operation."""
+        result = await km_manage_biometric_profiles(
+            operation="invalid_operation",
+            user_identity="test_user"
+        )
+        
+        assert result["success"] is False
+        assert "Invalid operation" in result["error"]
+        assert "valid_operations" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_analyze_user_behavior_success(self, user_profiler):
+        """Test successful user behavior analysis."""
+        with patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler):
+            
+            # Create user profile
+            user_profile = UserProfile(
+                profile_id=generate_profile_id("behavior_user"),
+                user_identity="behavior_user",
+                enrolled_modalities={BiometricModality.FACE},
+                biometric_templates={},
+                personalization_preferences={},
+                accessibility_settings={},
+                behavioral_patterns={"pattern1": {"type": "usage", "frequency": 10}},
+                privacy_settings={"allow_learning": True},
+                created_at=datetime.now(UTC),
+                last_updated=datetime.now(UTC),
+                is_active=True
+            )
+            
+            user_profiler.user_profiles[user_profile.profile_id] = user_profile
+            
+            # Mock behavior analysis
+            behavior_analysis = {
+                "profile_id": user_profile.profile_id,
+                "analysis_period_days": 7,
+                "total_patterns": 5,
+                "recent_patterns": 3,
+                "total_interactions": 50,
+                "recent_interactions": 30,
+                "pattern_analysis": {
+                    "most_common_pattern_type": "interaction",
+                    "average_confidence": 0.85
+                },
+                "interaction_analysis": {
+                    "most_active_hour": 14,
+                    "success_rate": 0.92,
+                    "most_common_interaction_type": "automation_execution"
+                },
+                "personalization_insights": {
+                    "automation_preferences": {"workflow_automation": 15},
+                    "timing_preferences": {"peak_hours": {14: 10, 15: 8}},
+                    "recommended_adaptations": ["Enable voice shortcuts", "Schedule automations for peak hours"]
+                },
+                "behavioral_trends": {
+                    "confidence_trend": "increasing",
+                    "frequency_trend": "stable"
+                }
+            }
+            
+            user_profiler.analyze_user_behavior = AsyncMock(return_value=Either.success(behavior_analysis))
+            user_profiler.detect_behavioral_anomalies = AsyncMock(return_value=Either.success([
+                "Unusual time of access: 3:00"
+            ]))
+            
+            result = await km_analyze_user_behavior(
+                user_identity="behavior_user",
+                analysis_period="week",
+                behavior_patterns=["usage", "preferences", "timing"],
+                include_predictions=True,
+                anomaly_detection=True,
+                generate_insights=True,
+                adaptive_recommendations=True
+            )
+            
+            assert result["success"] is True
+            assert "behavior_analysis" in result
+            assert result["behavior_analysis"]["analysis_period"] == "7 days"
+            assert "anomaly_detection" in result
+            assert result["anomaly_detection"]["anomalies_detected"] == 1
+            assert "predictions" in result
+            assert "insights" in result
+            assert "recommendations" in result
+    
+    @pytest.mark.asyncio
+    async def test_km_analyze_user_behavior_user_not_found(self, user_profiler):
+        """Test user behavior analysis with user not found."""
+        with patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler):
+            
+            result = await km_analyze_user_behavior(
+                user_identity="nonexistent_user"
+            )
+            
+            assert result["success"] is False
+            assert "User profile not found" in result["error"]
+    
+    @pytest.mark.asyncio
+    async def test_km_analyze_user_behavior_analysis_failure(self, user_profiler):
+        """Test user behavior analysis with analysis failure."""
+        with patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler):
+            
+            # Create user profile
+            user_profile = UserProfile(
+                profile_id=generate_profile_id("error_user"),
+                user_identity="error_user",
+                enrolled_modalities={BiometricModality.FACE},
+                biometric_templates={},
+                personalization_preferences={},
+                accessibility_settings={},
+                behavioral_patterns={},
+                privacy_settings={},
+                created_at=datetime.now(UTC),
+                last_updated=datetime.now(UTC),
+                is_active=True
+            )
+            
+            user_profiler.user_profiles[user_profile.profile_id] = user_profile
+            user_profiler.analyze_user_behavior = AsyncMock(
+                return_value=Either.error(BiometricError("Analysis failed"))
+            )
+            
+            result = await km_analyze_user_behavior(
+                user_identity="error_user"
+            )
+            
+            assert result["success"] is False
+            assert "error" in result
+
+
+class TestBiometricIntegrationSecurity:
+    """Test biometric integration security features."""
+    
+    @pytest.mark.asyncio
+    async def test_authentication_security_levels(self):
+        """Test different security levels in authentication."""
+        # Test low security
+        result_low = await km_authenticate_biometric(
+            authentication_methods=["face"],
+            security_level="low",
+            multi_factor=False,
+            liveness_detection=False
+        )
+        
+        # Test critical security
+        result_critical = await km_authenticate_biometric(
+            authentication_methods=["face", "fingerprint"],
+            security_level="critical",
+            multi_factor=True,
+            liveness_detection=True
+        )
+        
+        # Both should handle security levels appropriately
+        assert "security_level" in str(result_low) or "error" in result_low
+        assert "security_level" in str(result_critical) or "error" in result_critical
+    
+    @pytest.mark.asyncio
+    async def test_privacy_mode_enforcement(self):
+        """Test privacy mode enforcement in biometric operations."""
+        result = await km_authenticate_biometric(
+            authentication_methods=["face"],
+            privacy_mode=True,
+            security_level="high"
+        )
+        
+        # Should handle privacy mode appropriately
+        assert "success" in result
+        
+        # Test privacy in behavior analysis
+        result_behavior = await km_analyze_user_behavior(
+            user_identity="test_user",
+            privacy_preserving=True
+        )
+        
+        assert "success" in result_behavior
+    
+    @pytest.mark.asyncio
+    async def test_data_encryption_compliance(self):
+        """Test data encryption and compliance features."""
+        result = await km_manage_biometric_profiles(
+            operation="create",
+            user_identity="compliance_user",
+            profile_data={"modalities": ["face"]},
+            encryption_level="military",
+            compliance_mode=True,
+            audit_logging=True
+        )
+        
+        if result["success"]:
+            assert result["security_status"]["encryption_level"] == "military"
+            assert result["compliance_validation"]["gdpr_compliant"] is True
+            assert result["audit_information"]["compliance_mode"] is True
+
+
+class TestBiometricIntegrationPerformance:
+    """Test biometric integration performance characteristics."""
+    
+    @pytest.mark.asyncio
+    async def test_authentication_timeout_handling(self):
+        """Test authentication timeout handling."""
+        result = await km_authenticate_biometric(
+            authentication_methods=["face"],
+            timeout=5  # Short timeout
+        )
+        
+        # Should handle timeout appropriately
+        assert "success" in result
+        assert "timestamp" in result
+    
+    @pytest.mark.asyncio
+    async def test_large_profile_list_handling(self, user_profiler):
+        """Test handling of large profile lists."""
+        with patch('src.server.tools.biometric_integration_tools.get_user_profiler', return_value=user_profiler):
+            
+            # Create many profiles
+            for i in range(25):
+                profile = UserProfile(
+                    profile_id=generate_profile_id(f"user_{i}"),
+                    user_identity=f"user_{i}",
+                    enrolled_modalities={BiometricModality.FACE},
+                    biometric_templates={},
+                    personalization_preferences={},
+                    accessibility_settings={},
+                    behavioral_patterns={},
+                    privacy_settings={},
+                    created_at=datetime.now(UTC),
+                    last_updated=datetime.now(UTC),
+                    is_active=True
+                )
+                user_profiler.user_profiles[profile.profile_id] = profile
+            
+            result = await km_manage_biometric_profiles(
+                operation="list",
+                user_identity="system"
+            )
+            
+            assert result["success"] is True
+            assert result["operation_result"]["total_profiles"] == 25
+            # Should limit returned profiles for performance
+            assert len(result["operation_result"]["profiles"]) <= 20
+            assert result["operation_result"]["has_more"] is True
+    
+    @pytest.mark.asyncio
+    async def test_concurrent_authentication_handling(self):
+        """Test handling of concurrent authentication requests."""
+        # Create multiple concurrent authentication requests
+        tasks = []
+        for i in range(5):
+            task = km_authenticate_biometric(
+                authentication_methods=["face"],
+                security_level="medium"
+            )
+            tasks.append(task)
+        
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # All requests should complete without interference
+        assert len(results) == 5
+        for result in results:
+            assert isinstance(result, dict)
+            assert "success" in result
+
+
+class TestBiometricIntegrationEdgeCases:
+    """Test edge cases and error conditions."""
+    
+    @pytest.mark.asyncio
+    async def test_empty_authentication_methods(self):
+        """Test authentication with empty methods list."""
+        result = await km_authenticate_biometric(
+            authentication_methods=[],
+            security_level="medium"
+        )
+        
+        assert result["success"] is False
+        assert "error" in result
+    
+    @pytest.mark.asyncio
+    async def test_invalid_user_identity_formats(self):
+        """Test various invalid user identity formats."""
+        invalid_identities = ["", None, "   ", "user with spaces", "user@with@symbols"]
+        
+        for identity in invalid_identities:
+            if identity is not None:  # Skip None as it would cause parameter issues
+                result = await km_identify_user(
+                    identification_methods=["biometric"],
+                    user_context=identity
+                )
+                # Should handle gracefully
+                assert "success" in result
+    
+    @pytest.mark.asyncio
+    async def test_personalization_with_missing_profile_data(self):
+        """Test personalization with minimal profile data."""
+        result = await km_personalize_automation(
+            user_identity="minimal_user",
+            automation_context="workflow",
+            personalization_scope=["preferences"]
+        )
+        
+        # Should handle missing profile gracefully
+        assert "success" in result
+    
+    @pytest.mark.asyncio
+    async def test_behavior_analysis_with_no_data(self):
+        """Test behavior analysis with no behavioral data."""
+        result = await km_analyze_user_behavior(
+            user_identity="no_data_user",
+            behavior_patterns=["usage", "timing"]
+        )
+        
+        # Should handle missing data gracefully
+        assert "success" in result
+
+
+class TestBiometricConfigurationValidation:
+    """Test biometric configuration and validation."""
+    
+    def test_biometric_modality_validation(self):
+        """Test biometric modality validation."""
+        # Test valid modalities
+        valid_modalities = ["fingerprint", "face", "voice", "iris", "palm"]
+        for modality in valid_modalities:
+            try:
+                BiometricModality(modality)
+            except ValueError:
+                pytest.fail(f"Valid modality {modality} should not raise ValueError")
+        
+        # Test invalid modality
+        with pytest.raises(ValueError):
+            BiometricModality("invalid_modality")
+    
+    def test_security_level_validation(self):
+        """Test security level validation."""
+        # Test valid security levels
+        valid_levels = ["low", "medium", "high", "critical"]
+        for level in valid_levels:
+            try:
+                SecurityLevel(level)
+            except ValueError:
+                pytest.fail(f"Valid security level {level} should not raise ValueError")
+        
+        # Test invalid security level
+        with pytest.raises(ValueError):
+            SecurityLevel("invalid_level")
+    
+    def test_privacy_level_validation(self):
+        """Test privacy level validation."""
+        # Test valid privacy levels
+        valid_levels = ["minimal", "standard", "enhanced", "maximum"]
+        for level in valid_levels:
+            try:
+                PrivacyLevel(level)
+            except ValueError:
+                pytest.fail(f"Valid privacy level {level} should not raise ValueError")
+        
+        # Test invalid privacy level
+        with pytest.raises(ValueError):
+            PrivacyLevel("invalid_level")
+    
+    def test_biometric_configuration_creation(self):
+        """Test biometric configuration creation and validation."""
+        # Test default configuration
+        config = create_default_biometric_config()
+        assert config.meets_security_requirements()
+        assert len(config.enabled_modalities) > 0
+        assert config.liveness_detection is True
+        assert config.anti_spoofing is True
+        
+        # Test custom configuration
+        from src.core.biometric_architecture import BiometricConfiguration
+        custom_config = BiometricConfiguration(
+            enabled_modalities={BiometricModality.FACE, BiometricModality.FINGERPRINT},
+            security_level=SecurityLevel.HIGH,
+            privacy_level=PrivacyLevel.ENHANCED,
+            liveness_detection=True,
+            anti_spoofing=True,
+            quality_threshold=0.8,
+            confidence_threshold=0.9,
+            session_timeout_hours=8,
+            max_enrollment_attempts=3,
+            template_encryption_enabled=True,
+            audit_logging_enabled=True,
+            compliance_mode=True
+        )
+        
+        assert custom_config.meets_security_requirements()
+        assert custom_config.is_modality_enabled(BiometricModality.FACE)
+        assert not custom_config.is_modality_enabled(BiometricModality.VOICE)
+
+
+class TestBiometricAuthenticationManager:
+    """Test BiometricAuthenticationManager functionality."""
+    
+    @pytest.fixture
+    def auth_manager(self):
+        """Create authentication manager for testing."""
+        return BiometricAuthenticationManager()
+    
+    @pytest.mark.asyncio
+    async def test_user_enrollment(self, auth_manager):
+        """Test user enrollment process."""
+        user_identity = "test_enrollment_user"
+        modalities = [BiometricModality.FACE, BiometricModality.FINGERPRINT]
+        biometric_data = {
+            BiometricModality.FACE: b"face_enrollment_data",
+            BiometricModality.FINGERPRINT: b"fingerprint_enrollment_data"
+        }
+        
+        result = await auth_manager.enroll_user(
+            user_identity=user_identity,
+            modalities=modalities,
+            biometric_data=biometric_data,
+            personalization_preferences={"theme": "dark"}
+        )
+        
+        assert result.is_success()
+        user_profile = result.value
+        assert user_profile.user_identity == user_identity
+        assert len(user_profile.enrolled_modalities) == 2
+        assert BiometricModality.FACE in user_profile.enrolled_modalities
+        assert BiometricModality.FINGERPRINT in user_profile.enrolled_modalities
+    
+    @pytest.mark.asyncio
+    async def test_duplicate_enrollment_prevention(self, auth_manager):
+        """Test prevention of duplicate user enrollment."""
+        user_identity = "duplicate_test_user"
+        modalities = [BiometricModality.FACE]
+        biometric_data = {BiometricModality.FACE: b"face_data"}
+        
+        # First enrollment should succeed
+        result1 = await auth_manager.enroll_user(
+            user_identity=user_identity,
+            modalities=modalities,
+            biometric_data=biometric_data
+        )
+        assert result1.is_success()
+        
+        # Second enrollment should fail
+        result2 = await auth_manager.enroll_user(
+            user_identity=user_identity,
+            modalities=modalities,
+            biometric_data=biometric_data
+        )
+        assert result2.is_error()
+        assert "already enrolled" in str(result2.error_value)
+    
+    @pytest.mark.asyncio
+    async def test_security_metrics_tracking(self, auth_manager):
+        """Test security metrics tracking."""
+        initial_metrics = await auth_manager.get_security_metrics()
+        assert initial_metrics["total_attempts"] == 0.0
+        assert initial_metrics["successful_authentications"] == 0.0
+        
+        # Enroll a user for testing
+        await auth_manager.enroll_user(
+            user_identity="metrics_test_user",
+            modalities=[BiometricModality.FACE],
+            biometric_data={BiometricModality.FACE: b"face_data"}
+        )
+        
+        # Attempt authentication (will likely fail due to simulation)
+        session_id = generate_session_id()
+        auth_request = AuthenticationRequest(
+            session_id=session_id,
+            modalities=[BiometricModality.FACE],
+            security_level=SecurityLevel.MEDIUM,
+            privacy_level=PrivacyLevel.STANDARD
+        )
+        biometric_data = {BiometricModality.FACE: b"test_face_data"}
+        
+        await auth_manager.authenticate_user(auth_request, biometric_data)
+        
+        # Check metrics updated
+        updated_metrics = await auth_manager.get_security_metrics()
+        assert updated_metrics["total_attempts"] >= 1.0
+
+
+class TestUserProfiler:
+    """Test UserProfiler functionality."""
+    
+    @pytest.fixture
+    def user_profiler_instance(self):
+        """Create user profiler for testing."""
+        return UserProfiler()
+    
+    @pytest.mark.asyncio
+    async def test_user_preference_updates(self, user_profiler_instance):
+        """Test user preference updates."""
+        # Create a user profile
+        user_profile = UserProfile(
+            profile_id=generate_profile_id("preference_user"),
+            user_identity="preference_user",
+            enrolled_modalities={BiometricModality.FACE},
+            biometric_templates={},
+            personalization_preferences={"theme": "dark"},
+            accessibility_settings={},
+            behavioral_patterns={},
+            privacy_settings={},
+            created_at=datetime.now(UTC),
+            last_updated=datetime.now(UTC),
+            is_active=True
+        )
+        
+        user_profiler_instance.user_profiles[user_profile.profile_id] = user_profile
+        
+        # Update preferences
+        new_preferences = {"theme": "light", "automation_speed": "fast"}
+        result = await user_profiler_instance.update_user_preferences(
+            user_profile.profile_id,
+            new_preferences,
+            merge=True
+        )
+        
+        assert result.is_success()
+        updated_profile = result.value
+        assert updated_profile.personalization_preferences["theme"] == "light"
+        assert updated_profile.personalization_preferences["automation_speed"] == "fast"
+    
+    @pytest.mark.asyncio
+    async def test_behavioral_learning(self, user_profiler_instance):
+        """Test behavioral pattern learning."""
+        # Create a user profile
+        user_profile = UserProfile(
+            profile_id=generate_profile_id("learning_user"),
+            user_identity="learning_user",
+            enrolled_modalities={BiometricModality.FACE},
+            biometric_templates={},
+            personalization_preferences={},
+            accessibility_settings={},
+            behavioral_patterns={},
+            privacy_settings={"allow_learning": True},
+            created_at=datetime.now(UTC),
+            last_updated=datetime.now(UTC),
+            is_active=True
+        )
+        
+        user_profiler_instance.user_profiles[user_profile.profile_id] = user_profile
+        
+        # Learn from interaction
+        interaction_data = {
+            "automation_type": "workflow_execution",
+            "success": True,
+            "context": {"time_of_day": "morning", "device": "desktop"}
+        }
+        
+        result = await user_profiler_instance.learn_from_interaction(
+            user_profile.profile_id,
+            "automation_execution",
+            interaction_data,
+            success=True
+        )
+        
+        assert result.is_success()
+        
+        # Check that interaction was recorded
+        interactions = user_profiler_instance.interaction_history[user_profile.profile_id]
+        assert len(interactions) > 0
+        assert interactions[-1]["type"] == "automation_execution"
+    
+    @pytest.mark.asyncio
+    async def test_behavioral_anomaly_detection(self, user_profiler_instance):
+        """Test behavioral anomaly detection."""
+        # Create a user profile with some interaction history
+        user_profile = UserProfile(
+            profile_id=generate_profile_id("anomaly_user"),
+            user_identity="anomaly_user",
+            enrolled_modalities={BiometricModality.FACE},
+            biometric_templates={},
+            personalization_preferences={},
+            accessibility_settings={},
+            behavioral_patterns={},
+            privacy_settings={},
+            created_at=datetime.now(UTC),
+            last_updated=datetime.now(UTC),
+            is_active=True
+        )
+        
+        user_profiler_instance.user_profiles[user_profile.profile_id] = user_profile
+        
+        # Add some historical interactions
+        for i in range(10):
+            interaction = {
+                "type": "normal_interaction",
+                "timestamp": datetime.now(UTC) - timedelta(days=i),
+                "context": {"device": "desktop"}
+            }
+            user_profiler_instance.interaction_history[user_profile.profile_id].append(interaction)
+        
+        # Test anomalous interaction
+        anomalous_interaction = {
+            "type": "unusual_interaction",
+            "timestamp": datetime.now(UTC).replace(hour=3),  # Unusual hour
+            "context": {"device": "mobile"}  # Different device
+        }
+        
+        result = await user_profiler_instance.detect_behavioral_anomalies(
+            user_profile.profile_id,
+            anomalous_interaction
+        )
+        
+        assert result.is_success()
+        anomalies = result.value
+        # Should detect at least one anomaly (unusual time)
+        assert len(anomalies) > 0

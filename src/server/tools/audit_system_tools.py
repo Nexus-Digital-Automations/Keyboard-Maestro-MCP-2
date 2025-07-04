@@ -20,6 +20,7 @@ except ImportError:
 
 from ...core.contracts import require, ensure
 from ...core.either import Either
+from ...core.errors import ValidationError, ErrorContext
 from ...core.audit_framework import (
     AuditEventType, ComplianceStandard, AuditConfiguration, 
     RiskLevel, AuditLevel, SecurityLimits
@@ -130,6 +131,9 @@ async def km_audit_system(
                 }
             }
             
+    except ValidationError:
+        # Re-raise validation errors for proper error handling
+        raise
     except Exception as e:
         logger.error(f"Audit system error: {str(e)}")
         return {
@@ -155,13 +159,12 @@ async def _handle_log_operation(audit_system, event_type: Optional[str], user_id
             }
         
         if not user_id:
-            return {
-                "success": False,
-                "error": {
-                    "code": "MISSING_PARAMETER",
-                    "message": "user_id required for log operation"
-                }
-            }
+            raise ValidationError(
+                field_name="user_id",
+                value=user_id,
+                constraint="must not be empty",
+                context=ErrorContext(operation="log", component="audit_system")
+            )
         
         # Parse event type
         try:
@@ -238,6 +241,9 @@ async def _handle_log_operation(audit_system, event_type: Optional[str], user_id
             }
         }
         
+    except ValidationError:
+        # Re-raise validation errors for proper error handling
+        raise
     except Exception as e:
         logger.error(f"Error in log operation: {e}")
         return {

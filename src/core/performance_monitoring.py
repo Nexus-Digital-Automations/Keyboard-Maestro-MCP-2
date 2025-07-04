@@ -218,9 +218,14 @@ class MonitoringConfiguration:
     auto_optimize: bool = False
     
     def __post_init__(self):
-        require(lambda: self.sampling_interval > 0, "Sampling interval must be positive")
-        require(lambda: self.duration is None or self.duration > 0, "Duration must be positive if specified")
-        require(lambda: len(self.metrics_types) > 0, "At least one metric type required")
+        from ..core.errors import ValidationError
+        
+        if not self.sampling_interval > 0:
+            raise ValidationError("sampling_interval", self.sampling_interval, "Sampling interval must be positive")
+        if self.duration is not None and not self.duration > 0:
+            raise ValidationError("duration", self.duration, "Duration must be positive if specified")
+        if not len(self.metrics_types) > 0:
+            raise ValidationError("metrics_types", self.metrics_types, "At least one metric type required")
 
 
 @dataclass

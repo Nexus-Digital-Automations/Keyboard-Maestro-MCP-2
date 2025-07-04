@@ -34,6 +34,10 @@ class DataAnonymizer:
         self.sensitive_patterns: List[str] = []
         self.field_mappings: Dict[str, str] = {}
         self._salt = self._generate_session_salt()
+        
+        # Initialize patterns immediately for testing and basic usage
+        self._configure_anonymization_rules()
+        self._configure_sensitive_patterns()
     
     async def initialize(self, privacy_level: PrivacyLevel) -> Either[IntelligenceError, None]:
         """Initialize anonymizer with privacy-specific configuration."""
@@ -139,9 +143,13 @@ class DataAnonymizer:
             if key in ['tool_name', 'action', 'file_path']:
                 anonymized[key] = self._hash_value(str(value))
             
-            # Preserve essential analytics data
+            # Preserve essential analytics data with anonymization for timestamps
             elif key in ['timestamp', 'success', 'execution_time', 'error_count']:
-                anonymized[key] = value
+                if key == 'timestamp' and isinstance(value, datetime):
+                    # Anonymize timestamp to remove precise timing information
+                    anonymized[key] = value.strftime('%Y-%m-%d')  # Date only, no time
+                else:
+                    anonymized[key] = value
             
             # Anonymize other string fields
             elif isinstance(value, str) and not self._is_safe_value(value):
@@ -269,6 +277,62 @@ class DataAnonymizer:
         
         return sanitized
     
+    def _anonymize_string_value(self, value: str, privacy_level: PrivacyLevel) -> str:
+        """Anonymize a string value based on privacy level."""
+        if privacy_level == PrivacyLevel.MAXIMUM:
+            # Hash all non-safe values for maximum privacy
+            if self._is_safe_value(value):
+                return value
+            else:
+                return self._hash_value(value)
+        elif privacy_level == PrivacyLevel.BALANCED:
+            # Apply moderate anonymization
+            if self._contains_sensitive_patterns(value):
+                return self._hash_value(value)
+            else:
+                return value
+        else:  # PERMISSIVE
+            # Minimal anonymization - only highly sensitive patterns
+            if any(pattern in value.lower() for pattern in ['password', 'secret', 'token']):
+                return self._hash_value(value)
+            else:
+                return value
+    
+    def _contains_sensitive_patterns(self, value: str) -> bool:
+        """Check if value contains sensitive patterns."""
+        sensitive_keywords = [
+            'password', 'secret', 'token', 'key', 'auth',
+            'email', 'phone', 'ssn', 'social security',
+            'credit card', 'private', 'confidential'
+        ]
+        value_lower = value.lower()
+        return any(keyword in value_lower for keyword in sensitive_keywords)
+    
+    def _appears_to_be_identifier(self, value: str) -> bool:
+        """Check if value appears to be a personal identifier."""
+        # Check for email-like patterns
+        if '@' in value and '.' in value:
+            return True
+        
+        # Check for real names (contains spaces and multiple words)
+        words = value.split()
+        if len(words) >= 2 and all(word.isalpha() for word in words):
+            return True
+        
+        # Check for phone number patterns
+        if re.match(r'\d{3}[-.]?\d{3}[-.]?\d{4}', value):
+            return True
+        
+        # Check for ID-like patterns (long alphanumeric strings)
+        if len(value) > 8 and value.isalnum():
+            return True
+        
+        # Check for username patterns
+        if any(pattern in value.lower() for pattern in ['user', 'admin', 'test']):
+            return True
+        
+        return False
+    
     def _is_valid_anonymized_record(self, record: Dict[str, Any]) -> bool:
         """Validate that anonymized record meets privacy requirements."""
         # Check that essential fields are present for analysis
@@ -315,12 +379,12 @@ class DataAnonymizer:
     def _configure_sensitive_patterns(self) -> None:
         """Configure patterns for sensitive data detection."""
         self.sensitive_patterns = [
-            r'(?i)(password|passwd|pwd)[\\s:=]+[^\\s]+',
-            r'(?i)(secret|token|key)[\\s:=]+[^\\s]+',
-            r'(?i)(api[_\\s]*key)[\\s:=]+[^\\s]+',
-            r'(?i)(credit[_\\s]*card|ssn|social[_\\s]*security)',
-            r'\\b\\d{3}-\\d{2}-\\d{4}\\b',  # SSN format
-            r'\\b\\d{4}[\\s-]*\\d{4}[\\s-]*\\d{4}[\\s-]*\\d{4}\\b',  # Credit card format
-            r'\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\b',  # Email format
-            r'\\b\\d{3}[-.]?\\d{3}[-.]?\\d{4}\\b',  # Phone format
+            r'(?i)(password|passwd|pwd)[\s:=]+[^\s]+',
+            r'(?i)(secret|token|key)[\s:=]+[^\s]+',
+            r'(?i)(api[_\s]*key)[\s:=]+[^\s]+',
+            r'(?i)(credit[_\s]*card|ssn|social[_\s]*security)',
+            r'\b\d{3}-\d{2}-\d{4}\b',  # SSN format
+            r'\b\d{4}[\s-]*\d{4}[\s-]*\d{4}[\s-]*\d{4}\b',  # Credit card format
+            r'\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b',  # Email format
+            r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b',  # Phone format
         ]

@@ -9,7 +9,7 @@ security, compliance, and integrity verification.
 import pytest
 import asyncio
 from unittest.mock import Mock, AsyncMock, patch
-from hypothesis import given, strategies as st, assume, settings
+from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime, timedelta, UTC
 from typing import Dict, Any
 import uuid
@@ -18,6 +18,7 @@ from src.core.audit_framework import (
     AuditEvent, AuditEventType, ComplianceRule, ComplianceReport,
     ComplianceStandard, RiskLevel, AuditLevel, AuditConfiguration
 )
+from src.core.either import Either
 from src.audit.event_logger import EventLogger
 from src.audit.compliance_monitor import ComplianceMonitor
 from src.audit.report_generator import ReportGenerator
@@ -264,8 +265,9 @@ class TestEventLoggerProperties:
         st.text(min_size=1, max_size=100),
         st.text(min_size=1, max_size=50)
     )
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_event_logging_properties(self, event_type, user_id, action, result, event_logger):
+    async def test_event_logging_properties(self, event_logger, event_type, user_id, action, result):
         """Property: Event logging should handle various event types and data."""
         assume(user_id.strip() != "")
         assume(action.strip() != "")
@@ -301,8 +303,9 @@ class TestEventLoggerProperties:
             max_size=5
         )
     )
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_event_logging_with_filters_properties(self, filters, event_logger):
+    async def test_event_logging_with_filters_properties(self, event_logger, filters):
         """Property: Event querying with filters should be consistent."""
         # First log some events
         for i in range(3):
@@ -326,8 +329,9 @@ class TestEventLoggerProperties:
                 assert event.user_id == filters['user_id']
     
     @given(st.integers(min_value=1, max_value=100))
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_rate_limiting_properties(self, event_count, event_logger):
+    async def test_rate_limiting_properties(self, event_logger, event_count):
         """Property: Rate limiting should prevent excessive event logging."""
         user_id = "test_user"
         
@@ -356,8 +360,9 @@ class TestComplianceMonitorProperties:
         return ComplianceMonitor()
     
     @given(st.sampled_from(list(ComplianceStandard)))
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_compliance_rule_registration_properties(self, standard, compliance_monitor):
+    async def test_compliance_rule_registration_properties(self, compliance_monitor, standard):
         """Property: Compliance rule registration should handle all standards."""
         rule = ComplianceRule(
             rule_id=f"test_rule_{standard.value}",
@@ -393,8 +398,9 @@ class TestComplianceMonitorProperties:
             max_size=10
         )
     )
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_batch_event_monitoring_properties(self, event_specs, compliance_monitor):
+    async def test_batch_event_monitoring_properties(self, compliance_monitor, event_specs):
         """Property: Batch event monitoring should handle multiple events."""
         # Create events from specifications
         events = []
@@ -440,8 +446,9 @@ class TestReportGeneratorProperties:
         st.integers(min_value=1, max_value=90),
         st.integers(min_value=0, max_value=50)
     )
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_compliance_report_properties(self, standard, period_days, violation_count, report_generator):
+    async def test_compliance_report_properties(self, report_generator, standard, period_days, violation_count):
         """Property: Compliance reports should handle various standards and periods."""
         end_time = datetime.now(UTC)
         start_time = end_time - timedelta(days=period_days)

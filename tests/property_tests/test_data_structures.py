@@ -228,7 +228,7 @@ class TestSecurityValidationProperties:
                     # Should pass if no issues
                     assert result.is_right() or result.is_left()  # Either way is valid
     
-    @given(st.integers(min_value=0, max_value=100))
+    @given(st.integers(min_value=0, max_value=20))  # Limit to DEFAULT_SECURITY_LIMITS.max_nesting_depth
     def test_depth_calculation_properties(self, depth_target):
         """Property: Depth calculation should be accurate for nested structures."""
         # Create nested structure of specified depth

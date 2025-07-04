@@ -19,6 +19,60 @@ from ...calculations.km_math_integration import KMTokenCalculator
 from ...integration.km_client import KMError
 
 
+# Additional functions expected by tests - these wrap the main km_calculator function
+async def km_calculate_expression(expression: str, ctx=None) -> Dict[str, Any]:
+    """Calculate a mathematical expression."""
+    return await km_calculator(
+        expression=expression,
+        variables={},
+        format_result="decimal",
+        precision=2,
+        use_km_engine=False,
+        validate_only=False,
+        ctx=ctx
+    )
+
+
+async def km_calculate_math_function(function: str, value: float, ctx=None) -> Dict[str, Any]:
+    """Calculate a mathematical function like sin, cos, etc."""
+    expression = f"{function}({value})"
+    return await km_calculator(
+        expression=expression,
+        variables={},
+        format_result="decimal",
+        precision=6,
+        use_km_engine=False,
+        validate_only=False,
+        ctx=ctx
+    )
+
+
+async def km_convert_number_format(value: float, from_format: str, to_format: str, ctx=None) -> Dict[str, Any]:
+    """Convert a number between different formats."""
+    return await km_calculator(
+        expression=str(value),
+        variables={},
+        format_result=to_format,
+        precision=2,
+        use_km_engine=False,
+        validate_only=False,
+        ctx=ctx
+    )
+
+
+async def km_evaluate_formula(formula: str, variables: Dict[str, float], ctx=None) -> Dict[str, Any]:
+    """Evaluate a formula with variables."""
+    return await km_calculator(
+        expression=formula,
+        variables=variables,
+        format_result="decimal",
+        precision=2,
+        use_km_engine=False,
+        validate_only=False,
+        ctx=ctx
+    )
+
+
 async def km_calculator(
     expression: str,
     variables: Dict[str, float],
@@ -113,7 +167,7 @@ async def km_calculator(
             if km_result.is_left():
                 # Fallback to local calculator
                 calculator = Calculator()
-                calc_result = await calculator.evaluate(calc_expression)
+                calc_result = await calculator.calculate(calc_expression)
             else:
                 # Use KM result
                 km_value = km_result.get_right()
@@ -141,7 +195,7 @@ async def km_calculator(
                 await ctx.info("Using local calculation engine")
             
             calculator = Calculator()
-            calc_result = await calculator.evaluate(calc_expression)
+            calc_result = await calculator.calculate(calc_expression)
         
         # Process calculation result
         if calc_result.is_left():

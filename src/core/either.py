@@ -57,6 +57,16 @@ class Either(Generic[A, B], ABC):
         """Transform the Left value, leaving Right unchanged."""
         pass
     
+    @abstractmethod
+    def filter(self, predicate: Callable[[B], bool], error: A) -> Either[A, B]:
+        """Filter the Right value using predicate, returning Left with error if fails."""
+        pass
+    
+    @abstractmethod
+    def fold(self, left_func: Callable[[A], C], right_func: Callable[[B], C]) -> C:
+        """Fold the Either value using appropriate function for Left or Right."""
+        pass
+    
     def get_or_else(self, default: B) -> B:
         """Get the Right value or return default if Left."""
         if self.is_right():
@@ -97,6 +107,68 @@ class Either(Generic[A, B], ABC):
         except Exception as e:
             error = error_handler(e)
             return Either.left(error)
+    
+    @staticmethod
+    def try_either(operation: Callable[[], B]) -> Either[Exception, B]:
+        """
+        Execute an operation that might throw an exception.
+        
+        Args:
+            operation: Function that might throw an exception
+            
+        Returns:
+            Either[Exception, B] containing the result or exception
+        """
+        try:
+            result = operation()
+            return Either.right(result)
+        except Exception as e:
+            return Either.left(e)
+    
+    @staticmethod
+    def from_optional(value: Union[B, None], error: A) -> Either[A, B]:
+        """
+        Create Either from optional value.
+        
+        Args:
+            value: Optional value (None or actual value)
+            error: Error to use if value is None
+            
+        Returns:
+            Either[A, B] containing the result or error
+        """
+        if value is None:
+            return Either.left(error)
+        return Either.right(value)
+    
+    # Compatibility methods for existing code
+    @staticmethod
+    def success(value: B) -> Either[A, B]:
+        """Create a successful Either (alias for right)."""
+        return Either.right(value)
+    
+    @staticmethod
+    def error(value: A) -> Either[A, B]:
+        """Create an error Either (alias for left)."""
+        return Either.left(value)
+    
+    def is_success(self) -> bool:
+        """Check if this is a success value (alias for is_right)."""
+        return self.is_right()
+    
+    def is_error(self) -> bool:
+        """Check if this is an error value (alias for is_left)."""
+        return self.is_left()
+    
+    @property
+    def value(self) -> B:
+        """Get the success value (alias for get_right)."""
+        return self.get_right()
+    
+    @property
+    def error_value(self) -> A:
+        """Get the error value (alias for get_left)."""
+        return self.get_left()
 
 class _Left(Either[A, B]):
     """Left (error) implementation of Either."""
@@ -124,6 +196,14 @@ class _Left(Either[A, B]):
     
     def map_left(self, f: Callable[[A], C]) -> Either[C, B]:
         return _Left(f(self._value))
+    
+    def filter(self, predicate: Callable[[B], bool], error: A) -> Either[A, B]:
+        """Filter operation on Left returns the same Left."""
+        return _Left(self._value)
+    
+    def fold(self, left_func: Callable[[A], C], right_func: Callable[[B], C]) -> C:
+        """Fold Left value using left_func."""
+        return left_func(self._value)
     
     def __repr__(self) -> str:
         return f"Left({self._value})"
@@ -157,6 +237,16 @@ class _Right(Either[A, B]):
     
     def map_left(self, f: Callable[[A], C]) -> Either[C, B]:
         return _Right(self._value)
+    
+    def filter(self, predicate: Callable[[B], bool], error: A) -> Either[A, B]:
+        """Filter Right value using predicate."""
+        if predicate(self._value):
+            return _Right(self._value)
+        return _Left(error)
+    
+    def fold(self, left_func: Callable[[A], C], right_func: Callable[[B], C]) -> C:
+        """Fold Right value using right_func."""
+        return right_func(self._value)
     
     def __repr__(self) -> str:
         return f"Right({self._value})"
@@ -194,3 +284,7 @@ def traverse(values: list[A], f: Callable[[A], Either[B, C]]) -> Either[B, list[
             return result
         results.append(result.get_right())
     return Either.right(results)
+
+# Public aliases for Left and Right for direct usage
+Left = _Left
+Right = _Right

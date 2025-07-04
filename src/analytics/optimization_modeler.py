@@ -54,6 +54,19 @@ class OptimizationMethod(Enum):
     CONSTRAINT_SATISFACTION = "constraint_satisfaction"
 
 
+class OptimizationStrategy(Enum):
+    """High-level optimization strategies."""
+    SINGLE_OBJECTIVE = "single_objective"
+    MULTI_OBJECTIVE = "multi_objective"
+    ROBUST_OPTIMIZATION = "robust_optimization"
+    STOCHASTIC_OPTIMIZATION = "stochastic_optimization"
+    DYNAMIC_PROGRAMMING = "dynamic_programming"
+    HEURISTIC_SEARCH = "heuristic_search"
+    HYBRID_APPROACH = "hybrid_approach"
+    CONTINUOUS_OPTIMIZATION = "continuous_optimization"
+    DISCRETE_OPTIMIZATION = "discrete_optimization"
+
+
 class SimulationType(Enum):
     """Types of outcome simulation."""
     MONTE_CARLO = "monte_carlo"

@@ -15,6 +15,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta, UTC
 from collections import defaultdict
 import logging
+from dataclasses import dataclass
 
 from ..core.performance_monitoring import (
     MonitoringSessionID, MetricType, AlertSeverity, BottleneckType,
@@ -28,11 +29,23 @@ from ..core.either import Either
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class PerformanceBaseline:
+    """Performance baseline for metric comparison."""
+    metric_type: MetricType
+    baseline_value: float
+    baseline_range: Tuple[float, float]
+    sample_size: int
+    confidence_interval: float
+    created_at: datetime
+
+
 class PerformanceAnalyzer:
     """Advanced performance analysis and bottleneck detection engine."""
     
     def __init__(self):
         self.analysis_cache: Dict[str, Any] = {}
+        self.baselines: Dict[MetricType, PerformanceBaseline] = {}
         self.baseline_metrics: Dict[MetricType, Dict[str, float]] = {}
         self.optimization_history: List[OptimizationRecommendation] = []
         self.logger = logging.getLogger(__name__)
@@ -74,18 +87,18 @@ class PerformanceAnalyzer:
             # Bottleneck detection
             bottlenecks_result = await self.detect_bottlenecks(metrics)
             if bottlenecks_result.is_left():
-                return Either.left(bottlenecks_result.left())
+                return Either.left(bottlenecks_result.get_left())
             
-            bottlenecks = bottlenecks_result.right()
+            bottlenecks = bottlenecks_result.get_right()
             
             # Generate recommendations
             recommendations_result = await self.generate_optimization_recommendations(
                 metrics, bottlenecks
             )
             if recommendations_result.is_left():
-                return Either.left(recommendations_result.left())
+                return Either.left(recommendations_result.get_left())
             
-            recommendations = recommendations_result.right()
+            recommendations = recommendations_result.get_right()
             
             # Performance trends (if sufficient data)
             trends = await self._analyze_trends(metrics)
@@ -99,7 +112,7 @@ class PerformanceAnalyzer:
                 "analysis_timestamp": analysis_start.isoformat(),
                 "analysis_duration_ms": analysis_time * 1000,
                 "performance_score": performance_score,
-                "basic_metrics": basic_analysis.right(),
+                "basic_metrics": basic_analysis.get_right(),
                 "bottlenecks": [self._bottleneck_to_dict(b) for b in bottlenecks],
                 "recommendations": [self._recommendation_to_dict(r) for r in recommendations],
                 "trends": trends,
@@ -133,7 +146,7 @@ class PerformanceAnalyzer:
                 )
                 
                 if bottleneck_result.is_right():
-                    bottleneck = bottleneck_result.right()
+                    bottleneck = bottleneck_result.get_right()
                     if bottleneck:
                         bottlenecks.append(bottleneck)
             
@@ -226,6 +239,51 @@ class PerformanceAnalyzer:
             
         except Exception as e:
             return Either.left(PerformanceMonitoringError(f"Benchmark comparison failed: {e}"))
+    
+    def establish_baseline(
+        self, 
+        metric_type: MetricType, 
+        values: List[float]
+    ) -> None:
+        """Establish performance baseline from historical data."""
+        if not values:
+            return
+        
+        # Calculate baseline statistics
+        baseline_value = statistics.mean(values)
+        std_dev = statistics.stdev(values) if len(values) > 1 else 0.0
+        
+        # Calculate confidence interval (±2 standard deviations for ~95% confidence)
+        confidence_factor = 2.0
+        baseline_range = (
+            max(0.0, baseline_value - confidence_factor * std_dev),
+            baseline_value + confidence_factor * std_dev
+        )
+        
+        # Calculate confidence interval as a normalized value (0-1)
+        # Higher confidence for more samples and lower variance
+        confidence_interval = min(1.0, len(values) / 100.0) * max(0.1, 1.0 - (std_dev / baseline_value) if baseline_value > 0 else 0.1)
+        
+        # Create and store baseline
+        baseline = PerformanceBaseline(
+            metric_type=metric_type,
+            baseline_value=baseline_value,
+            baseline_range=baseline_range,
+            sample_size=len(values),
+            confidence_interval=confidence_interval,
+            created_at=datetime.now(UTC)
+        )
+        
+        self.baselines[metric_type] = baseline
+        
+        # Also update legacy baseline_metrics for compatibility
+        self.baseline_metrics[metric_type] = {
+            "mean": baseline_value,
+            "std_dev": std_dev,
+            "min": min(values),
+            "max": max(values),
+            "sample_size": len(values)
+        }
     
     async def _analyze_basic_metrics(
         self, 

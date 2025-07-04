@@ -61,6 +61,11 @@ class PrivacyLevel(Enum):
     MEDIUM = "medium"              # Standard privacy protection
     HIGH = "high"                  # Enhanced privacy with encryption
     MAXIMUM = "maximum"            # Complete data isolation
+    
+    # Alternative names for compatibility with intelligence modules
+    PERMISSIVE = LOW               # Alias for LOW - minimal privacy restrictions
+    BALANCED = MEDIUM              # Alias for MEDIUM - balanced privacy approach
+    STRICT = MAXIMUM               # Alias for MAXIMUM - strict privacy enforcement
 
 
 # Custom errors for suggestion system

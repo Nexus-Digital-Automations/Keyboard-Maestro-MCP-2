@@ -18,7 +18,7 @@ from ...core.types import Duration
 from ...integration.km_client import KMError
 
 # MCP context import
-from mcp import Context
+from fastmcp import Context
 
 # Initialize logger
 logger = logging.getLogger(__name__)

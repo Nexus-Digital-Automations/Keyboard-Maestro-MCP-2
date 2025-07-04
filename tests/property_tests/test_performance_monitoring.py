@@ -108,7 +108,7 @@ def metric_values(draw):
 def system_resource_snapshots(draw):
     """Generate valid SystemResourceSnapshot instances."""
     cpu_percent = draw(cpu_percentages())
-    memory_bytes = draw(memory_bytes())
+    memory_value = draw(memory_bytes())
     memory_percent = draw(st.floats(min_value=0.0, max_value=100.0))
     disk_io_read = draw(st.integers(min_value=0, max_value=1024**3))
     disk_io_write = draw(st.integers(min_value=0, max_value=1024**3))
@@ -123,7 +123,7 @@ def system_resource_snapshots(draw):
     return SystemResourceSnapshot(
         timestamp=datetime.now(UTC),
         cpu_percent=cpu_percent,
-        memory_bytes=memory_bytes,
+        memory_bytes=memory_value,
         memory_percent=memory_percent,
         disk_io_read=disk_io_read,
         disk_io_write=disk_io_write,
@@ -300,13 +300,14 @@ class TestPerformanceMonitoringProperties:
 class TestMetricsCollectorProperties:
     """Property-based tests for MetricsCollector."""
     
-    def setup_method(self):
+    @pytest.fixture(autouse=True)
+    async def setup_collector(self):
         """Set up test environment."""
         self.collector = MetricsCollector(max_concurrent_sessions=5)
-    
-    async def teardown_method(self):
-        """Clean up test environment."""
-        await self.collector.shutdown()
+        yield
+        # Teardown after test
+        if hasattr(self, 'collector') and self.collector:
+            await self.collector.shutdown()
     
     @given(monitoring_configurations())
     @pytest.mark.asyncio
@@ -316,7 +317,7 @@ class TestMetricsCollectorProperties:
         session_result = await self.collector.start_collection_session(config)
         assert session_result.is_right()
         
-        session = session_result.right()
+        session = session_result.get_right()
         assert session.session_id == config.session_id
         assert session.is_active is True
         assert session.configuration == config
@@ -325,7 +326,7 @@ class TestMetricsCollectorProperties:
         metrics_result = await self.collector.stop_collection_session(config.session_id)
         assert metrics_result.is_right()
         
-        metrics = metrics_result.right()
+        metrics = metrics_result.get_right()
         assert metrics.session_id == config.session_id
         assert metrics.end_time is not None
     
@@ -379,7 +380,7 @@ class TestResourceMonitorProperties:
         result = await self.monitor.get_current_resources()
         assert result.is_right()
         
-        report = result.right()
+        report = result.get_right()
         assert isinstance(report, SystemResourceReport)
         assert report.uptime_seconds >= 0
         assert len(report.load_averages) == 3
@@ -503,7 +504,7 @@ class TestAlertSystemProperties:
     @given(st.text(min_size=1, max_size=50), st.floats(min_value=1.0, max_value=100.0))
     def test_alert_rule_lifecycle(self, rule_name, threshold_value):
         """Alert rule lifecycle must maintain consistency."""
-        rule_id = f"test_rule_{hash(rule_name) % 10000}"
+        rule_id = f"test_rule_{abs(hash(rule_name)) % 10000}"
         
         # Create alert rule
         rule = create_cpu_alert_rule(
@@ -515,7 +516,7 @@ class TestAlertSystemProperties:
         # Add rule
         result = self.alert_system.add_alert_rule(rule)
         assert result.is_right()
-        assert result.right() == rule_id
+        assert result.get_right() == rule_id
         
         # Verify rule exists
         assert rule_id in self.alert_system.alert_rules
@@ -635,12 +636,12 @@ class MetricsCollectionStateMachine(RuleBasedStateMachine):
 
 
 # Run the stateful tests
-@settings(max_examples=20, verbosity=Verbosity.verbose)
 def test_metrics_collection_stateful():
     """Run stateful testing for metrics collection."""
     # This would run the state machine, but asyncio integration is complex
     # In a real implementation, you'd use pytest-asyncio and proper async state machines
-    pass
+    # For now, we'll skip this test as it's a placeholder
+    pytest.skip("Stateful testing placeholder - complex asyncio integration needed")
 
 
 # ==================== INTEGRATION TESTS ====================
@@ -681,15 +682,15 @@ async def test_end_to_end_monitoring_workflow():
         metrics_result = await collector.stop_collection_session(config.session_id)
         assert metrics_result.is_right()
         
-        metrics = metrics_result.right()
+        metrics = metrics_result.get_right()
         assert len(metrics.metrics) > 0
         
         # Analyze performance
         analysis_result = await analyzer.analyze_performance(metrics)
         assert analysis_result.is_right()
         
-        report = analysis_result.right()
-        assert report.metrics_analyzed > 0
+        report = analysis_result.get_right()
+        assert report["summary"]["metrics_analyzed"] > 0
         
         # Test alert evaluation with high CPU metric
         high_cpu_metric = MetricValue(

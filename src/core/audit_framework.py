@@ -307,14 +307,15 @@ class ComplianceRule:
         
         # Sensitive data access patterns
         if 'sensitive_data' in condition_lower:
-            return (event.event_type in [AuditEventType.DATA_ACCESSED, AuditEventType.SENSITIVE_DATA_ACCESS] or
+            return (event.event_type == AuditEventType.DATA_ACCESSED or
                    'sensitive' in str(event.details).lower() or
+                   'access_sensitive_data' in event.action.lower() or
                    bool(event.get_sensitive_data_fields()))
         
         # Privilege escalation patterns
         if 'privilege_escalation' in condition_lower:
-            return (event.event_type == AuditEventType.PRIVILEGE_ESCALATION or
-                   event.event_type == AuditEventType.PERMISSION_GRANTED)
+            return (event.event_type == AuditEventType.PERMISSION_GRANTED and
+                   'escalate' in event.action.lower())
         
         # Data modification without authorization
         if 'unauthorized_modification' in condition_lower:
@@ -327,8 +328,7 @@ class ComplianceRule:
         
         # Security violations
         if 'security_violation' in condition_lower:
-            return event.event_type in [AuditEventType.SECURITY_VIOLATION, 
-                                      AuditEventType.SUSPICIOUS_ACTIVITY]
+            return event.event_type == AuditEventType.SECURITY_VIOLATION
         
         # Tag-based matching
         if 'tag:' in condition_lower:

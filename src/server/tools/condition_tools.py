@@ -9,6 +9,12 @@ conditions with advanced security validation and functional programming patterns
 from typing import Dict, Any, Optional, List
 import re
 
+try:
+    from fastmcp import Server
+except ImportError:
+    # Fallback if Server is not available
+    Server = None
+
 from src.core.conditions import (
     ConditionBuilder, ConditionType, ComparisonOperator,
     ConditionValidator, RegexValidator

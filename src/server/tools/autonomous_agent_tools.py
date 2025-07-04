@@ -566,115 +566,21 @@ async def km_autonomous_agent(
 
 
 # Register the tool
-def register_autonomous_agent_tools(server):
+def register_autonomous_agent_tools(mcp):
     """Register autonomous agent tools with the MCP server."""
-    server.add_tool(
-        km_autonomous_agent,
-        name="km_autonomous_agent",
-        description="Create and manage self-managing automation agents with learning capabilities",
-        input_schema={
-            "type": "object",
-            "properties": {
-                "operation": {
-                    "type": "string",
-                    "enum": ["create", "start", "stop", "configure", "monitor", "optimize", "add_goal", "status", "list"],
-                    "description": "Operation to perform on autonomous agent"
-                },
-                "agent_type": {
-                    "type": "string",
-                    "enum": ["general", "optimizer", "monitor", "learner", "coordinator", "healer", "planner", "resource_manager"],
-                    "default": "general",
-                    "description": "Type of autonomous agent to create"
-                },
-                "agent_config": {
-                    "type": "object",
-                    "description": "Custom agent configuration parameters",
-                    "properties": {
-                        "agent_id": {"type": "string", "description": "Agent ID for operations"},
-                        "decision_threshold": {"type": "number", "minimum": 0, "maximum": 1},
-                        "risk_tolerance": {"type": "number", "minimum": 0, "maximum": 1},
-                        "learning_rate": {"type": "number", "minimum": 0, "maximum": 1},
-                        "max_concurrent_actions": {"type": "integer", "minimum": 1, "maximum": 10}
-                    }
-                },
-                "goals": {
-                    "type": "array",
-                    "description": "Goals and objectives for the agent",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "description": {"type": "string"},
-                            "priority": {"type": "string", "enum": ["low", "medium", "high", "critical", "emergency"]},
-                            "target_metrics": {"type": "object"},
-                            "success_criteria": {"type": "array", "items": {"type": "string"}},
-                            "constraints": {"type": "object"},
-                            "deadline": {"type": "string", "format": "date-time"},
-                            "resource_requirements": {"type": "object"}
-                        }
-                    }
-                },
-                "learning_mode": {
-                    "type": "boolean",
-                    "default": True,
-                    "description": "Enable learning and adaptation"
-                },
-                "autonomy_level": {
-                    "type": "string",
-                    "enum": ["manual", "supervised", "autonomous", "full"],
-                    "default": "supervised",
-                    "description": "Level of autonomy and human oversight"
-                },
-                "resource_limits": {
-                    "type": "object",
-                    "description": "Resource usage limits (CPU, memory, actions)",
-                    "properties": {
-                        "cpu": {"type": "number", "minimum": 0, "maximum": 100},
-                        "memory": {"type": "number", "minimum": 0},
-                        "actions_per_minute": {"type": "number", "minimum": 0}
-                    }
-                },
-                "safety_constraints": {
-                    "type": "object",
-                    "description": "Safety rules and constraints",
-                    "properties": {
-                        "max_risk_score": {"type": "number", "minimum": 0, "maximum": 1},
-                        "forbidden_actions": {"type": "array", "items": {"type": "string"}},
-                        "require_approval_above_risk": {"type": "number", "minimum": 0, "maximum": 1}
-                    }
-                },
-                "communication_enabled": {
-                    "type": "boolean",
-                    "default": True,
-                    "description": "Enable inter-agent communication"
-                },
-                "monitoring_interval": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 3600,
-                    "default": 60,
-                    "description": "Self-monitoring interval in seconds"
-                },
-                "optimization_frequency": {
-                    "type": "string",
-                    "enum": ["never", "hourly", "daily", "weekly", "adaptive"],
-                    "default": "hourly",
-                    "description": "How often agent optimizes itself"
-                },
-                "human_approval_required": {
-                    "type": "boolean",
-                    "default": False,
-                    "description": "Require human approval for actions"
-                },
-                "timeout": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 600,
-                    "default": 300,
-                    "description": "Operation timeout in seconds"
-                }
-            },
-            "required": ["operation"]
-        }
-    )
     
-    return server
+    @mcp.tool()
+    async def km_autonomous_agent(
+        operation: str,
+        agent_type: str = "general",
+        agent_name: str = None,
+        goals: str = None,
+        learning_config: str = None,
+        resource_limits: str = None,
+        monitoring_config: str = None
+    ) -> str:
+        """Create and manage self-managing automation agents with learning capabilities."""
+        return await globals()['km_autonomous_agent'](
+            operation, agent_type, agent_name, goals, 
+            learning_config, resource_limits, monitoring_config
+        )

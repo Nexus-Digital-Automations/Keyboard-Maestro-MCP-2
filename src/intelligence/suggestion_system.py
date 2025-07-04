@@ -70,7 +70,11 @@ class AutomationSuggestion:
         implementation_cost = complexity_weights[self.implementation_complexity]
         
         # ROI = (time saved * success rate * confidence) / implementation cost
-        roi = (self.potential_time_saved * self.estimated_success_rate * self.confidence) / implementation_cost
+        # Add minimum viable thresholds to prevent zero ROI from valid suggestions
+        effective_confidence = max(0.1, self.confidence)  # Minimum 10% confidence
+        effective_success_rate = max(0.1, self.estimated_success_rate)  # Minimum 10% success rate
+        
+        roi = (self.potential_time_saved * effective_success_rate * effective_confidence) / implementation_cost
         return roi
     
     def is_high_impact(self, time_threshold: float = 300.0) -> bool:

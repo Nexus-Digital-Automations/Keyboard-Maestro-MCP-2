@@ -10,26 +10,21 @@ import logging
 import re
 import uuid
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any, Union, TYPE_CHECKING
 from enum import Enum
 
 from ..core.types import MacroId, GroupId, TriggerId
 from ..core.contracts import require, ensure
-from ..core.errors import ValidationError, SecurityViolationError, KMError
+from ..core.errors import ValidationError, SecurityViolationError, MacroEngineError
 from ..integration.km_client import KMClient
-from .templates import MacroTemplateGenerator, get_template_generator
+from .types import MacroTemplate
+
+if TYPE_CHECKING:
+    from .templates import MacroTemplateGenerator
 
 logger = logging.getLogger(__name__)
 
 
-class MacroTemplate(Enum):
-    """Pre-built macro templates for common automation patterns."""
-    HOTKEY_ACTION = "hotkey_action"
-    APP_LAUNCHER = "app_launcher" 
-    TEXT_EXPANSION = "text_expansion"
-    FILE_PROCESSOR = "file_processor"
-    WINDOW_MANAGER = "window_manager"
-    CUSTOM = "custom"
 
 
 @dataclass(frozen=True)
@@ -109,7 +104,7 @@ class MacroBuilder:
     @require(lambda request: isinstance(request, MacroCreationRequest))
     @require(lambda request: request.template in MacroTemplate)
     @ensure(lambda result: result is not None)
-    async def create_macro(self, request: MacroCreationRequest) -> Union[MacroId, KMError]:
+    async def create_macro(self, request: MacroCreationRequest) -> Union[MacroId, MacroEngineError]:
         """
         Create macro with comprehensive validation and error handling.
         
@@ -125,7 +120,7 @@ class MacroBuilder:
                 - request.name passes security validation
             
             Postconditions:
-                - Returns MacroId on success OR KMError on failure
+                - Returns MacroId on success OR MacroEngineError on failure
                 - No partial macro creation (atomic operation)
                 - All security validations passed
             
@@ -138,7 +133,7 @@ class MacroBuilder:
             request: Validated macro creation request
             
         Returns:
-            MacroId on successful creation, KMError on failure
+            MacroId on successful creation, MacroEngineError on failure
             
         Raises:
             SecurityViolationError: Security validation failed
@@ -151,6 +146,7 @@ class MacroBuilder:
             await self._validate_security(request)
             
             # Phase 2: Template processing
+            from .templates import get_template_generator
             template_generator = get_template_generator(request.template)
             actions = await template_generator.generate_actions(request.parameters)
             
@@ -165,7 +161,7 @@ class MacroBuilder:
             
         except (SecurityViolationError, ValidationError) as e:
             logger.error(f"Validation failed for macro {request.name}: {e}")
-            return KMError(
+            return MacroEngineError(
                 code="VALIDATION_ERROR",
                 message=str(e),
                 details=f"Macro creation failed validation: {e}",
@@ -173,7 +169,7 @@ class MacroBuilder:
             )
         except Exception as e:
             logger.exception(f"Unexpected error creating macro {request.name}")
-            return KMError(
+            return MacroEngineError(
                 code="CREATION_ERROR", 
                 message="Failed to create macro",
                 details=str(e),
@@ -192,6 +188,7 @@ class MacroBuilder:
         
         try:
             # Validate template-specific security requirements
+            from .templates import get_template_generator
             template_generator = get_template_generator(request.template)
             if hasattr(template_generator, 'validate_security'):
                 await template_generator.validate_security(request.parameters)

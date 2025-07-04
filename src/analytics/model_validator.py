@@ -158,6 +158,31 @@ class ModelComparison:
     recommended_model: Optional[str] = None
 
 
+@dataclass(frozen=True)
+class ValidationMetrics:
+    """Comprehensive validation metrics for model performance."""
+    accuracy: float
+    precision: float
+    recall: float
+    f1_score: float
+    mae: Optional[float] = None
+    mse: Optional[float] = None
+    rmse: Optional[float] = None
+    r_squared: Optional[float] = None
+    mape: Optional[float] = None
+    directional_accuracy: Optional[float] = None
+    forecast_bias: Optional[float] = None
+    prediction_stability: Optional[float] = None
+    model_confidence: Optional[float] = None
+    additional_metrics: Dict[str, float] = field(default_factory=dict)
+    
+    def __post_init__(self):
+        # Validate core metrics
+        for metric in [self.accuracy, self.precision, self.recall, self.f1_score]:
+            if not (0.0 <= metric <= 1.0):
+                raise ValueError(f"Core metrics must be between 0.0 and 1.0, got {metric}")
+
+
 class ModelValidator:
     """Comprehensive model validation and testing system."""
     

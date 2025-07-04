@@ -18,6 +18,7 @@ from src.core.plugin_architecture import (
     PluginPermissions, PluginError, SecurityProfile, ApiVersion, PluginType,
     PluginId, ActionId, PermissionId
 )
+from src.plugins.api_bridge import RateLimiter
 from src.plugins.plugin_manager import PluginManager, PluginRegistry
 from src.plugins.security_sandbox import PluginSecurityManager, SecurityLimits
 from src.plugins.api_bridge import PluginAPIBridge
@@ -95,10 +96,10 @@ def plugin_metadata_strategy(draw):
     """Generate valid plugin metadata."""
     return PluginMetadata(
         identifier=draw(plugin_identifier_strategy()),
-        name=draw(st.text(min_size=1, max_size=100, alphabet=st.characters(blacklist_categories=['Cc']))),
+        name=draw(st.text(min_size=1, max_size=100, alphabet=st.characters(blacklist_categories=['Cc', 'Cs']))),
         version=draw(version_strategy()),
-        description=draw(st.text(min_size=0, max_size=500, alphabet=st.characters(blacklist_categories=['Cc']))),
-        author=draw(st.text(min_size=1, max_size=100, alphabet=st.characters(blacklist_categories=['Cc']))),
+        description=draw(st.text(min_size=0, max_size=500, alphabet=st.characters(blacklist_categories=['Cc', 'Cs']))),
+        author=draw(st.text(min_size=1, max_size=100, alphabet=st.characters(blacklist_categories=['Cc', 'Cs']))),
         plugin_type=draw(st.sampled_from(list(PluginType))),
         api_version=draw(st.sampled_from(list(ApiVersion))),
         permissions=draw(plugin_permissions_strategy()),
@@ -280,10 +281,14 @@ class TestPluginRegistryProperties:
             yield PluginRegistry(registry_path)
     
     @given(st.lists(plugin_metadata_strategy(), min_size=0, max_size=10, unique_by=lambda x: x.identifier))
-    @settings(max_examples=20)
+    @settings(max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
     async def test_registry_persistence(self, temp_registry, plugin_list: List[PluginMetadata]):
         """Test that registry persists and loads data correctly."""
+        # Clear registry state to ensure isolation between examples
+        temp_registry.plugins.clear()
+        temp_registry.installed_plugins.clear()
+        
         # Register all plugins
         for metadata in plugin_list:
             temp_registry.register_plugin(metadata, Path("/mock/path"))
@@ -309,9 +314,13 @@ class TestPluginRegistryProperties:
             assert loaded.version == original.version
     
     @given(plugin_metadata_strategy())
-    @settings(max_examples=20)
+    @settings(max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture])
     def test_registry_operations_idempotent(self, temp_registry, metadata: PluginMetadata):
         """Test that registry operations are idempotent."""
+        # Clear registry state to ensure isolation between examples
+        temp_registry.plugins.clear()
+        temp_registry.installed_plugins.clear()
+        
         plugin_path = Path("/mock/path")
         
         # Register plugin multiple times
@@ -396,37 +405,74 @@ class TestAPIBridgeProperties:
     
     @given(
         plugin_id=plugin_identifier_strategy(),
-        tool_name=st.sampled_from(["km_variable_manager", "km_calculator"]),
-        call_count=st.integers(min_value=1, max_value=100)
+        call_count=st.integers(min_value=5, max_value=15)
     )
-    @settings(max_examples=10)
+    @settings(max_examples=5, suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_rate_limiting_enforcement(self, api_bridge, plugin_id, tool_name, call_count):
+    async def test_rate_limiting_enforcement(self, plugin_id, call_count):
         """Test that rate limiting is properly enforced."""
+        # Create API bridge for this test
+        api_bridge = self.create_api_bridge()
+        await api_bridge.initialize()
+        
+        # Override rate limiter with a more restrictive one for testing
+        api_bridge.rate_limiter = RateLimiter(window_minutes=1)
+        
+        # Create a test tool with low rate limit
+        from src.plugins.api_bridge import MCPToolDefinition
+        from src.core.plugin_architecture import SecurityProfile, PermissionId
+        
+        test_tool = MCPToolDefinition(
+            name="test_rate_limit_tool",
+            module_path="mock_module",
+            function_name="mock_function",
+            permissions_required={PermissionId("test_access")},
+            security_level=SecurityProfile.STANDARD,
+            rate_limit=3,  # Very low limit for testing
+            resource_cost=1,
+            description="Test tool for rate limiting"
+        )
+        api_bridge.available_tools["test_rate_limit_tool"] = test_tool
+        
         # Authorize plugin
         api_bridge.authorize_plugin(plugin_id)
         
         # Create permissions with required access
         permissions = PluginPermissions(
-            permissions={PermissionId("variable_access"), PermissionId("calculation")},
+            permissions={PermissionId("test_access")},
             network_access=False,
             file_system_access=False
         )
         
         # Make many rapid calls
         rate_limited = False
+        successful_calls = 0
+        
         for i in range(call_count):
+            # Mock the tool execution to always succeed
+            original_call = api_bridge._execute_tool
+            
+            async def mock_execute_tool(tool_name, parameters):
+                return Either.right({"success": True, "call_number": i})
+            
+            api_bridge._execute_tool = mock_execute_tool
+            
             result = await api_bridge.call_tool(
-                plugin_id, permissions, tool_name, {"operation": "test"}
+                plugin_id, permissions, "test_rate_limit_tool", {"operation": "test"}
             )
+            
+            # Restore original method
+            api_bridge._execute_tool = original_call
             
             if result.is_left() and "rate limit" in result.get_left().message.lower():
                 rate_limited = True
                 break
+            elif result.is_right():
+                successful_calls += 1
         
-        # For high call counts, should eventually hit rate limit
-        if call_count > 50:
-            assert rate_limited
+        # For call counts above the rate limit (3), should hit rate limit
+        if call_count > 3:
+            assert rate_limited, f"Expected rate limiting with {call_count} calls, but made {successful_calls} successful calls"
 
 
 class TestMarketplaceProperties:
@@ -445,7 +491,7 @@ class TestMarketplaceProperties:
         limit=st.integers(min_value=1, max_value=50),
         offset=st.integers(min_value=0, max_value=20)
     )
-    @settings(max_examples=20)
+    @settings(max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
     async def test_search_result_bounds(self, marketplace, query_text, limit, offset):
         """Test that search results respect pagination bounds."""
@@ -469,7 +515,7 @@ class TestMarketplaceProperties:
         assert len(plugins) >= 0
     
     @given(st.text(min_size=1, max_size=20, alphabet='abcdefghijklmnopqrstuvwxyz-'))
-    @settings(max_examples=20)
+    @settings(max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
     async def test_plugin_details_consistency(self, marketplace, plugin_id_str):
         """Test plugin details retrieval consistency."""

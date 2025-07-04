@@ -167,6 +167,44 @@ class DeploymentInfo:
             raise ValueError("Deployment environment must be development, staging, or production")
 
 
+@dataclass(frozen=True)
+class ModelMetadata:
+    """Metadata for machine learning models."""
+    model_id: ModelId
+    model_name: str
+    model_type: ModelType
+    model_category: ModelCategory
+    version: str
+    created_at: datetime
+    updated_at: datetime
+    created_by: str
+    description: str = ""
+    tags: List[str] = field(default_factory=list)
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    metrics: Dict[str, float] = field(default_factory=dict)
+    
+    def __post_init__(self):
+        if not self.model_name:
+            raise ValueError("Model name must be specified")
+        if not self.version:
+            raise ValueError("Model version must be specified")
+
+
+@dataclass(frozen=True)
+class ModelState:
+    """Current state of machine learning models."""
+    model_id: ModelId
+    status: ModelStatus
+    last_updated: datetime
+    state_data: Dict[str, Any] = field(default_factory=dict)
+    error_message: Optional[str] = None
+    progress_percentage: float = 0.0
+    
+    def __post_init__(self):
+        if not (0.0 <= self.progress_percentage <= 100.0):
+            raise ValueError("Progress percentage must be between 0.0 and 100.0")
+
+
 class ModelManager:
     """
     Comprehensive ML model training, validation, and deployment system.

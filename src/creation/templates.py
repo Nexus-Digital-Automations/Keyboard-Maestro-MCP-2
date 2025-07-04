@@ -12,7 +12,7 @@ from typing import Dict, Any, List, Optional
 from enum import Enum
 
 from ..core.errors import ValidationError, SecurityViolationError
-from .macro_builder import MacroTemplate
+from .types import MacroTemplate
 
 logger = logging.getLogger(__name__)
 

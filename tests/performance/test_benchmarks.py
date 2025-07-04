@@ -335,7 +335,11 @@ class TestIntegrationPerformance:
     @pytest.mark.performance
     async def test_async_operation_performance(self):
         """Async operations should perform efficiently."""
-        client = MockKeyboardMaestroClient(response_delay=0.01)
+        client = MockKeyboardMaestroClient(
+            response_delay=0.01, 
+            success_rate=1.0,  # 100% success for performance testing
+            simulate_failures=False
+        )
         
         import asyncio
         

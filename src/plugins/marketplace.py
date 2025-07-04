@@ -387,7 +387,13 @@ class PluginMarketplace:
         
         # Filter based on query
         filtered = [p for p in mock_plugins if self._matches_query(p, query)]
-        return Either.right(filtered)
+        
+        # Apply pagination
+        start_index = query.offset if query.offset is not None else 0
+        end_index = start_index + (query.limit if query.limit is not None else len(filtered))
+        paginated = filtered[start_index:end_index]
+        
+        return Either.right(paginated)
     
     def _create_mock_metadata(self, identifier: str, name: str, version: str) -> PluginMetadata:
         """Create mock plugin metadata for testing."""

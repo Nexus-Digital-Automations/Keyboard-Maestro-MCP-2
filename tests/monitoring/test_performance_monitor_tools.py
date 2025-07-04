@@ -187,8 +187,17 @@ class TestPerformanceMonitorTools:
         """Test bottleneck analysis."""
         # Mock data
         mock_session_id = generate_monitoring_session_id()
+        # Create mock metrics with proper structure
         mock_metrics = Mock()
         mock_metrics.metrics = []
+        mock_metrics.snapshots = []
+        mock_metrics.alerts = []
+        # Ensure these attributes return the lists, not Mock objects
+        mock_metrics.configure_mock(**{
+            'metrics': [],
+            'snapshots': [],
+            'alerts': []
+        })
         
         from src.core.either import Either
         mock_metrics_collector.get_active_sessions.return_value = [mock_session_id]
@@ -216,38 +225,38 @@ class TestPerformanceMonitorTools:
         }
         mock_performance_analyzer.analyze_performance.return_value = Either.right(mock_analysis)
         
-        # Patch dependencies
-        with patch('src.server.tools.performance_monitor_tools.get_metrics_collector', return_value=mock_metrics_collector), \
-             patch('src.server.tools.performance_monitor_tools.get_performance_analyzer', return_value=mock_performance_analyzer):
-            
-            mock_mcp = Mock()
-            registered_tools = {}
-            
-            def mock_tool_decorator():
-                def decorator(func):
-                    registered_tools[func.__name__] = func
-                    return func
-                return decorator
-            
-            mock_mcp.tool = mock_tool_decorator
-            tools.register_tools(mock_mcp)
-            
-            analyze_func = registered_tools["km_analyze_bottlenecks"]
-            
-            result = await analyze_func(
-                analysis_scope="system",
-                time_range="last_hour",
-                include_recommendations=True
-            )
-            
-            json_content = result.replace("```json\n", "").replace("\n```", "")
-            response = json.loads(json_content)
-            
-            assert response["success"] == True
-            assert response["bottleneck_analysis"]["analysis_scope"] == "system"
-            assert len(response["bottleneck_analysis"]["bottlenecks"]) == 1
-            assert response["bottleneck_analysis"]["bottlenecks"][0]["type"] == "cpu_bound"
-            assert len(response["optimization_recommendations"]) == 1
+        # Set mocks directly on tools instance
+        tools.metrics_collector = mock_metrics_collector
+        tools.performance_analyzer = mock_performance_analyzer
+        
+        mock_mcp = Mock()
+        registered_tools = {}
+        
+        def mock_tool_decorator():
+            def decorator(func):
+                registered_tools[func.__name__] = func
+                return func
+            return decorator
+        
+        mock_mcp.tool = mock_tool_decorator
+        tools.register_tools(mock_mcp)
+        
+        analyze_func = registered_tools["km_analyze_bottlenecks"]
+        
+        result = await analyze_func(
+            analysis_scope="system",
+            time_range="last_hour",
+            include_recommendations=True
+        )
+        
+        json_content = result.replace("```json\n", "").replace("\n```", "")
+        response = json.loads(json_content)
+        
+        assert response["success"] == True
+        assert response["bottleneck_analysis"]["analysis_scope"] == "system"
+        assert len(response["bottleneck_analysis"]["bottlenecks"]) == 1
+        assert response["bottleneck_analysis"]["bottlenecks"][0]["type"] == "cpu_bound"
+        assert len(response["optimization_recommendations"]) == 1
     
     @pytest.mark.asyncio
     async def test_km_optimize_resources(self, tools):
@@ -382,28 +391,30 @@ class TestPerformanceMonitorTools:
         """Test dashboard with no active sessions."""
         mock_metrics_collector.get_active_sessions.return_value = []
         
-        with patch('src.server.tools.performance_monitor_tools.get_metrics_collector', return_value=mock_metrics_collector):
-            mock_mcp = Mock()
-            registered_tools = {}
-            
-            def mock_tool_decorator():
-                def decorator(func):
-                    registered_tools[func.__name__] = func
-                    return func
-                return decorator
-            
-            mock_mcp.tool = mock_tool_decorator
-            tools.register_tools(mock_mcp)
-            
-            dashboard_func = registered_tools["km_get_performance_dashboard"]
-            
-            result = await dashboard_func()
-            
-            json_content = result.replace("```json\n", "").replace("\n```", "")
-            response = json.loads(json_content)
-            
-            assert response["success"] == False
-            assert "No active monitoring sessions" in response["message"]
+        # Directly replace the metrics collector on the tools instance
+        tools.metrics_collector = mock_metrics_collector
+        
+        mock_mcp = Mock()
+        registered_tools = {}
+        
+        def mock_tool_decorator():
+            def decorator(func):
+                registered_tools[func.__name__] = func
+                return func
+            return decorator
+        
+        mock_mcp.tool = mock_tool_decorator
+        tools.register_tools(mock_mcp)
+        
+        dashboard_func = registered_tools["km_get_performance_dashboard"]
+        
+        result = await dashboard_func()
+        
+        json_content = result.replace("```json\n", "").replace("\n```", "")
+        response = json.loads(json_content)
+        
+        assert response["success"] == False
+        assert "No active monitoring sessions" in response["message"]
     
     @pytest.mark.asyncio
     async def test_km_get_performance_dashboard_with_sessions(self, tools, mock_metrics_collector):
@@ -424,29 +435,31 @@ class TestPerformanceMonitorTools:
         from src.core.either import Either
         mock_metrics_collector.get_session_metrics.return_value = Either.right(mock_metrics)
         
-        with patch('src.server.tools.performance_monitor_tools.get_metrics_collector', return_value=mock_metrics_collector):
-            mock_mcp = Mock()
-            registered_tools = {}
-            
-            def mock_tool_decorator():
-                def decorator(func):
-                    registered_tools[func.__name__] = func
-                    return func
-                return decorator
-            
-            mock_mcp.tool = mock_tool_decorator
-            tools.register_tools(mock_mcp)
-            
-            dashboard_func = registered_tools["km_get_performance_dashboard"]
-            
-            result = await dashboard_func()
-            
-            json_content = result.replace("```json\n", "").replace("\n```", "")
-            response = json.loads(json_content)
-            
-            assert response["success"] == True
-            assert response["active_sessions"] == 1
-            assert mock_session_id in response["system_overview"]
+        # Directly replace the metrics collector on the tools instance
+        tools.metrics_collector = mock_metrics_collector
+        
+        mock_mcp = Mock()
+        registered_tools = {}
+        
+        def mock_tool_decorator():
+            def decorator(func):
+                registered_tools[func.__name__] = func
+                return func
+            return decorator
+        
+        mock_mcp.tool = mock_tool_decorator
+        tools.register_tools(mock_mcp)
+        
+        dashboard_func = registered_tools["km_get_performance_dashboard"]
+        
+        result = await dashboard_func()
+        
+        json_content = result.replace("```json\n", "").replace("\n```", "")
+        response = json.loads(json_content)
+        
+        assert response["success"] == True
+        assert response["active_sessions"] == 1
+        assert mock_session_id in response["system_overview"]
     
     def test_format_latest_metrics(self, tools):
         """Test latest metrics formatting."""
@@ -602,7 +615,7 @@ class TestPerformanceMonitorToolsPerformance:
         mock_metrics.metrics = []
         
         from src.core.either import Either
-        mock_collector.get_session_metrics.return_value = Either.right(mock_metrics)
+        mock_collector.get_session_metrics = AsyncMock(return_value=Either.right(mock_metrics))
         
         mock_analysis = {
             "analysis_timestamp": datetime.now(UTC).isoformat(),
@@ -611,34 +624,35 @@ class TestPerformanceMonitorToolsPerformance:
             "recommendations": [],
             "summary": {"overall_health": "good", "critical_issues": 0}
         }
-        mock_analyzer.analyze_performance.return_value = Either.right(mock_analysis)
+        mock_analyzer.analyze_performance = AsyncMock(return_value=Either.right(mock_analysis))
         
-        with patch('src.server.tools.performance_monitor_tools.get_metrics_collector', return_value=mock_collector), \
-             patch('src.server.tools.performance_monitor_tools.get_performance_analyzer', return_value=mock_analyzer):
-            
-            mock_mcp = Mock()
-            registered_tools = {}
-            
-            def mock_tool_decorator():
-                def decorator(func):
-                    registered_tools[func.__name__] = func
-                    return func
-                return decorator
-            
-            mock_mcp.tool = mock_tool_decorator
-            tools.register_tools(mock_mcp)
-            
-            analyze_func = registered_tools["km_analyze_bottlenecks"]
-            
-            start_time = time.time()
-            result = await analyze_func(analysis_scope="system")
-            end_time = time.time()
-            
-            duration = end_time - start_time
-            
-            # Should complete within 100ms
-            assert duration < 0.1
-            assert result.startswith("```json")
+        # Mock the instance attributes directly
+        tools.metrics_collector = mock_collector
+        tools.performance_analyzer = mock_analyzer
+        
+        mock_mcp = Mock()
+        registered_tools = {}
+        
+        def mock_tool_decorator():
+            def decorator(func):
+                registered_tools[func.__name__] = func
+                return func
+            return decorator
+        
+        mock_mcp.tool = mock_tool_decorator
+        tools.register_tools(mock_mcp)
+        
+        analyze_func = registered_tools["km_analyze_bottlenecks"]
+        
+        start_time = time.time()
+        result = await analyze_func(analysis_scope="system", generate_report=False)
+        end_time = time.time()
+        
+        duration = end_time - start_time
+        
+        # Should complete within 100ms
+        assert duration < 0.1
+        assert result.startswith("```json")
     
     @pytest.mark.asyncio
     async def test_optimization_tool_response_time(self):

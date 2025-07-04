@@ -91,8 +91,8 @@ class MetricsCollector:
             MetricType.CONNECTION_COUNT: self._collect_connection_count_metrics
         }
     
-    @require(lambda config: config.sampling_interval > 0, "Sampling interval must be positive")
-    @ensure(lambda result: result.is_right() or isinstance(result.left(), str), "Returns session or error")
+    @require(lambda self, configuration: configuration.sampling_interval > 0, "Sampling interval must be positive")
+    @ensure(lambda result: result.is_right() or isinstance(result.get_left(), str), "Returns session or error")
     async def start_collection_session(
         self, 
         configuration: MonitoringConfiguration
@@ -487,9 +487,28 @@ class MetricsCollector:
         """Alias for start_collection_session."""
         return await self.start_collection_session(configuration)
     
-    def get_active_sessions(self) -> Dict[MonitoringSessionID, MetricCollectionSession]:
-        """Get all active monitoring sessions."""
+    def get_active_sessions(self) -> List[MonitoringSessionID]:
+        """Get all active monitoring session IDs."""
+        return list(self.active_sessions.keys())
+    
+    def get_active_sessions_dict(self) -> Dict[MonitoringSessionID, MetricCollectionSession]:
+        """Get all active monitoring sessions as a dictionary."""
         return self.active_sessions.copy()
+    
+    async def get_session_metrics(self, session_id: MonitoringSessionID) -> Either[str, "PerformanceMetrics"]:
+        """Get performance metrics for a session."""
+        try:
+            if session_id not in self.active_sessions:
+                return Either.left(f"Session {session_id} not found")
+            
+            session = self.active_sessions[session_id]
+            
+            # Return the existing metrics from the session
+            return Either.right(session.metrics)
+            
+        except Exception as e:
+            logger.error(f"Failed to get session metrics: {e}")
+            return Either.left(f"Failed to get session metrics: {str(e)}")
     
     async def get_recent_metrics(self, session_id: MonitoringSessionID, count: int = 10) -> Either[str, List[MetricValue]]:
         """Get recent metrics from an active session."""
@@ -532,9 +551,9 @@ async def metrics_collection_session(configuration: MonitoringConfiguration):
     
     session_result = await collector.start_collection_session(configuration)
     if session_result.is_left():
-        raise MetricCollectionError(session_result.left())
+        raise MetricCollectionError(session_result.get_left())
     
-    session = session_result.right()
+    session = session_result.get_right()
     
     try:
         yield session

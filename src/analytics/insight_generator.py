@@ -52,6 +52,14 @@ class InsightSeverity(Enum):
     CRITICAL = "critical"
 
 
+class InsightLevel(Enum):
+    """Levels for insight categorization."""
+    OPERATIONAL = "operational"
+    TACTICAL = "tactical"
+    STRATEGIC = "strategic"
+    EXECUTIVE = "executive"
+
+
 class RecommendationType(Enum):
     """Types of recommendations."""
     IMMEDIATE_ACTION = "immediate_action"
@@ -148,6 +156,25 @@ class ExecutiveSummary:
             raise ValueError("Key findings must be provided")
         if not (0.0 <= self.confidence_score <= 1.0):
             raise ValueError("Confidence score must be between 0.0 and 1.0")
+
+
+@dataclass(frozen=True)
+class AnalyticsInsight:
+    """Analytics insight with detailed analysis."""
+    insight_id: str
+    title: str
+    description: str
+    level: InsightLevel
+    severity: InsightSeverity
+    category: InsightCategory
+    recommendations: List[RecommendationAction]
+    roi_analysis: Optional[ROIAnalysis] = None
+    confidence: float = 0.8
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    
+    def __post_init__(self):
+        if not (0.0 <= self.confidence <= 1.0):
+            raise ValueError("Confidence must be between 0.0 and 1.0")
 
 
 class InsightGenerator:

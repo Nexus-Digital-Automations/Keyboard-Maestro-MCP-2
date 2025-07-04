@@ -29,6 +29,12 @@ BundleId = NewType('BundleId', str)
 MenuItemId = NewType('MenuItemId', str)
 ToolId = NewType('ToolId', str)
 UserId = NewType('UserId', str)
+ConditionId = NewType('ConditionId', str)
+
+
+def create_macro_id() -> MacroId:
+    """Create a new unique MacroId."""
+    return MacroId(str(uuid.uuid4()))
 
 
 @dataclass(frozen=True)

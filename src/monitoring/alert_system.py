@@ -155,7 +155,7 @@ class AlertSystem:
             NotificationChannel.CONSOLE: self._send_console_notification
         }
     
-    @require(lambda rule: len(rule.name.strip()) > 0, "Alert rule name required")
+    @require(lambda self, rule: len(rule.name.strip()) > 0, "Alert rule name required")
     def add_alert_rule(self, rule: AlertRule) -> Either[str, str]:
         """Add a new alert rule to the system."""
         try:
@@ -193,7 +193,7 @@ class AlertSystem:
             logger.error(error_msg)
             return Either.left(error_msg)
     
-    @require(lambda metric: metric.value is not None, "Metric value required")
+    @require(lambda self, metric: metric.value is not None, "Metric value required")
     async def evaluate_metric(self, metric: MetricValue, session_id: Optional[MonitoringSessionID] = None) -> List[PerformanceAlert]:
         """Evaluate a metric against all applicable alert rules."""
         alerts_generated = []

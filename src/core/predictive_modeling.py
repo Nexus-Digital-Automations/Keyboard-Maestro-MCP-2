@@ -47,6 +47,11 @@ def create_insight_id() -> InsightId:
     """Create a unique insight identifier."""
     return f"insight_{uuid.uuid4().hex[:12]}"
 
+
+def validate_prediction_confidence(confidence: float) -> bool:
+    """Validate prediction confidence level."""
+    return 0.0 <= confidence <= 1.0
+
 def create_scenario_id() -> ScenarioId:
     """Create a unique scenario identifier."""
     return f"scenario_{uuid.uuid4().hex[:12]}"
@@ -338,6 +343,58 @@ class ForecastingError(PredictiveModelingError):
         return cls(f"Invalid forecast horizon: {horizon} days", "INVALID_HORIZON")
 
 
+class FailurePredictionError(PredictiveModelingError):
+    """Failure prediction specific errors."""
+    
+    @classmethod
+    def invalid_failure_data(cls, reason: str) -> FailurePredictionError:
+        return cls(f"Invalid failure prediction data: {reason}", "INVALID_FAILURE_DATA")
+    
+    @classmethod
+    def prediction_failed(cls, failure_type: str, error: str) -> FailurePredictionError:
+        return cls(f"Failure prediction failed for {failure_type}: {error}", "PREDICTION_FAILED")
+
+
+class ModelValidationError(PredictiveModelingError):
+    """Model validation specific errors."""
+    
+    @classmethod
+    def validation_failed(cls, model_id: str, reason: str) -> ModelValidationError:
+        return cls(f"Model validation failed for {model_id}: {reason}", "VALIDATION_FAILED")
+    
+    @classmethod
+    def insufficient_samples(cls, required: int, available: int) -> ModelValidationError:
+        return cls(f"Insufficient validation samples: requires {required}, got {available}", "INSUFFICIENT_SAMPLES")
+
+
+class OptimizationError(PredictiveModelingError):
+    """Optimization specific errors."""
+    
+    @classmethod
+    def optimization_failed(cls, target: str, error: str) -> OptimizationError:
+        return cls(f"Optimization failed for {target}: {error}", "OPTIMIZATION_FAILED")
+    
+    @classmethod
+    def invalid_constraints(cls, constraint: str) -> OptimizationError:
+        return cls(f"Invalid optimization constraint: {constraint}", "INVALID_CONSTRAINTS")
+
+
+class RealtimePredictionError(PredictiveModelingError):
+    """Realtime prediction specific errors."""
+    
+    @classmethod
+    def prediction_timeout(cls, timeout_seconds: float) -> RealtimePredictionError:
+        return cls(f"Realtime prediction timed out after {timeout_seconds}s", "PREDICTION_TIMEOUT")
+    
+    @classmethod
+    def insufficient_data(cls, required: int, available: int) -> RealtimePredictionError:
+        return cls(f"Insufficient data for prediction: requires {required}, got {available}", "INSUFFICIENT_DATA")
+    
+    @classmethod
+    def processing_overload(cls, queue_size: int) -> RealtimePredictionError:
+        return cls(f"Prediction processing overloaded: {queue_size} requests queued", "PROCESSING_OVERLOAD")
+
+
 # Utility Functions for Predictive Modeling
 
 @require(lambda data: len(data.timestamps) >= 10)
@@ -482,3 +539,106 @@ def create_failure_mitigation_strategies(failure_prediction: FailurePrediction) 
         strategies.append("Set up 24/7 monitoring alerts")
     
     return strategies
+
+
+@require(lambda performance: isinstance(performance, ModelPerformance))
+def validate_model_performance(performance: ModelPerformance) -> Either[ModelValidationError, bool]:
+    """Validate model performance metrics against quality thresholds."""
+    try:
+        # Check accuracy threshold
+        if performance.accuracy < 0.6:
+            return Either.left(ModelValidationError.validation_failed(
+                performance.model_id, 
+                f"Accuracy {performance.accuracy:.3f} below minimum threshold 0.6"
+            ))
+        
+        # Check precision and recall balance
+        if performance.precision < 0.5 or performance.recall < 0.5:
+            return Either.left(ModelValidationError.validation_failed(
+                performance.model_id,
+                f"Precision {performance.precision:.3f} or recall {performance.recall:.3f} below threshold 0.5"
+            ))
+        
+        # Check F1 score consistency
+        expected_f1 = 2 * (performance.precision * performance.recall) / (performance.precision + performance.recall)
+        f1_diff = abs(performance.f1_score - expected_f1)
+        if f1_diff > 0.1:
+            return Either.left(ModelValidationError.validation_failed(
+                performance.model_id,
+                f"F1 score {performance.f1_score:.3f} inconsistent with precision/recall (expected {expected_f1:.3f})"
+            ))
+        
+        # Check training time reasonableness
+        if performance.training_time_seconds > 3600:  # 1 hour
+            return Either.left(ModelValidationError.validation_failed(
+                performance.model_id,
+                f"Training time {performance.training_time_seconds:.1f}s exceeds reasonable limit (3600s)"
+            ))
+        
+        return Either.right(True)
+        
+    except Exception as e:
+        return Either.left(ModelValidationError.validation_failed(
+            performance.model_id,
+            f"Performance validation error: {str(e)}"
+        ))
+
+
+@require(lambda parameters: isinstance(parameters, dict))
+def validate_optimization_parameters(parameters: Dict[str, Any]) -> Either[OptimizationError, bool]:
+    """Validate optimization parameters for correctness and feasibility."""
+    try:
+        # Check required parameters
+        required_keys = ["target", "constraints", "variables"]
+        missing_keys = [key for key in required_keys if key not in parameters]
+        if missing_keys:
+            return Either.left(OptimizationError.invalid_constraints(
+                f"Missing required parameters: {missing_keys}"
+            ))
+        
+        # Validate target function
+        target = parameters.get("target")
+        if not isinstance(target, str) or not target.strip():
+            return Either.left(OptimizationError.invalid_constraints(
+                "Target must be a non-empty string"
+            ))
+        
+        # Validate constraints
+        constraints = parameters.get("constraints", [])
+        if not isinstance(constraints, list):
+            return Either.left(OptimizationError.invalid_constraints(
+                "Constraints must be a list"
+            ))
+        
+        # Validate variables
+        variables = parameters.get("variables", {})
+        if not isinstance(variables, dict):
+            return Either.left(OptimizationError.invalid_constraints(
+                "Variables must be a dictionary"
+            ))
+        
+        # Check variable bounds
+        for var_name, bounds in variables.items():
+            if not isinstance(bounds, (list, tuple)) or len(bounds) != 2:
+                return Either.left(OptimizationError.invalid_constraints(
+                    f"Variable {var_name} bounds must be a 2-element list/tuple"
+                ))
+            
+            lower, upper = bounds
+            if not isinstance(lower, (int, float)) or not isinstance(upper, (int, float)):
+                return Either.left(OptimizationError.invalid_constraints(
+                    f"Variable {var_name} bounds must be numeric"
+                ))
+            
+            if lower >= upper:
+                return Either.left(OptimizationError.invalid_constraints(
+                    f"Variable {var_name} lower bound must be less than upper bound"
+                ))
+        
+        return Either.right(True)
+        
+    except Exception as e:
+        return Either.left(OptimizationError.optimization_failed(
+            "parameter_validation",
+            f"Parameter validation error: {str(e)}"
+        ))

@@ -14,6 +14,7 @@ from __future__ import annotations
 from typing import Dict, Any, List, Optional, Set
 import re
 from datetime import datetime, timedelta
+from collections import defaultdict
 
 from src.core.either import Either
 from src.core.contracts import require, ensure
@@ -282,8 +283,23 @@ class PatternValidator:
         if len(user_id) >= 16 and all(c in '0123456789abcdefABCDEF-' for c in user_id):
             return False
         
-        # Default to considering it personal if not clearly anonymized
-        return len(user_id) < 16
+        # Check for patterns that look like real names or personal info
+        # Only consider it personal if it actually looks like personal data
+        personal_patterns = [
+            (r'^[A-Z][a-z]+[A-Z][a-z]+', 0),  # CamelCase names like JohnSmith (case sensitive)
+            (r'^[a-z]+\d{2,4}$', re.IGNORECASE),          # username123 patterns
+            (r'.*user.*', re.IGNORECASE),                 # Contains "user"
+            (r'.*admin.*', re.IGNORECASE),                # Contains "admin" 
+            (r'.*test.*', re.IGNORECASE)                  # Contains "test"
+        ]
+        
+        for pattern, flags in personal_patterns:
+            if re.match(pattern, user_id, flags):
+                return True
+        
+        # Short random strings like "aaa", "xyz" are probably not personal
+        # Only consider very short IDs personal if they have specific patterns
+        return False
     
     def _contains_sensitive_actions(self, action_sequence: List[str]) -> bool:
         """Check if action sequence contains sensitive information."""
@@ -294,8 +310,21 @@ class PatternValidator:
         
         for action in action_sequence:
             action_lower = action.lower()
-            if any(keyword in action_lower for keyword in sensitive_keywords):
-                return True
+            # Use word boundaries to avoid false positives like 'keya' containing 'key'
+            for keyword in sensitive_keywords:
+                # Check for keyword as standalone word or with common separators
+                patterns = [
+                    f'\\b{keyword}\\b',          # Word boundary match
+                    f'{keyword}_',               # keyword_something
+                    f'_{keyword}',               # something_keyword  
+                    f'{keyword}:',               # keyword:value
+                    f'{keyword}=',               # keyword=value
+                    f'^{keyword}$'               # Exact match
+                ]
+                
+                for pattern in patterns:
+                    if re.search(pattern, action_lower):
+                        return True
         
         return False
     

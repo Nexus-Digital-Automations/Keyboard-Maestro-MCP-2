@@ -13,7 +13,8 @@ from fastmcp import Context
 from pydantic import Field
 from typing_extensions import Annotated
 
-from ...creation.macro_builder import MacroBuilder, MacroCreationRequest, MacroTemplate
+from ...creation.macro_builder import MacroBuilder, MacroCreationRequest
+from ...creation.types import MacroTemplate
 from ...core.types import MacroId, GroupId
 from ...core.errors import ValidationError, SecurityViolationError
 from ..initialization import get_km_client

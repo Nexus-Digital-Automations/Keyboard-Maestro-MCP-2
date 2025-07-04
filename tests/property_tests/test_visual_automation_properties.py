@@ -31,8 +31,8 @@ def screen_regions(draw):
     """Generate valid screen regions with reasonable bounds."""
     x = draw(st.integers(min_value=0, max_value=3840))
     y = draw(st.integers(min_value=0, max_value=2160))
-    width = draw(st.integers(min_value=1, max_value=min(1920, 3840 - x)))
-    height = draw(st.integers(min_value=1, max_value=min(1080, 2160 - y)))
+    width = draw(st.integers(min_value=1, max_value=max(1, min(1920, 3840 - x))))
+    height = draw(st.integers(min_value=1, max_value=max(1, min(1080, 2160 - y))))
     display_id = draw(st.one_of(st.none(), st.integers(min_value=1, max_value=5)))
     return ScreenRegion(x, y, width, height, display_id)
 

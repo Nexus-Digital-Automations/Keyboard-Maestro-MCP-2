@@ -152,7 +152,7 @@ class AIProcessingManager:
             return Either.right(self._format_response(response, out_format))
             
         except Exception as e:
-            return Either.left(ValidationError("unexpected_error", str(e)))
+            return Either.left(ValidationError("ai_request", str(e), "Valid AI request processing"))
     
     async def _validate_input_security(self, input_data: Any, privacy_mode: bool) -> Either[ValidationError, None]:
         """Validate input data for security threats."""

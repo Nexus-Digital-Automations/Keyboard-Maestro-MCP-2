@@ -281,7 +281,8 @@ class SecurityError(MacroEngineError):
             category=ErrorCategory.SECURITY,
             severity=ErrorSeverity.CRITICAL,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
+            error_code=security_code  # Pass security_code as error_code to parent
         )
         self.security_code = security_code
 
@@ -483,11 +484,13 @@ class AnalyticsError(MacroEngineError):
     def __init__(self, operation: str, error_details: str, context: Optional[ErrorContext] = None):
         self.operation = operation
         self.error_details = error_details
-        self.context = context or create_error_context(
-            operation=operation,
-            component="analytics_system"
+        message = f"Analytics operation '{operation}' failed: {error_details}"
+        super().__init__(
+            message=message,
+            category=ErrorCategory.EXECUTION,
+            severity=ErrorSeverity.MEDIUM,
+            context=context or create_error_context(operation=operation, component="analytics_system")
         )
-        super().__init__(f"Analytics operation '{operation}' failed: {error_details}")
 
 
 def create_error_context(operation: str, component: str, **metadata) -> ErrorContext:

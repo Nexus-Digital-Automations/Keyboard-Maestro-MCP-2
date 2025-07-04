@@ -145,6 +145,36 @@ class EarlyWarningAlert:
     alert_timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
+@dataclass(frozen=True)
+class FailurePattern:
+    """Pattern identified in failure data."""
+    pattern_id: str
+    pattern_type: str
+    confidence: float
+    frequency: int
+    indicators: List[FailureIndicator]
+    description: str
+    
+    def __post_init__(self):
+        if not (0.0 <= self.confidence <= 1.0):
+            raise ValueError(f"Confidence must be between 0.0 and 1.0, got {self.confidence}")
+
+
+@dataclass(frozen=True)
+class PredictionModel:
+    """Model for failure prediction."""
+    model_id: str
+    model_type: str
+    accuracy: float
+    training_data_size: int
+    last_updated: datetime
+    failure_types: List[FailureType]
+    
+    def __post_init__(self):
+        if not (0.0 <= self.accuracy <= 1.0):
+            raise ValueError(f"Accuracy must be between 0.0 and 1.0, got {self.accuracy}")
+
+
 class FailurePredictor:
     """Advanced failure prediction and early warning system."""
     

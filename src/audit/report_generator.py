@@ -297,8 +297,7 @@ class ReportGenerator:
             AuditEventType.SECURITY_VIOLATION,
             AuditEventType.COMPLIANCE_VIOLATION,
             AuditEventType.DATA_DELETED,
-            AuditEventType.SENSITIVE_DATA_ACCESS,
-            AuditEventType.PRIVILEGE_ESCALATION
+            AuditEventType.PERMISSION_GRANTED  # Use existing enum value instead
         }
         
         if event.event_type in high_risk_events:
@@ -440,7 +439,7 @@ class ReportGenerator:
         
         # Pattern-based recommendations
         failed_auth_events = [e for e in events 
-                            if e.event_type == AuditEventType.AUTHENTICATION_FAILURE]
+                            if e.event_type == AuditEventType.USER_AUTHENTICATION_FAILED]
         if len(failed_auth_events) > 10:
             recommendations.append(
                 "Implement multi-factor authentication and account lockout policies "
@@ -590,10 +589,9 @@ class ReportGenerator:
                 'high_risk_events': len([e for e in all_events if e.is_high_risk()]),
                 'unique_users': len(set(e.user_id for e in all_events)),
                 'authentication_failures': len([e for e in all_events 
-                                              if e.event_type == AuditEventType.AUTHENTICATION_FAILURE]),
+                                              if e.event_type == AuditEventType.USER_AUTHENTICATION_FAILED]),
                 'data_access_events': len([e for e in all_events 
-                                         if e.event_type in [AuditEventType.DATA_ACCESSED,
-                                                           AuditEventType.SENSITIVE_DATA_ACCESS]]),
+                                         if e.event_type == AuditEventType.DATA_ACCESSED]),
                 'security_violations': len([e for e in all_events 
                                           if e.event_type == AuditEventType.SECURITY_VIOLATION])
             }

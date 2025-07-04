@@ -11,7 +11,6 @@ Type Safety: Complete integration with hardware event validation system.
 """
 
 from typing import Dict, Any, Optional, List, Union
-import mcp
 from datetime import datetime
 
 from src.core.hardware_events import (
@@ -35,7 +34,6 @@ keyboard_controller = KeyboardController()
 gesture_controller = GestureController()
 
 
-@mcp.tool()
 async def km_interface_automation(
     operation: str,
     coordinates: Optional[Dict[str, int]] = None,
@@ -432,7 +430,6 @@ async def _handle_accessibility_interaction(
 
 # Additional utility tools for interface automation
 
-@mcp.tool()
 async def km_get_mouse_position(ctx = None) -> Dict[str, Any]:
     """
     Get current mouse cursor position.
@@ -464,7 +461,6 @@ async def km_get_mouse_position(ctx = None) -> Dict[str, Any]:
         }
 
 
-@mcp.tool()
 async def km_validate_coordinates(
     coordinates: Dict[str, int],
     ctx = None

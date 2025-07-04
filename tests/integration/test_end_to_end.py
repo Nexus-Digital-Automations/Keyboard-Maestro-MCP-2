@@ -147,7 +147,7 @@ class TestCompleteWorkflows:
         result = engine.execute_macro(macro, context)
         
         # Verify the result indicates failure due to permission error
-        assert_execution_failed(result, "Permission denied")
+        assert_execution_failed(result, "PermissionDeniedError")
         assert "SYSTEM_SOUND" in result.error_details or "system_sound" in result.error_details
     
     def test_concurrent_macro_execution_workflow(self):

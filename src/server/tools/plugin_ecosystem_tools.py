@@ -828,3 +828,49 @@ class PluginEcosystemTools:
                 'error': f"Marketplace operation failed: {e}",
                 'operation': 'marketplace'
             }
+
+
+# Module-level instance for standalone function access
+_plugin_tools_instance = None
+
+async def km_plugin_ecosystem(
+    operation: str,
+    plugin_identifier: Optional[str] = None,
+    plugin_source: Optional[str] = None,
+    action_name: Optional[str] = None,
+    parameters: Optional[Dict] = None,
+    plugin_config: Optional[Dict] = None,
+    security_profile: str = "standard",
+    api_version: str = "1.0",
+    auto_update: bool = False,
+    dependency_resolution: bool = True,
+    validation_level: str = "strict",
+    timeout: int = 60,
+    ctx = None
+) -> Dict[str, Any]:
+    """
+    Standalone wrapper for plugin ecosystem operations.
+    
+    This function provides a standalone interface to the PluginEcosystemTools class
+    for integration with test suites and other modules.
+    """
+    global _plugin_tools_instance
+    
+    if _plugin_tools_instance is None:
+        _plugin_tools_instance = PluginEcosystemTools()
+    
+    return await _plugin_tools_instance.km_plugin_ecosystem(
+        operation=operation,
+        plugin_identifier=plugin_identifier,
+        plugin_source=plugin_source,
+        action_name=action_name,
+        parameters=parameters,
+        plugin_config=plugin_config,
+        security_profile=security_profile,
+        api_version=api_version,
+        auto_update=auto_update,
+        dependency_resolution=dependency_resolution,
+        validation_level=validation_level,
+        timeout=timeout,
+        ctx=ctx
+    )
