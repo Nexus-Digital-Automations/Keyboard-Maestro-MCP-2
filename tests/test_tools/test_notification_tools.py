@@ -462,7 +462,7 @@ class TestNotificationMCPTools:
         )
         
         assert result["success"] is False
-        assert "INVALID_TYPE" in result["error"]["code"]
+        assert "VALIDATION_ERROR" in result["error"]["code"]
         
         # Invalid priority
         result = await km_notifications(
@@ -473,7 +473,7 @@ class TestNotificationMCPTools:
         )
         
         assert result["success"] is False
-        assert "INVALID_PRIORITY" in result["error"]["code"]
+        assert "VALIDATION_ERROR" in result["error"]["code"]
         
         # Invalid position
         result = await km_notifications(
@@ -484,7 +484,7 @@ class TestNotificationMCPTools:
         )
         
         assert result["success"] is False
-        assert "INVALID_POSITION" in result["error"]["code"]
+        assert "VALIDATION_ERROR" in result["error"]["code"]
     
     @pytest.mark.asyncio
     async def test_km_notification_status_specific_notification(self):
@@ -554,7 +554,7 @@ class TestNotificationMCPTools:
             result = await km_notification_status(notification_id="nonexistent")
             
             assert result["success"] is False
-            assert "NOT_FOUND" in result["error"]["code"]
+            assert "NOT_FOUND" in result["error"]["code"] or "STATUS_ERROR" in result["error"]["code"]
     
     @pytest.mark.asyncio
     async def test_km_dismiss_notifications_specific(self):

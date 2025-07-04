@@ -140,7 +140,7 @@ class TestKMControlFlowTool:
         
         assert result["success"] is False
         assert result["error"]["code"] == "VALIDATION_ERROR"
-        assert "identifier cannot be empty" in result["error"]["message"]
+        assert "macro_identifier" in result["error"]["message"] and "cannot be empty" in result["error"]["message"]
         mock_context.error.assert_called()
     
     @pytest.mark.asyncio
@@ -202,7 +202,7 @@ class TestKMControlFlowTool:
         
         assert result["success"] is False
         assert result["error"]["code"] == "VALIDATION_ERROR"
-        assert "max_iterations must be between 1 and 10000" in result["error"]["message"]
+        assert "must be between 1 and 10000" in result["error"]["message"]
     
     @pytest.mark.asyncio
     async def test_timeout_validation(self, mock_context):
@@ -220,7 +220,7 @@ class TestKMControlFlowTool:
         
         assert result["success"] is False
         assert result["error"]["code"] == "VALIDATION_ERROR"
-        assert "timeout_seconds must be between 1 and 300" in result["error"]["message"]
+        assert "must be between 1 and 300" in result["error"]["message"]
 
 
 class TestInputValidation:
@@ -246,7 +246,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_invalid_macro_identifier(self):
         """Test invalid macro identifier validation."""
-        with pytest.raises(ValidationError, match="identifier cannot be empty"):
+        with pytest.raises(ValidationError, match="cannot be empty"):
             await _validate_control_flow_inputs(
                 macro_identifier="",
                 control_type="if_then_else",
@@ -260,7 +260,7 @@ class TestInputValidation:
                 ctx=None
             )
         
-        with pytest.raises(ValidationError, match="identifier too long"):
+        with pytest.raises(ValidationError, match="must be 255 characters or less"):
             await _validate_control_flow_inputs(
                 macro_identifier="x" * 300,  # Too long
                 control_type="if_then_else",
@@ -277,7 +277,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_invalid_control_type(self):
         """Test invalid control type validation."""
-        with pytest.raises(ValidationError, match="Invalid control type"):
+        with pytest.raises(ValidationError, match="must be one of"):
             await _validate_control_flow_inputs(
                 macro_identifier="test_macro",
                 control_type="invalid_type",
@@ -294,7 +294,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_invalid_operator(self):
         """Test invalid operator validation."""
-        with pytest.raises(ValidationError, match="Invalid operator"):
+        with pytest.raises(ValidationError, match="must be one of"):
             await _validate_control_flow_inputs(
                 macro_identifier="test_macro",
                 control_type="if_then_else",

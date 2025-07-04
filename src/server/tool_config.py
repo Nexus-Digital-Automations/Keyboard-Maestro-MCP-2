@@ -32,7 +32,6 @@ class ToolCategory(Enum):
     WORKFLOW_INTELLIGENCE = "workflow_intelligence"
     IOT_INTEGRATION = "iot_integration"
     VOICE_CONTROL = "voice_control"
-    BIOMETRIC_SECURITY = "biometric_security"
     QUANTUM_READY = "quantum_ready"
     AI_INTELLIGENCE = "ai_intelligence"
     PLUGIN_ECOSYSTEM = "plugin_ecosystem"

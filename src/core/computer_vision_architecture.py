@@ -91,7 +91,7 @@ class VisionOperation(Enum):
     OBJECT_DETECTION = "object_detection"
     SCENE_CLASSIFICATION = "scene_classification"
     IMAGE_SEGMENTATION = "image_segmentation"
-    FACIAL_RECOGNITION = "facial_recognition"
+    PATTERN_RECOGNITION = "pattern_recognition"
     TEXT_DETECTION = "text_detection"
     OPTICAL_CHARACTER_RECOGNITION = "ocr"
     LANDMARK_DETECTION = "landmark_detection"

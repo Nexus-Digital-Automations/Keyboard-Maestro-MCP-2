@@ -219,8 +219,6 @@ class ToolDiscovery:
             return 'iot_integration'
         elif 'voice' in module_name:
             return 'voice_control'
-        elif 'biometric' in module_name:
-            return 'biometric_security'
         elif 'quantum' in module_name:
             return 'quantum_ready'
         elif 'ai' in module_name or 'processing' in module_name:

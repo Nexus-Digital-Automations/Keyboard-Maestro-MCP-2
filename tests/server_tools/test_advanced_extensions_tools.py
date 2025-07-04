@@ -3,7 +3,7 @@ Comprehensive Test Suite for Advanced Extensions Tools (TASK_56-68).
 
 This module provides systematic testing for knowledge management, accessibility, testing automation,
 advanced intelligence (predictive analytics, NLP, computer vision), enterprise security (zero trust, 
-API orchestration), and IoT/future technologies (IoT integration, voice, biometric, quantum) with 
+API orchestration), and IoT/future technologies (IoT integration, voice control, quantum) with 
 comprehensive coverage for next-generation automation capabilities.
 """
 
@@ -701,11 +701,10 @@ class TestIoTAndFutureTechTools(TestAdvancedExtensionsFoundation):
     def test_iot_future_tech_import(self):
         """Test that IoT and future tech tools can be imported."""
         try:
-            from src.server.tools import iot_integration_tools, voice_control_tools, biometric_integration_tools, quantum_ready_tools
+            from src.server.tools import iot_integration_tools, voice_control_tools, quantum_ready_tools
             tools_to_check = [
                 (iot_integration_tools, ['km_control_iot_device', 'km_manage_iot_hub']),
                 (voice_control_tools, ['km_process_voice_commands', 'km_configure_voice_control']),
-                (biometric_integration_tools, ['km_authenticate_biometric', 'km_personalize_automation']),
                 (quantum_ready_tools, ['km_analyze_quantum_readiness', 'km_upgrade_to_post_quantum'])
             ]
             

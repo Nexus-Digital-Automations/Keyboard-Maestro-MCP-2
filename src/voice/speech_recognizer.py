@@ -637,7 +637,7 @@ class SpeechRecognizer:
                 "speaker_identification_enabled": True,
                 "registered_speakers": len(voice_profiles),
                 "authentication_levels": list(set(profile.authentication_level.value for profile in voice_profiles)),
-                "biometric_ready": any(profile.authentication_level == SpeakerAuthLevel.BIOMETRIC for profile in voice_profiles)
+                "advanced_auth_ready": any(profile.authentication_level == SpeakerAuthLevel.ENTERPRISE for profile in voice_profiles)
             }
             
             logger.info(f"Speaker identification enabled with {len(voice_profiles)} profiles")

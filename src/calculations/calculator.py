@@ -73,6 +73,16 @@ class CalculationExpression:
                 return False
         
         return True
+    
+    def contains_km_tokens(self) -> bool:
+        """Check if expression contains Keyboard Maestro tokens."""
+        # Keyboard Maestro tokens typically use %TokenName% format
+        return bool(re.search(r'%[A-Za-z_][A-Za-z0-9_]*%', self.expression))
+    
+    def contains_functions(self) -> bool:
+        """Check if expression contains mathematical functions."""
+        function_pattern = r'\b(?:sin|cos|tan|asin|acos|atan|atan2|log|log10|exp|sqrt|pow|abs|round|floor|ceil|min|max|sum)\s*\('
+        return bool(re.search(function_pattern, self.expression))
 
 
 @dataclass(frozen=True)

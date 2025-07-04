@@ -75,7 +75,6 @@ class SpeakerAuthLevel(Enum):
     """Speaker authentication levels."""
     NONE = "none"  # No authentication required
     BASIC = "basic"  # Basic voice pattern matching
-    BIOMETRIC = "biometric"  # Advanced biometric authentication
     MULTI_FACTOR = "multi_factor"  # Voice + additional factor
     ENTERPRISE = "enterprise"  # Enterprise-grade authentication
 
@@ -364,9 +363,6 @@ class VoiceAuthenticationError(VoiceControlError):
     def authentication_required(cls, command_type: str) -> 'VoiceAuthenticationError':
         return cls(f"Authentication required for command type: {command_type}")
     
-    @classmethod
-    def biometric_verification_failed(cls) -> 'VoiceAuthenticationError':
-        return cls("Biometric voice verification failed")
 
 
 # Helper functions for voice architecture

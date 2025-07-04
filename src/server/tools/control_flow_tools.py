@@ -236,15 +236,15 @@ async def _validate_control_flow_inputs(
     
     # Validate macro identifier
     if not macro_identifier or len(macro_identifier.strip()) == 0:
-        raise ValidationError("Macro identifier cannot be empty")
+        raise ValidationError("macro_identifier", macro_identifier, "cannot be empty")
     
     if len(macro_identifier) > 255:
-        raise ValidationError("Macro identifier too long (max 255 characters)")
+        raise ValidationError("macro_identifier", macro_identifier, "must be 255 characters or less")
     
     # Validate control type
     valid_types = {"if_then_else", "for_loop", "while_loop", "switch_case", "try_catch"}
     if control_type not in valid_types:
-        raise ValidationError(f"Invalid control type. Must be one of: {', '.join(valid_types)}")
+        raise ValidationError("control_type", control_type, f"must be one of: {', '.join(valid_types)}")
     
     # Validate operator
     valid_operators = {
@@ -253,15 +253,15 @@ async def _validate_control_flow_inputs(
         "matches_regex", "exists"
     }
     if operator not in valid_operators:
-        raise ValidationError(f"Invalid operator. Must be one of: {', '.join(valid_operators)}")
+        raise ValidationError("operator", operator, f"must be one of: {', '.join(valid_operators)}")
     
     # Validate condition for conditional types
     if control_type in {"if_then_else", "while_loop"}:
         if not condition:
-            raise ValidationError(f"{control_type} requires a condition expression")
+            raise ValidationError("condition", condition, f"{control_type} requires a condition expression")
         
         if len(condition) > 500:
-            raise ValidationError("Condition expression too long (max 500 characters)")
+            raise ValidationError("condition", condition, "must be 500 characters or less")
         
         # Check for dangerous patterns
         dangerous_patterns = [
@@ -273,26 +273,26 @@ async def _validate_control_flow_inputs(
         condition_lower = condition.lower()
         for pattern in dangerous_patterns:
             if pattern in condition_lower:
-                raise SecurityError(f"Dangerous pattern detected in condition: {pattern}")
+                raise SecurityError("DANGEROUS_PATTERN", f"Dangerous pattern detected in condition: {pattern}")
     
     # Validate loop-specific parameters
     if control_type == "for_loop":
         if not iterator:
-            raise ValidationError("For loop requires an iterator variable")
+            raise ValidationError("iterator", iterator, "For loop requires an iterator variable")
         if not collection:
-            raise ValidationError("For loop requires a collection expression")
+            raise ValidationError("collection", collection, "For loop requires a collection expression")
         
         if len(iterator) > 50:
-            raise ValidationError("Iterator variable name too long (max 50 characters)")
+            raise ValidationError("iterator", iterator, "must be 50 characters or less")
         if len(collection) > 500:
-            raise ValidationError("Collection expression too long (max 500 characters)")
+            raise ValidationError("collection", collection, "must be 500 characters or less")
     
     # Validate security bounds
     if max_iterations < 1 or max_iterations > 10000:
-        raise ValidationError("max_iterations must be between 1 and 10000")
+        raise ValidationError("max_iterations", max_iterations, "must be between 1 and 10000")
     
     if timeout_seconds < 1 or timeout_seconds > 300:
-        raise ValidationError("timeout_seconds must be between 1 and 300")
+        raise ValidationError("timeout_seconds", timeout_seconds, "must be between 1 and 300")
     
     if ctx:
         await ctx.info("Input validation passed")
@@ -336,7 +336,7 @@ async def _build_control_flow_structure(
         
         if control_type == "if_then_else":
             if not condition or not actions_true:
-                raise ValidationError("If/then/else requires condition and true actions")
+                raise ValidationError("if_then_else", f"condition={condition}, actions_true={actions_true}", "requires condition and true actions")
             
             return create_simple_if(
                 condition_expr=condition,
@@ -348,7 +348,7 @@ async def _build_control_flow_structure(
             
         elif control_type == "for_loop":
             if not iterator or not collection or not loop_actions:
-                raise ValidationError("For loop requires iterator, collection, and actions")
+                raise ValidationError("for_loop", f"iterator={iterator}, collection={collection}, loop_actions={loop_actions}", "requires iterator, collection, and actions")
             
             return create_for_loop(
                 iterator=iterator,
@@ -359,7 +359,7 @@ async def _build_control_flow_structure(
             
         elif control_type == "while_loop":
             if not condition or not loop_actions:
-                raise ValidationError("While loop requires condition and actions")
+                raise ValidationError("while_loop", f"condition={condition}, loop_actions={loop_actions}", "requires condition and actions")
             
             return create_while_loop(
                 condition_expr=condition,
@@ -371,13 +371,13 @@ async def _build_control_flow_structure(
             
         elif control_type == "switch_case":
             if not cases:
-                raise ValidationError("Switch statement requires cases")
+                raise ValidationError("cases", cases, "Switch statement requires cases")
             
             # Convert cases to builder format
             case_tuples = []
             for case in cases:
                 if 'value' not in case or 'actions' not in case:
-                    raise ValidationError("Each case must have 'value' and 'actions'")
+                    raise ValidationError("case", case, "Each case must have 'value' and 'actions'")
                 case_tuples.append((case['value'], case['actions']))
             
             builder = ControlFlowBuilder(validator)
@@ -391,7 +391,7 @@ async def _build_control_flow_structure(
             return nodes[0]
             
         else:
-            raise ValidationError(f"Unsupported control type: {control_type}")
+            raise ValidationError("control_type", control_type, "Unsupported control type")
             
     except Exception as e:
         if ctx:

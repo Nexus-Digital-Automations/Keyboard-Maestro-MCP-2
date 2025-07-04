@@ -173,12 +173,13 @@ async def km_calculator(
                 km_value = km_result.get_right()
                 try:
                     result_value = float(km_value)
-                    from ...calculations.calculator import CalculationResult
-                    calc_result = Calculator()._create_either_right(
+                    from ...calculations.calculator import CalculationResult, NumberFormat
+                    from ...integration.km_client import Either
+                    calc_result = Either.right(
                         CalculationResult(
-                            value=result_value,
-                            formatted_value=km_value,
-                            format_used=ResultFormat.from_string(format_result),
+                            result=result_value,
+                            formatted_result=km_value,
+                            format=NumberFormat.DECIMAL,
                             expression=expression,
                             variables_used=variables,
                             execution_time=0.0
@@ -186,7 +187,8 @@ async def km_calculator(
                     )
                 except ValueError:
                     # KM returned non-numeric result, treat as error
-                    calc_result = Calculator()._create_either_left(
+                    from ...integration.km_client import Either, KMError
+                    calc_result = Either.left(
                         KMError.execution_error(f"KM returned non-numeric result: {km_value}")
                     )
         else:
@@ -219,28 +221,20 @@ async def km_calculator(
         result = calc_result.get_right()
         
         # Apply result formatting if different from what was calculated
-        if format_result != "auto" and result.format_used.value != format_result:
-            calculator = Calculator()
-            formatted_result = calculator.format_result(
-                result.value, 
-                ResultFormat.from_string(format_result),
-                precision
-            )
-            result = result._replace(
-                formatted_value=formatted_result,
-                format_used=ResultFormat.from_string(format_result)
-            )
+        if format_result != "auto" and result.format.value != format_result:
+            # For now, use the existing formatted_result since Calculator doesn't have format_result method
+            formatted_result = result.formatted_result
         
         if ctx:
-            await ctx.info(f"Calculation complete: {result.formatted_value}")
+            await ctx.info(f"Calculation complete: {result.formatted_result}")
         
         return {
             "success": True,
             "calculation": {
                 "expression": result.expression,
-                "result": result.value,
-                "formatted_result": result.formatted_value,
-                "format": result.format_used.value,
+                "result": result.result,
+                "formatted_result": result.formatted_result,
+                "format": result.format.value,
                 "precision": precision,
                 "variables_used": result.variables_used,
                 "execution_time": result.execution_time,

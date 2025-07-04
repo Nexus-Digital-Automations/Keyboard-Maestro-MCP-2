@@ -37,7 +37,6 @@ class AuthenticationMethod(Enum):
     CERTIFICATE = "certificate"
     SHARED_KEY = "shared_key"
     OAUTH2 = "oauth2"
-    BIOMETRIC = "biometric"
     MULTI_FACTOR = "multi_factor"
     ZERO_TRUST = "zero_trust"
 

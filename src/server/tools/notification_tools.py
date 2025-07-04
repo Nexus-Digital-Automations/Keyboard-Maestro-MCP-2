@@ -387,6 +387,7 @@ async def km_notification_status(
                     correlation_id, "NOT_FOUND", 
                     f"Notification not found: {notification_id}",
                     "The specified notification ID is not in the active notifications list",
+                    "Check that the notification ID is correct and that the notification is currently active",
                     (datetime.now() - start_time).total_seconds()
                 )
         else:

@@ -227,9 +227,12 @@ class TestMacroMovementExecution:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"SUCCESS\n", b""))
         
+        async def mock_wait_for(coro, timeout):
+            return await coro
+        
         with patch('src.server.tools.macro_move_tools._get_macro_info', return_value=mock_info), \
              patch('asyncio.create_subprocess_exec', return_value=mock_process), \
-             patch('asyncio.wait_for', side_effect=lambda coro, timeout: coro):
+             patch('asyncio.wait_for', side_effect=mock_wait_for):
             
             result = await _execute_macro_movement(
                 "TestMacro", "TargetGroup", False, True, Duration.from_seconds(30), None
@@ -248,9 +251,12 @@ class TestMacroMovementExecution:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"ERROR: Macro not found\n", b""))
         
+        async def mock_wait_for(coro, timeout):
+            return await coro
+        
         with patch('src.server.tools.macro_move_tools._get_macro_info', return_value=mock_info), \
              patch('asyncio.create_subprocess_exec', return_value=mock_process), \
-             patch('asyncio.wait_for', side_effect=lambda coro, timeout: coro):
+             patch('asyncio.wait_for', side_effect=mock_wait_for):
             
             result = await _execute_macro_movement(
                 "TestMacro", "TargetGroup", False, True, Duration.from_seconds(30), None
@@ -289,10 +295,13 @@ class TestFullMacroMovementWorkflow:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"SUCCESS\n", b""))
         
+        async def mock_wait_for(coro, timeout):
+            return await coro
+        
         with patch('src.server.tools.macro_move_tools._get_macro_info', return_value=mock_info), \
              patch('src.server.tools.macro_move_tools._check_group_exists', return_value=True), \
              patch('asyncio.create_subprocess_exec', return_value=mock_process), \
-             patch('asyncio.wait_for', side_effect=lambda coro, timeout: coro), \
+             patch('asyncio.wait_for', side_effect=mock_wait_for), \
              patch('src.server.tools.macro_move_tools._verify_movement_completion', return_value=True):
             
             result = await km_move_macro_to_group(
@@ -339,7 +348,7 @@ class TestFullMacroMovementWorkflow:
         )
         
         assert result["success"] is False
-        assert result["error"]["code"] == "VALIDATION_ERROR"
+        assert result["error"]["code"] == "SECURITY_VIOLATION"
         assert "system group" in result["error"]["details"].lower()
     
     @pytest.mark.asyncio
@@ -350,11 +359,14 @@ class TestFullMacroMovementWorkflow:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"SUCCESS\n", b""))
         
+        async def mock_wait_for(coro, timeout):
+            return await coro
+        
         with patch('src.server.tools.macro_move_tools._get_macro_info', return_value=mock_info), \
              patch('src.server.tools.macro_move_tools._check_group_exists', return_value=False), \
              patch('src.server.tools.macro_move_tools._create_group_if_missing', return_value=True), \
              patch('asyncio.create_subprocess_exec', return_value=mock_process), \
-             patch('asyncio.wait_for', side_effect=lambda coro, timeout: coro), \
+             patch('asyncio.wait_for', side_effect=mock_wait_for), \
              patch('src.server.tools.macro_move_tools._verify_movement_completion', return_value=True):
             
             result = await km_move_macro_to_group(
@@ -457,10 +469,13 @@ class TestErrorHandlingAndRecovery:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"SUCCESS\n", b""))
         
+        async def mock_wait_for(coro, timeout):
+            return await coro
+        
         with patch('src.server.tools.macro_move_tools._get_macro_info', return_value=mock_info), \
              patch('src.server.tools.macro_move_tools._check_group_exists', return_value=True), \
              patch('asyncio.create_subprocess_exec', return_value=mock_process), \
-             patch('asyncio.wait_for', side_effect=lambda coro, timeout: coro), \
+             patch('asyncio.wait_for', side_effect=mock_wait_for), \
              patch('src.server.tools.macro_move_tools._verify_movement_completion', return_value=False), \
              patch('src.server.tools.macro_move_tools._attempt_rollback') as mock_rollback:
             
@@ -545,10 +560,13 @@ class TestPerformanceAndBenchmarks:
         
         start_time = datetime.now()
         
+        async def mock_wait_for(coro, timeout):
+            return await coro
+        
         with patch('src.server.tools.macro_move_tools._get_macro_info', return_value=mock_info), \
              patch('src.server.tools.macro_move_tools._check_group_exists', return_value=True), \
              patch('asyncio.create_subprocess_exec', return_value=mock_process), \
-             patch('asyncio.wait_for', side_effect=lambda coro, timeout: coro), \
+             patch('asyncio.wait_for', side_effect=mock_wait_for), \
              patch('src.server.tools.macro_move_tools._verify_movement_completion', return_value=True):
             
             result = await km_move_macro_to_group(
