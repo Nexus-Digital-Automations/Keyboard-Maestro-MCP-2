@@ -6,14 +6,20 @@ organized by functionality for better maintainability and testing.
 """
 
 from .config import ServerConfig, get_server_config
-from .initialization import initialize_components, get_km_client, get_metadata_extractor, get_sync_manager, get_file_monitor
+from .initialization import (
+    get_file_monitor,
+    get_km_client,
+    get_metadata_extractor,
+    get_sync_manager,
+    initialize_components,
+)
 
 __all__ = [
     "ServerConfig",
-    "get_server_config", 
+    "get_server_config",
     "initialize_components",
     "get_km_client",
-    "get_metadata_extractor", 
+    "get_metadata_extractor",
     "get_sync_manager",
-    "get_file_monitor"
+    "get_file_monitor",
 ]

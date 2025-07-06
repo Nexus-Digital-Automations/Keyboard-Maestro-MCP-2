@@ -6,19 +6,19 @@ conflict detection, and security boundaries.
 """
 
 from .hotkey_manager import (
+    ActivationMode,
+    HotkeyConflict,
+    HotkeyManager,
     HotkeySpec,
     ModifierKey,
-    ActivationMode,
-    HotkeyManager,
-    HotkeyConflict,
-    create_hotkey_spec
+    create_hotkey_spec,
 )
 
 __all__ = [
     "HotkeySpec",
-    "ModifierKey", 
+    "ModifierKey",
     "ActivationMode",
     "HotkeyManager",
     "HotkeyConflict",
-    "create_hotkey_spec"
+    "create_hotkey_spec",
 ]

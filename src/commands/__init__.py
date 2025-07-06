@@ -5,19 +5,27 @@ Provides a comprehensive library of macro commands with strong type safety,
 contract-based validation, and security boundaries.
 """
 
+from .application import (
+    ActivateApplicationCommand,
+    LaunchApplicationCommand,
+    QuitApplicationCommand,
+)
 from .base import BaseCommand, CommandContract
+from .flow import BreakCommand, ConditionalCommand, LoopCommand
 from .registry import CommandRegistry, get_default_registry
-from .text import TypeTextCommand, FindTextCommand, ReplaceTextCommand
 from .system import PauseCommand, PlaySoundCommand, SetVolumeCommand
-from .application import LaunchApplicationCommand, QuitApplicationCommand, ActivateApplicationCommand
-from .flow import ConditionalCommand, LoopCommand, BreakCommand
+from .text import FindTextCommand, ReplaceTextCommand, TypeTextCommand
 from .validation import (
-    validate_text_input, validate_file_path, validate_command_parameters,
-    SecurityValidator, CommandSecurityError
+    CommandSecurityError,
+    SecurityValidator,
+    validate_command_parameters,
+    validate_file_path,
+    validate_text_input,
 )
 
 # Command registry instance
 _registry = None
+
 
 def get_command_registry() -> CommandRegistry:
     """Get the global command registry."""
@@ -26,27 +34,35 @@ def get_command_registry() -> CommandRegistry:
         _registry = get_default_registry()
     return _registry
 
+
 # Expose key types for external use
 __all__ = [
     # Base classes
-    'BaseCommand', 'CommandContract',
-    
+    "BaseCommand",
+    "CommandContract",
     # Registry
-    'CommandRegistry', 'get_command_registry',
-    
+    "CommandRegistry",
+    "get_command_registry",
     # Text commands
-    'TypeTextCommand', 'FindTextCommand', 'ReplaceTextCommand',
-    
+    "TypeTextCommand",
+    "FindTextCommand",
+    "ReplaceTextCommand",
     # System commands
-    'PauseCommand', 'PlaySoundCommand', 'SetVolumeCommand',
-    
+    "PauseCommand",
+    "PlaySoundCommand",
+    "SetVolumeCommand",
     # Application commands
-    'LaunchApplicationCommand', 'QuitApplicationCommand', 'ActivateApplicationCommand',
-    
+    "LaunchApplicationCommand",
+    "QuitApplicationCommand",
+    "ActivateApplicationCommand",
     # Flow control commands
-    'ConditionalCommand', 'LoopCommand', 'BreakCommand',
-    
+    "ConditionalCommand",
+    "LoopCommand",
+    "BreakCommand",
     # Validation
-    'validate_text_input', 'validate_file_path', 'validate_command_parameters',
-    'SecurityValidator', 'CommandSecurityError'
+    "validate_text_input",
+    "validate_file_path",
+    "validate_command_parameters",
+    "SecurityValidator",
+    "CommandSecurityError",
 ]

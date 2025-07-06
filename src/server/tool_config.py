@@ -5,16 +5,17 @@ This module defines the configuration schema for tools, including categorization
 security policies, and validation rules.
 """
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
-import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 class ToolCategory(Enum):
     """Tool categories for organization and feature grouping."""
+
     CORE = "core"
     ADVANCED = "advanced"
     SYNCHRONIZATION = "synchronization"
@@ -40,6 +41,7 @@ class ToolCategory(Enum):
 
 class SecurityLevel(Enum):
     """Security levels for tool execution."""
+
     MINIMAL = "minimal"
     STANDARD = "standard"
     STRICT = "strict"
@@ -49,10 +51,11 @@ class SecurityLevel(Enum):
 @dataclass
 class ToolSecurityPolicy:
     """Security policy configuration for a tool."""
+
     level: SecurityLevel = SecurityLevel.STANDARD
     requires_authentication: bool = False
-    allowed_contexts: Set[str] = field(default_factory=set)
-    rate_limit_per_minute: Optional[int] = None
+    allowed_contexts: set[str] = field(default_factory=set)
+    rate_limit_per_minute: int | None = None
     audit_level: str = "standard"
     input_validation: bool = True
     output_sanitization: bool = True
@@ -61,8 +64,9 @@ class ToolSecurityPolicy:
 @dataclass
 class ToolValidationRules:
     """Validation rules for tool parameters and execution."""
-    required_parameters: Set[str] = field(default_factory=set)
-    parameter_constraints: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+
+    required_parameters: set[str] = field(default_factory=set)
+    parameter_constraints: dict[str, dict[str, Any]] = field(default_factory=dict)
     timeout_seconds: int = 30
     max_retries: int = 3
     validate_return_type: bool = True
@@ -71,6 +75,7 @@ class ToolValidationRules:
 @dataclass
 class ToolConfiguration:
     """Complete configuration for a tool."""
+
     name: str
     category: ToolCategory
     description: str
@@ -79,56 +84,53 @@ class ToolConfiguration:
     priority: int = 0
     security_policy: ToolSecurityPolicy = field(default_factory=ToolSecurityPolicy)
     validation_rules: ToolValidationRules = field(default_factory=ToolValidationRules)
-    dependencies: Set[str] = field(default_factory=set)
-    tags: Set[str] = field(default_factory=set)
+    dependencies: set[str] = field(default_factory=set)
+    tags: set[str] = field(default_factory=set)
     version: str = "1.0.0"
     experimental: bool = False
 
 
 class ToolConfigurationManager:
     """Manages tool configurations and policies."""
-    
+
     def __init__(self):
-        self.configurations: Dict[str, ToolConfiguration] = {}
+        self.configurations: dict[str, ToolConfiguration] = {}
         self._load_default_configurations()
-    
+
     def _load_default_configurations(self) -> None:
         """Load default configurations for all tool categories."""
-        
+
         # Core Tools
-        core_tools = [
-            "km_execute_macro", "km_list_macros", "km_variable_manager"
-        ]
+        core_tools = ["km_execute_macro", "km_list_macros", "km_variable_manager"]
         for tool in core_tools:
             self.configurations[tool] = ToolConfiguration(
                 name=tool,
                 category=ToolCategory.CORE,
                 description=f"Core macro operation: {tool}",
-                module_path=f"src.server.tools.core_tools",
+                module_path="src.server.tools.core_tools",
                 priority=10,
                 security_policy=ToolSecurityPolicy(
-                    level=SecurityLevel.STANDARD,
-                    audit_level="detailed"
-                )
+                    level=SecurityLevel.STANDARD, audit_level="detailed"
+                ),
             )
-        
+
         # Advanced Tools
-        advanced_tools = [
-            "km_search_macros_advanced", "km_analyze_macro_metadata"
-        ]
+        advanced_tools = ["km_search_macros_advanced", "km_analyze_macro_metadata"]
         for tool in advanced_tools:
             self.configurations[tool] = ToolConfiguration(
                 name=tool,
                 category=ToolCategory.ADVANCED,
                 description=f"Advanced macro operation: {tool}",
                 module_path="src.server.tools.advanced_tools",
-                priority=8
+                priority=8,
             )
-        
+
         # Synchronization Tools
         sync_tools = [
-            "km_start_realtime_sync", "km_stop_realtime_sync", 
-            "km_sync_status", "km_force_sync"
+            "km_start_realtime_sync",
+            "km_stop_realtime_sync",
+            "km_sync_status",
+            "km_force_sync",
         ]
         for tool in sync_tools:
             self.configurations[tool] = ToolConfiguration(
@@ -136,9 +138,9 @@ class ToolConfigurationManager:
                 category=ToolCategory.SYNCHRONIZATION,
                 description=f"Real-time synchronization: {tool}",
                 module_path="src.server.tools.sync_tools",
-                priority=7
+                priority=7,
             )
-        
+
         # File Operations
         self.configurations["km_file_operations"] = ToolConfiguration(
             name="km_file_operations",
@@ -147,11 +149,10 @@ class ToolConfigurationManager:
             module_path="src.server.tools.file_operation_tools",
             priority=6,
             security_policy=ToolSecurityPolicy(
-                level=SecurityLevel.STRICT,
-                audit_level="comprehensive"
-            )
+                level=SecurityLevel.STRICT, audit_level="comprehensive"
+            ),
         )
-        
+
         # Window Management
         window_tools = ["km_window_manager", "km_window_manager_advanced"]
         for tool in window_tools:
@@ -159,10 +160,12 @@ class ToolConfigurationManager:
                 name=tool,
                 category=ToolCategory.WINDOW_MANAGEMENT,
                 description=f"Window management: {tool}",
-                module_path="src.server.tools.window_tools" if tool == "km_window_manager" else "src.server.tools.advanced_window_tools",
-                priority=5
+                module_path="src.server.tools.window_tools"
+                if tool == "km_window_manager"
+                else "src.server.tools.advanced_window_tools",
+                priority=5,
             )
-        
+
         # Clipboard Operations
         self.configurations["km_clipboard_manager"] = ToolConfiguration(
             name="km_clipboard_manager",
@@ -173,14 +176,18 @@ class ToolConfigurationManager:
             security_policy=ToolSecurityPolicy(
                 level=SecurityLevel.STANDARD,
                 input_validation=True,
-                output_sanitization=True
-            )
+                output_sanitization=True,
+            ),
         )
-        
+
         # Calculations
         calculation_tools = ["km_calculator", "km_token_processor"]
         for tool in calculation_tools:
-            category = ToolCategory.CALCULATIONS if "calculator" in tool else ToolCategory.TOKEN_PROCESSING
+            category = (
+                ToolCategory.CALCULATIONS
+                if "calculator" in tool
+                else ToolCategory.TOKEN_PROCESSING
+            )
             self.configurations[tool] = ToolConfiguration(
                 name=tool,
                 category=category,
@@ -188,14 +195,15 @@ class ToolConfigurationManager:
                 module_path=f"src.server.tools.{tool.replace('km_', '').replace('_processor', '')}_tools",
                 priority=5,
                 security_policy=ToolSecurityPolicy(
-                    level=SecurityLevel.STANDARD,
-                    input_validation=True
-                )
+                    level=SecurityLevel.STANDARD, input_validation=True
+                ),
             )
-        
+
         # Notifications
         notification_tools = [
-            "km_notifications", "km_notification_status", "km_dismiss_notifications"
+            "km_notifications",
+            "km_notification_status",
+            "km_dismiss_notifications",
         ]
         for tool in notification_tools:
             self.configurations[tool] = ToolConfiguration(
@@ -203,11 +211,15 @@ class ToolConfigurationManager:
                 category=ToolCategory.NOTIFICATIONS,
                 description=f"User notification system: {tool}",
                 module_path="src.server.tools.notification_tools",
-                priority=4
+                priority=4,
             )
-        
+
         # Control Flow and Conditions
-        control_tools = ["km_add_condition", "km_control_flow", "km_create_trigger_advanced"]
+        control_tools = [
+            "km_add_condition",
+            "km_control_flow",
+            "km_create_trigger_advanced",
+        ]
         for tool in control_tools:
             if "condition" in tool:
                 category = ToolCategory.CONDITIONAL_LOGIC
@@ -218,23 +230,31 @@ class ToolConfigurationManager:
             else:
                 category = ToolCategory.TRIGGERS
                 module = "advanced_trigger_tools"
-                
+
             self.configurations[tool] = ToolConfiguration(
                 name=tool,
                 category=category,
                 description=f"Flow control: {tool}",
                 module_path=f"src.server.tools.{module}",
-                priority=7
+                priority=7,
             )
-        
+
         # Enterprise and AI Tools
         enterprise_tools = [
             ("km_audit_system", ToolCategory.SECURITY_AUDIT, "audit_system_tools"),
             ("km_analytics_engine", ToolCategory.ANALYTICS, "analytics_engine_tools"),
-            ("km_analyze_workflow_intelligence", ToolCategory.WORKFLOW_INTELLIGENCE, "workflow_intelligence_tools"),
-            ("km_create_workflow_from_description", ToolCategory.WORKFLOW_INTELLIGENCE, "workflow_intelligence_tools"),
+            (
+                "km_analyze_workflow_intelligence",
+                ToolCategory.WORKFLOW_INTELLIGENCE,
+                "workflow_intelligence_tools",
+            ),
+            (
+                "km_create_workflow_from_description",
+                ToolCategory.WORKFLOW_INTELLIGENCE,
+                "workflow_intelligence_tools",
+            ),
         ]
-        
+
         for tool, category, module in enterprise_tools:
             self.configurations[tool] = ToolConfiguration(
                 name=tool,
@@ -243,15 +263,16 @@ class ToolConfigurationManager:
                 module_path=f"src.server.tools.{module}",
                 priority=9,
                 security_policy=ToolSecurityPolicy(
-                    level=SecurityLevel.ENTERPRISE,
-                    audit_level="comprehensive"
-                )
+                    level=SecurityLevel.ENTERPRISE, audit_level="comprehensive"
+                ),
             )
-        
+
         # IoT and Advanced Integration
         iot_tools = [
-            "km_control_iot_devices", "km_monitor_sensors", 
-            "km_manage_smart_home", "km_coordinate_iot_workflows"
+            "km_control_iot_devices",
+            "km_monitor_sensors",
+            "km_manage_smart_home",
+            "km_coordinate_iot_workflows",
         ]
         for tool in iot_tools:
             self.configurations[tool] = ToolConfiguration(
@@ -260,9 +281,9 @@ class ToolConfigurationManager:
                 description=f"IoT integration: {tool}",
                 module_path="src.server.tools.iot_integration_tools",
                 priority=6,
-                experimental=True
+                experimental=True,
             )
-        
+
         # Plugin Ecosystem
         self.configurations["km_plugin_ecosystem"] = ToolConfiguration(
             name="km_plugin_ecosystem",
@@ -271,65 +292,62 @@ class ToolConfigurationManager:
             module_path="src.server.tools.plugin_ecosystem_tools",
             priority=5,
             security_policy=ToolSecurityPolicy(
-                level=SecurityLevel.STRICT,
-                audit_level="comprehensive"
-            )
+                level=SecurityLevel.STRICT, audit_level="comprehensive"
+            ),
         )
-    
-    def get_configuration(self, tool_name: str) -> Optional[ToolConfiguration]:
+
+    def get_configuration(self, tool_name: str) -> ToolConfiguration | None:
         """Get configuration for a specific tool."""
         return self.configurations.get(tool_name)
-    
-    def get_tools_by_category(self, category: ToolCategory) -> List[ToolConfiguration]:
+
+    def get_tools_by_category(self, category: ToolCategory) -> list[ToolConfiguration]:
         """Get all tools in a specific category."""
         return [
-            config for config in self.configurations.values()
+            config
+            for config in self.configurations.values()
             if config.category == category
         ]
-    
-    def get_enabled_tools(self) -> List[str]:
+
+    def get_enabled_tools(self) -> list[str]:
         """Get list of enabled tool names."""
-        return [
-            name for name, config in self.configurations.items()
-            if config.enabled
-        ]
-    
+        return [name for name, config in self.configurations.items() if config.enabled]
+
     def set_tool_enabled(self, tool_name: str, enabled: bool) -> bool:
         """Enable or disable a tool."""
         if tool_name in self.configurations:
             self.configurations[tool_name].enabled = enabled
             return True
         return False
-    
-    def get_category_summary(self) -> Dict[str, int]:
+
+    def get_category_summary(self) -> dict[str, int]:
         """Get summary of tools by category."""
         summary = {}
         for config in self.configurations.values():
             category = config.category.value
             summary[category] = summary.get(category, 0) + 1
         return summary
-    
+
     def validate_configuration(self, tool_name: str) -> bool:
         """Validate a tool configuration."""
         config = self.configurations.get(tool_name)
         if not config:
             return False
-        
+
         try:
             # Basic validation
             if not config.name or not config.module_path:
                 return False
-            
+
             # Security policy validation
-            if config.security_policy.rate_limit_per_minute and config.security_policy.rate_limit_per_minute < 1:
+            if (
+                config.security_policy.rate_limit_per_minute
+                and config.security_policy.rate_limit_per_minute < 1
+            ):
                 return False
-            
+
             # Validation rules check
-            if config.validation_rules.timeout_seconds < 1:
-                return False
-            
-            return True
-            
+            return not config.validation_rules.timeout_seconds < 1
+
         except Exception as e:
             logger.error(f"Configuration validation error for {tool_name}: {e}")
             return False

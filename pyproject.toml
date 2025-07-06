@@ -27,6 +27,15 @@ dependencies = [
     "typing-extensions>=4.8.0",
     "dataclasses-json>=0.6.0",
     "python-dateutil>=2.8.0",
+    "tiktoken>=0.9.0",
+    "openai>=1.93.0",
+    # ML Dependencies for real analytics
+    "scikit-learn>=1.3.0",
+    "pandas>=1.5.0",
+    "numpy>=1.20.0",
+    "scipy>=1.9.0",
+    "statsmodels>=0.14.0",
+    "pyyaml>=6.0.2",
 ]
 
 [project.optional-dependencies]
@@ -49,6 +58,12 @@ test = [
 security = [
     "cryptography>=41.0.0",
     "pyotp>=2.9.0",
+]
+ml-advanced = [
+    "prophet>=1.1.0",
+    "joblib>=1.3.0",  # For efficient model serialization
+    "matplotlib>=3.5.0",  # For data visualization
+    "seaborn>=0.11.0",  # For advanced visualization
 ]
 
 [project.scripts]
@@ -92,6 +107,7 @@ addopts = [
     "--cov-fail-under=85",
 ]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",

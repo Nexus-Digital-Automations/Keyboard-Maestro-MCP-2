@@ -5,25 +5,29 @@ Tests the MCP tool interface for control flow functionality including parameter
 validation, security checks, and Keyboard Maestro integration.
 """
 
-import pytest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock
-from typing import Dict, Any, List, Optional
+from unittest.mock import AsyncMock, Mock, patch
 
-from src.server.tools.control_flow_tools import (
-    km_control_flow, _validate_control_flow_inputs, _build_control_flow_structure,
-    _generate_km_control_flow, _apply_control_flow_to_macro, _get_structure_info
-)
+import pytest
 from src.core.control_flow import (
-    ControlFlowValidator, SecurityLimits, ComparisonOperator,
-    IfThenElseNode, ForLoopNode, WhileLoopNode, SwitchCaseNode
+    ComparisonOperator,
+    ControlFlowValidator,
+    ForLoopNode,
+    IfThenElseNode,
+    SwitchCaseNode,
+    WhileLoopNode,
 )
-from src.core.errors import ValidationError, SecurityError, ExecutionError
+from src.core.errors import SecurityError, ValidationError
+from src.server.tools.control_flow_tools import (
+    _build_control_flow_structure,
+    _get_structure_info,
+    _validate_control_flow_inputs,
+    km_control_flow,
+)
 
 
 class TestKMControlFlowTool:
     """Test the main km_control_flow MCP tool."""
-    
+
     @pytest.fixture
     def mock_context(self):
         """Create mock MCP context."""
@@ -31,13 +35,15 @@ class TestKMControlFlowTool:
         context.info = AsyncMock()
         context.error = AsyncMock()
         return context
-    
+
     @pytest.mark.asyncio
     async def test_if_then_else_success(self, mock_context):
         """Test successful if/then/else creation."""
-        with patch('src.server.tools.control_flow_tools._apply_control_flow_to_macro') as mock_apply:
+        with patch(
+            "src.server.tools.control_flow_tools._apply_control_flow_to_macro"
+        ) as mock_apply:
             mock_apply.return_value = {"applied": True, "macro_id": "test_macro"}
-            
+
             result = await km_control_flow(
                 macro_identifier="test_macro",
                 control_type="if_then_else",
@@ -46,24 +52,26 @@ class TestKMControlFlowTool:
                 operand="password",
                 actions_true=[{"type": "show_notification", "title": "Security Alert"}],
                 actions_false=[{"type": "continue_processing"}],
-                ctx=mock_context
+                ctx=mock_context,
             )
-        
+
         assert result["success"] is True
         assert result["data"]["control_type"] == "if_then_else"
         assert result["data"]["macro_id"] == "test_macro"
         assert "control_flow_id" in result["data"]
         assert result["data"]["security_validation"] == "passed"
-        
+
         # Verify context calls
         mock_context.info.assert_called()
-    
+
     @pytest.mark.asyncio
     async def test_for_loop_success(self, mock_context):
         """Test successful for loop creation."""
-        with patch('src.server.tools.control_flow_tools._apply_control_flow_to_macro') as mock_apply:
+        with patch(
+            "src.server.tools.control_flow_tools._apply_control_flow_to_macro"
+        ) as mock_apply:
             mock_apply.return_value = {"applied": True, "macro_id": "test_macro"}
-            
+
             result = await km_control_flow(
                 macro_identifier="test_macro",
                 control_type="for_loop",
@@ -71,23 +79,25 @@ class TestKMControlFlowTool:
                 collection="selected_files_in_finder",
                 loop_actions=[
                     {"type": "open_file", "file": "%Variable%file%"},
-                    {"type": "process_document"}
+                    {"type": "process_document"},
                 ],
                 max_iterations=50,
-                ctx=mock_context
+                ctx=mock_context,
             )
-        
+
         assert result["success"] is True
         assert result["data"]["control_type"] == "for_loop"
         assert result["data"]["structure_info"]["iterator_variable"] == "file"
         assert result["data"]["structure_info"]["max_iterations"] == 50
-    
+
     @pytest.mark.asyncio
     async def test_while_loop_success(self, mock_context):
         """Test successful while loop creation."""
-        with patch('src.server.tools.control_flow_tools._apply_control_flow_to_macro') as mock_apply:
+        with patch(
+            "src.server.tools.control_flow_tools._apply_control_flow_to_macro"
+        ) as mock_apply:
             mock_apply.return_value = {"applied": True, "macro_id": "test_macro"}
-            
+
             result = await km_control_flow(
                 macro_identifier="test_macro",
                 control_type="while_loop",
@@ -96,38 +106,42 @@ class TestKMControlFlowTool:
                 operand="10",
                 loop_actions=[{"type": "increment_counter"}],
                 max_iterations=20,
-                ctx=mock_context
+                ctx=mock_context,
             )
-        
+
         assert result["success"] is True
         assert result["data"]["control_type"] == "while_loop"
         assert result["data"]["structure_info"]["max_iterations"] == 20
-    
+
     @pytest.mark.asyncio
     async def test_switch_case_success(self, mock_context):
         """Test successful switch/case creation."""
-        with patch('src.server.tools.control_flow_tools._apply_control_flow_to_macro') as mock_apply:
+        with patch(
+            "src.server.tools.control_flow_tools._apply_control_flow_to_macro"
+        ) as mock_apply:
             mock_apply.return_value = {"applied": True, "macro_id": "test_macro"}
-            
+
             cases = [
                 {"value": "Safari", "actions": [{"type": "screenshot"}]},
-                {"value": "Chrome", "actions": [{"type": "export_bookmarks"}]}
+                {"value": "Chrome", "actions": [{"type": "export_bookmarks"}]},
             ]
-            
+
             result = await km_control_flow(
                 macro_identifier="test_macro",
                 control_type="switch_case",
                 condition="frontmost_application",
                 cases=cases,
-                default_actions=[{"type": "show_notification", "text": "Unsupported app"}],
-                ctx=mock_context
+                default_actions=[
+                    {"type": "show_notification", "text": "Unsupported app"}
+                ],
+                ctx=mock_context,
             )
-        
+
         assert result["success"] is True
         assert result["data"]["control_type"] == "switch_case"
         assert result["data"]["structure_info"]["case_count"] == 2
         assert result["data"]["structure_info"]["has_default"] is True
-    
+
     @pytest.mark.asyncio
     async def test_validation_error(self, mock_context):
         """Test validation error handling."""
@@ -135,14 +149,17 @@ class TestKMControlFlowTool:
             macro_identifier="",  # Invalid empty identifier
             control_type="if_then_else",
             condition="test",
-            ctx=mock_context
+            ctx=mock_context,
         )
-        
+
         assert result["success"] is False
         assert result["error"]["code"] == "VALIDATION_ERROR"
-        assert "macro_identifier" in result["error"]["message"] and "cannot be empty" in result["error"]["message"]
+        assert (
+            "macro_identifier" in result["error"]["message"]
+            and "cannot be empty" in result["error"]["message"]
+        )
         mock_context.error.assert_called()
-    
+
     @pytest.mark.asyncio
     async def test_security_error(self, mock_context):
         """Test security error handling."""
@@ -153,14 +170,14 @@ class TestKMControlFlowTool:
             operator="equals",
             operand="test",
             actions_true=[{"type": "test"}],
-            ctx=mock_context
+            ctx=mock_context,
         )
-        
+
         assert result["success"] is False
         assert result["error"]["code"] == "SECURITY_ERROR"
         assert "dangerous pattern" in result["error"]["message"].lower()
         mock_context.error.assert_called()
-    
+
     @pytest.mark.asyncio
     async def test_missing_required_parameters(self, mock_context):
         """Test missing required parameters."""
@@ -169,23 +186,23 @@ class TestKMControlFlowTool:
             macro_identifier="test_macro",
             control_type="if_then_else",
             # Missing condition
-            ctx=mock_context
+            ctx=mock_context,
         )
-        
+
         assert result1["success"] is False
         assert result1["error"]["code"] == "VALIDATION_ERROR"
-        
+
         # For loop without iterator
         result2 = await km_control_flow(
             macro_identifier="test_macro",
             control_type="for_loop",
             # Missing iterator and collection
-            ctx=mock_context
+            ctx=mock_context,
         )
-        
+
         assert result2["success"] is False
         assert result2["error"]["code"] == "VALIDATION_ERROR"
-    
+
     @pytest.mark.asyncio
     async def test_security_bounds_validation(self, mock_context):
         """Test security bounds validation."""
@@ -197,13 +214,13 @@ class TestKMControlFlowTool:
             collection="items",
             loop_actions=[{"type": "test"}],
             max_iterations=15000,  # Over limit
-            ctx=mock_context
+            ctx=mock_context,
         )
-        
+
         assert result["success"] is False
         assert result["error"]["code"] == "VALIDATION_ERROR"
         assert "must be between 1 and 10000" in result["error"]["message"]
-    
+
     @pytest.mark.asyncio
     async def test_timeout_validation(self, mock_context):
         """Test timeout validation."""
@@ -215,9 +232,9 @@ class TestKMControlFlowTool:
             operand="value",
             actions_true=[{"type": "test"}],
             timeout_seconds=500,  # Over limit
-            ctx=mock_context
+            ctx=mock_context,
         )
-        
+
         assert result["success"] is False
         assert result["error"]["code"] == "VALIDATION_ERROR"
         assert "must be between 1 and 300" in result["error"]["message"]
@@ -225,7 +242,7 @@ class TestKMControlFlowTool:
 
 class TestInputValidation:
     """Test input validation functions."""
-    
+
     @pytest.mark.asyncio
     async def test_valid_inputs(self):
         """Test validation with valid inputs."""
@@ -239,10 +256,10 @@ class TestInputValidation:
             collection=None,
             max_iterations=1000,
             timeout_seconds=30,
-            ctx=None
+            ctx=None,
         )
         # Should not raise any exception
-    
+
     @pytest.mark.asyncio
     async def test_invalid_macro_identifier(self):
         """Test invalid macro identifier validation."""
@@ -257,9 +274,9 @@ class TestInputValidation:
                 collection=None,
                 max_iterations=1000,
                 timeout_seconds=30,
-                ctx=None
+                ctx=None,
             )
-        
+
         with pytest.raises(ValidationError, match="must be 255 characters or less"):
             await _validate_control_flow_inputs(
                 macro_identifier="x" * 300,  # Too long
@@ -271,9 +288,9 @@ class TestInputValidation:
                 collection=None,
                 max_iterations=1000,
                 timeout_seconds=30,
-                ctx=None
+                ctx=None,
             )
-    
+
     @pytest.mark.asyncio
     async def test_invalid_control_type(self):
         """Test invalid control type validation."""
@@ -288,9 +305,9 @@ class TestInputValidation:
                 collection=None,
                 max_iterations=1000,
                 timeout_seconds=30,
-                ctx=None
+                ctx=None,
             )
-    
+
     @pytest.mark.asyncio
     async def test_invalid_operator(self):
         """Test invalid operator validation."""
@@ -305,9 +322,9 @@ class TestInputValidation:
                 collection=None,
                 max_iterations=1000,
                 timeout_seconds=30,
-                ctx=None
+                ctx=None,
             )
-    
+
     @pytest.mark.asyncio
     async def test_dangerous_condition_patterns(self):
         """Test dangerous pattern detection in conditions."""
@@ -317,9 +334,9 @@ class TestInputValidation:
             "subprocess.call(['rm', '-rf', '/'])",
             "eval('dangerous')",
             "format(malicious)",
-            "curl http://evil.com"
+            "curl http://evil.com",
         ]
-        
+
         for dangerous in dangerous_conditions:
             with pytest.raises(SecurityError, match="Dangerous pattern detected"):
                 await _validate_control_flow_inputs(
@@ -332,9 +349,9 @@ class TestInputValidation:
                     collection=None,
                     max_iterations=1000,
                     timeout_seconds=30,
-                    ctx=None
+                    ctx=None,
                 )
-    
+
     @pytest.mark.asyncio
     async def test_for_loop_validation(self):
         """Test for loop specific validation."""
@@ -349,9 +366,9 @@ class TestInputValidation:
                 collection="items",
                 max_iterations=1000,
                 timeout_seconds=30,
-                ctx=None
+                ctx=None,
             )
-        
+
         with pytest.raises(ValidationError, match="For loop requires a collection"):
             await _validate_control_flow_inputs(
                 macro_identifier="test_macro",
@@ -363,18 +380,18 @@ class TestInputValidation:
                 collection=None,  # Missing collection
                 max_iterations=1000,
                 timeout_seconds=30,
-                ctx=None
+                ctx=None,
             )
 
 
 class TestStructureBuilding:
     """Test control flow structure building."""
-    
+
     @pytest.mark.asyncio
     async def test_build_if_then_else(self):
         """Test if/then/else structure building."""
         validator = ControlFlowValidator()
-        
+
         node = await _build_control_flow_structure(
             control_type="if_then_else",
             condition="clipboard_content",
@@ -391,21 +408,21 @@ class TestStructureBuilding:
             case_sensitive=True,
             negate=False,
             validator=validator,
-            ctx=None
+            ctx=None,
         )
-        
+
         assert isinstance(node, IfThenElseNode)
         assert node.condition.expression == "clipboard_content"
         assert node.condition.operator == ComparisonOperator.CONTAINS
         assert node.condition.operand == "password"
         assert len(node.then_actions.actions) == 1
         assert len(node.else_actions.actions) == 1
-    
+
     @pytest.mark.asyncio
     async def test_build_for_loop(self):
         """Test for loop structure building."""
         validator = ControlFlowValidator()
-        
+
         node = await _build_control_flow_structure(
             control_type="for_loop",
             condition=None,
@@ -422,20 +439,20 @@ class TestStructureBuilding:
             case_sensitive=True,
             negate=False,
             validator=validator,
-            ctx=None
+            ctx=None,
         )
-        
+
         assert isinstance(node, ForLoopNode)
         assert node.loop_config.iterator_variable == "file"
         assert node.loop_config.collection_expression == "selected_files"
         assert node.loop_config.max_iterations == 100
         assert len(node.loop_actions.actions) == 1
-    
+
     @pytest.mark.asyncio
     async def test_build_while_loop(self):
         """Test while loop structure building."""
         validator = ControlFlowValidator()
-        
+
         node = await _build_control_flow_structure(
             control_type="while_loop",
             condition="counter",
@@ -452,27 +469,27 @@ class TestStructureBuilding:
             case_sensitive=True,
             negate=False,
             validator=validator,
-            ctx=None
+            ctx=None,
         )
-        
+
         assert isinstance(node, WhileLoopNode)
         assert node.condition.expression == "counter"
         assert node.condition.operator == ComparisonOperator.LESS_THAN
         assert node.condition.operand == "10"
         assert node.max_iterations == 50
         assert len(node.loop_actions.actions) == 1
-    
+
     @pytest.mark.asyncio
     async def test_build_switch_case(self):
         """Test switch/case structure building."""
         validator = ControlFlowValidator()
-        
+
         cases = [
             {"value": "Safari", "actions": [{"type": "screenshot"}]},
             {"value": "Chrome", "actions": [{"type": "export_bookmarks"}]},
-            {"value": "Firefox", "actions": [{"type": "clear_cache"}]}
+            {"value": "Firefox", "actions": [{"type": "clear_cache"}]},
         ]
-        
+
         node = await _build_control_flow_structure(
             control_type="switch_case",
             condition="frontmost_application",
@@ -489,9 +506,9 @@ class TestStructureBuilding:
             case_sensitive=True,
             negate=False,
             validator=validator,
-            ctx=None
+            ctx=None,
         )
-        
+
         assert isinstance(node, SwitchCaseNode)
         assert node.switch_variable == "frontmost_application"
         assert len(node.cases) == 3
@@ -499,13 +516,15 @@ class TestStructureBuilding:
         assert node.cases[0].case_value == "Safari"
         assert node.cases[1].case_value == "Chrome"
         assert node.cases[2].case_value == "Firefox"
-    
+
     @pytest.mark.asyncio
     async def test_missing_required_data(self):
         """Test building with missing required data."""
         validator = ControlFlowValidator()
-        
-        with pytest.raises(ValidationError, match="requires condition and true actions"):
+
+        with pytest.raises(
+            ValidationError, match="requires condition and true actions"
+        ):
             await _build_control_flow_structure(
                 control_type="if_then_else",
                 condition=None,  # Missing condition
@@ -522,66 +541,66 @@ class TestStructureBuilding:
                 case_sensitive=True,
                 negate=False,
                 validator=validator,
-                ctx=None
+                ctx=None,
             )
 
 
 class TestStructureInfo:
     """Test structure information extraction."""
-    
+
     def test_if_then_else_info(self):
         """Test if/then/else structure info."""
-        from src.core.control_flow import create_simple_if, ComparisonOperator
-        
+        from src.core.control_flow import ComparisonOperator, create_simple_if
+
         node = create_simple_if(
             "test_condition",
             ComparisonOperator.EQUALS,
             "test_value",
             [{"type": "action1"}, {"type": "action2"}],
-            [{"type": "action3"}]
+            [{"type": "action3"}],
         )
-        
+
         info = _get_structure_info(node)
-        
+
         assert info["node_type"] == "IfThenElseNode"
         assert info["has_else_branch"] is True
         assert info["condition_operator"] == "equals"
         assert info["then_action_count"] == 2
         assert info["else_action_count"] == 1
-    
+
     def test_for_loop_info(self):
         """Test for loop structure info."""
         from src.core.control_flow import create_for_loop
-        
+
         node = create_for_loop(
             "item",
             "collection",
             [{"type": "action1"}, {"type": "action2"}, {"type": "action3"}],
-            max_iterations=100
+            max_iterations=100,
         )
-        
+
         info = _get_structure_info(node)
-        
+
         assert info["node_type"] == "ForLoopNode"
         assert info["iterator_variable"] == "item"
         assert info["collection_expression"] == "collection"
         assert info["max_iterations"] == 100
         assert info["action_count"] == 3
-    
+
     def test_while_loop_info(self):
         """Test while loop structure info."""
-        from src.core.control_flow import create_while_loop, ComparisonOperator
-        
+        from src.core.control_flow import ComparisonOperator, create_while_loop
+
         node = create_while_loop(
             "counter",
             ComparisonOperator.LESS_THAN,
             "10",
             [{"type": "increment"}],
-            max_iterations=50
+            max_iterations=50,
         )
-        
+
         info = _get_structure_info(node)
-        
+
         assert info["node_type"] == "WhileLoopNode"
         assert info["condition_operator"] == "less_than"
         assert info["max_iterations"] == 50

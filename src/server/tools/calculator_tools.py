@@ -6,21 +6,17 @@ KM token support, and multiple result formatting options.
 """
 
 from __future__ import annotations
-import uuid
-from datetime import datetime, UTC
-from typing import Dict, Any
 
-from ...calculations.calculator import (
-    Calculator, 
-    CalculationExpression, 
-    NumberFormat
-)
+import uuid
+from datetime import UTC, datetime
+from typing import Any
+
+from ...calculations.calculator import CalculationExpression, Calculator
 from ...calculations.km_math_integration import KMTokenCalculator
-from ...integration.km_client import KMError
 
 
 # Additional functions expected by tests - these wrap the main km_calculator function
-async def km_calculate_expression(expression: str, ctx=None) -> Dict[str, Any]:
+async def km_calculate_expression(expression: str, ctx=None) -> dict[str, Any]:
     """Calculate a mathematical expression."""
     return await km_calculator(
         expression=expression,
@@ -29,11 +25,13 @@ async def km_calculate_expression(expression: str, ctx=None) -> Dict[str, Any]:
         precision=2,
         use_km_engine=False,
         validate_only=False,
-        ctx=ctx
+        ctx=ctx,
     )
 
 
-async def km_calculate_math_function(function: str, value: float, ctx=None) -> Dict[str, Any]:
+async def km_calculate_math_function(
+    function: str, value: float, ctx=None
+) -> dict[str, Any]:
     """Calculate a mathematical function like sin, cos, etc."""
     expression = f"{function}({value})"
     return await km_calculator(
@@ -43,11 +41,13 @@ async def km_calculate_math_function(function: str, value: float, ctx=None) -> D
         precision=6,
         use_km_engine=False,
         validate_only=False,
-        ctx=ctx
+        ctx=ctx,
     )
 
 
-async def km_convert_number_format(value: float, from_format: str, to_format: str, ctx=None) -> Dict[str, Any]:
+async def km_convert_number_format(
+    value: float, from_format: str, to_format: str, ctx=None
+) -> dict[str, Any]:
     """Convert a number between different formats."""
     return await km_calculator(
         expression=str(value),
@@ -56,11 +56,13 @@ async def km_convert_number_format(value: float, from_format: str, to_format: st
         precision=2,
         use_km_engine=False,
         validate_only=False,
-        ctx=ctx
+        ctx=ctx,
     )
 
 
-async def km_evaluate_formula(formula: str, variables: Dict[str, float], ctx=None) -> Dict[str, Any]:
+async def km_evaluate_formula(
+    formula: str, variables: dict[str, float], ctx=None
+) -> dict[str, Any]:
     """Evaluate a formula with variables."""
     return await km_calculator(
         expression=formula,
@@ -69,22 +71,22 @@ async def km_evaluate_formula(formula: str, variables: Dict[str, float], ctx=Non
         precision=2,
         use_km_engine=False,
         validate_only=False,
-        ctx=ctx
+        ctx=ctx,
     )
 
 
 async def km_calculator(
     expression: str,
-    variables: Dict[str, float],
+    variables: dict[str, float],
     format_result: str,
     precision: int,
     use_km_engine: bool,
     validate_only: bool,
-    ctx = None
-) -> Dict[str, Any]:
+    ctx=None,
+) -> dict[str, Any]:
     """
     Evaluate mathematical expressions with comprehensive security and token support.
-    
+
     Features:
     - Secure expression evaluation using AST parsing (no eval())
     - Support for variables in expressions
@@ -92,18 +94,18 @@ async def km_calculator(
     - Integration with Keyboard Maestro's calculation engine
     - Token processing for dynamic expressions
     - Validation mode for expression checking without evaluation
-    
+
     Security:
     - Expression validation against code injection
     - Whitelist-based function calls
     - Result bounds checking
     - Safe variable substitution
-    
+
     Returns calculation results with metadata and security validation status.
     """
     if ctx:
         await ctx.info(f"Evaluating mathematical expression: {expression[:50]}...")
-    
+
     try:
         # Input validation
         if not expression.strip():
@@ -112,18 +114,15 @@ async def km_calculator(
                 "error": {
                     "code": "INVALID_EXPRESSION",
                     "message": "Expression cannot be empty",
-                    "details": {"expression": expression}
+                    "details": {"expression": expression},
                 },
-                "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat()
-                }
+                "metadata": {"timestamp": datetime.now(UTC).isoformat()},
             }
-        
+
         # Create calculation expression with validation
         try:
             calc_expression = CalculationExpression(
-                expression=expression.strip(),
-                variables=variables
+                expression=expression.strip(), variables=variables
             )
         except Exception as e:
             return {
@@ -131,13 +130,11 @@ async def km_calculator(
                 "error": {
                     "code": "EXPRESSION_VALIDATION_ERROR",
                     "message": f"Expression validation failed: {str(e)}",
-                    "details": {"expression": expression}
+                    "details": {"expression": expression},
                 },
-                "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat()
-                }
+                "metadata": {"timestamp": datetime.now(UTC).isoformat()},
             }
-        
+
         # Validation-only mode
         if validate_only:
             return {
@@ -147,23 +144,25 @@ async def km_calculator(
                     "is_valid": True,
                     "variables_required": list(variables.keys()),
                     "contains_functions": calc_expression.contains_functions(),
-                    "security_status": "safe"
+                    "security_status": "safe",
                 },
                 "metadata": {
                     "timestamp": datetime.now(UTC).isoformat(),
-                    "validation_only": True
-                }
+                    "validation_only": True,
+                },
             }
-        
+
         # Determine calculation method
         if use_km_engine and calc_expression.contains_km_tokens():
             # Use KM token calculator for expressions with tokens
             if ctx:
                 await ctx.info("Using Keyboard Maestro token calculator")
-            
+
             km_calculator = KMTokenCalculator()
-            km_result = await km_calculator.calculate_with_tokens(expression, "calculation")
-            
+            km_result = await km_calculator.calculate_with_tokens(
+                expression, "calculation"
+            )
+
             if km_result.is_left():
                 # Fallback to local calculator
                 calculator = Calculator()
@@ -173,8 +172,12 @@ async def km_calculator(
                 km_value = km_result.get_right()
                 try:
                     result_value = float(km_value)
-                    from ...calculations.calculator import CalculationResult, NumberFormat
+                    from ...calculations.calculator import (
+                        CalculationResult,
+                        NumberFormat,
+                    )
                     from ...integration.km_client import Either
+
                     calc_result = Either.right(
                         CalculationResult(
                             result=result_value,
@@ -182,23 +185,26 @@ async def km_calculator(
                             format=NumberFormat.DECIMAL,
                             expression=expression,
                             variables_used=variables,
-                            execution_time=0.0
+                            execution_time=0.0,
                         )
                     )
                 except ValueError:
                     # KM returned non-numeric result, treat as error
                     from ...integration.km_client import Either, KMError
+
                     calc_result = Either.left(
-                        KMError.execution_error(f"KM returned non-numeric result: {km_value}")
+                        KMError.execution_error(
+                            f"KM returned non-numeric result: {km_value}"
+                        )
                     )
         else:
             # Use local calculator
             if ctx:
                 await ctx.info("Using local calculation engine")
-            
+
             calculator = Calculator()
             calc_result = await calculator.calculate(calc_expression)
-        
+
         # Process calculation result
         if calc_result.is_left():
             error = calc_result.get_left()
@@ -207,27 +213,24 @@ async def km_calculator(
                 "error": {
                     "code": error.code,
                     "message": error.message,
-                    "details": {
-                        "expression": expression,
-                        "variables": variables
-                    }
+                    "details": {"expression": expression, "variables": variables},
                 },
                 "metadata": {
                     "timestamp": datetime.now(UTC).isoformat(),
-                    "calculation_id": str(uuid.uuid4())
-                }
+                    "calculation_id": str(uuid.uuid4()),
+                },
             }
-        
+
         result = calc_result.get_right()
-        
+
         # Apply result formatting if different from what was calculated
         if format_result != "auto" and result.format.value != format_result:
             # For now, use the existing formatted_result since Calculator doesn't have format_result method
-            formatted_result = result.formatted_result
-        
+            pass
+
         if ctx:
             await ctx.info(f"Calculation complete: {result.formatted_result}")
-        
+
         return {
             "success": True,
             "calculation": {
@@ -239,15 +242,17 @@ async def km_calculator(
                 "variables_used": result.variables_used,
                 "execution_time": result.execution_time,
                 "contains_tokens": calc_expression.contains_km_tokens(),
-                "engine_used": "keyboard_maestro" if use_km_engine and calc_expression.contains_km_tokens() else "local"
+                "engine_used": "keyboard_maestro"
+                if use_km_engine and calc_expression.contains_km_tokens()
+                else "local",
             },
             "metadata": {
                 "timestamp": datetime.now(UTC).isoformat(),
                 "calculation_id": str(uuid.uuid4()),
-                "security_validated": True
-            }
+                "security_validated": True,
+            },
         }
-        
+
     except Exception as e:
         # Comprehensive error handling
         return {
@@ -258,10 +263,8 @@ async def km_calculator(
                 "details": {
                     "expression": expression,
                     "variables": variables,
-                    "format_result": format_result
-                }
+                    "format_result": format_result,
+                },
             },
-            "metadata": {
-                "timestamp": datetime.now(UTC).isoformat()
-            }
+            "metadata": {"timestamp": datetime.now(UTC).isoformat()},
         }

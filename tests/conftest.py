@@ -5,21 +5,26 @@ This module provides comprehensive test configuration including Hypothesis setti
 mock frameworks, and reusable fixtures for property-based and integration testing.
 """
 
-import pytest
 import asyncio
 import threading
 import time
-from typing import Dict, Any, List, Generator
-from unittest.mock import MagicMock, AsyncMock, patch
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 # Hypothesis configuration
-from hypothesis import settings, HealthCheck, Verbosity
+from hypothesis import HealthCheck, Verbosity, settings
 
 # Core imports
 from src.core import (
-    MacroId, CommandId, ExecutionToken, ExecutionContext, MacroDefinition,
-    Permission, Duration, MacroEngine, CommandType, create_test_macro
+    CommandType,
+    Duration,
+    ExecutionContext,
+    MacroDefinition,
+    MacroEngine,
+    Permission,
+    create_test_macro,
 )
 
 # Configure Hypothesis profiles for different testing scenarios
@@ -28,7 +33,7 @@ settings.register_profile(
     max_examples=50,
     deadline=2000,  # 2 seconds
     suppress_health_check=[HealthCheck.too_slow],
-    verbosity=Verbosity.normal
+    verbosity=Verbosity.normal,
 )
 
 settings.register_profile(
@@ -36,14 +41,14 @@ settings.register_profile(
     max_examples=200,
     deadline=5000,  # 5 seconds
     suppress_health_check=[HealthCheck.too_slow],
-    verbosity=Verbosity.verbose
+    verbosity=Verbosity.verbose,
 )
 
 settings.register_profile(
     "fast",
     max_examples=10,
     deadline=500,  # 0.5 seconds
-    suppress_health_check=[HealthCheck.too_slow]
+    suppress_health_check=[HealthCheck.too_slow],
 )
 
 # Load default profile
@@ -62,16 +67,22 @@ def event_loop():
 def mock_km_client() -> MagicMock:
     """Mock Keyboard Maestro client for integration testing."""
     mock = MagicMock()
-    
+
     # Configure mock responses
-    mock.register_trigger.return_value = {"status": "success", "trigger_id": "test_trigger"}
+    mock.register_trigger.return_value = {
+        "status": "success",
+        "trigger_id": "test_trigger",
+    }
     mock.execute_macro.return_value = {"status": "completed", "execution_time": 0.1}
-    mock.get_macro_status.return_value = {"status": "enabled", "last_run": datetime.now()}
-    
+    mock.get_macro_status.return_value = {
+        "status": "enabled",
+        "last_run": datetime.now(),
+    }
+
     # Add async variants
     mock.register_trigger_async = AsyncMock(return_value={"status": "success"})
     mock.execute_macro_async = AsyncMock(return_value={"status": "completed"})
-    
+
     return mock
 
 
@@ -79,12 +90,14 @@ def mock_km_client() -> MagicMock:
 def execution_context() -> ExecutionContext:
     """Standard execution context for testing."""
     return ExecutionContext.create_test_context(
-        permissions=frozenset([
-            Permission.TEXT_INPUT,
-            Permission.SYSTEM_SOUND,
-            Permission.APPLICATION_CONTROL
-        ]),
-        timeout=Duration.from_seconds(30)
+        permissions=frozenset(
+            [
+                Permission.TEXT_INPUT,
+                Permission.SYSTEM_SOUND,
+                Permission.APPLICATION_CONTROL,
+            ]
+        ),
+        timeout=Duration.from_seconds(30),
     )
 
 
@@ -93,7 +106,7 @@ def minimal_context() -> ExecutionContext:
     """Minimal execution context with basic permissions."""
     return ExecutionContext.create_test_context(
         permissions=frozenset([Permission.TEXT_INPUT]),
-        timeout=Duration.from_seconds(10)
+        timeout=Duration.from_seconds(10),
     )
 
 
@@ -101,15 +114,17 @@ def minimal_context() -> ExecutionContext:
 def privileged_context() -> ExecutionContext:
     """High-privilege execution context for testing system operations."""
     return ExecutionContext.create_test_context(
-        permissions=frozenset([
-            Permission.TEXT_INPUT,
-            Permission.SYSTEM_SOUND,
-            Permission.APPLICATION_CONTROL,
-            Permission.SYSTEM_CONTROL,
-            Permission.FILE_ACCESS,
-            Permission.NETWORK_ACCESS
-        ]),
-        timeout=Duration.from_seconds(60)
+        permissions=frozenset(
+            [
+                Permission.TEXT_INPUT,
+                Permission.SYSTEM_SOUND,
+                Permission.APPLICATION_CONTROL,
+                Permission.SYSTEM_CONTROL,
+                Permission.FILE_ACCESS,
+                Permission.NETWORK_ACCESS,
+            ]
+        ),
+        timeout=Duration.from_seconds(60),
     )
 
 
@@ -128,47 +143,51 @@ def sample_macro() -> MacroDefinition:
 @pytest.fixture
 def complex_macro() -> MacroDefinition:
     """Complex macro with multiple command types."""
-    return create_test_macro("Complex Macro", [
-        CommandType.TEXT_INPUT,
-        CommandType.PAUSE,
-        CommandType.PLAY_SOUND,
-        CommandType.CONDITIONAL,
-        CommandType.VARIABLE_SET
-    ])
+    return create_test_macro(
+        "Complex Macro",
+        [
+            CommandType.TEXT_INPUT,
+            CommandType.PAUSE,
+            CommandType.PLAY_SOUND,
+            CommandType.CONDITIONAL,
+            CommandType.VARIABLE_SET,
+        ],
+    )
 
 
 @pytest.fixture
 def performance_timer():
     """Timer utility for performance testing."""
+
     class PerformanceTimer:
         def __init__(self):
             self.start_time = None
             self.end_time = None
-        
+
         def start(self):
             self.start_time = time.perf_counter()
-        
+
         def stop(self):
             self.end_time = time.perf_counter()
-        
+
         @property
         def elapsed(self) -> float:
             if self.start_time is None or self.end_time is None:
                 raise ValueError("Timer not properly started and stopped")
             return self.end_time - self.start_time
-        
+
         def __enter__(self):
             self.start()
             return self
-        
+
         def __exit__(self, exc_type, exc_val, exc_tb):
             self.stop()
-    
+
     return PerformanceTimer()
 
 
 @pytest.fixture
-def security_test_data() -> Dict[str, List[str]]:
+def security_test_data() -> dict[str, list[str]]:
     """Security test data for injection and validation testing."""
     return {
         "script_injection": [
@@ -177,7 +196,7 @@ def security_test_data() -> Dict[str, List[str]]:
             "<img src=x onerror=alert('xss')>",
             "eval(malicious_code)",
             "exec(dangerous_command)",
-            "__import__('os').system('rm -rf /')"
+            "__import__('os').system('rm -rf /')",
         ],
         "path_traversal": [
             "../../../etc/passwd",
@@ -186,13 +205,13 @@ def security_test_data() -> Dict[str, List[str]]:
             "/bin/bash",
             "C:\\Windows\\System32\\cmd.exe",
             "%SYSTEMROOT%\\system32\\",
-            "$HOME/../.ssh/id_rsa"
+            "$HOME/../.ssh/id_rsa",
         ],
         "sql_injection": [
             "'; DROP TABLE users; --",
             "' OR '1'='1",
             "admin'--",
-            "' UNION SELECT * FROM passwords--"
+            "' UNION SELECT * FROM passwords--",
         ],
         "command_injection": [
             "; rm -rf /",
@@ -200,8 +219,8 @@ def security_test_data() -> Dict[str, List[str]]:
             "&& format c:",
             "`cat /etc/shadow`",
             "$(whoami)",
-            "${PATH}"
-        ]
+            "${PATH}",
+        ],
     }
 
 
@@ -212,59 +231,62 @@ def mock_file_system():
         "/test/file.txt": "Test content",
         "/test/config.json": '{"setting": "value"}',
         "/secure/secret.txt": "SECRET_DATA",
-        "/temp/output.log": "Log entries..."
+        "/temp/output.log": "Log entries...",
     }
-    
+
     def mock_file_exists(path: str) -> bool:
         return path in mock_fs
-    
+
     def mock_file_read(path: str) -> str:
         return mock_fs.get(path, "")
-    
+
     def mock_file_write(path: str, content: str) -> None:
         mock_fs[path] = content
-    
+
     class MockFileSystem:
         exists = mock_file_exists
         read = mock_file_read
         write = mock_file_write
         files = mock_fs
-    
+
     return MockFileSystem()
 
 
 @pytest.fixture
 def thread_safety_helper():
     """Helper for testing thread safety."""
+
     class ThreadSafetyHelper:
         def __init__(self):
             self.results = []
             self.lock = threading.Lock()
             self.errors = []
-        
+
         def run_concurrent(self, func, args_list, max_workers=5):
             """Run function concurrently with different arguments."""
             threads = []
-            
+
             def worker(args):
                 try:
-                    result = func(*args) if isinstance(args, (list, tuple)) else func(args)
+                    result = (
+                        func(*args) if isinstance(args, list | tuple) else func(args)
+                    )
                     with self.lock:
                         self.results.append(result)
                 except Exception as e:
                     with self.lock:
                         self.errors.append(e)
-            
+
             for args in args_list[:max_workers]:
                 thread = threading.Thread(target=worker, args=(args,))
                 threads.append(thread)
                 thread.start()
-            
+
             for thread in threads:
                 thread.join(timeout=5.0)
-            
+
             return self.results, self.errors
-    
+
     return ThreadSafetyHelper()
 
 
@@ -274,18 +296,12 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
-    config.addinivalue_line(
-        "markers", "integration: marks tests as integration tests"
-    )
-    config.addinivalue_line(
-        "markers", "security: marks tests as security-focused"
-    )
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line("markers", "security: marks tests as security-focused")
     config.addinivalue_line(
         "markers", "performance: marks tests as performance benchmarks"
     )
-    config.addinivalue_line(
-        "markers", "property: marks tests as property-based tests"
-    )
+    config.addinivalue_line("markers", "property: marks tests as property-based tests")
 
 
 # Pytest collection hooks
@@ -295,15 +311,15 @@ def pytest_collection_modifyitems(config, items):
         # Add slow marker to tests that take longer than expected
         if "test_performance" in item.nodeid or "benchmark" in item.nodeid:
             item.add_marker(pytest.mark.performance)
-        
+
         # Add integration marker to integration tests
         if "test_integration" in item.nodeid or "/integration/" in item.nodeid:
             item.add_marker(pytest.mark.integration)
-        
+
         # Add security marker to security tests
         if "security" in item.nodeid or "injection" in item.nodeid:
             item.add_marker(pytest.mark.security)
-        
+
         # Add property marker to property-based tests
         if "property" in item.nodeid or "hypothesis" in str(item.function):
             item.add_marker(pytest.mark.property)
@@ -314,17 +330,18 @@ def pytest_collection_modifyitems(config, items):
 def cleanup_engine_state():
     """Clean up engine state between tests."""
     yield
-    
+
     # Clean up any global state
     from src.core.context import get_context_manager, get_variable_manager
-    
+
     context_manager = get_context_manager()
-    variable_manager = get_variable_manager()
-    
+    get_variable_manager()
+
     # Clean up expired contexts
     context_manager.cleanup_expired_contexts(max_age_seconds=0)
-    
+
     # Reset any global engine metrics
     from src.core.engine import get_engine_metrics
+
     metrics = get_engine_metrics()
     metrics.reset_metrics()

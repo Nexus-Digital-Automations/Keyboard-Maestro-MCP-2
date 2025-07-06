@@ -5,22 +5,23 @@ This module provides analytics capabilities including metrics collection, perfor
 ROI calculation, ML-powered insights, and real-time monitoring across the ecosystem.
 """
 
-from .metrics_collector import MetricsCollector
-from .performance_analyzer import PerformanceAnalyzer
+from .anomaly_detector import AnomalyDetector
+
 # from .roi_calculator import ROICalculator  # TODO: Implement ROICalculator
 # from .ml_insights_engine import MLInsightsEngine  # TODO: Add numpy dependency first
 from .dashboard_generator import DashboardGenerator
-from .report_automation import ReportAutomation
-from .anomaly_detector import AnomalyDetector
+from .metrics_collector import MetricsCollector
+from .performance_analyzer import PerformanceAnalyzer
 from .recommendation_engine import RecommendationEngine
+from .report_automation import ReportAutomation
 
 __all__ = [
-    'MetricsCollector',
-    'PerformanceAnalyzer',
+    "MetricsCollector",
+    "PerformanceAnalyzer",
     # 'ROICalculator',  # TODO: Implement ROICalculator
     # 'MLInsightsEngine',  # TODO: Add numpy dependency first
-    'DashboardGenerator',
-    'ReportAutomation',
-    'AnomalyDetector',
-    'RecommendationEngine'
+    "DashboardGenerator",
+    "ReportAutomation",
+    "AnomalyDetector",
+    "RecommendationEngine",
 ]

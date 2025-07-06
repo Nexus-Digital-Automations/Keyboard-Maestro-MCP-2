@@ -8,14 +8,14 @@ and sound notifications with proper timing and user experience considerations.
 
 from .notification_manager import (
     NotificationManager,
-    NotificationType,
+    NotificationResult,
     NotificationSpec,
-    NotificationResult
+    NotificationType,
 )
 
 __all__ = [
-    'NotificationManager',
-    'NotificationType', 
-    'NotificationSpec',
-    'NotificationResult'
+    "NotificationManager",
+    "NotificationType",
+    "NotificationSpec",
+    "NotificationResult",
 ]

@@ -13,35 +13,36 @@ Type Safety: Complete branded type system with contract-driven development.
 import asyncio
 import logging
 import sys
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Annotated, Any
 
 from fastmcp import FastMCP
 from fastmcp.prompts import Message
 from pydantic import Field
-from typing_extensions import Annotated
+
+from .server.tools.autonomous_agent_tools import register_autonomous_agent_tools
+from .server_utils import get_km_client
 
 # Import tool registration functions
 from .tools import (
+    register_advanced_ai_tools,
     register_core_tools,
+    register_extended_tools,
+    register_group_tools,
     register_metadata_tools,
     register_sync_tools,
-    register_group_tools,
-    register_extended_tools,
-    register_advanced_ai_tools
 )
-from .server.tools.autonomous_agent_tools import register_autonomous_agent_tools
-from .server_utils import get_km_client
 
 # Configure logging to stderr to avoid corrupting MCP communications
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(sys.stderr),
-        logging.FileHandler('logs/km-mcp-server.log') if Path('logs').exists() else logging.NullHandler()
-    ]
+        logging.FileHandler("logs/km-mcp-server.log")
+        if Path("logs").exists()
+        else logging.NullHandler(),
+    ],
 )
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,7 @@ PERFORMANCE: Sub-second response times with connection pooling and intelligent c
 TYPE SAFETY: Complete branded type system with contract-driven development.
 
 Use these tools to automate any macOS task that Keyboard Maestro can perform.
-    """.strip()
+    """.strip(),
 )
 
 # Register all tool modules
@@ -80,7 +81,7 @@ register_autonomous_agent_tools(mcp)
 
 # Resource for server status and configuration
 @mcp.resource("km://server/status")
-def get_server_status() -> Dict[str, Any]:
+def get_server_status() -> dict[str, Any]:
     """Get current server status and configuration."""
     # Test KM connection status
     km_client = get_km_client()
@@ -92,7 +93,7 @@ def get_server_status() -> Dict[str, Any]:
             km_client.list_macros_async(enabled_only=True)
         )
         loop.close()
-        
+
         if connection_test.is_right():
             km_status = "connected"
             macro_count = len(connection_test.get_right())
@@ -102,7 +103,7 @@ def get_server_status() -> Dict[str, Any]:
     except Exception:
         km_status = "error"
         macro_count = 0
-    
+
     return {
         "server_name": "KeyboardMaestroMCP",
         "version": "1.0.0",
@@ -111,36 +112,36 @@ def get_server_status() -> Dict[str, Any]:
         "km_connection": km_status,
         "km_macro_count": macro_count,
         "tools_available": 17,  # Current tool count (added km_autonomous_agent)
-        "tools_planned": 51,   # Total planned tools
+        "tools_planned": 51,  # Total planned tools
         "integration_methods": ["applescript", "web_api", "url_scheme"],
         "features": {
             "macro_execution": True,
-            "macro_listing": True,      # Now implemented with real data
-            "macro_groups": True,       # NEW: Group listing functionality
+            "macro_listing": True,  # Now implemented with real data
+            "macro_groups": True,  # NEW: Group listing functionality
             "variable_management": True,
             "dictionary_management": True,  # NEW: Dictionary operations
-            "action_search": True,          # NEW: Search actions within macros
-            "property_management": True,    # NEW: Macro property get/update
-            "engine_control": True,         # NEW: Engine operations and calculations
-            "interface_automation": True,   # NEW: Mouse/keyboard automation
-            "notifications": True,          # NEW: System notifications
-            "real_time_sync": True,         # TASK_7 implemented
-            "enhanced_metadata": True,      # TASK_6 completed
-            "trigger_management": True,     # Hotkey triggers implemented
-            "autonomous_agents": True,      # NEW: Self-managing automation agents
+            "action_search": True,  # NEW: Search actions within macros
+            "property_management": True,  # NEW: Macro property get/update
+            "engine_control": True,  # NEW: Engine operations and calculations
+            "interface_automation": True,  # NEW: Mouse/keyboard automation
+            "notifications": True,  # NEW: System notifications
+            "real_time_sync": True,  # TASK_7 implemented
+            "enhanced_metadata": True,  # TASK_6 completed
+            "trigger_management": True,  # Hotkey triggers implemented
+            "autonomous_agents": True,  # NEW: Self-managing automation agents
             "plugin_system": False,
-            "ocr_integration": False
+            "ocr_integration": False,
         },
         "task_progress": {
             "task_1_core_engine": "completed",
-            "task_2_km_integration": "completed", 
+            "task_2_km_integration": "completed",
             "task_3_command_library": "completed",
             "task_4_testing_framework": "completed",
             "task_5_real_api_integration": "in_progress",
             "task_6_enhanced_metadata": "completed",
             "task_7_realtime_sync": "planned",
-            "task_8_modularization": "completed"
-        }
+            "task_8_modularization": "completed",
+        },
     }
 
 
@@ -267,7 +268,7 @@ Create and manage self-managing automation agents with learning capabilities.
 - **safety_constraints**: Safety rules and constraints
 - **human_approval_required**: Require human approval for actions (default: false)
 
-**Features**: 
+**Features**:
 - Self-managing agents that learn and adapt from experience
 - Goal-driven behavior with dynamic prioritization
 - Resource optimization and intelligent load balancing
@@ -298,7 +299,7 @@ Force immediate synchronization of macro library state.
 ### km://server/status
 Get current server status, KM connection health, and feature availability.
 
-### km://help/tools  
+### km://help/tools
 This help documentation.
 
 ## Integration Methods
@@ -353,18 +354,21 @@ For more tools and features, see the development roadmap.
 # Prompt for macro creation assistance
 @mcp.prompt()
 def create_macro_prompt(
-    task_description: Annotated[str, Field(
-        description="Description of the automation task to create a macro for"
-    )],
-    app_context: Annotated[str, Field(
-        default="",
-        description="Specific application or context for the automation"
-    )] = ""
+    task_description: Annotated[
+        str,
+        Field(description="Description of the automation task to create a macro for"),
+    ],
+    app_context: Annotated[
+        str,
+        Field(
+            default="", description="Specific application or context for the automation"
+        ),
+    ] = "",
 ) -> list[Message]:
     """Generate a structured prompt for creating Keyboard Maestro macros."""
-    
+
     system_prompt = """You are an expert Keyboard Maestro macro developer. Help create efficient, reliable macros for macOS automation tasks."""
-    
+
     user_prompt = f"""
 Task: {task_description}
 
@@ -381,53 +385,50 @@ Please provide a detailed macro design including:
 
 Focus on reliability, user experience, and maintainability.
     """
-    
+
     return [
         Message(role="system", content=system_prompt),
-        Message(role="user", content=user_prompt.strip())
+        Message(role="user", content=user_prompt.strip()),
     ]
 
 
 def main():
     """Main entry point for the Keyboard Maestro MCP server."""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="Keyboard Maestro MCP Server")
     parser.add_argument(
         "--transport",
         choices=["stdio", "streamable-http"],
         default="stdio",
-        help="Transport method (default: stdio)"
+        help="Transport method (default: stdio)",
     )
     parser.add_argument(
         "--host",
         default="127.0.0.1",
-        help="Host for HTTP transport (default: 127.0.0.1)"
+        help="Host for HTTP transport (default: 127.0.0.1)",
     )
     parser.add_argument(
-        "--port",
-        type=int,
-        default=8000,
-        help="Port for HTTP transport (default: 8000)"
+        "--port", type=int, default=8000, help="Port for HTTP transport (default: 8000)"
     )
     parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
-        help="Logging level (default: INFO)"
+        help="Logging level (default: INFO)",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Configure logging level
     logging.getLogger().setLevel(getattr(logging, args.log_level))
-    
+
     # Ensure logs directory exists
     Path("logs").mkdir(exist_ok=True)
-    
-    logger.info(f"Starting Keyboard Maestro MCP Server v1.0.0")
+
+    logger.info("Starting Keyboard Maestro MCP Server v1.0.0")
     logger.info(f"Transport: {args.transport}")
-    
+
     if args.transport == "stdio":
         logger.info("Running with stdio transport for local clients")
         mcp.run(transport="stdio")

@@ -11,22 +11,22 @@ Type Safety: Complete workflow validation and error handling
 """
 
 from __future__ import annotations
-from typing import Dict, List, Optional, Any, Set, Tuple
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, UTC
-from enum import Enum
-import json
+
 import asyncio
 import secrets
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
+from typing import Any
 
 from ..core.cloud_integration import (
-    CloudProvider, CloudServiceType, CloudAuthMethod, CloudCredentials,
-    CloudResource, CloudOperation, CloudError, CloudRegion, CloudSecurityLevel
+    CloudError,
+    CloudProvider,
+    CloudServiceType,
 )
-from ..core.contracts import require, ensure
+from ..core.contracts import ensure, require
 from ..core.either import Either
 from ..core.errors import ValidationError
-
 from .aws_connector import AWSConnector
 from .azure_connector import AzureConnector
 from .gcp_connector import GCPConnector
@@ -34,6 +34,7 @@ from .gcp_connector import GCPConnector
 
 class WorkflowOperationType(Enum):
     """Types of cloud workflow operations."""
+
     CREATE_RESOURCE = "create_resource"
     SYNC_DATA = "sync_data"
     BACKUP_DATA = "backup_data"
@@ -46,6 +47,7 @@ class WorkflowOperationType(Enum):
 
 class WorkflowStatus(Enum):
     """Workflow execution status."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -57,15 +59,16 @@ class WorkflowStatus(Enum):
 @dataclass(frozen=True)
 class WorkflowStep:
     """Individual step in a multi-cloud workflow."""
+
     step_id: str
     operation_type: WorkflowOperationType
     provider: CloudProvider
     service_type: CloudServiceType
-    parameters: Dict[str, Any]
-    dependencies: List[str] = field(default_factory=list)
+    parameters: dict[str, Any]
+    dependencies: list[str] = field(default_factory=list)
     timeout_seconds: int = 300
     retry_count: int = 3
-    
+
     @require(lambda self: len(self.step_id) > 0)
     @require(lambda self: self.timeout_seconds > 0)
     @require(lambda self: self.retry_count >= 0)
@@ -76,87 +79,98 @@ class WorkflowStep:
 @dataclass(frozen=True)
 class WorkflowPlan:
     """Complete multi-cloud workflow specification."""
+
     workflow_id: str
     name: str
     description: str
-    steps: List[WorkflowStep]
+    steps: list[WorkflowStep]
     created_at: datetime
     created_by: str
-    tags: Dict[str, str] = field(default_factory=dict)
-    
+    tags: dict[str, str] = field(default_factory=dict)
+
     @require(lambda self: len(self.workflow_id) > 0)
     @require(lambda self: len(self.steps) > 0)
     def __post_init__(self):
         pass
-    
-    def get_step_dependencies(self) -> Dict[str, List[str]]:
+
+    def get_step_dependencies(self) -> dict[str, list[str]]:
         """Get dependency mapping for workflow steps."""
         return {step.step_id: step.dependencies for step in self.steps}
-    
+
     def validate_dependencies(self) -> Either[ValidationError, None]:
         """Validate workflow step dependencies for cycles and missing references."""
         step_ids = {step.step_id for step in self.steps}
-        
+
         # Check for missing dependencies
         for step in self.steps:
             for dep in step.dependencies:
                 if dep not in step_ids:
-                    return Either.left(ValidationError(
-                        f"Step {step.step_id} depends on non-existent step {dep}"
-                    ))
-        
+                    return Either.left(
+                        ValidationError(
+                            f"Step {step.step_id} depends on non-existent step {dep}"
+                        )
+                    )
+
         # Check for circular dependencies using DFS
-        def has_cycle(node: str, visited: Set[str], path: Set[str]) -> bool:
+        def has_cycle(node: str, visited: set[str], path: set[str]) -> bool:
             if node in path:
                 return True
             if node in visited:
                 return False
-            
+
             visited.add(node)
             path.add(node)
-            
-            dependencies = next((s.dependencies for s in self.steps if s.step_id == node), [])
+
+            dependencies = next(
+                (s.dependencies for s in self.steps if s.step_id == node), []
+            )
             for dep in dependencies:
                 if has_cycle(dep, visited, path):
                     return True
-            
+
             path.remove(node)
             return False
-        
+
         visited = set()
         for step in self.steps:
             if step.step_id not in visited:
                 if has_cycle(step.step_id, visited, set()):
-                    return Either.left(ValidationError("Circular dependency detected in workflow"))
-        
+                    return Either.left(
+                        ValidationError("Circular dependency detected in workflow")
+                    )
+
         return Either.right(None)
 
 
 @dataclass
 class WorkflowExecution:
     """Workflow execution state and progress tracking."""
+
     execution_id: str
     workflow_plan: WorkflowPlan
     status: WorkflowStatus
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    step_results: Dict[str, Any] = field(default_factory=dict)
-    errors: List[str] = field(default_factory=list)
-    current_step: Optional[str] = None
-    
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    step_results: dict[str, Any] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
+    current_step: str | None = None
+
     def get_progress_percentage(self) -> float:
         """Calculate workflow progress percentage."""
         if not self.workflow_plan.steps:
             return 100.0
-        
-        completed_steps = len([
-            step for step in self.workflow_plan.steps
-            if step.step_id in self.step_results
-        ])
-        
+
+        completed_steps = len(
+            [
+                step
+                for step in self.workflow_plan.steps
+                if step.step_id in self.step_results
+            ]
+        )
+
         return (completed_steps / len(self.workflow_plan.steps)) * 100.0
-    
-    def get_execution_duration(self) -> Optional[timedelta]:
+
+    def get_execution_duration(self) -> timedelta | None:
         """Get workflow execution duration."""
         if self.started_at:
             end_time = self.completed_at or datetime.now(UTC)
@@ -166,19 +180,19 @@ class WorkflowExecution:
 
 class CloudOrchestrator:
     """Sophisticated multi-cloud orchestration and workflow management engine."""
-    
+
     def __init__(self):
         self.aws_connector = AWSConnector()
         self.azure_connector = AzureConnector()
         self.gcp_connector = GCPConnector()
-        self.active_workflows: Dict[str, WorkflowExecution] = {}
-        self.workflow_templates: Dict[str, WorkflowPlan] = {}
-        self.session_registry: Dict[CloudProvider, Set[str]] = {
+        self.active_workflows: dict[str, WorkflowExecution] = {}
+        self.workflow_templates: dict[str, WorkflowPlan] = {}
+        self.session_registry: dict[CloudProvider, set[str]] = {
             CloudProvider.AWS: set(),
             CloudProvider.AZURE: set(),
-            CloudProvider.GOOGLE_CLOUD: set()
+            CloudProvider.GOOGLE_CLOUD: set(),
         }
-    
+
     def get_connector(self, provider: CloudProvider):
         """Get appropriate cloud connector for provider."""
         if provider == CloudProvider.AWS:
@@ -189,78 +203,87 @@ class CloudOrchestrator:
             return self.gcp_connector
         else:
             raise ValueError(f"Unsupported cloud provider: {provider}")
-    
+
     @require(lambda workflow_plan: workflow_plan.validate_dependencies().is_right())
-    @ensure(lambda result: result.is_right() or result.get_left().error_type in ["ORCHESTRATION_FAILED"])
+    @ensure(
+        lambda result: result.is_right()
+        or result.get_left().error_type in ["ORCHESTRATION_FAILED"]
+    )
     async def execute_workflow(
-        self,
-        workflow_plan: WorkflowPlan,
-        cloud_sessions: Dict[CloudProvider, str]
+        self, workflow_plan: WorkflowPlan, cloud_sessions: dict[CloudProvider, str]
     ) -> Either[CloudError, str]:
         """Execute multi-cloud workflow with dependency resolution and error handling."""
         try:
-            execution_id = f"exec_{int(datetime.now(UTC).timestamp())}_{secrets.token_hex(6)}"
-            
+            execution_id = (
+                f"exec_{int(datetime.now(UTC).timestamp())}_{secrets.token_hex(6)}"
+            )
+
             # Validate workflow dependencies
             dep_validation = workflow_plan.validate_dependencies()
             if dep_validation.is_left():
-                return Either.left(CloudError.orchestration_failed(str(dep_validation.get_left())))
-            
+                return Either.left(
+                    CloudError.orchestration_failed(str(dep_validation.get_left()))
+                )
+
             # Create workflow execution
             execution = WorkflowExecution(
                 execution_id=execution_id,
                 workflow_plan=workflow_plan,
                 status=WorkflowStatus.PENDING,
-                started_at=datetime.now(UTC)
+                started_at=datetime.now(UTC),
             )
-            
+
             self.active_workflows[execution_id] = execution
-            
+
             # Start workflow execution
             await self._execute_workflow_steps(execution, cloud_sessions)
-            
+
             return Either.right(execution_id)
-            
+
         except Exception as e:
             return Either.left(CloudError.orchestration_failed(str(e)))
-    
+
     async def _execute_workflow_steps(
-        self,
-        execution: WorkflowExecution,
-        cloud_sessions: Dict[CloudProvider, str]
+        self, execution: WorkflowExecution, cloud_sessions: dict[CloudProvider, str]
     ) -> None:
         """Execute workflow steps with dependency resolution."""
         execution.status = WorkflowStatus.RUNNING
-        
+
         # Build dependency graph
-        dependencies = execution.workflow_plan.get_step_dependencies()
+        execution.workflow_plan.get_step_dependencies()
         completed_steps = set()
-        
+
         try:
             while len(completed_steps) < len(execution.workflow_plan.steps):
                 # Find steps ready to execute (all dependencies completed)
                 ready_steps = [
-                    step for step in execution.workflow_plan.steps
-                    if (step.step_id not in completed_steps and
-                        all(dep in completed_steps for dep in step.dependencies))
+                    step
+                    for step in execution.workflow_plan.steps
+                    if (
+                        step.step_id not in completed_steps
+                        and all(dep in completed_steps for dep in step.dependencies)
+                    )
                 ]
-                
+
                 if not ready_steps:
                     # Check for deadlock
                     remaining_steps = [
-                        step for step in execution.workflow_plan.steps
+                        step
+                        for step in execution.workflow_plan.steps
                         if step.step_id not in completed_steps
                     ]
-                    execution.errors.append(f"Workflow deadlock: cannot execute remaining steps {[s.step_id for s in remaining_steps]}")
+                    execution.errors.append(
+                        f"Workflow deadlock: cannot execute remaining steps {[s.step_id for s in remaining_steps]}"
+                    )
                     execution.status = WorkflowStatus.FAILED
                     return
-                
+
                 # Execute ready steps in parallel
                 tasks = []
                 for step in ready_steps:
                     task = self._execute_workflow_step(step, execution, cloud_sessions)
                     tasks.append((step.step_id, task))
-                
+
                 # Wait for all parallel steps to complete
                 for step_id, task in tasks:
                     try:
@@ -272,212 +295,227 @@ class CloudOrchestrator:
                         execution.errors.append(f"Step {step_id} failed: {str(e)}")
                         execution.status = WorkflowStatus.FAILED
                         return
-            
+
             # All steps completed successfully
             execution.status = WorkflowStatus.COMPLETED
             execution.completed_at = datetime.now(UTC)
-            
+
         except Exception as e:
             execution.errors.append(f"Workflow execution failed: {str(e)}")
             execution.status = WorkflowStatus.FAILED
             execution.completed_at = datetime.now(UTC)
-    
+
     async def _execute_workflow_step(
         self,
         step: WorkflowStep,
         execution: WorkflowExecution,
-        cloud_sessions: Dict[CloudProvider, str]
-    ) -> Dict[str, Any]:
+        cloud_sessions: dict[CloudProvider, str],
+    ) -> dict[str, Any]:
         """Execute individual workflow step with retry logic."""
         session_id = cloud_sessions.get(step.provider)
         if not session_id:
             raise ValueError(f"No session found for provider {step.provider.value}")
-        
+
         connector = self.get_connector(step.provider)
-        
+
         for attempt in range(step.retry_count + 1):
             try:
                 if step.operation_type == WorkflowOperationType.CREATE_RESOURCE:
-                    return await self._execute_create_resource_step(connector, session_id, step)
+                    return await self._execute_create_resource_step(
+                        connector, session_id, step
+                    )
                 elif step.operation_type == WorkflowOperationType.SYNC_DATA:
-                    return await self._execute_sync_data_step(connector, session_id, step)
+                    return await self._execute_sync_data_step(
+                        connector, session_id, step
+                    )
                 elif step.operation_type == WorkflowOperationType.BACKUP_DATA:
-                    return await self._execute_backup_data_step(connector, session_id, step)
+                    return await self._execute_backup_data_step(
+                        connector, session_id, step
+                    )
                 elif step.operation_type == WorkflowOperationType.REPLICATE_CROSS_CLOUD:
-                    return await self._execute_cross_cloud_replication(step, execution, cloud_sessions)
+                    return await self._execute_cross_cloud_replication(
+                        step, execution, cloud_sessions
+                    )
                 else:
-                    raise ValueError(f"Unsupported operation type: {step.operation_type}")
-                
+                    raise ValueError(
+                        f"Unsupported operation type: {step.operation_type}"
+                    )
+
             except Exception as e:
                 if attempt == step.retry_count:
                     raise e
                 # Wait before retry with exponential backoff
-                await asyncio.sleep(2 ** attempt)
-    
+                await asyncio.sleep(2**attempt)
+
     async def _execute_create_resource_step(
-        self,
-        connector: Any,
-        session_id: str,
-        step: WorkflowStep
-    ) -> Dict[str, Any]:
+        self, connector: Any, session_id: str, step: WorkflowStep
+    ) -> dict[str, Any]:
         """Execute resource creation step."""
         params = step.parameters
-        
+
         if step.service_type == CloudServiceType.STORAGE:
             if step.provider == CloudProvider.AWS:
                 result = await connector.create_s3_bucket(
                     session_id,
-                    params['bucket_name'],
-                    params.get('region'),
-                    params.get('configuration', {})
+                    params["bucket_name"],
+                    params.get("region"),
+                    params.get("configuration", {}),
                 )
             elif step.provider == CloudProvider.AZURE:
                 result = await connector.create_storage_account(
                     session_id,
-                    params['account_name'],
-                    params['resource_group'],
-                    params['location'],
-                    params.get('configuration', {})
+                    params["account_name"],
+                    params["resource_group"],
+                    params["location"],
+                    params.get("configuration", {}),
                 )
             elif step.provider == CloudProvider.GOOGLE_CLOUD:
                 result = await connector.create_storage_bucket(
                     session_id,
-                    params['bucket_name'],
-                    params.get('location', 'US'),
-                    params.get('configuration', {})
+                    params["bucket_name"],
+                    params.get("location", "US"),
+                    params.get("configuration", {}),
                 )
             else:
                 raise ValueError(f"Unsupported provider for storage: {step.provider}")
-            
+
             if result.is_left():
                 raise Exception(result.get_left().message)
-            
+
             return {"resource": result.get_right(), "operation": "create_storage"}
-        
+
         else:
             raise ValueError(f"Unsupported service type: {step.service_type}")
-    
+
     async def _execute_sync_data_step(
-        self,
-        connector: Any,
-        session_id: str,
-        step: WorkflowStep
-    ) -> Dict[str, Any]:
+        self, connector: Any, session_id: str, step: WorkflowStep
+    ) -> dict[str, Any]:
         """Execute data synchronization step."""
         params = step.parameters
-        
+
         if step.provider == CloudProvider.AWS:
             result = await connector.sync_to_s3(
                 session_id,
-                params['source_path'],
-                params['bucket_name'],
-                params.get('destination_prefix', ''),
-                params.get('sync_options', {})
+                params["source_path"],
+                params["bucket_name"],
+                params.get("destination_prefix", ""),
+                params.get("sync_options", {}),
             )
         elif step.provider == CloudProvider.AZURE:
             result = await connector.sync_to_blob_storage(
                 session_id,
-                params['source_path'],
-                params['account_name'],
-                params['container_name'],
-                params.get('destination_prefix', ''),
-                params.get('sync_options', {})
+                params["source_path"],
+                params["account_name"],
+                params["container_name"],
+                params.get("destination_prefix", ""),
+                params.get("sync_options", {}),
             )
         elif step.provider == CloudProvider.GOOGLE_CLOUD:
             result = await connector.sync_to_gcs(
                 session_id,
-                params['source_path'],
-                params['bucket_name'],
-                params.get('destination_prefix', ''),
-                params.get('sync_options', {})
+                params["source_path"],
+                params["bucket_name"],
+                params.get("destination_prefix", ""),
+                params.get("sync_options", {}),
             )
         else:
             raise ValueError(f"Unsupported provider for sync: {step.provider}")
-        
+
         if result.is_left():
             raise Exception(result.get_left().message)
-        
+
         return {"sync_result": result.get_right(), "operation": "sync_data"}
-    
+
     async def _execute_backup_data_step(
-        self,
-        connector: Any,
-        session_id: str,
-        step: WorkflowStep
-    ) -> Dict[str, Any]:
+        self, connector: Any, session_id: str, step: WorkflowStep
+    ) -> dict[str, Any]:
         """Execute data backup step."""
         # Backup is essentially a sync operation with backup-specific settings
         backup_params = step.parameters.copy()
-        backup_params['sync_options'] = backup_params.get('sync_options', {})
-        backup_params['sync_options']['backup_mode'] = True
-        backup_params['sync_options']['timestamp_prefix'] = datetime.now(UTC).strftime('%Y%m%d_%H%M%S_')
-        
+        backup_params["sync_options"] = backup_params.get("sync_options", {})
+        backup_params["sync_options"]["backup_mode"] = True
+        backup_params["sync_options"]["timestamp_prefix"] = datetime.now(UTC).strftime(
+            "%Y%m%d_%H%M%S_"
+        )
+
         # Reuse sync logic
         modified_step = WorkflowStep(
             step_id=step.step_id,
             operation_type=WorkflowOperationType.SYNC_DATA,
             provider=step.provider,
             service_type=step.service_type,
-            parameters=backup_params
+            parameters=backup_params,
         )
-        
-        result = await self._execute_sync_data_step(connector, session_id, modified_step)
+
+        result = await self._execute_sync_data_step(
+            connector, session_id, modified_step
+        )
         result["operation"] = "backup_data"
         return result
-    
+
     async def _execute_cross_cloud_replication(
         self,
         step: WorkflowStep,
         execution: WorkflowExecution,
-        cloud_sessions: Dict[CloudProvider, str]
-    ) -> Dict[str, Any]:
+        cloud_sessions: dict[CloudProvider, str],
+    ) -> dict[str, Any]:
         """Execute cross-cloud data replication."""
         params = step.parameters
-        source_provider = CloudProvider(params['source_provider'])
-        target_provider = CloudProvider(params['target_provider'])
-        
+        source_provider = CloudProvider(params["source_provider"])
+        target_provider = CloudProvider(params["target_provider"])
+
         # This would involve downloading from source and uploading to target
         # For now, return a placeholder result
         return {
             "operation": "cross_cloud_replication",
             "source_provider": source_provider.value,
             "target_provider": target_provider.value,
-            "status": "completed"
+            "status": "completed",
         }
-    
-    async def get_workflow_status(self, execution_id: str) -> Either[CloudError, Dict[str, Any]]:
+
+    async def get_workflow_status(
+        self, execution_id: str
+    ) -> Either[CloudError, dict[str, Any]]:
         """Get workflow execution status and progress."""
         if execution_id not in self.active_workflows:
-            return Either.left(CloudError.orchestration_failed(f"Workflow {execution_id} not found"))
-        
+            return Either.left(
+                CloudError.orchestration_failed(f"Workflow {execution_id} not found")
+            )
+
         execution = self.active_workflows[execution_id]
-        
+
         status_info = {
             "execution_id": execution_id,
             "workflow_name": execution.workflow_plan.name,
             "status": execution.status.value,
             "progress_percentage": execution.get_progress_percentage(),
-            "started_at": execution.started_at.isoformat() if execution.started_at else None,
-            "completed_at": execution.completed_at.isoformat() if execution.completed_at else None,
-            "duration_seconds": int(execution.get_execution_duration().total_seconds()) if execution.get_execution_duration() else None,
+            "started_at": execution.started_at.isoformat()
+            if execution.started_at
+            else None,
+            "completed_at": execution.completed_at.isoformat()
+            if execution.completed_at
+            else None,
+            "duration_seconds": int(execution.get_execution_duration().total_seconds())
+            if execution.get_execution_duration()
+            else None,
             "current_step": execution.current_step,
             "completed_steps": len(execution.step_results),
             "total_steps": len(execution.workflow_plan.steps),
-            "errors": execution.errors
+            "errors": execution.errors,
         }
-        
+
         return Either.right(status_info)
-    
+
     def create_disaster_recovery_workflow(
         self,
         primary_provider: CloudProvider,
         backup_provider: CloudProvider,
-        resources: List[Dict[str, Any]]
+        resources: list[dict[str, Any]],
     ) -> WorkflowPlan:
         """Create disaster recovery workflow template."""
         workflow_id = f"dr_{int(datetime.now(UTC).timestamp())}"
         steps = []
-        
+
         for i, resource in enumerate(resources):
             # Create backup resource
             backup_step = WorkflowStep(
@@ -487,11 +525,11 @@ class CloudOrchestrator:
                 service_type=CloudServiceType.STORAGE,
                 parameters={
                     "bucket_name": f"{resource['name']}_backup",
-                    "configuration": {"encryption": True, "versioning": True}
-                }
+                    "configuration": {"encryption": True, "versioning": True},
+                },
             )
             steps.append(backup_step)
-            
+
             # Replicate data
             sync_step = WorkflowStep(
                 step_id=f"replicate_data_{i}",
@@ -501,18 +539,18 @@ class CloudOrchestrator:
                 parameters={
                     "source_provider": primary_provider.value,
                     "target_provider": backup_provider.value,
-                    "source_resource": resource['name'],
-                    "target_resource": f"{resource['name']}_backup"
+                    "source_resource": resource["name"],
+                    "target_resource": f"{resource['name']}_backup",
                 },
-                dependencies=[f"backup_resource_{i}"]
+                dependencies=[f"backup_resource_{i}"],
             )
             steps.append(sync_step)
-        
+
         return WorkflowPlan(
             workflow_id=workflow_id,
             name="Disaster Recovery Plan",
             description=f"Backup from {primary_provider.value} to {backup_provider.value}",
             steps=steps,
             created_at=datetime.now(UTC),
-            created_by="cloud_orchestrator"
+            created_by="cloud_orchestrator",
         )

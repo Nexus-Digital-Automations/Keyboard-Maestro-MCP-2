@@ -6,15 +6,15 @@ for username-based automation and workflow customization.
 """
 
 from .authentication_manager import IdentityAuthenticationManager
-from .user_profiler import UserProfiler
 from .personalization_engine import PersonalizationEngine
 from .privacy_manager import PrivacyManager
 from .session_manager import SessionManager
+from .user_profiler import UserProfiler
 
 __all__ = [
-    'IdentityAuthenticationManager',
-    'UserProfiler', 
-    'PersonalizationEngine',
-    'PrivacyManager',
-    'SessionManager'
+    "IdentityAuthenticationManager",
+    "UserProfiler",
+    "PersonalizationEngine",
+    "PrivacyManager",
+    "SessionManager",
 ]

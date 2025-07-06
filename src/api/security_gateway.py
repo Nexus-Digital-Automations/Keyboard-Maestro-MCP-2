@@ -10,26 +10,22 @@ Security: Zero trust validation, encryption, and attack prevention
 """
 
 from __future__ import annotations
-import asyncio
-import time
-import hashlib
-import hmac
-from datetime import datetime, UTC, timedelta
-from typing import Dict, List, Any, Optional, Set, Union
-from dataclasses import dataclass, field
-from enum import Enum
-import logging
-import re
 
-from ..core.contracts import require, ensure
+import logging
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any
+
 from ..core.either import Either
-from ..core.errors import ValidationError, SecurityError
+from ..core.errors import SecurityError, ValidationError
 
 logger = logging.getLogger(__name__)
 
 
 class SecurityLevel(Enum):
     """API security levels."""
+
     PUBLIC = "public"
     AUTHENTICATED = "authenticated"
     AUTHORIZED = "authorized"
@@ -38,6 +34,7 @@ class SecurityLevel(Enum):
 
 class AuthenticationMethod(Enum):
     """Authentication methods."""
+
     API_KEY = "api_key"
     JWT_TOKEN = "jwt_token"
     BASIC_AUTH = "basic_auth"
@@ -45,6 +42,7 @@ class AuthenticationMethod(Enum):
 
 class ThreatType(Enum):
     """Security threat types."""
+
     SQL_INJECTION = "sql_injection"
     XSS = "xss"
     MALICIOUS_PAYLOAD = "malicious_payload"
@@ -53,13 +51,14 @@ class ThreatType(Enum):
 @dataclass
 class SecurityPolicy:
     """API security policy definition."""
+
     name: str
     security_level: SecurityLevel
-    authentication_methods: List[AuthenticationMethod]
-    required_permissions: List[str] = field(default_factory=list)
+    authentication_methods: list[AuthenticationMethod]
+    required_permissions: list[str] = field(default_factory=list)
     rate_limit_per_minute: int = 100
     enable_threat_detection: bool = True
-    
+
     def __post_init__(self):
         if not self.name:
             raise ValidationError("name", self.name, "Policy name is required")
@@ -68,16 +67,17 @@ class SecurityPolicy:
 @dataclass
 class SecurityContext:
     """Security context for API requests."""
-    user_id: Optional[str] = None
-    permissions: Set[str] = field(default_factory=set)
-    authentication_method: Optional[AuthenticationMethod] = None
-    authenticated_at: Optional[datetime] = None
+
+    user_id: str | None = None
+    permissions: set[str] = field(default_factory=set)
+    authentication_method: AuthenticationMethod | None = None
+    authenticated_at: datetime | None = None
     risk_score: float = 0.0
-    
+
     def is_authenticated(self) -> bool:
         """Check if context represents authenticated user."""
         return self.user_id is not None and self.authenticated_at is not None
-    
+
     def has_permission(self, permission: str) -> bool:
         """Check if context has specific permission."""
         return permission in self.permissions
@@ -85,59 +85,65 @@ class SecurityContext:
 
 class SecurityGateway:
     """Advanced API security gateway with comprehensive protection."""
-    
+
     def __init__(self):
-        self.security_policies: Dict[str, SecurityPolicy] = {}
-        self.api_keys: Dict[str, Dict[str, Any]] = {}
-        self.rate_limits: Dict[str, List[datetime]] = {}
-        
+        self.security_policies: dict[str, SecurityPolicy] = {}
+        self.api_keys: dict[str, dict[str, Any]] = {}
+        self.rate_limits: dict[str, list[datetime]] = {}
+
         logger.info("Security gateway initialized")
-    
+
     async def add_security_policy(self, policy: SecurityPolicy) -> Either[str, None]:
         """Add security policy for API endpoints."""
         try:
             self.security_policies[policy.name] = policy
             logger.info(f"Added security policy: {policy.name}")
             return Either.right(None)
-            
+
         except Exception as e:
             error_msg = f"Failed to add security policy: {str(e)}"
             logger.error(error_msg)
             return Either.left(error_msg)
-    
+
     async def validate_request(
         self,
         endpoint: str,
         policy_name: str,
-        headers: Dict[str, str],
-        client_ip: Optional[str] = None
+        headers: dict[str, str],
+        client_ip: str | None = None,
     ) -> Either[SecurityError, SecurityContext]:
         """Validate API request against security policy."""
         try:
             # Get security policy
             if policy_name not in self.security_policies:
-                error = SecurityError("POLICY_NOT_FOUND", f"Security policy '{policy_name}' not found")
+                error = SecurityError(
+                    "POLICY_NOT_FOUND", f"Security policy '{policy_name}' not found"
+                )
                 return Either.left(error)
-            
+
             policy = self.security_policies[policy_name]
-            
+
             # For public endpoints, return minimal context
             if policy.security_level == SecurityLevel.PUBLIC:
                 return Either.right(SecurityContext())
-            
+
             # Perform authentication
             auth_result = await self._authenticate_request(headers, policy)
             if auth_result.is_left():
                 return Either.left(auth_result.left())
-            
+
             context = auth_result.right()
             return Either.right(context)
-            
+
         except Exception as e:
-            error = SecurityError("VALIDATION_ERROR", f"Security validation failed: {str(e)}")
+            error = SecurityError(
+                "VALIDATION_ERROR", f"Security validation failed: {str(e)}"
+            )
             return Either.left(error)
-    
-    async def _authenticate_request(self, headers: Dict[str, str], policy: SecurityPolicy) -> Either[SecurityError, SecurityContext]:
+
+    async def _authenticate_request(
+        self, headers: dict[str, str], policy: SecurityPolicy
+    ) -> Either[SecurityError, SecurityContext]:
         """Authenticate request based on policy methods."""
         # Try authentication methods in order
         for auth_method in policy.authentication_methods:
@@ -147,39 +153,51 @@ class SecurityGateway:
                     context = result.right()
                     context.authentication_method = auth_method
                     return Either.right(context)
-        
-        return Either.left(SecurityError("AUTHENTICATION_FAILED", "No valid authentication method found"))
-    
-    async def _authenticate_api_key(self, headers: Dict[str, str]) -> Either[SecurityError, SecurityContext]:
+
+        return Either.left(
+            SecurityError(
+                "AUTHENTICATION_FAILED", "No valid authentication method found"
+            )
+        )
+
+    async def _authenticate_api_key(
+        self, headers: dict[str, str]
+    ) -> Either[SecurityError, SecurityContext]:
         """Authenticate using API key."""
-        api_key = headers.get("X-API-Key") or headers.get("Authorization", "").replace("Bearer ", "")
-        
+        api_key = headers.get("X-API-Key") or headers.get("Authorization", "").replace(
+            "Bearer ", ""
+        )
+
         if not api_key or api_key not in self.api_keys:
-            return Either.left(SecurityError("INVALID_API_KEY", "Invalid or missing API key"))
-        
+            return Either.left(
+                SecurityError("INVALID_API_KEY", "Invalid or missing API key")
+            )
+
         key_data = self.api_keys[api_key]
-        
+
         context = SecurityContext(
             user_id=key_data["user_id"],
             permissions=key_data["permissions"],
-            authenticated_at=datetime.now(UTC)
+            authenticated_at=datetime.now(UTC),
         )
-        
+
         return Either.right(context)
-    
-    async def add_api_key(self, api_key: str, user_id: str, permissions: List[str]) -> Either[str, None]:
+
+    async def add_api_key(
+        self, api_key: str, user_id: str, permissions: list[str]
+    ) -> Either[str, None]:
         """Add API key for authentication."""
         try:
             self.api_keys[api_key] = {
                 "user_id": user_id,
                 "permissions": set(permissions),
                 "created_at": datetime.now(UTC),
-                "active": True
+                "active": True,
             }
-            
+
             logger.info(f"Added API key for user: {user_id}")
             return Either.right(None)
-            
+
         except Exception as e:
             error_msg = f"Failed to add API key: {str(e)}"
             logger.error(error_msg)
@@ -187,7 +205,7 @@ class SecurityGateway:
 
 
 # Global instance
-_security_gateway: Optional[SecurityGateway] = None
+_security_gateway: SecurityGateway | None = None
 
 
 def get_security_gateway() -> SecurityGateway:

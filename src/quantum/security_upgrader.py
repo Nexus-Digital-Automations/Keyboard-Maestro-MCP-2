@@ -10,23 +10,24 @@ Security: Post-quantum algorithms, secure key migration, comprehensive validatio
 """
 
 from __future__ import annotations
-from typing import Dict, List, Optional, Any, Set, Tuple
-from datetime import datetime, timedelta, UTC
+
 import asyncio
 import logging
-import hashlib
 import secrets
-from pathlib import Path
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
-from ..core.contracts import require, ensure
+from ..core.contracts import ensure, require
 from ..core.either import Either
 from ..core.quantum_architecture import (
-    PostQuantumAlgorithm, QuantumThreatLevel, CryptographicStrength,
-    QuantumSecurityPolicy, QuantumError, CryptographicAsset,
-    PostQuantumMigrationPlan, QuantumSecurityConfiguration,
-    CryptographicAssetId, QuantumKeyId,
-    assess_algorithm_quantum_vulnerability, recommend_post_quantum_algorithm,
-    create_default_quantum_config
+    CryptographicAsset,
+    PostQuantumAlgorithm,
+    QuantumError,
+    QuantumSecurityConfiguration,
+    QuantumSecurityPolicy,
+    QuantumThreatLevel,
+    create_default_quantum_config,
+    recommend_post_quantum_algorithm,
 )
 
 logger = logging.getLogger(__name__)
@@ -34,30 +35,33 @@ logger = logging.getLogger(__name__)
 
 class SecurityUpgrader:
     """Security algorithm upgrader with quantum-resistant implementations."""
-    
+
     def __init__(self):
-        self.upgrade_registry: Dict[str, Dict[str, Any]] = {}
-        self.security_policies: Dict[str, QuantumSecurityConfiguration] = {}
-        self.upgrade_history: List[Dict[str, Any]] = []
+        self.upgrade_registry: dict[str, dict[str, Any]] = {}
+        self.security_policies: dict[str, QuantumSecurityConfiguration] = {}
+        self.upgrade_history: list[dict[str, Any]] = []
         self.quantum_config = create_default_quantum_config()
         self.security_metrics = {
             "total_upgrades_attempted": 0,
             "successful_upgrades": 0,
             "failed_upgrades": 0,
             "rollback_operations": 0,
-            "security_validations": 0
+            "security_validations": 0,
         }
-    
+
     @require(lambda self, assets: len(assets) > 0)
     @ensure(lambda result: result.is_success() or result.is_error())
-    async def upgrade_security_algorithms(self, assets: List[CryptographicAsset],
-                                        target_policy: str = "post_quantum",
-                                        validation_mode: bool = True) -> Either[QuantumError, Dict[str, Any]]:
+    async def upgrade_security_algorithms(
+        self,
+        assets: list[CryptographicAsset],
+        target_policy: str = "post_quantum",
+        validation_mode: bool = True,
+    ) -> Either[QuantumError, dict[str, Any]]:
         """Upgrade cryptographic algorithms to quantum-resistant implementations."""
         try:
             upgrade_session_id = f"su_{secrets.token_hex(8)}"
             upgrade_start = datetime.now(UTC)
-            
+
             upgrade_results = {
                 "session_id": upgrade_session_id,
                 "start_time": upgrade_start,
@@ -68,9 +72,9 @@ class SecurityUpgrader:
                 "skipped_assets": 0,
                 "upgrade_details": [],
                 "validation_results": {},
-                "security_improvements": {}
+                "security_improvements": {},
             }
-            
+
             # Process each asset for upgrade
             for asset in assets:
                 try:
@@ -78,61 +82,84 @@ class SecurityUpgrader:
                     if not asset.quantum_vulnerable:
                         upgrade_results["skipped_assets"] += 1
                         continue
-                    
+
                     # Perform security upgrade
-                    upgrade_result = await self._upgrade_single_asset(asset, target_policy)
-                    
+                    upgrade_result = await self._upgrade_single_asset(
+                        asset, target_policy
+                    )
+
                     if upgrade_result.is_success():
                         upgrade_data = upgrade_result.value
                         upgrade_results["successful_upgrades"] += 1
                         upgrade_results["upgrade_details"].append(upgrade_data)
-                        
+
                         # Validate upgrade if enabled
                         if validation_mode:
-                            validation_result = await self._validate_upgrade(asset, upgrade_data)
-                            upgrade_results["validation_results"][asset.asset_id] = validation_result.value if validation_result.is_success() else {}
+                            validation_result = await self._validate_upgrade(
+                                asset, upgrade_data
+                            )
+                            upgrade_results["validation_results"][asset.asset_id] = (
+                                validation_result.value
+                                if validation_result.is_success()
+                                else {}
+                            )
                     else:
                         upgrade_results["failed_upgrades"] += 1
-                        logger.error(f"Failed to upgrade asset {asset.asset_id}: {upgrade_result.error_value}")
-                
+                        logger.error(
+                            f"Failed to upgrade asset {asset.asset_id}: {upgrade_result.error_value}"
+                        )
+
                 except Exception as e:
                     upgrade_results["failed_upgrades"] += 1
                     logger.error(f"Error upgrading asset {asset.asset_id}: {e}")
-            
+
             # Calculate security improvements
-            upgrade_results["security_improvements"] = self._calculate_security_improvements(
-                assets, upgrade_results["successful_upgrades"]
+            upgrade_results["security_improvements"] = (
+                self._calculate_security_improvements(
+                    assets, upgrade_results["successful_upgrades"]
+                )
             )
-            
+
             # Update metrics
             self.security_metrics["total_upgrades_attempted"] += len(assets)
-            self.security_metrics["successful_upgrades"] += upgrade_results["successful_upgrades"]
-            self.security_metrics["failed_upgrades"] += upgrade_results["failed_upgrades"]
-            
+            self.security_metrics["successful_upgrades"] += upgrade_results[
+                "successful_upgrades"
+            ]
+            self.security_metrics["failed_upgrades"] += upgrade_results[
+                "failed_upgrades"
+            ]
+
             # Record upgrade history
-            self.upgrade_history.append({
-                "session_id": upgrade_session_id,
-                "timestamp": upgrade_start,
-                "results": upgrade_results
-            })
-            
+            self.upgrade_history.append(
+                {
+                    "session_id": upgrade_session_id,
+                    "timestamp": upgrade_start,
+                    "results": upgrade_results,
+                }
+            )
+
             upgrade_duration = (datetime.now(UTC) - upgrade_start).total_seconds()
             upgrade_results["execution_duration_seconds"] = upgrade_duration
-            
-            logger.info(f"Security upgrade completed: {upgrade_results['successful_upgrades']}/{len(assets)} assets upgraded")
-            
+
+            logger.info(
+                f"Security upgrade completed: {upgrade_results['successful_upgrades']}/{len(assets)} assets upgraded"
+            )
+
             return Either.success(upgrade_results)
-            
+
         except Exception as e:
             logger.error(f"Security upgrade failed: {e}")
             return Either.error(QuantumError(f"Security upgrade failed: {str(e)}"))
-    
+
     @require(lambda self, policy_name: len(policy_name) > 0)
     @ensure(lambda result: result.is_success() or result.is_error())
-    async def create_security_policy(self, policy_name: str,
-                                   security_level: str = "post_quantum",
-                                   algorithm_preferences: Optional[List[str]] = None,
-                                   compliance_requirements: Optional[List[str]] = None) -> Either[QuantumError, str]:
+    async def create_security_policy(
+        self,
+        policy_name: str,
+        security_level: str = "post_quantum",
+        algorithm_preferences: list[str] | None = None,
+        compliance_requirements: list[str] | None = None,
+    ) -> Either[QuantumError, str]:
         """Create custom quantum security policy."""
         try:
             # Map security level to quantum policy
@@ -140,11 +167,13 @@ class SecurityUpgrader:
                 "legacy": QuantumSecurityPolicy.LEGACY,
                 "hybrid": QuantumSecurityPolicy.HYBRID,
                 "post_quantum": QuantumSecurityPolicy.POST_QUANTUM,
-                "quantum_ready": QuantumSecurityPolicy.QUANTUM_READY
+                "quantum_ready": QuantumSecurityPolicy.QUANTUM_READY,
             }
-            
-            quantum_policy = policy_mapping.get(security_level, QuantumSecurityPolicy.POST_QUANTUM)
-            
+
+            quantum_policy = policy_mapping.get(
+                security_level, QuantumSecurityPolicy.POST_QUANTUM
+            )
+
             # Select appropriate algorithms
             if algorithm_preferences:
                 enabled_algorithms = set()
@@ -160,47 +189,52 @@ class SecurityUpgrader:
                         PostQuantumAlgorithm.KYBER_1024,
                         PostQuantumAlgorithm.DILITHIUM_5,
                         PostQuantumAlgorithm.FALCON_1024,
-                        PostQuantumAlgorithm.SPHINCS_PLUS
+                        PostQuantumAlgorithm.SPHINCS_PLUS,
                     }
                 elif security_level == "post_quantum":
                     enabled_algorithms = {
                         PostQuantumAlgorithm.KYBER_768,
                         PostQuantumAlgorithm.DILITHIUM_3,
-                        PostQuantumAlgorithm.FALCON_512
+                        PostQuantumAlgorithm.FALCON_512,
                     }
                 else:
                     enabled_algorithms = {
                         PostQuantumAlgorithm.KYBER_512,
-                        PostQuantumAlgorithm.DILITHIUM_2
+                        PostQuantumAlgorithm.DILITHIUM_2,
                     }
-            
+
             # Create security configuration
             security_config = QuantumSecurityConfiguration(
                 config_id=f"policy_{policy_name}_{secrets.token_hex(6)}",
                 security_policy=quantum_policy,
                 enabled_algorithms=enabled_algorithms,
-                key_management_mode="hybrid" if security_level == "hybrid" else "quantum",
+                key_management_mode="hybrid"
+                if security_level == "hybrid"
+                else "quantum",
                 distribution_protocol="hybrid" if security_level == "hybrid" else "qkd",
                 monitoring_enabled=True,
                 threat_detection_enabled=True,
                 incident_response_enabled=True,
-                compliance_frameworks=compliance_requirements or ["NIST", "FIPS"]
+                compliance_frameworks=compliance_requirements or ["NIST", "FIPS"],
             )
-            
+
             # Store policy
             self.security_policies[policy_name] = security_config
-            
-            logger.info(f"Security policy created: {policy_name} with {len(enabled_algorithms)} algorithms")
-            
+
+            logger.info(
+                f"Security policy created: {policy_name} with {len(enabled_algorithms)} algorithms"
+            )
+
             return Either.success(security_config.config_id)
-            
+
         except Exception as e:
             logger.error(f"Security policy creation failed: {e}")
             return Either.error(QuantumError(f"Policy creation failed: {str(e)}"))
-    
+
     @require(lambda self, target_algorithms: len(target_algorithms) > 0)
-    async def validate_algorithm_compatibility(self, target_algorithms: List[PostQuantumAlgorithm],
-                                             use_case: str = "general") -> Either[QuantumError, Dict[str, Any]]:
+    async def validate_algorithm_compatibility(
+        self, target_algorithms: list[PostQuantumAlgorithm], use_case: str = "general"
+    ) -> Either[QuantumError, dict[str, Any]]:
         """Validate post-quantum algorithm compatibility and performance."""
         try:
             compatibility_results = {
@@ -210,120 +244,163 @@ class SecurityUpgrader:
                 "incompatible_algorithms": [],
                 "performance_estimates": {},
                 "security_ratings": {},
-                "recommendations": []
+                "recommendations": [],
             }
-            
+
             # Use case requirements
             use_case_requirements = {
                 "encryption": {
                     "algorithm_types": ["kem"],
                     "performance_priority": "high",
-                    "security_level": "medium"
+                    "security_level": "medium",
                 },
                 "authentication": {
                     "algorithm_types": ["signature"],
                     "performance_priority": "medium",
-                    "security_level": "high"
+                    "security_level": "high",
                 },
                 "enterprise": {
                     "algorithm_types": ["kem", "signature"],
                     "performance_priority": "medium",
-                    "security_level": "high"
-                }
+                    "security_level": "high",
+                },
             }
-            
-            requirements = use_case_requirements.get(use_case, use_case_requirements["general"])
-            
+
+            requirements = use_case_requirements.get(
+                use_case, use_case_requirements["general"]
+            )
+
             for algorithm in target_algorithms:
                 # Check algorithm compatibility
-                is_compatible = await self._check_algorithm_compatibility(algorithm, requirements)
-                
+                is_compatible = await self._check_algorithm_compatibility(
+                    algorithm, requirements
+                )
+
                 if is_compatible:
-                    compatibility_results["compatible_algorithms"].append(algorithm.value)
-                    
+                    compatibility_results["compatible_algorithms"].append(
+                        algorithm.value
+                    )
+
                     # Estimate performance
-                    performance = self._estimate_algorithm_performance(algorithm, use_case)
-                    compatibility_results["performance_estimates"][algorithm.value] = performance
-                    
+                    performance = self._estimate_algorithm_performance(
+                        algorithm, use_case
+                    )
+                    compatibility_results["performance_estimates"][algorithm.value] = (
+                        performance
+                    )
+
                     # Rate security
                     security_rating = self._rate_algorithm_security(algorithm)
-                    compatibility_results["security_ratings"][algorithm.value] = security_rating
+                    compatibility_results["security_ratings"][algorithm.value] = (
+                        security_rating
+                    )
                 else:
-                    compatibility_results["incompatible_algorithms"].append(algorithm.value)
-            
+                    compatibility_results["incompatible_algorithms"].append(
+                        algorithm.value
+                    )
+
             # Generate recommendations
-            compatibility_results["recommendations"] = self._generate_compatibility_recommendations(
-                compatibility_results["compatible_algorithms"], use_case
+            compatibility_results["recommendations"] = (
+                self._generate_compatibility_recommendations(
+                    compatibility_results["compatible_algorithms"], use_case
+                )
             )
-            
+
             return Either.success(compatibility_results)
-            
+
         except Exception as e:
             logger.error(f"Algorithm compatibility validation failed: {e}")
-            return Either.error(QuantumError(f"Compatibility validation failed: {str(e)}"))
-    
-    async def get_upgrade_status(self, session_id: Optional[str] = None) -> Either[QuantumError, Dict[str, Any]]:
+            return Either.error(
+                QuantumError(f"Compatibility validation failed: {str(e)}")
+            )
+
+    async def get_upgrade_status(
+        self, session_id: str | None = None
+    ) -> Either[QuantumError, dict[str, Any]]:
         """Get security upgrade status and metrics."""
         try:
             status = {
                 "overall_metrics": self.security_metrics.copy(),
                 "total_policies": len(self.security_policies),
-                "recent_upgrades": len([
-                    h for h in self.upgrade_history
-                    if h["timestamp"] >= datetime.now(UTC) - timedelta(hours=24)
-                ]),
+                "recent_upgrades": len(
+                    [
+                        h
+                        for h in self.upgrade_history
+                        if h["timestamp"] >= datetime.now(UTC) - timedelta(hours=24)
+                    ]
+                ),
                 "current_configuration": {
                     "security_policy": self.quantum_config.security_policy.value,
-                    "enabled_algorithms": [alg.value for alg in self.quantum_config.enabled_algorithms],
-                    "monitoring_enabled": self.quantum_config.monitoring_enabled
-                }
+                    "enabled_algorithms": [
+                        alg.value for alg in self.quantum_config.enabled_algorithms
+                    ],
+                    "monitoring_enabled": self.quantum_config.monitoring_enabled,
+                },
             }
-            
+
             if session_id:
                 # Find specific session
-                session_history = [h for h in self.upgrade_history if h["session_id"] == session_id]
+                session_history = [
+                    h for h in self.upgrade_history if h["session_id"] == session_id
+                ]
                 if session_history:
                     status["session_details"] = session_history[0]
                 else:
-                    return Either.error(QuantumError(f"Upgrade session not found: {session_id}"))
-            
+                    return Either.error(
+                        QuantumError(f"Upgrade session not found: {session_id}")
+                    )
+
             return Either.success(status)
-            
+
         except Exception as e:
             logger.error(f"Failed to get upgrade status: {e}")
             return Either.error(QuantumError(f"Status retrieval failed: {str(e)}"))
-    
+
     # Private helper methods
-    
-    async def _upgrade_single_asset(self, asset: CryptographicAsset, target_policy: str) -> Either[QuantumError, Dict[str, Any]]:
+
+    async def _upgrade_single_asset(
+        self, asset: CryptographicAsset, target_policy: str
+    ) -> Either[QuantumError, dict[str, Any]]:
         """Upgrade a single cryptographic asset."""
         try:
             # Recommend replacement algorithm
-            replacement_alg = recommend_post_quantum_algorithm(asset.algorithm, asset.usage_context)
-            
+            replacement_alg = recommend_post_quantum_algorithm(
+                asset.algorithm, asset.usage_context
+            )
+
             if not replacement_alg:
-                return Either.error(QuantumError(f"No suitable replacement algorithm for {asset.algorithm}"))
-            
+                return Either.error(
+                    QuantumError(
+                        f"No suitable replacement algorithm for {asset.algorithm}"
+                    )
+                )
+
             # Simulate upgrade process
             upgrade_data = {
                 "asset_id": asset.asset_id,
                 "original_algorithm": asset.algorithm,
                 "replacement_algorithm": replacement_alg.value,
                 "upgrade_timestamp": datetime.now(UTC).isoformat(),
-                "security_improvement": self._calculate_single_asset_improvement(asset, replacement_alg),
-                "migration_complexity": self._assess_migration_complexity(asset, replacement_alg),
-                "validation_required": True
+                "security_improvement": self._calculate_single_asset_improvement(
+                    asset, replacement_alg
+                ),
+                "migration_complexity": self._assess_migration_complexity(
+                    asset, replacement_alg
+                ),
+                "validation_required": True,
             }
-            
+
             # Simulate processing time
             await asyncio.sleep(0.01)
-            
+
             return Either.success(upgrade_data)
-            
+
         except Exception as e:
             return Either.error(QuantumError(f"Asset upgrade failed: {str(e)}"))
-    
-    async def _validate_upgrade(self, original_asset: CryptographicAsset, upgrade_data: Dict[str, Any]) -> Either[QuantumError, Dict[str, Any]]:
+
+    async def _validate_upgrade(
+        self, original_asset: CryptographicAsset, upgrade_data: dict[str, Any]
+    ) -> Either[QuantumError, dict[str, Any]]:
         """Validate security upgrade results."""
         try:
             validation_results = {
@@ -332,48 +409,60 @@ class SecurityUpgrader:
                 "security_improved": True,
                 "compliance_maintained": True,
                 "validation_timestamp": datetime.now(UTC).isoformat(),
-                "validation_score": 0.95  # Simulated high validation score
+                "validation_score": 0.95,  # Simulated high validation score
             }
-            
+
             # Update validation metrics
             self.security_metrics["security_validations"] += 1
-            
+
             return Either.success(validation_results)
-            
+
         except Exception as e:
             return Either.error(QuantumError(f"Upgrade validation failed: {str(e)}"))
-    
-    def _calculate_security_improvements(self, assets: List[CryptographicAsset], successful_upgrades: int) -> Dict[str, Any]:
+
+    def _calculate_security_improvements(
+        self, assets: list[CryptographicAsset], successful_upgrades: int
+    ) -> dict[str, Any]:
         """Calculate overall security improvements."""
         total_assets = len(assets)
         vulnerable_assets = len([a for a in assets if a.quantum_vulnerable])
-        
+
         return {
-            "upgrade_success_rate": successful_upgrades / total_assets if total_assets > 0 else 0,
-            "vulnerability_reduction": successful_upgrades / vulnerable_assets if vulnerable_assets > 0 else 0,
-            "quantum_readiness_improvement": min(1.0, successful_upgrades / total_assets * 1.5),
+            "upgrade_success_rate": successful_upgrades / total_assets
+            if total_assets > 0
+            else 0,
+            "vulnerability_reduction": successful_upgrades / vulnerable_assets
+            if vulnerable_assets > 0
+            else 0,
+            "quantum_readiness_improvement": min(
+                1.0, successful_upgrades / total_assets * 1.5
+            ),
             "estimated_risk_reduction": successful_upgrades / total_assets * 0.8,
-            "compliance_improvement": successful_upgrades / total_assets * 0.9
+            "compliance_improvement": successful_upgrades / total_assets * 0.9,
         }
-    
-    def _calculate_single_asset_improvement(self, asset: CryptographicAsset, replacement_alg: PostQuantumAlgorithm) -> float:
+
+    def _calculate_single_asset_improvement(
+        self, asset: CryptographicAsset, replacement_alg: PostQuantumAlgorithm
+    ) -> float:
         """Calculate security improvement for single asset."""
         # Base improvement from quantum resistance
         base_improvement = 0.7
-        
+
         # Additional improvement based on threat level
         threat_bonuses = {
             QuantumThreatLevel.CRITICAL: 0.3,
             QuantumThreatLevel.HIGH: 0.2,
             QuantumThreatLevel.MEDIUM: 0.1,
-            QuantumThreatLevel.LOW: 0.05
+            QuantumThreatLevel.LOW: 0.05,
         }
-        
+
         threat_bonus = threat_bonuses.get(asset.threat_assessment, 0.0)
-        
+
         return min(1.0, base_improvement + threat_bonus)
-    
-    def _assess_migration_complexity(self, asset: CryptographicAsset, replacement_alg: PostQuantumAlgorithm) -> str:
+
+    def _assess_migration_complexity(
+        self, asset: CryptographicAsset, replacement_alg: PostQuantumAlgorithm
+    ) -> str:
         """Assess migration complexity for asset upgrade."""
         if asset.asset_type == "certificate":
             return "high"  # PKI changes are complex
@@ -381,8 +470,10 @@ class SecurityUpgrader:
             return "medium"  # Protocol changes needed
         else:
             return "low"  # Simple key replacement
-    
-    async def _check_algorithm_compatibility(self, algorithm: PostQuantumAlgorithm, requirements: Dict[str, Any]) -> bool:
+
+    async def _check_algorithm_compatibility(
+        self, algorithm: PostQuantumAlgorithm, requirements: dict[str, Any]
+    ) -> bool:
         """Check if algorithm is compatible with use case requirements."""
         # Algorithm type compatibility
         algorithm_types = {
@@ -394,31 +485,71 @@ class SecurityUpgrader:
             PostQuantumAlgorithm.DILITHIUM_5: "signature",
             PostQuantumAlgorithm.FALCON_512: "signature",
             PostQuantumAlgorithm.FALCON_1024: "signature",
-            PostQuantumAlgorithm.SPHINCS_PLUS: "signature"
+            PostQuantumAlgorithm.SPHINCS_PLUS: "signature",
         }
-        
+
         alg_type = algorithm_types.get(algorithm)
         required_types = requirements.get("algorithm_types", [])
-        
+
         return alg_type in required_types if required_types else True
-    
-    def _estimate_algorithm_performance(self, algorithm: PostQuantumAlgorithm, use_case: str) -> Dict[str, Any]:
+
+    def _estimate_algorithm_performance(
+        self, algorithm: PostQuantumAlgorithm, use_case: str
+    ) -> dict[str, Any]:
         """Estimate algorithm performance characteristics."""
         # Performance estimates (simulated)
         performance_profiles = {
-            PostQuantumAlgorithm.KYBER_512: {"speed": "fast", "key_size": "small", "security": "medium"},
-            PostQuantumAlgorithm.KYBER_768: {"speed": "medium", "key_size": "medium", "security": "high"},
-            PostQuantumAlgorithm.KYBER_1024: {"speed": "slow", "key_size": "large", "security": "very_high"},
-            PostQuantumAlgorithm.DILITHIUM_2: {"speed": "fast", "signature_size": "small", "security": "medium"},
-            PostQuantumAlgorithm.DILITHIUM_3: {"speed": "medium", "signature_size": "medium", "security": "high"},
-            PostQuantumAlgorithm.DILITHIUM_5: {"speed": "slow", "signature_size": "large", "security": "very_high"},
-            PostQuantumAlgorithm.FALCON_512: {"speed": "very_fast", "signature_size": "very_small", "security": "medium"},
-            PostQuantumAlgorithm.FALCON_1024: {"speed": "fast", "signature_size": "small", "security": "high"},
-            PostQuantumAlgorithm.SPHINCS_PLUS: {"speed": "slow", "signature_size": "large", "security": "very_high"}
+            PostQuantumAlgorithm.KYBER_512: {
+                "speed": "fast",
+                "key_size": "small",
+                "security": "medium",
+            },
+            PostQuantumAlgorithm.KYBER_768: {
+                "speed": "medium",
+                "key_size": "medium",
+                "security": "high",
+            },
+            PostQuantumAlgorithm.KYBER_1024: {
+                "speed": "slow",
+                "key_size": "large",
+                "security": "very_high",
+            },
+            PostQuantumAlgorithm.DILITHIUM_2: {
+                "speed": "fast",
+                "signature_size": "small",
+                "security": "medium",
+            },
+            PostQuantumAlgorithm.DILITHIUM_3: {
+                "speed": "medium",
+                "signature_size": "medium",
+                "security": "high",
+            },
+            PostQuantumAlgorithm.DILITHIUM_5: {
+                "speed": "slow",
+                "signature_size": "large",
+                "security": "very_high",
+            },
+            PostQuantumAlgorithm.FALCON_512: {
+                "speed": "very_fast",
+                "signature_size": "very_small",
+                "security": "medium",
+            },
+            PostQuantumAlgorithm.FALCON_1024: {
+                "speed": "fast",
+                "signature_size": "small",
+                "security": "high",
+            },
+            PostQuantumAlgorithm.SPHINCS_PLUS: {
+                "speed": "slow",
+                "signature_size": "large",
+                "security": "very_high",
+            },
         }
-        
-        return performance_profiles.get(algorithm, {"speed": "unknown", "security": "unknown"})
-    
+
+        return performance_profiles.get(
+            algorithm, {"speed": "unknown", "security": "unknown"}
+        )
+
     def _rate_algorithm_security(self, algorithm: PostQuantumAlgorithm) -> float:
         """Rate algorithm security level (0.0 to 1.0)."""
         security_ratings = {
@@ -430,30 +561,40 @@ class SecurityUpgrader:
             PostQuantumAlgorithm.DILITHIUM_5: 0.95,
             PostQuantumAlgorithm.FALCON_512: 0.8,
             PostQuantumAlgorithm.FALCON_1024: 0.9,
-            PostQuantumAlgorithm.SPHINCS_PLUS: 0.98
+            PostQuantumAlgorithm.SPHINCS_PLUS: 0.98,
         }
-        
+
         return security_ratings.get(algorithm, 0.5)
-    
-    def _generate_compatibility_recommendations(self, compatible_algorithms: List[str], use_case: str) -> List[str]:
+
+    def _generate_compatibility_recommendations(
+        self, compatible_algorithms: list[str], use_case: str
+    ) -> list[str]:
         """Generate algorithm compatibility recommendations."""
         recommendations = []
-        
+
         if not compatible_algorithms:
             recommendations.append("No compatible algorithms found for this use case")
             return recommendations
-        
+
         if use_case == "encryption":
-            recommendations.append("Kyber-768 recommended for balanced security and performance")
+            recommendations.append(
+                "Kyber-768 recommended for balanced security and performance"
+            )
             recommendations.append("Kyber-1024 for high-security environments")
         elif use_case == "authentication":
-            recommendations.append("Falcon-512 for high-performance signature verification")
-            recommendations.append("Dilithium-3 for balanced security and compatibility")
+            recommendations.append(
+                "Falcon-512 for high-performance signature verification"
+            )
+            recommendations.append(
+                "Dilithium-3 for balanced security and compatibility"
+            )
         elif use_case == "enterprise":
             recommendations.append("Implement hybrid classical-quantum security")
             recommendations.append("Consider gradual migration approach")
-        
-        recommendations.append("Test algorithm performance in your specific environment")
+
+        recommendations.append(
+            "Test algorithm performance in your specific environment"
+        )
         recommendations.append("Plan for backward compatibility during transition")
-        
+
         return recommendations

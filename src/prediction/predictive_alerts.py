@@ -2,30 +2,34 @@
 Predictive alert system for proactive notification and action triggering.
 """
 
-import asyncio
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timedelta, UTC
 import logging
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
-from .predictive_types import PredictiveAlert, AlertId, AlertSeverity, ConfidenceLevel, create_alert_id, create_confidence_level
-from .model_manager import PredictiveModelManager
 from ..core.either import Either
+from .model_manager import PredictiveModelManager
+from .predictive_types import (
+    AlertId,
+    AlertSeverity,
+    PredictiveAlert,
+    create_alert_id,
+    create_confidence_level,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class PredictiveAlertSystem:
     """Proactive alert system with predictive capabilities."""
-    
-    def __init__(self, model_manager: Optional[PredictiveModelManager] = None):
+
+    def __init__(self, model_manager: PredictiveModelManager | None = None):
         self.model_manager = model_manager or PredictiveModelManager()
-        self.active_alerts: List[PredictiveAlert] = []
-        self.alert_history: List[PredictiveAlert] = []
+        self.active_alerts: list[PredictiveAlert] = []
+        self.alert_history: list[PredictiveAlert] = []
         self.logger = logging.getLogger(__name__)
-    
+
     async def generate_predictive_alert(
-        self, 
-        alert_data: Dict[str, Any]
+        self, alert_data: dict[str, Any]
     ) -> Either[Exception, PredictiveAlert]:
         """Generate predictive alert based on analysis."""
         try:
@@ -37,23 +41,27 @@ class PredictiveAlertSystem:
                 description=alert_data.get("description", "System issue predicted"),
                 predicted_occurrence=datetime.now(UTC) + timedelta(hours=2),
                 confidence=create_confidence_level(alert_data.get("confidence", 0.8)),
-                affected_systems=alert_data.get("affected_systems", ["automation_system"]),
-                recommended_actions=alert_data.get("actions", ["Monitor system", "Check resources"]),
+                affected_systems=alert_data.get(
+                    "affected_systems", ["automation_system"]
+                ),
+                recommended_actions=alert_data.get(
+                    "actions", ["Monitor system", "Check resources"]
+                ),
                 escalation_threshold=timedelta(hours=1),
                 auto_resolution=alert_data.get("auto_resolution", False),
-                model_used="alert_predictor_001"
+                model_used="alert_predictor_001",
             )
-            
+
             self.active_alerts.append(alert)
             return Either.right(alert)
-            
+
         except Exception as e:
             return Either.left(e)
-    
-    def get_active_alerts(self) -> List[PredictiveAlert]:
+
+    def get_active_alerts(self) -> list[PredictiveAlert]:
         """Get all active predictive alerts."""
         return self.active_alerts.copy()
-    
+
     def acknowledge_alert(self, alert_id: AlertId) -> bool:
         """Acknowledge and resolve an alert."""
         for i, alert in enumerate(self.active_alerts):

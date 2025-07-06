@@ -7,4 +7,4 @@ including secure authentication, user synchronization, and compliance monitoring
 
 from .ldap_connector import LDAPConnector
 
-__all__ = ['LDAPConnector']
+__all__ = ["LDAPConnector"]

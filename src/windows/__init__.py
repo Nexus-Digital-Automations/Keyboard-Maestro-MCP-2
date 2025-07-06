@@ -11,18 +11,18 @@ This module provides comprehensive window management capabilities including:
 
 from .window_manager import (
     Position,
-    Size,
-    WindowState,
     ScreenInfo,
+    Size,
     WindowManager,
-    WindowOperationResult
+    WindowOperationResult,
+    WindowState,
 )
 
 __all__ = [
-    'Position',
-    'Size',
-    'WindowState', 
-    'ScreenInfo',
-    'WindowManager',
-    'WindowOperationResult'
+    "Position",
+    "Size",
+    "WindowState",
+    "ScreenInfo",
+    "WindowManager",
+    "WindowOperationResult",
 ]

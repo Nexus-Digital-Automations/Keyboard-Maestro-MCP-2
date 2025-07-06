@@ -10,25 +10,24 @@ Security: Safe accessibility testing, secure assistive technology integration
 """
 
 from __future__ import annotations
-from typing import NewType, Dict, List, Optional, Any, Set, Union, Tuple
-from dataclasses import dataclass, field
-from enum import Enum
-from datetime import datetime, UTC
-from abc import ABC, abstractmethod
-import uuid
-import json
 
+import uuid
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any, NewType
 
 # Branded Types for Accessibility Management
-AccessibilityTestId = NewType('AccessibilityTestId', str)
-ComplianceReportId = NewType('ComplianceReportId', str)
-AssistiveTechId = NewType('AssistiveTechId', str)
-AccessibilityRuleId = NewType('AccessibilityRuleId', str)
-TestResultId = NewType('TestResultId', str)
+AccessibilityTestId = NewType("AccessibilityTestId", str)
+ComplianceReportId = NewType("ComplianceReportId", str)
+AssistiveTechId = NewType("AssistiveTechId", str)
+AccessibilityRuleId = NewType("AccessibilityRuleId", str)
+TestResultId = NewType("TestResultId", str)
 
 
 class WCAGVersion(Enum):
     """WCAG version standards."""
+
     WCAG_2_0 = "2.0"
     WCAG_2_1 = "2.1"
     WCAG_2_2 = "2.2"
@@ -37,6 +36,7 @@ class WCAGVersion(Enum):
 
 class ConformanceLevel(Enum):
     """WCAG conformance levels."""
+
     A = "A"
     AA = "AA"
     AAA = "AAA"
@@ -44,6 +44,7 @@ class ConformanceLevel(Enum):
 
 class AccessibilityStandard(Enum):
     """Accessibility standards and guidelines."""
+
     WCAG = "wcag"
     SECTION_508 = "section508"
     ADA = "ada"
@@ -54,6 +55,7 @@ class AccessibilityStandard(Enum):
 
 class TestType(Enum):
     """Types of accessibility tests."""
+
     AUTOMATED = "automated"
     MANUAL = "manual"
     ASSISTIVE_TECH = "assistive_tech"
@@ -64,6 +66,7 @@ class TestType(Enum):
 
 class SeverityLevel(Enum):
     """Accessibility issue severity levels."""
+
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -73,6 +76,7 @@ class SeverityLevel(Enum):
 
 class AssistiveTechnology(Enum):
     """Types of assistive technologies."""
+
     SCREEN_READER = "screen_reader"
     VOICE_CONTROL = "voice_control"
     SWITCH_ACCESS = "switch_access"
@@ -85,6 +89,7 @@ class AssistiveTechnology(Enum):
 
 class AccessibilityPrinciple(Enum):
     """WCAG accessibility principles."""
+
     PERCEIVABLE = "perceivable"
     OPERABLE = "operable"
     UNDERSTANDABLE = "understandable"
@@ -93,6 +98,7 @@ class AccessibilityPrinciple(Enum):
 
 class TestStatus(Enum):
     """Test execution status."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -104,15 +110,16 @@ class TestStatus(Enum):
 @dataclass(frozen=True)
 class WCAGCriterion:
     """WCAG success criterion definition."""
+
     criterion_id: str  # e.g., "1.1.1", "2.4.3"
     title: str
     description: str
     level: ConformanceLevel
     principle: AccessibilityPrinciple
     guideline: str
-    techniques: List[str] = field(default_factory=list)
-    failures: List[str] = field(default_factory=list)
-    
+    techniques: list[str] = field(default_factory=list)
+    failures: list[str] = field(default_factory=list)
+
     def __post_init__(self):
         if not self.criterion_id or not self.title:
             raise ValueError("WCAG criterion must have ID and title")
@@ -121,16 +128,17 @@ class WCAGCriterion:
 @dataclass(frozen=True)
 class AccessibilityRule:
     """Accessibility validation rule."""
+
     rule_id: AccessibilityRuleId
     name: str
     description: str
     standard: AccessibilityStandard
-    wcag_criteria: List[str] = field(default_factory=list)
+    wcag_criteria: list[str] = field(default_factory=list)
     test_type: TestType = TestType.AUTOMATED
     severity: SeverityLevel = SeverityLevel.MEDIUM
     enabled: bool = True
-    rule_logic: Dict[str, Any] = field(default_factory=dict)
-    
+    rule_logic: dict[str, Any] = field(default_factory=dict)
+
     def __post_init__(self):
         if not self.name.strip():
             raise ValueError("Accessibility rule must have a name")
@@ -139,17 +147,18 @@ class AccessibilityRule:
 @dataclass(frozen=True)
 class AccessibilityIssue:
     """Accessibility issue found during testing."""
+
     issue_id: str
     rule_id: AccessibilityRuleId
     element_selector: str
     description: str
     severity: SeverityLevel
-    wcag_criteria: List[str] = field(default_factory=list)
+    wcag_criteria: list[str] = field(default_factory=list)
     suggested_fix: str = ""
     code_snippet: str = ""
-    screenshot_path: Optional[str] = None
-    coordinates: Optional[Tuple[int, int]] = None
-    
+    screenshot_path: str | None = None
+    coordinates: tuple[int, int] | None = None
+
     def __post_init__(self):
         if not self.description.strip():
             raise ValueError("Accessibility issue must have a description")
@@ -158,29 +167,30 @@ class AccessibilityIssue:
 @dataclass(frozen=True)
 class TestResult:
     """Result of an accessibility test."""
+
     result_id: TestResultId
     test_id: AccessibilityTestId
     status: TestStatus
     start_time: datetime
-    end_time: Optional[datetime] = None
+    end_time: datetime | None = None
     total_checks: int = 0
     passed_checks: int = 0
     failed_checks: int = 0
-    issues: List[AccessibilityIssue] = field(default_factory=list)
+    issues: list[AccessibilityIssue] = field(default_factory=list)
     compliance_score: float = 0.0
-    details: Dict[str, Any] = field(default_factory=dict)
-    
+    details: dict[str, Any] = field(default_factory=dict)
+
     def __post_init__(self):
         if not (0.0 <= self.compliance_score <= 100.0):
             raise ValueError("Compliance score must be between 0.0 and 100.0")
-    
+
     @property
-    def duration_ms(self) -> Optional[float]:
+    def duration_ms(self) -> float | None:
         """Calculate test duration in milliseconds."""
         if self.end_time:
             return (self.end_time - self.start_time).total_seconds() * 1000
         return None
-    
+
     @property
     def success_rate(self) -> float:
         """Calculate test success rate."""
@@ -192,14 +202,15 @@ class TestResult:
 @dataclass(frozen=True)
 class AssistiveTechConfig:
     """Configuration for assistive technology testing."""
+
     tech_id: AssistiveTechId
     technology: AssistiveTechnology
     name: str
     version: str
-    settings: Dict[str, Any] = field(default_factory=dict)
-    test_scenarios: List[str] = field(default_factory=list)
-    compatibility_requirements: Dict[str, Any] = field(default_factory=dict)
-    
+    settings: dict[str, Any] = field(default_factory=dict)
+    test_scenarios: list[str] = field(default_factory=list)
+    compatibility_requirements: dict[str, Any] = field(default_factory=dict)
+
     def __post_init__(self):
         if not self.name.strip():
             raise ValueError("Assistive technology config must have a name")
@@ -208,20 +219,21 @@ class AssistiveTechConfig:
 @dataclass(frozen=True)
 class AccessibilityTest:
     """Comprehensive accessibility test definition."""
+
     test_id: AccessibilityTestId
     name: str
     description: str
-    target_url: Optional[str] = None
-    target_element: Optional[str] = None
+    target_url: str | None = None
+    target_element: str | None = None
     test_type: TestType = TestType.AUTOMATED
-    standards: Set[AccessibilityStandard] = field(default_factory=set)
+    standards: set[AccessibilityStandard] = field(default_factory=set)
     wcag_version: WCAGVersion = WCAGVersion.WCAG_2_1
     conformance_level: ConformanceLevel = ConformanceLevel.AA
-    rules: List[AccessibilityRuleId] = field(default_factory=list)
-    assistive_tech: List[AssistiveTechId] = field(default_factory=list)
+    rules: list[AccessibilityRuleId] = field(default_factory=list)
+    assistive_tech: list[AssistiveTechId] = field(default_factory=list)
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     created_by: str = "system"
-    
+
     def __post_init__(self):
         if not self.name.strip():
             raise ValueError("Accessibility test must have a name")
@@ -230,10 +242,11 @@ class AccessibilityTest:
 @dataclass(frozen=True)
 class ComplianceReport:
     """Comprehensive accessibility compliance report."""
+
     report_id: ComplianceReportId
     title: str
-    test_results: List[TestResultId]
-    standards_tested: Set[AccessibilityStandard]
+    test_results: list[TestResultId]
+    standards_tested: set[AccessibilityStandard]
     wcag_version: WCAGVersion
     conformance_level: ConformanceLevel
     overall_score: float
@@ -245,14 +258,19 @@ class ComplianceReport:
     generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     generated_by: str = "system"
     summary: str = ""
-    recommendations: List[str] = field(default_factory=list)
-    
+    recommendations: list[str] = field(default_factory=list)
+
     def __post_init__(self):
         if not (0.0 <= self.overall_score <= 100.0):
             raise ValueError("Overall score must be between 0.0 and 100.0")
-        if self.total_issues != (self.critical_issues + self.high_issues + self.medium_issues + self.low_issues):
+        if self.total_issues != (
+            self.critical_issues
+            + self.high_issues
+            + self.medium_issues
+            + self.low_issues
+        ):
             raise ValueError("Total issues must equal sum of issue counts by severity")
-    
+
     @property
     def compliance_status(self) -> str:
         """Get compliance status based on score."""
@@ -266,7 +284,7 @@ class ComplianceReport:
             return "Poor"
         else:
             return "Critical"
-    
+
     @property
     def has_blocking_issues(self) -> bool:
         """Check if report has blocking accessibility issues."""
@@ -274,7 +292,7 @@ class ComplianceReport:
 
 
 # WCAG 2.1 Success Criteria Database
-WCAG_2_1_CRITERIA: Dict[str, WCAGCriterion] = {
+WCAG_2_1_CRITERIA: dict[str, WCAGCriterion] = {
     "1.1.1": WCAGCriterion(
         criterion_id="1.1.1",
         title="Non-text Content",
@@ -283,7 +301,7 @@ WCAG_2_1_CRITERIA: Dict[str, WCAGCriterion] = {
         principle=AccessibilityPrinciple.PERCEIVABLE,
         guideline="1.1 Text Alternatives",
         techniques=["H37", "H36", "H24", "H2", "H53", "H86"],
-        failures=["F3", "F13", "F20", "F30", "F38", "F39", "F65", "F67", "F71", "F72"]
+        failures=["F3", "F13", "F20", "F30", "F38", "F39", "F65", "F67", "F71", "F72"],
     ),
     "1.3.1": WCAGCriterion(
         criterion_id="1.3.1",
@@ -293,7 +311,19 @@ WCAG_2_1_CRITERIA: Dict[str, WCAGCriterion] = {
         principle=AccessibilityPrinciple.PERCEIVABLE,
         guideline="1.3 Adaptable",
         techniques=["H42", "H43", "H44", "H51", "H63", "H71", "H85"],
-        failures=["F2", "F33", "F34", "F42", "F43", "F46", "F68", "F87", "F90", "F91", "F92"]
+        failures=[
+            "F2",
+            "F33",
+            "F34",
+            "F42",
+            "F43",
+            "F46",
+            "F68",
+            "F87",
+            "F90",
+            "F91",
+            "F92",
+        ],
     ),
     "2.1.1": WCAGCriterion(
         criterion_id="2.1.1",
@@ -303,7 +333,7 @@ WCAG_2_1_CRITERIA: Dict[str, WCAGCriterion] = {
         principle=AccessibilityPrinciple.OPERABLE,
         guideline="2.1 Keyboard Accessible",
         techniques=["G90", "H91", "SCR20", "SCR35"],
-        failures=["F54", "F55", "F42"]
+        failures=["F54", "F55", "F42"],
     ),
     "2.4.3": WCAGCriterion(
         criterion_id="2.4.3",
@@ -313,7 +343,7 @@ WCAG_2_1_CRITERIA: Dict[str, WCAGCriterion] = {
         principle=AccessibilityPrinciple.OPERABLE,
         guideline="2.4 Navigable",
         techniques=["G59", "H4", "C27", "SCR26", "SCR37"],
-        failures=["F44", "F85"]
+        failures=["F44", "F85"],
     ),
     "3.1.1": WCAGCriterion(
         criterion_id="3.1.1",
@@ -323,7 +353,7 @@ WCAG_2_1_CRITERIA: Dict[str, WCAGCriterion] = {
         principle=AccessibilityPrinciple.UNDERSTANDABLE,
         guideline="3.1 Readable",
         techniques=["H57", "PDF16", "PDF19"],
-        failures=["F25"]
+        failures=["F25"],
     ),
     "4.1.1": WCAGCriterion(
         criterion_id="4.1.1",
@@ -333,7 +363,7 @@ WCAG_2_1_CRITERIA: Dict[str, WCAGCriterion] = {
         principle=AccessibilityPrinciple.ROBUST,
         guideline="4.1 Compatible",
         techniques=["G134", "G192", "H88", "H74", "H93", "H94"],
-        failures=["F70", "F77"]
+        failures=["F70", "F77"],
     ),
     "4.1.2": WCAGCriterion(
         criterion_id="4.1.2",
@@ -343,13 +373,13 @@ WCAG_2_1_CRITERIA: Dict[str, WCAGCriterion] = {
         principle=AccessibilityPrinciple.ROBUST,
         guideline="4.1 Compatible",
         techniques=["G10", "H44", "H64", "H65", "H88", "H91"],
-        failures=["F15", "F20", "F68", "F79", "F86", "F89"]
-    )
+        failures=["F15", "F20", "F68", "F79", "F86", "F89"],
+    ),
 }
 
 
 # Default Accessibility Rules
-DEFAULT_ACCESSIBILITY_RULES: List[AccessibilityRule] = [
+DEFAULT_ACCESSIBILITY_RULES: list[AccessibilityRule] = [
     AccessibilityRule(
         rule_id=AccessibilityRuleId("alt_text_missing"),
         name="Missing Alt Text",
@@ -358,7 +388,7 @@ DEFAULT_ACCESSIBILITY_RULES: List[AccessibilityRule] = [
         wcag_criteria=["1.1.1"],
         test_type=TestType.AUTOMATED,
         severity=SeverityLevel.HIGH,
-        rule_logic={"selector": "img:not([alt])", "check": "missing_attribute"}
+        rule_logic={"selector": "img:not([alt])", "check": "missing_attribute"},
     ),
     AccessibilityRule(
         rule_id=AccessibilityRuleId("heading_structure"),
@@ -368,7 +398,7 @@ DEFAULT_ACCESSIBILITY_RULES: List[AccessibilityRule] = [
         wcag_criteria=["1.3.1"],
         test_type=TestType.AUTOMATED,
         severity=SeverityLevel.MEDIUM,
-        rule_logic={"selector": "h1,h2,h3,h4,h5,h6", "check": "heading_hierarchy"}
+        rule_logic={"selector": "h1,h2,h3,h4,h5,h6", "check": "heading_hierarchy"},
     ),
     AccessibilityRule(
         rule_id=AccessibilityRuleId("keyboard_focus"),
@@ -378,7 +408,10 @@ DEFAULT_ACCESSIBILITY_RULES: List[AccessibilityRule] = [
         wcag_criteria=["2.4.3", "2.1.1"],
         test_type=TestType.AUTOMATED,
         severity=SeverityLevel.HIGH,
-        rule_logic={"selector": "a,button,input,select,textarea", "check": "focus_indicator"}
+        rule_logic={
+            "selector": "a,button,input,select,textarea",
+            "check": "focus_indicator",
+        },
     ),
     AccessibilityRule(
         rule_id=AccessibilityRuleId("color_contrast"),
@@ -388,7 +421,7 @@ DEFAULT_ACCESSIBILITY_RULES: List[AccessibilityRule] = [
         wcag_criteria=["1.4.3"],
         test_type=TestType.AUTOMATED,
         severity=SeverityLevel.HIGH,
-        rule_logic={"selector": "*", "check": "color_contrast", "ratio": 4.5}
+        rule_logic={"selector": "*", "check": "color_contrast", "ratio": 4.5},
     ),
     AccessibilityRule(
         rule_id=AccessibilityRuleId("form_labels"),
@@ -398,8 +431,8 @@ DEFAULT_ACCESSIBILITY_RULES: List[AccessibilityRule] = [
         wcag_criteria=["1.3.1", "4.1.2"],
         test_type=TestType.AUTOMATED,
         severity=SeverityLevel.CRITICAL,
-        rule_logic={"selector": "input,select,textarea", "check": "has_label"}
-    )
+        rule_logic={"selector": "input,select,textarea", "check": "has_label"},
+    ),
 ]
 
 
@@ -429,60 +462,76 @@ def create_test_result_id() -> TestResultId:
     return TestResultId(f"result_{uuid.uuid4().hex[:12]}")
 
 
-def get_wcag_criteria_by_level(level: ConformanceLevel, version: WCAGVersion = WCAGVersion.WCAG_2_1) -> List[WCAGCriterion]:
+def get_wcag_criteria_by_level(
+    level: ConformanceLevel, version: WCAGVersion = WCAGVersion.WCAG_2_1
+) -> list[WCAGCriterion]:
     """Get all WCAG criteria for a specific conformance level."""
     if version != WCAGVersion.WCAG_2_1:
         # For now, only WCAG 2.1 is fully implemented
         return []
-    
+
     criteria = []
     for criterion in WCAG_2_1_CRITERIA.values():
-        if level == ConformanceLevel.A and criterion.level == ConformanceLevel.A:
+        if (
+            level == ConformanceLevel.A
+            and criterion.level == ConformanceLevel.A
+            or level == ConformanceLevel.AA
+            and criterion.level in [ConformanceLevel.A, ConformanceLevel.AA]
+            or level == ConformanceLevel.AAA
+        ):
             criteria.append(criterion)
-        elif level == ConformanceLevel.AA and criterion.level in [ConformanceLevel.A, ConformanceLevel.AA]:
-            criteria.append(criterion)
-        elif level == ConformanceLevel.AAA:
-            criteria.append(criterion)
-    
+
     return criteria
 
 
-def get_wcag_criteria_by_principle(principle: AccessibilityPrinciple, version: WCAGVersion = WCAGVersion.WCAG_2_1) -> List[WCAGCriterion]:
+def get_wcag_criteria_by_principle(
+    principle: AccessibilityPrinciple, version: WCAGVersion = WCAGVersion.WCAG_2_1
+) -> list[WCAGCriterion]:
     """Get all WCAG criteria for a specific accessibility principle."""
     if version != WCAGVersion.WCAG_2_1:
         return []
-    
-    return [criterion for criterion in WCAG_2_1_CRITERIA.values() if criterion.principle == principle]
+
+    return [
+        criterion
+        for criterion in WCAG_2_1_CRITERIA.values()
+        if criterion.principle == principle
+    ]
 
 
 def validate_wcag_criterion_id(criterion_id: str) -> bool:
     """Validate WCAG criterion ID format."""
     import re
-    pattern = r'^\d+\.\d+\.\d+$'
+
+    pattern = r"^\d+\.\d+\.\d+$"
     return bool(re.match(pattern, criterion_id))
 
 
 # Accessibility Error Types
 class AccessibilityError(Exception):
     """Base class for accessibility-related errors."""
+
     pass
 
 
 class ComplianceValidationError(AccessibilityError):
     """Error during compliance validation."""
+
     pass
 
 
 class AssistiveTechError(AccessibilityError):
     """Error with assistive technology integration."""
+
     pass
 
 
 class TestExecutionError(AccessibilityError):
     """Error during accessibility test execution."""
+
     pass
 
 
 class ReportGenerationError(AccessibilityError):
     """Error during report generation."""
+
     pass

@@ -2,31 +2,37 @@
 Anomaly prediction for proactive issue detection and prevention.
 """
 
-import asyncio
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timedelta, UTC
 import logging
+from datetime import timedelta
+from typing import Any
 
-from .predictive_types import AnomalyPrediction, AnomalyId, AlertSeverity, ProbabilityScore, create_anomaly_id
-from .model_manager import PredictiveModelManager
 from ..core.either import Either
+from .model_manager import PredictiveModelManager
+from .predictive_types import (
+    AlertSeverity,
+    AnomalyPrediction,
+    ProbabilityScore,
+    create_anomaly_id,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class AnomalyPredictor:
     """Proactive anomaly detection and prediction."""
-    
-    def __init__(self, model_manager: Optional[PredictiveModelManager] = None):
+
+    def __init__(self, model_manager: PredictiveModelManager | None = None):
         self.model_manager = model_manager or PredictiveModelManager()
-        self.detected_anomalies: List[AnomalyPrediction] = []
+        self.detected_anomalies: list[AnomalyPrediction] = []
         self.logger = logging.getLogger(__name__)
-    
-    async def predict_anomalies(self, metrics_data: List[Dict[str, Any]]) -> Either[Exception, List[AnomalyPrediction]]:
+
+    async def predict_anomalies(
+        self, metrics_data: list[dict[str, Any]]
+    ) -> Either[Exception, list[AnomalyPrediction]]:
         """Predict potential anomalies in system behavior."""
         try:
             anomalies = []
-            
+
             # Example anomaly prediction
             anomaly = AnomalyPrediction(
                 anomaly_id=create_anomaly_id(),
@@ -39,13 +45,16 @@ class AnomalyPredictor:
                 deviation_score=2.5,
                 predicted_impact="moderate performance impact",
                 time_to_resolution=timedelta(hours=2),
-                mitigation_suggestions=["Restart affected services", "Check resource usage"],
-                model_used="anomaly_model_001"
+                mitigation_suggestions=[
+                    "Restart affected services",
+                    "Check resource usage",
+                ],
+                model_used="anomaly_model_001",
             )
             anomalies.append(anomaly)
-            
+
             self.detected_anomalies.extend(anomalies)
             return Either.right(anomalies)
-            
+
         except Exception as e:
             return Either.left(e)

@@ -5,13 +5,13 @@ Provides secure clipboard operations with history management, named clipboards,
 and comprehensive security validation for AI-driven text processing workflows.
 """
 
-from .clipboard_manager import ClipboardManager, ClipboardContent, ClipboardFormat
-from .named_clipboards import NamedClipboardManager, NamedClipboard
+from .clipboard_manager import ClipboardContent, ClipboardFormat, ClipboardManager
+from .named_clipboards import NamedClipboard, NamedClipboardManager
 
 __all__ = [
     "ClipboardManager",
-    "ClipboardContent", 
+    "ClipboardContent",
     "ClipboardFormat",
     "NamedClipboardManager",
-    "NamedClipboard"
+    "NamedClipboard",
 ]

@@ -6,14 +6,16 @@ detailed error information, and security-conscious error handling.
 """
 
 from __future__ import annotations
-from typing import Optional, Dict, Any, List
+
+import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-import uuid
+from typing import Any
 
 
 class ErrorCategory(Enum):
     """Categories for error classification."""
+
     VALIDATION = "validation"
     SECURITY = "security"
     EXECUTION = "execution"
@@ -26,6 +28,7 @@ class ErrorCategory(Enum):
 
 class ErrorSeverity(Enum):
     """Error severity levels."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -35,11 +38,12 @@ class ErrorSeverity(Enum):
 @dataclass(frozen=True)
 class ErrorContext:
     """Context information for error diagnosis."""
+
     operation: str
     component: str
     timestamp: str = field(default_factory=lambda: str(uuid.uuid4()))
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    
+    metadata: dict[str, Any] = field(default_factory=dict)
+
     def with_metadata(self, **kwargs) -> ErrorContext:
         """Add metadata to error context."""
         new_metadata = self.metadata.copy()
@@ -48,21 +52,21 @@ class ErrorContext:
             operation=self.operation,
             component=self.component,
             timestamp=self.timestamp,
-            metadata=new_metadata
+            metadata=new_metadata,
         )
 
 
 class MacroEngineError(Exception):
     """Base exception for all macro engine errors."""
-    
+
     def __init__(
         self,
         message: str,
         category: ErrorCategory,
         severity: ErrorSeverity = ErrorSeverity.MEDIUM,
-        context: Optional[ErrorContext] = None,
-        recovery_suggestion: Optional[str] = None,
-        error_code: Optional[str] = None
+        context: ErrorContext | None = None,
+        recovery_suggestion: str | None = None,
+        error_code: str | None = None,
     ):
         super().__init__(message)
         self.message = message
@@ -71,12 +75,12 @@ class MacroEngineError(Exception):
         self.context = context
         self.recovery_suggestion = recovery_suggestion
         self.error_code = error_code or self._generate_error_code()
-    
+
     def _generate_error_code(self) -> str:
         """Generate unique error code."""
         return f"{self.category.value.upper()}_{self.__class__.__name__.upper()}_{str(uuid.uuid4())[:8]}"
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert error to dictionary for serialization."""
         return {
             "error_code": self.error_code,
@@ -85,28 +89,30 @@ class MacroEngineError(Exception):
             "severity": self.severity.value,
             "context": self.context.__dict__ if self.context else None,
             "recovery_suggestion": self.recovery_suggestion,
-            "error_type": self.__class__.__name__
+            "error_type": self.__class__.__name__,
         }
 
 
 class ValidationError(MacroEngineError):
     """Raised when input validation fails."""
-    
+
     def __init__(
         self,
         field_name: str,
         value: Any,
         constraint: str,
-        context: Optional[ErrorContext] = None
+        context: ErrorContext | None = None,
     ):
-        message = f"Validation failed for field '{field_name}': {constraint}. Got: {value}"
+        message = (
+            f"Validation failed for field '{field_name}': {constraint}. Got: {value}"
+        )
         recovery = f"Ensure '{field_name}' meets the constraint: {constraint}"
         super().__init__(
             message=message,
             category=ErrorCategory.VALIDATION,
             severity=ErrorSeverity.MEDIUM,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.field_name = field_name
         self.value = value
@@ -115,12 +121,9 @@ class ValidationError(MacroEngineError):
 
 class SecurityViolationError(MacroEngineError):
     """Raised when security boundaries are violated."""
-    
+
     def __init__(
-        self,
-        violation_type: str,
-        details: str,
-        context: Optional[ErrorContext] = None
+        self, violation_type: str, details: str, context: ErrorContext | None = None
     ):
         message = f"Security violation: {violation_type} - {details}"
         recovery = "Review security permissions and input validation"
@@ -129,19 +132,19 @@ class SecurityViolationError(MacroEngineError):
             category=ErrorCategory.SECURITY,
             severity=ErrorSeverity.HIGH,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.violation_type = violation_type
 
 
 class PermissionDeniedError(MacroEngineError):
     """Raised when required permissions are not available."""
-    
+
     def __init__(
         self,
-        required_permissions: List[str],
-        available_permissions: List[str],
-        context: Optional[ErrorContext] = None
+        required_permissions: list[str],
+        available_permissions: list[str],
+        context: ErrorContext | None = None,
     ):
         missing = set(required_permissions) - set(available_permissions)
         message = f"Missing required permissions: {list(missing)}"
@@ -151,7 +154,7 @@ class PermissionDeniedError(MacroEngineError):
             category=ErrorCategory.PERMISSION,
             severity=ErrorSeverity.HIGH,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.required_permissions = required_permissions
         self.available_permissions = available_permissions
@@ -159,13 +162,8 @@ class PermissionDeniedError(MacroEngineError):
 
 class ExecutionError(MacroEngineError):
     """Raised when macro execution fails."""
-    
-    def __init__(
-        self,
-        operation: str,
-        cause: str,
-        context: Optional[ErrorContext] = None
-    ):
+
+    def __init__(self, operation: str, cause: str, context: ErrorContext | None = None):
         message = f"Execution failed for operation '{operation}': {cause}"
         recovery = f"Check the configuration and state for operation: {operation}"
         super().__init__(
@@ -173,7 +171,7 @@ class ExecutionError(MacroEngineError):
             category=ErrorCategory.EXECUTION,
             severity=ErrorSeverity.MEDIUM,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.operation = operation
         self.cause = cause
@@ -181,21 +179,23 @@ class ExecutionError(MacroEngineError):
 
 class TimeoutError(MacroEngineError):
     """Raised when operations exceed time limits."""
-    
+
     def __init__(
         self,
         operation: str,
         timeout_seconds: float,
-        context: Optional[ErrorContext] = None
+        context: ErrorContext | None = None,
     ):
         message = f"Operation '{operation}' timed out after {timeout_seconds} seconds"
-        recovery = f"Increase timeout for '{operation}' or optimize operation performance"
+        recovery = (
+            f"Increase timeout for '{operation}' or optimize operation performance"
+        )
         super().__init__(
             message=message,
             category=ErrorCategory.TIMEOUT,
             severity=ErrorSeverity.MEDIUM,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.operation = operation
         self.timeout_seconds = timeout_seconds
@@ -203,21 +203,20 @@ class TimeoutError(MacroEngineError):
 
 class ResourceNotFoundError(MacroEngineError):
     """Raised when required resources are not available."""
-    
+
     def __init__(
-        self,
-        resource_type: str,
-        resource_id: str,
-        context: Optional[ErrorContext] = None
+        self, resource_type: str, resource_id: str, context: ErrorContext | None = None
     ):
         message = f"{resource_type} not found: {resource_id}"
-        recovery = f"Verify that {resource_type} '{resource_id}' exists and is accessible"
+        recovery = (
+            f"Verify that {resource_type} '{resource_id}' exists and is accessible"
+        )
         super().__init__(
             message=message,
             category=ErrorCategory.RESOURCE,
             severity=ErrorSeverity.MEDIUM,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.resource_type = resource_type
         self.resource_id = resource_id
@@ -225,12 +224,9 @@ class ResourceNotFoundError(MacroEngineError):
 
 class ContractViolationError(MacroEngineError):
     """Raised when design-by-contract assertions fail."""
-    
+
     def __init__(
-        self,
-        contract_type: str,
-        condition: str,
-        context: Optional[ErrorContext] = None
+        self, contract_type: str, condition: str, context: ErrorContext | None = None
     ):
         message = f"{contract_type} violated: {condition}"
         recovery = f"Ensure {contract_type.lower()} condition is met: {condition}"
@@ -239,7 +235,7 @@ class ContractViolationError(MacroEngineError):
             category=ErrorCategory.CONTRACT,
             severity=ErrorSeverity.HIGH,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.contract_type = contract_type
         self.condition = condition
@@ -247,12 +243,12 @@ class ContractViolationError(MacroEngineError):
 
 class SystemError(MacroEngineError):
     """Raised for system-level errors."""
-    
+
     def __init__(
         self,
         system_component: str,
         error_details: str,
-        context: Optional[ErrorContext] = None
+        context: ErrorContext | None = None,
     ):
         message = f"System error in {system_component}: {error_details}"
         recovery = f"Check system status and logs for {system_component}"
@@ -261,19 +257,16 @@ class SystemError(MacroEngineError):
             category=ErrorCategory.SYSTEM,
             severity=ErrorSeverity.CRITICAL,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.system_component = system_component
 
 
 class SecurityError(MacroEngineError):
     """Raised for security-related errors and violations."""
-    
+
     def __init__(
-        self,
-        security_code: str,
-        message: str,
-        context: Optional[ErrorContext] = None
+        self, security_code: str, message: str, context: ErrorContext | None = None
     ):
         recovery = "Review security policies and input validation"
         super().__init__(
@@ -282,19 +275,16 @@ class SecurityError(MacroEngineError):
             severity=ErrorSeverity.CRITICAL,
             context=context,
             recovery_suggestion=recovery,
-            error_code=security_code  # Pass security_code as error_code to parent
+            error_code=security_code,  # Pass security_code as error_code to parent
         )
         self.security_code = security_code
 
 
 class IntegrationError(MacroEngineError):
     """Raised for integration-related errors with external systems."""
-    
+
     def __init__(
-        self,
-        integration_code: str,
-        message: str,
-        context: Optional[ErrorContext] = None
+        self, integration_code: str, message: str, context: ErrorContext | None = None
     ):
         recovery = "Check external system connectivity and configuration"
         super().__init__(
@@ -302,19 +292,16 @@ class IntegrationError(MacroEngineError):
             category=ErrorCategory.SYSTEM,
             severity=ErrorSeverity.HIGH,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.integration_code = integration_code
 
 
 class DataError(MacroEngineError):
     """Raised for data processing and management errors."""
-    
+
     def __init__(
-        self,
-        data_operation: str,
-        message: str,
-        context: Optional[ErrorContext] = None
+        self, data_operation: str, message: str, context: ErrorContext | None = None
     ):
         recovery = "Verify data format, schema, and operation parameters"
         super().__init__(
@@ -322,10 +309,10 @@ class DataError(MacroEngineError):
             category=ErrorCategory.VALIDATION,
             severity=ErrorSeverity.MEDIUM,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.data_operation = data_operation
-    
+
     def is_processing_error(self) -> bool:
         """Check if this is a data processing error."""
         return True
@@ -333,12 +320,9 @@ class DataError(MacroEngineError):
 
 class CommunicationError(MacroEngineError):
     """Raised for communication errors with external systems."""
-    
+
     def __init__(
-        self,
-        endpoint: str,
-        message: str,
-        context: Optional[ErrorContext] = None
+        self, endpoint: str, message: str, context: ErrorContext | None = None
     ):
         recovery = "Check network connectivity and endpoint availability"
         super().__init__(
@@ -346,37 +330,36 @@ class CommunicationError(MacroEngineError):
             category=ErrorCategory.SYSTEM,
             severity=ErrorSeverity.HIGH,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.endpoint = endpoint
-    
+
     @classmethod
-    def email_send_failed(cls, reason: str, context: Optional[ErrorContext] = None) -> "CommunicationError":
+    def email_send_failed(
+        cls, reason: str, context: ErrorContext | None = None
+    ) -> CommunicationError:
         """Create an email send failure error."""
         return cls(
-            endpoint="email",
-            message=f"Email send failed: {reason}",
-            context=context
+            endpoint="email", message=f"Email send failed: {reason}", context=context
         )
-    
+
     @classmethod
-    def execution_error(cls, reason: str, context: Optional[ErrorContext] = None) -> "CommunicationError":
+    def execution_error(
+        cls, reason: str, context: ErrorContext | None = None
+    ) -> CommunicationError:
         """Create a communication execution error."""
         return cls(
             endpoint="unknown",
             message=f"Communication execution failed: {reason}",
-            context=context
+            context=context,
         )
 
 
 class ConfigurationError(MacroEngineError):
     """Raised for configuration-related errors."""
-    
+
     def __init__(
-        self,
-        config_item: str,
-        message: str,
-        context: Optional[ErrorContext] = None
+        self, config_item: str, message: str, context: ErrorContext | None = None
     ):
         recovery = f"Review configuration for {config_item}"
         super().__init__(
@@ -384,19 +367,16 @@ class ConfigurationError(MacroEngineError):
             category=ErrorCategory.VALIDATION,
             severity=ErrorSeverity.HIGH,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.config_item = config_item
 
 
 class WindowError(MacroEngineError):
     """Raised for window management and visual automation errors."""
-    
+
     def __init__(
-        self,
-        window_operation: str,
-        message: str,
-        context: Optional[ErrorContext] = None
+        self, window_operation: str, message: str, context: ErrorContext | None = None
     ):
         recovery = "Verify window availability and system permissions"
         super().__init__(
@@ -404,19 +384,16 @@ class WindowError(MacroEngineError):
             category=ErrorCategory.SYSTEM,
             severity=ErrorSeverity.MEDIUM,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.window_operation = window_operation
 
 
 class MCPError(MacroEngineError):
     """Base error for MCP-specific errors."""
-    
+
     def __init__(
-        self,
-        mcp_operation: str,
-        message: str,
-        context: Optional[ErrorContext] = None
+        self, mcp_operation: str, message: str, context: ErrorContext | None = None
     ):
         recovery = "Check MCP server configuration and operation parameters"
         super().__init__(
@@ -424,19 +401,19 @@ class MCPError(MacroEngineError):
             category=ErrorCategory.SYSTEM,
             severity=ErrorSeverity.HIGH,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.mcp_operation = mcp_operation
 
 
 class IntelligenceError(MacroEngineError):
     """Raised for AI and intelligence module errors."""
-    
+
     def __init__(
         self,
         intelligence_operation: str,
         message: str,
-        context: Optional[ErrorContext] = None
+        context: ErrorContext | None = None,
     ):
         recovery = "Review AI operation parameters and input data"
         super().__init__(
@@ -444,21 +421,21 @@ class IntelligenceError(MacroEngineError):
             category=ErrorCategory.EXECUTION,
             severity=ErrorSeverity.MEDIUM,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.intelligence_operation = intelligence_operation
 
 
 class RateLimitError(MacroEngineError):
     """Raised when rate limits are exceeded."""
-    
+
     def __init__(
         self,
         resource: str,
         limit: int,
         window: str,
-        retry_after: Optional[int] = None,
-        context: Optional[ErrorContext] = None
+        retry_after: int | None = None,
+        context: ErrorContext | None = None,
     ):
         message = f"Rate limit exceeded for {resource}: {limit} per {window}"
         if retry_after:
@@ -469,7 +446,7 @@ class RateLimitError(MacroEngineError):
             category=ErrorCategory.RESOURCE,
             severity=ErrorSeverity.MEDIUM,
             context=context,
-            recovery_suggestion=recovery
+            recovery_suggestion=recovery,
         )
         self.resource = resource
         self.limit = limit
@@ -480,8 +457,10 @@ class RateLimitError(MacroEngineError):
 # Utility functions for error handling
 class AnalyticsError(MacroEngineError):
     """Analytics and reporting system errors."""
-    
-    def __init__(self, operation: str, error_details: str, context: Optional[ErrorContext] = None):
+
+    def __init__(
+        self, operation: str, error_details: str, context: ErrorContext | None = None
+    ):
         self.operation = operation
         self.error_details = error_details
         message = f"Analytics operation '{operation}' failed: {error_details}"
@@ -489,7 +468,8 @@ class AnalyticsError(MacroEngineError):
             message=message,
             category=ErrorCategory.EXECUTION,
             severity=ErrorSeverity.MEDIUM,
-            context=context or create_error_context(operation=operation, component="analytics_system")
+            context=context
+            or create_error_context(operation=operation, component="analytics_system"),
         )
 
 
@@ -498,27 +478,29 @@ def create_error_context(operation: str, component: str, **metadata) -> ErrorCon
     return ErrorContext(operation=operation, component=component, metadata=metadata)
 
 
-def handle_error_safely(error: Exception, mask_details: bool = True) -> MacroEngineError:
+def handle_error_safely(
+    error: Exception, mask_details: bool = True
+) -> MacroEngineError:
     """Convert generic exceptions to MacroEngineError with optional detail masking."""
     if isinstance(error, MacroEngineError):
         return error
-    
+
     if mask_details:
         message = "An internal error occurred"
-        details = str(error)[:100] if len(str(error)) < 100 else str(error)[:100] + "..."
+        details = (
+            str(error)[:100] if len(str(error)) < 100 else str(error)[:100] + "..."
+        )
     else:
         message = f"Unexpected error: {str(error)}"
         details = str(error)
-    
+
     context = create_error_context(
         operation="error_handling",
         component="error_handler",
         original_error_type=type(error).__name__,
-        original_message=details
+        original_message=details,
     )
-    
+
     return SystemError(
-        system_component="error_handler",
-        error_details=message,
-        context=context
+        system_component="error_handler", error_details=message, context=context
     )

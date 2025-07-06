@@ -7,22 +7,22 @@ including template-based creation, security validation, and builder patterns.
 
 from .macro_builder import MacroBuilder, MacroCreationRequest, MacroTemplate
 from .templates import (
-    MacroTemplateGenerator, 
-    HotkeyActionTemplate, 
     AppLauncherTemplate,
-    TextExpansionTemplate,
     FileProcessorTemplate,
-    WindowManagerTemplate
+    HotkeyActionTemplate,
+    MacroTemplateGenerator,
+    TextExpansionTemplate,
+    WindowManagerTemplate,
 )
 
 __all__ = [
     "MacroBuilder",
-    "MacroCreationRequest", 
+    "MacroCreationRequest",
     "MacroTemplate",
     "MacroTemplateGenerator",
     "HotkeyActionTemplate",
-    "AppLauncherTemplate", 
+    "AppLauncherTemplate",
     "TextExpansionTemplate",
     "FileProcessorTemplate",
-    "WindowManagerTemplate"
+    "WindowManagerTemplate",
 ]

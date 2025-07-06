@@ -3,7 +3,7 @@
 Keyboard Maestro MCP Server - Main Entry Point (Dynamic Registration)
 
 Advanced macOS automation through Model Context Protocol using FastMCP framework
-with dynamic tool registration system. Provides 46+ production-ready tools for 
+with dynamic tool registration system. Provides 46+ production-ready tools for
 comprehensive Keyboard Maestro integration.
 
 Security: All operations include input validation, permission checking, and audit logging.
@@ -14,40 +14,43 @@ Type Safety: Complete branded type system with contract-driven development.
 import argparse
 import logging
 import sys
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Annotated, Any
 
 from fastmcp import FastMCP
 from fastmcp.prompts import Message
 from pydantic import Field
-from typing_extensions import Annotated
+
+from .server.dynamic_registration import (
+    register_tools_dynamically,
+)
 
 # Import modular components
-from .server.initialization import initialize_components, get_km_client
-from .server.resources import get_server_status, get_tool_help, create_macro_prompt
-from .server.dynamic_registration import register_tools_dynamically, DynamicToolRegistrar
+from .server.initialization import initialize_components
+from .server.resources import create_macro_prompt, get_server_status, get_tool_help
 from .server.tool_config import get_tool_config_manager
 
 # Configure logging to stderr to avoid corrupting MCP communications
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(sys.stderr),
-        logging.FileHandler('logs/km-mcp-server.log') if Path('logs').exists() else logging.NullHandler()
-    ]
+        logging.FileHandler("logs/km-mcp-server.log")
+        if Path("logs").exists()
+        else logging.NullHandler(),
+    ],
 )
 logger = logging.getLogger(__name__)
 
 
 def create_mcp_server() -> FastMCP:
     """Create and configure the FastMCP server with comprehensive instructions."""
-    
+
     # Get tool configuration for dynamic capability description
     config_manager = get_tool_config_manager()
     category_summary = config_manager.get_category_summary()
-    
+
     # Build dynamic capabilities description
     capabilities = [
         "CORE CAPABILITIES:",
@@ -93,22 +96,19 @@ def create_mcp_server() -> FastMCP:
         "PERFORMANCE: Sub-second response times with connection pooling and intelligent caching.",
         "TYPE SAFETY: Complete branded type system with contract-driven development.",
         "",
-        "Use these tools to automate any macOS task that Keyboard Maestro can perform."
+        "Use these tools to automate any macOS task that Keyboard Maestro can perform.",
     ]
-    
-    mcp = FastMCP(
-        name="KeyboardMaestroMCP",
-        instructions="\n".join(capabilities)
-    )
-    
+
+    mcp = FastMCP(name="KeyboardMaestroMCP", instructions="\n".join(capabilities))
+
     return mcp
 
 
 def register_resources_and_prompts(mcp: FastMCP) -> None:
     """Register resources and prompts with the MCP server."""
-    
+
     @mcp.resource("km://server/status")
-    def get_server_status_resource() -> Dict[str, Any]:
+    def get_server_status_resource() -> dict[str, Any]:
         """Get current server status and configuration."""
         return get_server_status()
 
@@ -119,13 +119,19 @@ def register_resources_and_prompts(mcp: FastMCP) -> None:
 
     @mcp.prompt()
     def create_macro_prompt_handler(
-        task_description: Annotated[str, Field(
-            description="Description of the automation task to create a macro for"
-        )],
-        app_context: Annotated[str, Field(
-            default="",
-            description="Specific application or context for the automation"
-        )] = ""
+        task_description: Annotated[
+            str,
+            Field(
+                description="Description of the automation task to create a macro for"
+            ),
+        ],
+        app_context: Annotated[
+            str,
+            Field(
+                default="",
+                description="Specific application or context for the automation",
+            ),
+        ] = "",
     ) -> list[Message]:
         """Generate a structured prompt for creating Keyboard Maestro macros."""
         return create_macro_prompt(task_description, app_context)
@@ -138,47 +144,42 @@ def main():
         "--transport",
         choices=["stdio", "sse"],
         default="stdio",
-        help="Transport method (default: stdio)"
+        help="Transport method (default: stdio)",
     )
     parser.add_argument(
         "--host",
         default="127.0.0.1",
-        help="Host for SSE transport (default: 127.0.0.1)"
+        help="Host for SSE transport (default: 127.0.0.1)",
     )
     parser.add_argument(
-        "--port",
-        type=int,
-        default=8000,
-        help="Port for SSE transport (default: 8000)"
+        "--port", type=int, default=8000, help="Port for SSE transport (default: 8000)"
     )
     parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
-        help="Logging level (default: INFO)"
+        help="Logging level (default: INFO)",
     )
     parser.add_argument(
         "--tool-filter",
         nargs="*",
-        help="Filter tools to register (tool names or categories)"
+        help="Filter tools to register (tool names or categories)",
     )
     parser.add_argument(
-        "--disable-experimental",
-        action="store_true",
-        help="Disable experimental tools"
+        "--disable-experimental", action="store_true", help="Disable experimental tools"
     )
-    
+
     args = parser.parse_args()
-    
+
     # Configure logging level
     logging.getLogger().setLevel(getattr(logging, args.log_level))
-    
+
     # Ensure logs directory exists
     Path("logs").mkdir(exist_ok=True)
-    
+
     logger.info("🚀 Starting Keyboard Maestro MCP Server v2.0.0 (Dynamic Registration)")
     logger.info(f"📡 Transport: {args.transport}")
-    
+
     # Initialize components
     try:
         initialize_components()
@@ -186,7 +187,7 @@ def main():
     except Exception as e:
         logger.error(f"❌ Failed to initialize components: {e}")
         return 1
-    
+
     # Create FastMCP server
     try:
         mcp = create_mcp_server()
@@ -194,7 +195,7 @@ def main():
     except Exception as e:
         logger.error(f"❌ Failed to create FastMCP server: {e}")
         return 1
-    
+
     # Register resources and prompts
     try:
         register_resources_and_prompts(mcp)
@@ -202,33 +203,35 @@ def main():
     except Exception as e:
         logger.error(f"❌ Failed to register resources and prompts: {e}")
         return 1
-    
+
     # Dynamic tool registration
     try:
         logger.info("🔧 Starting dynamic tool registration...")
         registrar = register_tools_dynamically(mcp)
-        
+
         registered_tools = registrar.get_registered_tools()
-        logger.info(f"✅ Successfully registered {len(registered_tools)} tools dynamically")
-        
+        logger.info(
+            f"✅ Successfully registered {len(registered_tools)} tools dynamically"
+        )
+
         # Log registration summary by category
         config_manager = get_tool_config_manager()
         category_summary = config_manager.get_category_summary()
-        
+
         logger.info("📊 Tool Registration Summary:")
-        for category, count in sorted(category_summary.items()):
+        for category, _count in sorted(category_summary.items()):
             tools_in_category = registrar.get_tools_by_category(category)
             logger.info(f"   {category}: {len(tools_in_category)} tools")
-        
+
         # Log any experimental or disabled tools
         disabled_count = len(config_manager.configurations) - len(registered_tools)
         if disabled_count > 0:
             logger.info(f"⚠️  {disabled_count} tools disabled or not registered")
-            
+
     except Exception as e:
         logger.error(f"❌ Failed to register tools dynamically: {e}")
         return 1
-    
+
     # Start the server
     try:
         if args.transport == "stdio":
@@ -237,7 +240,7 @@ def main():
         else:
             logger.info(f"🌐 Running SSE server on {args.host}:{args.port}")
             mcp.run(transport="sse", host=args.host, port=args.port)
-            
+
     except KeyboardInterrupt:
         logger.info("⏹️  Server stopped by user")
         return 0
