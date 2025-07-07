@@ -1,5 +1,4 @@
-"""
-AWS cloud services integration for multi-platform cloud automation.
+"""AWS cloud services integration for multi-platform cloud automation.
 
 This module provides comprehensive AWS service integration with boto3 SDK,
 supporting storage, compute, database, messaging, and AI/ML services
@@ -15,8 +14,7 @@ from __future__ import annotations
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ..core.cloud_integration import (
     CloudAuthMethod,
@@ -29,6 +27,9 @@ from ..core.cloud_integration import (
 )
 from ..core.contracts import ensure, require
 from ..core.either import Either
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class AWSServiceType:
@@ -78,7 +79,7 @@ class AWSConnector:
     @ensure(
         lambda result: result.is_right()
         or result.get_left().error_type
-        in ["AUTHENTICATION_FAILED", "CONNECTION_FAILED"]
+        in ["AUTHENTICATION_FAILED", "CONNECTION_FAILED"],
     )
     async def connect(self, credentials: CloudCredentials) -> Either[CloudError, str]:
         """Establish secure AWS connection with multiple authentication methods."""
@@ -93,7 +94,7 @@ class AWSConnector:
                 )
             except ImportError:
                 return Either.left(
-                    CloudError.authentication_failed("boto3 not installed")
+                    CloudError.authentication_failed("boto3 not installed"),
                 )
 
             session_id = (
@@ -106,8 +107,8 @@ class AWSConnector:
                 if not credentials.access_key or not credentials.secret_key:
                     return Either.left(
                         CloudError.authentication_failed(
-                            "Missing AWS access key or secret key"
-                        )
+                            "Missing AWS access key or secret key",
+                        ),
                     )
 
                 boto3_session = boto3.Session(
@@ -122,7 +123,7 @@ class AWSConnector:
 
             else:
                 return Either.left(
-                    CloudError.insecure_auth_method(credentials.auth_method)
+                    CloudError.insecure_auth_method(credentials.auth_method),
                 )
 
             # Test connection by verifying credentials and permissions
@@ -132,7 +133,7 @@ class AWSConnector:
             # Validate minimum required permissions
             if not await self._validate_aws_permissions(boto3_session, region):
                 return Either.left(
-                    CloudError.authentication_failed("Insufficient AWS permissions")
+                    CloudError.authentication_failed("Insufficient AWS permissions"),
                 )
 
             # Create session wrapper
@@ -174,7 +175,7 @@ class AWSConnector:
     @ensure(
         lambda result: result.is_right()
         or result.get_left().error_type
-        in ["SESSION_NOT_FOUND", "RESOURCE_CREATION_FAILED"]
+        in ["SESSION_NOT_FOUND", "RESOURCE_CREATION_FAILED"],
     )
     async def create_s3_bucket(
         self,
@@ -199,14 +200,14 @@ class AWSConnector:
             # Validate bucket name
             if not self._validate_s3_bucket_name(bucket_name):
                 return Either.left(
-                    CloudError.resource_creation_failed("Invalid S3 bucket name")
+                    CloudError.resource_creation_failed("Invalid S3 bucket name"),
                 )
 
             # Create bucket with region-specific configuration
             create_params = {"Bucket": bucket_name}
             if target_region != "us-east-1":
                 create_params["CreateBucketConfiguration"] = {
-                    "LocationConstraint": target_region
+                    "LocationConstraint": target_region,
                 }
 
             s3_client.create_bucket(**create_params)
@@ -233,7 +234,10 @@ class AWSConnector:
             return Either.left(CloudError.resource_creation_failed(str(e)))
 
     async def _apply_s3_security_config(
-        self, s3_client: Any, bucket_name: str, config: dict[str, Any]
+        self,
+        s3_client: Any,
+        bucket_name: str,
+        config: dict[str, Any],
     ) -> None:
         """Apply comprehensive S3 security configuration."""
         # Enable encryption by default
@@ -245,18 +249,20 @@ class AWSConnector:
                         {
                             "ApplyServerSideEncryptionByDefault": {
                                 "SSEAlgorithm": config.get(
-                                    "encryption_algorithm", "AES256"
-                                )
-                            }
-                        }
-                    ]
+                                    "encryption_algorithm",
+                                    "AES256",
+                                ),
+                            },
+                        },
+                    ],
                 },
             )
 
         # Enable versioning if requested
         if config.get("versioning", False):
             s3_client.put_bucket_versioning(
-                Bucket=bucket_name, VersioningConfiguration={"Status": "Enabled"}
+                Bucket=bucket_name,
+                VersioningConfiguration={"Status": "Enabled"},
             )
 
         # Block public access by default
@@ -279,10 +285,11 @@ class AWSConnector:
                 BucketLoggingStatus={
                     "LoggingEnabled": {
                         "TargetBucket": logging_config.get(
-                            "target_bucket", bucket_name
+                            "target_bucket",
+                            bucket_name,
                         ),
                         "TargetPrefix": logging_config.get("prefix", "access-logs/"),
-                    }
+                    },
                 },
             )
 
@@ -344,8 +351,8 @@ class AWSConnector:
             if not source.exists():
                 return Either.left(
                     CloudError.sync_operation_failed(
-                        f"Source path not found: {source_path}"
-                    )
+                        f"Source path not found: {source_path}",
+                    ),
                 )
 
             uploaded_files = []
@@ -355,7 +362,11 @@ class AWSConnector:
             if source.is_file():
                 # Upload single file
                 result = await self._upload_file_to_s3(
-                    s3_client, source, bucket_name, destination_prefix, options
+                    s3_client,
+                    source,
+                    bucket_name,
+                    destination_prefix,
+                    options,
                 )
                 if result.is_right():
                     file_info = result.get_right()
@@ -376,7 +387,11 @@ class AWSConnector:
                         )
 
                         result = await self._upload_file_to_s3(
-                            s3_client, file_path, bucket_name, prefix, options
+                            s3_client,
+                            file_path,
+                            bucket_name,
+                            prefix,
+                            options,
                         )
 
                         if result.is_right():
@@ -459,8 +474,8 @@ class AWSConnector:
         except Exception as e:
             return Either.left(
                 CloudError.sync_operation_failed(
-                    f"Failed to upload {file_path}: {str(e)}"
-                )
+                    f"Failed to upload {file_path}: {e!s}",
+                ),
             )
 
     @require(lambda session_id: len(session_id) > 0)
@@ -504,7 +519,8 @@ class AWSConnector:
             return Either.left(CloudError.sync_operation_failed(str(e)))
 
     async def get_session_info(
-        self, session_id: str
+        self,
+        session_id: str,
     ) -> Either[CloudError, dict[str, Any]]:
         """Get AWS session information and statistics."""
         if session_id not in self.sessions:
@@ -520,7 +536,7 @@ class AWSConnector:
             "created_at": session.created_at.isoformat(),
             "last_used": session.last_used.isoformat(),
             "duration_minutes": int(
-                (datetime.now(UTC) - session.created_at).total_seconds() / 60
+                (datetime.now(UTC) - session.created_at).total_seconds() / 60,
             ),
             "available_services": [
                 AWSServiceType.S3,

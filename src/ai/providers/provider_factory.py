@@ -1,5 +1,4 @@
-"""
-Provider factory for AI service client instantiation.
+"""Provider factory for AI service client instantiation.
 
 This module provides factory patterns for creating and managing AI provider clients
 with configuration-driven provider selection, health monitoring, and automatic
@@ -12,6 +11,7 @@ Type Safety: Complete integration with provider architecture.
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass, field
 from enum import Enum
@@ -21,6 +21,8 @@ from ...core.either import Either
 from ...core.errors import ValidationError
 from .base_client import BaseProviderClient, ProviderRegistry
 from .openai_client import OpenAIClient
+
+logger = logging.getLogger(__name__)
 
 
 class ProviderType(Enum):
@@ -60,7 +62,9 @@ class ProviderFactory:
         self.configurations[name] = config
 
     def create_client(
-        self, provider_type: str | ProviderType, config: ProviderConfig
+        self,
+        provider_type: str | ProviderType,
+        config: ProviderConfig,
     ) -> Either[ValidationError, BaseProviderClient]:
         """Create provider client from configuration."""
         if isinstance(provider_type, str):
@@ -69,8 +73,9 @@ class ProviderFactory:
             except ValueError:
                 return Either.left(
                     ValidationError(
-                        "invalid_provider", f"Unknown provider: {provider_type}"
-                    )
+                        "invalid_provider",
+                        f"Unknown provider: {provider_type}",
+                    ),
                 )
 
         try:
@@ -84,43 +89,46 @@ class ProviderFactory:
                 )
                 return Either.right(client)
 
-            elif provider_type == ProviderType.GOOGLE_AI:
+            if provider_type == ProviderType.GOOGLE_AI:
                 # Placeholder for Google AI client
                 return Either.left(
                     ValidationError(
-                        "not_implemented", "Google AI client not yet implemented"
-                    )
+                        "not_implemented",
+                        "Google AI client not yet implemented",
+                    ),
                 )
 
-            elif provider_type == ProviderType.ANTHROPIC:
+            if provider_type == ProviderType.ANTHROPIC:
                 # Placeholder for Anthropic client
                 return Either.left(
                     ValidationError(
-                        "not_implemented", "Anthropic client not yet implemented"
-                    )
+                        "not_implemented",
+                        "Anthropic client not yet implemented",
+                    ),
                 )
 
-            elif provider_type == ProviderType.AZURE_OPENAI:
+            if provider_type == ProviderType.AZURE_OPENAI:
                 # Placeholder for Azure OpenAI client
                 return Either.left(
                     ValidationError(
-                        "not_implemented", "Azure OpenAI client not yet implemented"
-                    )
+                        "not_implemented",
+                        "Azure OpenAI client not yet implemented",
+                    ),
                 )
 
-            else:
-                return Either.left(
-                    ValidationError(
-                        "unsupported_provider",
-                        f"Provider not supported: {provider_type}",
-                    )
-                )
+            return Either.left(
+                ValidationError(
+                    "unsupported_provider",
+                    f"Provider not supported: {provider_type}",
+                ),
+            )
 
         except Exception as e:
-            return Either.left(ValidationError("client_creation_failed", str(e)))
+            return Either.left(ValidationError("client_creation_failed", str(e), "Provider client creation failed"))
 
     def get_or_create_client(
-        self, name: str
+        self,
+        name: str,
     ) -> Either[ValidationError, BaseProviderClient]:
         """Get existing client or create new one from configuration."""
         # Check cache first
@@ -132,27 +140,27 @@ class ProviderFactory:
         if not config:
             return Either.left(
                 ValidationError(
-                    "config_not_found", f"No configuration for provider: {name}"
-                )
+                    "config_not_found",
+                    f"No configuration for provider: {name}",
+                ),
             )
 
         if not config.enabled:
             return Either.left(
-                ValidationError("provider_disabled", f"Provider disabled: {name}")
+                ValidationError("provider_disabled", name, "Provider is disabled"),
             )
 
         # Create client
         result = self.create_client(config.provider_type, config)
         if result.is_right():
-            client = result.right_value
+            client = result.value
             self._client_cache[name] = client
 
             # Register with registry
             self.registry.register_provider(name, client, is_fallback=True)
 
             return Either.right(client)
-        else:
-            return result
+        return result
 
     def initialize_from_config(self, config_data: dict[str, Any]) -> list[str]:
         """Initialize providers from configuration data."""
@@ -181,15 +189,17 @@ class ProviderFactory:
                     if result.is_right():
                         initialized_providers.append(name)
 
-            except Exception:
+            except Exception as e:
                 # Log error but continue with other providers
+                logger.warning(f"Provider initialization failed for {name}: {e}")
                 continue
 
         # Sort fallback order by priority
         self.registry.fallback_order.sort(
-            key=lambda name: self.configurations.get(
-                name, ProviderConfig(ProviderType.OPENAI, "", "")
-            ).priority
+            key=lambda _name: self.configurations.get(
+                name,
+                ProviderConfig(ProviderType.OPENAI, "", ""),
+            ).priority,
         )
 
         return initialized_providers
@@ -332,5 +342,5 @@ SAMPLE_CONFIG = {
             "enabled": False,
             "priority": 3,
         },
-    }
+    },
 }

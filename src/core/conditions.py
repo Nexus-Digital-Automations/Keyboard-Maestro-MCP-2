@@ -1,5 +1,4 @@
-"""
-Core condition types and validation for intelligent macro automation.
+"""Core condition types and validation for intelligent macro automation.
 
 This module implements the fundamental condition system that enables conditional logic
 in Keyboard Maestro macros, supporting text, application, system, and variable conditions
@@ -203,7 +202,7 @@ class RegexValidator:
         """Validate regex pattern for security vulnerabilities."""
         if len(pattern) > 500:
             return Either.left(
-                SecurityError("REGEX_TOO_LONG", "Regex pattern too long")
+                SecurityError("REGEX_TOO_LONG", "Regex pattern too long"),
             )
 
         # Check for dangerous patterns that could cause ReDoS
@@ -213,7 +212,7 @@ class RegexValidator:
                     SecurityError(
                         "DANGEROUS_REGEX",
                         f"Dangerous regex pattern detected: {dangerous}",
-                    )
+                    ),
                 )
 
         # Test compile to ensure validity
@@ -221,7 +220,7 @@ class RegexValidator:
             re.compile(pattern)
         except re.error as e:
             return Either.left(
-                SecurityError("INVALID_REGEX", f"Invalid regex pattern: {str(e)}")
+                SecurityError("INVALID_REGEX", f"Invalid regex pattern: {e!s}"),
             )
 
         return Either.right(pattern)
@@ -255,8 +254,9 @@ class ConditionValidator:
                 return Either.left(
                     ValidationError(
                         "SCRIPT_INJECTION",
+                        text_to_check,
                         f"Potential script injection detected: {pattern}",
-                    )
+                    ),
                 )
 
         # Validate regex if using regex operator
@@ -264,7 +264,7 @@ class ConditionValidator:
             regex_result = RegexValidator.validate_pattern(condition.comparison_value)
             if regex_result.is_left():
                 return Either.left(
-                    ValidationError("INVALID_REGEX", regex_result.get_left().message)
+                    ValidationError("INVALID_REGEX", pattern, regex_result.get_left().message),
                 )
 
         return Either.right(None)
@@ -279,7 +279,7 @@ class ConditionValidator:
             abs_path = os.path.abspath(path)
         except Exception:
             return Either.left(
-                SecurityError("INVALID_PATH", "Invalid file path format")
+                SecurityError("INVALID_PATH", "Invalid file path format"),
             )
 
         # Check for forbidden paths
@@ -300,13 +300,13 @@ class ConditionValidator:
                     SecurityError(
                         "FORBIDDEN_PATH",
                         f"Access denied to protected path: {forbidden}",
-                    )
+                    ),
                 )
 
         # Prevent access to parent directories
         if ".." in path:
             return Either.left(
-                SecurityError("PATH_TRAVERSAL", "Path traversal detected")
+                SecurityError("PATH_TRAVERSAL", "Path traversal detected"),
             )
 
         return Either.right(abs_path)
@@ -396,7 +396,7 @@ class ConditionBuilder:
                     field_name="condition_type",
                     value="None",
                     constraint="Condition type must be specified",
-                )
+                ),
             )
 
         if self._operator is None:
@@ -405,7 +405,7 @@ class ConditionBuilder:
                     field_name="operator",
                     value="None",
                     constraint="Comparison operator must be specified",
-                )
+                ),
             )
 
         try:
@@ -430,12 +430,15 @@ class ConditionBuilder:
         except ValueError as e:
             return Either.left(
                 ValidationError(
-                    field_name="condition_spec", value="invalid", constraint=str(e)
-                )
+                    field_name="condition_spec",
+                    value="invalid",
+                    constraint=str(e),
+                ),
             )
 
     def _validate_condition(
-        self, condition: ConditionSpec
+        self,
+        condition: ConditionSpec,
     ) -> Either[ValidationError, None]:
         """Validate the constructed condition."""
         # Type-specific validation
@@ -449,11 +452,13 @@ class ConditionBuilder:
             )
             return ConditionValidator.validate_text_condition(text_condition)
 
-        elif condition.condition_type == ConditionType.APPLICATION:
+        if condition.condition_type == ConditionType.APPLICATION:
             app_id = condition.metadata.get("app_identifier", "")
             if not app_id:
                 return Either.left(
-                    ValidationError("MISSING_APP_ID", "Application identifier required")
+                    ValidationError(
+                        "MISSING_APP_ID", app_id, "Application identifier required"
+                    ),
                 )
 
         elif condition.condition_type == ConditionType.SYSTEM:
@@ -461,15 +466,17 @@ class ConditionBuilder:
             if prop_name not in SystemCondition.ALLOWED_PROPERTIES:
                 return Either.left(
                     ValidationError(
-                        "INVALID_PROPERTY", f"Invalid system property: {prop_name}"
-                    )
+                        "INVALID_PROPERTY",
+                        prop_name,
+                        "Invalid system property",
+                    ),
                 )
 
         elif condition.condition_type == ConditionType.VARIABLE:
             var_name = condition.metadata.get("variable_name", "")
             if not re.match(r"^[a-zA-Z0-9_]+$", var_name):
                 return Either.left(
-                    ValidationError("INVALID_VARIABLE", "Invalid variable name format")
+                    ValidationError("INVALID_VARIABLE", var_name, "Invalid variable name format"),
                 )
 
         return Either.right(None)
@@ -477,7 +484,8 @@ class ConditionBuilder:
 
 # Example usage functions for documentation
 def create_text_contains_condition(
-    target: str, search_value: str
+    target: str,
+    search_value: str,
 ) -> Either[ValidationError, ConditionSpec]:
     """Example: Create a text contains condition."""
     return ConditionBuilder().text_condition(target).contains(search_value).build()
@@ -491,7 +499,8 @@ def create_app_running_condition(
 
 
 def create_variable_comparison_condition(
-    var_name: str, value: str
+    var_name: str,
+    value: str,
 ) -> Either[ValidationError, ConditionSpec]:
     """Example: Create a variable comparison condition."""
     return ConditionBuilder().variable_condition(var_name).equals(value).build()

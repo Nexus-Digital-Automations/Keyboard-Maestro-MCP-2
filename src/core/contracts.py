@@ -1,5 +1,4 @@
-"""
-Design by Contract implementation for the Keyboard Maestro MCP macro engine.
+"""Design by Contract implementation for the Keyboard Maestro MCP macro engine.
 
 This module provides decorators for preconditions, postconditions, and invariants
 to ensure robust and reliable macro execution with comprehensive validation.
@@ -23,7 +22,10 @@ class ContractValidator:
 
     @staticmethod
     def evaluate_condition(
-        condition: Callable[..., bool], args: tuple, kwargs: dict, result: Any = None
+        condition: Callable[..., bool],
+        args: tuple,
+        kwargs: dict,
+        result: Any = None,
     ) -> bool:
         """Safely evaluate a contract condition."""
         try:
@@ -55,7 +57,9 @@ class ContractValidator:
 
     @staticmethod
     def extract_function_context(
-        func: Callable, args: tuple, kwargs: dict
+        func: Callable,
+        args: tuple,
+        kwargs: dict,
     ) -> dict[str, Any]:
         """Extract context information from function call."""
         return {
@@ -67,10 +71,10 @@ class ContractValidator:
 
 
 def require(
-    condition: Callable[..., bool], message: str = "Precondition failed"
+    condition: Callable[..., bool],
+    message: str = "Precondition failed",
 ) -> Callable[[F], F]:
-    """
-    Precondition contract decorator.
+    """Precondition contract decorator.
 
     Args:
         condition: Function that takes the same parameters as the decorated function
@@ -81,6 +85,7 @@ def require(
         @require(lambda x: x > 0, "x must be positive")
         def sqrt(x: float) -> float:
             return x ** 0.5
+
     """
 
     def decorator(func: F) -> F:
@@ -96,14 +101,16 @@ def require(
                     **ContractValidator.extract_function_context(func, args, kwargs),
                 )
                 raise ContractViolationError(
-                    contract_type="Precondition", condition=message, context=context
+                    contract_type="Precondition",
+                    condition=message,
+                    context=context,
                 )
 
             # Execute the original async function
             return await func(*args, **kwargs)
 
         @wraps(func)
-        def sync_wrapper(*args, **kwargs):
+        def sync_wrapper(*args, **kwargs) -> bool:
             # Evaluate precondition
             if not ContractValidator.evaluate_condition(condition, args, kwargs):
                 context = create_error_context(
@@ -112,7 +119,9 @@ def require(
                     **ContractValidator.extract_function_context(func, args, kwargs),
                 )
                 raise ContractViolationError(
-                    contract_type="Precondition", condition=message, context=context
+                    contract_type="Precondition",
+                    condition=message,
+                    context=context,
                 )
 
             # Execute the original sync function
@@ -124,7 +133,8 @@ def require(
         # Add contract metadata
         wrapper.__contracts__ = getattr(func, "__contracts__", {})
         wrapper.__contracts__["preconditions"] = wrapper.__contracts__.get(
-            "preconditions", []
+            "preconditions",
+            [],
         )
         wrapper.__contracts__["preconditions"].append((condition, message))
 
@@ -134,10 +144,10 @@ def require(
 
 
 def ensure(
-    condition: Callable[..., bool], message: str = "Postcondition failed"
+    condition: Callable[..., bool],
+    message: str = "Postcondition failed",
 ) -> Callable[[F], F]:
-    """
-    Postcondition contract decorator.
+    """Postcondition contract decorator.
 
     Args:
         condition: Function that takes the same parameters as the decorated function
@@ -145,9 +155,10 @@ def ensure(
         message: Error message to display when postcondition fails
 
     Example:
-        @ensure(lambda x, result: result >= 0, "result must be non-negative")
+        @ensure(lambda _x, result: result >= 0, "result must be non-negative")
         def abs_value(x: float) -> float:
             return abs(x)
+
     """
 
     def decorator(func: F) -> F:
@@ -160,7 +171,10 @@ def ensure(
 
             # Evaluate postcondition
             if not ContractValidator.evaluate_condition(
-                condition, args, kwargs, result
+                condition,
+                args,
+                kwargs,
+                result,
             ):
                 context = create_error_context(
                     operation="postcondition_check",
@@ -169,19 +183,24 @@ def ensure(
                     **ContractValidator.extract_function_context(func, args, kwargs),
                 )
                 raise ContractViolationError(
-                    contract_type="Postcondition", condition=message, context=context
+                    contract_type="Postcondition",
+                    condition=message,
+                    context=context,
                 )
 
             return result
 
         @wraps(func)
-        def sync_wrapper(*args, **kwargs):
+        def sync_wrapper(*args, **kwargs) -> bool:
             # Execute the original sync function
             result = func(*args, **kwargs)
 
             # Evaluate postcondition
             if not ContractValidator.evaluate_condition(
-                condition, args, kwargs, result
+                condition,
+                args,
+                kwargs,
+                result,
             ):
                 context = create_error_context(
                     operation="postcondition_check",
@@ -190,7 +209,9 @@ def ensure(
                     **ContractValidator.extract_function_context(func, args, kwargs),
                 )
                 raise ContractViolationError(
-                    contract_type="Postcondition", condition=message, context=context
+                    contract_type="Postcondition",
+                    condition=message,
+                    context=context,
                 )
 
             return result
@@ -201,7 +222,8 @@ def ensure(
         # Add contract metadata
         wrapper.__contracts__ = getattr(func, "__contracts__", {})
         wrapper.__contracts__["postconditions"] = wrapper.__contracts__.get(
-            "postconditions", []
+            "postconditions",
+            [],
         )
         wrapper.__contracts__["postconditions"].append((condition, message))
 
@@ -211,10 +233,10 @@ def ensure(
 
 
 def invariant(
-    condition: Callable[..., bool], message: str = "Class invariant violated"
+    condition: Callable[..., bool],
+    message: str = "Class invariant violated",
 ) -> Callable[[type], type]:
-    """
-    Class invariant decorator for ensuring object state consistency.
+    """Class invariant decorator for ensuring object state consistency.
 
     Args:
         condition: Function that takes an instance (self) and returns True
@@ -226,6 +248,7 @@ def invariant(
         class Account:
             def __init__(self, balance: float):
                 self.balance = balance
+
     """
 
     def class_decorator(cls: type) -> type:
@@ -238,7 +261,7 @@ def invariant(
             if not name.startswith("_") and callable(getattr(cls, name)):
                 original_methods[name] = getattr(cls, name)
 
-        def check_invariant(instance):
+        def check_invariant(instance) -> bool:
             """Check the class invariant."""
             if not condition(instance):
                 context = create_error_context(
@@ -248,27 +271,39 @@ def invariant(
                     instance_id=id(instance),
                 )
                 raise ContractViolationError(
-                    contract_type="Invariant", condition=message, context=context
+                    contract_type="Invariant",
+                    condition=message,
+                    context=context,
                 )
 
         # Wrap __init__ to check invariant after construction
         @wraps(original_init)
-        def wrapped_init(self, *args, **kwargs):
+        def wrapped_init(self, *args, **kwargs) -> bool:
             original_init(self, *args, **kwargs)
             check_invariant(self)
 
         # Wrap public methods to check invariant before and after
-        def wrap_method(method_name, method):
+        def wrap_method(method_name, method) -> bool:
             @wraps(method)
-            def wrapped_method(self, *args, **kwargs):
+            def wrapped_method(self, *args, **kwargs) -> bool:
                 # Check invariant before method execution
-                check_invariant(self)
+                try:
+                    check_invariant(self)
+                except ContractViolationError as e:
+                    # Add method context for debugging
+                    e.context = f"Before {method_name}: {e.context}"
+                    raise
 
                 # Execute method
                 result = method(self, *args, **kwargs)
 
                 # Check invariant after method execution
-                check_invariant(self)
+                try:
+                    check_invariant(self)
+                except ContractViolationError as e:
+                    # Add method context for debugging
+                    e.context = f"After {method_name}: {e.context}"
+                    raise
 
                 return result
 
@@ -290,14 +325,14 @@ def invariant(
 
 
 def combine_conditions(*conditions: Callable[..., bool]) -> Callable[..., bool]:
-    """
-    Combine multiple conditions with AND logic.
+    """Combine multiple conditions with AND logic.
 
     Args:
         conditions: Multiple condition functions to combine
 
     Returns:
         A single condition function that returns True only if all conditions are True
+
     """
 
     def combined_condition(*args, **kwargs) -> bool:
@@ -307,14 +342,14 @@ def combine_conditions(*conditions: Callable[..., bool]) -> Callable[..., bool]:
 
 
 def any_condition(*conditions: Callable[..., bool]) -> Callable[..., bool]:
-    """
-    Combine multiple conditions with OR logic.
+    """Combine multiple conditions with OR logic.
 
     Args:
         conditions: Multiple condition functions to combine
 
     Returns:
         A single condition function that returns True if any condition is True
+
     """
 
     def combined_condition(*args, **kwargs) -> bool:
@@ -324,14 +359,14 @@ def any_condition(*conditions: Callable[..., bool]) -> Callable[..., bool]:
 
 
 def not_condition(condition: Callable[..., bool]) -> Callable[..., bool]:
-    """
-    Negate a condition.
+    """Negate a condition.
 
     Args:
         condition: Condition function to negate
 
     Returns:
         A condition function that returns the opposite of the input condition
+
     """
 
     def negated_condition(*args, **kwargs) -> bool:
@@ -341,14 +376,14 @@ def not_condition(condition: Callable[..., bool]) -> Callable[..., bool]:
 
 
 def get_contract_info(func_or_class) -> dict[str, Any]:
-    """
-    Extract contract information from a function or class.
+    """Extract contract information from a function or class.
 
     Args:
         func_or_class: Function or class with contract decorators
 
     Returns:
         Dictionary containing contract information
+
     """
     contracts = getattr(func_or_class, "__contracts__", {})
 
@@ -382,7 +417,9 @@ def is_non_negative(value: float) -> bool:
 
 
 def is_valid_string(
-    value: str, min_length: int = 1, max_length: int | None = None
+    value: str,
+    min_length: int = 1,
+    max_length: int | None = None,
 ) -> bool:
     """Helper condition to validate string length."""
     if not isinstance(value, str):

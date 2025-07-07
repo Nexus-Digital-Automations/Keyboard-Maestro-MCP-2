@@ -1,5 +1,4 @@
-"""
-Comprehensive audit event logging system with integrity protection.
+"""Comprehensive audit event logging system with integrity protection.
 
 This module provides secure, high-performance audit event logging with
 cryptographic integrity verification, performance optimization, and
@@ -89,7 +88,8 @@ class AuditIntegrityManager:
             return Either.left(AuditError.encryption_failed(str(e)))
 
     async def decrypt_event(
-        self, encrypted_data: bytes
+        self,
+        encrypted_data: bytes,
     ) -> Either[AuditError, AuditEvent]:
         """Decrypt audit event and verify integrity."""
         try:
@@ -101,7 +101,7 @@ class AuditIntegrityManager:
             parts = encrypted_data.split(b"|||", 1)
             if len(parts) != 2:
                 return Either.left(
-                    AuditError.encryption_failed("Invalid encrypted data format")
+                    AuditError.encryption_failed("Invalid encrypted data format"),
                 )
 
             signature = parts[0].decode()
@@ -120,7 +120,7 @@ class AuditIntegrityManager:
 
             # Verify signature
             expected_signature = hashlib.sha256(
-                self.signature_key + decrypted_data
+                self.signature_key + decrypted_data,
             ).hexdigest()
             if signature != expected_signature:
                 return Either.left(AuditError.integrity_check_failed())
@@ -217,7 +217,7 @@ class EventBuffer:
             except Exception as e:
                 logger.error(f"Error in flush callback: {e}")
 
-    def add_flush_callback(self, callback: callable):
+    def add_flush_callback(self, callback: callable) -> None:
         """Add callback to be called on buffer flush."""
         self._flush_callbacks.append(callback)
 
@@ -240,13 +240,14 @@ class EventLogger:
         self.event_store: list[AuditEvent] = []
         self.integrity_manager = AuditIntegrityManager()
         self.rate_limiter = RateLimiter(
-            self.config.security_limits.max_events_per_second
+            self.config.security_limits.max_events_per_second,
         )
 
         # Setup buffer with configuration-based parameters
         profile = self.config.get_performance_profile()
         self.buffer = EventBuffer(
-            max_size=profile["buffer_size"], flush_interval=profile["flush_interval"]
+            max_size=profile["buffer_size"],
+            flush_interval=profile["flush_interval"],
         )
 
         # Add buffer flush callback
@@ -261,12 +262,12 @@ class EventLogger:
             "start_time": datetime.now(UTC),
         }
 
-    @require(lambda self, event_type: isinstance(event_type, AuditEventType))
+    @require(lambda __self, event_type: isinstance(event_type, AuditEventType))
     @require(
-        lambda self, user_id: isinstance(user_id, str) and len(user_id.strip()) > 0
+        lambda _self, user_id: isinstance(user_id, str) and len(user_id.strip()) > 0,
     )
-    @require(lambda self, action: isinstance(action, str) and len(action.strip()) > 0)
-    @require(lambda self, result: isinstance(result, str) and len(result.strip()) > 0)
+    @require(lambda __self, action: isinstance(action, str) and len(action.strip()) > 0)
+    @require(lambda __self, result: isinstance(result, str) and len(result.strip()) > 0)
     async def log_event(
         self,
         event_type: AuditEventType,
@@ -286,7 +287,9 @@ class EventLogger:
             event_size = len(str(kwargs.get("details", {})))
             if event_size > self.config.security_limits.max_event_size:
                 return Either.left(
-                    AuditError.logging_failed(f"Event size exceeds limit: {event_size}")
+                    AuditError.logging_failed(
+                        f"Event size exceeds limit: {event_size}"
+                    ),
                 )
 
             # Extract and validate parameters
@@ -464,18 +467,19 @@ class EventLogger:
 
             if format.lower() == "json":
                 return await self._export_json(file_path, events)
-            elif format.lower() == "csv":
+            if format.lower() == "csv":
                 return await self._export_csv(file_path, events)
-            else:
-                return Either.left(
-                    AuditError.logging_failed(f"Unsupported export format: {format}")
-                )
+            return Either.left(
+                AuditError.logging_failed(f"Unsupported export format: {format}"),
+            )
 
         except Exception as e:
             return Either.left(AuditError.logging_failed(f"Export failed: {e}"))
 
     async def _export_json(
-        self, file_path: str, events: list[AuditEvent]
+        self,
+        file_path: str,
+        events: list[AuditEvent],
     ) -> Either[AuditError, int]:
         """Export events to JSON format."""
         import json
@@ -510,7 +514,9 @@ class EventLogger:
             return Either.left(AuditError.logging_failed(f"JSON export failed: {e}"))
 
     async def _export_csv(
-        self, file_path: str, events: list[AuditEvent]
+        self,
+        file_path: str,
+        events: list[AuditEvent],
     ) -> Either[AuditError, int]:
         """Export events to CSV format."""
         import csv
@@ -535,7 +541,7 @@ class EventLogger:
                         "risk_level",
                         "compliance_tags",
                         "details_json",
-                    ]
+                    ],
                 )
 
                 # Write events
@@ -555,7 +561,7 @@ class EventLogger:
                             event.risk_level.value,
                             "|".join(event.compliance_tags),
                             json.dumps(event.details) if event.details else "",
-                        ]
+                        ],
                     )
 
             return Either.right(len(events))

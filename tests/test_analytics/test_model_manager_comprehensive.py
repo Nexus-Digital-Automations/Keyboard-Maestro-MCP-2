@@ -1,10 +1,12 @@
-"""
-Comprehensive tests for Model Manager with systematic coverage.
+"""Comprehensive tests for Model Manager with systematic coverage.
 
 Tests cover ModelConfiguration, ModelMetadata, model lifecycle management,
 training pipelines, validation frameworks, and enterprise-grade ML operations.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import os
 import tempfile
 from datetime import UTC, datetime
@@ -34,19 +36,19 @@ from src.core.predictive_modeling import (
 
 # Test data generators
 @st.composite
-def model_status_strategy(draw):
+def model_status_strategy(draw) -> Any:
     """Generate valid model statuses."""
     return draw(st.sampled_from(list(ModelStatus)))
 
 
 @st.composite
-def model_category_strategy(draw):
+def model_category_strategy(draw) -> Any:
     """Generate valid model categories."""
     return draw(st.sampled_from(list(ModelCategory)))
 
 
 @st.composite
-def model_type_strategy(draw):
+def model_type_strategy(draw) -> Any:
     """Generate valid model types."""
     return draw(
         st.sampled_from(
@@ -55,19 +57,19 @@ def model_type_strategy(draw):
                 ModelType.RANDOM_FOREST,
                 ModelType.GRADIENT_BOOSTING,
                 ModelType.LSTM,
-            ]
-        )
+            ],
+        ),
     )
 
 
 @st.composite
-def validation_method_strategy(draw):
+def validation_method_strategy(draw) -> Any:
     """Generate valid validation methods."""
     return draw(st.sampled_from(list(ValidationMethod)))
 
 
 @st.composite
-def feature_columns_strategy(draw):
+def feature_columns_strategy(draw) -> Any:
     """Generate valid feature column lists."""
     return draw(
         st.lists(
@@ -79,12 +81,12 @@ def feature_columns_strategy(draw):
             min_size=1,
             max_size=10,
             unique=True,
-        )
+        ),
     )
 
 
 @st.composite
-def hyperparameters_strategy(draw):
+def hyperparameters_strategy(draw) -> Any:
     """Generate valid hyperparameter dictionaries."""
     return draw(
         st.dictionaries(
@@ -105,14 +107,14 @@ def hyperparameters_strategy(draw):
             ),
             min_size=0,
             max_size=5,
-        )
+        ),
     )
 
 
 class TestModelStatus:
     """Test ModelStatus enum and related functionality."""
 
-    def test_model_status_enum_values(self):
+    def test_model_status_enum_values(self) -> None:
         """Test ModelStatus enum has expected values."""
         assert ModelStatus.CREATED.value == "created"
         assert ModelStatus.TRAINING.value == "training"
@@ -123,7 +125,7 @@ class TestModelStatus:
         assert ModelStatus.DEPRECATED.value == "deprecated"
         assert ModelStatus.FAILED.value == "failed"
 
-    def test_model_status_enumeration(self):
+    def test_model_status_enumeration(self) -> None:
         """Test ModelStatus enum can be enumerated."""
         statuses = list(ModelStatus)
         assert len(statuses) == 8
@@ -147,7 +149,7 @@ class TestModelStatus:
 class TestModelCategory:
     """Test ModelCategory enum and related functionality."""
 
-    def test_model_category_enum_values(self):
+    def test_model_category_enum_values(self) -> None:
         """Test ModelCategory enum has expected values."""
         assert ModelCategory.TIME_SERIES_FORECASTING.value == "time_series_forecasting"
         assert ModelCategory.CLASSIFICATION.value == "classification"
@@ -156,7 +158,7 @@ class TestModelCategory:
         assert ModelCategory.CLUSTERING.value == "clustering"
         assert ModelCategory.PATTERN_RECOGNITION.value == "pattern_recognition"
 
-    def test_model_category_enumeration(self):
+    def test_model_category_enumeration(self) -> None:
         """Test ModelCategory enum can be enumerated."""
         categories = list(ModelCategory)
         assert len(categories) == 6
@@ -178,14 +180,14 @@ class TestModelCategory:
 class TestValidationMethod:
     """Test ValidationMethod enum and related functionality."""
 
-    def test_validation_method_enum_values(self):
+    def test_validation_method_enum_values(self) -> None:
         """Test ValidationMethod enum has expected values."""
         assert ValidationMethod.TRAIN_TEST_SPLIT.value == "train_test_split"
         assert ValidationMethod.CROSS_VALIDATION.value == "cross_validation"
         assert ValidationMethod.TIME_SERIES_SPLIT.value == "time_series_split"
         assert ValidationMethod.HOLDOUT_VALIDATION.value == "holdout_validation"
 
-    def test_validation_method_enumeration(self):
+    def test_validation_method_enumeration(self) -> None:
         """Test ValidationMethod enum can be enumerated."""
         methods = list(ValidationMethod)
         assert len(methods) == 4
@@ -205,7 +207,7 @@ class TestValidationMethod:
 class TestModelConfiguration:
     """Test ModelConfiguration with comprehensive validation."""
 
-    def test_model_configuration_creation_valid(self):
+    def test_model_configuration_creation_valid(self) -> None:
         """Test creating valid ModelConfiguration instances."""
         model_id = create_model_id()
         config = ModelConfiguration(
@@ -230,7 +232,7 @@ class TestModelConfiguration:
         assert config.validation_config["cv_folds"] == 5
         assert config.deployment_config["auto_deploy"] is True
 
-    def test_model_configuration_empty_target_variable(self):
+    def test_model_configuration_empty_target_variable(self) -> None:
         """Test ModelConfiguration with empty target variable raises ValueError."""
         model_id = create_model_id()
 
@@ -243,7 +245,7 @@ class TestModelConfiguration:
                 feature_columns=["feature1"],
             )
 
-    def test_model_configuration_empty_feature_columns(self):
+    def test_model_configuration_empty_feature_columns(self) -> None:
         """Test ModelConfiguration with empty feature columns raises ValueError."""
         model_id = create_model_id()
 
@@ -263,8 +265,12 @@ class TestModelConfiguration:
         hyperparameters_strategy(),
     )
     def test_model_configuration_property_based_creation(
-        self, model_type, model_category, feature_columns, hyperparameters
-    ):
+        self,
+        model_type,
+        model_category,
+        feature_columns,
+        hyperparameters,
+    ) -> None:
         """Property-based test for ModelConfiguration creation."""
         model_id = create_model_id()
         target_variable = "target_var"
@@ -297,7 +303,7 @@ class TestModelConfiguration:
 class TestTrainingDataset:
     """Test TrainingDataset creation and validation."""
 
-    def test_training_dataset_creation_valid(self):
+    def test_training_dataset_creation_valid(self) -> None:
         """Test creating valid TrainingDataset instances."""
         dataset = TrainingDataset(
             dataset_id="dataset_001",
@@ -319,14 +325,16 @@ class TestTrainingDataset:
         assert dataset.validation_split == 0.1
         assert dataset.test_split == 0.1
 
-    def test_training_dataset_empty_feature_data(self):
+    def test_training_dataset_empty_feature_data(self) -> None:
         """Test TrainingDataset with empty feature data raises ValueError."""
         with pytest.raises(ValueError, match="Feature data must be provided"):
             TrainingDataset(
-                dataset_id="dataset_001", feature_data={}, target_data=[1, 0, 1]
+                dataset_id="dataset_001",
+                feature_data={},
+                target_data=[1, 0, 1],
             )
 
-    def test_training_dataset_empty_target_data(self):
+    def test_training_dataset_empty_target_data(self) -> None:
         """Test TrainingDataset with empty target data raises ValueError."""
         with pytest.raises(ValueError, match="Target data must be provided"):
             TrainingDataset(
@@ -339,7 +347,7 @@ class TestTrainingDataset:
 class TestModelArtifact:
     """Test ModelArtifact creation and validation."""
 
-    def test_model_artifact_creation_valid(self):
+    def test_model_artifact_creation_valid(self) -> None:
         """Test creating valid ModelArtifact instances."""
         model_id = create_model_id()
 
@@ -378,7 +386,7 @@ class TestModelArtifact:
 class TestValidationResult:
     """Test ValidationResult creation and validation."""
 
-    def test_validation_result_creation_valid(self):
+    def test_validation_result_creation_valid(self) -> None:
         """Test creating valid ValidationResult instances."""
         model_id = create_model_id()
         performance = ModelPerformance(
@@ -412,7 +420,7 @@ class TestValidationResult:
         assert result.is_passed is True
         assert len(result.failure_reasons) == 0
 
-    def test_validation_result_invalid_score(self):
+    def test_validation_result_invalid_score(self) -> None:
         """Test ValidationResult with invalid validation score raises ValueError."""
         model_id = create_model_id()
         performance = ModelPerformance(
@@ -428,7 +436,8 @@ class TestValidationResult:
         )
 
         with pytest.raises(
-            ValueError, match="Validation score must be between 0.0 and 1.0"
+            ValueError,
+            match="Validation score must be between 0.0 and 1.0",
         ):
             ValidationResult(
                 model_id=model_id,
@@ -442,7 +451,7 @@ class TestValidationResult:
 class TestDeploymentInfo:
     """Test DeploymentInfo creation and validation."""
 
-    def test_deployment_info_creation_valid(self):
+    def test_deployment_info_creation_valid(self) -> None:
         """Test creating valid DeploymentInfo instances."""
         model_id = create_model_id()
         deployment = DeploymentInfo(
@@ -466,7 +475,7 @@ class TestDeploymentInfo:
         assert deployment.monitoring_enabled is True
         assert deployment.auto_scaling_enabled is True
 
-    def test_deployment_info_invalid_environment(self):
+    def test_deployment_info_invalid_environment(self) -> None:
         """Test DeploymentInfo with invalid environment raises ValueError."""
         model_id = create_model_id()
 
@@ -485,12 +494,12 @@ class TestDeploymentInfo:
 class TestModelManager:
     """Test ModelManager functionality."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
         self.manager = ModelManager(model_storage_path=self.temp_dir)
 
-    def test_model_manager_initialization(self):
+    def test_model_manager_initialization(self) -> None:
         """Test ModelManager initialization."""
         manager = ModelManager()
 
@@ -503,7 +512,7 @@ class TestModelManager:
         assert len(manager.model_performance) == 0
 
     @pytest.mark.asyncio
-    async def test_model_manager_create_model_success(self):
+    async def test_model_manager_create_model_success(self) -> None:
         """Test successful model creation."""
         model_id = create_model_id()
         config = ModelConfiguration(
@@ -524,7 +533,7 @@ class TestModelManager:
         assert self.manager.model_registry[model_id] == config
 
     @pytest.mark.asyncio
-    async def test_model_manager_create_model_unsupported_type(self):
+    async def test_model_manager_create_model_unsupported_type(self) -> None:
         """Test creating model with unsupported type fails."""
         model_id = create_model_id()
 
@@ -549,7 +558,7 @@ class TestModelManager:
             assert "Unsupported model type" in str(error)
 
     @pytest.mark.asyncio
-    async def test_model_manager_train_model_success(self):
+    async def test_model_manager_train_model_success(self) -> None:
         """Test successful model training."""
         model_id = create_model_id()
         config = ModelConfiguration(
@@ -589,7 +598,7 @@ class TestModelManager:
                     {"feature1": [1, 2, 3], "feature2": [4, 5, 6]},  # train
                     {"feature1": [7, 8], "feature2": [9, 10]},  # val
                     {"feature1": [9, 10], "feature2": [11, 12]},  # test
-                )
+                ),
             )
 
             # Mock successful training - return Either directly
@@ -636,7 +645,7 @@ class TestModelManager:
             assert performance.model_id == model_id
 
     @pytest.mark.asyncio
-    async def test_model_manager_train_unregistered_model(self):
+    async def test_model_manager_train_unregistered_model(self) -> None:
         """Test training unregistered model fails."""
         model_id = create_model_id()
         dataset = TrainingDataset(
@@ -656,7 +665,7 @@ class TestModelManager:
         assert "not found in registry" in str(error)
 
     @pytest.mark.asyncio
-    async def test_model_manager_get_model_status(self):
+    async def test_model_manager_get_model_status(self) -> None:
         """Test getting model status."""
         model_id = create_model_id()
         config = ModelConfiguration(
@@ -681,7 +690,7 @@ class TestModelManager:
         assert status["model_category"] == ModelCategory.CLASSIFICATION.value
 
     @pytest.mark.asyncio
-    async def test_model_manager_get_nonexistent_model_status(self):
+    async def test_model_manager_get_nonexistent_model_status(self) -> None:
         """Test getting status for nonexistent model."""
         model_id = create_model_id()
 
@@ -692,7 +701,7 @@ class TestModelManager:
         assert "not found" in status["error"]
 
     @pytest.mark.asyncio
-    async def test_model_manager_get_summary(self):
+    async def test_model_manager_get_summary(self) -> None:
         """Test getting model manager summary."""
         # Create a few models
         for i in range(3):
@@ -722,7 +731,7 @@ class TestModelManager:
         assert "summary_timestamp" in summary
 
     @pytest.mark.asyncio
-    async def test_model_manager_multiple_model_types(self):
+    async def test_model_manager_multiple_model_types(self) -> None:
         """Test ModelManager with multiple different model types."""
         model_configs = [
             (ModelType.LINEAR_REGRESSION, ModelCategory.REGRESSION),

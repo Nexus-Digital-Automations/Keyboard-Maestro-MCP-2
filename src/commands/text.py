@@ -1,5 +1,4 @@
-"""
-Text Manipulation Commands
+"""Text Manipulation Commands.
 
 Provides secure text input, search, and manipulation commands
 with comprehensive validation and security boundaries.
@@ -36,8 +35,7 @@ class TextSearchMode(Enum):
 
 @dataclass(frozen=True)
 class TypeTextCommand(BaseCommand):
-    """
-    Safely type text with configurable speed and validation.
+    """Safely type text with configurable speed and validation.
 
     Performs comprehensive security validation to prevent
     script injection and malicious content.
@@ -127,7 +125,7 @@ class TypeTextCommand(BaseCommand):
         except Exception as e:
             return create_command_result(
                 success=False,
-                error_message=f"Text typing failed: {str(e)}",
+                error_message=f"Text typing failed: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 
@@ -142,8 +140,7 @@ class TypeTextCommand(BaseCommand):
 
 @dataclass(frozen=True)
 class FindTextCommand(BaseCommand):
-    """
-    Find text in the current context with pattern matching.
+    """Find text in the current context with pattern matching.
 
     Supports exact match, contains, and safe regex patterns
     with comprehensive validation.
@@ -244,7 +241,7 @@ class FindTextCommand(BaseCommand):
                 except re.error as e:
                     return create_command_result(
                         success=False,
-                        error_message=f"Regex pattern error: {str(e)}",
+                        error_message=f"Regex pattern error: {e!s}",
                         execution_time=Duration.from_seconds(time.time() - start_time),
                     )
 
@@ -264,7 +261,7 @@ class FindTextCommand(BaseCommand):
         except Exception as e:
             return create_command_result(
                 success=False,
-                error_message=f"Text search failed: {str(e)}",
+                error_message=f"Text search failed: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 
@@ -279,8 +276,7 @@ class FindTextCommand(BaseCommand):
 
 @dataclass(frozen=True)
 class ReplaceTextCommand(BaseCommand):
-    """
-    Replace text with validation and safety checks.
+    """Replace text with validation and safety checks.
 
     Provides secure text replacement with pattern matching
     and comprehensive security validation.
@@ -356,7 +352,9 @@ class ReplaceTextCommand(BaseCommand):
                 result_text = target_text
                 for _ in range(actual_replacements):
                     result_text = result_text.replace(
-                        search_pattern, replacement_text, 1
+                        search_pattern,
+                        replacement_text,
+                        1,
                     )
             else:
                 # Case-insensitive replacement is more complex
@@ -397,7 +395,7 @@ class ReplaceTextCommand(BaseCommand):
         except Exception as e:
             return create_command_result(
                 success=False,
-                error_message=f"Text replacement failed: {str(e)}",
+                error_message=f"Text replacement failed: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 

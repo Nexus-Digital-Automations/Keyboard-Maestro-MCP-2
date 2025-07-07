@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for knowledge management tools module.
+"""Comprehensive tests for knowledge management tools module.
 
 Tests cover documentation generation, knowledge base management, intelligent search,
 content quality analysis, templates, export capabilities, and review scheduling
@@ -8,11 +7,17 @@ with property-based testing and comprehensive enterprise-grade validation.
 
 # Apply systematic MCP pattern for knowledge management tools testing
 # Mock the problematic mcp_server import to avoid dependency issues
+from __future__ import annotations
+
+from typing import Any, Optional
 import sys
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+
+# Now import the knowledge management tools module
+import src.server.tools.knowledge_management_tools as km_tools
 from hypothesis import assume, given
 from hypothesis import strategies as st
 
@@ -27,9 +32,6 @@ mock_mcp_server = Mock()
 mock_mcp_server.mcp = mock_mcp
 sys.modules["src.server.mcp_server"] = mock_mcp_server
 
-# Now import the knowledge management tools module
-import src.server.tools.knowledge_management_tools as km_tools
-
 # Extract individual functions directly (systematic MCP pattern)
 km_generate_documentation = km_tools.km_generate_documentation
 km_manage_knowledge_base = km_tools.km_manage_knowledge_base
@@ -43,7 +45,7 @@ km_schedule_content_review = km_tools.km_schedule_content_review
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def document_type_strategy(draw):
+def document_type_strategy(draw) -> Any:
     """Generate valid document types."""
     types = [
         "macro",
@@ -58,28 +60,28 @@ def document_type_strategy(draw):
 
 
 @st.composite
-def content_format_strategy(draw):
+def content_format_strategy(draw) -> Any:
     """Generate valid content formats."""
     formats = ["markdown", "html", "json", "xml", "yaml", "text"]
     return draw(st.sampled_from(formats))
 
 
 @st.composite
-def operation_type_strategy(draw):
+def operation_type_strategy(draw) -> Any:
     """Generate valid knowledge base operations."""
     operations = ["create", "read", "update", "delete", "list", "backup", "restore"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def search_type_strategy(draw):
+def search_type_strategy(draw) -> list[Any]:
     """Generate valid search types."""
     types = ["keyword", "semantic", "fuzzy", "exact", "category", "tag"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def quality_metric_strategy(draw):
+def quality_metric_strategy(draw) -> Any:
     """Generate valid quality metrics."""
     metrics = [
         "completeness",
@@ -93,21 +95,21 @@ def quality_metric_strategy(draw):
 
 
 @st.composite
-def export_format_strategy(draw):
+def export_format_strategy(draw) -> Any:
     """Generate valid export formats."""
     formats = ["pdf", "html", "markdown", "json", "csv", "xml", "docx"]
     return draw(st.sampled_from(formats))
 
 
 @st.composite
-def review_type_strategy(draw):
+def review_type_strategy(draw) -> Any:
     """Generate valid review types."""
     types = ["scheduled", "triggered", "manual", "automatic", "quality_check"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def knowledge_category_strategy(draw):
+def knowledge_category_strategy(draw) -> Any:
     """Generate valid knowledge categories."""
     categories = [
         "automation",
@@ -121,7 +123,7 @@ def knowledge_category_strategy(draw):
 
 
 @st.composite
-def documentation_config_strategy(draw):
+def documentation_config_strategy(draw) -> Any:
     """Generate valid documentation configurations."""
     return {
         "source_type": draw(document_type_strategy()),
@@ -129,13 +131,13 @@ def documentation_config_strategy(draw):
         "include_examples": draw(st.booleans()),
         "include_metadata": draw(st.booleans()),
         "template_id": draw(
-            st.text(min_size=5, max_size=50).filter(lambda x: x.isalnum())
+            st.text(min_size=5, max_size=50).filter(lambda x: x.isalnum()),
         ),
         "quality_level": draw(
-            st.sampled_from(["basic", "standard", "comprehensive", "expert"])
+            st.sampled_from(["basic", "standard", "comprehensive", "expert"]),
         ),
         "sections": draw(
-            st.lists(st.text(min_size=3, max_size=20), min_size=1, max_size=8)
+            st.lists(st.text(min_size=3, max_size=20), min_size=1, max_size=8),
         ),
         "custom_fields": draw(
             st.dictionaries(
@@ -143,7 +145,7 @@ def documentation_config_strategy(draw):
                 st.text(min_size=1, max_size=30),
                 min_size=0,
                 max_size=5,
-            )
+            ),
         ),
     }
 
@@ -151,7 +153,7 @@ def documentation_config_strategy(draw):
 class TestKnowledgeManagementDependencies:
     """Test knowledge management tool dependencies and imports."""
 
-    def test_knowledge_management_imports(self):
+    def test_knowledge_management_imports(self) -> None:
         """Test that all knowledge management functions can be imported."""
         # Test direct imports work
         assert km_generate_documentation is not None
@@ -168,7 +170,7 @@ class TestKnowledgeManagementParameterValidation:
     """Test parameter validation for knowledge management operations."""
 
     @given(document_type_strategy())
-    def test_valid_document_types(self, doc_type):
+    def test_valid_document_types(self, doc_type) -> None:
         """Test that valid document types are accepted."""
         assert doc_type in [
             "macro",
@@ -181,12 +183,12 @@ class TestKnowledgeManagementParameterValidation:
         ]
 
     @given(content_format_strategy())
-    def test_valid_content_formats(self, format_type):
+    def test_valid_content_formats(self, format_type) -> None:
         """Test that valid content formats are accepted."""
         assert format_type in ["markdown", "html", "json", "xml", "yaml", "text"]
 
     @given(operation_type_strategy())
-    def test_valid_operation_types(self, operation):
+    def test_valid_operation_types(self, operation) -> None:
         """Test that valid knowledge base operations are accepted."""
         assert operation in [
             "create",
@@ -199,7 +201,7 @@ class TestKnowledgeManagementParameterValidation:
         ]
 
     @given(search_type_strategy())
-    def test_valid_search_types(self, search_type):
+    def test_valid_search_types(self, search_type) -> None:
         """Test that valid search types are accepted."""
         assert search_type in [
             "keyword",
@@ -211,7 +213,7 @@ class TestKnowledgeManagementParameterValidation:
         ]
 
     @given(quality_metric_strategy())
-    def test_valid_quality_metrics(self, metric):
+    def test_valid_quality_metrics(self, metric) -> None:
         """Test that valid quality metrics are accepted."""
         assert metric in [
             "completeness",
@@ -223,7 +225,7 @@ class TestKnowledgeManagementParameterValidation:
         ]
 
     @given(export_format_strategy())
-    def test_valid_export_formats(self, export_format):
+    def test_valid_export_formats(self, export_format) -> None:
         """Test that valid export formats are accepted."""
         assert export_format in [
             "pdf",
@@ -236,7 +238,7 @@ class TestKnowledgeManagementParameterValidation:
         ]
 
     @given(review_type_strategy())
-    def test_valid_review_types(self, review_type):
+    def test_valid_review_types(self, review_type) -> None:
         """Test that valid review types are accepted."""
         assert review_type in [
             "scheduled",
@@ -251,17 +253,17 @@ class TestDocumentationGenerationMocked:
     """Test documentation generation with comprehensive mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_generate_documentation_success(self):
+    async def test_km_generate_documentation_success(self) -> None:
         """Test successful documentation generation."""
         with (
             patch(
-                "src.server.tools.knowledge_management_tools.get_documentation_generator"
+                "src.server.tools.knowledge_management_tools.get_documentation_generator",
             ) as mock_get_gen,
             patch(
-                "src.server.tools.knowledge_management_tools.create_document_id"
+                "src.server.tools.knowledge_management_tools.create_document_id",
             ) as mock_create_doc_id,
             patch(
-                "src.server.tools.knowledge_management_tools.create_content_id"
+                "src.server.tools.knowledge_management_tools.create_content_id",
             ) as mock_create_content_id,
         ):
             # Setup mocks for successful documentation generation
@@ -282,10 +284,10 @@ class TestDocumentationGenerationMocked:
             mock_metadata.word_count = 50
             mock_metadata.reading_time_minutes = 1
             mock_metadata.created_at.isoformat.return_value = datetime.now(
-                UTC
+                UTC,
             ).isoformat()
             mock_metadata.modified_at.isoformat.return_value = datetime.now(
-                UTC
+                UTC,
             ).isoformat()
 
             mock_document.metadata = mock_metadata
@@ -327,7 +329,7 @@ class TestDocumentationGenerationMocked:
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_km_generate_documentation_invalid_source(self):
+    async def test_km_generate_documentation_invalid_source(self) -> None:
         """Test documentation generation with invalid source."""
         # Execute with invalid source parameters
         result = await km_generate_documentation(
@@ -342,10 +344,10 @@ class TestDocumentationGenerationMocked:
         assert "source type" in result.get("error", "").lower()
 
     @pytest.mark.asyncio
-    async def test_km_generate_documentation_generation_error(self):
+    async def test_km_generate_documentation_generation_error(self) -> None:
         """Test documentation generation with generation error."""
         with patch(
-            "src.server.tools.knowledge_management_tools.get_documentation_generator"
+            "src.server.tools.knowledge_management_tools.get_documentation_generator",
         ) as mock_get_gen:
             mock_generator = AsyncMock()
             mock_error_result = Mock()
@@ -353,7 +355,7 @@ class TestDocumentationGenerationMocked:
             mock_error_result.left.return_value = "Documentation generation failed"
 
             mock_generator.generate_documentation = AsyncMock(
-                return_value=mock_error_result
+                return_value=mock_error_result,
             )
             mock_get_gen.return_value = mock_generator
 
@@ -374,14 +376,14 @@ class TestKnowledgeBaseMocked:
     """Test knowledge base management with comprehensive mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_manage_knowledge_base_create(self):
+    async def test_km_manage_knowledge_base_create(self) -> None:
         """Test successful knowledge base creation."""
         with (
             patch(
-                "src.server.tools.knowledge_management_tools.create_knowledge_base_id"
+                "src.server.tools.knowledge_management_tools.create_knowledge_base_id",
             ) as mock_create_kb_id,
             patch(
-                "src.server.tools.knowledge_management_tools.get_content_organizer"
+                "src.server.tools.knowledge_management_tools.get_content_organizer",
             ) as mock_get_organizer,
         ):
             # Setup mocks for creation
@@ -389,8 +391,9 @@ class TestKnowledgeBaseMocked:
             mock_organizer = AsyncMock()
             mock_organizer.create_knowledge_base = AsyncMock(
                 return_value=Mock(
-                    is_left=lambda: False, right=lambda: "kb_enterprise_001"
-                )
+                    is_left=lambda: False,
+                    right=lambda: "kb_enterprise_001",
+                ),
             )
             mock_get_organizer.return_value = mock_organizer
 
@@ -417,10 +420,10 @@ class TestKnowledgeBaseMocked:
             assert result["document_count"] == 0  # Check field that actually exists
 
     @pytest.mark.asyncio
-    async def test_km_manage_knowledge_base_list(self):
+    async def test_km_manage_knowledge_base_list(self) -> None:
         """Test knowledge base listing operation."""
         with patch(
-            "src.server.tools.knowledge_management_tools.get_content_organizer"
+            "src.server.tools.knowledge_management_tools.get_content_organizer",
         ) as mock_get_organizer:
             mock_organizer = AsyncMock()
             mock_knowledge_bases = [
@@ -430,8 +433,9 @@ class TestKnowledgeBaseMocked:
             ]
             mock_organizer.list_knowledge_bases = AsyncMock(
                 return_value=Mock(
-                    is_left=lambda: False, right=lambda: mock_knowledge_bases
-                )
+                    is_left=lambda: False,
+                    right=lambda: mock_knowledge_bases,
+                ),
             )
             mock_get_organizer.return_value = mock_organizer
 
@@ -444,11 +448,12 @@ class TestKnowledgeBaseMocked:
             assert "invalid operation" in result.get("error", "").lower()
 
     @pytest.mark.asyncio
-    async def test_km_manage_knowledge_base_invalid_operation(self):
+    async def test_km_manage_knowledge_base_invalid_operation(self) -> None:
         """Test knowledge base management with invalid operation."""
         # Execute with invalid operation
         result = await km_manage_knowledge_base(
-            operation="invalid_operation", name="Test KB"
+            operation="invalid_operation",
+            name="Test KB",
         )
 
         # Verify invalid operation error
@@ -460,14 +465,14 @@ class TestKnowledgeSearchMocked:
     """Test knowledge search with comprehensive mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_search_knowledge_keyword(self):
+    async def test_km_search_knowledge_keyword(self) -> None:
         """Test successful keyword-based knowledge search."""
         with (
             patch(
-                "src.server.tools.knowledge_management_tools.get_search_engine"
+                "src.server.tools.knowledge_management_tools.get_search_engine",
             ) as mock_get_search,
             patch(
-                "src.server.tools.knowledge_management_tools.create_content_id"
+                "src.server.tools.knowledge_management_tools.create_content_id",
             ) as mock_create_content_id,
         ):
             # Setup search mocks
@@ -532,10 +537,10 @@ class TestKnowledgeSearchMocked:
             assert all("relevance_score" in r for r in result["results"])
 
     @pytest.mark.asyncio
-    async def test_km_search_knowledge_semantic(self):
+    async def test_km_search_knowledge_semantic(self) -> None:
         """Test semantic knowledge search."""
         with patch(
-            "src.server.tools.knowledge_management_tools.get_search_engine"
+            "src.server.tools.knowledge_management_tools.get_search_engine",
         ) as mock_get_search:
             mock_search_engine = AsyncMock()
 
@@ -581,7 +586,7 @@ class TestKnowledgeSearchMocked:
             assert result["results"][0]["title"] == "Intelligent Process Automation"
 
     @pytest.mark.asyncio
-    async def test_km_search_knowledge_empty_query(self):
+    async def test_km_search_knowledge_empty_query(self) -> None:
         """Test knowledge search with empty query."""
         # Execute with empty query
         result = await km_search_knowledge(
@@ -598,14 +603,14 @@ class TestDocumentationUpdateMocked:
     """Test documentation update operations with mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_update_documentation_success(self):
+    async def test_km_update_documentation_success(self) -> None:
         """Test successful documentation update."""
         with (
             patch(
-                "src.server.tools.knowledge_management_tools.get_documentation_generator"
+                "src.server.tools.knowledge_management_tools.get_documentation_generator",
             ) as mock_get_gen,
             patch(
-                "src.server.tools.knowledge_management_tools.get_version_manager"
+                "src.server.tools.knowledge_management_tools.get_version_manager",
             ) as mock_get_version,
         ):
             # Setup mocks for update
@@ -624,7 +629,7 @@ class TestDocumentationUpdateMocked:
 
             mock_generator.update_documentation = AsyncMock(return_value=mock_result)
             mock_version_manager.create_version = AsyncMock(
-                return_value=Mock(is_left=lambda: False)
+                return_value=Mock(is_left=lambda: False),
             )
 
             mock_get_gen.return_value = mock_generator
@@ -648,11 +653,13 @@ class TestDocumentationUpdateMocked:
             assert "not found" in result.get("error", "").lower()
 
     @pytest.mark.asyncio
-    async def test_km_update_documentation_invalid_document(self):
+    async def test_km_update_documentation_invalid_document(self) -> None:
         """Test documentation update with invalid document ID."""
         # Execute with invalid document ID
         result = await km_update_documentation(
-            document_id="", update_type="content", content_updates={"content": "test"}
+            document_id="",
+            update_type="content",
+            content_updates={"content": "test"},
         )
 
         # Verify invalid document error
@@ -664,10 +671,10 @@ class TestContentTemplateMocked:
     """Test content template operations with mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_create_content_template_success(self):
+    async def test_km_create_content_template_success(self) -> None:
         """Test successful content template creation."""
         with patch(
-            "src.knowledge.template_manager.TemplateManager"
+            "src.knowledge.template_manager.TemplateManager",
         ) as mock_template_manager:
             # Setup template creation mocks
             AsyncMock()
@@ -693,7 +700,7 @@ class TestContentTemplateMocked:
                 template_name="Standard Macro Template",
                 template_type="documentation",
                 content_structure={
-                    "sections": ["overview", "parameters", "examples", "notes"]
+                    "sections": ["overview", "parameters", "examples", "notes"],
                 },
                 variable_placeholders=["macro_name", "description", "trigger"],
                 output_formats=["markdown"],
@@ -710,7 +717,7 @@ class TestContentTemplateMocked:
             assert len(result["variables"]) == 3
 
     @pytest.mark.asyncio
-    async def test_km_create_content_template_invalid_name(self):
+    async def test_km_create_content_template_invalid_name(self) -> None:
         """Test content template creation with invalid name."""
         # Execute with invalid template name
         result = await km_create_content_template(
@@ -728,10 +735,10 @@ class TestContentQualityMocked:
     """Test content quality analysis with mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_analyze_content_quality_success(self):
+    async def test_km_analyze_content_quality_success(self) -> None:
         """Test successful content quality analysis."""
         with patch(
-            "src.server.tools.knowledge_management_tools.get_documentation_generator"
+            "src.server.tools.knowledge_management_tools.get_documentation_generator",
         ) as mock_get_gen:
             # Setup quality analysis mocks
             mock_generator = AsyncMock()
@@ -785,11 +792,12 @@ class TestContentQualityMocked:
             assert all(0 <= score <= 1 for score in result["metrics"].values())
 
     @pytest.mark.asyncio
-    async def test_km_analyze_content_quality_invalid_document(self):
+    async def test_km_analyze_content_quality_invalid_document(self) -> None:
         """Test content quality analysis with invalid document."""
         # Execute with invalid content ID
         result = await km_analyze_content_quality(
-            content_id="", analysis_scope="content"
+            content_id="",
+            analysis_scope="content",
         )
 
         # Verify invalid content ID error
@@ -801,10 +809,10 @@ class TestKnowledgeExportMocked:
     """Test knowledge export operations with mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_export_knowledge_success(self):
+    async def test_km_export_knowledge_success(self) -> None:
         """Test successful knowledge export."""
         with patch(
-            "src.server.tools.knowledge_management_tools.get_content_organizer"
+            "src.server.tools.knowledge_management_tools.get_content_organizer",
         ) as mock_get_organizer:
             # Setup export mocks
             mock_organizer = AsyncMock()
@@ -848,7 +856,7 @@ class TestKnowledgeExportMocked:
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_km_export_knowledge_invalid_format(self):
+    async def test_km_export_knowledge_invalid_format(self) -> None:
         """Test knowledge export with invalid format."""
         # Execute with invalid export format
         result = await km_export_knowledge(
@@ -866,10 +874,10 @@ class TestContentReviewMocked:
     """Test content review scheduling with mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_schedule_content_review_success(self):
+    async def test_km_schedule_content_review_success(self) -> None:
         """Test successful content review scheduling."""
         with patch(
-            "src.server.tools.knowledge_management_tools.get_content_organizer"
+            "src.server.tools.knowledge_management_tools.get_content_organizer",
         ) as mock_get_organizer:
             # Setup review scheduling mocks
             mock_organizer = AsyncMock()
@@ -912,7 +920,7 @@ class TestContentReviewMocked:
             assert len(result["reviewers"]) == 2
 
     @pytest.mark.asyncio
-    async def test_km_schedule_content_review_invalid_date(self):
+    async def test_km_schedule_content_review_invalid_date(self) -> None:
         """Test content review scheduling with invalid date."""
         # Execute with invalid schedule date
         result = await km_schedule_content_review(
@@ -931,10 +939,10 @@ class TestKnowledgeManagementErrorHandling:
     """Test error handling scenarios for knowledge management operations."""
 
     @pytest.mark.asyncio
-    async def test_documentation_generation_system_error(self):
+    async def test_documentation_generation_system_error(self) -> None:
         """Test handling of system errors in documentation generation."""
         with patch(
-            "src.server.tools.knowledge_management_tools.get_documentation_generator"
+            "src.server.tools.knowledge_management_tools.get_documentation_generator",
         ) as mock_get_gen:
             # Setup system error
             mock_get_gen.side_effect = RuntimeError("Documentation system unavailable")
@@ -952,10 +960,10 @@ class TestKnowledgeManagementErrorHandling:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_knowledge_search_system_error(self):
+    async def test_knowledge_search_system_error(self) -> None:
         """Test handling of system errors in knowledge search."""
         with patch(
-            "src.server.tools.knowledge_management_tools.get_search_engine"
+            "src.server.tools.knowledge_management_tools.get_search_engine",
         ) as mock_get_search:
             # Setup system error
             mock_get_search.side_effect = RuntimeError("Search index unavailable")
@@ -972,20 +980,20 @@ class TestKnowledgeManagementIntegration:
     """Test integration scenarios for knowledge management operations."""
 
     @pytest.mark.asyncio
-    async def test_complete_knowledge_workflow(self):
+    async def test_complete_knowledge_workflow(self) -> None:
         """Test complete knowledge management workflow integration."""
         with (
             patch(
-                "src.server.tools.knowledge_management_tools.get_documentation_generator"
+                "src.server.tools.knowledge_management_tools.get_documentation_generator",
             ) as mock_get_gen,
             patch(
-                "src.server.tools.knowledge_management_tools.get_content_organizer"
+                "src.server.tools.knowledge_management_tools.get_content_organizer",
             ) as mock_get_organizer,
             patch(
-                "src.server.tools.knowledge_management_tools.create_document_id"
+                "src.server.tools.knowledge_management_tools.create_document_id",
             ) as mock_create_doc_id,
             patch(
-                "src.server.tools.knowledge_management_tools.create_knowledge_base_id"
+                "src.server.tools.knowledge_management_tools.create_knowledge_base_id",
             ) as mock_create_kb_id,
         ):
             # Setup integration mocks
@@ -1008,10 +1016,10 @@ class TestKnowledgeManagementIntegration:
             mock_doc_result.right.return_value.quality_score = 0.88
 
             mock_organizer.create_knowledge_base = AsyncMock(
-                return_value=mock_kb_result
+                return_value=mock_kb_result,
             )
             mock_generator.generate_documentation = AsyncMock(
-                return_value=mock_doc_result
+                return_value=mock_doc_result,
             )
 
             mock_get_gen.return_value = mock_generator
@@ -1043,12 +1051,12 @@ class TestKnowledgeManagementProperties:
 
     @given(documentation_config_strategy())
     @pytest.mark.asyncio
-    async def test_documentation_config_properties(self, config):
+    async def test_documentation_config_properties(self, config) -> None:
         """Test properties of documentation configuration."""
         assume(len(config.get("sections", [])) > 0)
         assume(
             config.get("quality_level")
-            in ["basic", "standard", "comprehensive", "expert"]
+            in ["basic", "standard", "comprehensive", "expert"],
         )
 
         # Verify configuration properties
@@ -1064,13 +1072,13 @@ class TestKnowledgeManagementProperties:
 
     @given(st.text(min_size=1, max_size=1000).filter(lambda x: x.strip()))
     @pytest.mark.asyncio
-    async def test_search_query_properties(self, query):
+    async def test_search_query_properties(self, query) -> None:
         """Test properties of search queries."""
         assume(len(query.strip()) > 0)
 
         # Test search query handling
         with patch(
-            "src.server.tools.knowledge_management_tools.get_search_engine"
+            "src.server.tools.knowledge_management_tools.get_search_engine",
         ) as mock_get_search:
             mock_search_engine = AsyncMock()
             mock_result = Mock()

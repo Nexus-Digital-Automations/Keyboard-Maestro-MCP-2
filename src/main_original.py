@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Keyboard Maestro MCP Server - Main Entry Point
+"""Keyboard Maestro MCP Server - Main Entry Point.
 
 Advanced macOS automation through Model Context Protocol using FastMCP framework.
 Provides 13 production-ready tools for comprehensive Keyboard Maestro integration.
@@ -21,7 +20,9 @@ from pydantic import Field
 
 # Import modular components
 from .server.initialization import initialize_components
-from .server.resources import create_macro_prompt, get_server_status, get_tool_help
+
+# F811 fix: Remove duplicate import - create_macro_prompt is defined below
+from .server.resources import get_server_status, get_tool_help
 
 # Configure logging to stderr to avoid corrupting MCP communications
 logging.basicConfig(
@@ -85,13 +86,16 @@ Use these tools to automate any macOS task that Keyboard Maestro can perform.
 async def km_execute_macro(
     identifier: Annotated[str, Field(description="Macro name or UUID")],
     trigger_value: Annotated[
-        str, Field(default="", description="Optional parameter to pass to macro")
+        str,
+        Field(default="", description="Optional parameter to pass to macro"),
     ] = "",
     method: Annotated[
-        str, Field(default="applescript", description="Execution method")
+        str,
+        Field(default="applescript", description="Execution method"),
     ] = "applescript",
     timeout: Annotated[
-        int, Field(default=30, description="Maximum execution time in seconds")
+        int,
+        Field(default=30, description="Maximum execution time in seconds"),
     ] = 30,
     ctx=None,
 ) -> dict[str, Any]:
@@ -104,10 +108,12 @@ async def km_execute_macro(
 @mcp.tool()
 async def km_list_macros(
     group_filter: Annotated[
-        str, Field(default="", description="Filter by macro group name")
+        str,
+        Field(default="", description="Filter by macro group name"),
     ] = "",
     enabled_only: Annotated[
-        bool, Field(default=True, description="Only show enabled macros")
+        bool,
+        Field(default=True, description="Only show enabled macros"),
     ] = True,
     sort_by: Annotated[str, Field(default="name", description="Sort field")] = "name",
     limit: Annotated[int, Field(default=20, description="Maximum results")] = 20,
@@ -122,17 +128,21 @@ async def km_list_macros(
 @mcp.tool()
 async def km_variable_manager(
     operation: Annotated[
-        str, Field(description="Operation: get, set, delete, or list")
+        str,
+        Field(description="Operation: get, set, delete, or list"),
     ],
     name: Annotated[str, Field(default="", description="Variable name")] = "",
     value: Annotated[
-        str, Field(default="", description="Variable value for set operation")
+        str,
+        Field(default="", description="Variable value for set operation"),
     ] = "",
     scope: Annotated[
-        str, Field(default="global", description="Variable scope")
+        str,
+        Field(default="global", description="Variable scope"),
     ] = "global",
     instance_id: Annotated[
-        str, Field(default="", description="Instance ID for local variables")
+        str,
+        Field(default="", description="Instance ID for local variables"),
     ] = "",
     ctx=None,
 ) -> dict[str, Any]:
@@ -146,19 +156,24 @@ async def km_variable_manager(
 async def km_search_macros_advanced(
     query: Annotated[str, Field(description="Search query")],
     scope: Annotated[
-        str, Field(default="name_and_group", description="Search scope")
+        str,
+        Field(default="name_and_group", description="Search scope"),
     ] = "name_and_group",
     action_categories: Annotated[
-        str, Field(default="", description="Filter by action categories")
+        str,
+        Field(default="", description="Filter by action categories"),
     ] = "",
     complexity_levels: Annotated[
-        str, Field(default="", description="Filter by complexity levels")
+        str,
+        Field(default="", description="Filter by complexity levels"),
     ] = "",
     min_usage_count: Annotated[
-        int, Field(default=0, description="Minimum usage count")
+        int,
+        Field(default=0, description="Minimum usage count"),
     ] = 0,
     sort_by: Annotated[
-        str, Field(default="name", description="Sort criteria")
+        str,
+        Field(default="name", description="Sort criteria"),
     ] = "name",
     ctx=None,
 ) -> dict[str, Any]:
@@ -182,7 +197,8 @@ async def km_search_macros_advanced(
 async def km_analyze_macro_metadata(
     macro_id: Annotated[str, Field(description="Macro ID or name to analyze")],
     include_relationships: Annotated[
-        bool, Field(default=True, description="Include relationship analysis")
+        bool,
+        Field(default=True, description="Include relationship analysis"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
@@ -197,10 +213,12 @@ async def km_analyze_macro_metadata(
 @mcp.tool()
 async def km_start_realtime_sync(
     enable_file_monitoring: Annotated[
-        bool, Field(default=True, description="Enable file system monitoring")
+        bool,
+        Field(default=True, description="Enable file system monitoring"),
     ] = True,
     poll_interval_seconds: Annotated[
-        int, Field(default=30, description="Base polling interval")
+        int,
+        Field(default=30, description="Base polling interval"),
     ] = 30,
     ctx=None,
 ) -> dict[str, Any]:
@@ -210,7 +228,9 @@ async def km_start_realtime_sync(
     )
 
     return await _km_start_realtime_sync(
-        enable_file_monitoring, poll_interval_seconds, ctx
+        enable_file_monitoring,
+        poll_interval_seconds,
+        ctx,
     )
 
 
@@ -225,7 +245,8 @@ async def km_stop_realtime_sync(ctx=None) -> dict[str, Any]:
 @mcp.tool()
 async def km_sync_status(
     include_performance_metrics: Annotated[
-        bool, Field(default=True, description="Include performance metrics")
+        bool,
+        Field(default=True, description="Include performance metrics"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
@@ -238,7 +259,8 @@ async def km_sync_status(
 @mcp.tool()
 async def km_force_sync(
     full_resync: Annotated[
-        bool, Field(default=False, description="Force complete resynchronization")
+        bool,
+        Field(default=False, description="Force complete resynchronization"),
     ] = False,
     ctx=None,
 ) -> dict[str, Any]:
@@ -251,13 +273,16 @@ async def km_force_sync(
 @mcp.tool()
 async def km_list_macro_groups(
     include_macro_count: Annotated[
-        bool, Field(default=True, description="Include macro counts")
+        bool,
+        Field(default=True, description="Include macro counts"),
     ] = True,
     include_enabled_count: Annotated[
-        bool, Field(default=True, description="Include enabled macro counts")
+        bool,
+        Field(default=True, description="Include enabled macro counts"),
     ] = True,
     sort_by: Annotated[
-        str, Field(default="name", description="Sort criteria")
+        str,
+        Field(default="name", description="Sort criteria"),
     ] = "name",
     ctx=None,
 ) -> dict[str, Any]:
@@ -265,7 +290,10 @@ async def km_list_macro_groups(
     from .server.tools.group_tools import km_list_macro_groups as _km_list_macro_groups
 
     return await _km_list_macro_groups(
-        include_macro_count, include_enabled_count, sort_by, ctx
+        include_macro_count,
+        include_enabled_count,
+        sort_by,
+        ctx,
     )
 
 
@@ -292,7 +320,8 @@ async def km_create_macro(
         Field(default=None, description="Target macro group name", max_length=255),
     ] = None,
     enabled: Annotated[
-        bool, Field(default=True, description="Initial enabled state")
+        bool,
+        Field(default=True, description="Initial enabled state"),
     ] = True,
     parameters: Annotated[
         dict[str, Any],
@@ -347,13 +376,16 @@ async def km_app_control(
         Field(default=False, description="Force termination option for quit operation"),
     ] = False,
     wait_for_completion: Annotated[
-        bool, Field(default=True, description="Wait for operation to complete")
+        bool,
+        Field(default=True, description="Wait for operation to complete"),
     ] = True,
     timeout_seconds: Annotated[
-        int, Field(default=30, ge=1, le=120, description="Operation timeout in seconds")
+        int,
+        Field(default=30, ge=1, le=120, description="Operation timeout in seconds"),
     ] = 30,
     hide_on_launch: Annotated[
-        bool, Field(default=False, description="Hide application after launch")
+        bool,
+        Field(default=False, description="Hide application after launch"),
     ] = False,
     ctx=None,
 ) -> dict[str, Any]:
@@ -382,12 +414,14 @@ async def km_clipboard_manager(
         ),
     ],
     clipboard_name: Annotated[
-        str | None, Field(default=None, max_length=100, pattern=r"^[a-zA-Z0-9_\-\s]*$")
+        str | None,
+        Field(default=None, max_length=100, pattern=r"^[a-zA-Z0-9_\-\s]*$"),
     ] = None,
     history_index: Annotated[int | None, Field(default=None, ge=0, le=199)] = None,
     content: Annotated[str | None, Field(default=None, max_length=1_000_000)] = None,
     format: Annotated[
-        str, Field(default="text", pattern=r"^(text|image|file|url)$")
+        str,
+        Field(default="text", pattern=r"^(text|image|file|url)$"),
     ] = "text",
     include_sensitive: Annotated[bool, Field(default=False)] = False,
     tags: Annotated[list[str] | None, Field(default=None, max_length=20)] = None,
@@ -438,7 +472,8 @@ async def km_file_operations(
         ),
     ] = None,
     overwrite: Annotated[
-        bool, Field(default=False, description="Allow overwriting existing files")
+        bool,
+        Field(default=False, description="Allow overwriting existing files"),
     ] = False,
     create_intermediate: Annotated[
         bool,
@@ -454,7 +489,8 @@ async def km_file_operations(
     secure_delete: Annotated[
         bool,
         Field(
-            default=False, description="Use secure deletion (multiple overwrite passes)"
+            default=False,
+            description="Use secure deletion (multiple overwrite passes)",
         ),
     ] = False,
     ctx=None,
@@ -574,7 +610,8 @@ async def km_list_hotkey_triggers(
     include_conflicts: Annotated[
         bool,
         Field(
-            default=False, description="Include conflict information for each hotkey"
+            default=False,
+            description="Include conflict information for each hotkey",
         ),
     ] = False,
     ctx=None,
@@ -616,7 +653,8 @@ async def km_move_macro_to_group(
         Field(default=True, description="Maintain group-specific activation settings"),
     ] = True,
     timeout_seconds: Annotated[
-        int, Field(default=30, ge=5, le=120, description="Operation timeout in seconds")
+        int,
+        Field(default=30, ge=5, le=120, description="Operation timeout in seconds"),
     ] = 30,
     ctx=None,
 ) -> dict[str, Any]:
@@ -704,7 +742,8 @@ async def km_notifications(
     dismissible: Annotated[
         bool,
         Field(
-            default=True, description="Whether notification can be dismissed by user"
+            default=True,
+            description="Whether notification can be dismissed by user",
         ),
     ] = True,
     ctx=None,
@@ -733,7 +772,8 @@ async def km_notification_status(
     notification_id: Annotated[
         str | None,
         Field(
-            default=None, description="Notification ID to check status for (optional)"
+            default=None,
+            description="Notification ID to check status for (optional)",
         ),
     ] = None,
     ctx=None,
@@ -793,7 +833,10 @@ async def km_calculator(
     precision: Annotated[
         int,
         Field(
-            default=10, description="Decimal precision for results (0-15)", ge=0, le=15
+            default=10,
+            description="Decimal precision for results (0-15)",
+            ge=0,
+            le=15,
         ),
     ] = 10,
     use_km_engine: Annotated[
@@ -801,7 +844,8 @@ async def km_calculator(
         Field(default=True, description="Use Keyboard Maestro's calculation engine"),
     ] = True,
     validate_only: Annotated[
-        bool, Field(default=False, description="Validate expression without evaluation")
+        bool,
+        Field(default=False, description="Validate expression without evaluation"),
     ] = False,
     ctx=None,
 ) -> dict[str, Any]:
@@ -842,17 +886,20 @@ async def km_token_processor(
     variables: Annotated[
         dict[str, str],
         Field(
-            default_factory=dict, description="Variable values for token substitution"
+            default_factory=dict,
+            description="Variable values for token substitution",
         ),
     ] = None,
     use_km_engine: Annotated[
         bool,
         Field(
-            default=True, description="Use Keyboard Maestro's token processing engine"
+            default=True,
+            description="Use Keyboard Maestro's token processing engine",
         ),
     ] = True,
     preview_only: Annotated[
-        bool, Field(default=False, description="Preview tokens without processing")
+        bool,
+        Field(default=False, description="Preview tokens without processing"),
     ] = False,
     security_level: Annotated[
         str,
@@ -870,7 +917,13 @@ async def km_token_processor(
     if variables is None:
         variables = {}
     return await _km_token_processor(
-        text, context, variables, use_km_engine, preview_only, security_level, ctx
+        text,
+        context,
+        variables,
+        use_km_engine,
+        preview_only,
+        security_level,
+        ctx,
     )
 
 
@@ -906,7 +959,8 @@ async def km_window_manager(
     size: Annotated[
         dict[str, int] | None,
         Field(
-            default=None, description="Target size {width, height} for resize operation"
+            default=None,
+            description="Target size {width, height} for resize operation",
         ),
     ] = None,
     screen: Annotated[
@@ -1006,13 +1060,15 @@ async def km_window_manager_advanced(
     positioning_rules: Annotated[
         dict[str, Any] | None,
         Field(
-            default=None, description="Custom positioning rules for smart arrangement"
+            default=None,
+            description="Custom positioning rules for smart arrangement",
         ),
     ] = None,
     preserve_ratios: Annotated[
         bool,
         Field(
-            default=True, description="Preserve aspect ratios and relative positioning"
+            default=True,
+            description="Preserve aspect ratios and relative positioning",
         ),
     ] = True,
     animate_transitions: Annotated[
@@ -1020,7 +1076,8 @@ async def km_window_manager_advanced(
         Field(default=False, description="Enable smooth window transition animations"),
     ] = False,
     save_layout: Annotated[
-        bool, Field(default=False, description="Save current layout as named workspace")
+        bool,
+        Field(default=False, description="Save current layout as named workspace"),
     ] = False,
     ctx=None,
 ) -> dict[str, Any]:
@@ -1105,10 +1162,12 @@ async def km_dictionary_manager(
         ),
     ] = "json",
     validate_schema: Annotated[
-        bool, Field(default=True, description="Enable schema validation")
+        bool,
+        Field(default=True, description="Enable schema validation"),
     ] = True,
     timeout_seconds: Annotated[
-        int, Field(default=30, description="Operation timeout in seconds", ge=1, le=300)
+        int,
+        Field(default=30, description="Operation timeout in seconds", ge=1, le=300),
     ] = 30,
     ctx=None,
 ) -> dict[str, Any]:
@@ -1159,7 +1218,8 @@ async def km_add_condition(
         Field(default=True, description="Whether text comparisons are case sensitive"),
     ] = True,
     negate: Annotated[
-        bool, Field(default=False, description="Whether to invert the condition result")
+        bool,
+        Field(default=False, description="Whether to invert the condition result"),
     ] = False,
     action_on_true: Annotated[
         str | None,
@@ -1308,10 +1368,12 @@ async def km_control_flow(
         Field(default=True, description="Whether to allow nested control structures"),
     ] = True,
     case_sensitive: Annotated[
-        bool, Field(default=True, description="Case sensitivity for string comparisons")
+        bool,
+        Field(default=True, description="Case sensitivity for string comparisons"),
     ] = True,
     negate: Annotated[
-        bool, Field(default=False, description="Whether to negate the condition result")
+        bool,
+        Field(default=False, description="Whether to negate the condition result"),
     ] = False,
     ctx=None,
 ) -> dict[str, Any]:
@@ -1345,7 +1407,8 @@ async def km_create_trigger_advanced(
     macro_identifier: Annotated[
         str,
         Field(
-            description="Target macro name or UUID to add trigger to", max_length=255
+            description="Target macro name or UUID to add trigger to",
+            max_length=255,
         ),
     ],
     trigger_type: Annotated[
@@ -1358,7 +1421,7 @@ async def km_create_trigger_advanced(
     trigger_config: Annotated[
         dict[str, Any],
         Field(
-            description="Trigger-specific configuration object with parameters like schedule_time, watch_path, app_bundle_id, etc."
+            description="Trigger-specific configuration object with parameters like schedule_time, watch_path, app_bundle_id, etc.",
         ),
     ],
     conditions: Annotated[
@@ -1369,7 +1432,8 @@ async def km_create_trigger_advanced(
         ),
     ] = None,
     enabled: Annotated[
-        bool, Field(default=True, description="Whether trigger starts in enabled state")
+        bool,
+        Field(default=True, description="Whether trigger starts in enabled state"),
     ] = True,
     priority: Annotated[
         int,
@@ -1449,7 +1513,8 @@ def create_macro_prompt(
     app_context: Annotated[
         str,
         Field(
-            default="", description="Specific application or context for the automation"
+            default="",
+            description="Specific application or context for the automation",
         ),
     ] = "",
 ) -> list[Message]:
@@ -1481,7 +1546,9 @@ async def km_plugin_ecosystem(
     action_name: Annotated[
         str | None,
         Field(
-            default=None, description="Custom action name to execute", max_length=255
+            default=None,
+            description="Custom action name to execute",
+            max_length=255,
         ),
     ] = None,
     parameters: Annotated[
@@ -1489,7 +1556,8 @@ async def km_plugin_ecosystem(
         Field(default=None, description="Action parameters or operation parameters"),
     ] = None,
     plugin_config: Annotated[
-        dict | None, Field(default=None, description="Plugin configuration settings")
+        dict | None,
+        Field(default=None, description="Plugin configuration settings"),
     ] = None,
     security_profile: Annotated[
         str,
@@ -1504,7 +1572,8 @@ async def km_plugin_ecosystem(
         Field(default="1.0", description="Plugin API version", pattern=r"^\d+\.\d+$"),
     ] = "1.0",
     auto_update: Annotated[
-        bool, Field(default=False, description="Enable automatic plugin updates")
+        bool,
+        Field(default=False, description="Enable automatic plugin updates"),
     ] = False,
     dependency_resolution: Annotated[
         bool,
@@ -1519,7 +1588,8 @@ async def km_plugin_ecosystem(
         ),
     ] = "strict",
     timeout: Annotated[
-        int, Field(default=60, description="Operation timeout in seconds", ge=5, le=300)
+        int,
+        Field(default=60, description="Operation timeout in seconds", ge=5, le=300),
     ] = 60,
     ctx=None,
 ) -> dict[str, Any]:
@@ -1556,7 +1626,9 @@ async def km_audit_system(
     event_type: Annotated[
         str | None,
         Field(
-            default=None, description="Event type for logging operation", max_length=100
+            default=None,
+            description="Event type for logging operation",
+            max_length=100,
         ),
     ] = None,
     user_id: Annotated[
@@ -1576,7 +1648,8 @@ async def km_audit_system(
         ),
     ] = None,
     action_details: Annotated[
-        dict | None, Field(default=None, description="Detailed action information")
+        dict | None,
+        Field(default=None, description="Detailed action information"),
     ] = None,
     compliance_standard: Annotated[
         str,
@@ -1599,7 +1672,8 @@ async def km_audit_system(
         ),
     ] = "json",
     include_sensitive: Annotated[
-        bool, Field(default=False, description="Include sensitive data in reports")
+        bool,
+        Field(default=False, description="Include sensitive data in reports"),
     ] = False,
     audit_level: Annotated[
         str,
@@ -1614,7 +1688,8 @@ async def km_audit_system(
         Field(default=365, description="Audit log retention in days", ge=1, le=2555),
     ] = 365,
     encrypt_logs: Annotated[
-        bool, Field(default=True, description="Enable audit log encryption")
+        bool,
+        Field(default=True, description="Enable audit log encryption"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
@@ -1687,19 +1762,24 @@ async def km_analytics_engine(
         ),
     ] = "dashboard",
     ml_insights: Annotated[
-        bool, Field(default=True, description="Enable machine learning insights")
+        bool,
+        Field(default=True, description="Enable machine learning insights"),
     ] = True,
     real_time_monitoring: Annotated[
-        bool, Field(default=True, description="Enable real-time metrics collection")
+        bool,
+        Field(default=True, description="Enable real-time metrics collection"),
     ] = True,
     anomaly_detection: Annotated[
-        bool, Field(default=True, description="Enable anomaly detection")
+        bool,
+        Field(default=True, description="Enable anomaly detection"),
     ] = True,
     predictive_analytics: Annotated[
-        bool, Field(default=True, description="Enable predictive modeling")
+        bool,
+        Field(default=True, description="Enable predictive modeling"),
     ] = True,
     roi_calculation: Annotated[
-        bool, Field(default=True, description="Enable ROI and cost-benefit analysis")
+        bool,
+        Field(default=True, description="Enable ROI and cost-benefit analysis"),
     ] = True,
     privacy_mode: Annotated[
         str,
@@ -1718,12 +1798,12 @@ async def km_analytics_engine(
         ),
     ] = "json",
     enterprise_integration: Annotated[
-        bool, Field(default=True, description="Enable enterprise system integration")
+        bool,
+        Field(default=True, description="Enable enterprise system integration"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Comprehensive automation analytics engine for deep insights and business intelligence.
+    """Comprehensive automation analytics engine for deep insights and business intelligence.
 
     Provides advanced analytics capabilities including metrics collection, ML insights,
     ROI analysis, performance monitoring, and executive dashboards across the complete
@@ -1766,33 +1846,38 @@ async def km_analytics_engine(
 @mcp.tool()
 async def km_analyze_workflow_intelligence(
     workflow_source: Annotated[
-        str, Field(description="Workflow source (description|existing|template)")
+        str,
+        Field(description="Workflow source (description|existing|template)"),
     ],
     workflow_data: Annotated[
-        str | dict, Field(description="Natural language description or workflow data")
+        str | dict,
+        Field(description="Natural language description or workflow data"),
     ],
     analysis_depth: Annotated[
-        str, Field(description="Analysis depth (basic|comprehensive|ai_enhanced)")
+        str,
+        Field(description="Analysis depth (basic|comprehensive|ai_enhanced)"),
     ] = "comprehensive",
     optimization_focus: Annotated[
         list[str],
         Field(
-            description="Optimization areas (performance|efficiency|reliability|cost)"
+            description="Optimization areas (performance|efficiency|reliability|cost)",
         ),
     ] = None,
     include_predictions: Annotated[
-        bool, Field(description="Include predictive performance analysis")
+        bool,
+        Field(description="Include predictive performance analysis"),
     ] = True,
     generate_alternatives: Annotated[
-        bool, Field(description="Generate alternative workflow designs")
+        bool,
+        Field(description="Generate alternative workflow designs"),
     ] = True,
     cross_tool_optimization: Annotated[
-        bool, Field(description="Enable cross-tool optimization analysis")
+        bool,
+        Field(description="Enable cross-tool optimization analysis"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Analyze workflow intelligence with AI-powered insights and optimization recommendations.
+    """Analyze workflow intelligence with AI-powered insights and optimization recommendations.
 
     Provides comprehensive workflow analysis including:
     - Natural language processing for workflow descriptions
@@ -1823,31 +1908,34 @@ async def km_analyze_workflow_intelligence(
 @mcp.tool()
 async def km_create_workflow_from_description(
     description: Annotated[
-        str, Field(description="Natural language workflow description", min_length=10)
+        str,
+        Field(description="Natural language workflow description", min_length=10),
     ],
     target_complexity: Annotated[
         str,
         Field(description="Target complexity (simple|intermediate|advanced|expert)"),
     ] = "intermediate",
     preferred_tools: Annotated[
-        list[str] | None, Field(description="Preferred tools to use")
+        list[str] | None,
+        Field(description="Preferred tools to use"),
     ] = None,
     optimization_goals: Annotated[
         list[str],
         Field(
-            description="Optimization goals (performance|efficiency|reliability|cost)"
+            description="Optimization goals (performance|efficiency|reliability|cost)",
         ),
     ] = None,
     include_error_handling: Annotated[
-        bool, Field(description="Include error handling and validation")
+        bool,
+        Field(description="Include error handling and validation"),
     ] = True,
     generate_visual_design: Annotated[
-        bool, Field(description="Generate visual workflow design")
+        bool,
+        Field(description="Generate visual workflow design"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Create intelligent workflow from natural language description.
+    """Create intelligent workflow from natural language description.
 
     Uses advanced NLP and AI to:
     - Parse user descriptions and extract workflow intent
@@ -1881,26 +1969,32 @@ async def km_create_workflow_from_description(
 async def km_control_iot_devices(
     device_identifier: Annotated[str, Field(description="Device ID, name, or address")],
     action: Annotated[
-        str, Field(description="Action to perform (on|off|set|get|toggle)")
+        str,
+        Field(description="Action to perform (on|off|set|get|toggle)"),
     ],
     device_type: Annotated[
         str | None,
         Field(description="Device type (light|sensor|thermostat|switch|camera)"),
     ] = None,
     parameters: Annotated[
-        dict[str, Any] | None, Field(description="Action-specific parameters")
+        dict[str, Any] | None,
+        Field(description="Action-specific parameters"),
     ] = None,
     protocol: Annotated[
-        str | None, Field(description="Communication protocol (mqtt|http|zigbee|zwave)")
+        str | None,
+        Field(description="Communication protocol (mqtt|http|zigbee|zwave)"),
     ] = None,
     timeout: Annotated[
-        int, Field(description="Operation timeout in seconds", ge=1, le=300)
+        int,
+        Field(description="Operation timeout in seconds", ge=1, le=300),
     ] = 30,
     retry_attempts: Annotated[
-        int, Field(description="Number of retry attempts", ge=0, le=5)
+        int,
+        Field(description="Number of retry attempts", ge=0, le=5),
     ] = 2,
     verify_action: Annotated[
-        bool, Field(description="Verify action completion")
+        bool,
+        Field(description="Verify action completion"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
@@ -1925,28 +2019,36 @@ async def km_control_iot_devices(
 @mcp.tool()
 async def km_monitor_sensors(
     sensor_identifiers: Annotated[
-        list[str], Field(description="List of sensor IDs or names to monitor")
+        list[str],
+        Field(description="List of sensor IDs or names to monitor"),
     ],
     monitoring_duration: Annotated[
-        int, Field(description="Monitoring duration in seconds", ge=10, le=86400)
+        int,
+        Field(description="Monitoring duration in seconds", ge=10, le=86400),
     ] = 300,
     sampling_interval: Annotated[
-        int, Field(description="Data sampling interval in seconds", ge=1, le=3600)
+        int,
+        Field(description="Data sampling interval in seconds", ge=1, le=3600),
     ] = 30,
     trigger_conditions: Annotated[
-        list[dict[str, Any]] | None, Field(description="Automation trigger conditions")
+        list[dict[str, Any]] | None,
+        Field(description="Automation trigger conditions"),
     ] = None,
     data_aggregation: Annotated[
-        str | None, Field(description="Data aggregation method (avg|min|max|sum)")
+        str | None,
+        Field(description="Data aggregation method (avg|min|max|sum)"),
     ] = None,
     alert_thresholds: Annotated[
-        dict[str, float] | None, Field(description="Alert threshold values")
+        dict[str, float] | None,
+        Field(description="Alert threshold values"),
     ] = None,
     export_data: Annotated[
-        bool, Field(description="Export sensor data for analysis")
+        bool,
+        Field(description="Export sensor data for analysis"),
     ] = False,
     real_time_alerts: Annotated[
-        bool, Field(description="Enable real-time alerting")
+        bool,
+        Field(description="Enable real-time alerting"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
@@ -1975,25 +2077,32 @@ async def km_manage_smart_home(
         Field(description="Operation (create_scene|activate_scene|schedule|status)"),
     ],
     scene_name: Annotated[
-        str | None, Field(description="Scene name for scene operations")
+        str | None,
+        Field(description="Scene name for scene operations"),
     ] = None,
     device_settings: Annotated[
-        dict[str, Any] | None, Field(description="Device settings for scene creation")
+        dict[str, Any] | None,
+        Field(description="Device settings for scene creation"),
     ] = None,
     schedule_config: Annotated[
-        dict[str, Any] | None, Field(description="Scheduling configuration")
+        dict[str, Any] | None,
+        Field(description="Scheduling configuration"),
     ] = None,
     location_context: Annotated[
-        str | None, Field(description="Location or room context")
+        str | None,
+        Field(description="Location or room context"),
     ] = None,
     user_preferences: Annotated[
-        dict[str, Any] | None, Field(description="User preferences and customization")
+        dict[str, Any] | None,
+        Field(description="User preferences and customization"),
     ] = None,
     energy_optimization: Annotated[
-        bool, Field(description="Enable energy optimization")
+        bool,
+        Field(description="Enable energy optimization"),
     ] = True,
     adaptive_automation: Annotated[
-        bool, Field(description="Enable adaptive automation based on usage patterns")
+        bool,
+        Field(description="Enable adaptive automation based on usage patterns"),
     ] = False,
     ctx=None,
 ) -> dict[str, Any]:
@@ -2019,25 +2128,32 @@ async def km_manage_smart_home(
 async def km_coordinate_iot_workflows(
     workflow_name: Annotated[str, Field(description="IoT workflow name")],
     device_sequence: Annotated[
-        list[dict[str, Any]], Field(description="Sequence of IoT device actions")
+        list[dict[str, Any]],
+        Field(description="Sequence of IoT device actions"),
     ],
     trigger_conditions: Annotated[
-        list[dict[str, Any]], Field(description="Workflow trigger conditions")
+        list[dict[str, Any]],
+        Field(description="Workflow trigger conditions"),
     ],
     coordination_type: Annotated[
-        str, Field(description="Coordination type (sequential|parallel|conditional)")
+        str,
+        Field(description="Coordination type (sequential|parallel|conditional)"),
     ] = "sequential",
     dependency_management: Annotated[
-        bool, Field(description="Enable device dependency management")
+        bool,
+        Field(description="Enable device dependency management"),
     ] = True,
     fault_tolerance: Annotated[
-        bool, Field(description="Enable fault tolerance and error recovery")
+        bool,
+        Field(description="Enable fault tolerance and error recovery"),
     ] = True,
     performance_optimization: Annotated[
-        bool, Field(description="Enable performance optimization")
+        bool,
+        Field(description="Enable performance optimization"),
     ] = True,
     learning_mode: Annotated[
-        bool, Field(description="Enable learning from workflow execution")
+        bool,
+        Field(description="Enable learning from workflow execution"),
     ] = False,
     ctx=None,
 ) -> dict[str, Any]:
@@ -2059,7 +2175,7 @@ async def km_coordinate_iot_workflows(
     )
 
 
-def main():
+def main() -> int:
     """Main entry point for the Keyboard Maestro MCP server."""
     import argparse
 
@@ -2076,7 +2192,10 @@ def main():
         help="Host for SSE transport (default: 127.0.0.1)",
     )
     parser.add_argument(
-        "--port", type=int, default=8000, help="Port for SSE transport (default: 8000)"
+        "--port",
+        type=int,
+        default=8000,
+        help="Port for SSE transport (default: 8000)",
     )
     parser.add_argument(
         "--log-level",

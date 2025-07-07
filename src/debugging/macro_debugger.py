@@ -1,5 +1,4 @@
-"""
-Interactive macro debugging functionality with step-through execution.
+"""Interactive macro debugging functionality with step-through execution.
 
 This module provides comprehensive debugging capabilities including breakpoints,
 variable watching, step-through execution, and performance analysis for
@@ -48,7 +47,6 @@ class DebugBreakpoint:
     @require(lambda self: self.hit_count >= 0)
     def __post_init__(self):
         """Validate breakpoint configuration."""
-        pass
 
 
 @dataclass
@@ -86,7 +84,6 @@ class DebugResult:
     @require(lambda self: len(self.macro_id) > 0)
     def __post_init__(self):
         """Validate debug result."""
-        pass
 
 
 class MacroDebugger:
@@ -97,9 +94,10 @@ class MacroDebugger:
         self._breakpoints: dict[str, set[DebugBreakpoint]] = {}
         self._session_counter = 0
 
-    @require(lambda self, session: isinstance(session, DebugSession))
+    @require(lambda __self, session: isinstance(session, DebugSession))
     async def start_debug_session(
-        self, session: DebugSession
+        self,
+        session: DebugSession,
     ) -> Either[ValidationError, str]:
         """Start a new debugging session with validation."""
         try:
@@ -126,26 +124,27 @@ class MacroDebugger:
             self._active_sessions[session_id] = execution_state
 
             logger.info(
-                f"Started debug session {session_id} for macro {session.macro_id}"
+                f"Started debug session {session_id} for macro {session.macro_id}",
             )
 
             return Either.right(session_id)
 
         except Exception as e:
-            logger.error(f"Failed to start debug session: {str(e)}")
+            logger.error(f"Failed to start debug session: {e!s}")
             return Either.left(
                 ValidationError(
                     field_name="debug_session",
                     value=str(session),
-                    constraint=f"Failed to start session: {str(e)}",
-                )
+                    constraint=f"Failed to start session: {e!s}",
+                ),
             )
 
     @require(
-        lambda self, session_id: isinstance(session_id, str) and len(session_id) > 0
+        lambda _self, session_id: isinstance(session_id, str) and len(session_id) > 0,
     )
     async def step_execution(
-        self, session_id: str
+        self,
+        session_id: str,
     ) -> Either[ValidationError, dict[str, Any]]:
         """Execute single step in debug session."""
         if session_id not in self._active_sessions:
@@ -154,7 +153,7 @@ class MacroDebugger:
                     field_name="session_id",
                     value=session_id,
                     constraint="Debug session not found",
-                )
+                ),
             )
 
         execution_state = self._active_sessions[session_id]
@@ -169,7 +168,7 @@ class MacroDebugger:
                     field_name="debug_state",
                     value=execution_state.debug_state.value,
                     constraint="Session not in steppable state",
-                )
+                ),
             )
 
         try:
@@ -196,7 +195,7 @@ class MacroDebugger:
             if hit_breakpoint:
                 execution_state.update_state(DebugState.PAUSED)
                 logger.info(
-                    f"Breakpoint hit at action {execution_state.current_action_id}"
+                    f"Breakpoint hit at action {execution_state.current_action_id}",
                 )
             else:
                 execution_state.update_state(DebugState.STEP_MODE)
@@ -210,7 +209,7 @@ class MacroDebugger:
                     "state": execution_state.debug_state.value,
                     "variables": execution_state.variable_values.copy(),
                     "breakpoint_hit": hit_breakpoint,
-                }
+                },
             )
 
         except Exception as e:
@@ -221,15 +220,16 @@ class MacroDebugger:
                 ValidationError(
                     field_name="step_execution",
                     value=session_id,
-                    constraint=f"Step execution failed: {str(e)}",
-                )
+                    constraint=f"Step execution failed: {e!s}",
+                ),
             )
 
     @require(
-        lambda self, session_id: isinstance(session_id, str) and len(session_id) > 0
+        lambda _self, session_id: isinstance(session_id, str) and len(session_id) > 0,
     )
     async def continue_execution(
-        self, session_id: str
+        self,
+        session_id: str,
     ) -> Either[ValidationError, dict[str, Any]]:
         """Continue execution until next breakpoint or completion."""
         if session_id not in self._active_sessions:
@@ -238,7 +238,7 @@ class MacroDebugger:
                     field_name="session_id",
                     value=session_id,
                     constraint="Debug session not found",
-                )
+                ),
             )
 
         execution_state = self._active_sessions[session_id]
@@ -273,7 +273,7 @@ class MacroDebugger:
                     "execution_time": execution_state.execution_time,
                     "final_state": execution_state.debug_state.value,
                     "variables": execution_state.variable_values.copy(),
-                }
+                },
             )
 
         except Exception as e:
@@ -284,15 +284,16 @@ class MacroDebugger:
                 ValidationError(
                     field_name="continue_execution",
                     value=session_id,
-                    constraint=f"Execution failed: {str(e)}",
-                )
+                    constraint=f"Execution failed: {e!s}",
+                ),
             )
 
     @require(
-        lambda self, session_id: isinstance(session_id, str) and len(session_id) > 0
+        lambda _self, session_id: isinstance(session_id, str) and len(session_id) > 0,
     )
     def get_session_state(
-        self, session_id: str
+        self,
+        session_id: str,
     ) -> Either[ValidationError, dict[str, Any]]:
         """Get current state of debug session."""
         if session_id not in self._active_sessions:
@@ -301,7 +302,7 @@ class MacroDebugger:
                     field_name="session_id",
                     value=session_id,
                     constraint="Debug session not found",
-                )
+                ),
             )
 
         execution_state = self._active_sessions[session_id]
@@ -317,14 +318,15 @@ class MacroDebugger:
                 "execution_stack": execution_state.execution_stack.copy(),
                 "error_message": execution_state.error_message,
                 "breakpoint_count": len(self._breakpoints.get(session_id, set())),
-            }
+            },
         )
 
     @require(
-        lambda self, session_id: isinstance(session_id, str) and len(session_id) > 0
+        lambda _self, session_id: isinstance(session_id, str) and len(session_id) > 0,
     )
     def stop_debug_session(
-        self, session_id: str
+        self,
+        session_id: str,
     ) -> Either[ValidationError, DebugResult]:
         """Stop debug session and return final results."""
         if session_id not in self._active_sessions:
@@ -333,7 +335,7 @@ class MacroDebugger:
                     field_name="session_id",
                     value=session_id,
                     constraint="Debug session not found",
-                )
+                ),
             )
 
         execution_state = self._active_sessions[session_id]
@@ -369,7 +371,8 @@ class MacroDebugger:
         return Either.right(debug_result)
 
     def _validate_debug_session(
-        self, session: DebugSession
+        self,
+        session: DebugSession,
     ) -> Either[ValidationError, None]:
         """Validate debug session configuration."""
         if not session.macro_id or len(session.macro_id.strip()) == 0:
@@ -378,7 +381,7 @@ class MacroDebugger:
                     field_name="macro_id",
                     value=session.macro_id,
                     constraint="Macro ID cannot be empty",
-                )
+                ),
             )
 
         if session.timeout_seconds <= 0 or session.timeout_seconds > 300:
@@ -387,7 +390,7 @@ class MacroDebugger:
                     field_name="timeout_seconds",
                     value=session.timeout_seconds,
                     constraint="Timeout must be between 1 and 300 seconds",
-                )
+                ),
             )
 
         if len(session.breakpoints) > 50:
@@ -396,7 +399,7 @@ class MacroDebugger:
                     field_name="breakpoints",
                     value=len(session.breakpoints),
                     constraint="Maximum 50 breakpoints allowed",
-                )
+                ),
             )
 
         if len(session.watch_variables) > 20:
@@ -405,7 +408,7 @@ class MacroDebugger:
                     field_name="watch_variables",
                     value=len(session.watch_variables),
                     constraint="Maximum 20 watch variables allowed",
-                )
+                ),
             )
 
         return Either.right(None)

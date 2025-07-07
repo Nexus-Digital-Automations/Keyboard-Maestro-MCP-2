@@ -1,6 +1,4 @@
-"""
-Predictive alert system for proactive notification and action triggering.
-"""
+"""Predictive alert system for proactive notification and action triggering."""
 
 import logging
 from datetime import UTC, datetime, timedelta
@@ -29,7 +27,8 @@ class PredictiveAlertSystem:
         self.logger = logging.getLogger(__name__)
 
     async def generate_predictive_alert(
-        self, alert_data: dict[str, Any]
+        self,
+        alert_data: dict[str, Any],
     ) -> Either[Exception, PredictiveAlert]:
         """Generate predictive alert based on analysis."""
         try:
@@ -42,10 +41,12 @@ class PredictiveAlertSystem:
                 predicted_occurrence=datetime.now(UTC) + timedelta(hours=2),
                 confidence=create_confidence_level(alert_data.get("confidence", 0.8)),
                 affected_systems=alert_data.get(
-                    "affected_systems", ["automation_system"]
+                    "affected_systems",
+                    ["automation_system"],
                 ),
                 recommended_actions=alert_data.get(
-                    "actions", ["Monitor system", "Check resources"]
+                    "actions",
+                    ["Monitor system", "Check resources"],
                 ),
                 escalation_threshold=timedelta(hours=1),
                 auto_resolution=alert_data.get("auto_resolution", False),

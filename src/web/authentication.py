@@ -1,5 +1,4 @@
-"""
-Authentication framework for HTTP requests.
+"""Authentication framework for HTTP requests.
 
 This module implements comprehensive authentication support for web requests,
 including API key, Bearer token, Basic auth, OAuth2, and custom header methods.
@@ -28,7 +27,7 @@ class AuthenticationType(Enum):
 
     NONE = "none"
     API_KEY = "api_key"
-    BEARER_TOKEN = "bearer_token"
+    BEARER_TOKEN = "bearer_token"  # noqa: S105 - Type identifier, not a secret
     BASIC_AUTH = "basic_auth"
     OAUTH2 = "oauth2"
     CUSTOM_HEADER = "custom_header"
@@ -71,7 +70,7 @@ class AuthenticationCredentials:
             or "header_value" not in self.credentials
         ):
             raise ValueError(
-                "Custom header auth requires 'header_name' and 'header_value' fields"
+                "Custom header auth requires 'header_name' and 'header_value' fields",
             )
 
 
@@ -80,7 +79,8 @@ class AuthenticationManager:
 
     @staticmethod
     def create_authentication(
-        auth_type: str, credentials: dict[str, str]
+        auth_type: str,
+        credentials: dict[str, str],
     ) -> Either[ValidationError, AuthenticationCredentials]:
         """Create authentication credentials with validation."""
         try:
@@ -94,12 +94,13 @@ class AuthenticationManager:
                         field_name="auth_type",
                         value=auth_type,
                         constraint=f"Must be one of: {', '.join(valid_types)}",
-                    )
+                    ),
                 )
 
             # Validate and sanitize credentials
             sanitized_credentials = AuthenticationManager._sanitize_credentials(
-                auth_type_enum, credentials
+                auth_type_enum,
+                credentials,
             )
 
             if sanitized_credentials.is_left():
@@ -107,7 +108,8 @@ class AuthenticationManager:
 
             # Create authentication object
             auth = AuthenticationCredentials(
-                auth_type=auth_type_enum, credentials=sanitized_credentials.get_right()
+                auth_type=auth_type_enum,
+                credentials=sanitized_credentials.get_right(),
             )
 
             return Either.right(auth)
@@ -117,13 +119,14 @@ class AuthenticationManager:
                 ValidationError(
                     field_name="authentication",
                     value=str(credentials),
-                    constraint=f"Failed to create authentication: {str(e)}",
-                )
+                    constraint=f"Failed to create authentication: {e!s}",
+                ),
             )
 
     @staticmethod
     def _sanitize_credentials(
-        auth_type: AuthenticationType, credentials: dict[str, str]
+        auth_type: AuthenticationType,
+        credentials: dict[str, str],
     ) -> Either[ValidationError, dict[str, str]]:
         """Sanitize and validate credentials based on auth type."""
         sanitized = {}
@@ -138,7 +141,7 @@ class AuthenticationManager:
                             field_name="api_key",
                             value="",
                             constraint="API key cannot be empty",
-                        )
+                        ),
                     )
 
                 if len(api_key) > 512:
@@ -147,7 +150,7 @@ class AuthenticationManager:
                             field_name="api_key",
                             value=api_key[:50] + "...",
                             constraint="API key too long (max 512 characters)",
-                        )
+                        ),
                     )
 
                 sanitized["api_key"] = api_key
@@ -160,7 +163,7 @@ class AuthenticationManager:
                             field_name="header_name",
                             value=header_name,
                             constraint="Header name must contain only alphanumeric, dash, and underscore",
-                        )
+                        ),
                     )
 
                 sanitized["header_name"] = header_name
@@ -174,7 +177,7 @@ class AuthenticationManager:
                             field_name="token",
                             value="",
                             constraint="Bearer token cannot be empty",
-                        )
+                        ),
                     )
 
                 if len(token) > 2048:
@@ -183,7 +186,7 @@ class AuthenticationManager:
                             field_name="token",
                             value=token[:50] + "...",
                             constraint="Bearer token too long (max 2048 characters)",
-                        )
+                        ),
                     )
 
                 sanitized["token"] = token
@@ -199,7 +202,7 @@ class AuthenticationManager:
                             field_name="username",
                             value="",
                             constraint="Username cannot be empty",
-                        )
+                        ),
                     )
 
                 if len(username) > 255:
@@ -208,7 +211,7 @@ class AuthenticationManager:
                             field_name="username",
                             value=username[:50] + "...",
                             constraint="Username too long (max 255 characters)",
-                        )
+                        ),
                     )
 
                 if len(password) > 255:
@@ -217,7 +220,7 @@ class AuthenticationManager:
                             field_name="password",
                             value="[REDACTED]",
                             constraint="Password too long (max 255 characters)",
-                        )
+                        ),
                     )
 
                 # Check for dangerous characters
@@ -227,7 +230,7 @@ class AuthenticationManager:
                             field_name="username",
                             value=username,
                             constraint="Username cannot contain newline characters",
-                        )
+                        ),
                     )
 
                 sanitized["username"] = username
@@ -242,7 +245,7 @@ class AuthenticationManager:
                             field_name="access_token",
                             value="",
                             constraint="OAuth2 access token cannot be empty",
-                        )
+                        ),
                     )
 
                 if len(access_token) > 2048:
@@ -251,7 +254,7 @@ class AuthenticationManager:
                             field_name="access_token",
                             value=access_token[:50] + "...",
                             constraint="Access token too long (max 2048 characters)",
-                        )
+                        ),
                     )
 
                 sanitized["access_token"] = access_token
@@ -264,7 +267,7 @@ class AuthenticationManager:
                             field_name="token_type",
                             value=token_type,
                             constraint="Token type must contain only alphanumeric, dash, and underscore",
-                        )
+                        ),
                     )
 
                 sanitized["token_type"] = token_type
@@ -280,7 +283,7 @@ class AuthenticationManager:
                             field_name="header_name",
                             value="",
                             constraint="Header name cannot be empty",
-                        )
+                        ),
                     )
 
                 if not header_value:
@@ -289,7 +292,7 @@ class AuthenticationManager:
                             field_name="header_value",
                             value="",
                             constraint="Header value cannot be empty",
-                        )
+                        ),
                     )
 
                 # Validate header name format
@@ -299,7 +302,7 @@ class AuthenticationManager:
                             field_name="header_name",
                             value=header_name,
                             constraint="Header name must contain only alphanumeric, dash, and underscore",
-                        )
+                        ),
                     )
 
                 if len(header_name) > 100:
@@ -308,7 +311,7 @@ class AuthenticationManager:
                             field_name="header_name",
                             value=header_name,
                             constraint="Header name too long (max 100 characters)",
-                        )
+                        ),
                     )
 
                 if len(header_value) > 8192:
@@ -317,7 +320,7 @@ class AuthenticationManager:
                             field_name="header_value",
                             value=header_value[:50] + "...",
                             constraint="Header value too long (max 8192 characters)",
-                        )
+                        ),
                     )
 
                 # Remove control characters from header value
@@ -335,15 +338,15 @@ class AuthenticationManager:
                 ValidationError(
                     field_name="credentials",
                     value=str(credentials),
-                    constraint=f"Failed to sanitize credentials: {str(e)}",
-                )
+                    constraint=f"Failed to sanitize credentials: {e!s}",
+                ),
             )
 
     @staticmethod
     @require(lambda auth: isinstance(auth, AuthenticationCredentials))
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.get_left(), ValidationError)
+        or isinstance(result.get_left(), ValidationError),
     )
     def apply_authentication(
         auth: AuthenticationCredentials,
@@ -353,61 +356,60 @@ class AuthenticationManager:
             if auth.auth_type == AuthenticationType.NONE:
                 return Either.right({})
 
-            elif auth.auth_type == AuthenticationType.API_KEY:
+            if auth.auth_type == AuthenticationType.API_KEY:
                 api_key = auth.credentials["api_key"]
                 header_name = auth.credentials.get("header_name", "X-API-Key")
 
                 return Either.right({"headers": {header_name: api_key}})
 
-            elif auth.auth_type == AuthenticationType.BEARER_TOKEN:
+            if auth.auth_type == AuthenticationType.BEARER_TOKEN:
                 token = auth.credentials["token"]
 
                 return Either.right({"headers": {"Authorization": f"Bearer {token}"}})
 
-            elif auth.auth_type == AuthenticationType.BASIC_AUTH:
+            if auth.auth_type == AuthenticationType.BASIC_AUTH:
                 username = auth.credentials["username"]
                 password = auth.credentials["password"]
 
                 # Encode credentials
                 credentials_str = f"{username}:{password}"
                 encoded_credentials = base64.b64encode(
-                    credentials_str.encode("utf-8")
+                    credentials_str.encode("utf-8"),
                 ).decode("ascii")
 
                 return Either.right(
-                    {"headers": {"Authorization": f"Basic {encoded_credentials}"}}
+                    {"headers": {"Authorization": f"Basic {encoded_credentials}"}},
                 )
 
-            elif auth.auth_type == AuthenticationType.OAUTH2:
+            if auth.auth_type == AuthenticationType.OAUTH2:
                 access_token = auth.credentials["access_token"]
                 token_type = auth.credentials.get("token_type", "Bearer")
 
                 return Either.right(
-                    {"headers": {"Authorization": f"{token_type} {access_token}"}}
+                    {"headers": {"Authorization": f"{token_type} {access_token}"}},
                 )
 
-            elif auth.auth_type == AuthenticationType.CUSTOM_HEADER:
+            if auth.auth_type == AuthenticationType.CUSTOM_HEADER:
                 header_name = auth.credentials["header_name"]
                 header_value = auth.credentials["header_value"]
 
                 return Either.right({"headers": {header_name: header_value}})
 
-            else:
-                return Either.left(
-                    ValidationError(
-                        field_name="auth_type",
-                        value=auth.auth_type.value,
-                        constraint="Unsupported authentication type",
-                    )
-                )
+            return Either.left(
+                ValidationError(
+                    field_name="auth_type",
+                    value=auth.auth_type.value,
+                    constraint="Unsupported authentication type",
+                ),
+            )
 
         except Exception as e:
             return Either.left(
                 ValidationError(
                     field_name="authentication",
                     value=str(auth),
-                    constraint=f"Failed to apply authentication: {str(e)}",
-                )
+                    constraint=f"Failed to apply authentication: {e!s}",
+                ),
             )
 
 
@@ -429,7 +431,7 @@ class AuthenticationValidator:
         """Validate credential for security issues."""
         if not credential_value or not credential_value.strip():
             return Either.left(
-                SecurityError("EMPTY_CREDENTIAL", "Credential cannot be empty")
+                SecurityError("EMPTY_CREDENTIAL", "Credential cannot be empty"),
             )
 
         clean_value = credential_value.strip()
@@ -438,8 +440,9 @@ class AuthenticationValidator:
         if len(clean_value) < 8:
             return Either.left(
                 SecurityError(
-                    "WEAK_CREDENTIAL", "Credential too short (minimum 8 characters)"
-                )
+                    "WEAK_CREDENTIAL",
+                    "Credential too short (minimum 8 characters)",
+                ),
             )
 
         # Check for obvious test/default values
@@ -462,8 +465,9 @@ class AuthenticationValidator:
         if clean_value.lower() in test_values:
             return Either.left(
                 SecurityError(
-                    "TEST_CREDENTIAL", "Credential appears to be a test/default value"
-                )
+                    "TEST_CREDENTIAL",
+                    "Credential appears to be a test/default value",
+                ),
             )
 
         # Check for credential patterns that might indicate leakage
@@ -473,7 +477,7 @@ class AuthenticationValidator:
                     SecurityError(
                         "CREDENTIAL_PATTERN_DETECTED",
                         "Credential contains suspicious patterns",
-                    )
+                    ),
                 )
 
         # Check for control characters
@@ -482,7 +486,7 @@ class AuthenticationValidator:
                 SecurityError(
                     "INVALID_CHARACTERS",
                     "Credential contains invalid control characters",
-                )
+                ),
             )
 
         return Either.right(clean_value)
@@ -499,11 +503,13 @@ class AuthenticationValidator:
 
 # Authentication factory functions for convenience
 def create_api_key_auth(
-    api_key: str, header_name: str = "X-API-Key"
+    api_key: str,
+    header_name: str = "X-API-Key",
 ) -> Either[ValidationError, AuthenticationCredentials]:
     """Create API key authentication."""
     return AuthenticationManager.create_authentication(
-        "api_key", {"api_key": api_key, "header_name": header_name}
+        "api_key",
+        {"api_key": api_key, "header_name": header_name},
     )
 
 
@@ -515,27 +521,33 @@ def create_bearer_token_auth(
 
 
 def create_basic_auth(
-    username: str, password: str
+    username: str,
+    password: str,
 ) -> Either[ValidationError, AuthenticationCredentials]:
     """Create HTTP Basic authentication."""
     return AuthenticationManager.create_authentication(
-        "basic_auth", {"username": username, "password": password}
+        "basic_auth",
+        {"username": username, "password": password},
     )
 
 
 def create_oauth2_auth(
-    access_token: str, token_type: str = "Bearer"
+    access_token: str,
+    token_type: str = "Bearer",  # noqa: S107 # Standard OAuth2 token type, not a password
 ) -> Either[ValidationError, AuthenticationCredentials]:
     """Create OAuth2 authentication."""
     return AuthenticationManager.create_authentication(
-        "oauth2", {"access_token": access_token, "token_type": token_type}
+        "oauth2",
+        {"access_token": access_token, "token_type": token_type},
     )
 
 
 def create_custom_header_auth(
-    header_name: str, header_value: str
+    header_name: str,
+    header_value: str,
 ) -> Either[ValidationError, AuthenticationCredentials]:
     """Create custom header authentication."""
     return AuthenticationManager.create_authentication(
-        "custom_header", {"header_name": header_name, "header_value": header_value}
+        "custom_header",
+        {"header_name": header_name, "header_value": header_value},
     )

@@ -1,11 +1,13 @@
-"""
-Comprehensive tests for predictive analytics tools module using systematic MCP tool test pattern.
+"""Comprehensive tests for predictive analytics tools module using systematic MCP tool test pattern.
 
 Tests cover automation pattern prediction, resource usage forecasting, insights generation,
 trend analysis, and analytics status monitoring with property-based testing and comprehensive
 enterprise-grade validation using the proven pattern that achieved 100% success across 17+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -26,27 +28,27 @@ km_get_analytics_status = predictive_tools.km_get_analytics_status.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def prediction_scope_strategy(draw):
+def prediction_scope_strategy(draw) -> Any:
     """Generate valid prediction scopes."""
     scopes = ["user", "macro", "system", "workflow"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def time_horizon_strategy(draw):
+def time_horizon_strategy(draw) -> Any:
     """Generate valid time horizons in days."""
     return draw(st.integers(min_value=1, max_value=365))
 
 
 @st.composite
-def pattern_types_strategy(draw):
+def pattern_types_strategy(draw) -> Any:
     """Generate valid pattern types."""
     types = ["usage", "performance", "errors", "workflow", "resource", "seasonal"]
     return draw(st.lists(st.sampled_from(types), min_size=1, max_size=4, unique=True))
 
 
 @st.composite
-def resource_types_strategy(draw):
+def resource_types_strategy(draw) -> Any:
     """Generate valid resource types."""
     types = [
         "cpu",
@@ -60,28 +62,28 @@ def resource_types_strategy(draw):
 
 
 @st.composite
-def granularity_strategy(draw):
+def granularity_strategy(draw) -> Any:
     """Generate valid forecast granularities."""
     granularities = ["hourly", "daily", "weekly"]
     return draw(st.sampled_from(granularities))
 
 
 @st.composite
-def analysis_scope_strategy(draw):
+def analysis_scope_strategy(draw) -> Any:
     """Generate valid analysis scopes."""
     scopes = ["automation", "performance", "usage", "efficiency"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def data_timeframe_strategy(draw):
+def data_timeframe_strategy(draw) -> dict[str, Any]:
     """Generate valid data timeframes."""
     timeframes = ["week", "month", "quarter", "year"]
     return draw(st.sampled_from(timeframes))
 
 
 @st.composite
-def insight_types_strategy(draw):
+def insight_types_strategy(draw) -> Any:
     """Generate valid insight types."""
     types = [
         "optimization",
@@ -96,21 +98,21 @@ def insight_types_strategy(draw):
 
 
 @st.composite
-def trend_scope_strategy(draw):
+def trend_scope_strategy(draw) -> Any:
     """Generate valid trend analysis scopes."""
     scopes = ["usage", "performance", "errors", "efficiency"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def analysis_period_strategy(draw):
+def analysis_period_strategy(draw) -> Any:
     """Generate valid analysis periods."""
     periods = ["month", "quarter", "year", "custom"]
     return draw(st.sampled_from(periods))
 
 
 @st.composite
-def sensitivity_strategy(draw):
+def sensitivity_strategy(draw) -> Any:
     """Generate valid trend detection sensitivities."""
     sensitivities = ["low", "medium", "high"]
     return draw(st.sampled_from(sensitivities))
@@ -119,7 +121,7 @@ def sensitivity_strategy(draw):
 class TestPredictiveAnalyticsToolsDependencies:
     """Test predictive analytics tool dependencies and imports."""
 
-    def test_predictive_analytics_imports(self):
+    def test_predictive_analytics_imports(self) -> None:
         """Test that all predictive analytics functions can be imported."""
         # Test direct imports work
         assert km_predict_automation_patterns is not None
@@ -133,12 +135,12 @@ class TestPredictiveAnalyticsParameterValidation:
     """Test parameter validation for predictive analytics operations."""
 
     @given(prediction_scope_strategy())
-    def test_valid_prediction_scopes(self, scope):
+    def test_valid_prediction_scopes(self, scope) -> None:
         """Test that valid prediction scopes are accepted."""
         assert scope in ["user", "macro", "system", "workflow"]
 
     @given(pattern_types_strategy())
-    def test_valid_pattern_types(self, pattern_types):
+    def test_valid_pattern_types(self, pattern_types) -> None:
         """Test that valid pattern types are accepted."""
         valid_types = [
             "usage",
@@ -152,7 +154,7 @@ class TestPredictiveAnalyticsParameterValidation:
             assert pattern_type in valid_types
 
     @given(resource_types_strategy())
-    def test_valid_resource_types(self, resource_types):
+    def test_valid_resource_types(self, resource_types) -> None:
         """Test that valid resource types are accepted."""
         valid_types = [
             "cpu",
@@ -166,17 +168,17 @@ class TestPredictiveAnalyticsParameterValidation:
             assert resource_type in valid_types
 
     @given(granularity_strategy())
-    def test_valid_granularities(self, granularity):
+    def test_valid_granularities(self, granularity) -> None:
         """Test that valid granularities are accepted."""
         assert granularity in ["hourly", "daily", "weekly"]
 
     @given(analysis_scope_strategy())
-    def test_valid_analysis_scopes(self, scope):
+    def test_valid_analysis_scopes(self, scope) -> None:
         """Test that valid analysis scopes are accepted."""
         assert scope in ["automation", "performance", "usage", "efficiency"]
 
     @given(insight_types_strategy())
-    def test_valid_insight_types(self, insight_types):
+    def test_valid_insight_types(self, insight_types) -> None:
         """Test that valid insight types are accepted."""
         valid_types = [
             "optimization",
@@ -195,11 +197,11 @@ class TestAutomationPatternPredictionMocked:
     """Test automation pattern prediction with comprehensive mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_predict_automation_patterns_success(self):
+    async def test_km_predict_automation_patterns_success(self) -> None:
         """Test successful automation pattern prediction."""
         with (
             patch(
-                "src.server.tools.predictive_analytics_tools.pattern_predictor"
+                "src.server.tools.predictive_analytics_tools.pattern_predictor",
             ) as mock_predictor,
             patch("src.server.tools.predictive_analytics_tools._validate_components"),
         ):
@@ -230,14 +232,14 @@ class TestAutomationPatternPredictionMocked:
 
             mock_predictor.detect_patterns = AsyncMock(return_value=mock_result)
             mock_predictor.predict_pattern_future = AsyncMock(
-                return_value=mock_pred_result
+                return_value=mock_pred_result,
             )
             mock_predictor.get_pattern_summary = AsyncMock(
                 return_value={
                     "total_patterns_detected": 3,
                     "patterns_by_type": {"usage": 1, "performance": 2},
                     "detection_timestamp": datetime.now(UTC).isoformat(),
-                }
+                },
             )
 
             # Execute pattern prediction
@@ -263,12 +265,13 @@ class TestAutomationPatternPredictionMocked:
             assert "performance" in result
 
     @pytest.mark.asyncio
-    async def test_km_predict_automation_patterns_invalid_scope(self):
+    async def test_km_predict_automation_patterns_invalid_scope(self) -> None:
         """Test pattern prediction with invalid scope."""
         with patch("src.server.tools.predictive_analytics_tools._validate_components"):
             # Execute with invalid scope
             result = await km_predict_automation_patterns(
-                prediction_scope="invalid_scope", prediction_horizon=30
+                prediction_scope="invalid_scope",
+                prediction_horizon=30,
             )
 
             # Verify invalid scope error
@@ -276,11 +279,11 @@ class TestAutomationPatternPredictionMocked:
             assert "Invalid prediction scope" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_km_predict_automation_patterns_pattern_detection_error(self):
+    async def test_km_predict_automation_patterns_pattern_detection_error(self) -> None:
         """Test pattern prediction with detection error."""
         with (
             patch(
-                "src.server.tools.predictive_analytics_tools.pattern_predictor"
+                "src.server.tools.predictive_analytics_tools.pattern_predictor",
             ) as mock_predictor,
             patch("src.server.tools.predictive_analytics_tools._validate_components"),
         ):
@@ -295,7 +298,8 @@ class TestAutomationPatternPredictionMocked:
 
             # Execute prediction that should fail
             result = await km_predict_automation_patterns(
-                prediction_scope="user", prediction_horizon=30
+                prediction_scope="user",
+                prediction_horizon=30,
             )
 
             # Verify detection error
@@ -307,11 +311,11 @@ class TestResourceUsageForecastingMocked:
     """Test resource usage forecasting with comprehensive mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_forecast_resource_usage_success(self):
+    async def test_km_forecast_resource_usage_success(self) -> None:
         """Test successful resource usage forecasting."""
         with (
             patch(
-                "src.server.tools.predictive_analytics_tools.usage_forecaster"
+                "src.server.tools.predictive_analytics_tools.usage_forecaster",
             ) as mock_forecaster,
             patch("src.server.tools.predictive_analytics_tools._validate_components"),
         ):
@@ -342,10 +346,10 @@ class TestResourceUsageForecastingMocked:
 
             mock_forecaster.add_usage_data = AsyncMock(return_value=mock_usage_result)
             mock_forecaster.generate_forecast = AsyncMock(
-                return_value=mock_forecast_result
+                return_value=mock_forecast_result,
             )
             mock_forecaster.get_forecasting_summary = AsyncMock(
-                return_value={"resources_tracked": 4, "total_data_points": 1000}
+                return_value={"resources_tracked": 4, "total_data_points": 1000},
             )
 
             # Execute resource forecasting
@@ -369,12 +373,13 @@ class TestResourceUsageForecastingMocked:
             assert "forecast_summary" in result
 
     @pytest.mark.asyncio
-    async def test_km_forecast_resource_usage_invalid_resource(self):
+    async def test_km_forecast_resource_usage_invalid_resource(self) -> None:
         """Test resource forecasting with invalid resource types."""
         with patch("src.server.tools.predictive_analytics_tools._validate_components"):
             # Execute with invalid resource types
             result = await km_forecast_resource_usage(
-                resource_types=["invalid_resource"], forecast_period=30
+                resource_types=["invalid_resource"],
+                forecast_period=30,
             )
 
             # Verify invalid resource error
@@ -382,7 +387,7 @@ class TestResourceUsageForecastingMocked:
             assert "Invalid resource types" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_km_forecast_resource_usage_invalid_granularity(self):
+    async def test_km_forecast_resource_usage_invalid_granularity(self) -> None:
         """Test resource forecasting with invalid granularity."""
         with patch("src.server.tools.predictive_analytics_tools._validate_components"):
             # Execute with invalid granularity
@@ -401,11 +406,11 @@ class TestInsightsGenerationMocked:
     """Test insights generation with comprehensive mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_generate_insights_success(self):
+    async def test_km_generate_insights_success(self) -> None:
         """Test successful insights generation."""
         with (
             patch(
-                "src.server.tools.predictive_analytics_tools.insight_generator"
+                "src.server.tools.predictive_analytics_tools.insight_generator",
             ) as mock_generator,
             patch("src.server.tools.predictive_analytics_tools._validate_components"),
         ):
@@ -450,16 +455,16 @@ class TestInsightsGenerationMocked:
             mock_summary_result.get_right.return_value = mock_summary
 
             mock_generator.generate_insights = AsyncMock(
-                return_value=mock_insights_result
+                return_value=mock_insights_result,
             )
             mock_generator.generate_executive_summary = AsyncMock(
-                return_value=mock_summary_result
+                return_value=mock_summary_result,
             )
             mock_generator.get_insight_summary = AsyncMock(
                 return_value={
                     "total_insights_generated": 5,
                     "high_impact_insights_count": 2,
-                }
+                },
             )
 
             # Execute insights generation
@@ -484,12 +489,13 @@ class TestInsightsGenerationMocked:
             assert "insight_summary" in result
 
     @pytest.mark.asyncio
-    async def test_km_generate_insights_invalid_scope(self):
+    async def test_km_generate_insights_invalid_scope(self) -> None:
         """Test insights generation with invalid scope."""
         with patch("src.server.tools.predictive_analytics_tools._validate_components"):
             # Execute with invalid scope
             result = await km_generate_insights(
-                analysis_scope="invalid_scope", data_timeframe="month"
+                analysis_scope="invalid_scope",
+                data_timeframe="month",
             )
 
             # Verify invalid scope error
@@ -497,12 +503,13 @@ class TestInsightsGenerationMocked:
             assert "Invalid analysis scope" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_km_generate_insights_invalid_timeframe(self):
+    async def test_km_generate_insights_invalid_timeframe(self) -> None:
         """Test insights generation with invalid timeframe."""
         with patch("src.server.tools.predictive_analytics_tools._validate_components"):
             # Execute with invalid timeframe
             result = await km_generate_insights(
-                analysis_scope="automation", data_timeframe="invalid_timeframe"
+                analysis_scope="automation",
+                data_timeframe="invalid_timeframe",
             )
 
             # Verify invalid timeframe error
@@ -514,23 +521,23 @@ class TestTrendAnalysisMocked:
     """Test trend analysis with comprehensive mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_analyze_trends_success(self):
+    async def test_km_analyze_trends_success(self) -> None:
         """Test successful trend analysis."""
         with (
             patch(
-                "src.server.tools.predictive_analytics_tools.pattern_predictor"
+                "src.server.tools.predictive_analytics_tools.pattern_predictor",
             ) as mock_predictor,
             patch(
-                "src.server.tools.predictive_analytics_tools._validate_components"
+                "src.server.tools.predictive_analytics_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.predictive_analytics_tools._generate_sample_trend_data"
+                "src.server.tools.predictive_analytics_tools._generate_sample_trend_data",
             ) as mock_trend_data,
             patch(
-                "src.server.tools.predictive_analytics_tools._convert_trend_data_to_features"
+                "src.server.tools.predictive_analytics_tools._convert_trend_data_to_features",
             ) as mock_features,
             patch(
-                "src.server.tools.predictive_analytics_tools._generate_trend_insights"
+                "src.server.tools.predictive_analytics_tools._generate_trend_insights",
             ) as mock_insights,
         ):
             # Setup validation and data generation mocks
@@ -566,7 +573,7 @@ class TestTrendAnalysisMocked:
 
             mock_predictor.detect_patterns = AsyncMock(return_value=mock_pattern_result)
             mock_predictor.predict_pattern_future = AsyncMock(
-                return_value=mock_pred_result
+                return_value=mock_pred_result,
             )
 
             # Execute trend analysis
@@ -594,12 +601,13 @@ class TestTrendAnalysisMocked:
             assert "trend_report" in result
 
     @pytest.mark.asyncio
-    async def test_km_analyze_trends_invalid_scope(self):
+    async def test_km_analyze_trends_invalid_scope(self) -> None:
         """Test trend analysis with invalid scope."""
         with patch("src.server.tools.predictive_analytics_tools._validate_components"):
             # Execute with invalid scope
             result = await km_analyze_trends(
-                trend_analysis_scope="invalid_scope", analysis_period="quarter"
+                trend_analysis_scope="invalid_scope",
+                analysis_period="quarter",
             )
 
             # Verify invalid scope error
@@ -607,12 +615,13 @@ class TestTrendAnalysisMocked:
             assert "Invalid trend analysis scope" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_km_analyze_trends_invalid_period(self):
+    async def test_km_analyze_trends_invalid_period(self) -> None:
         """Test trend analysis with invalid period."""
         with patch("src.server.tools.predictive_analytics_tools._validate_components"):
             # Execute with invalid period
             result = await km_analyze_trends(
-                trend_analysis_scope="usage", analysis_period="invalid_period"
+                trend_analysis_scope="usage",
+                analysis_period="invalid_period",
             )
 
             # Verify invalid period error
@@ -624,20 +633,20 @@ class TestAnalyticsStatusMocked:
     """Test analytics status retrieval with comprehensive mocking."""
 
     @pytest.mark.asyncio
-    async def test_km_get_analytics_status_success(self):
+    async def test_km_get_analytics_status_success(self) -> None:
         """Test successful analytics status retrieval."""
         with (
             patch(
-                "src.server.tools.predictive_analytics_tools.pattern_predictor"
+                "src.server.tools.predictive_analytics_tools.pattern_predictor",
             ) as mock_predictor,
             patch(
-                "src.server.tools.predictive_analytics_tools.usage_forecaster"
+                "src.server.tools.predictive_analytics_tools.usage_forecaster",
             ) as mock_forecaster,
             patch(
-                "src.server.tools.predictive_analytics_tools.insight_generator"
+                "src.server.tools.predictive_analytics_tools.insight_generator",
             ) as mock_generator,
             patch(
-                "src.server.tools.predictive_analytics_tools.model_manager"
+                "src.server.tools.predictive_analytics_tools.model_manager",
             ) as mock_manager,
             patch("src.server.tools.predictive_analytics_tools._validate_components"),
         ):
@@ -646,22 +655,22 @@ class TestAnalyticsStatusMocked:
                 return_value={
                     "total_patterns_detected": 15,
                     "patterns_by_type": {"usage": 5, "performance": 10},
-                }
+                },
             )
 
             mock_forecaster.get_forecasting_summary = AsyncMock(
-                return_value={"resources_tracked": 6, "total_data_points": 5000}
+                return_value={"resources_tracked": 6, "total_data_points": 5000},
             )
 
             mock_generator.get_insight_summary = AsyncMock(
                 return_value={
                     "total_insights_generated": 25,
                     "high_impact_insights_count": 8,
-                }
+                },
             )
 
             mock_manager.get_model_manager_summary = AsyncMock(
-                return_value={"trained_models": 4, "deployed_models": 3}
+                return_value={"trained_models": 4, "deployed_models": 3},
             )
 
             # Execute status retrieval
@@ -684,10 +693,10 @@ class TestAnalyticsStatusMocked:
             assert result["capabilities"]["pattern_prediction"] is True
 
     @pytest.mark.asyncio
-    async def test_km_get_analytics_status_component_error(self):
+    async def test_km_get_analytics_status_component_error(self) -> None:
         """Test analytics status with component error."""
         with patch(
-            "src.server.tools.predictive_analytics_tools._validate_components"
+            "src.server.tools.predictive_analytics_tools._validate_components",
         ) as mock_validate:
             # Setup component error
             mock_validate.side_effect = RuntimeError("Components not initialized")
@@ -705,19 +714,20 @@ class TestPredictiveAnalyticsErrorHandling:
     """Test error handling scenarios for predictive analytics operations."""
 
     @pytest.mark.asyncio
-    async def test_pattern_prediction_system_error(self):
+    async def test_pattern_prediction_system_error(self) -> None:
         """Test handling of system errors in pattern prediction."""
         with patch(
-            "src.server.tools.predictive_analytics_tools._validate_components"
+            "src.server.tools.predictive_analytics_tools._validate_components",
         ) as mock_validate:
             # Setup system error
             mock_validate.side_effect = RuntimeError(
-                "Predictive analytics system unavailable"
+                "Predictive analytics system unavailable",
             )
 
             # Execute operation that should trigger system error
             result = await km_predict_automation_patterns(
-                prediction_scope="user", prediction_horizon=30
+                prediction_scope="user",
+                prediction_horizon=30,
             )
 
             # Verify system error handling
@@ -725,17 +735,18 @@ class TestPredictiveAnalyticsErrorHandling:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_forecasting_system_error(self):
+    async def test_forecasting_system_error(self) -> None:
         """Test handling of system errors in forecasting."""
         with patch(
-            "src.server.tools.predictive_analytics_tools._validate_components"
+            "src.server.tools.predictive_analytics_tools._validate_components",
         ) as mock_validate:
             # Setup system error
             mock_validate.side_effect = RuntimeError("Forecasting engine unavailable")
 
             # Execute operation that should trigger system error
             result = await km_forecast_resource_usage(
-                resource_types=["cpu"], forecast_period=30
+                resource_types=["cpu"],
+                forecast_period=30,
             )
 
             # Verify system error handling
@@ -747,51 +758,51 @@ class TestPredictiveAnalyticsIntegration:
     """Test integration scenarios for predictive analytics operations."""
 
     @pytest.mark.asyncio
-    async def test_complete_analytics_workflow(self):
+    async def test_complete_analytics_workflow(self) -> None:
         """Test complete predictive analytics workflow integration."""
         with (
             patch(
-                "src.server.tools.predictive_analytics_tools.pattern_predictor"
+                "src.server.tools.predictive_analytics_tools.pattern_predictor",
             ) as mock_predictor,
             patch(
-                "src.server.tools.predictive_analytics_tools.usage_forecaster"
+                "src.server.tools.predictive_analytics_tools.usage_forecaster",
             ) as mock_forecaster,
             patch(
-                "src.server.tools.predictive_analytics_tools.insight_generator"
+                "src.server.tools.predictive_analytics_tools.insight_generator",
             ) as mock_generator,
             patch(
-                "src.server.tools.predictive_analytics_tools.model_manager"
+                "src.server.tools.predictive_analytics_tools.model_manager",
             ) as mock_manager,
             patch("src.server.tools.predictive_analytics_tools._validate_components"),
             patch(
-                "src.server.tools.predictive_analytics_tools._generate_sample_pattern_features"
+                "src.server.tools.predictive_analytics_tools._generate_sample_pattern_features",
             ) as mock_pattern_features,
             patch(
-                "src.server.tools.predictive_analytics_tools._generate_sample_usage_data"
+                "src.server.tools.predictive_analytics_tools._generate_sample_usage_data",
             ) as mock_usage_data,
             patch(
-                "src.server.tools.predictive_analytics_tools._generate_sample_insight_data"
+                "src.server.tools.predictive_analytics_tools._generate_sample_insight_data",
             ) as mock_insight_data,
             patch(
-                "src.server.tools.predictive_analytics_tools._generate_sample_trend_data"
+                "src.server.tools.predictive_analytics_tools._generate_sample_trend_data",
             ) as mock_trend_data,
             patch(
-                "src.server.tools.predictive_analytics_tools._convert_trend_data_to_features"
+                "src.server.tools.predictive_analytics_tools._convert_trend_data_to_features",
             ) as mock_convert_features,
             patch(
-                "src.server.tools.predictive_analytics_tools._generate_insight_next_steps"
+                "src.server.tools.predictive_analytics_tools._generate_insight_next_steps",
             ) as mock_next_steps,
             patch(
-                "src.server.tools.predictive_analytics_tools._generate_trend_insights"
+                "src.server.tools.predictive_analytics_tools._generate_trend_insights",
             ) as mock_trend_insights,
             patch(
-                "src.server.tools.predictive_analytics_tools._calculate_next_update"
+                "src.server.tools.predictive_analytics_tools._calculate_next_update",
             ) as mock_calc_update,
             patch(
-                "src.server.tools.predictive_analytics_tools._export_predictions"
+                "src.server.tools.predictive_analytics_tools._export_predictions",
             ) as mock_export_predictions,
             patch(
-                "src.server.tools.predictive_analytics_tools._generate_pattern_recommendations"
+                "src.server.tools.predictive_analytics_tools._generate_pattern_recommendations",
             ) as mock_pattern_recommendations,
         ):
             # Setup async helper function mocks
@@ -803,7 +814,7 @@ class TestPredictiveAnalyticsIntegration:
             mock_next_steps.return_value = ["Step 1", "Step 2"]
             mock_trend_insights.return_value = ["Insight 1", "Insight 2"]
             mock_calc_update.return_value = "2024-01-01T12:00:00Z"
-            mock_export_predictions.return_value = "/tmp/export_path.json"
+            mock_export_predictions.return_value = "test_data/export_path.json"
             mock_pattern_recommendations.return_value = [
                 "Recommendation 1",
                 "Recommendation 2",
@@ -887,25 +898,25 @@ class TestPredictiveAnalyticsIntegration:
 
             mock_predictor.detect_patterns = AsyncMock(return_value=mock_pattern_result)
             mock_predictor.predict_pattern_future = AsyncMock(
-                return_value=mock_prediction_result
+                return_value=mock_prediction_result,
             )
             mock_predictor.get_pattern_summary = AsyncMock(
-                return_value={"total_patterns_detected": 1}
+                return_value={"total_patterns_detected": 1},
             )
 
             mock_forecaster.add_usage_data = AsyncMock(return_value=mock_usage_result)
             mock_forecaster.generate_forecast = AsyncMock(
-                return_value=mock_forecast_result
+                return_value=mock_forecast_result,
             )
             mock_forecaster.get_forecasting_summary = AsyncMock(
-                return_value={"resources_tracked": 1}
+                return_value={"resources_tracked": 1},
             )
 
             mock_generator.generate_insights = AsyncMock(
-                return_value=mock_insight_result
+                return_value=mock_insight_result,
             )
             mock_generator.get_insight_summary = AsyncMock(
-                return_value={"total_insights_generated": 1}
+                return_value={"total_insights_generated": 1},
             )
 
             # Add missing executive summary mock to match successful test pattern
@@ -920,24 +931,27 @@ class TestPredictiveAnalyticsIntegration:
             mock_summary_result.get_right.return_value = mock_summary
 
             mock_generator.generate_executive_summary = AsyncMock(
-                return_value=mock_summary_result
+                return_value=mock_summary_result,
             )
 
             mock_manager.get_model_manager_summary = AsyncMock(
-                return_value={"trained_models": 1}
+                return_value={"trained_models": 1},
             )
 
             # Execute complete workflow
             pattern_result = await km_predict_automation_patterns(
-                prediction_scope="system", prediction_horizon=30
+                prediction_scope="system",
+                prediction_horizon=30,
             )
 
             forecast_result = await km_forecast_resource_usage(
-                resource_types=["cpu"], forecast_period=30
+                resource_types=["cpu"],
+                forecast_period=30,
             )
 
             insights_result = await km_generate_insights(
-                analysis_scope="automation", data_timeframe="month"
+                analysis_scope="automation",
+                data_timeframe="month",
             )
 
             status_result = await km_get_analytics_status()
@@ -959,13 +973,13 @@ class TestPredictiveAnalyticsProperties:
 
     @given(prediction_scope_strategy(), time_horizon_strategy())
     @pytest.mark.asyncio
-    async def test_pattern_prediction_properties(self, scope, horizon):
+    async def test_pattern_prediction_properties(self, scope, horizon) -> None:
         """Test properties of pattern prediction operations."""
         assume(1 <= horizon <= 365)
 
         with (
             patch(
-                "src.server.tools.predictive_analytics_tools.pattern_predictor"
+                "src.server.tools.predictive_analytics_tools.pattern_predictor",
             ) as mock_predictor,
             patch("src.server.tools.predictive_analytics_tools._validate_components"),
         ):
@@ -1006,14 +1020,15 @@ class TestPredictiveAnalyticsProperties:
 
             mock_predictor.detect_patterns = AsyncMock(return_value=mock_result)
             mock_predictor.predict_pattern_future = AsyncMock(
-                return_value=mock_prediction_result
+                return_value=mock_prediction_result,
             )
             mock_predictor.get_pattern_summary = AsyncMock(
-                return_value={"total_patterns_detected": 1}
+                return_value={"total_patterns_detected": 1},
             )
 
             result = await km_predict_automation_patterns(
-                prediction_scope=scope, prediction_horizon=horizon
+                prediction_scope=scope,
+                prediction_horizon=horizon,
             )
 
             # Verify properties
@@ -1024,15 +1039,15 @@ class TestPredictiveAnalyticsProperties:
 
     @given(resource_types_strategy(), granularity_strategy())
     @pytest.mark.asyncio
-    async def test_forecasting_properties(self, resource_types, granularity):
+    async def test_forecasting_properties(self, resource_types, granularity) -> None:
         """Test properties of resource forecasting operations."""
         with (
             patch(
-                "src.server.tools.predictive_analytics_tools.usage_forecaster"
+                "src.server.tools.predictive_analytics_tools.usage_forecaster",
             ) as mock_forecaster,
             patch("src.server.tools.predictive_analytics_tools._validate_components"),
             patch(
-                "src.server.tools.predictive_analytics_tools._generate_sample_usage_data"
+                "src.server.tools.predictive_analytics_tools._generate_sample_usage_data",
             ) as mock_usage_data,
         ):
             mock_usage_data.return_value = {"sample": "data"}
@@ -1064,13 +1079,13 @@ class TestPredictiveAnalyticsProperties:
 
             mock_forecaster.add_usage_data = AsyncMock(return_value=mock_usage_result)
             mock_forecaster.generate_forecast = AsyncMock(
-                return_value=mock_forecast_result
+                return_value=mock_forecast_result,
             )
             mock_forecaster.get_forecasting_summary = AsyncMock(
                 return_value={
                     "resources_tracked": len(resource_types),
                     "total_data_points": 1000,
-                }
+                },
             )
 
             result = await km_forecast_resource_usage(
@@ -1092,28 +1107,28 @@ class TestPredictiveAnalyticsProperties:
     @given(analysis_scope_strategy(), insight_types_strategy())
     @pytest.mark.asyncio
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    async def test_insights_generation_properties(self, scope, insight_types):
+    async def test_insights_generation_properties(self, scope, insight_types) -> None:
         """Test properties of insights generation operations."""
         # Use the successful test pattern with comprehensive AsyncMock setup
         with (
             patch(
-                "src.server.tools.predictive_analytics_tools.insight_generator"
+                "src.server.tools.predictive_analytics_tools.insight_generator",
             ) as mock_generator,
             patch("src.server.tools.predictive_analytics_tools._validate_components"),
             patch(
-                "src.server.tools.predictive_analytics_tools._generate_sample_insight_data"
+                "src.server.tools.predictive_analytics_tools._generate_sample_insight_data",
             ) as mock_insight_data,
             patch(
-                "src.server.tools.predictive_analytics_tools._generate_insight_next_steps"
+                "src.server.tools.predictive_analytics_tools._generate_insight_next_steps",
             ) as mock_next_steps,
             patch(
-                "src.server.tools.predictive_analytics_tools._export_predictions"
+                "src.server.tools.predictive_analytics_tools._export_predictions",
             ) as mock_export_predictions,
         ):
             # Setup helper function mocks with AsyncMock where needed
             mock_insight_data.return_value = [{"insight": "test"}]
             mock_next_steps.return_value = ["Step 1", "Step 2"]
-            mock_export_predictions.return_value = "/tmp/export_path.json"
+            mock_export_predictions.return_value = "test_data/export_path.json"
 
             # Create comprehensive mock insights aligned with successful test pattern
             mock_insights = []
@@ -1126,7 +1141,7 @@ class TestPredictiveAnalyticsProperties:
                 mock_insight.impact_score = 0.75
                 mock_insight.priority_level = "medium"
                 mock_insight.actionable_recommendations = [
-                    f"Recommendation for {insight_type}"
+                    f"Recommendation for {insight_type}",
                 ]
                 mock_insight.data_sources = ["performance_metrics", "usage_data"]
                 mock_insight.roi_estimate = 1500.0
@@ -1146,7 +1161,7 @@ class TestPredictiveAnalyticsProperties:
                 return_value={
                     "total_insights_generated": len(insight_types),
                     "high_impact_insights_count": len(insight_types),
-                }
+                },
             )
 
             # Execute insights generation (use valid parameters only)

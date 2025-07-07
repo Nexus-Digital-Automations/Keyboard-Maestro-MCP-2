@@ -1,5 +1,4 @@
-"""
-AI Intelligence Tools - Advanced AI intelligence operations and batch processing.
+"""AI Intelligence Tools - Advanced AI intelligence operations and batch processing.
 
 This module provides AI intelligence capabilities including context analysis, smart triggers,
 adaptive workflows, decision engines, pattern detection, and enterprise batch processing.
@@ -29,8 +28,7 @@ async def km_ai_intelligence(
     timeout: int = 30,  # Processing timeout
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    AI-powered intelligent automation with context awareness and adaptive learning.
+    """AI-powered intelligent automation with context awareness and adaptive learning.
 
     This tool provides advanced AI intelligence capabilities including smart trigger
     evaluation, adaptive workflow optimization, context-aware decision making,
@@ -66,6 +64,7 @@ async def km_ai_intelligence(
             intelligence_type="adaptive",
             learning_enabled=True
         )
+
     """
     try:
         # Mock implementation of intelligent automation engine
@@ -100,7 +99,10 @@ async def km_ai_intelligence(
 
         elif operation == "smart_trigger":
             result = await _process_smart_trigger(
-                input_data, automation_engine, confidence_threshold, learning_enabled
+                input_data,
+                automation_engine,
+                confidence_threshold,
+                learning_enabled,
             )
 
         elif operation == "adaptive_workflow":
@@ -114,7 +116,10 @@ async def km_ai_intelligence(
 
         elif operation == "decision_engine":
             result = await _process_decision_engine(
-                input_data, automation_engine, confidence_threshold, intelligence_type
+                input_data,
+                automation_engine,
+                confidence_threshold,
+                intelligence_type,
             )
 
         elif operation == "pattern_detection":
@@ -146,7 +151,7 @@ async def km_ai_intelligence(
     except Exception as e:
         return {
             "success": False,
-            "error": f"Intelligence processing failed: {str(e)}",
+            "error": f"Intelligence processing failed: {e!s}",
             "error_type": "intelligence_error",
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -204,17 +209,16 @@ async def _process_context_analysis(
                 "processing_time": processing_time,
             }
 
-        else:
-            return {
-                "success": False,
-                "error": "Invalid input data format for context analysis",
-            }
+        return {
+            "success": False,
+            "error": "Invalid input data format for context analysis",
+        }
 
     except Exception as e:
         processing_time = (datetime.now(UTC) - start_time).total_seconds()
         return {
             "success": False,
-            "error": f"Context analysis failed: {str(e)}",
+            "error": f"Context analysis failed: {e!s}",
             "processing_time": processing_time,
         }
 
@@ -256,17 +260,16 @@ async def _process_smart_trigger(
                 "processing_time": processing_time,
             }
 
-        else:
-            return {
-                "success": False,
-                "error": "Invalid input data format for smart trigger",
-            }
+        return {
+            "success": False,
+            "error": "Invalid input data format for smart trigger",
+        }
 
     except Exception as e:
         processing_time = (datetime.now(UTC) - start_time).total_seconds()
         return {
             "success": False,
-            "error": f"Smart trigger processing failed: {str(e)}",
+            "error": f"Smart trigger processing failed: {e!s}",
             "processing_time": processing_time,
         }
 
@@ -322,17 +325,16 @@ async def _process_adaptive_workflow(
                 "processing_time": processing_time,
             }
 
-        else:
-            return {
-                "success": False,
-                "error": "Invalid input data format for adaptive workflow",
-            }
+        return {
+            "success": False,
+            "error": "Invalid input data format for adaptive workflow",
+        }
 
     except Exception as e:
         processing_time = (datetime.now(UTC) - start_time).total_seconds()
         return {
             "success": False,
-            "error": f"Adaptive workflow processing failed: {str(e)}",
+            "error": f"Adaptive workflow processing failed: {e!s}",
             "processing_time": processing_time,
         }
 
@@ -384,17 +386,16 @@ async def _process_decision_engine(
                 "processing_time": processing_time,
             }
 
-        else:
-            return {
-                "success": False,
-                "error": "Invalid input data format for decision engine",
-            }
+        return {
+            "success": False,
+            "error": "Invalid input data format for decision engine",
+        }
 
     except Exception as e:
         processing_time = (datetime.now(UTC) - start_time).total_seconds()
         return {
             "success": False,
-            "error": f"Decision engine processing failed: {str(e)}",
+            "error": f"Decision engine processing failed: {e!s}",
             "processing_time": processing_time,
         }
 
@@ -424,7 +425,7 @@ async def _process_pattern_detection(
                         "description": "Recurring data pattern detected",
                         "confidence": 0.85,
                         "occurrences": len(data_points),
-                    }
+                    },
                 )
 
             if len(time_series) > 3:
@@ -434,7 +435,7 @@ async def _process_pattern_detection(
                         "description": "Time-based pattern identified",
                         "confidence": 0.78,
                         "time_span": "recent_activity",
-                    }
+                    },
                 )
 
             # Privacy filtering
@@ -469,7 +470,7 @@ async def _process_pattern_detection(
         processing_time = (datetime.now(UTC) - start_time).total_seconds()
         return {
             "success": False,
-            "error": f"Pattern detection failed: {str(e)}",
+            "error": f"Pattern detection failed: {e!s}",
             "processing_time": processing_time,
         }
 
@@ -485,8 +486,7 @@ async def km_ai_batch(
     timeout_hours: int = 1,  # Total job timeout
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Advanced batch processing for AI operations with enterprise-grade management.
+    """Advanced batch processing for AI operations with enterprise-grade management.
 
     This tool provides comprehensive batch processing capabilities including
     parallel execution, dependency management, progress tracking, and intelligent
@@ -523,6 +523,7 @@ async def km_ai_batch(
             operation="status",
             batch_data={"job_id": "job_123"}
         )
+
     """
     try:
         # Mock batch processor implementation
@@ -560,7 +561,7 @@ async def km_ai_batch(
                 "submission_time": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "status":
+        if operation == "status":
             if not batch_data or "job_id" not in batch_data:
                 return {
                     "success": False,
@@ -587,7 +588,7 @@ async def km_ai_batch(
                 },
             }
 
-        elif operation == "cancel":
+        if operation == "cancel":
             if not batch_data or "job_id" not in batch_data:
                 return {
                     "success": False,
@@ -604,7 +605,7 @@ async def km_ai_batch(
                 "cancellation_time": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "list":
+        if operation == "list":
             # Mock list of jobs
             return {
                 "success": True,
@@ -628,7 +629,7 @@ async def km_ai_batch(
                 "total_jobs": 2,
             }
 
-        elif operation == "optimize":
+        if operation == "optimize":
             return {
                 "success": True,
                 "operation": "optimize",
@@ -644,17 +645,16 @@ async def km_ai_batch(
                 },
             }
 
-        else:
-            return {
-                "success": False,
-                "error": f"Unknown batch operation: {operation}",
-                "valid_operations": ["submit", "status", "cancel", "list", "optimize"],
-            }
+        return {
+            "success": False,
+            "error": f"Unknown batch operation: {operation}",
+            "valid_operations": ["submit", "status", "cancel", "list", "optimize"],
+        }
 
     except Exception as e:
         return {
             "success": False,
-            "error": f"Batch processing failed: {str(e)}",
+            "error": f"Batch processing failed: {e!s}",
             "operation": operation,
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -664,16 +664,10 @@ async def km_ai_batch(
 class MockIntelligentAutomationEngine:
     """Mock implementation of intelligent automation engine."""
 
-    pass
-
 
 class MockContextAwarenessEngine:
     """Mock implementation of context awareness engine."""
 
-    pass
-
 
 class MockBatchProcessor:
     """Mock implementation of batch processor."""
-
-    pass

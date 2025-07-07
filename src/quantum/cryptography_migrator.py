@@ -1,5 +1,4 @@
-"""
-Cryptography Migrator - TASK_68 Phase 2 Core Quantum Engine
+"""Cryptography Migrator - TASK_68 Phase 2 Core Quantum Engine.
 
 Post-quantum cryptography migration system with algorithm analysis, migration planning,
 and secure transition management for enterprise cryptographic assets.
@@ -52,8 +51,8 @@ class CryptographyMigrator:
         }
 
     @require(
-        lambda self, scope: scope
-        in ["system", "application", "cryptography", "protocols"]
+        lambda _self, scope: scope
+        in ["system", "application", "cryptography", "protocols"],
     )
     @ensure(lambda result: result.is_success() or result.is_error())
     async def analyze_quantum_readiness(
@@ -80,7 +79,7 @@ class CryptographyMigrator:
 
                 if include_vulnerabilities:
                     vulnerability_analysis = await self._analyze_asset_vulnerability(
-                        asset
+                        asset,
                     )
                     if vulnerability_analysis.is_success():
                         vuln_data = vulnerability_analysis.value
@@ -100,7 +99,7 @@ class CryptographyMigrator:
 
             # Generate migration recommendations
             recommendations = await self._generate_migration_recommendations(
-                vulnerable_assets
+                vulnerable_assets,
             )
 
             # Assess compliance status
@@ -108,7 +107,8 @@ class CryptographyMigrator:
 
             # Calculate risk factors
             risk_factors = self._calculate_risk_factors(
-                vulnerable_assets, discovered_assets
+                vulnerable_assets,
+                discovered_assets,
             )
 
             assessment = QuantumReadinessAssessment(
@@ -121,7 +121,7 @@ class CryptographyMigrator:
                 compliance_status=compliance_status,
                 risk_factors=risk_factors,
                 estimated_migration_cost=self._estimate_migration_cost(
-                    vulnerable_assets
+                    vulnerable_assets,
                 ),
             )
 
@@ -131,16 +131,16 @@ class CryptographyMigrator:
 
             logger.info(
                 f"Quantum readiness analysis completed: {scope} scope, "
-                f"{len(vulnerable_assets)}/{len(discovered_assets)} vulnerable assets"
+                f"{len(vulnerable_assets)}/{len(discovered_assets)} vulnerable assets",
             )
 
             return Either.success(assessment)
 
         except Exception as e:
             logger.error(f"Quantum readiness analysis failed: {e}")
-            return Either.error(QuantumError(f"Analysis failed: {str(e)}"))
+            return Either.error(QuantumError(f"Analysis failed: {e!s}"))
 
-    @require(lambda self, target_assets: len(target_assets) > 0)
+    @require(lambda __self, target_assets: len(target_assets) > 0)
     @ensure(lambda result: result.is_success() or result.is_error())
     async def create_migration_plan(
         self,
@@ -169,7 +169,8 @@ class CryptographyMigrator:
 
                 # Recommend post-quantum algorithm
                 recommended_alg = recommend_post_quantum_algorithm(
-                    asset.algorithm, asset.usage_context
+                    asset.algorithm,
+                    asset.usage_context,
                 )
 
                 if recommended_alg:
@@ -178,7 +179,7 @@ class CryptographyMigrator:
                     # Add compatibility requirements
                     if asset.usage_context in ["authentication", "enterprise"]:
                         compatibility_requirements.append(
-                            "enterprise_directory_support"
+                            "enterprise_directory_support",
                         )
                     if asset.asset_type == "certificate":
                         compatibility_requirements.append("x509_certificate_support")
@@ -213,7 +214,10 @@ class CryptographyMigrator:
 
             if target_security_level == "quantum_ready":
                 validation_criteria.extend(
-                    ["quantum_interface_ready", "post_quantum_compliance_verified"]
+                    [
+                        "quantum_interface_ready",
+                        "post_quantum_compliance_verified",
+                    ],
                 )
 
             migration_plan = PostQuantumMigrationPlan(
@@ -233,24 +237,27 @@ class CryptographyMigrator:
             self.migration_plans[migration_plan.plan_id] = migration_plan
 
             logger.info(
-                f"Migration plan created: {migration_plan.plan_id} for {len(target_assets)} assets"
+                f"Migration plan created: {migration_plan.plan_id} for {len(target_assets)} assets",
             )
 
             return Either.success(migration_plan)
 
         except Exception as e:
             logger.error(f"Migration plan creation failed: {e}")
-            return Either.error(QuantumError(f"Migration planning failed: {str(e)}"))
+            return Either.error(QuantumError(f"Migration planning failed: {e!s}"))
 
-    @require(lambda self, plan_id: len(plan_id) > 0)
+    @require(lambda __self, plan_id: len(plan_id) > 0)
     async def execute_migration_plan(
-        self, plan_id: str, dry_run: bool = False, validation_mode: bool = True
+        self,
+        plan_id: str,
+        dry_run: bool = False,
+        validation_mode: bool = True,
     ) -> Either[QuantumError, dict[str, Any]]:
         """Execute post-quantum migration plan with validation and rollback capability."""
         try:
             if plan_id not in self.migration_plans:
                 return Either.error(
-                    QuantumError(f"Migration plan not found: {plan_id}")
+                    QuantumError(f"Migration plan not found: {plan_id}"),
                 )
 
             migration_plan = self.migration_plans[plan_id]
@@ -273,29 +280,30 @@ class CryptographyMigrator:
 
             for phase_info in phases:
                 phase_result = await self._execute_migration_phase(
-                    migration_plan, phase_info, dry_run, validation_mode
+                    migration_plan,
+                    phase_info,
+                    dry_run,
+                    validation_mode,
                 )
 
                 if phase_result.is_error():
                     migration_results["failed_migrations"] += 1
                     migration_results["rollback_required"] = True
                     logger.error(
-                        f"Migration phase {phase_info['phase']} failed: {phase_result.error_value}"
+                        f"Migration phase {phase_info['phase']} failed: {phase_result.error_value}",
                     )
                     break
-                else:
-                    phase_data = phase_result.value
-                    migration_results["successful_migrations"] += phase_data[
-                        "assets_migrated"
-                    ]
-                    migration_results["assets_processed"] += phase_data[
-                        "assets_processed"
-                    ]
+                phase_data = phase_result.value
+                migration_results["successful_migrations"] += phase_data[
+                    "assets_migrated"
+                ]
+                migration_results["assets_processed"] += phase_data["assets_processed"]
 
             # Perform post-migration validation if enabled
             if validation_mode and not dry_run:
                 validation_result = await self._validate_migration_results(
-                    migration_plan, migration_results
+                    migration_plan,
+                    migration_results,
                 )
                 migration_results["validation_results"] = (
                     validation_result.value if validation_result.is_success() else {}
@@ -317,7 +325,7 @@ class CryptographyMigrator:
                     "execution_time": datetime.now(UTC),
                     "results": migration_results,
                     "dry_run": dry_run,
-                }
+                },
             )
 
             execution_duration = (datetime.now(UTC) - execution_start).total_seconds()
@@ -326,17 +334,18 @@ class CryptographyMigrator:
             logger.info(
                 f"Migration plan execution completed: {plan_id}, "
                 f"{migration_results['successful_migrations']} successful, "
-                f"{migration_results['failed_migrations']} failed"
+                f"{migration_results['failed_migrations']} failed",
             )
 
             return Either.success(migration_results)
 
         except Exception as e:
             logger.error(f"Migration plan execution failed: {e}")
-            return Either.error(QuantumError(f"Migration execution failed: {str(e)}"))
+            return Either.error(QuantumError(f"Migration execution failed: {e!s}"))
 
     async def get_migration_status(
-        self, plan_id: str | None = None
+        self,
+        plan_id: str | None = None,
     ) -> Either[QuantumError, dict[str, Any]]:
         """Get migration status and metrics."""
         try:
@@ -348,7 +357,7 @@ class CryptographyMigrator:
                         h
                         for h in self.migration_history
                         if h["execution_time"] >= datetime.now(UTC) - timedelta(days=1)
-                    ]
+                    ],
                 ),
                 "quantum_config": {
                     "security_policy": self.quantum_config.security_policy.value,
@@ -381,19 +390,20 @@ class CryptographyMigrator:
                     }
                 else:
                     return Either.error(
-                        QuantumError(f"Migration plan not found: {plan_id}")
+                        QuantumError(f"Migration plan not found: {plan_id}"),
                     )
 
             return Either.success(status)
 
         except Exception as e:
             logger.error(f"Failed to get migration status: {e}")
-            return Either.error(QuantumError(f"Status retrieval failed: {str(e)}"))
+            return Either.error(QuantumError(f"Status retrieval failed: {e!s}"))
 
     # Private helper methods
 
     async def _discover_cryptographic_assets(
-        self, scope: str
+        self,
+        scope: str,
     ) -> Either[QuantumError, list[CryptographicAsset]]:
         """Discover cryptographic assets in the specified scope."""
         try:
@@ -448,12 +458,13 @@ class CryptographyMigrator:
             ) in assets_data:
                 # Assess quantum vulnerability
                 is_vulnerable, threat_level = assess_algorithm_quantum_vulnerability(
-                    algorithm, key_size
+                    algorithm,
+                    key_size,
                 )
 
                 asset = CryptographicAsset(
                     asset_id=CryptographicAssetId(
-                        f"{scope}_{asset_name}_{secrets.token_hex(4)}"
+                        f"{scope}_{asset_name}_{secrets.token_hex(4)}",
                     ),
                     asset_type=asset_type,
                     algorithm=algorithm,
@@ -475,10 +486,11 @@ class CryptographyMigrator:
                             quantum_vulnerable=is_vulnerable,
                             threat_assessment=threat_level,
                             migration_priority=1,
-                        )
+                        ),
                     ),
                     replacement_algorithm=recommend_post_quantum_algorithm(
-                        algorithm, usage_context
+                        algorithm,
+                        usage_context,
                     ),
                 )
 
@@ -487,10 +499,11 @@ class CryptographyMigrator:
             return Either.success(discovered_assets)
 
         except Exception as e:
-            return Either.error(QuantumError(f"Asset discovery failed: {str(e)}"))
+            return Either.error(QuantumError(f"Asset discovery failed: {e!s}"))
 
     async def _analyze_asset_vulnerability(
-        self, asset: CryptographicAsset
+        self,
+        asset: CryptographicAsset,
     ) -> Either[QuantumError, dict[str, Any]]:
         """Analyze specific asset for quantum vulnerabilities."""
         try:
@@ -510,7 +523,7 @@ class CryptographyMigrator:
 
         except Exception as e:
             return Either.error(
-                QuantumError(f"Vulnerability analysis failed: {str(e)}")
+                QuantumError(f"Vulnerability analysis failed: {e!s}"),
             )
 
     def _estimate_threat_timeline(self) -> dict[str, datetime]:
@@ -529,7 +542,8 @@ class CryptographyMigrator:
         }
 
     async def _generate_migration_recommendations(
-        self, vulnerable_assets: list[CryptographicAsset]
+        self,
+        vulnerable_assets: list[CryptographicAsset],
     ) -> list[str]:
         """Generate migration recommendations based on vulnerable assets."""
         recommendations = []
@@ -552,51 +566,52 @@ class CryptographyMigrator:
 
         if critical_assets:
             recommendations.append(
-                f"URGENT: Migrate {len(critical_assets)} critical assets immediately"
+                f"URGENT: Migrate {len(critical_assets)} critical assets immediately",
             )
             recommendations.append(
-                "Consider emergency migration protocols for critical infrastructure"
+                "Consider emergency migration protocols for critical infrastructure",
             )
 
         if high_risk_assets:
             recommendations.append(
-                f"HIGH PRIORITY: Plan migration for {len(high_risk_assets)} high-risk assets within 6 months"
+                f"HIGH PRIORITY: Plan migration for {len(high_risk_assets)} high-risk assets within 6 months",
             )
 
         # Algorithm-specific recommendations
         rsa_assets = [a for a in vulnerable_assets if "rsa" in a.algorithm.lower()]
         if rsa_assets:
             recommendations.append(
-                f"Replace {len(rsa_assets)} RSA assets with Kyber (KEM) + Dilithium (signatures)"
+                f"Replace {len(rsa_assets)} RSA assets with Kyber (KEM) + Dilithium (signatures)",
             )
 
         ecdsa_assets = [a for a in vulnerable_assets if "ecdsa" in a.algorithm.lower()]
         if ecdsa_assets:
             recommendations.append(
-                f"Replace {len(ecdsa_assets)} ECDSA assets with Falcon or Dilithium signatures"
+                f"Replace {len(ecdsa_assets)} ECDSA assets with Falcon or Dilithium signatures",
             )
 
         # Strategy recommendations
         if len(vulnerable_assets) > 10:
             recommendations.append(
-                "Consider phased migration approach due to large number of assets"
+                "Consider phased migration approach due to large number of assets",
             )
         else:
             recommendations.append(
-                "Full migration approach recommended due to manageable asset count"
+                "Full migration approach recommended due to manageable asset count",
             )
 
         recommendations.append(
-            "Implement hybrid classical-quantum security during transition period"
+            "Implement hybrid classical-quantum security during transition period",
         )
         recommendations.append(
-            "Establish post-quantum cryptography testing environment"
+            "Establish post-quantum cryptography testing environment",
         )
 
         return recommendations
 
     async def _assess_compliance_status(
-        self, assets: list[CryptographicAsset]
+        self,
+        assets: list[CryptographicAsset],
     ) -> dict[str, bool]:
         """Assess compliance status against quantum readiness standards."""
         total_assets = len(assets)
@@ -614,7 +629,7 @@ class CryptographyMigrator:
                     a
                     for a in assets
                     if a.threat_assessment != QuantumThreatLevel.CRITICAL
-                ]
+                ],
             )
             == total_assets,
             "migration_plan_required": vulnerable_count > 0,
@@ -640,7 +655,7 @@ class CryptographyMigrator:
                     a
                     for a in vulnerable_assets
                     if a.threat_assessment == QuantumThreatLevel.CRITICAL
-                ]
+                ],
             )
             / total_assets,
             "legacy_algorithm_ratio": len(
@@ -648,11 +663,11 @@ class CryptographyMigrator:
                     a
                     for a in all_assets
                     if a.algorithm.lower() in ["rsa", "ecdsa", "dh", "des"]
-                ]
+                ],
             )
             / total_assets,
             "immediate_migration_ratio": len(
-                [a for a in vulnerable_assets if a.needs_immediate_migration()]
+                [a for a in vulnerable_assets if a.needs_immediate_migration()],
             )
             / total_assets
             if vulnerable_count > 0
@@ -660,7 +675,8 @@ class CryptographyMigrator:
         }
 
     def _estimate_migration_cost(
-        self, vulnerable_assets: list[CryptographicAsset]
+        self,
+        vulnerable_assets: list[CryptographicAsset],
     ) -> float | None:
         """Estimate migration cost based on asset complexity."""
         if not vulnerable_assets:
@@ -677,7 +693,8 @@ class CryptographyMigrator:
         total_cost = 0.0
         for asset in vulnerable_assets:
             asset_cost = base_cost_per_asset * complexity_multipliers.get(
-                asset.asset_type, 1.0
+                asset.asset_type,
+                1.0,
             )
 
             # Higher priority assets may require more resources
@@ -692,10 +709,10 @@ class CryptographyMigrator:
         """Create appropriate rollback strategy."""
         if migration_strategy == "hybrid":
             return "maintain_classical_fallback_during_transition"
-        elif migration_strategy == "gradual":
+        if migration_strategy == "gradual":
             return "rollback_by_migration_phase_with_asset_restoration"
-        else:  # full_replacement
-            return "complete_system_restoration_from_pre_migration_backup"
+        # full_replacement
+        return "complete_system_restoration_from_pre_migration_backup"
 
     async def _execute_migration_phase(
         self,
@@ -736,10 +753,12 @@ class CryptographyMigrator:
             return Either.success(phase_results)
 
         except Exception as e:
-            return Either.error(QuantumError(f"Phase execution failed: {str(e)}"))
+            return Either.error(QuantumError(f"Phase execution failed: {e!s}"))
 
     async def _validate_migration_results(
-        self, plan: PostQuantumMigrationPlan, results: dict[str, Any]
+        self,
+        plan: PostQuantumMigrationPlan,
+        results: dict[str, Any],
     ) -> Either[QuantumError, dict[str, Any]]:
         """Validate migration results against plan criteria."""
         try:
@@ -772,10 +791,10 @@ class CryptographyMigrator:
 
             # Overall success requires all criteria to pass
             validation_results["overall_success"] = all(
-                validation_results["criteria_results"].values()
+                validation_results["criteria_results"].values(),
             )
 
             return Either.success(validation_results)
 
         except Exception as e:
-            return Either.error(QuantumError(f"Validation failed: {str(e)}"))
+            return Either.error(QuantumError(f"Validation failed: {e!s}"))

@@ -1,10 +1,12 @@
-"""
-IoT Integration Tools Tests - TASK_65 Phase 3 Testing
+"""IoT Integration Tools Tests - TASK_65 Phase 3 Testing.
 
 Unit and integration tests for IoT device control, sensor monitoring, smart home automation,
 and workflow coordination with comprehensive validation and error handling.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -23,65 +25,65 @@ from src.server.tools.iot_integration_tools import (
 class TestIoTIntegrationTools:
     """Test suite for IoT integration tools."""
 
-    def test_validate_device_identifier_valid(self):
+    def test_validate_device_identifier_valid(self) -> None:
         """Test device identifier validation with valid inputs."""
         result = validate_device_identifier("living_room_light")
         assert result.is_success()
         assert result.value == "living_room_light"
 
-    def test_validate_device_identifier_empty(self):
+    def test_validate_device_identifier_empty(self) -> None:
         """Test device identifier validation with empty input."""
         result = validate_device_identifier("")
         assert result.is_error()
         assert "cannot be empty" in str(result.error_value)
 
-    def test_validate_device_identifier_too_long(self):
+    def test_validate_device_identifier_too_long(self) -> None:
         """Test device identifier validation with too long input."""
         long_identifier = "a" * 101
         result = validate_device_identifier(long_identifier)
         assert result.is_error()
         assert "cannot exceed 100 characters" in str(result.error_value)
 
-    def test_validate_device_identifier_dangerous_chars(self):
+    def test_validate_device_identifier_dangerous_chars(self) -> None:
         """Test device identifier validation with dangerous characters."""
         result = validate_device_identifier("device<script>")
         assert result.is_error()
         assert "contains dangerous characters" in str(result.error_value)
 
-    def test_validate_sensor_identifiers_valid(self):
+    def test_validate_sensor_identifiers_valid(self) -> None:
         """Test sensor identifiers validation with valid inputs."""
         identifiers = ["temp_sensor_1", "humidity_sensor", "motion_detector"]
         result = validate_sensor_identifiers(identifiers)
         assert result.is_success()
         assert len(result.value) == 3
 
-    def test_validate_sensor_identifiers_empty(self):
+    def test_validate_sensor_identifiers_empty(self) -> None:
         """Test sensor identifiers validation with empty list."""
         result = validate_sensor_identifiers([])
         assert result.is_error()
         assert "cannot be empty" in str(result.error_value)
 
-    def test_validate_sensor_identifiers_too_many(self):
+    def test_validate_sensor_identifiers_too_many(self) -> None:
         """Test sensor identifiers validation with too many sensors."""
         identifiers = [f"sensor_{i}" for i in range(51)]
         result = validate_sensor_identifiers(identifiers)
         assert result.is_error()
         assert "cannot exceed 50 sensors" in str(result.error_value)
 
-    def test_validate_device_parameters_valid(self):
+    def test_validate_device_parameters_valid(self) -> None:
         """Test device parameters validation with valid inputs."""
         params = {"brightness": 75, "color": "blue", "enabled": True}
         result = validate_device_parameters(params)
         assert result.is_success()
         assert result.value == params
 
-    def test_validate_device_parameters_none(self):
+    def test_validate_device_parameters_none(self) -> None:
         """Test device parameters validation with None input."""
         result = validate_device_parameters(None)
         assert result.is_success()
         assert result.value == {}
 
-    def test_validate_device_parameters_too_many(self):
+    def test_validate_device_parameters_too_many(self) -> None:
         """Test device parameters validation with too many parameters."""
         params = {f"param_{i}": i for i in range(21)}
         result = validate_device_parameters(params)
@@ -89,10 +91,10 @@ class TestIoTIntegrationTools:
         assert "cannot exceed 20 parameters" in str(result.error_value)
 
     @pytest.mark.asyncio
-    async def test_km_control_iot_devices_success(self):
+    async def test_km_control_iot_devices_success(self) -> None:
         """Test successful IoT device control."""
         with patch(
-            "src.server.tools.iot_integration_tools.get_device_controller"
+            "src.server.tools.iot_integration_tools.get_device_controller",
         ) as mock_get_controller:
             mock_controller = Mock()
             mock_controller.execute_device_action = AsyncMock(
@@ -104,13 +106,13 @@ class TestIoTIntegrationTools:
                         "executed_at": datetime.now(UTC).isoformat(),
                         "success": True,
                     },
-                )
+                ),
             )
             mock_controller.get_device_status = AsyncMock(
                 return_value=Mock(
                     is_success=Mock(return_value=True),
                     value={"status": "online", "last_action": "on"},
-                )
+                ),
             )
             mock_get_controller.return_value = mock_controller
 
@@ -129,7 +131,7 @@ class TestIoTIntegrationTools:
             assert result["verification"]["verified"] is True
 
     @pytest.mark.asyncio
-    async def test_km_control_iot_devices_invalid_device(self):
+    async def test_km_control_iot_devices_invalid_device(self) -> None:
         """Test IoT device control with invalid device identifier."""
         result = await km_control_iot_devices(device_identifier="", action="on")
 
@@ -137,10 +139,11 @@ class TestIoTIntegrationTools:
         assert "Invalid device identifier" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_km_control_iot_devices_invalid_action(self):
+    async def test_km_control_iot_devices_invalid_action(self) -> None:
         """Test IoT device control with invalid action."""
         result = await km_control_iot_devices(
-            device_identifier="light_1", action="invalid_action"
+            device_identifier="light_1",
+            action="invalid_action",
         )
 
         assert result["success"] is False
@@ -148,10 +151,10 @@ class TestIoTIntegrationTools:
         assert "supported_actions" in result
 
     @pytest.mark.asyncio
-    async def test_km_monitor_sensors_success(self):
+    async def test_km_monitor_sensors_success(self) -> None:
         """Test successful sensor monitoring."""
         with patch(
-            "src.server.tools.iot_integration_tools.get_sensor_manager"
+            "src.server.tools.iot_integration_tools.get_sensor_manager",
         ) as mock_get_manager:
             mock_manager = Mock()
             mock_manager.start_monitoring = AsyncMock(
@@ -162,7 +165,7 @@ class TestIoTIntegrationTools:
                         "session_id": "monitor_123",
                         "started_at": datetime.now(UTC).isoformat(),
                     },
-                )
+                ),
             )
             mock_manager.get_sensor_reading = AsyncMock(
                 return_value=Mock(
@@ -175,12 +178,12 @@ class TestIoTIntegrationTools:
                                 "value": 22.5,
                                 "unit": "°C",
                                 "timestamp": datetime.now(UTC).isoformat(),
-                            }
+                            },
                         ),
                         value=22.5,
                         timestamp=datetime.now(UTC),
                     ),
-                )
+                ),
             )
             mock_get_manager.return_value = mock_manager
 
@@ -201,7 +204,7 @@ class TestIoTIntegrationTools:
             assert "monitoring_summary" in result
 
     @pytest.mark.asyncio
-    async def test_km_monitor_sensors_invalid_identifiers(self):
+    async def test_km_monitor_sensors_invalid_identifiers(self) -> None:
         """Test sensor monitoring with invalid identifiers."""
         result = await km_monitor_sensors(sensor_identifiers=[], monitoring_duration=60)
 
@@ -209,17 +212,17 @@ class TestIoTIntegrationTools:
         assert "Invalid sensor identifiers" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_km_manage_smart_home_create_scene(self):
+    async def test_km_manage_smart_home_create_scene(self) -> None:
         """Test smart home scene creation."""
         with patch(
-            "src.server.tools.iot_integration_tools.get_automation_hub"
+            "src.server.tools.iot_integration_tools.get_automation_hub",
         ) as mock_get_hub:
             mock_hub = Mock()
             mock_hub.create_scene = AsyncMock(
                 return_value=Mock(
                     is_success=Mock(return_value=True),
                     value={"scene_id": "evening_scene", "created": True},
-                )
+                ),
             )
             mock_get_hub.return_value = mock_hub
 
@@ -237,17 +240,17 @@ class TestIoTIntegrationTools:
             assert result["energy_optimization"] is True
 
     @pytest.mark.asyncio
-    async def test_km_manage_smart_home_activate_scene(self):
+    async def test_km_manage_smart_home_activate_scene(self) -> None:
         """Test smart home scene activation."""
         with patch(
-            "src.server.tools.iot_integration_tools.get_automation_hub"
+            "src.server.tools.iot_integration_tools.get_automation_hub",
         ) as mock_get_hub:
             mock_hub = Mock()
             mock_hub.activate_scene = AsyncMock(
                 return_value=Mock(
                     is_success=Mock(return_value=True),
                     value={"scene_id": "evening_scene", "activated": True},
-                )
+                ),
             )
             mock_get_hub.return_value = mock_hub
 
@@ -263,7 +266,7 @@ class TestIoTIntegrationTools:
             assert "activation_result" in result
 
     @pytest.mark.asyncio
-    async def test_km_manage_smart_home_invalid_operation(self):
+    async def test_km_manage_smart_home_invalid_operation(self) -> None:
         """Test smart home management with invalid operation."""
         result = await km_manage_smart_home(operation="invalid_operation")
 
@@ -272,7 +275,7 @@ class TestIoTIntegrationTools:
         assert "valid_operations" in result
 
     @pytest.mark.asyncio
-    async def test_km_coordinate_iot_workflows_success(self):
+    async def test_km_coordinate_iot_workflows_success(self) -> None:
         """Test successful IoT workflow coordination."""
         device_sequence = [
             {"device_id": "light_1", "action": "on", "delay": 0},
@@ -283,7 +286,7 @@ class TestIoTIntegrationTools:
             },
         ]
         trigger_conditions = [
-            {"sensor_id": "motion_1", "threshold": True, "operator": "="}
+            {"sensor_id": "motion_1", "threshold": True, "operator": "="},
         ]
 
         result = await km_coordinate_iot_workflows(
@@ -303,7 +306,7 @@ class TestIoTIntegrationTools:
         assert result["coordination_status"]["coordination_successful"] is True
 
     @pytest.mark.asyncio
-    async def test_km_coordinate_iot_workflows_invalid_name(self):
+    async def test_km_coordinate_iot_workflows_invalid_name(self) -> None:
         """Test IoT workflow coordination with invalid name."""
         result = await km_coordinate_iot_workflows(
             workflow_name="",
@@ -315,7 +318,7 @@ class TestIoTIntegrationTools:
         assert "Invalid workflow name" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_km_coordinate_iot_workflows_invalid_coordination_type(self):
+    async def test_km_coordinate_iot_workflows_invalid_coordination_type(self) -> None:
         """Test IoT workflow coordination with invalid coordination type."""
         result = await km_coordinate_iot_workflows(
             workflow_name="Test Workflow",
@@ -329,16 +332,18 @@ class TestIoTIntegrationTools:
         assert "valid_types" in result
 
     @pytest.mark.asyncio
-    async def test_km_coordinate_iot_workflows_empty_sequence(self):
+    async def test_km_coordinate_iot_workflows_empty_sequence(self) -> None:
         """Test IoT workflow coordination with empty device sequence."""
         result = await km_coordinate_iot_workflows(
-            workflow_name="Test Workflow", device_sequence=[], trigger_conditions=[]
+            workflow_name="Test Workflow",
+            device_sequence=[],
+            trigger_conditions=[],
         )
 
         assert result["success"] is False
         assert "Device sequence must contain 1-50 actions" in result["error"]
 
-    def test_all_tools_handle_exceptions(self):
+    def test_all_tools_handle_exceptions(self) -> None:
         """Test that all tools handle exceptions gracefully."""
         # This test ensures error handling is in place
         # In a real scenario, we would test specific exception paths
@@ -349,7 +354,7 @@ class TestIoTIntegrationEdgeCases:
     """Test edge cases and error conditions for IoT integration."""
 
     @pytest.mark.asyncio
-    async def test_device_control_with_complex_parameters(self):
+    async def test_device_control_with_complex_parameters(self) -> None:
         """Test device control with complex parameter validation."""
         complex_params = {
             "color": {"red": 255, "green": 128, "blue": 0},
@@ -371,10 +376,10 @@ class TestIoTIntegrationEdgeCases:
             assert "parameters_used" in result or "error" in result
 
     @pytest.mark.asyncio
-    async def test_sensor_monitoring_with_aggregation(self):
+    async def test_sensor_monitoring_with_aggregation(self) -> None:
         """Test sensor monitoring with data aggregation."""
         with patch(
-            "src.server.tools.iot_integration_tools.get_sensor_manager"
+            "src.server.tools.iot_integration_tools.get_sensor_manager",
         ) as mock_get_manager:
             mock_manager = Mock()
             mock_manager.start_monitoring = AsyncMock(
@@ -382,7 +387,7 @@ class TestIoTIntegrationEdgeCases:
                     is_success=Mock(return_value=True),
                     is_error=Mock(return_value=False),
                     value={"session_id": "monitor_456"},
-                )
+                ),
             )
             mock_manager.get_sensor_reading = AsyncMock(
                 return_value=Mock(
@@ -394,12 +399,12 @@ class TestIoTIntegrationEdgeCases:
                                 "sensor_id": "temp_1",
                                 "value": 23.0,
                                 "timestamp": datetime.now(UTC).isoformat(),
-                            }
+                            },
                         ),
                         value=23.0,
                         timestamp=datetime.now(UTC),
                     ),
-                )
+                ),
             )
             mock_get_manager.return_value = mock_manager
 

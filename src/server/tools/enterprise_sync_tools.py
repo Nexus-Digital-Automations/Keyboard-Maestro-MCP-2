@@ -1,5 +1,4 @@
-"""
-Enterprise system integration MCP tools for LDAP, SSO, database, and API connectivity.
+"""Enterprise system integration MCP tools for LDAP, SSO, database, and API connectivity.
 
 This module provides comprehensive enterprise integration tools enabling AI to manage
 LDAP/Active Directory connections, SSO authentication, enterprise database sync,
@@ -66,7 +65,7 @@ async def get_enterprise_sync_manager() -> EnterpriseSyncManager:
         "status",
         "sso_config",
         "sso_login",
-    ]
+    ],
 )
 async def km_enterprise_sync(
     operation: str,
@@ -83,8 +82,7 @@ async def km_enterprise_sync(
     retry_attempts: int = 3,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """
-    Enterprise system integration for LDAP, SSO, database, and API connectivity.
+    """Enterprise system integration for LDAP, SSO, database, and API connectivity.
 
     Operations:
     - connect: Establish enterprise system connection
@@ -157,48 +155,67 @@ async def km_enterprise_sync(
                 timeout,
                 ctx,
             )
-        elif operation == "authenticate":
+        if operation == "authenticate":
             return await _handle_authenticate_operation(
-                sync_manager, integration_enum, authentication, ctx
+                sync_manager,
+                integration_enum,
+                authentication,
+                ctx,
             )
-        elif operation == "sync":
+        if operation == "sync":
             return await _handle_sync_operation(
-                sync_manager, integration_enum, sync_options, batch_size, ctx
+                sync_manager,
+                integration_enum,
+                sync_options,
+                batch_size,
+                ctx,
             )
-        elif operation == "query":
+        if operation == "query":
             return await _handle_query_operation(
-                sync_manager, integration_enum, query_filter, sync_options, ctx
+                sync_manager,
+                integration_enum,
+                query_filter,
+                sync_options,
+                ctx,
             )
-        elif operation == "configure":
+        if operation == "configure":
             return await _handle_configure_operation(
-                sync_manager, integration_enum, connection_config, ctx
+                sync_manager,
+                integration_enum,
+                connection_config,
+                ctx,
             )
-        elif operation == "status":
+        if operation == "status":
             return await _handle_status_operation(sync_manager, integration_type, ctx)
-        elif operation == "sso_config":
+        if operation == "sso_config":
             return await _handle_sso_config_operation(
-                sync_manager, integration_enum, connection_config, ctx
+                sync_manager,
+                integration_enum,
+                connection_config,
+                ctx,
             )
-        elif operation == "sso_login":
+        if operation == "sso_login":
             return await _handle_sso_login_operation(
-                sync_manager, integration_enum, authentication, ctx
+                sync_manager,
+                integration_enum,
+                authentication,
+                ctx,
             )
-        else:
-            return {
-                "success": False,
-                "error": {
-                    "code": "OPERATION_NOT_IMPLEMENTED",
-                    "message": f"Operation '{operation}' not implemented",
-                },
-            }
+        return {
+            "success": False,
+            "error": {
+                "code": "OPERATION_NOT_IMPLEMENTED",
+                "message": f"Operation '{operation}' not implemented",
+            },
+        }
 
     except Exception as e:
-        logger.error(f"Enterprise sync error: {str(e)}")
+        logger.error(f"Enterprise sync error: {e!s}")
         return {
             "success": False,
             "error": {
                 "code": "SYSTEM_ERROR",
-                "message": f"Enterprise sync operation failed: {str(e)}",
+                "message": f"Enterprise sync operation failed: {e!s}",
             },
         }
 
@@ -250,7 +267,7 @@ async def _handle_connect_operation(
 
         if ctx:
             await ctx.info(
-                f"Establishing {integration_type.value} connection to {host}:{port}"
+                f"Establishing {integration_type.value} connection to {host}:{port}",
             )
 
         # Create enterprise connection
@@ -270,7 +287,7 @@ async def _handle_connect_operation(
         # Extract authentication method
         try:
             auth_method = AuthenticationMethod(
-                authentication.get("method", "simple_bind")
+                authentication.get("method", "simple_bind"),
             )
         except ValueError:
             return {
@@ -331,7 +348,7 @@ async def _handle_connect_operation(
             "success": False,
             "error": {
                 "code": "CONNECT_OPERATION_FAILED",
-                "message": f"Enterprise connection failed: {str(e)}",
+                "message": f"Enterprise connection failed: {e!s}",
             },
         }
 
@@ -374,7 +391,8 @@ async def _handle_sync_operation(
 
         # Perform synchronization
         sync_result = await sync_manager.sync_enterprise_data(
-            connection_id, sync_options_with_type
+            connection_id,
+            sync_options_with_type,
         )
 
         if sync_result.is_left():
@@ -388,7 +406,7 @@ async def _handle_sync_operation(
 
         if ctx:
             await ctx.info(
-                f"Sync completed: {result.records_successful}/{result.records_processed} successful"
+                f"Sync completed: {result.records_successful}/{result.records_processed} successful",
             )
 
         return {
@@ -422,7 +440,7 @@ async def _handle_sync_operation(
             "success": False,
             "error": {
                 "code": "SYNC_OPERATION_FAILED",
-                "message": f"Enterprise sync failed: {str(e)}",
+                "message": f"Enterprise sync failed: {e!s}",
             },
         }
 
@@ -478,7 +496,8 @@ async def _handle_query_operation(
 
         # Execute query
         query_result = await sync_manager.query_enterprise_data(
-            connection_id, query_opts
+            connection_id,
+            query_opts,
         )
 
         if query_result.is_left():
@@ -516,7 +535,7 @@ async def _handle_query_operation(
             "success": False,
             "error": {
                 "code": "QUERY_OPERATION_FAILED",
-                "message": f"Enterprise query failed: {str(e)}",
+                "message": f"Enterprise query failed: {e!s}",
             },
         }
 
@@ -600,7 +619,7 @@ async def _handle_sso_config_operation(
             "success": False,
             "error": {
                 "code": "SSO_CONFIG_FAILED",
-                "message": f"SSO configuration failed: {str(e)}",
+                "message": f"SSO configuration failed: {e!s}",
             },
         }
 
@@ -692,7 +711,7 @@ async def _handle_sso_login_operation(
             "success": False,
             "error": {
                 "code": "SSO_LOGIN_FAILED",
-                "message": f"SSO login failed: {str(e)}",
+                "message": f"SSO login failed: {e!s}",
             },
         }
 
@@ -732,7 +751,9 @@ async def _handle_configure_operation(
 
 
 async def _handle_status_operation(
-    sync_manager: EnterpriseSyncManager, integration_type: str, ctx: Context | None
+    sync_manager: EnterpriseSyncManager,
+    integration_type: str,
+    ctx: Context | None,
 ) -> dict[str, Any]:
     """Handle enterprise system status."""
     try:
@@ -763,6 +784,6 @@ async def _handle_status_operation(
             "success": False,
             "error": {
                 "code": "STATUS_OPERATION_FAILED",
-                "message": f"Enterprise status retrieval failed: {str(e)}",
+                "message": f"Enterprise status retrieval failed: {e!s}",
             },
         }

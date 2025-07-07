@@ -1,5 +1,4 @@
-"""
-Complete tool registry for all 46+ ecosystem automation tools.
+"""Complete tool registry for all 46+ ecosystem automation tools.
 
 This module provides comprehensive registration, mapping, and coordination capabilities
 for all tools in the enterprise automation ecosystem, including dependency analysis,
@@ -33,7 +32,6 @@ class ComprehensiveToolRegistry:
 
     def _initialize_complete_registry(self) -> None:
         """Initialize complete registry of all 46+ tools across all categories."""
-
         # Foundation Tools (TASK_1-20)
         foundation_tools = self._create_foundation_tools()
 
@@ -927,7 +925,7 @@ class ComprehensiveToolRegistry:
                     self.reverse_dependency_graph[dep] = set()
                 self.reverse_dependency_graph[dep].add(tool_id)
 
-    @require(lambda self, capability: len(capability) > 0)
+    @require(lambda __self, capability: len(capability) > 0)
     def find_tools_by_capability(self, capability: str) -> list[ToolDescriptor]:
         """Find tools that provide a specific capability."""
         tool_ids = self.capability_index.get(capability, set())
@@ -995,7 +993,9 @@ class ComprehensiveToolRegistry:
             "ai_enhanced_tools": ai_enhanced,
             "average_dependencies_per_tool": round(avg_dependencies, 2),
             "most_common_capabilities": sorted(
-                capability_coverage.items(), key=lambda x: x[1], reverse=True
+                capability_coverage.items(),
+                key=lambda x: x[1],
+                reverse=True,
             )[:10],
         }
 

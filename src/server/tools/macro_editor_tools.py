@@ -1,5 +1,4 @@
-"""
-Interactive macro editor MCP tools for comprehensive macro modification and debugging.
+"""Interactive macro editor MCP tools for comprehensive macro modification and debugging.
 
 This module implements the km_macro_editor tool enabling AI to interactively edit,
 debug, compare, and validate Keyboard Maestro macros with comprehensive security
@@ -22,13 +21,10 @@ from ...core.macro_editor import (
     MacroModification,
 )
 from ...debugging.macro_debugger import MacroDebugger
-from ...integration.km_client import KMClient
+from ...integration.km_client import ConnectionConfig, KMClient
 from ...integration.km_macro_editor import KMMacroEditor
 
 logger = logging.getLogger(__name__)
-
-# Initialize components
-from ...integration.km_client import ConnectionConfig
 
 if TYPE_CHECKING:
     from fastmcp import Context
@@ -41,10 +37,11 @@ macro_debugger = MacroDebugger()
 
 @require(
     lambda macro_identifier: isinstance(macro_identifier, str)
-    and len(macro_identifier.strip()) > 0
+    and len(macro_identifier.strip()) > 0,
 )
 @require(
-    lambda operation: operation in ["inspect", "modify", "debug", "compare", "validate"]
+    lambda operation: operation
+    in ["inspect", "modify", "debug", "compare", "validate"],
 )
 async def km_macro_editor(
     macro_identifier: str,
@@ -56,8 +53,7 @@ async def km_macro_editor(
     create_backup: bool = True,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """
-    Interactive macro editor with comprehensive modification and debugging capabilities.
+    """Interactive macro editor with comprehensive modification and debugging capabilities.
 
     Operations:
     - inspect: Detailed macro analysis and structure inspection
@@ -71,7 +67,7 @@ async def km_macro_editor(
     """
     try:
         logger.info(
-            f"Macro editor operation '{operation}' on macro '{macro_identifier}'"
+            f"Macro editor operation '{operation}' on macro '{macro_identifier}'",
         )
 
         if ctx:
@@ -81,49 +77,56 @@ async def km_macro_editor(
         valid_operations = ["inspect", "modify", "debug", "compare", "validate"]
         if operation not in valid_operations:
             raise ToolError(
-                f"Invalid operation '{operation}'. Valid operations: {', '.join(valid_operations)}"
+                f"Invalid operation '{operation}'. Valid operations: {', '.join(valid_operations)}",
             )
 
         # Execute operation based on type
         if operation == "inspect":
             return await _handle_inspect_operation(macro_identifier, ctx)
 
-        elif operation == "modify":
+        if operation == "modify":
             if not modification_spec:
                 raise ToolError("modification_spec required for modify operation")
             return await _handle_modify_operation(
-                macro_identifier, modification_spec, create_backup, ctx
+                macro_identifier,
+                modification_spec,
+                create_backup,
+                ctx,
             )
 
-        elif operation == "debug":
+        if operation == "debug":
             if not debug_options:
                 raise ToolError("debug_options required for debug operation")
             return await _handle_debug_operation(macro_identifier, debug_options, ctx)
 
-        elif operation == "compare":
+        if operation == "compare":
             if not comparison_target:
                 raise ToolError("comparison_target required for compare operation")
             return await _handle_compare_operation(
-                macro_identifier, comparison_target, ctx
+                macro_identifier,
+                comparison_target,
+                ctx,
             )
 
-        elif operation == "validate":
+        if operation == "validate":
             return await _handle_validate_operation(
-                macro_identifier, validation_level, ctx
+                macro_identifier,
+                validation_level,
+                ctx,
             )
 
-        else:
-            raise ToolError(f"Operation '{operation}' not implemented")
+        raise ToolError(f"Operation '{operation}' not implemented")
 
     except ToolError:
         raise
     except Exception as e:
-        logger.error(f"Macro editor error: {str(e)}")
-        raise ToolError(f"Macro editor operation failed: {str(e)}")
+        logger.error(f"Macro editor error: {e!s}")
+        raise ToolError(f"Macro editor operation failed: {e!s}") from e
 
 
 async def _handle_inspect_operation(
-    macro_identifier: str, ctx: Context | None
+    macro_identifier: str,
+    ctx: Context | None,
 ) -> dict[str, Any]:
     """Handle macro inspection operation."""
     try:
@@ -141,7 +144,7 @@ async def _handle_inspect_operation(
 
         if ctx:
             await ctx.info(
-                f"Inspection complete: {inspection.action_count} actions, {inspection.trigger_count} triggers"
+                f"Inspection complete: {inspection.action_count} actions, {inspection.trigger_count} triggers",
             )
 
         return {
@@ -178,8 +181,8 @@ async def _handle_inspect_operation(
     except ToolError:
         raise
     except Exception as e:
-        logger.error(f"Inspection operation error: {str(e)}")
-        raise ToolError(f"Macro inspection failed: {str(e)}")
+        logger.error(f"Inspection operation error: {e!s}")
+        raise ToolError(f"Macro inspection failed: {e!s}") from e
 
 
 async def _handle_modify_operation(
@@ -202,7 +205,8 @@ async def _handle_modify_operation(
         # Validate all modifications before applying
         for modification in modifications:
             perm_result = MacroEditorValidator.validate_modification_permissions(
-                macro_identifier, modification.operation
+                macro_identifier,
+                modification.operation,
             )
             if perm_result.is_left():
                 error = perm_result.get_left()
@@ -214,7 +218,9 @@ async def _handle_modify_operation(
 
         # Apply modifications
         apply_result = await km_editor.apply_modifications(
-            macro_identifier, modifications, create_backup
+            macro_identifier,
+            modifications,
+            create_backup,
         )
 
         if apply_result.is_left():
@@ -226,7 +232,7 @@ async def _handle_modify_operation(
         if ctx:
             await ctx.report_progress(100, 100, "Modifications applied successfully")
             await ctx.info(
-                f"Applied {result_data['modifications_applied']} modifications"
+                f"Applied {result_data['modifications_applied']} modifications",
             )
 
         return {
@@ -255,12 +261,14 @@ async def _handle_modify_operation(
     except ToolError:
         raise
     except Exception as e:
-        logger.error(f"Modification operation error: {str(e)}")
-        raise ToolError(f"Macro modification failed: {str(e)}")
+        logger.error(f"Modification operation error: {e!s}")
+        raise ToolError(f"Macro modification failed: {e!s}") from e
 
 
 async def _handle_debug_operation(
-    macro_identifier: str, debug_options: dict, ctx: Context | None
+    macro_identifier: str,
+    debug_options: dict,
+    ctx: Context | None,
 ) -> dict[str, Any]:
     """Handle macro debugging operation."""
     try:
@@ -349,23 +357,26 @@ async def _handle_debug_operation(
     except ToolError:
         raise
     except Exception as e:
-        logger.error(f"Debug operation error: {str(e)}")
-        raise ToolError(f"Macro debugging failed: {str(e)}")
+        logger.error(f"Debug operation error: {e!s}")
+        raise ToolError(f"Macro debugging failed: {e!s}") from e
 
 
 async def _handle_compare_operation(
-    macro_identifier: str, comparison_target: str, ctx: Context | None
+    macro_identifier: str,
+    comparison_target: str,
+    ctx: Context | None,
 ) -> dict[str, Any]:
     """Handle macro comparison operation."""
     try:
         if ctx:
             await ctx.info(
-                f"Comparing macros: {macro_identifier} vs {comparison_target}"
+                f"Comparing macros: {macro_identifier} vs {comparison_target}",
             )
 
         # Perform macro comparison
         comparison_result = await km_editor.compare_macros(
-            macro_identifier, comparison_target
+            macro_identifier,
+            comparison_target,
         )
 
         if comparison_result.is_left():
@@ -376,7 +387,7 @@ async def _handle_compare_operation(
 
         if ctx:
             await ctx.info(
-                f"Comparison complete: {comparison.similarity_score:.2f} similarity"
+                f"Comparison complete: {comparison.similarity_score:.2f} similarity",
             )
 
         return {
@@ -394,10 +405,14 @@ async def _handle_compare_operation(
                 "analysis": {
                     "total_differences": len(comparison.differences),
                     "similarity_percentage": round(
-                        comparison.similarity_score * 100, 1
+                        comparison.similarity_score * 100,
+                        1,
                     ),
                     "comparison_categories": list(
-                        {diff.get("type", "unknown") for diff in comparison.differences}
+                        {
+                            diff.get("type", "unknown")
+                            for diff in comparison.differences
+                        },
                     ),
                 },
             },
@@ -410,12 +425,14 @@ async def _handle_compare_operation(
     except ToolError:
         raise
     except Exception as e:
-        logger.error(f"Comparison operation error: {str(e)}")
-        raise ToolError(f"Macro comparison failed: {str(e)}")
+        logger.error(f"Comparison operation error: {e!s}")
+        raise ToolError(f"Macro comparison failed: {e!s}") from e
 
 
 async def _handle_validate_operation(
-    macro_identifier: str, validation_level: str, ctx: Context | None
+    macro_identifier: str,
+    validation_level: str,
+    ctx: Context | None,
 ) -> dict[str, Any]:
     """Handle macro validation operation."""
     try:
@@ -436,7 +453,7 @@ async def _handle_validate_operation(
 
         if ctx:
             await ctx.info(
-                f"Validation complete: {validation_results['overall_score']}/100"
+                f"Validation complete: {validation_results['overall_score']}/100",
             )
 
         return {
@@ -448,7 +465,7 @@ async def _handle_validate_operation(
                 "health_score": inspection.health_score,
                 "complexity_score": inspection.complexity_score,
                 "recommendations": _generate_validation_recommendations(
-                    validation_results
+                    validation_results,
                 ),
             },
             "metadata": {
@@ -461,8 +478,8 @@ async def _handle_validate_operation(
     except ToolError:
         raise
     except Exception as e:
-        logger.error(f"Validation operation error: {str(e)}")
-        raise ToolError(f"Macro validation failed: {str(e)}")
+        logger.error(f"Validation operation error: {e!s}")
+        raise ToolError(f"Macro validation failed: {e!s}") from e
 
 
 def _parse_modification_spec(modification_spec: dict) -> list:
@@ -488,7 +505,7 @@ def _parse_modification_spec(modification_spec: dict) -> list:
             )
             modifications.append(modification)
         except (KeyError, ValueError) as e:
-            logger.warning(f"Invalid modification specification: {str(e)}")
+            logger.warning(f"Invalid modification specification: {e!s}")
             continue
 
     return modifications
@@ -501,7 +518,11 @@ def _perform_validation_checks(inspection, validation_level: str) -> dict[str, A
     # Basic validation checks
     if inspection.action_count == 0:
         checks.append(
-            {"check": "has_actions", "passed": False, "message": "Macro has no actions"}
+            {
+                "check": "has_actions",
+                "passed": False,
+                "message": "Macro has no actions",
+            },
         )
     else:
         checks.append(
@@ -509,7 +530,7 @@ def _perform_validation_checks(inspection, validation_level: str) -> dict[str, A
                 "check": "has_actions",
                 "passed": True,
                 "message": f"Macro has {inspection.action_count} actions",
-            }
+            },
         )
 
     if inspection.trigger_count == 0:
@@ -518,7 +539,7 @@ def _perform_validation_checks(inspection, validation_level: str) -> dict[str, A
                 "check": "has_triggers",
                 "passed": False,
                 "message": "Macro has no triggers",
-            }
+            },
         )
     else:
         checks.append(
@@ -526,7 +547,7 @@ def _perform_validation_checks(inspection, validation_level: str) -> dict[str, A
                 "check": "has_triggers",
                 "passed": True,
                 "message": f"Macro has {inspection.trigger_count} triggers",
-            }
+            },
         )
 
     # Health score validation
@@ -553,7 +574,7 @@ def _perform_validation_checks(inspection, validation_level: str) -> dict[str, A
                 "check": "no_deprecated_actions",
                 "passed": True,  # Simplified check
                 "message": "No deprecated actions found",
-            }
+            },
         )
 
     if validation_level == "comprehensive":
@@ -563,7 +584,7 @@ def _perform_validation_checks(inspection, validation_level: str) -> dict[str, A
                 "check": "performance_acceptable",
                 "passed": inspection.estimated_execution_time < 10.0,
                 "message": f"Estimated execution time: {inspection.estimated_execution_time:.1f}s",
-            }
+            },
         )
 
     # Calculate overall score
@@ -595,18 +616,18 @@ def _generate_validation_recommendations(
                 recommendations.append("Add triggers to enable macro execution")
             elif check_type == "health_score":
                 recommendations.append(
-                    "Review macro structure and fix issues to improve health score"
+                    "Review macro structure and fix issues to improve health score",
                 )
             elif check_type == "complexity_reasonable":
                 recommendations.append(
-                    "Consider simplifying macro or breaking it into smaller parts"
+                    "Consider simplifying macro or breaking it into smaller parts",
                 )
             elif check_type == "performance_acceptable":
                 recommendations.append("Optimize macro for better performance")
 
     if validation_results["overall_score"] < 70:
         recommendations.append(
-            "Macro needs significant improvements before production use"
+            "Macro needs significant improvements before production use",
         )
     elif validation_results["overall_score"] < 90:
         recommendations.append("Consider minor improvements for better reliability")

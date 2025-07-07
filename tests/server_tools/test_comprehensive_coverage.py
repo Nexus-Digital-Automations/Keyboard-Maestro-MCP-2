@@ -1,10 +1,12 @@
-"""
-Comprehensive coverage tests for server tools that exist.
+"""Comprehensive coverage tests for server tools that exist.
 
 This test file focuses on tools that actually exist in the codebase
 to improve coverage metrics meaningfully.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import Mock
 
 import pytest
@@ -13,13 +15,13 @@ import pytest
 class TestHighImpactToolsCoverage:
     """Test coverage for high-impact server tools."""
 
-    def test_ai_processing_tools_import(self):
+    def test_ai_processing_tools_import(self) -> None:
         """Test AI processing tools import."""
         from src.server.tools.ai_processing_tools import AIProcessingManager
 
         assert AIProcessingManager is not None
 
-    def test_action_tools_import(self):
+    def test_action_tools_import(self) -> None:
         """Test action tools import."""
         try:
             from src.server.tools.action_tools import ActionTools
@@ -28,13 +30,13 @@ class TestHighImpactToolsCoverage:
         except ImportError:
             pytest.skip("Action tools not available")
 
-    def test_analytics_engine_tools_import(self):
+    def test_analytics_engine_tools_import(self) -> None:
         """Test analytics engine tools import."""
         from src.server.tools.analytics_engine_tools import AnalyticsEngine
 
         assert AnalyticsEngine is not None
 
-    def test_api_orchestration_tools_import(self):
+    def test_api_orchestration_tools_import(self) -> None:
         """Test API orchestration tools import."""
         try:
             from src.server.tools import api_orchestration_tools
@@ -43,7 +45,7 @@ class TestHighImpactToolsCoverage:
         except ImportError:
             pytest.skip("API orchestration tools not available")
 
-    def test_cloud_connector_tools_import(self):
+    def test_cloud_connector_tools_import(self) -> None:
         """Test cloud connector tools import."""
         try:
             from src.server.tools import cloud_connector_tools
@@ -52,13 +54,13 @@ class TestHighImpactToolsCoverage:
         except ImportError:
             pytest.skip("Cloud connector tools not available")
 
-    def test_dictionary_manager_tools_import(self):
+    def test_dictionary_manager_tools_import(self) -> None:
         """Test dictionary manager tools import."""
         from src.server.tools.dictionary_manager_tools import DictionaryManagerTools
 
         assert DictionaryManagerTools is not None
 
-    def test_enterprise_sync_tools_import(self):
+    def test_enterprise_sync_tools_import(self) -> None:
         """Test enterprise sync tools import."""
         try:
             from src.server.tools import enterprise_sync_tools
@@ -67,7 +69,7 @@ class TestHighImpactToolsCoverage:
         except ImportError:
             pytest.skip("Enterprise sync tools not available")
 
-    def test_macro_editor_tools_import(self):
+    def test_macro_editor_tools_import(self) -> None:
         """Test macro editor tools import."""
         try:
             from src.server.tools import macro_editor_tools
@@ -76,7 +78,7 @@ class TestHighImpactToolsCoverage:
         except ImportError:
             pytest.skip("Macro editor tools not available")
 
-    def test_natural_language_tools_import(self):
+    def test_natural_language_tools_import(self) -> None:
         """Test natural language tools import."""
         try:
             from src.server.tools import natural_language_tools
@@ -85,19 +87,19 @@ class TestHighImpactToolsCoverage:
         except ImportError:
             pytest.skip("Natural language tools not available")
 
-    def test_performance_monitor_tools_import(self):
+    def test_performance_monitor_tools_import(self) -> None:
         """Test performance monitor tools import."""
         from src.server.tools.performance_monitor_tools import PerformanceMonitorTools
 
         assert PerformanceMonitorTools is not None
 
-    def test_plugin_ecosystem_tools_import(self):
+    def test_plugin_ecosystem_tools_import(self) -> None:
         """Test plugin ecosystem tools import."""
         from src.server.tools.plugin_ecosystem_tools import PluginEcosystemTools
 
         assert PluginEcosystemTools is not None
 
-    def test_predictive_analytics_tools_import(self):
+    def test_predictive_analytics_tools_import(self) -> None:
         """Test predictive analytics tools import."""
         try:
             from src.server.tools import predictive_analytics_tools
@@ -106,13 +108,13 @@ class TestHighImpactToolsCoverage:
         except ImportError:
             pytest.skip("Predictive analytics tools not available")
 
-    def test_smart_suggestions_tools_import(self):
+    def test_smart_suggestions_tools_import(self) -> None:
         """Test smart suggestions tools import."""
         from src.server.tools.smart_suggestions_tools import SmartSuggestionsManager
 
         assert SmartSuggestionsManager is not None
 
-    def test_testing_automation_tools_import(self):
+    def test_testing_automation_tools_import(self) -> None:
         """Test testing automation tools import."""
         try:
             from src.server.tools import testing_automation_tools
@@ -121,25 +123,25 @@ class TestHighImpactToolsCoverage:
         except ImportError:
             pytest.skip("Testing automation tools not available")
 
-    def test_visual_automation_tools_import(self):
+    def test_visual_automation_tools_import(self) -> None:
         """Test visual automation tools import."""
         from src.server.tools.visual_automation_tools import VisualAutomationProcessor
 
         assert VisualAutomationProcessor is not None
 
-    def test_web_request_tools_import(self):
+    def test_web_request_tools_import(self) -> None:
         """Test web request tools import."""
         from src.server.tools.web_request_tools import WebRequestProcessor
 
         assert WebRequestProcessor is not None
 
-    def test_workflow_designer_tools_import(self):
+    def test_workflow_designer_tools_import(self) -> None:
         """Test workflow designer tools import."""
         from src.server.tools.workflow_designer_tools import WorkflowDesignerTools
 
         assert WorkflowDesignerTools is not None
 
-    def test_workflow_intelligence_tools_import(self):
+    def test_workflow_intelligence_tools_import(self) -> None:
         """Test workflow intelligence tools import."""
         try:
             from src.server.tools import workflow_intelligence_tools
@@ -148,7 +150,7 @@ class TestHighImpactToolsCoverage:
         except ImportError:
             pytest.skip("Workflow intelligence tools not available")
 
-    def test_zero_trust_security_tools_import(self):
+    def test_zero_trust_security_tools_import(self) -> None:
         """Test zero trust security tools import."""
         try:
             from src.server.tools import zero_trust_security_tools
@@ -161,7 +163,7 @@ class TestHighImpactToolsCoverage:
 class TestToolInstantiation:
     """Test tool instantiation and basic functionality."""
 
-    def test_ai_processing_manager_creation(self):
+    def test_ai_processing_manager_creation(self) -> None:
         """Test AI processing manager creation."""
         from src.server.tools.ai_processing_tools import AIProcessingManager
 
@@ -169,14 +171,14 @@ class TestToolInstantiation:
         assert manager is not None
         assert hasattr(manager, "initialized")
 
-    def test_analytics_engine_creation(self):
+    def test_analytics_engine_creation(self) -> None:
         """Test analytics engine creation."""
         from src.server.tools.analytics_engine_tools import AnalyticsEngine
 
         engine = AnalyticsEngine()
         assert engine is not None
 
-    def test_performance_monitor_tools_creation(self):
+    def test_performance_monitor_tools_creation(self) -> None:
         """Test performance monitor tools creation."""
         from src.server.tools.performance_monitor_tools import PerformanceMonitorTools
 
@@ -184,7 +186,7 @@ class TestToolInstantiation:
         assert tools is not None
         assert hasattr(tools, "register_tools")
 
-    def test_workflow_designer_tools_creation(self):
+    def test_workflow_designer_tools_creation(self) -> None:
         """Test workflow designer tools creation."""
         from src.server.tools.workflow_designer_tools import WorkflowDesignerTools
 
@@ -192,14 +194,14 @@ class TestToolInstantiation:
         assert tools is not None
         assert hasattr(tools, "register_tools")
 
-    def test_visual_automation_processor_creation(self):
+    def test_visual_automation_processor_creation(self) -> None:
         """Test visual automation processor creation."""
         from src.server.tools.visual_automation_tools import VisualAutomationProcessor
 
         processor = VisualAutomationProcessor()
         assert processor is not None
 
-    def test_smart_suggestions_manager_creation(self):
+    def test_smart_suggestions_manager_creation(self) -> None:
         """Test smart suggestions manager creation."""
         from src.server.tools.smart_suggestions_tools import SmartSuggestionsManager
 
@@ -211,13 +213,13 @@ class TestToolRegistration:
     """Test tool registration with FastMCP."""
 
     @pytest.fixture
-    def mock_mcp(self):
+    def mock_mcp(self) -> Any:
         """Create mock FastMCP instance."""
         mcp = Mock()
         mcp.tool = Mock(return_value=lambda func: func)
         return mcp
 
-    def test_performance_monitor_tools_registration(self, mock_mcp):
+    def test_performance_monitor_tools_registration(self, mock_mcp) -> None:
         """Test performance monitor tools registration."""
         from src.server.tools.performance_monitor_tools import PerformanceMonitorTools
 
@@ -229,7 +231,7 @@ class TestToolRegistration:
         # Verify tool decorator was called
         assert mock_mcp.tool.called
 
-    def test_analytics_engine_tools_registration(self, mock_mcp):
+    def test_analytics_engine_tools_registration(self, mock_mcp) -> None:
         """Test analytics engine tools registration."""
         from src.server.tools.analytics_engine_tools import AnalyticsEngineTools
 
@@ -241,7 +243,7 @@ class TestToolRegistration:
         # Verify tool decorator was called
         assert mock_mcp.tool.called
 
-    def test_visual_automation_tools_registration(self, mock_mcp):
+    def test_visual_automation_tools_registration(self, mock_mcp) -> None:
         """Test visual automation tools registration."""
         from src.server.tools.visual_automation_tools import VisualAutomationTools
 
@@ -253,7 +255,7 @@ class TestToolRegistration:
         # Verify tool decorator was called
         assert mock_mcp.tool.called
 
-    def test_workflow_designer_tools_registration(self, mock_mcp):
+    def test_workflow_designer_tools_registration(self, mock_mcp) -> None:
         """Test workflow designer tools registration."""
         from src.server.tools.workflow_designer_tools import WorkflowDesignerTools
 
@@ -265,7 +267,7 @@ class TestToolRegistration:
         # Verify tool decorator was called
         assert mock_mcp.tool.called
 
-    def test_zero_trust_security_tools_registration(self, mock_mcp):
+    def test_zero_trust_security_tools_registration(self, mock_mcp) -> None:
         """Test zero trust security tools registration."""
         from src.server.tools.zero_trust_security_tools import ZeroTrustSecurityTools
 
@@ -281,7 +283,7 @@ class TestToolRegistration:
 class TestAdvancedToolsCoverage:
     """Test coverage for advanced enterprise tools."""
 
-    def test_predictive_automation_tools_import(self):
+    def test_predictive_automation_tools_import(self) -> None:
         """Test predictive automation tools import."""
         try:
             from src.server.tools.predictive_automation_tools import (
@@ -292,7 +294,7 @@ class TestAdvancedToolsCoverage:
         except ImportError:
             pytest.skip("Predictive automation tools not available")
 
-    def test_iot_integration_tools_import(self):
+    def test_iot_integration_tools_import(self) -> None:
         """Test IoT integration tools import."""
         try:
             from src.server.tools.iot_integration_tools import IoTIntegrationTools
@@ -301,7 +303,7 @@ class TestAdvancedToolsCoverage:
         except ImportError:
             pytest.skip("IoT integration tools not available")
 
-    def test_computer_vision_tools_import(self):
+    def test_computer_vision_tools_import(self) -> None:
         """Test computer vision tools import."""
         try:
             from src.server.tools.computer_vision_tools import ComputerVisionTools
@@ -310,7 +312,7 @@ class TestAdvancedToolsCoverage:
         except ImportError:
             pytest.skip("Computer vision tools not available")
 
-    def test_accessibility_engine_tools_import(self):
+    def test_accessibility_engine_tools_import(self) -> None:
         """Test accessibility engine tools import."""
         try:
             from src.server.tools.accessibility_engine_tools import (
@@ -321,7 +323,7 @@ class TestAdvancedToolsCoverage:
         except ImportError:
             pytest.skip("Accessibility engine tools not available")
 
-    def test_knowledge_management_tools_import(self):
+    def test_knowledge_management_tools_import(self) -> None:
         """Test knowledge management tools import."""
         try:
             from src.server.tools.knowledge_management_tools import (
@@ -336,13 +338,13 @@ class TestAdvancedToolsCoverage:
 class TestToolUtilities:
     """Test tool utility functions and helpers."""
 
-    def test_server_utils_import(self):
+    def test_server_utils_import(self) -> None:
         """Test server utilities import."""
         from src.server import utils
 
         assert utils is not None
 
-    def test_fastmcp_integration_import(self):
+    def test_fastmcp_integration_import(self) -> None:
         """Test FastMCP integration import."""
         try:
             from src.server.fastmcp_integration import FastMCPIntegration
@@ -351,7 +353,7 @@ class TestToolUtilities:
         except ImportError:
             pytest.skip("FastMCP integration not available")
 
-    def test_tool_base_classes_import(self):
+    def test_tool_base_classes_import(self) -> None:
         """Test tool base classes import."""
         try:
             from src.tools.base import BaseToolSet
@@ -364,7 +366,7 @@ class TestToolUtilities:
 class TestCoreIntegrations:
     """Test core integration components that support tools."""
 
-    def test_either_monad_import(self):
+    def test_either_monad_import(self) -> None:
         """Test Either monad import."""
         from src.core.either import Either
 
@@ -379,19 +381,19 @@ class TestCoreIntegrations:
         assert left_val.is_left()
         assert not left_val.is_right()
 
-    def test_performance_monitoring_import(self):
+    def test_performance_monitoring_import(self) -> None:
         """Test performance monitoring import."""
         from src.core.performance_monitoring import PerformanceMonitor
 
         assert PerformanceMonitor is not None
 
-    def test_ai_integration_import(self):
+    def test_ai_integration_import(self) -> None:
         """Test AI integration import."""
         from src.core.ai_integration import AIOperation
 
         assert AIOperation is not None
 
-    def test_audit_framework_import(self):
+    def test_audit_framework_import(self) -> None:
         """Test audit framework import."""
         from src.core.audit_framework import AuditEvent, AuditEventType
 
@@ -402,7 +404,7 @@ class TestCoreIntegrations:
 class TestEnterpriseComponents:
     """Test enterprise-specific components."""
 
-    def test_security_framework_coverage(self):
+    def test_security_framework_coverage(self) -> None:
         """Test security framework components."""
         try:
             from src.security.policy_enforcer import PolicyEnforcer
@@ -411,7 +413,7 @@ class TestEnterpriseComponents:
         except ImportError:
             pytest.skip("Security framework not available")
 
-    def test_ai_components_coverage(self):
+    def test_ai_components_coverage(self) -> None:
         """Test AI components."""
         try:
             from src.ai.model_manager import AIModelManager
@@ -420,7 +422,7 @@ class TestEnterpriseComponents:
         except ImportError:
             pytest.skip("AI components not available")
 
-    def test_monitoring_components_coverage(self):
+    def test_monitoring_components_coverage(self) -> None:
         """Test monitoring components."""
         try:
             from src.monitoring.metrics_collector import MetricsCollector

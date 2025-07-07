@@ -1,5 +1,4 @@
-"""
-Secure API key management for AI provider integration.
+"""Secure API key management for AI provider integration.
 
 This module provides enterprise-grade API key storage, encryption, rotation,
 and validation functionality with support for multiple storage backends
@@ -114,7 +113,7 @@ class EncryptedAPIKey:
             return Either.right(decrypted_bytes.decode())
 
         except Exception as e:
-            return Either.left(ValidationError("decryption_failed", str(e)))
+            return Either.left(ValidationError("decryption_failed", str(e), "Decryption operation failed"))
 
 
 class APIKeyManager:
@@ -129,7 +128,8 @@ class APIKeyManager:
         self.storage_backend = storage_backend
         self.storage_path = storage_path or Path.home() / ".km_mcp" / "keys"
         self.master_password = master_password or os.getenv(
-            "KM_MCP_MASTER_PASSWORD", ""
+            "KM_MCP_MASTER_PASSWORD",
+            "",
         )
 
         # In-memory cache of decrypted keys
@@ -140,7 +140,7 @@ class APIKeyManager:
         if self.storage_backend == StorageBackend.FILE:
             self.storage_path.mkdir(parents=True, exist_ok=True)
 
-    @require(lambda self, provider, key_value: len(provider) > 0 and len(key_value) > 0)
+    @require(lambda __self, provider, key_value: len(provider) > 0 and len(key_value) > 0)
     def store_key(
         self,
         provider: str,
@@ -170,21 +170,23 @@ class APIKeyManager:
             # Store based on backend
             if self.storage_backend == StorageBackend.ENVIRONMENT:
                 return self._store_in_environment(provider, key_value, metadata)
-            elif self.storage_backend == StorageBackend.FILE:
+            if self.storage_backend == StorageBackend.FILE:
                 return self._store_in_file(provider, key_value, metadata)
-            else:
-                return Either.left(
-                    ValidationError(
-                        "unsupported_backend",
-                        f"Backend not implemented: {self.storage_backend}",
-                    )
-                )
+            return Either.left(
+                ValidationError(
+                    "unsupported_backend",
+                    str(self.storage_backend),
+                    "Backend not implemented",
+                ),
+            )
 
         except Exception as e:
-            return Either.left(ValidationError("key_storage_failed", str(e)))
+            return Either.left(ValidationError("key_storage_failed", str(e), "Key storage operation failed"))
 
     def retrieve_key(
-        self, provider: str, key_id: str | None = None
+        self,
+        provider: str,
+        key_id: str | None = None,
     ) -> Either[ValidationError, str]:
         """Retrieve API key for provider."""
         try:
@@ -204,22 +206,26 @@ class APIKeyManager:
                 return Either.left(
                     ValidationError(
                         "unsupported_backend",
-                        f"Backend not implemented: {self.storage_backend}",
-                    )
+                        str(self.storage_backend),
+                        "Backend not implemented",
+                    ),
                 )
 
             if result.is_right():
                 # Cache the key
-                self._key_cache[cache_key] = result.right_value
+                self._key_cache[cache_key] = result.value
                 self._update_usage(provider, key_id)
 
             return result
 
         except Exception as e:
-            return Either.left(ValidationError("key_retrieval_failed", str(e)))
+            return Either.left(ValidationError("key_retrieval_failed", str(e), "Key retrieval operation failed"))
 
     def rotate_key(
-        self, provider: str, new_key_value: str, key_id: str | None = None
+        self,
+        provider: str,
+        new_key_value: str,
+        key_id: str | None = None,
     ) -> Either[ValidationError, str]:
         """Rotate API key for provider."""
         try:
@@ -250,26 +256,27 @@ class APIKeyManager:
             return result
 
         except Exception as e:
-            return Either.left(ValidationError("key_rotation_failed", str(e)))
+            return Either.left(ValidationError("key_rotation_failed", str(e), "Key rotation operation failed"))
 
     def validate_key(
-        self, provider: str, key_value: str
+        self,
+        provider: str,
+        key_value: str,
     ) -> Either[ValidationError, bool]:
         """Validate API key format and basic structure."""
         try:
             # Provider-specific validation
             if provider.lower() == "openai":
                 return self._validate_openai_key(key_value)
-            elif provider.lower() == "anthropic":
+            if provider.lower() == "anthropic":
                 return self._validate_anthropic_key(key_value)
-            elif provider.lower() == "google_ai":
+            if provider.lower() == "google_ai":
                 return self._validate_google_key(key_value)
-            else:
-                # Generic validation
-                return Either.right(len(key_value) > 10 and key_value.isprintable())
+            # Generic validation
+            return Either.right(len(key_value) > 10 and key_value.isprintable())
 
         except Exception as e:
-            return Either.left(ValidationError("key_validation_failed", str(e)))
+            return Either.left(ValidationError("key_validation_failed", str(e), "Key validation operation failed"))
 
     def list_keys(self) -> dict[str, APIKeyMetadata]:
         """List all stored API keys with metadata."""
@@ -317,7 +324,10 @@ class APIKeyManager:
         return encrypted.decode(), salt_b64
 
     def _store_in_environment(
-        self, provider: str, key_value: str, metadata: APIKeyMetadata
+        self,
+        provider: str,
+        key_value: str,
+        metadata: APIKeyMetadata,
     ) -> Either[ValidationError, str]:
         """Store key in environment variable."""
         env_var = f"{provider.upper()}_API_KEY"
@@ -330,14 +340,19 @@ class APIKeyManager:
         return Either.right(metadata.key_id)
 
     def _store_in_file(
-        self, provider: str, key_value: str, metadata: APIKeyMetadata
+        self,
+        provider: str,
+        key_value: str,
+        metadata: APIKeyMetadata,
     ) -> Either[ValidationError, str]:
         """Store encrypted key in file."""
         if not self.master_password:
             return Either.left(
                 ValidationError(
-                    "no_master_password", "Master password required for file storage"
-                )
+                    "no_master_password",
+                    None,
+                    "Master password required for file storage",
+                ),
             )
 
         # Encrypt the key
@@ -397,21 +412,27 @@ class APIKeyManager:
         if not key_value:
             return Either.left(
                 ValidationError(
-                    "key_not_found", f"Environment variable {env_var} not set"
-                )
+                    "key_not_found",
+                    env_var,
+                    "Environment variable not set",
+                ),
             )
 
         return Either.right(key_value)
 
     def _retrieve_from_file(
-        self, provider: str, key_id: str | None = None
+        self,
+        provider: str,
+        key_id: str | None = None,
     ) -> Either[ValidationError, str]:
         """Retrieve encrypted key from file."""
         if not self.master_password:
             return Either.left(
                 ValidationError(
-                    "no_master_password", "Master password required for file storage"
-                )
+                    "no_master_password",
+                    None,
+                    "Master password required for file storage",
+                ),
             )
 
         # Find key file
@@ -423,14 +444,16 @@ class APIKeyManager:
             if not files:
                 return Either.left(
                     ValidationError(
-                        "key_not_found", f"No keys found for provider: {provider}"
-                    )
+                        "key_not_found",
+                        provider,
+                        "No keys found for provider",
+                    ),
                 )
             file_path = max(files, key=lambda f: f.stat().st_mtime)
 
         if not file_path.exists():
             return Either.left(
-                ValidationError("key_not_found", f"Key file not found: {file_path}")
+                ValidationError("key_not_found", str(file_path), "Key file must exist"),
             )
 
         # Load and decrypt
@@ -449,7 +472,7 @@ class APIKeyManager:
             return encrypted_obj.decrypt(self.master_password)
 
         except Exception as e:
-            return Either.left(ValidationError("file_read_failed", str(e)))
+            return Either.left(ValidationError("file_read_failed", str(e), "File read operation failed"))
 
     def _parse_metadata(self, data: dict[str, Any]) -> APIKeyMetadata:
         """Parse metadata from JSON data."""
@@ -485,12 +508,14 @@ class APIKeyManager:
         if not key_value.startswith("sk-"):
             return Either.left(
                 ValidationError(
-                    "invalid_openai_key", "OpenAI keys must start with 'sk-'"
-                )
+                    "invalid_openai_key",
+                    key_value,
+                    "OpenAI keys must start with 'sk-'",
+                ),
             )
         if len(key_value) < 20:
             return Either.left(
-                ValidationError("invalid_openai_key", "OpenAI key too short")
+                ValidationError("invalid_openai_key", key_value, "OpenAI key must be at least 20 characters"),
             )
         return Either.right(True)
 
@@ -499,8 +524,10 @@ class APIKeyManager:
         if not key_value.startswith("sk-ant-"):
             return Either.left(
                 ValidationError(
-                    "invalid_anthropic_key", "Anthropic keys must start with 'sk-ant-'"
-                )
+                    "invalid_anthropic_key",
+                    key_value,
+                    "Anthropic keys must start with 'sk-ant-'",
+                ),
             )
         return Either.right(True)
 
@@ -508,7 +535,7 @@ class APIKeyManager:
         """Validate Google AI API key format."""
         if len(key_value) < 20:
             return Either.left(
-                ValidationError("invalid_google_key", "Google AI key too short")
+                ValidationError("invalid_google_key", key_value, "Google AI key must be at least 20 characters"),
             )
         return Either.right(True)
 
@@ -526,7 +553,9 @@ def get_api_key_manager() -> APIKeyManager:
 
 
 def store_api_key(
-    provider: str, key_value: str, **kwargs
+    provider: str,
+    key_value: str,
+    **kwargs,
 ) -> Either[ValidationError, str]:
     """Store API key using global manager."""
     manager = get_api_key_manager()
@@ -534,7 +563,8 @@ def store_api_key(
 
 
 def get_api_key(
-    provider: str, key_id: str | None = None
+    provider: str,
+    key_id: str | None = None,
 ) -> Either[ValidationError, str]:
     """Get API key using global manager."""
     manager = get_api_key_manager()

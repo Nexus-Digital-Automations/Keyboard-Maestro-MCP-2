@@ -1,5 +1,4 @@
-"""
-IoT Architecture - TASK_65 Phase 1 Architecture & Design
+"""IoT Architecture - TASK_65 Phase 1 Architecture & Design.
 
 Complete IoT device integration type system with support for multiple protocols,
 sensors, automation workflows, and smart home capabilities.
@@ -25,31 +24,21 @@ from src.core.errors import ValidationError
 class DeviceId(str):
     """Branded type for IoT device identifiers."""
 
-    pass
-
 
 class SensorId(str):
     """Branded type for sensor identifiers."""
-
-    pass
 
 
 class SceneId(str):
     """Branded type for smart home scene identifiers."""
 
-    pass
-
 
 class WorkflowId(str):
     """Branded type for IoT workflow identifiers."""
 
-    pass
-
 
 class ProtocolAddress(str):
     """Branded type for protocol-specific addresses."""
-
-    pass
 
 
 def create_device_id(identifier: str) -> DeviceId:
@@ -309,13 +298,19 @@ class SensorReading:
 
     def is_valid(self) -> bool:
         """Check if reading is within valid range."""
-        if self.min_value is not None and isinstance(self.value, int | float):
-            if self.value < self.min_value:
-                return False
-        if self.max_value is not None and isinstance(self.value, int | float):
-            if self.value > self.max_value:
-                return False
-        return True
+        # SIM103 fix: Return condition directly instead of if/else/return pattern
+        return not (
+            (
+                self.min_value is not None
+                and isinstance(self.value, int | float)
+                and self.value < self.min_value
+            )
+            or (
+                self.max_value is not None
+                and isinstance(self.value, int | float)
+                and self.value > self.max_value
+            )
+        )
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
@@ -394,9 +389,9 @@ class AutomationCondition:
         # Evaluate based on trigger type
         if self.trigger_type == AutomationTrigger.SENSOR_THRESHOLD:
             return self._evaluate_sensor_threshold(sensor_reading)
-        elif self.trigger_type == AutomationTrigger.DEVICE_STATE:
+        if self.trigger_type == AutomationTrigger.DEVICE_STATE:
             return self._evaluate_device_state(device_state)
-        elif self.trigger_type == AutomationTrigger.TIME_SCHEDULE:
+        if self.trigger_type == AutomationTrigger.TIME_SCHEDULE:
             return self._evaluate_time_schedule()
         # Add other trigger type evaluations as needed
 
@@ -415,15 +410,15 @@ class AutomationCondition:
 
         if self.comparison_operator == ">":
             return value > threshold
-        elif self.comparison_operator == "<":
+        if self.comparison_operator == "<":
             return value < threshold
-        elif self.comparison_operator == ">=":
+        if self.comparison_operator == ">=":
             return value >= threshold
-        elif self.comparison_operator == "<=":
+        if self.comparison_operator == "<=":
             return value <= threshold
-        elif self.comparison_operator == "==":
+        if self.comparison_operator == "==":
             return value == threshold
-        elif self.comparison_operator == "!=":
+        if self.comparison_operator == "!=":
             return value != threshold
 
         return False
@@ -476,7 +471,8 @@ class AutomationAction:
     conditions: list[str] = field(default_factory=list)
 
     async def execute(
-        self, context: dict[str, Any] = None
+        self,
+        context: dict[str, Any] = None,
     ) -> Either[str, dict[str, Any]]:
         """Execute the automation action."""
         try:
@@ -496,7 +492,7 @@ class AutomationAction:
             return Either.success(result)
 
         except Exception as e:
-            return Either.error(f"Action execution failed: {str(e)}")
+            return Either.error(f"Action execution failed: {e!s}")
 
 
 @dataclass
@@ -534,7 +530,8 @@ class SmartHomeScene:
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     async def activate(
-        self, context: dict[str, Any] = None
+        self,
+        context: dict[str, Any] = None,
     ) -> Either[str, dict[str, Any]]:
         """Activate the scene."""
         try:
@@ -562,11 +559,11 @@ class SmartHomeScene:
                     "activated_at": self.last_activated.isoformat(),
                     "actions_executed": len(results),
                     "results": results,
-                }
+                },
             )
 
         except Exception as e:
-            return Either.error(f"Scene activation error: {str(e)}")
+            return Either.error(f"Scene activation error: {e!s}")
 
 
 @dataclass
@@ -628,7 +625,8 @@ class IoTWorkflow:
         return False
 
     async def execute(
-        self, context: dict[str, Any] = None
+        self,
+        context: dict[str, Any] = None,
     ) -> Either[str, dict[str, Any]]:
         """Execute the IoT workflow."""
         try:
@@ -663,7 +661,7 @@ class IoTWorkflow:
 
         except Exception as e:
             self.error_count += 1
-            return Either.error(f"Workflow execution failed: {str(e)}")
+            return Either.error(f"Workflow execution failed: {e!s}")
 
     async def _execute_sequential(self) -> Either[str, dict[str, Any]]:
         """Execute actions sequentially."""
@@ -682,7 +680,7 @@ class IoTWorkflow:
                 "execution_mode": "sequential",
                 "actions_completed": len(results),
                 "results": results,
-            }
+            },
         )
 
     async def _execute_parallel(self) -> Either[str, dict[str, Any]]:
@@ -718,11 +716,12 @@ class IoTWorkflow:
                 "actions_completed": len(successful_results),
                 "errors": len(errors),
                 "results": successful_results,
-            }
+            },
         )
 
     async def _execute_conditional(
-        self, context: dict[str, Any] = None
+        self,
+        context: dict[str, Any] = None,
     ) -> Either[str, dict[str, Any]]:
         """Execute actions based on conditions."""
         # Conditional execution logic would be implemented here
@@ -755,13 +754,13 @@ def validate_device_configuration(
         # Validate device ID
         if not device.device_id or len(device.device_id) > 100:
             return Either.error(
-                IoTIntegrationError("Invalid device ID", device.device_id)
+                IoTIntegrationError("Invalid device ID", device.device_id),
             )
 
         # Validate protocol address
         if not device.address:
             return Either.error(
-                IoTIntegrationError("Protocol address required", device.device_id)
+                IoTIntegrationError("Protocol address required", device.device_id),
             )
 
         # Validate security settings
@@ -771,15 +770,16 @@ def validate_device_configuration(
         ):
             return Either.error(
                 IoTIntegrationError(
-                    "Encryption required for maximum security", device.device_id
-                )
+                    "Encryption required for maximum security",
+                    device.device_id,
+                ),
             )
 
         return Either.success(True)
 
     except Exception as e:
         return Either.error(
-            IoTIntegrationError(f"Device validation failed: {str(e)}", device.device_id)
+            IoTIntegrationError(f"Device validation failed: {e!s}", device.device_id),
         )
 
 
@@ -812,35 +812,35 @@ def create_default_device_capabilities(device_type: DeviceType) -> list[str]:
 
 # Export all classes and functions
 __all__ = [
+    "AutomationAction",
+    "AutomationCondition",
+    "AutomationTrigger",
+    "DeviceAction",
     # Branded types
     "DeviceId",
-    "SensorId",
-    "SceneId",
-    "WorkflowId",
-    "ProtocolAddress",
-    "create_device_id",
-    "create_sensor_id",
-    "create_scene_id",
-    "create_workflow_id",
-    "create_protocol_address",
-    # Enums
-    "IoTProtocol",
-    "DeviceType",
-    "SensorType",
-    "DeviceAction",
-    "AutomationTrigger",
-    "WorkflowExecutionMode",
-    "SecurityLevel",
     "DeviceStatus",
+    "DeviceType",
     # Data structures
     "IoTDevice",
-    "SensorReading",
-    "AutomationCondition",
-    "AutomationAction",
-    "SmartHomeScene",
-    "IoTWorkflow",
     # Utilities
     "IoTIntegrationError",
-    "validate_device_configuration",
+    # Enums
+    "IoTProtocol",
+    "IoTWorkflow",
+    "ProtocolAddress",
+    "SceneId",
+    "SecurityLevel",
+    "SensorId",
+    "SensorReading",
+    "SensorType",
+    "SmartHomeScene",
+    "WorkflowExecutionMode",
+    "WorkflowId",
     "create_default_device_capabilities",
+    "create_device_id",
+    "create_protocol_address",
+    "create_scene_id",
+    "create_sensor_id",
+    "create_workflow_id",
+    "validate_device_configuration",
 ]

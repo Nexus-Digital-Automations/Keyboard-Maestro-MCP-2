@@ -1,5 +1,4 @@
-"""
-Branded types for predictive automation system.
+"""Branded types for predictive automation system.
 
 This module defines type-safe branded types for predictive operations, model management,
 and optimization recommendations. Implements complete type safety with validation.
@@ -206,7 +205,7 @@ class PerformanceForecast:
             raise ValidationError("anomaly_probability must be between 0.0 and 1.0")
         if self.trend not in ["increasing", "decreasing", "stable", "volatile"]:
             raise ValidationError(
-                "trend must be increasing, decreasing, stable, or volatile"
+                "trend must be increasing, decreasing, stable, or volatile",
             )
 
 
@@ -257,7 +256,7 @@ class PatternAnalysis:
             raise ValidationError("prediction_accuracy must be between 0.0 and 1.0")
         if self.frequency not in ["daily", "weekly", "monthly", "irregular"]:
             raise ValidationError(
-                "frequency must be daily, weekly, monthly, or irregular"
+                "frequency must be daily, weekly, monthly, or irregular",
             )
         if self.business_impact not in ["high", "medium", "low"]:
             raise ValidationError("business_impact must be high, medium, or low")
@@ -337,7 +336,7 @@ class WorkflowOptimization:
             raise ValidationError("success_probability must be between 0.0 and 1.0")
         if self.implementation_complexity not in ["low", "medium", "high"]:
             raise ValidationError(
-                "implementation_complexity must be low, medium, or high"
+                "implementation_complexity must be low, medium, or high",
             )
 
 

@@ -1,11 +1,13 @@
-"""
-Comprehensive test suite for workflow intelligence tools using systematic MCP tool test pattern.
+"""Comprehensive test suite for workflow intelligence tools using systematic MCP tool test pattern.
 
 Tests the complete workflow intelligence functionality including workflow analysis, natural language
 creation, performance optimization, and intelligent recommendation generation.
 Tests follow the proven systematic pattern that achieved 100% success across 30+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import Mock
 
@@ -186,7 +188,7 @@ async def mock_km_analyze_workflow_intelligence(
                     "maturity": "early",
                     "potential": "high",
                     "description": "Workflows adapting execution paths based on runtime conditions",
-                }
+                },
             ],
         }
 
@@ -1281,7 +1283,7 @@ async def mock_km_generate_workflow_recommendations(
                         "Create fallback mechanisms for critical operations",
                         "Implement workflow state checkpointing",
                     ],
-                }
+                },
             ],
             "operational_improvements": [
                 {
@@ -1302,7 +1304,7 @@ async def mock_km_generate_workflow_recommendations(
                         "Configure automated alerting based on SLA thresholds",
                         "Add anomaly detection for workflow patterns",
                     ],
-                }
+                },
             ],
         }
 
@@ -1396,7 +1398,7 @@ async def mock_km_generate_workflow_recommendations(
                     "approach": "Incremental optimization vs. architectural overhaul",
                     "trade_offs": "Lower risk but also lower long-term benefits",
                     "recommendation": "Hybrid approach: quick wins first, then strategic changes",
-                }
+                },
             ],
         }
 
@@ -1430,16 +1432,16 @@ class TestKMAnalyzeWorkflowIntelligence:
     """Test suite for km_analyze_workflow_intelligence MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-workflow-intelligence-001"
+            "request_id": "test-request-workflow-intelligence-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_analyze_workflow_intelligence_comprehensive(self, mock_context):
+    async def test_analyze_workflow_intelligence_comprehensive(self, mock_context) -> None:
         """Test comprehensive workflow intelligence analysis."""
         result = await km_analyze_workflow_intelligence(
             analysis_scope="comprehensive",
@@ -1466,7 +1468,7 @@ class TestKMAnalyzeWorkflowIntelligence:
         assert "performance_intelligence" in intelligence
 
     @pytest.mark.asyncio
-    async def test_analyze_workflow_intelligence_focused(self, mock_context):
+    async def test_analyze_workflow_intelligence_focused(self, mock_context) -> None:
         """Test focused workflow intelligence analysis."""
         result = await km_analyze_workflow_intelligence(
             analysis_scope="focused",
@@ -1489,10 +1491,11 @@ class TestKMAnalyzeWorkflowIntelligence:
         assert "performance_intelligence" not in intelligence
 
     @pytest.mark.asyncio
-    async def test_analyze_workflow_intelligence_invalid_scope(self, mock_context):
+    async def test_analyze_workflow_intelligence_invalid_scope(self, mock_context) -> None:
         """Test workflow intelligence analysis with invalid scope."""
         result = await km_analyze_workflow_intelligence(
-            analysis_scope="invalid_scope", ctx=mock_context
+            analysis_scope="invalid_scope",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1500,7 +1503,7 @@ class TestKMAnalyzeWorkflowIntelligence:
         assert "Invalid analysis scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_analyze_workflow_intelligence_invalid_level(self, mock_context):
+    async def test_analyze_workflow_intelligence_invalid_level(self, mock_context) -> None:
         """Test workflow intelligence analysis with invalid intelligence level."""
         result = await km_analyze_workflow_intelligence(
             analysis_scope="comprehensive",
@@ -1513,10 +1516,11 @@ class TestKMAnalyzeWorkflowIntelligence:
         assert "Invalid intelligence level" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_analyze_workflow_intelligence_empty_scope(self, mock_context):
+    async def test_analyze_workflow_intelligence_empty_scope(self, mock_context) -> None:
         """Test workflow intelligence analysis with empty scope."""
         result = await km_analyze_workflow_intelligence(
-            analysis_scope="", ctx=mock_context
+            analysis_scope="",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1528,16 +1532,16 @@ class TestKMCreateWorkflowFromDescription:
     """Test suite for km_create_workflow_from_description MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-workflow-creation-001"
+            "request_id": "test-request-workflow-creation-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_create_workflow_from_description_comprehensive(self, mock_context):
+    async def test_create_workflow_from_description_comprehensive(self, mock_context) -> None:
         """Test comprehensive workflow creation from description."""
         description = "Create a workflow that processes customer data, validates it, generates a report, and sends notifications via email"
 
@@ -1565,7 +1569,7 @@ class TestKMCreateWorkflowFromDescription:
         assert "documentation" in creation
 
     @pytest.mark.asyncio
-    async def test_create_workflow_from_description_basic(self, mock_context):
+    async def test_create_workflow_from_description_basic(self, mock_context) -> None:
         """Test basic workflow creation from description."""
         description = "Send daily reports to managers"
 
@@ -1586,7 +1590,7 @@ class TestKMCreateWorkflowFromDescription:
         assert "documentation" not in creation
 
     @pytest.mark.asyncio
-    async def test_create_workflow_from_description_invalid_level(self, mock_context):
+    async def test_create_workflow_from_description_invalid_level(self, mock_context) -> None:
         """Test workflow creation with invalid intelligence level."""
         result = await km_create_workflow_from_description(
             description="Create a simple workflow",
@@ -1600,8 +1604,9 @@ class TestKMCreateWorkflowFromDescription:
 
     @pytest.mark.asyncio
     async def test_create_workflow_from_description_invalid_validation(
-        self, mock_context
-    ):
+        self,
+        mock_context,
+    ) -> None:
         """Test workflow creation with invalid validation level."""
         result = await km_create_workflow_from_description(
             description="Create a simple workflow",
@@ -1615,11 +1620,13 @@ class TestKMCreateWorkflowFromDescription:
 
     @pytest.mark.asyncio
     async def test_create_workflow_from_description_empty_description(
-        self, mock_context
-    ):
+        self,
+        mock_context,
+    ) -> None:
         """Test workflow creation with empty description."""
         result = await km_create_workflow_from_description(
-            description="", ctx=mock_context
+            description="",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1628,11 +1635,13 @@ class TestKMCreateWorkflowFromDescription:
 
     @pytest.mark.asyncio
     async def test_create_workflow_from_description_short_description(
-        self, mock_context
-    ):
+        self,
+        mock_context,
+    ) -> None:
         """Test workflow creation with too short description."""
         result = await km_create_workflow_from_description(
-            description="short", ctx=mock_context
+            description="short",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1644,16 +1653,16 @@ class TestKMOptimizeWorkflowPerformance:
     """Test suite for km_optimize_workflow_performance MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-workflow-optimization-001"
+            "request_id": "test-request-workflow-optimization-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_optimize_workflow_performance_comprehensive(self, mock_context):
+    async def test_optimize_workflow_performance_comprehensive(self, mock_context) -> None:
         """Test comprehensive workflow performance optimization."""
         result = await km_optimize_workflow_performance(
             workflow_identifier="test_workflow_123",
@@ -1680,7 +1689,7 @@ class TestKMOptimizeWorkflowPerformance:
         assert "functionality_preservation" in optimization
 
     @pytest.mark.asyncio
-    async def test_optimize_workflow_performance_focused(self, mock_context):
+    async def test_optimize_workflow_performance_focused(self, mock_context) -> None:
         """Test focused workflow performance optimization."""
         result = await km_optimize_workflow_performance(
             workflow_identifier="test_workflow_456",
@@ -1701,7 +1710,7 @@ class TestKMOptimizeWorkflowPerformance:
         assert "before_after_comparison" not in optimization
 
     @pytest.mark.asyncio
-    async def test_optimize_workflow_performance_invalid_scope(self, mock_context):
+    async def test_optimize_workflow_performance_invalid_scope(self, mock_context) -> None:
         """Test workflow optimization with invalid scope."""
         result = await km_optimize_workflow_performance(
             workflow_identifier="test_workflow",
@@ -1714,7 +1723,7 @@ class TestKMOptimizeWorkflowPerformance:
         assert "Invalid optimization scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_optimize_workflow_performance_invalid_strategy(self, mock_context):
+    async def test_optimize_workflow_performance_invalid_strategy(self, mock_context) -> None:
         """Test workflow optimization with invalid strategy."""
         result = await km_optimize_workflow_performance(
             workflow_identifier="test_workflow",
@@ -1727,10 +1736,11 @@ class TestKMOptimizeWorkflowPerformance:
         assert "Invalid optimization strategy" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_optimize_workflow_performance_empty_identifier(self, mock_context):
+    async def test_optimize_workflow_performance_empty_identifier(self, mock_context) -> None:
         """Test workflow optimization with empty identifier."""
         result = await km_optimize_workflow_performance(
-            workflow_identifier="", ctx=mock_context
+            workflow_identifier="",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1742,16 +1752,16 @@ class TestKMGenerateWorkflowRecommendations:
     """Test suite for km_generate_workflow_recommendations MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-workflow-recommendations-001"
+            "request_id": "test-request-workflow-recommendations-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_generate_workflow_recommendations_comprehensive(self, mock_context):
+    async def test_generate_workflow_recommendations_comprehensive(self, mock_context) -> None:
         """Test comprehensive workflow recommendations generation."""
         result = await km_generate_workflow_recommendations(
             analysis_context="system_wide",
@@ -1778,7 +1788,7 @@ class TestKMGenerateWorkflowRecommendations:
         assert "advanced_intelligence" in recommendations
 
     @pytest.mark.asyncio
-    async def test_generate_workflow_recommendations_quick_wins(self, mock_context):
+    async def test_generate_workflow_recommendations_quick_wins(self, mock_context) -> None:
         """Test quick wins workflow recommendations generation."""
         result = await km_generate_workflow_recommendations(
             analysis_context="performance_focused",
@@ -1800,11 +1810,13 @@ class TestKMGenerateWorkflowRecommendations:
 
     @pytest.mark.asyncio
     async def test_generate_workflow_recommendations_invalid_context(
-        self, mock_context
-    ):
+        self,
+        mock_context,
+    ) -> None:
         """Test workflow recommendations with invalid analysis context."""
         result = await km_generate_workflow_recommendations(
-            analysis_context="invalid_context", ctx=mock_context
+            analysis_context="invalid_context",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1812,7 +1824,7 @@ class TestKMGenerateWorkflowRecommendations:
         assert "Invalid analysis context" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_generate_workflow_recommendations_invalid_scope(self, mock_context):
+    async def test_generate_workflow_recommendations_invalid_scope(self, mock_context) -> None:
         """Test workflow recommendations with invalid scope."""
         result = await km_generate_workflow_recommendations(
             analysis_context="system_wide",
@@ -1826,8 +1838,9 @@ class TestKMGenerateWorkflowRecommendations:
 
     @pytest.mark.asyncio
     async def test_generate_workflow_recommendations_invalid_intelligence(
-        self, mock_context
-    ):
+        self,
+        mock_context,
+    ) -> None:
         """Test workflow recommendations with invalid intelligence level."""
         result = await km_generate_workflow_recommendations(
             analysis_context="system_wide",
@@ -1840,10 +1853,11 @@ class TestKMGenerateWorkflowRecommendations:
         assert "Invalid intelligence level" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_generate_workflow_recommendations_empty_context(self, mock_context):
+    async def test_generate_workflow_recommendations_empty_context(self, mock_context) -> None:
         """Test workflow recommendations with empty analysis context."""
         result = await km_generate_workflow_recommendations(
-            analysis_context="", ctx=mock_context
+            analysis_context="",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1856,16 +1870,16 @@ class TestWorkflowIntelligenceToolsIntegration:
     """Integration tests for workflow intelligence tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-integration-workflow-intelligence-001"
+            "request_id": "test-integration-workflow-intelligence-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_workflow_intelligence_workflow(self, mock_context):
+    async def test_complete_workflow_intelligence_workflow(self, mock_context) -> None:
         """Test complete workflow intelligence workflow integration."""
         # Analyze workflow intelligence
         analysis_result = await km_analyze_workflow_intelligence(
@@ -1921,16 +1935,16 @@ class TestWorkflowIntelligenceToolsProperties:
     """Property-based tests for workflow intelligence tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-property-workflow-intelligence-001"
+            "request_id": "test-property-workflow-intelligence-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_workflow_intelligence_with_various_scopes(self, mock_context):
+    async def test_workflow_intelligence_with_various_scopes(self, mock_context) -> None:
         """Test workflow intelligence analysis with various scopes."""
         test_scopes = [
             "comprehensive",
@@ -1942,13 +1956,14 @@ class TestWorkflowIntelligenceToolsProperties:
 
         for scope in test_scopes:
             result = await km_analyze_workflow_intelligence(
-                analysis_scope=scope, ctx=mock_context
+                analysis_scope=scope,
+                ctx=mock_context,
             )
             assert result["success"] is True
             assert result["workflow_intelligence"]["scope"] == scope
 
     @pytest.mark.asyncio
-    async def test_workflow_creation_intelligence_levels(self, mock_context):
+    async def test_workflow_creation_intelligence_levels(self, mock_context) -> None:
         """Test workflow creation with different intelligence levels."""
         intelligence_levels = ["basic", "standard", "advanced", "expert"]
 
@@ -1962,7 +1977,7 @@ class TestWorkflowIntelligenceToolsProperties:
             assert result["workflow_creation"]["intelligence_level"] == level
 
     @pytest.mark.asyncio
-    async def test_optimization_strategies_consistency(self, mock_context):
+    async def test_optimization_strategies_consistency(self, mock_context) -> None:
         """Test workflow optimization with different strategies."""
         strategies = ["aggressive", "balanced", "conservative", "custom"]
 
@@ -1976,7 +1991,7 @@ class TestWorkflowIntelligenceToolsProperties:
             assert result["workflow_optimization"]["strategy"] == strategy
 
     @pytest.mark.asyncio
-    async def test_recommendation_contexts_consistency(self, mock_context):
+    async def test_recommendation_contexts_consistency(self, mock_context) -> None:
         """Test workflow recommendations with different contexts."""
         contexts = [
             "system_wide",
@@ -1988,13 +2003,14 @@ class TestWorkflowIntelligenceToolsProperties:
 
         for context in contexts:
             result = await km_generate_workflow_recommendations(
-                analysis_context=context, ctx=mock_context
+                analysis_context=context,
+                ctx=mock_context,
             )
             assert result["success"] is True
             assert result["workflow_recommendations"]["analysis_context"] == context
 
     @pytest.mark.asyncio
-    async def test_workflow_creation_with_various_descriptions(self, mock_context):
+    async def test_workflow_creation_with_various_descriptions(self, mock_context) -> None:
         """Test workflow creation with various description lengths and types."""
         test_descriptions = [
             "Simple daily backup workflow",
@@ -2005,7 +2021,8 @@ class TestWorkflowIntelligenceToolsProperties:
 
         for description in test_descriptions:
             result = await km_create_workflow_from_description(
-                description=description, ctx=mock_context
+                description=description,
+                ctx=mock_context,
             )
             assert result["success"] is True
             assert result["workflow_creation"]["description_input"] == description

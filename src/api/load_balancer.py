@@ -1,5 +1,4 @@
-"""
-Advanced Load Balancer Implementation - TASK_64 Phase 4 Implementation
+"""Advanced Load Balancer Implementation - TASK_64 Phase 4 Implementation.
 
 Intelligent load balancing and traffic distribution for API orchestration with
 Design by Contract patterns, health monitoring, and adaptive algorithms.
@@ -12,7 +11,7 @@ Security: Request validation, rate limiting, and DDoS protection
 from __future__ import annotations
 
 import logging
-import random
+import secrets
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
@@ -97,6 +96,8 @@ class LoadBalancer:
         self.config = config
         self.backends: dict[str, BackendServer] = {}
         self.round_robin_index = 0
+        # Use cryptographically secure random for enterprise security
+        self.secure_random = secrets.SystemRandom()
 
         logger.info(f"Load balancer '{config.name}' initialized")
 
@@ -111,7 +112,7 @@ class LoadBalancer:
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(f"Failed to add backend: {str(e)}")
+            return Either.left(f"Failed to add backend: {e!s}")
 
     async def route_request(self, client_id: str) -> RoutingDecision:
         """Route request to appropriate backend server."""
@@ -126,11 +127,10 @@ class LoadBalancer:
             backend = healthy_backends[self.round_robin_index % len(healthy_backends)]
             self.round_robin_index += 1
             return RoutingDecision(backend, "Round robin")
-        elif self.config.strategy == LoadBalancingStrategy.RANDOM:
-            backend = random.choice(healthy_backends)
+        if self.config.strategy == LoadBalancingStrategy.RANDOM:
+            backend = self.secure_random.choice(healthy_backends)
             return RoutingDecision(backend, "Random selection")
-        else:
-            return RoutingDecision(healthy_backends[0], "Default selection")
+        return RoutingDecision(healthy_backends[0], "Default selection")
 
 
 # Global registry
@@ -138,7 +138,8 @@ _load_balancers: dict[str, LoadBalancer] = {}
 
 
 def get_load_balancer(
-    name: str, config: LoadBalancerConfig | None = None
+    name: str,
+    config: LoadBalancerConfig | None = None,
 ) -> LoadBalancer:
     """Get or create load balancer by name."""
     if name not in _load_balancers:

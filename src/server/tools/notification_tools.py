@@ -1,5 +1,4 @@
-"""
-Notification MCP Tools
+"""Notification MCP Tools.
 
 Provides comprehensive user feedback capabilities through multiple notification channels
 with validation, user interaction tracking, and platform integration.
@@ -107,13 +106,13 @@ async def km_notifications(
     dismissible: Annotated[
         bool,
         Field(
-            default=True, description="Whether notification can be dismissed by user"
+            default=True,
+            description="Whether notification can be dismissed by user",
         ),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Display user notifications with comprehensive formatting and interaction support.
+    """Display user notifications with comprehensive formatting and interaction support.
 
     Architecture:
     - Pattern: Command Pattern with State Tracking and User Interaction
@@ -169,6 +168,7 @@ async def km_notifications(
     Raises:
         ValidationError: Input validation failed
         SecurityViolationError: Content security validation failed
+
     """
     if buttons is None:
         buttons = []
@@ -180,7 +180,7 @@ async def km_notifications(
             await ctx.info(f"Displaying {notification_type} notification: '{title}'")
 
         logger.info(
-            f"Notification request: {notification_type} - '{title}' [correlation_id: {correlation_id}]"
+            f"Notification request: {notification_type} - '{title}' [correlation_id: {correlation_id}]",
         )
 
         # Phase 1: Input validation and sanitization
@@ -231,7 +231,7 @@ async def km_notifications(
 
         except Exception as e:
             logger.warning(
-                f"Input validation failed: {e} [correlation_id: {correlation_id}]"
+                f"Input validation failed: {e} [correlation_id: {correlation_id}]",
             )
             return _create_error_response(
                 correlation_id,
@@ -260,7 +260,7 @@ async def km_notifications(
             )
         except ValueError as e:
             logger.warning(
-                f"Notification spec creation failed: {e} [correlation_id: {correlation_id}]"
+                f"Notification spec creation failed: {e} [correlation_id: {correlation_id}]",
             )
             return _create_error_response(
                 correlation_id,
@@ -273,7 +273,9 @@ async def km_notifications(
 
         if ctx:
             await ctx.report_progress(
-                50, 100, f"Displaying {notification_type} notification"
+                50,
+                100,
+                f"Displaying {notification_type} notification",
             )
 
         # Phase 3: Display notification
@@ -289,7 +291,7 @@ async def km_notifications(
         if result.is_left():
             error = result.get_left()
             logger.error(
-                f"Notification display failed: {error.message} [correlation_id: {correlation_id}]"
+                f"Notification display failed: {error.message} [correlation_id: {correlation_id}]",
             )
 
             if ctx:
@@ -311,7 +313,7 @@ async def km_notifications(
             await ctx.info(f"Successfully displayed {notification_type} notification")
 
         logger.info(
-            f"Notification success: {notification_type} - '{title}' [correlation_id: {correlation_id}]"
+            f"Notification success: {notification_type} - '{title}' [correlation_id: {correlation_id}]",
         )
 
         return {
@@ -337,7 +339,7 @@ async def km_notifications(
                 "execution_time": execution_time,
                 "operation": "display_notification",
                 "notification_manager_active_count": len(
-                    notification_manager.get_active_notifications()
+                    notification_manager.get_active_notifications(),
                 ),
             },
         }
@@ -345,7 +347,7 @@ async def km_notifications(
     except ValidationError as e:
         execution_time = (datetime.now() - start_time).total_seconds()
         logger.warning(
-            f"Validation error for notification '{title}': {e} [correlation_id: {correlation_id}]"
+            f"Validation error for notification '{title}': {e} [correlation_id: {correlation_id}]",
         )
 
         if ctx:
@@ -363,7 +365,7 @@ async def km_notifications(
     except SecurityViolationError as e:
         execution_time = (datetime.now() - start_time).total_seconds()
         logger.error(
-            f"Security violation for notification '{title}': {e} [correlation_id: {correlation_id}]"
+            f"Security violation for notification '{title}': {e} [correlation_id: {correlation_id}]",
         )
 
         if ctx:
@@ -381,11 +383,11 @@ async def km_notifications(
     except Exception as e:
         execution_time = (datetime.now() - start_time).total_seconds()
         logger.exception(
-            f"Unexpected error in notification '{title}' [correlation_id: {correlation_id}]"
+            f"Unexpected error in notification '{title}' [correlation_id: {correlation_id}]",
         )
 
         if ctx:
-            await ctx.error(f"Unexpected error: {str(e)}")
+            await ctx.error(f"Unexpected error: {e!s}")
 
         return _create_error_response(
             correlation_id,
@@ -401,13 +403,13 @@ async def km_notification_status(
     notification_id: Annotated[
         str | None,
         Field(
-            default=None, description="Notification ID to check status for (optional)"
+            default=None,
+            description="Notification ID to check status for (optional)",
         ),
     ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Get status of active notifications with detailed information.
+    """Get status of active notifications with detailed information.
 
     Args:
         notification_id: Specific notification ID to check (if provided)
@@ -415,6 +417,7 @@ async def km_notification_status(
 
     Returns:
         Dictionary containing notification status information
+
     """
     correlation_id = str(uuid.uuid4())
     start_time = datetime.now()
@@ -449,52 +452,50 @@ async def km_notification_status(
                         "execution_time": (datetime.now() - start_time).total_seconds(),
                     },
                 }
-            else:
-                return _create_error_response(
-                    correlation_id,
-                    "NOT_FOUND",
-                    f"Notification not found: {notification_id}",
-                    "The specified notification ID is not in the active notifications list",
-                    "Check that the notification ID is correct and that the notification is currently active",
-                    (datetime.now() - start_time).total_seconds(),
-                )
-        else:
-            # Get all active notifications status
-            notifications_data = []
-            for notif_id, notification_data in active_notifications.items():
-                spec = notification_data["spec"]
-                notifications_data.append(
-                    {
-                        "notification_id": notif_id,
-                        "type": spec.notification_type.value,
-                        "title": spec.title,
-                        "priority": spec.priority.value,
-                        "dismissible": spec.dismissible,
-                        "start_time": notification_data["start_time"],
-                    }
-                )
+            return _create_error_response(
+                correlation_id,
+                "NOT_FOUND",
+                f"Notification not found: {notification_id}",
+                "The specified notification ID is not in the active notifications list",
+                "Check that the notification ID is correct and that the notification is currently active",
+                (datetime.now() - start_time).total_seconds(),
+            )
+        # Get all active notifications status
+        notifications_data = []
+        for notif_id, notification_data in active_notifications.items():
+            spec = notification_data["spec"]
+            notifications_data.append(
+                {
+                    "notification_id": notif_id,
+                    "type": spec.notification_type.value,
+                    "title": spec.title,
+                    "priority": spec.priority.value,
+                    "dismissible": spec.dismissible,
+                    "start_time": notification_data["start_time"],
+                },
+            )
 
-            return {
-                "success": True,
-                "data": {
-                    "active_count": len(active_notifications),
-                    "notifications": notifications_data,
-                },
-                "metadata": {
-                    "correlation_id": correlation_id,
-                    "timestamp": datetime.now().isoformat(),
-                    "execution_time": (datetime.now() - start_time).total_seconds(),
-                },
-            }
+        return {
+            "success": True,
+            "data": {
+                "active_count": len(active_notifications),
+                "notifications": notifications_data,
+            },
+            "metadata": {
+                "correlation_id": correlation_id,
+                "timestamp": datetime.now().isoformat(),
+                "execution_time": (datetime.now() - start_time).total_seconds(),
+            },
+        }
 
     except Exception as e:
         execution_time = (datetime.now() - start_time).total_seconds()
         logger.exception(
-            f"Error retrieving notification status [correlation_id: {correlation_id}]"
+            f"Error retrieving notification status [correlation_id: {correlation_id}]",
         )
 
         if ctx:
-            await ctx.error(f"Status retrieval error: {str(e)}")
+            await ctx.error(f"Status retrieval error: {e!s}")
 
         return _create_error_response(
             correlation_id,
@@ -516,8 +517,7 @@ async def km_dismiss_notifications(
     ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Dismiss active notifications with optional ID filtering.
+    """Dismiss active notifications with optional ID filtering.
 
     Args:
         notification_id: Specific notification to dismiss (if provided)
@@ -525,6 +525,7 @@ async def km_dismiss_notifications(
 
     Returns:
         Dictionary containing dismissal results
+
     """
     correlation_id = str(uuid.uuid4())
     start_time = datetime.now()
@@ -532,7 +533,7 @@ async def km_dismiss_notifications(
     try:
         if ctx:
             await ctx.info(
-                f"Dismissing notifications{f' (ID: {notification_id})' if notification_id else ' (all)'}"
+                f"Dismissing notifications{f' (ID: {notification_id})' if notification_id else ' (all)'}",
             )
 
         notification_manager = get_notification_manager()
@@ -550,28 +551,27 @@ async def km_dismiss_notifications(
                     "execution_time": (datetime.now() - start_time).total_seconds(),
                 },
             }
-        else:
-            # Dismiss all notifications
-            count = notification_manager.clear_all_notifications()
+        # Dismiss all notifications
+        count = notification_manager.clear_all_notifications()
 
-            return {
-                "success": True,
-                "data": {"dismissed_count": count, "dismissed_all": True},
-                "metadata": {
-                    "correlation_id": correlation_id,
-                    "timestamp": datetime.now().isoformat(),
-                    "execution_time": (datetime.now() - start_time).total_seconds(),
-                },
-            }
+        return {
+            "success": True,
+            "data": {"dismissed_count": count, "dismissed_all": True},
+            "metadata": {
+                "correlation_id": correlation_id,
+                "timestamp": datetime.now().isoformat(),
+                "execution_time": (datetime.now() - start_time).total_seconds(),
+            },
+        }
 
     except Exception as e:
         execution_time = (datetime.now() - start_time).total_seconds()
         logger.exception(
-            f"Error dismissing notifications [correlation_id: {correlation_id}]"
+            f"Error dismissing notifications [correlation_id: {correlation_id}]",
         )
 
         if ctx:
-            await ctx.error(f"Dismissal error: {str(e)}")
+            await ctx.error(f"Dismissal error: {e!s}")
 
         return _create_error_response(
             correlation_id,

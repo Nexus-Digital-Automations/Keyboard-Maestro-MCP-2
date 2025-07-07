@@ -1,5 +1,4 @@
-"""
-IoT Edge Computing Processor - TASK_65 Phase 4 Advanced Features
+"""IoT Edge Computing Processor - TASK_65 Phase 4 Advanced Features.
 
 Local IoT data processing, edge analytics, distributed computing coordination,
 and real-time processing capabilities for IoT automation workflows.
@@ -118,8 +117,7 @@ class ProcessingResult:
 
 
 class EdgeProcessor:
-    """
-    Edge computing processor for local IoT data processing and analytics.
+    """Edge computing processor for local IoT data processing and analytics.
 
     Contracts:
         Preconditions:
@@ -152,13 +150,13 @@ class EdgeProcessor:
         self.peak_memory_usage = 0
         self.cluster_utilization = 0.0
 
-    @require(lambda self, cluster: cluster.cluster_id and len(cluster.nodes) > 0)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, cluster: cluster.cluster_id and len(cluster.nodes) > 0)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def register_edge_cluster(
-        self, cluster: EdgeCluster
+        self,
+        cluster: EdgeCluster,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
-        """
-        Register edge computing cluster for distributed processing.
+        """Register edge computing cluster for distributed processing.
 
         Architecture:
             - Validates cluster configuration and health
@@ -175,23 +173,23 @@ class EdgeProcessor:
             if cluster.total_compute_capacity <= 0:
                 return Either.error(
                     IoTIntegrationError(
-                        "Invalid cluster configuration: compute capacity must be positive"
-                    )
+                        "Invalid cluster configuration: compute capacity must be positive",
+                    ),
                 )
 
             if cluster.total_memory <= 0:
                 return Either.error(
                     IoTIntegrationError(
-                        "Invalid cluster configuration: memory must be positive"
-                    )
+                        "Invalid cluster configuration: memory must be positive",
+                    ),
                 )
 
             # Check cluster health
             if cluster.cluster_health < 0.7:  # 70% minimum health
                 return Either.error(
                     IoTIntegrationError(
-                        f"Cluster health too low: {cluster.cluster_health:.1%}"
-                    )
+                        f"Cluster health too low: {cluster.cluster_health:.1%}",
+                    ),
                 )
 
             # Register cluster
@@ -216,21 +214,21 @@ class EdgeProcessor:
                     "success": True,
                     "cluster_info": cluster_info,
                     "total_clusters": len(self.edge_clusters),
-                }
+                },
             )
 
         except Exception as e:
-            error_msg = f"Failed to register edge cluster: {str(e)}"
+            error_msg = f"Failed to register edge cluster: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg))
 
-    @require(lambda self, task: task.task_id and task.device_id)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, task: task.task_id and task.device_id)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def submit_processing_task(
-        self, task: EdgeComputeTask
+        self,
+        task: EdgeComputeTask,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
-        """
-        Submit edge computing task for processing.
+        """Submit edge computing task for processing.
 
         Architecture:
             - Validates task requirements and constraints
@@ -246,21 +244,21 @@ class EdgeProcessor:
             # Validate task
             if task.is_expired():
                 return Either.error(
-                    IoTIntegrationError(f"Task {task.task_id} has expired")
+                    IoTIntegrationError(f"Task {task.task_id} has expired"),
                 )
 
             if task.data_size > 100_000_000:  # 100MB limit
                 return Either.error(
                     IoTIntegrationError(
-                        f"Task data size too large: {task.data_size} bytes"
-                    )
+                        f"Task data size too large: {task.data_size} bytes",
+                    ),
                 )
 
             # Find suitable cluster
             suitable_cluster = self._find_suitable_cluster(task)
             if not suitable_cluster:
                 return Either.error(
-                    IoTIntegrationError("No suitable edge cluster available for task")
+                    IoTIntegrationError("No suitable edge cluster available for task"),
                 )
 
             # Add to active tasks and queue
@@ -283,7 +281,7 @@ class EdgeProcessor:
             return Either.success({"success": True, "submission_info": submission_info})
 
         except Exception as e:
-            error_msg = f"Failed to submit processing task: {str(e)}"
+            error_msg = f"Failed to submit processing task: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg))
 
@@ -291,8 +289,7 @@ class EdgeProcessor:
     async def process_task_queue(
         self,
     ) -> AsyncGenerator[Either[IoTIntegrationError, ProcessingResult], None]:
-        """
-        Process queued edge computing tasks with priority scheduling.
+        """Process queued edge computing tasks with priority scheduling.
 
         Architecture:
             - Priority-based task scheduling
@@ -312,8 +309,8 @@ class EdgeProcessor:
                 if task.is_expired():
                     yield Either.error(
                         IoTIntegrationError(
-                            f"Task {task.task_id} expired before processing"
-                        )
+                            f"Task {task.task_id} expired before processing",
+                        ),
                     )
                     continue
 
@@ -327,8 +324,8 @@ class EdgeProcessor:
                     else:
                         yield Either.error(
                             IoTIntegrationError(
-                                f"No cluster available for task {task.task_id}"
-                            )
+                                f"No cluster available for task {task.task_id}",
+                            ),
                         )
                         continue
 
@@ -361,11 +358,13 @@ class EdgeProcessor:
                 self.processing_history.append(error_result)
 
                 yield Either.error(
-                    IoTIntegrationError(f"Task processing failed: {str(e)}")
+                    IoTIntegrationError(f"Task processing failed: {e!s}"),
                 )
 
     async def _execute_task(
-        self, task: EdgeComputeTask, cluster: EdgeCluster
+        self,
+        task: EdgeComputeTask,
+        cluster: EdgeCluster,
     ) -> ProcessingResult:
         """Execute edge computing task on cluster."""
         start_time = datetime.now(UTC)
@@ -429,7 +428,9 @@ class EdgeProcessor:
         return base_time
 
     async def _simulate_distributed_processing(
-        self, task: EdgeComputeTask, cluster: EdgeCluster
+        self,
+        task: EdgeComputeTask,
+        cluster: EdgeCluster,
     ) -> float:
         """Simulate distributed edge processing."""
         # Distributed processing scales with cluster size but has coordination overhead
@@ -442,7 +443,9 @@ class EdgeProcessor:
         return processing_time
 
     async def _simulate_hybrid_processing(
-        self, task: EdgeComputeTask, cluster: EdgeCluster
+        self,
+        task: EdgeComputeTask,
+        cluster: EdgeCluster,
     ) -> float:
         """Simulate hybrid edge/cloud processing."""
         # Hybrid combines local and distributed benefits
@@ -476,12 +479,11 @@ class EdgeProcessor:
         if task.priority in [EdgeTaskPriority.CRITICAL, EdgeTaskPriority.HIGH]:
             # Use cluster with most available capacity for high priority tasks
             return max(suitable_clusters, key=lambda c: c.available_capacity)
-        else:
-            # Use cluster with best efficiency for normal/low priority tasks
-            return min(
-                suitable_clusters,
-                key=lambda c: c.available_capacity / c.total_compute_capacity,
-            )
+        # Use cluster with best efficiency for normal/low priority tasks
+        return min(
+            suitable_clusters,
+            key=lambda c: c.available_capacity / c.total_compute_capacity,
+        )
 
     def _insert_task_by_priority(self, task: EdgeComputeTask) -> None:
         """Insert task into queue based on priority."""
@@ -513,7 +515,7 @@ class EdgeProcessor:
         )
 
         estimated_completion = datetime.now(UTC) + timedelta(
-            seconds=queue_time + task.estimated_compute_time
+            seconds=queue_time + task.estimated_compute_time,
         )
         return estimated_completion.isoformat()
 

@@ -1,5 +1,4 @@
-"""
-Analytics module for comprehensive automation insights and business intelligence.
+"""Analytics module for comprehensive automation insights and business intelligence.
 
 This module provides analytics capabilities including metrics collection, performance analysis,
 ROI calculation, ML-powered insights, and real-time monitoring across the ecosystem.
@@ -16,12 +15,12 @@ from .recommendation_engine import RecommendationEngine
 from .report_automation import ReportAutomation
 
 __all__ = [
-    "MetricsCollector",
-    "PerformanceAnalyzer",
+    "AnomalyDetector",
     # 'ROICalculator',  # TODO: Implement ROICalculator
     # 'MLInsightsEngine',  # TODO: Add numpy dependency first
     "DashboardGenerator",
-    "ReportAutomation",
-    "AnomalyDetector",
+    "MetricsCollector",
+    "PerformanceAnalyzer",
     "RecommendationEngine",
+    "ReportAutomation",
 ]

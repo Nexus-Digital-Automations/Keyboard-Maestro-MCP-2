@@ -1,11 +1,13 @@
-"""
-Comprehensive tests for Knowledge Management MCP tools using systematic MCP tool test pattern.
+"""Comprehensive tests for Knowledge Management MCP tools using systematic MCP tool test pattern.
 
 This module provides extensive testing for knowledge management tools including
 documentation generation, knowledge base management, content search, and quality analysis.
 Tests follow the proven systematic pattern that achieved 100% success across 21+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import Mock
 
@@ -94,7 +96,11 @@ async def mock_km_generate_documentation(
 
 
 async def mock_km_manage_knowledge_base(
-    operation, knowledge_base_id=None, configuration=None, backup_options=None, ctx=None
+    operation,
+    knowledge_base_id=None,
+    configuration=None,
+    backup_options=None,
+    ctx=None,
 ):
     """Mock implementation for knowledge base management."""
     if operation not in ["create", "update", "delete", "backup", "restore", "optimize"]:
@@ -226,7 +232,11 @@ async def mock_km_search_knowledge(
 
 
 async def mock_km_update_documentation(
-    document_id, update_data, version_control=True, notify_subscribers=False, ctx=None
+    document_id,
+    update_data,
+    version_control=True,
+    notify_subscribers=False,
+    ctx=None,
 ):
     """Mock implementation for documentation updates."""
     if not document_id:
@@ -530,14 +540,14 @@ class TestKMGenerateDocumentation:
     """Test suite for km_generate_documentation MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-001"}
         return context
 
     @pytest.fixture
-    def sample_documentation_data(self):
+    def sample_documentation_data(self) -> Any:
         """Sample documentation generation data."""
         return {
             "source_type": "macro",  # SYSTEMATIC ALIGNMENT: source_type (not target_type)
@@ -557,11 +567,15 @@ class TestKMGenerateDocumentation:
 
     @pytest.mark.asyncio
     async def test_documentation_generation_success(
-        self, mock_context, sample_documentation_data
-    ):
+        self,
+        mock_context,
+        sample_documentation_data,
+    ) -> None:
         """Test successful documentation generation - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_generate_documentation(
-            source_type=sample_documentation_data["source_type"],  # ALIGNED: source_type
+            source_type=sample_documentation_data[
+                "source_type"
+            ],  # ALIGNED: source_type
             source_id=sample_documentation_data["source_id"],  # ALIGNED: source_id
             documentation_type=sample_documentation_data["documentation_type"],
             template_id=sample_documentation_data["template_id"],
@@ -579,13 +593,15 @@ class TestKMGenerateDocumentation:
             assert result["success"] is True
         else:
             # Real implementation validation - verify error structure matches source code
-            print(f"Knowledge management contract validation: {result.get('error', 'No error details')}")
+            print(
+                f"Knowledge management contract validation: {result.get('error', 'No error details')}",
+            )
             # For now, verify error structure contains meaningful validation messages
             assert "error" in result
             # Test that real source code validation logic executed successfully
 
     @pytest.mark.asyncio
-    async def test_documentation_generation_validation_error(self, mock_context):
+    async def test_documentation_generation_validation_error(self, mock_context) -> None:
         """Test documentation generation with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_generate_documentation(
             source_type="macro",  # ALIGNED: source_type (not target_type)
@@ -603,12 +619,12 @@ class TestKMGenerateDocumentation:
             # Real implementation may have different error format than mock expected
 
     @pytest.mark.asyncio
-    async def test_documentation_generation_failure(self, mock_context):
+    async def test_documentation_generation_failure(self, mock_context) -> None:
         """Test documentation generation with generation failure - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_generate_documentation(
-            source_type="macro",  # ALIGNED: source_type (not target_type) 
+            source_type="macro",  # ALIGNED: source_type (not target_type)
             source_id="invalid-macro-001",  # ALIGNED: source_id (not target_id)
-            ctx=mock_context
+            ctx=mock_context,
         )
 
         # SYSTEMATIC PATTERN ALIGNMENT: Handle actual implementation response structure
@@ -625,28 +641,37 @@ class TestKMManageKnowledgeBase:
     """Test suite for km_manage_knowledge_base MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-002"}
         return context
 
     @pytest.fixture
-    def sample_kb_data(self):
+    def sample_kb_data(self) -> Any:
         """Sample knowledge base management data - SYSTEMATIC ALIGNMENT."""
         return {
             "operation": "create",  # ALIGNED: Same operation parameter
             "knowledge_base_id": "kb-project-001",  # ALIGNED: Same parameter name
             "name": "Project Documentation",  # ALIGNED: Direct parameter (not in configuration)
             "description": "Comprehensive project documentation knowledge base",  # ALIGNED: Direct parameter
-            "categories": ["macros", "workflows", "guides"],  # ALIGNED: Direct parameter (not in configuration)
-            "access_permissions": {"level": "team", "users": ["admin", "developer"]},  # ALIGNED: access_permissions (not access_control)
+            "categories": [
+                "macros",
+                "workflows",
+                "guides",
+            ],  # ALIGNED: Direct parameter (not in configuration)
+            "access_permissions": {
+                "level": "team",
+                "users": ["admin", "developer"],
+            },  # ALIGNED: access_permissions (not access_control)
         }
 
     @pytest.mark.asyncio
     async def test_knowledge_base_management_success(
-        self, mock_context, sample_kb_data
-    ):
+        self,
+        mock_context,
+        sample_kb_data,
+    ) -> None:
         """Test successful knowledge base management - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_manage_knowledge_base(
             operation=sample_kb_data["operation"],  # ALIGNED
@@ -654,7 +679,9 @@ class TestKMManageKnowledgeBase:
             name=sample_kb_data["name"],  # ALIGNED: Direct parameter
             description=sample_kb_data["description"],  # ALIGNED: Direct parameter
             categories=sample_kb_data["categories"],  # ALIGNED: Direct parameter
-            access_permissions=sample_kb_data["access_permissions"],  # ALIGNED: Parameter name
+            access_permissions=sample_kb_data[
+                "access_permissions"
+            ],  # ALIGNED: Parameter name
             ctx=mock_context,
         )
 
@@ -666,13 +693,15 @@ class TestKMManageKnowledgeBase:
             assert result["success"] is True
         else:
             # Real implementation validation - verify error structure matches source code
-            print(f"Knowledge base management issue: {result.get('error', 'No error details')}")
+            print(
+                f"Knowledge base management issue: {result.get('error', 'No error details')}",
+            )
             # For now, verify error structure contains meaningful validation messages
             assert "error" in result
             # Test that real source code validation logic executed successfully
 
     @pytest.mark.asyncio
-    async def test_knowledge_base_management_validation_error(self, mock_context):
+    async def test_knowledge_base_management_validation_error(self, mock_context) -> None:
         """Test knowledge base management with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_manage_knowledge_base(
             operation="invalid_operation",  # ALIGNED: Invalid operation to test validation
@@ -690,12 +719,12 @@ class TestKMManageKnowledgeBase:
             # Real implementation may have different error format than mock expected
 
     @pytest.mark.asyncio
-    async def test_knowledge_base_backup_failure(self, mock_context):
+    async def test_knowledge_base_backup_failure(self, mock_context) -> None:
         """Test knowledge base backup with failure - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_manage_knowledge_base(
             operation="export",  # ALIGNED: Use valid operation from actual function (export instead of backup)
-            knowledge_base_id="kb-error-001", 
-            ctx=mock_context
+            knowledge_base_id="kb-error-001",
+            ctx=mock_context,
         )
 
         # SYSTEMATIC PATTERN ALIGNMENT: Handle actual implementation response structure
@@ -712,14 +741,14 @@ class TestKMSearchKnowledge:
     """Test suite for km_search_knowledge MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-003"}
         return context
 
     @pytest.fixture
-    def sample_search_data(self):
+    def sample_search_data(self) -> Any:
         """Sample knowledge search data."""
         return {
             "query": "macro automation best practices",
@@ -732,13 +761,15 @@ class TestKMSearchKnowledge:
         }
 
     @pytest.mark.asyncio
-    async def test_knowledge_search_success(self, mock_context, sample_search_data):
+    async def test_knowledge_search_success(self, mock_context, sample_search_data) -> None:
         """Test successful knowledge search - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_search_knowledge implementation
         result = await km_search_knowledge(
             query=sample_search_data["query"],
             search_scope=sample_search_data["search_scope"],
-            include_content_types=sample_search_data["content_types"],  # Fixed parameter name
+            include_content_types=sample_search_data[
+                "content_types"
+            ],  # Fixed parameter name
             max_results=sample_search_data["max_results"],
             include_snippets=sample_search_data["include_snippets"],
             ctx=mock_context,
@@ -766,7 +797,7 @@ class TestKMSearchKnowledge:
             # Verify error structure matches source code implementation
 
     @pytest.mark.asyncio
-    async def test_knowledge_search_validation_error(self, mock_context):
+    async def test_knowledge_search_validation_error(self, mock_context) -> None:
         """Test knowledge search with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_search_knowledge validation
         result = await km_search_knowledge(
@@ -783,11 +814,12 @@ class TestKMSearchKnowledge:
         assert "Query text" in result["error"] or "empty" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_knowledge_search_no_results(self, mock_context):
+    async def test_knowledge_search_no_results(self, mock_context) -> None:
         """Test knowledge search with no results found - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_search_knowledge with realistic query
         result = await km_search_knowledge(
-            query="nonexistent_topic_xyz", ctx=mock_context
+            query="nonexistent_topic_xyz",
+            ctx=mock_context,
         )
 
         # SYSTEMATIC ALIGNMENT: Handle actual response structure
@@ -810,14 +842,14 @@ class TestKMUpdateDocumentation:
     """Test suite for km_update_documentation MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-004"}
         return context
 
     @pytest.fixture
-    def sample_update_data(self):
+    def sample_update_data(self) -> Any:
         """Sample documentation update data."""
         return {
             "document_id": "doc-macro-guide-001",
@@ -832,15 +864,19 @@ class TestKMUpdateDocumentation:
         }
 
     @pytest.mark.asyncio
-    async def test_documentation_update_success(self, mock_context, sample_update_data):
+    async def test_documentation_update_success(self, mock_context, sample_update_data) -> None:
         """Test successful documentation update - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_update_documentation implementation
         result = await km_update_documentation(
             document_id=sample_update_data["document_id"],
             update_type="content",  # Required parameter from actual implementation
             content_updates=sample_update_data["update_data"],  # Fixed parameter name
-            preserve_history=sample_update_data["version_control"],  # Fixed parameter name
-            notify_stakeholders=sample_update_data["notify_subscribers"],  # Fixed parameter name
+            preserve_history=sample_update_data[
+                "version_control"
+            ],  # Fixed parameter name
+            notify_stakeholders=sample_update_data[
+                "notify_subscribers"
+            ],  # Fixed parameter name
             ctx=mock_context,
         )
 
@@ -859,7 +895,7 @@ class TestKMUpdateDocumentation:
             # For systematic alignment, we accept contract validation requirements
 
     @pytest.mark.asyncio
-    async def test_documentation_update_validation_error(self, mock_context):
+    async def test_documentation_update_validation_error(self, mock_context) -> None:
         """Test documentation update with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_update_documentation validation
         result = await km_update_documentation(
@@ -874,10 +910,14 @@ class TestKMUpdateDocumentation:
         assert "error" in result
         # Verify error structure matches source code (string error vs dict error)
         assert isinstance(result["error"], str)  # Source code returns string error
-        assert "document_id" in result["error"] or "empty" in result["error"] or "required" in result["error"]
+        assert (
+            "document_id" in result["error"]
+            or "empty" in result["error"]
+            or "required" in result["error"]
+        )
 
     @pytest.mark.asyncio
-    async def test_documentation_update_not_found(self, mock_context):
+    async def test_documentation_update_not_found(self, mock_context) -> None:
         """Test documentation update with document not found - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_update_documentation with realistic document ID
         result = await km_update_documentation(
@@ -899,14 +939,14 @@ class TestKMCreateContentTemplate:
     """Test suite for km_create_content_template MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-005"}
         return context
 
     @pytest.fixture
-    def sample_template_data(self):
+    def sample_template_data(self) -> Any:
         """Sample content template data."""
         return {
             "template_name": "Macro Documentation Template",
@@ -930,14 +970,18 @@ class TestKMCreateContentTemplate:
 
     @pytest.mark.asyncio
     async def test_content_template_creation_success(
-        self, mock_context, sample_template_data
-    ):
+        self,
+        mock_context,
+        sample_template_data,
+    ) -> None:
         """Test successful content template creation - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_create_content_template implementation
         result = await km_create_content_template(
             template_name=sample_template_data["template_name"],
             template_type=sample_template_data["template_type"],
-            content_structure=sample_template_data["template_structure"],  # Fixed parameter name
+            content_structure=sample_template_data[
+                "template_structure"
+            ],  # Fixed parameter name
             validation_rules=sample_template_data["validation_rules"],
             ctx=mock_context,
         )
@@ -958,7 +1002,7 @@ class TestKMCreateContentTemplate:
             # For systematic alignment, we accept contract validation requirements
 
     @pytest.mark.asyncio
-    async def test_content_template_validation_error(self, mock_context):
+    async def test_content_template_validation_error(self, mock_context) -> None:
         """Test content template creation with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_create_content_template validation
         result = await km_create_content_template(
@@ -973,10 +1017,14 @@ class TestKMCreateContentTemplate:
         assert "error" in result
         # Verify error structure matches source code (string error vs dict error)
         assert isinstance(result["error"], str)  # Source code returns string error
-        assert "template name" in result["error"].lower() or "empty" in result["error"] or "required" in result["error"]
+        assert (
+            "template name" in result["error"].lower()
+            or "empty" in result["error"]
+            or "required" in result["error"]
+        )
 
     @pytest.mark.asyncio
-    async def test_content_template_conflict_error(self, mock_context):
+    async def test_content_template_conflict_error(self, mock_context) -> None:
         """Test content template creation with conflict error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_create_content_template with realistic template name
         result = await km_create_content_template(
@@ -1001,14 +1049,14 @@ class TestKMAnalyzeContentQuality:
     """Test suite for km_analyze_content_quality MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-006"}
         return context
 
     @pytest.fixture
-    def sample_analysis_data(self):
+    def sample_analysis_data(self) -> Any:
         """Sample content quality analysis data."""
         return {
             "content_id": "content-guide-001",
@@ -1019,15 +1067,19 @@ class TestKMAnalyzeContentQuality:
 
     @pytest.mark.asyncio
     async def test_content_quality_analysis_success(
-        self, mock_context, sample_analysis_data
-    ):
+        self,
+        mock_context,
+        sample_analysis_data,
+    ) -> None:
         """Test successful content quality analysis - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_analyze_content_quality implementation
         result = await km_analyze_content_quality(
             content_id=sample_analysis_data["content_id"],
             analysis_scope="content",  # Fixed parameter name
             quality_metrics=sample_analysis_data["quality_metrics"],
-            benchmark_against=sample_analysis_data["comparison_baseline"],  # Fixed parameter name
+            benchmark_against=sample_analysis_data[
+                "comparison_baseline"
+            ],  # Fixed parameter name
             ctx=mock_context,
         )
 
@@ -1044,7 +1096,7 @@ class TestKMAnalyzeContentQuality:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_content_quality_analysis_validation_error(self, mock_context):
+    async def test_content_quality_analysis_validation_error(self, mock_context) -> None:
         """Test content quality analysis with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_analyze_content_quality validation
         result = await km_analyze_content_quality(
@@ -1056,14 +1108,19 @@ class TestKMAnalyzeContentQuality:
         assert result["success"] is False
         assert "error" in result
         assert isinstance(result["error"], str)  # Source code returns string error
-        assert "content_id" in result["error"] or "empty" in result["error"] or "required" in result["error"]
+        assert (
+            "content_id" in result["error"]
+            or "empty" in result["error"]
+            or "required" in result["error"]
+        )
 
     @pytest.mark.asyncio
-    async def test_content_quality_analysis_low_quality(self, mock_context):
+    async def test_content_quality_analysis_low_quality(self, mock_context) -> None:
         """Test content quality analysis with low quality content - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_analyze_content_quality with realistic content ID
         result = await km_analyze_content_quality(
-            content_id="content-low-quality-001", ctx=mock_context
+            content_id="content-low-quality-001",
+            ctx=mock_context,
         )
 
         # SYSTEMATIC ALIGNMENT: Handle actual response structure
@@ -1082,14 +1139,14 @@ class TestKMExportKnowledge:
     """Test suite for km_export_knowledge MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-007"}
         return context
 
     @pytest.fixture
-    def sample_export_data(self):
+    def sample_export_data(self) -> Any:
         """Sample knowledge export data."""
         return {
             "export_scope": "knowledge_base",
@@ -1104,7 +1161,7 @@ class TestKMExportKnowledge:
         }
 
     @pytest.mark.asyncio
-    async def test_knowledge_export_success(self, mock_context, sample_export_data):
+    async def test_knowledge_export_success(self, mock_context, sample_export_data) -> None:
         """Test successful knowledge export - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_export_knowledge implementation
         result = await km_export_knowledge(
@@ -1129,13 +1186,13 @@ class TestKMExportKnowledge:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_knowledge_export_validation_error(self, mock_context):
+    async def test_knowledge_export_validation_error(self, mock_context) -> None:
         """Test knowledge export with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_export_knowledge validation
         result = await km_export_knowledge(
             export_scope="invalid_scope",
             target_id="test-target",  # Required parameter
-            ctx=mock_context
+            ctx=mock_context,
         )
 
         # SYSTEMATIC ALIGNMENT: Handle actual error response structure
@@ -1145,14 +1202,14 @@ class TestKMExportKnowledge:
         assert "scope" in result["error"] or "invalid" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_knowledge_export_size_limit_error(self, mock_context):
+    async def test_knowledge_export_size_limit_error(self, mock_context) -> None:
         """Test knowledge export with size limit error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_export_knowledge with realistic parameters
         result = await km_export_knowledge(
             export_scope="knowledge_base",  # Use valid scope
             target_id="large-kb-001",  # Required parameter
             export_format="pdf",  # Fixed parameter name
-            ctx=mock_context
+            ctx=mock_context,
         )
 
         # SYSTEMATIC ALIGNMENT: Handle actual response structure
@@ -1169,14 +1226,14 @@ class TestKMScheduleContentReview:
     """Test suite for km_schedule_content_review MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-008"}
         return context
 
     @pytest.fixture
-    def sample_review_data(self):
+    def sample_review_data(self) -> Any:
         """Sample content review scheduling data."""
         return {
             "review_type": "quarterly",
@@ -1199,16 +1256,22 @@ class TestKMScheduleContentReview:
 
     @pytest.mark.asyncio
     async def test_content_review_scheduling_success(
-        self, mock_context, sample_review_data
-    ):
+        self,
+        mock_context,
+        sample_review_data,
+    ) -> None:
         """Test successful content review scheduling - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_schedule_content_review implementation
         result = await km_schedule_content_review(
             content_id="doc-001",  # Required parameter from actual implementation
-            review_date=sample_review_data["schedule_config"]["start_date"],  # Fixed parameter name
+            review_date=sample_review_data["schedule_config"][
+                "start_date"
+            ],  # Fixed parameter name
             reviewers=["user-001", "user-002"],  # Fixed parameter name
             review_type=sample_review_data["review_type"],
-            auto_reminders=sample_review_data["notification_settings"]["email_reminders"],  # Fixed parameter name
+            auto_reminders=sample_review_data["notification_settings"][
+                "email_reminders"
+            ],  # Fixed parameter name
             ctx=mock_context,
         )
 
@@ -1225,7 +1288,7 @@ class TestKMScheduleContentReview:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_content_review_scheduling_validation_error(self, mock_context):
+    async def test_content_review_scheduling_validation_error(self, mock_context) -> None:
         """Test content review scheduling with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_schedule_content_review validation
         result = await km_schedule_content_review(
@@ -1239,10 +1302,14 @@ class TestKMScheduleContentReview:
         assert result["success"] is False
         assert "error" in result
         assert isinstance(result["error"], str)  # Source code returns string error
-        assert "content_id" in result["error"] or "empty" in result["error"] or "required" in result["error"]
+        assert (
+            "content_id" in result["error"]
+            or "empty" in result["error"]
+            or "required" in result["error"]
+        )
 
     @pytest.mark.asyncio
-    async def test_content_review_scheduling_error(self, mock_context):
+    async def test_content_review_scheduling_error(self, mock_context) -> None:
         """Test content review scheduling with scheduling error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_schedule_content_review with realistic parameters
         result = await km_schedule_content_review(
@@ -1268,19 +1335,19 @@ class TestKnowledgeManagementIntegration:
     """Integration tests for knowledge management tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-integration-km-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_knowledge_workflow(self, mock_context):
+    async def test_complete_knowledge_workflow(self, mock_context) -> None:
         """Test complete knowledge management workflow integration."""
         # Step 1: Generate documentation
         doc_result = await km_generate_documentation(
             source_type="macro",
-            source_id="macro-workflow-001", 
+            source_id="macro-workflow-001",
             documentation_type="comprehensive",
             ctx=mock_context,
         )
@@ -1303,14 +1370,14 @@ class TestKnowledgeManagementIntegration:
         # Step 4: Export knowledge for backup
         export_result = await km_export_knowledge(
             export_scope="knowledge_base",
-            target_id="kb-workflow-001", 
+            target_id="kb-workflow-001",
             export_format="pdf",
-            ctx=mock_context
+            ctx=mock_context,
         )
 
         # SYSTEMATIC ALIGNMENT: Handle actual implementation response structure
         # Verify workflow integration - test validates real behavior regardless of success/error state
-        
+
         # Step 1: Documentation generation validation
         if doc_result["success"]:
             # Success case: validate documentation structure
@@ -1321,8 +1388,8 @@ class TestKnowledgeManagementIntegration:
             # Contract violation or implementation limitation: verify error structure
             assert "error" in doc_result
             print(f"Documentation validation detected: {doc_result['error']}")
-            
-        # Step 2: Quality analysis validation  
+
+        # Step 2: Quality analysis validation
         if quality_result["success"]:
             # Success case: validate quality analysis structure
             if "quality_analysis" in quality_result:
@@ -1332,7 +1399,7 @@ class TestKnowledgeManagementIntegration:
             # Implementation limitation: verify error structure
             assert "error" in quality_result
             print(f"Quality analysis validation detected: {quality_result['error']}")
-            
+
         # Step 3: Template creation validation
         if template_result["success"]:
             # Success case: validate template structure
@@ -1343,7 +1410,7 @@ class TestKnowledgeManagementIntegration:
             # Contract violation: verify error structure
             assert "error" in template_result
             print(f"Template validation detected: {template_result['error']}")
-            
+
         # Step 4: Export validation
         if export_result["success"]:
             # Success case: validate export structure
@@ -1354,7 +1421,7 @@ class TestKnowledgeManagementIntegration:
             # Implementation limitation: verify error structure
             assert "error" in export_result
             print(f"Export validation detected: {export_result['error']}")
-            
+
         # Test passes regardless - we're verifying the real source code is being executed
 
 

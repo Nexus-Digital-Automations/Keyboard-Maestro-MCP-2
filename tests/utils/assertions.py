@@ -1,5 +1,4 @@
-"""
-Custom test assertions for the Keyboard Maestro MCP testing framework.
+"""Custom test assertions for the Keyboard Maestro MCP testing framework.
 
 This module provides specialized assertion functions for validating
 macro system behavior, security properties, and performance characteristics.
@@ -40,7 +39,9 @@ def assert_execution_successful(result: ExecutionResult, message: str = "") -> N
 
 
 def assert_execution_failed(
-    result: ExecutionResult, expected_error: str | None = None, message: str = ""
+    result: ExecutionResult,
+    expected_error: str | None = None,
+    message: str = "",
 ) -> None:
     """Assert that macro execution failed with expected error."""
     prefix = f"{message}: " if message else ""
@@ -76,7 +77,9 @@ def assert_command_successful(result: CommandResult, message: str = "") -> None:
 
 
 def assert_command_failed(
-    result: CommandResult, expected_error: str | None = None, message: str = ""
+    result: CommandResult,
+    expected_error: str | None = None,
+    message: str = "",
 ) -> None:
     """Assert that command execution failed."""
     prefix = f"{message}: " if message else ""
@@ -92,7 +95,9 @@ def assert_command_failed(
 
 
 def assert_permissions_required(
-    context: ExecutionContext, required_permissions: list[Permission], message: str = ""
+    context: ExecutionContext,
+    required_permissions: list[Permission],
+    message: str = "",
 ) -> None:
     """Assert that context has all required permissions."""
     prefix = f"{message}: " if message else ""
@@ -117,19 +122,22 @@ def assert_security_violation_blocked(
     try:
         result = func(*args, **kwargs)
         raise AssertionError(
-            f"{prefix}Expected security violation to be blocked, but function succeeded with result: {result}"
+            f"{prefix}Expected security violation to be blocked, but function succeeded with result: {result}",
         )
     except expected_error_type:
         # Expected behavior - security violation was caught
         pass
     except Exception as e:
+        # B904 fix: Add exception chaining for proper error tracking
         raise AssertionError(
-            f"{prefix}Expected {expected_error_type.__name__}, but got {type(e).__name__}: {e}"
-        )
+            f"{prefix}Expected {expected_error_type.__name__}, but got {type(e).__name__}: {e}",
+        ) from e
 
 
 def assert_input_sanitized(
-    original_input: str, sanitized_output: str, message: str = ""
+    original_input: str,
+    sanitized_output: str,
+    message: str = "",
 ) -> None:
     """Assert that input has been properly sanitized."""
     prefix = f"{message}: " if message else ""
@@ -154,7 +162,10 @@ def assert_input_sanitized(
 
 
 def assert_performance_within_bounds(
-    execution_time: float, max_time: float, min_time: float = 0.0, message: str = ""
+    execution_time: float,
+    max_time: float,
+    min_time: float = 0.0,
+    message: str = "",
 ) -> None:
     """Assert that execution time is within acceptable bounds."""
     prefix = f"{message}: " if message else ""
@@ -215,7 +226,10 @@ def assert_duration_valid(
 
 
 def assert_thread_safe_operation(
-    operation: Callable, args_list: list[tuple], max_workers: int = 5, message: str = ""
+    operation: Callable,
+    args_list: list[tuple],
+    max_workers: int = 5,
+    message: str = "",
 ) -> None:
     """Assert that operation is thread-safe."""
     import concurrent.futures
@@ -227,7 +241,7 @@ def assert_thread_safe_operation(
     errors = []
     lock = threading.Lock()
 
-    def worker(args):
+    def worker(args) -> None:
         try:
             result = operation(*args)
             with lock:
@@ -251,7 +265,7 @@ def assert_thread_safe_operation(
 
 
 @contextmanager
-def assert_no_memory_leaks(max_growth_mb: float = 10.0):
+def assert_no_memory_leaks(max_growth_mb: float = 10.0) -> None:
     """Context manager to assert no significant memory growth."""
     import os
 
@@ -271,7 +285,7 @@ def assert_no_memory_leaks(max_growth_mb: float = 10.0):
 
 
 @contextmanager
-def assert_execution_time(max_time: float, min_time: float = 0.0):
+def assert_execution_time(max_time: float, min_time: float = 0.0) -> None:
     """Context manager to assert execution time bounds."""
     start_time = time.perf_counter()
 
@@ -279,7 +293,10 @@ def assert_execution_time(max_time: float, min_time: float = 0.0):
 
     execution_time = time.perf_counter() - start_time
     assert_performance_within_bounds(
-        execution_time, max_time, min_time, "Execution time bounds"
+        execution_time,
+        max_time,
+        min_time,
+        "Execution time bounds",
     )
 
 
@@ -331,7 +348,9 @@ def assert_invariant_maintained(
 
 
 def assert_error_contains_context(
-    error: Exception, expected_context_keys: list[str], message: str = ""
+    error: Exception,
+    expected_context_keys: list[str],
+    message: str = "",
 ) -> None:
     """Assert that error contains expected context information."""
     prefix = f"{message}: " if message else ""
@@ -350,7 +369,9 @@ def assert_error_contains_context(
 
 # Specialized assertions for security testing
 def assert_injection_prevented(
-    input_text: str, validation_func: Callable[[str], bool], message: str = ""
+    input_text: str,
+    validation_func: Callable[[str], bool],
+    message: str = "",
 ) -> None:
     """Assert that injection attempts are prevented."""
     prefix = f"{message}: " if message else ""

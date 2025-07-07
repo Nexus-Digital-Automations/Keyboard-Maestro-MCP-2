@@ -1,5 +1,4 @@
-"""
-AI text processing system for natural language analysis and generation.
+"""AI text processing system for natural language analysis and generation.
 
 This module provides comprehensive text processing capabilities including
 analysis, generation, classification, and transformation using AI models.
@@ -80,12 +79,11 @@ class TextAnalysisResult:
         """Get the primary result from analysis."""
         if self.analysis_type == TextAnalysisType.SENTIMENT:
             return self.results.get("sentiment", "neutral")
-        elif self.analysis_type == TextAnalysisType.LANGUAGE:
+        if self.analysis_type == TextAnalysisType.LANGUAGE:
             return self.results.get("language", "unknown")
-        elif self.analysis_type == TextAnalysisType.SUMMARY:
+        if self.analysis_type == TextAnalysisType.SUMMARY:
             return self.results.get("summary", "")
-        else:
-            return self.results
+        return self.results
 
     def get_metadata(self) -> dict[str, Any]:
         """Get analysis metadata."""
@@ -116,7 +114,6 @@ class TextGenerationRequest:
     @require(lambda self: 0.0 <= self.temperature <= 2.0)
     def __post_init__(self):
         """Validate generation request."""
-        pass
 
     def build_system_prompt(self) -> str:
         """Build system prompt for generation."""
@@ -132,7 +129,8 @@ class TextGenerationRequest:
         }
 
         instruction = style_instructions.get(
-            self.style, style_instructions[TextGenerationStyle.NATURAL]
+            self.style,
+            style_instructions[TextGenerationStyle.NATURAL],
         )
 
         system_prompt = f"{instruction} Keep the response to approximately {self.max_length} characters."
@@ -158,7 +156,7 @@ class TextProcessor:
         self.sentence_splitter = re.compile(r"[.!?]+\s+")
         self.word_pattern = re.compile(r"\b\w+\b")
         self.email_pattern = re.compile(
-            r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+            r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
         )
         self.url_pattern = re.compile(r"https?://[^\s]+")
 
@@ -181,7 +179,9 @@ class TextProcessor:
 
             # Select appropriate model
             model_result = self.model_manager.select_best_model(
-                AIOperation.ANALYZE, ProcessingMode.BALANCED, input_size=len(text)
+                AIOperation.ANALYZE,
+                ProcessingMode.BALANCED,
+                input_size=len(text),
             )
             if model_result.is_left():
                 return model_result
@@ -226,7 +226,7 @@ class TextProcessor:
             self.analysis_cache[cache_key] = analysis_result
 
             logger.info(
-                f"Text analysis completed: {analysis_type.value} in {processing_time:.2f}s"
+                f"Text analysis completed: {analysis_type.value} in {processing_time:.2f}s",
             )
             return Either.right(analysis_result)
 
@@ -377,7 +377,7 @@ Respond in JSON format with keys: primary_topics, secondary_themes, topic_relati
                 model,
                 temperature=generation_request.temperature,
                 max_tokens=TokenCount(
-                    generation_request.max_length // 3
+                    generation_request.max_length // 3,
                 ),  # Approximate token count
                 system_prompt=generation_request.build_system_prompt(),
             )
@@ -396,7 +396,8 @@ Respond in JSON format with keys: primary_topics, secondary_themes, topic_relati
 
             # Post-process generated text
             processed_text = self._post_process_generated_text(
-                generated_text, generation_request
+                generated_text,
+                generation_request,
             )
 
             # Cache result
@@ -410,7 +411,9 @@ Respond in JSON format with keys: primary_topics, secondary_themes, topic_relati
             return Either.left(AIError("generation_failed", str(e)))
 
     def _post_process_generated_text(
-        self, text: str, request: TextGenerationRequest
+        self,
+        text: str,
+        request: TextGenerationRequest,
     ) -> str:
         """Post-process generated text for quality and requirements."""
         # Remove any AI response artifacts
@@ -463,12 +466,13 @@ Respond in JSON format with keys: primary_topics, secondary_themes, topic_relati
         try:
             if not categories:
                 return Either.left(
-                    AIError("invalid_input", "Categories list cannot be empty")
+                    AIError("invalid_input", "Categories list cannot be empty"),
                 )
 
             # Select model for classification
             model_result = self.model_manager.select_best_model(
-                AIOperation.CLASSIFY, ProcessingMode.ACCURATE
+                AIOperation.CLASSIFY,
+                ProcessingMode.ACCURATE,
             )
             if model_result.is_left():
                 return model_result
@@ -490,7 +494,10 @@ Respond in JSON format with each category as a key and confidence score as value
 
             # Create and process request
             request_result = self._create_ai_request(
-                AIOperation.CLASSIFY, prompt, model, temperature=0.2
+                AIOperation.CLASSIFY,
+                prompt,
+                model,
+                temperature=0.2,
             )
             if request_result.is_left():
                 return request_result
@@ -510,7 +517,7 @@ Respond in JSON format with each category as a key and confidence score as value
                     classification[category] = float(results.get(category, 0.0))
 
                 logger.info(
-                    f"Text classification completed for {len(categories)} categories"
+                    f"Text classification completed for {len(categories)} categories",
                 )
                 return Either.right(classification)
 
@@ -519,7 +526,7 @@ Respond in JSON format with each category as a key and confidence score as value
                     AIError(
                         "invalid_response",
                         f"Could not parse classification results: {e}",
-                    )
+                    ),
                 )
 
         except Exception as e:
@@ -536,7 +543,9 @@ Respond in JSON format with each category as a key and confidence score as value
         try:
             # Use analysis method with entities type
             analysis_result = await self.analyze_text(
-                text, TextAnalysisType.ENTITIES, model_preference
+                text,
+                TextAnalysisType.ENTITIES,
+                model_preference,
             )
             if analysis_result.is_left():
                 return analysis_result
@@ -558,14 +567,15 @@ Respond in JSON format with each category as a key and confidence score as value
                         "MISC": "other",
                     }
                     mapped_type = type_mapping.get(
-                        entity_type.upper(), entity_type.lower()
+                        entity_type.upper(),
+                        entity_type.lower(),
                     )
                     filtered_entities[entity_type] = entities.get(mapped_type, [])
 
                 entities = filtered_entities
 
             logger.info(
-                f"Entity extraction completed: {sum(len(v) for v in entities.values())} entities found"
+                f"Entity extraction completed: {sum(len(v) for v in entities.values())} entities found",
             )
             return Either.right(entities)
 
@@ -574,7 +584,11 @@ Respond in JSON format with each category as a key and confidence score as value
             return Either.left(AIError("extraction_failed", str(e)))
 
     def _create_ai_request(
-        self, operation: AIOperation, prompt: str, model: AIModel, **kwargs
+        self,
+        operation: AIOperation,
+        prompt: str,
+        model: AIModel,
+        **kwargs,
     ) -> Either[AIError, AIRequest]:
         """Create AI request with proper configuration."""
         try:
@@ -617,7 +631,8 @@ Respond in JSON format with each category as a key and confidence score as value
                 output_tokens=TokenCount(len(str(result)) // 4),
                 processing_time=0.1,
                 cost_estimate=request.model.estimate_cost(
-                    TokenCount(100), TokenCount(50)
+                    TokenCount(100),
+                    TokenCount(50),
                 ),
                 confidence=ConfidenceScore(0.85),
             )
@@ -626,7 +641,7 @@ Respond in JSON format with each category as a key and confidence score as value
 
         except Exception as e:
             return Either.left(
-                AIError.api_call_failed(request.model.model_name, str(e))
+                AIError.api_call_failed(request.model.model_name, str(e)),
             )
 
     def _create_mock_analysis_result(self, text: str) -> str:
@@ -638,7 +653,7 @@ Respond in JSON format with each category as a key and confidence score as value
                 "key_info": "Text processing capabilities",
                 "sentiment": "neutral",
                 "quality_score": 0.8,
-            }
+            },
         )
 
     def _create_mock_generation_result(self, prompt: str) -> str:
@@ -679,7 +694,7 @@ Respond in JSON format with each category as a key and confidence score as value
                 input_text=input_text,
                 results={"raw_response": response},
                 confidence=ConfidenceScore(
-                    confidence * 0.8
+                    confidence * 0.8,
                 ),  # Lower confidence for unparseable response
                 processing_time=processing_time,
                 model_used=model_name,

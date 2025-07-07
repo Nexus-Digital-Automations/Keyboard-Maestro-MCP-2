@@ -1,5 +1,4 @@
-"""
-AI Processing Tools - Main module for AI processing capabilities.
+"""AI Processing Tools - Main module for AI processing capabilities.
 
 This is the main entry point for AI processing tools, providing a unified interface
 to the modular AI processing system. This module delegates to specialized sub-modules
@@ -27,16 +26,16 @@ from .ai_model_management import km_ai_cache, km_ai_cost_optimization, km_ai_mod
 
 # Re-export all functions to maintain backward compatibility
 __all__ = [
-    # Core AI processing
-    "km_ai_processing",
-    "km_ai_status",
-    "ai_manager",
     "AIProcessingManager",
-    # AI intelligence and batch processing
-    "km_ai_intelligence",
+    "ai_manager",
     "km_ai_batch",
     # Model management and optimization
     "km_ai_cache",
     "km_ai_cost_optimization",
+    # AI intelligence and batch processing
+    "km_ai_intelligence",
     "km_ai_models",
+    # Core AI processing
+    "km_ai_processing",
+    "km_ai_status",
 ]

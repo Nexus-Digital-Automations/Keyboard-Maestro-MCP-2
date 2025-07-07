@@ -1,5 +1,4 @@
-"""
-Modular Keyboard Maestro MCP Server
+"""Modular Keyboard Maestro MCP Server.
 
 This package contains the modularized components of the KM MCP server,
 organized by functionality for better maintainability and testing.
@@ -16,10 +15,10 @@ from .initialization import (
 
 __all__ = [
     "ServerConfig",
-    "get_server_config",
-    "initialize_components",
+    "get_file_monitor",
     "get_km_client",
     "get_metadata_extractor",
+    "get_server_config",
     "get_sync_manager",
-    "get_file_monitor",
+    "initialize_components",
 ]

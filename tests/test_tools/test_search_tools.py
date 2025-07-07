@@ -1,5 +1,4 @@
-"""
-Comprehensive Test Suite for Search Tools - Following Proven MCP Tool Test Pattern
+"""Comprehensive Test Suite for Search Tools - Following Proven MCP Tool Test Pattern.
 
 This test suite validates the Search Tools functionality using the systematic
 testing approach that achieved 100% success rate across 8 tool suites.
@@ -21,6 +20,9 @@ Testing Strategy:
 - Performance and timeout testing with result limits
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -36,7 +38,7 @@ from src.server.tools.search_tools import _generate_mock_actions, km_search_acti
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context():
+def mock_context() -> Any:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -49,7 +51,7 @@ def mock_context():
 
 
 @pytest.fixture
-def mock_km_client():
+def mock_km_client() -> Any:
     """Create mock KM client with standard interface."""
     client = Mock()
     client.check_connection = Mock()
@@ -60,7 +62,7 @@ def mock_km_client():
 
 
 @pytest.fixture
-def sample_macro_data():
+def sample_macro_data() -> Any:
     """Sample macro data for testing."""
     return {
         "id": "12345678-1234-1234-1234-123456789012",
@@ -77,7 +79,7 @@ def sample_macro_data():
 
 
 @pytest.fixture
-def sample_macros_list():
+def sample_macros_list() -> Any:
     """Sample list of macros for testing."""
     return [
         {
@@ -120,7 +122,7 @@ def sample_macros_list():
 
 
 @pytest.fixture
-def sample_actions_data():
+def sample_actions_data() -> Any:
     """Sample actions data for testing."""
     return [
         {
@@ -155,7 +157,7 @@ def sample_actions_data():
 
 
 @composite
-def valid_search_parameters(draw):
+def valid_search_parameters(draw) -> Any:
     """Generate valid search parameters for property-based testing."""
     params = {}
 
@@ -172,8 +174,8 @@ def valid_search_parameters(draw):
                     "Insert Text by Pasting",
                     "Set Variable to Text",
                     "Pause",
-                ]
-            )
+                ],
+            ),
         )
         params["action_type"] = action_type
 
@@ -183,7 +185,7 @@ def valid_search_parameters(draw):
             st.one_of(
                 st.text(min_size=1, max_size=50).filter(lambda x: x.strip()),
                 st.uuids().map(str),
-            )
+            ),
         )
         params["macro_filter"] = macro_filter
 
@@ -197,7 +199,7 @@ def valid_search_parameters(draw):
                 ),
                 min_size=1,
                 max_size=255,
-            )
+            ),
         )
         if content_search.strip():
             params["content_search"] = content_search
@@ -210,8 +212,15 @@ def valid_search_parameters(draw):
     if draw(st.booleans()):
         category = draw(
             st.sampled_from(
-                ["application", "file", "text", "system", "variable", "control"]
-            )
+                [
+                    "application",
+                    "file",
+                    "text",
+                    "system",
+                    "variable",
+                    "control",
+                ],
+            ),
         )
         params["category"] = category
 
@@ -224,7 +233,7 @@ def valid_search_parameters(draw):
 
 
 @composite
-def malicious_search_inputs(draw):
+def malicious_search_inputs(draw) -> Any:
     """Generate potentially malicious search inputs for security testing."""
     malicious_patterns = [
         "'; DROP TABLE macros; --",
@@ -252,8 +261,11 @@ class TestKMSearchActions:
 
     @pytest.mark.asyncio
     async def test_search_actions_success_basic(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test successful basic action search."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -265,7 +277,8 @@ class TestKMSearchActions:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(ctx=mock_context)
@@ -286,8 +299,11 @@ class TestKMSearchActions:
 
     @pytest.mark.asyncio
     async def test_search_actions_with_action_type_filter(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test search with action type filter."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -299,11 +315,13 @@ class TestKMSearchActions:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(
-                action_type="Type a String", ctx=mock_context
+                action_type="Type a String",
+                ctx=mock_context,
             )
 
             # Verify
@@ -316,8 +334,11 @@ class TestKMSearchActions:
 
     @pytest.mark.asyncio
     async def test_search_actions_with_macro_filter(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test search with macro filter."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -329,7 +350,8 @@ class TestKMSearchActions:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(macro_filter="Text", ctx=mock_context)
@@ -344,8 +366,11 @@ class TestKMSearchActions:
 
     @pytest.mark.asyncio
     async def test_search_actions_with_content_search(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test search with content search."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -357,7 +382,8 @@ class TestKMSearchActions:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(content_search="Hello", ctx=mock_context)
@@ -368,8 +394,11 @@ class TestKMSearchActions:
 
     @pytest.mark.asyncio
     async def test_search_actions_include_disabled(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test search including disabled macros."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -381,7 +410,8 @@ class TestKMSearchActions:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(include_disabled=True, ctx=mock_context)
@@ -395,8 +425,11 @@ class TestKMSearchActions:
 
     @pytest.mark.asyncio
     async def test_search_actions_with_category_filter(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test search with category filter."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -408,7 +441,8 @@ class TestKMSearchActions:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(category="text", ctx=mock_context)
@@ -419,8 +453,11 @@ class TestKMSearchActions:
 
     @pytest.mark.asyncio
     async def test_search_actions_with_limit(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test search with result limit."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -432,7 +469,8 @@ class TestKMSearchActions:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(limit=5, ctx=mock_context)
@@ -443,8 +481,11 @@ class TestKMSearchActions:
 
     @pytest.mark.asyncio
     async def test_search_actions_combined_filters(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test search with multiple filters combined."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -456,7 +497,8 @@ class TestKMSearchActions:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(
@@ -480,7 +522,7 @@ class TestKMSearchActions:
             assert len(result["data"]["actions"]) <= 10
 
     @pytest.mark.asyncio
-    async def test_search_actions_macro_fetch_error(self, mock_context, mock_km_client):
+    async def test_search_actions_macro_fetch_error(self, mock_context, mock_km_client) -> None:
         """Test search when macro fetch fails."""
         # Setup
         mock_error = Mock()
@@ -494,7 +536,8 @@ class TestKMSearchActions:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(ctx=mock_context)
@@ -506,7 +549,7 @@ class TestKMSearchActions:
             assert str(mock_error) in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_search_actions_empty_results(self, mock_context, mock_km_client):
+    async def test_search_actions_empty_results(self, mock_context, mock_km_client) -> None:
         """Test search with no matching results."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -516,7 +559,8 @@ class TestKMSearchActions:
         mock_km_client.list_macros_with_details.return_value.get_right.return_value = []
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(ctx=mock_context)
@@ -528,16 +572,19 @@ class TestKMSearchActions:
 
     @pytest.mark.asyncio
     async def test_search_actions_exception_handling(
-        self, mock_context, mock_km_client
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+    ) -> None:
         """Test search with unexpected exception."""
         # Setup
         mock_km_client.list_macros_with_details.side_effect = Exception(
-            "Unexpected error"
+            "Unexpected error",
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(ctx=mock_context)
@@ -554,8 +601,11 @@ class TestKMSearchActions:
 
     @pytest.mark.asyncio
     async def test_search_actions_result_sorting(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test that search results are properly sorted."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -567,7 +617,8 @@ class TestKMSearchActions:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(ctx=mock_context)
@@ -597,7 +648,7 @@ class TestKMSearchActions:
 class TestSearchToolsHelperFunctions:
     """Test helper functions for search tools."""
 
-    def test_generate_mock_actions_text_macro(self):
+    def test_generate_mock_actions_text_macro(self) -> None:
         """Test mock action generation for text-based macros."""
         # Execute
         actions = _generate_mock_actions("Test Text Processing", "macro-123")
@@ -616,7 +667,7 @@ class TestSearchToolsHelperFunctions:
             assert "config" in action
             assert action["id"].startswith("macro-123")
 
-    def test_generate_mock_actions_application_macro(self):
+    def test_generate_mock_actions_application_macro(self) -> None:
         """Test mock action generation for application-based macros."""
         # Execute
         actions = _generate_mock_actions("Application Control", "macro-456")
@@ -636,7 +687,7 @@ class TestSearchToolsHelperFunctions:
             assert "config" in action
             assert action["id"].startswith("macro-456")
 
-    def test_generate_mock_actions_file_macro(self):
+    def test_generate_mock_actions_file_macro(self) -> None:
         """Test mock action generation for file-based macros."""
         # Execute
         actions = _generate_mock_actions("File Operations", "macro-789")
@@ -654,7 +705,7 @@ class TestSearchToolsHelperFunctions:
             assert "config" in action
             assert action["id"].startswith("macro-789")
 
-    def test_generate_mock_actions_script_macro(self):
+    def test_generate_mock_actions_script_macro(self) -> None:
         """Test mock action generation for script-based macros."""
         # Execute
         actions = _generate_mock_actions("Script Execution", "macro-101")
@@ -672,7 +723,7 @@ class TestSearchToolsHelperFunctions:
             assert "config" in action
             assert action["id"].startswith("macro-101")
 
-    def test_generate_mock_actions_default_macro(self):
+    def test_generate_mock_actions_default_macro(self) -> None:
         """Test mock action generation for generic macros."""
         # Execute
         actions = _generate_mock_actions("Generic Macro", "macro-999")
@@ -690,7 +741,7 @@ class TestSearchToolsHelperFunctions:
             assert "config" in action
             assert action["id"].startswith("macro-999")
 
-    def test_generate_mock_actions_control_flow_addition(self):
+    def test_generate_mock_actions_control_flow_addition(self) -> None:
         """Test that control flow actions are added to pattern-matched macros."""
         # Execute
         actions = _generate_mock_actions("Test Text Processing", "macro-control")
@@ -705,7 +756,7 @@ class TestSearchToolsHelperFunctions:
         )
         assert control_action["index"] == len(actions) - 1
 
-    def test_generate_mock_actions_unique_ids(self):
+    def test_generate_mock_actions_unique_ids(self) -> None:
         """Test that generated actions have unique IDs."""
         # Execute
         actions = _generate_mock_actions("Test Macro", "macro-unique")
@@ -714,7 +765,7 @@ class TestSearchToolsHelperFunctions:
         action_ids = [action["id"] for action in actions]
         assert len(action_ids) == len(set(action_ids))  # All IDs should be unique
 
-    def test_generate_mock_actions_sequential_indices(self):
+    def test_generate_mock_actions_sequential_indices(self) -> None:
         """Test that generated actions have sequential indices."""
         # Execute
         actions = _generate_mock_actions("Test Macro", "macro-sequential")
@@ -728,7 +779,7 @@ class TestSearchToolsIntegration:
     """Test complex search workflow integration scenarios."""
 
     @pytest.mark.asyncio
-    async def test_complex_search_workflow(self, mock_context, mock_km_client):
+    async def test_complex_search_workflow(self, mock_context, mock_km_client) -> None:
         """Test complex search workflow with multiple operations."""
         # Setup large macro list
         large_macro_list = []
@@ -745,7 +796,7 @@ class TestSearchToolsIntegration:
                     "modification_date": "2024-12-01T00:00:00Z",
                     "last_used": "2024-12-01T10:00:00Z",
                     "used_count": i * 2,
-                }
+                },
             )
 
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -757,7 +808,8 @@ class TestSearchToolsIntegration:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute multiple searches
             results = []
@@ -768,13 +820,17 @@ class TestSearchToolsIntegration:
 
             # Search 2: Filtered search
             result2 = await km_search_actions(
-                action_type="Type a String", limit=5, ctx=mock_context
+                action_type="Type a String",
+                limit=5,
+                ctx=mock_context,
             )
             results.append(result2)
 
             # Search 3: Category search
             result3 = await km_search_actions(
-                category="text", include_disabled=True, ctx=mock_context
+                category="text",
+                include_disabled=True,
+                ctx=mock_context,
             )
             results.append(result3)
 
@@ -792,7 +848,7 @@ class TestSearchToolsIntegration:
             assert result3["data"]["search_criteria"]["include_disabled"] is True
 
     @pytest.mark.asyncio
-    async def test_search_pagination_behavior(self, mock_context, mock_km_client):
+    async def test_search_pagination_behavior(self, mock_context, mock_km_client) -> None:
         """Test search pagination with different limits."""
         # Setup
         macro_list = []
@@ -809,7 +865,7 @@ class TestSearchToolsIntegration:
                     "modification_date": "2024-12-01T00:00:00Z",
                     "last_used": "2024-12-01T10:00:00Z",
                     "used_count": 1,
-                }
+                },
             )
 
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -821,7 +877,8 @@ class TestSearchToolsIntegration:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Test different limits
             for limit in [1, 5, 10, 25, 50, 100]:
@@ -833,8 +890,11 @@ class TestSearchToolsIntegration:
 
     @pytest.mark.asyncio
     async def test_search_with_progress_reporting(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test that search properly reports progress."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -846,7 +906,8 @@ class TestSearchToolsIntegration:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(ctx=mock_context)
@@ -871,8 +932,11 @@ class TestSearchToolsSecurity:
 
     @pytest.mark.asyncio
     async def test_search_input_validation(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test input validation for search parameters."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -884,14 +948,16 @@ class TestSearchToolsSecurity:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Test content search length validation
             long_content = "x" * 256  # Over 255 character limit
 
             # This should be handled gracefully without breaking
             result = await km_search_actions(
-                content_search=long_content, ctx=mock_context
+                content_search=long_content,
+                ctx=mock_context,
             )
 
             # The function should handle this gracefully
@@ -899,8 +965,11 @@ class TestSearchToolsSecurity:
 
     @pytest.mark.asyncio
     async def test_search_malicious_input_handling(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test handling of potentially malicious search inputs."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -921,12 +990,14 @@ class TestSearchToolsSecurity:
         ]
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             for malicious_input in malicious_inputs:
                 # Test each malicious input
                 result = await km_search_actions(
-                    content_search=malicious_input, ctx=mock_context
+                    content_search=malicious_input,
+                    ctx=mock_context,
                 )
 
                 # Should not cause crashes or security issues
@@ -939,8 +1010,11 @@ class TestSearchToolsSecurity:
 
     @pytest.mark.asyncio
     async def test_search_category_validation(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test category parameter validation."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -961,7 +1035,8 @@ class TestSearchToolsSecurity:
         ]
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Test valid categories
             for category in valid_categories:
@@ -972,8 +1047,11 @@ class TestSearchToolsSecurity:
 
     @pytest.mark.asyncio
     async def test_search_limit_validation(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test limit parameter validation."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -985,7 +1063,8 @@ class TestSearchToolsSecurity:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Test valid limits
             for limit in [1, 25, 50, 100]:
@@ -1006,8 +1085,11 @@ class TestSearchToolsPropertyBased:
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     async def test_search_with_valid_parameters(
-        self, search_params, mock_context, mock_km_client
-    ):
+        self,
+        search_params,
+        mock_context,
+        mock_km_client,
+    ) -> None:
         """Test search with randomly generated valid parameters."""
         # Setup
         sample_macros = [
@@ -1022,7 +1104,7 @@ class TestSearchToolsPropertyBased:
                 "modification_date": "2024-12-01T00:00:00Z",
                 "last_used": "2024-12-01T10:00:00Z",
                 "used_count": 5,
-            }
+            },
         ]
 
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -1034,7 +1116,8 @@ class TestSearchToolsPropertyBased:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(ctx=mock_context, **search_params)
@@ -1063,8 +1146,11 @@ class TestSearchToolsPropertyBased:
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     async def test_search_security_with_malicious_inputs(
-        self, malicious_params, mock_context, mock_km_client
-    ):
+        self,
+        malicious_params,
+        mock_context,
+        mock_km_client,
+    ) -> None:
         """Test search security with potentially malicious inputs."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -1074,7 +1160,8 @@ class TestSearchToolsPropertyBased:
         mock_km_client.list_macros_with_details.return_value.get_right.return_value = []
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute - should not crash or cause security issues
             result = await km_search_actions(ctx=mock_context, **malicious_params)
@@ -1088,7 +1175,7 @@ class TestSearchToolsPropertyBased:
                 assert isinstance(result["data"], dict)
 
     @given(st.text(min_size=1, max_size=100))
-    def test_generate_mock_actions_property(self, macro_name):
+    def test_generate_mock_actions_property(self, macro_name) -> None:
         """Test mock action generation with various macro names."""
         # Execute
         actions = _generate_mock_actions(macro_name, "test-id")
@@ -1113,8 +1200,10 @@ class TestSearchToolsPerformance:
 
     @pytest.mark.asyncio
     async def test_search_performance_with_large_dataset(
-        self, mock_context, mock_km_client
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+    ) -> None:
         """Test search performance with large number of macros."""
         # Setup large dataset
         large_macro_list = []
@@ -1131,7 +1220,7 @@ class TestSearchToolsPerformance:
                     "modification_date": "2024-12-01T00:00:00Z",
                     "last_used": "2024-12-01T10:00:00Z",
                     "used_count": 1,
-                }
+                },
             )
 
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -1143,7 +1232,8 @@ class TestSearchToolsPerformance:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             import time
@@ -1166,7 +1256,7 @@ class TestSearchToolsPerformance:
             assert execution_time < 5.0
 
     @pytest.mark.asyncio
-    async def test_search_limit_enforcement(self, mock_context, mock_km_client):
+    async def test_search_limit_enforcement(self, mock_context, mock_km_client) -> None:
         """Test that search limits are properly enforced."""
         # Setup
         macro_list = []
@@ -1183,7 +1273,7 @@ class TestSearchToolsPerformance:
                     "modification_date": "2024-12-01T00:00:00Z",
                     "last_used": "2024-12-01T10:00:00Z",
                     "used_count": 1,
-                }
+                },
             )
 
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -1195,7 +1285,8 @@ class TestSearchToolsPerformance:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Test various limits
             for limit in [5, 10, 25, 50]:
@@ -1206,7 +1297,7 @@ class TestSearchToolsPerformance:
                 assert result["data"]["total_found"] <= limit
 
     @pytest.mark.asyncio
-    async def test_search_memory_efficiency(self, mock_context, mock_km_client):
+    async def test_search_memory_efficiency(self, mock_context, mock_km_client) -> None:
         """Test that search doesn't consume excessive memory."""
         # Setup
         macro_list = []
@@ -1223,7 +1314,7 @@ class TestSearchToolsPerformance:
                     "modification_date": "2024-12-01T00:00:00Z",
                     "last_used": "2024-12-01T10:00:00Z",
                     "used_count": 1,
-                }
+                },
             )
 
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -1235,11 +1326,12 @@ class TestSearchToolsPerformance:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute multiple searches to test memory usage
             results = []
-            for i in range(10):
+            for _i in range(10):
                 result = await km_search_actions(limit=20, ctx=mock_context)
                 results.append(result)
 
@@ -1259,8 +1351,11 @@ class TestSearchToolsEdgeCases:
 
     @pytest.mark.asyncio
     async def test_search_with_unicode_content(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test search with unicode characters in content."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -1274,11 +1369,13 @@ class TestSearchToolsEdgeCases:
         unicode_content = "测试内容 🚀 àáâãäå"
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(
-                content_search=unicode_content, ctx=mock_context
+                content_search=unicode_content,
+                ctx=mock_context,
             )
 
             # Verify
@@ -1288,7 +1385,7 @@ class TestSearchToolsEdgeCases:
             )
 
     @pytest.mark.asyncio
-    async def test_search_with_empty_macro_list(self, mock_context, mock_km_client):
+    async def test_search_with_empty_macro_list(self, mock_context, mock_km_client) -> None:
         """Test search with empty macro list."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -1298,7 +1395,8 @@ class TestSearchToolsEdgeCases:
         mock_km_client.list_macros_with_details.return_value.get_right.return_value = []
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(ctx=mock_context)
@@ -1309,7 +1407,7 @@ class TestSearchToolsEdgeCases:
             assert result["data"]["actions"] == []
 
     @pytest.mark.asyncio
-    async def test_search_without_context(self, mock_km_client, sample_macros_list):
+    async def test_search_without_context(self, mock_km_client, sample_macros_list) -> None:
         """Test search without providing context."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -1321,7 +1419,8 @@ class TestSearchToolsEdgeCases:
         )
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions()
@@ -1333,8 +1432,11 @@ class TestSearchToolsEdgeCases:
 
     @pytest.mark.asyncio
     async def test_search_with_special_characters_in_filters(
-        self, mock_context, mock_km_client, sample_macros_list
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        sample_macros_list,
+    ) -> None:
         """Test search with special characters in filter parameters."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -1348,7 +1450,8 @@ class TestSearchToolsEdgeCases:
         special_chars = "!@#$%^&*()_+-=[]{}|;:'\",.<>?"
 
         with patch(
-            "src.server.tools.search_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.search_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Execute
             result = await km_search_actions(

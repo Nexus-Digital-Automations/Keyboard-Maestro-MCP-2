@@ -1,5 +1,4 @@
-"""
-Pattern recognition and analysis system for intelligent automation insights.
+"""Pattern recognition and analysis system for intelligent automation insights.
 
 This module implements advanced pattern recognition algorithms to identify
 optimization opportunities, workflow inefficiencies, and automation improvement
@@ -113,12 +112,13 @@ class PatternAnalyzer:
         self.analysis_cache: dict[str, dict[str, Any]] = {}
         self.cache_ttl = timedelta(minutes=30)  # Cache results for 30 minutes
 
-    @require(lambda self, user_id: len(user_id) > 0)
+    @require(lambda __self, user_id: len(user_id) > 0)
     async def analyze_user_patterns(
-        self, user_id: str, depth: str = "standard"
+        self,
+        user_id: str,
+        depth: str = "standard",
     ) -> list[PatternInsight]:
-        """
-        Analyze user behavior patterns to generate actionable insights.
+        """Analyze user behavior patterns to generate actionable insights.
 
         Args:
             user_id: User identifier for pattern analysis
@@ -126,6 +126,7 @@ class PatternAnalyzer:
 
         Returns:
             List of pattern insights with optimization recommendations
+
         """
         try:
             # Check cache first
@@ -135,7 +136,8 @@ class PatternAnalyzer:
                 return [self._dict_to_insight(insight) for insight in cached_results]
 
             patterns = self.behavior_tracker.get_user_patterns(
-                user_id, recent_only=True
+                user_id,
+                recent_only=True,
             )
             insights = []
 
@@ -146,7 +148,7 @@ class PatternAnalyzer:
                         message="No recent behavior patterns found for analysis",
                         confidence=1.0,
                         priority=PriorityLevel.LOW,
-                    )
+                    ),
                 )
                 return insights
 
@@ -165,19 +167,21 @@ class PatternAnalyzer:
             # Advanced analysis for deeper modes
             if depth in ["deep", "comprehensive"]:
                 correlation_insights = await self._analyze_pattern_correlations(
-                    patterns
+                    patterns,
                 )
                 insights.extend(correlation_insights)
 
                 temporal_insights = await self._analyze_temporal_patterns(
-                    user_id, patterns
+                    user_id,
+                    patterns,
                 )
                 insights.extend(temporal_insights)
 
             # Comprehensive analysis includes cross-user comparisons
             if depth == "comprehensive":
                 comparative_insights = await self._analyze_comparative_patterns(
-                    user_id, patterns
+                    user_id,
+                    patterns,
                 )
                 insights.extend(comparative_insights)
 
@@ -185,33 +189,34 @@ class PatternAnalyzer:
             self._cache_results(cache_key, [insight.to_dict() for insight in insights])
 
             logger.info(
-                f"Generated {len(insights)} pattern insights for user {user_id}"
+                f"Generated {len(insights)} pattern insights for user {user_id}",
             )
             return insights
 
         except Exception as e:
-            logger.error(f"Error analyzing user patterns: {str(e)}")
+            logger.error(f"Error analyzing user patterns: {e!s}")
             return [
                 PatternInsight(
                     insight_type="analysis_error",
-                    message=f"Pattern analysis failed: {str(e)}",
+                    message=f"Pattern analysis failed: {e!s}",
                     confidence=0.0,
                     priority=PriorityLevel.LOW,
-                )
+                ),
             ]
 
-    @require(lambda self, user_id: len(user_id) > 0)
+    @require(lambda __self, user_id: len(user_id) > 0)
     async def identify_optimization_opportunities(
-        self, user_id: str
+        self,
+        user_id: str,
     ) -> list[OptimizationOpportunity]:
-        """
-        Identify specific optimization opportunities based on performance data.
+        """Identify specific optimization opportunities based on performance data.
 
         Args:
             user_id: User identifier for optimization analysis
 
         Returns:
             List of optimization opportunities with implementation details
+
         """
         try:
             opportunities = []
@@ -222,25 +227,25 @@ class PatternAnalyzer:
 
             # Analyze slow automations
             slow_opportunities = await self._identify_performance_opportunities(
-                performance_data
+                performance_data,
             )
             opportunities.extend(slow_opportunities)
 
             # Analyze unreliable automations
             reliability_opportunities = await self._identify_reliability_opportunities(
-                performance_data
+                performance_data,
             )
             opportunities.extend(reliability_opportunities)
 
             # Analyze workflow duplication
             duplication_opportunities = await self._identify_duplication_opportunities(
-                user_patterns
+                user_patterns,
             )
             opportunities.extend(duplication_opportunities)
 
             # Analyze tool usage optimization
             tool_opportunities = await self._identify_tool_optimization_opportunities(
-                user_id
+                user_id,
             )
             opportunities.extend(tool_opportunities)
 
@@ -254,25 +259,26 @@ class PatternAnalyzer:
             )
 
             logger.info(
-                f"Identified {len(opportunities)} optimization opportunities for user {user_id}"
+                f"Identified {len(opportunities)} optimization opportunities for user {user_id}",
             )
             return opportunities
 
         except Exception as e:
-            logger.error(f"Error identifying optimization opportunities: {str(e)}")
+            logger.error(f"Error identifying optimization opportunities: {e!s}")
             return []
 
     async def analyze_automation_trends(
-        self, time_window_days: int = 30
+        self,
+        time_window_days: int = 30,
     ) -> dict[str, Any]:
-        """
-        Analyze automation trends across all users and automations.
+        """Analyze automation trends across all users and automations.
 
         Args:
             time_window_days: Number of days to analyze
 
         Returns:
             Dictionary containing trend analysis and insights
+
         """
         try:
             performance_data = self.behavior_tracker.get_automation_metrics()
@@ -324,10 +330,10 @@ class PatternAnalyzer:
                 "top_performers_count": len(top_performers),
                 "problem_automations_count": len(problem_automations),
                 "performance_distribution": self._calculate_performance_distribution(
-                    recent_metrics
+                    recent_metrics,
                 ),
                 "improvement_trends": self._calculate_improvement_trends(
-                    recent_metrics
+                    recent_metrics,
                 ),
                 "bottlenecks": self._identify_system_bottlenecks(recent_metrics),
             }
@@ -335,11 +341,12 @@ class PatternAnalyzer:
             return trend_analysis
 
         except Exception as e:
-            logger.error(f"Error analyzing automation trends: {str(e)}")
+            logger.error(f"Error analyzing automation trends: {e!s}")
             return {"error": str(e)}
 
     async def _analyze_efficiency_patterns(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[PatternInsight]:
         """Analyze patterns for efficiency insights."""
         insights = []
@@ -361,7 +368,7 @@ class PatternAnalyzer:
                         ),
                         "total_patterns": len(efficient_patterns),
                     },
-                )
+                ),
             )
 
         # Find inefficient patterns that could be optimized
@@ -387,13 +394,14 @@ class PatternAnalyzer:
                         "average_completion_time": avg_time,
                         "total_patterns": len(inefficient_patterns),
                     },
-                )
+                ),
             )
 
         return insights
 
     async def _analyze_reliability_patterns(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[PatternInsight]:
         """Analyze patterns for reliability insights."""
         insights = []
@@ -419,7 +427,7 @@ class PatternAnalyzer:
                             p.success_rate for p in unreliable_patterns
                         ),
                     },
-                )
+                ),
             )
 
         # Find highly reliable patterns to use as examples
@@ -441,13 +449,14 @@ class PatternAnalyzer:
                         ),
                         "total_patterns": len(reliable_patterns),
                     },
-                )
+                ),
             )
 
         return insights
 
     async def _analyze_frequency_patterns(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[PatternInsight]:
         """Analyze patterns for frequency-based insights."""
         insights = []
@@ -471,7 +480,7 @@ class PatternAnalyzer:
                         "top_pattern_frequency": frequent_patterns[0].frequency,
                         "patterns_analyzed": len(frequent_patterns),
                     },
-                )
+                ),
             )
 
         # Find underutilized patterns that might indicate setup issues
@@ -493,13 +502,14 @@ class PatternAnalyzer:
                         "total_underutilized": len(underutilized),
                         "recent_days": 7,
                     },
-                )
+                ),
             )
 
         return insights
 
     async def _analyze_pattern_correlations(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[PatternInsight]:
         """Analyze correlations between patterns for advanced insights."""
         insights = []
@@ -531,7 +541,7 @@ class PatternAnalyzer:
                                     "average_efficiency": avg_efficiency,
                                     "pattern_count": len(tag_patterns),
                                 },
-                            )
+                            ),
                         )
                     elif avg_efficiency < 0.5:
                         insights.append(
@@ -547,16 +557,18 @@ class PatternAnalyzer:
                                     "average_efficiency": avg_efficiency,
                                     "pattern_count": len(tag_patterns),
                                 },
-                            )
+                            ),
                         )
 
         except Exception as e:
-            logger.error(f"Error analyzing pattern correlations: {str(e)}")
+            logger.error(f"Error analyzing pattern correlations: {e!s}")
 
         return insights
 
     async def _analyze_temporal_patterns(
-        self, user_id: str, patterns: list[UserBehaviorPattern]
+        self,
+        user_id: str,
+        patterns: list[UserBehaviorPattern],
     ) -> list[PatternInsight]:
         """Analyze temporal patterns in user behavior."""
         insights = []
@@ -564,7 +576,8 @@ class PatternAnalyzer:
         try:
             # Get user activity summary for temporal analysis
             activity_summary = self.behavior_tracker.get_user_activity_summary(
-                user_id, days=14
+                user_id,
+                days=14,
             )
 
             # Analyze activity trends
@@ -578,7 +591,7 @@ class PatternAnalyzer:
                         confidence=0.8,
                         priority=PriorityLevel.LOW,
                         metrics={"trend": trend},
-                    )
+                    ),
                 )
             elif trend == "decreasing":
                 insights.append(
@@ -589,7 +602,7 @@ class PatternAnalyzer:
                         confidence=0.7,
                         priority=PriorityLevel.MEDIUM,
                         metrics={"trend": trend},
-                    )
+                    ),
                 )
 
             # Analyze peak activity hours
@@ -603,16 +616,18 @@ class PatternAnalyzer:
                         confidence=0.9,
                         priority=PriorityLevel.LOW,
                         metrics={"peak_hours": peak_hours},
-                    )
+                    ),
                 )
 
         except Exception as e:
-            logger.error(f"Error analyzing temporal patterns: {str(e)}")
+            logger.error(f"Error analyzing temporal patterns: {e!s}")
 
         return insights
 
     async def _analyze_comparative_patterns(
-        self, user_id: str, patterns: list[UserBehaviorPattern]
+        self,
+        user_id: str,
+        patterns: list[UserBehaviorPattern],
     ) -> list[PatternInsight]:
         """Analyze patterns compared to other users (anonymized)."""
         insights = []
@@ -643,7 +658,7 @@ class PatternAnalyzer:
                             "user_efficiency": user_avg_efficiency,
                             "benchmark": benchmark_efficiency,
                         },
-                    )
+                    ),
                 )
             elif user_avg_efficiency < benchmark_efficiency - 0.1:
                 insights.append(
@@ -657,16 +672,17 @@ class PatternAnalyzer:
                             "user_efficiency": user_avg_efficiency,
                             "benchmark": benchmark_efficiency,
                         },
-                    )
+                    ),
                 )
 
         except Exception as e:
-            logger.error(f"Error analyzing comparative patterns: {str(e)}")
+            logger.error(f"Error analyzing comparative patterns: {e!s}")
 
         return insights
 
     async def _identify_performance_opportunities(
-        self, performance_data: dict[str, AutomationPerformanceMetrics]
+        self,
+        performance_data: dict[str, AutomationPerformanceMetrics],
     ) -> list[OptimizationOpportunity]:
         """Identify performance optimization opportunities."""
         opportunities = []
@@ -696,13 +712,14 @@ class PatternAnalyzer:
                         "time_seconds": total_time_savings,
                         "automations_affected": len(slow_automations),
                     },
-                )
+                ),
             )
 
         return opportunities
 
     async def _identify_reliability_opportunities(
-        self, performance_data: dict[str, AutomationPerformanceMetrics]
+        self,
+        performance_data: dict[str, AutomationPerformanceMetrics],
     ) -> list[OptimizationOpportunity]:
         """Identify reliability improvement opportunities."""
         opportunities = []
@@ -731,13 +748,14 @@ class PatternAnalyzer:
                         "error_reduction": avg_error_rate,
                         "automations_affected": len(unreliable_automations),
                     },
-                )
+                ),
             )
 
         return opportunities
 
     async def _identify_duplication_opportunities(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[OptimizationOpportunity]:
         """Identify workflow duplication opportunities."""
         opportunities = []
@@ -761,13 +779,14 @@ class PatternAnalyzer:
                             "patterns_consolidated": len(group),
                             "total_frequency": total_frequency,
                         },
-                    )
+                    ),
                 )
 
         return opportunities
 
     async def _identify_tool_optimization_opportunities(
-        self, user_id: str
+        self,
+        user_id: str,
     ) -> list[OptimizationOpportunity]:
         """Identify tool usage optimization opportunities."""
         opportunities = []
@@ -780,7 +799,9 @@ class PatternAnalyzer:
             if preferred_tools:
                 # Find underutilized tools that might be beneficial
                 top_tools = sorted(
-                    preferred_tools.items(), key=lambda x: x[1], reverse=True
+                    preferred_tools.items(),
+                    key=lambda x: x[1],
+                    reverse=True,
                 )
 
                 if len(top_tools) > 1:
@@ -807,16 +828,17 @@ class PatternAnalyzer:
                                         tool for tool, _ in top_tools[1:4]
                                     ],
                                 },
-                            )
+                            ),
                         )
 
         except Exception as e:
-            logger.error(f"Error identifying tool optimization opportunities: {str(e)}")
+            logger.error(f"Error identifying tool optimization opportunities: {e!s}")
 
         return opportunities
 
     def _find_similar_patterns(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[list[UserBehaviorPattern]]:
         """Find groups of similar patterns that might be consolidated."""
         similar_groups = []
@@ -846,7 +868,9 @@ class PatternAnalyzer:
         return similar_groups
 
     def _calculate_pattern_similarity(
-        self, pattern1: UserBehaviorPattern, pattern2: UserBehaviorPattern
+        self,
+        pattern1: UserBehaviorPattern,
+        pattern2: UserBehaviorPattern,
     ) -> float:
         """Calculate similarity score between two patterns."""
         try:
@@ -861,10 +885,10 @@ class PatternAnalyzer:
             action_similarity = 0.0
             if pattern1.action_sequence and pattern2.action_sequence:
                 common_actions = set(pattern1.action_sequence) & set(
-                    pattern2.action_sequence
+                    pattern2.action_sequence,
                 )
                 all_actions = set(pattern1.action_sequence) | set(
-                    pattern2.action_sequence
+                    pattern2.action_sequence,
                 )
                 action_similarity = (
                     len(common_actions) / len(all_actions) if all_actions else 0.0
@@ -872,7 +896,7 @@ class PatternAnalyzer:
 
             # Compare performance characteristics
             performance_similarity = 1.0 - abs(
-                pattern1.get_efficiency_score() - pattern2.get_efficiency_score()
+                pattern1.get_efficiency_score() - pattern2.get_efficiency_score(),
             )
 
             # Weighted average
@@ -886,7 +910,8 @@ class PatternAnalyzer:
             return 0.0
 
     def _calculate_performance_distribution(
-        self, metrics_data: dict[str, AutomationPerformanceMetrics]
+        self,
+        metrics_data: dict[str, AutomationPerformanceMetrics],
     ) -> dict[str, int]:
         """Calculate distribution of automation performance levels."""
         distribution = {"excellent": 0, "good": 0, "fair": 0, "poor": 0}
@@ -905,7 +930,8 @@ class PatternAnalyzer:
         return distribution
 
     def _calculate_improvement_trends(
-        self, metrics_data: dict[str, AutomationPerformanceMetrics]
+        self,
+        metrics_data: dict[str, AutomationPerformanceMetrics],
     ) -> dict[str, int]:
         """Calculate automation improvement trends."""
         trends = {"improving": 0, "stable": 0, "declining": 0}
@@ -916,7 +942,8 @@ class PatternAnalyzer:
         return trends
 
     def _identify_system_bottlenecks(
-        self, metrics_data: dict[str, AutomationPerformanceMetrics]
+        self,
+        metrics_data: dict[str, AutomationPerformanceMetrics],
     ) -> list[dict[str, Any]]:
         """Identify potential system bottlenecks."""
         bottlenecks = []
@@ -938,7 +965,7 @@ class PatternAnalyzer:
                         metrics.average_execution_time
                         for _, metrics in slow_automations
                     ),
-                }
+                },
             )
 
         # Find automations with high resource usage patterns

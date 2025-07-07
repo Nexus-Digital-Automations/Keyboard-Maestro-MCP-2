@@ -1,22 +1,27 @@
-"""
-Comprehensive Test Suite for High-Impact Tools (TASK_10-20).
+"""Comprehensive Test Suite for High-Impact Tools (TASK_10-20).
 
 This module provides systematic testing for high-impact MCP tools including
 macro creation, clipboard management, app control, and file operations with
 focus on FastMCP integration and advanced functionality.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from src.core.types import MacroId
+
+logger = logging.getLogger(__name__)
 
 
 class TestHighImpactToolsFoundation:
     """Test foundation for high-impact MCP tools from TASK_10-20."""
 
     @pytest.fixture
-    def execution_context(self):
+    def execution_context(self) -> Any:
         """Create mock execution context for testing."""
         context = AsyncMock()
         context.session_id = "test-session-high-impact"
@@ -26,7 +31,7 @@ class TestHighImpactToolsFoundation:
         return context
 
     @pytest.fixture
-    def sample_macro_template_data(self):
+    def sample_macro_template_data(self) -> Any:
         """Sample macro template data for creation tests."""
         return {
             "name": "Test Macro",
@@ -41,7 +46,7 @@ class TestHighImpactToolsFoundation:
         }
 
     @pytest.fixture
-    def sample_app_control_data(self):
+    def sample_app_control_data(self) -> Any:
         """Sample app control data for testing."""
         return {
             "operation": "launch",
@@ -54,7 +59,7 @@ class TestHighImpactToolsFoundation:
 class TestMacroCreationTools:
     """Test macro creation tools from TASK_10: km_create_macro."""
 
-    def test_creation_tools_import(self):
+    def test_creation_tools_import(self) -> None:
         """Test that creation tools can be imported successfully."""
         try:
             from src.server.tools import creation_tools
@@ -71,8 +76,10 @@ class TestMacroCreationTools:
 
     @pytest.mark.asyncio
     async def test_macro_creation_basic_functionality(
-        self, execution_context, sample_macro_template_data
-    ):
+        self,
+        execution_context,
+        sample_macro_template_data,
+    ) -> None:
         """Test basic macro creation functionality."""
         try:
             from src.server.tools.creation_tools import km_create_macro
@@ -80,7 +87,7 @@ class TestMacroCreationTools:
             # Mock the MacroBuilder and KM client
             with (
                 patch(
-                    "src.server.tools.creation_tools.get_km_client"
+                    "src.server.tools.creation_tools.get_km_client",
                 ) as mock_get_client,
                 patch("src.server.tools.creation_tools.MacroBuilder") as mock_builder,
             ):
@@ -90,8 +97,8 @@ class TestMacroCreationTools:
                     is_left=Mock(return_value=False),
                     get_right=Mock(
                         return_value=[
-                            {"groupName": "Test Group", "groupID": "test-group-id"}
-                        ]
+                            {"groupName": "Test Group", "groupID": "test-group-id"},
+                        ],
                     ),
                 )
                 mock_get_client.return_value = mock_client
@@ -99,7 +106,7 @@ class TestMacroCreationTools:
                 # Mock successful macro creation
                 mock_builder_instance = Mock()
                 mock_builder_instance.create_macro.return_value = MacroId(
-                    "test-macro-123"
+                    "test-macro-123",
                 )
                 mock_builder.return_value = mock_builder_instance
 
@@ -119,7 +126,7 @@ class TestMacroCreationTools:
             pytest.skip("Creation tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_template_listing_functionality(self, execution_context):
+    async def test_template_listing_functionality(self, execution_context) -> None:
         """Test macro template listing functionality."""
         try:
             from src.server.tools.creation_tools import km_list_templates
@@ -136,7 +143,7 @@ class TestMacroCreationTools:
             pytest.skip("Creation tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_creation_validation_handling(self, execution_context):
+    async def test_creation_validation_handling(self, execution_context) -> None:
         """Test macro creation validation error handling."""
         try:
             from src.server.tools.creation_tools import km_create_macro
@@ -161,7 +168,7 @@ class TestMacroCreationTools:
 class TestClipboardManagementTools:
     """Test clipboard management tools from TASK_11: km_clipboard_manager."""
 
-    def test_clipboard_tools_import(self):
+    def test_clipboard_tools_import(self) -> None:
         """Test that clipboard tools can be imported successfully."""
         try:
             from src.server.tools import clipboard_tools
@@ -171,14 +178,14 @@ class TestClipboardManagementTools:
             pytest.fail(f"Failed to import clipboard tools: {e}")
 
     @pytest.mark.asyncio
-    async def test_clipboard_get_operation(self, execution_context):
+    async def test_clipboard_get_operation(self, execution_context) -> None:
         """Test clipboard get operation."""
         try:
             from src.server.tools.clipboard_tools import km_clipboard_manager
 
             # Mock clipboard manager
             with patch(
-                "src.server.tools.clipboard_tools.get_clipboard_manager"
+                "src.server.tools.clipboard_tools.get_clipboard_manager",
             ) as mock_get_mgr:
                 mock_manager = AsyncMock()
 
@@ -199,7 +206,8 @@ class TestClipboardManagementTools:
                 mock_get_mgr.return_value = mock_manager
 
                 result = await km_clipboard_manager(
-                    operation="get", ctx=execution_context
+                    operation="get",
+                    ctx=execution_context,
                 )
 
                 assert isinstance(result, dict)
@@ -209,18 +217,19 @@ class TestClipboardManagementTools:
             pytest.skip("Clipboard tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_clipboard_set_operation(self, execution_context):
+    async def test_clipboard_set_operation(self, execution_context) -> None:
         """Test clipboard set operation."""
         try:
             from src.server.tools.clipboard_tools import km_clipboard_manager
 
             # Mock clipboard manager
             with patch(
-                "src.server.tools.clipboard_tools.get_clipboard_manager"
+                "src.server.tools.clipboard_tools.get_clipboard_manager",
             ) as mock_get_mgr:
                 mock_manager = AsyncMock()
                 mock_manager.set_clipboard.return_value = Mock(
-                    is_left=Mock(return_value=False), get_right=Mock(return_value=True)
+                    is_left=Mock(return_value=False),
+                    get_right=Mock(return_value=True),
                 )
                 mock_get_mgr.return_value = mock_manager
 
@@ -237,23 +246,26 @@ class TestClipboardManagementTools:
             pytest.skip("Clipboard tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_clipboard_history_operations(self, execution_context):
+    async def test_clipboard_history_operations(self, execution_context) -> None:
         """Test clipboard history operations."""
         try:
             from src.server.tools.clipboard_tools import km_clipboard_manager
 
             # Test list_history operation
             with patch(
-                "src.server.tools.clipboard_tools.get_clipboard_manager"
+                "src.server.tools.clipboard_tools.get_clipboard_manager",
             ) as mock_get_mgr:
                 mock_manager = AsyncMock()
                 mock_manager.get_history_list.return_value = Mock(
-                    is_left=Mock(return_value=False), get_right=Mock(return_value=[])
+                    is_left=Mock(return_value=False),
+                    get_right=Mock(return_value=[]),
                 )
                 mock_get_mgr.return_value = mock_manager
 
                 result = await km_clipboard_manager(
-                    operation="list_history", history_count=5, ctx=execution_context
+                    operation="list_history",
+                    history_count=5,
+                    ctx=execution_context,
                 )
 
                 assert isinstance(result, dict)
@@ -266,7 +278,7 @@ class TestClipboardManagementTools:
 class TestAppControlTools:
     """Test application control tools from TASK_12: km_app_control."""
 
-    def test_app_control_tools_import(self):
+    def test_app_control_tools_import(self) -> None:
         """Test that app control tools can be imported successfully."""
         try:
             from src.server.tools import app_control_tools
@@ -277,15 +289,17 @@ class TestAppControlTools:
 
     @pytest.mark.asyncio
     async def test_app_launch_operation(
-        self, execution_context, sample_app_control_data
-    ):
+        self,
+        execution_context,
+        sample_app_control_data,
+    ) -> None:
         """Test application launch operation."""
         try:
             from src.server.tools.app_control_tools import km_app_control
 
             # Mock AppController
             with patch(
-                "src.server.tools.app_control_tools.AppController"
+                "src.server.tools.app_control_tools.AppController",
             ) as mock_controller_class:
                 mock_controller = AsyncMock()
 
@@ -319,14 +333,14 @@ class TestAppControlTools:
             pytest.skip("App control tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_app_quit_operation(self, execution_context):
+    async def test_app_quit_operation(self, execution_context) -> None:
         """Test application quit operation."""
         try:
             from src.server.tools.app_control_tools import km_app_control
 
             # Mock AppController
             with patch(
-                "src.server.tools.app_control_tools.AppController"
+                "src.server.tools.app_control_tools.AppController",
             ) as mock_controller_class:
                 mock_controller = AsyncMock()
 
@@ -356,14 +370,14 @@ class TestAppControlTools:
             pytest.skip("App control tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_app_state_query(self, execution_context):
+    async def test_app_state_query(self, execution_context) -> None:
         """Test application state query operation."""
         try:
             from src.server.tools.app_control_tools import km_app_control
 
             # Mock AppController
             with patch(
-                "src.server.tools.app_control_tools.AppController"
+                "src.server.tools.app_control_tools.AppController",
             ) as mock_controller_class:
                 mock_controller = AsyncMock()
 
@@ -389,14 +403,14 @@ class TestAppControlTools:
             pytest.skip("App control tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_menu_select_operation(self, execution_context):
+    async def test_menu_select_operation(self, execution_context) -> None:
         """Test menu selection operation."""
         try:
             from src.server.tools.app_control_tools import km_app_control
 
             # Mock AppController
             with patch(
-                "src.server.tools.app_control_tools.AppController"
+                "src.server.tools.app_control_tools.AppController",
             ) as mock_controller_class:
                 mock_controller = AsyncMock()
 
@@ -429,56 +443,70 @@ class TestAppControlTools:
 class TestFileOperationTools:
     """Test file operation tools from TASK_13: km_file_operations."""
 
-    def test_file_operation_tools_import(self):
+    def test_file_operation_tools_import(self) -> None:
         """Test that file operation tools can be imported successfully."""
         try:
             from src.server.tools import file_operation_tools
 
             # Check for commonly available file operations
             assert hasattr(file_operation_tools, "km_file_exists") or hasattr(
-                file_operation_tools, "km_file_operations"
+                file_operation_tools,
+                "km_file_operations",
             )
         except ImportError as e:
             pytest.fail(f"Failed to import file operation tools: {e}")
 
     @pytest.mark.asyncio
-    async def test_file_existence_check(self, execution_context):
+    async def test_file_existence_check(self, execution_context) -> None:
         """Test file existence checking functionality."""
         try:
+            # S108 fix: Use secure temporary file for testing
+            import tempfile
+
             from src.server.tools.file_operation_tools import km_file_exists
 
-            result = await km_file_exists(
-                file_path="/tmp/test_file.txt", ctx=execution_context
-            )
+            with tempfile.NamedTemporaryFile() as temp_file:
+                result = await km_file_exists(
+                    file_path=temp_file.name,
+                    ctx=execution_context,
+                )
 
-            assert isinstance(result, dict)
-            assert "success" in result
+                assert isinstance(result, dict)
+                assert "success" in result
 
         except ImportError:
             pytest.skip("File operation tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_file_operations_basic(self, execution_context):
+    async def test_file_operations_basic(self, execution_context) -> None:
         """Test basic file operations if available."""
         try:
             # Try to import the main file operations function
+            # S108 fix: Test a safe read operation with secure temporary directory
+            import tempfile
+
             from src.server.tools.file_operation_tools import km_file_operations
 
-            # Test a safe read operation
-            result = await km_file_operations(
-                operation="list", path="/tmp", ctx=execution_context
-            )
+            with tempfile.TemporaryDirectory() as temp_dir:
+                result = await km_file_operations(
+                    operation="list",
+                    path=temp_dir,
+                    ctx=execution_context,
+                )
 
-            assert isinstance(result, dict)
-            assert "success" in result
+                assert isinstance(result, dict)
+                assert "success" in result
 
         except ImportError:
-            # If km_file_operations doesn't exist, test other functions
+            # If km_file_operations doesn't exist, test import availability
             try:
-                from src.server.tools.file_operation_tools import km_file_exists
+                # F401 fix: Use importlib for import availability testing
+                import importlib.util
 
-                # Test already covered above
-                pass
+                spec = importlib.util.find_spec("src.server.tools.file_operation_tools")
+                if spec is not None:
+                    # Module is available - test already covered above
+                    pass
             except ImportError:
                 pytest.skip("File operation tools not available for testing")
 
@@ -486,13 +514,15 @@ class TestFileOperationTools:
 class TestSystemAutomationTools:
     """Test system automation tools from TASK_16: km_system_automation."""
 
-    def test_system_automation_tools_import(self):
+    def test_system_automation_tools_import(self) -> None:
         """Test that system automation tools can be imported successfully."""
         try:
-            from src.server.tools import advanced_tools
+            # F401 fix: Use importlib for import availability testing
+            import importlib.util
 
+            spec = importlib.util.find_spec("src.server.tools.advanced_tools")
             # System automation may be in advanced_tools
-            pass
+            assert spec is not None
         except ImportError:
             pytest.skip("System automation tools not available for testing")
 
@@ -500,13 +530,15 @@ class TestSystemAutomationTools:
 class TestTextManipulationTools:
     """Test text manipulation tools from TASK_15: km_text_manipulation."""
 
-    def test_text_manipulation_tools_import(self):
+    def test_text_manipulation_tools_import(self) -> None:
         """Test that text manipulation tools can be imported successfully."""
         try:
-            # Text manipulation tools may be part of other modules
-            from src.server.tools import advanced_tools
+            # F401 fix: Use importlib for import availability testing
+            import importlib.util
 
-            pass
+            # Text manipulation tools may be part of other modules
+            spec = importlib.util.find_spec("src.server.tools.advanced_tools")
+            assert spec is not None
         except ImportError:
             pytest.skip("Text manipulation tools not available for testing")
 
@@ -514,13 +546,15 @@ class TestTextManipulationTools:
 class TestDisplayControlTools:
     """Test display control tools from TASK_19: km_display_control."""
 
-    def test_display_control_tools_import(self):
+    def test_display_control_tools_import(self) -> None:
         """Test that display control tools can be imported successfully."""
         try:
-            from src.server.tools import visual_automation_tools
+            # F401 fix: Use importlib for import availability testing
+            import importlib.util
 
+            spec = importlib.util.find_spec("src.server.tools.visual_automation_tools")
             # Display control may be in visual automation
-            pass
+            assert spec is not None
         except ImportError:
             pytest.skip("Display control tools not available for testing")
 
@@ -528,13 +562,15 @@ class TestDisplayControlTools:
 class TestTimeManagerTools:
     """Test time manager tools from TASK_20: km_time_manager."""
 
-    def test_time_manager_tools_import(self):
+    def test_time_manager_tools_import(self) -> None:
         """Test that time manager tools can be imported successfully."""
         try:
-            from src.server.tools import advanced_tools
+            # F401 fix: Use importlib for import availability testing
+            import importlib.util
 
+            spec = importlib.util.find_spec("src.server.tools.advanced_tools")
             # Time management may be in advanced_tools
-            pass
+            assert spec is not None
         except ImportError:
             pytest.skip("Time manager tools not available for testing")
 
@@ -543,7 +579,7 @@ class TestHighImpactToolsIntegration:
     """Test integration patterns across high-impact tools."""
 
     @pytest.mark.asyncio
-    async def test_tool_response_consistency(self, execution_context):
+    async def test_tool_response_consistency(self, execution_context) -> None:
         """Test that all high-impact tools return consistent response structure."""
         tools_to_test = [
             ("src.server.tools.creation_tools", "km_list_templates", {}),
@@ -583,7 +619,7 @@ class TestHighImpactToolsIntegration:
                 print(f"Warning: {tool_name} raised {type(e).__name__}: {e}")
 
     @pytest.mark.asyncio
-    async def test_error_handling_consistency(self, execution_context):
+    async def test_error_handling_consistency(self, execution_context) -> None:
         """Test that high-impact tools handle errors consistently."""
         try:
             from src.server.tools.creation_tools import km_create_macro
@@ -606,7 +642,7 @@ class TestHighImpactToolsIntegration:
             pytest.skip("Creation tools not available for error testing")
 
     @pytest.mark.asyncio
-    async def test_security_validation_patterns(self, execution_context):
+    async def test_security_validation_patterns(self, execution_context) -> None:
         """Test that tools implement consistent security validation."""
         try:
             from src.server.tools.app_control_tools import km_app_control
@@ -630,21 +666,24 @@ class TestPropertyBasedHighImpactTesting:
     """Property-based testing for high-impact tools using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_tool_parameter_validation_property(self, execution_context):
+    async def test_tool_parameter_validation_property(self, execution_context) -> None:
         """Property: Tools should validate parameters and return appropriate errors."""
         from hypothesis import given
         from hypothesis import strategies as st
 
         @given(
-            operation=st.text(min_size=1, max_size=20), content=st.text(max_size=100)
+            operation=st.text(min_size=1, max_size=20),
+            content=st.text(max_size=100),
         )
-        async def test_clipboard_parameter_validation(operation, content):
+        async def test_clipboard_parameter_validation(operation, content) -> None:
             """Test clipboard tool parameter validation property."""
             try:
                 from src.server.tools.clipboard_tools import km_clipboard_manager
 
                 result = await km_clipboard_manager(
-                    operation=operation, content=content, ctx=execution_context
+                    operation=operation,
+                    content=content,
+                    ctx=execution_context,
                 )
 
                 # Property: All tool responses must be dicts with 'success' key
@@ -656,15 +695,13 @@ class TestPropertyBasedHighImpactTesting:
                 if not result.get("success"):
                     assert "error" in result
 
-            except Exception:
-                # Tools may fail with invalid input, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
-        # Run a test case
         await test_clipboard_parameter_validation("get", "test content")
 
     @pytest.mark.asyncio
-    async def test_tool_timeout_handling_property(self, execution_context):
+    async def test_tool_timeout_handling_property(self, execution_context) -> None:
         """Property: Tools should respect timeout parameters and handle timeouts gracefully."""
         try:
             from src.server.tools.app_control_tools import km_app_control

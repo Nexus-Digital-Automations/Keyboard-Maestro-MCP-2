@@ -1,5 +1,4 @@
-"""
-Developer toolkit type definitions for comprehensive DevOps integration.
+"""Developer toolkit type definitions for comprehensive DevOps integration.
 
 This module provides enterprise-grade developer toolkit architecture including:
 - Git operations and version control automation
@@ -26,31 +25,21 @@ from .contracts import require
 class GitRepositoryId(str):
     """Branded type for Git repository identifiers."""
 
-    pass
-
 
 class PipelineId(str):
     """Branded type for CI/CD pipeline identifiers."""
-
-    pass
 
 
 class DeploymentId(str):
     """Branded type for deployment identifiers."""
 
-    pass
-
 
 class APIEndpointId(str):
     """Branded type for API endpoint identifiers."""
 
-    pass
-
 
 class CodeReviewId(str):
     """Branded type for code review identifiers."""
-
-    pass
 
 
 def create_git_repository_id() -> GitRepositoryId:
@@ -246,7 +235,7 @@ class APIEndpoint:
 
     @require(lambda self: self.path.startswith("/"))
     @require(
-        lambda self: self.method.upper() in ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        lambda self: self.method.upper() in ["GET", "POST", "PUT", "DELETE", "PATCH"],
     )
     def __post_init__(self):
         pass
@@ -307,7 +296,9 @@ class DeveloperToolkitError(Exception):
 
     @classmethod
     def git_operation_failed(
-        cls, operation: str, details: str
+        cls,
+        operation: str,
+        details: str,
     ) -> "DeveloperToolkitError":
         return cls(
             f"Git operation '{operation}' failed: {details}",
@@ -317,7 +308,9 @@ class DeveloperToolkitError(Exception):
 
     @classmethod
     def pipeline_execution_failed(
-        cls, pipeline_id: str, stage: str
+        cls,
+        pipeline_id: str,
+        stage: str,
     ) -> "DeveloperToolkitError":
         return cls(
             f"Pipeline '{pipeline_id}' failed at stage '{stage}'",
@@ -327,7 +320,9 @@ class DeveloperToolkitError(Exception):
 
     @classmethod
     def deployment_failed(
-        cls, deployment_id: str, environment: str
+        cls,
+        deployment_id: str,
+        environment: str,
     ) -> "DeveloperToolkitError":
         return cls(
             f"Deployment '{deployment_id}' failed in environment '{environment}'",
@@ -337,7 +332,9 @@ class DeveloperToolkitError(Exception):
 
     @classmethod
     def api_operation_failed(
-        cls, operation: str, endpoint: str
+        cls,
+        operation: str,
+        endpoint: str,
     ) -> "DeveloperToolkitError":
         return cls(
             f"API operation '{operation}' failed for endpoint '{endpoint}'",
@@ -347,7 +344,9 @@ class DeveloperToolkitError(Exception):
 
     @classmethod
     def code_quality_analysis_failed(
-        cls, scope: str, reason: str
+        cls,
+        scope: str,
+        reason: str,
     ) -> "DeveloperToolkitError":
         return cls(
             f"Code quality analysis failed for scope '{scope}': {reason}",

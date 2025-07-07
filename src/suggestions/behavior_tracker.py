@@ -1,5 +1,4 @@
-"""
-User behavior tracking and analysis system for intelligent automation optimization.
+"""User behavior tracking and analysis system for intelligent automation optimization.
 
 This module implements comprehensive user behavior tracking, pattern recognition,
 and performance analysis to enable AI-powered suggestions and continuous learning
@@ -47,7 +46,7 @@ class BehaviorTracker:
         self.privacy_level = privacy_level
         self._tracking_enabled = True
 
-    @require(lambda self, user_id: len(user_id) > 0)
+    @require(lambda __self, user_id: len(user_id) > 0)
     async def track_user_action(
         self,
         user_id: str,
@@ -55,8 +54,7 @@ class BehaviorTracker:
         context: dict[str, Any],
         session_id: str | None = None,
     ) -> Either[SuggestionError, None]:
-        """
-        Track user action for pattern recognition and behavior analysis.
+        """Track user action for pattern recognition and behavior analysis.
 
         Args:
             user_id: User identifier for tracking
@@ -66,6 +64,7 @@ class BehaviorTracker:
 
         Returns:
             Either error or successful tracking confirmation
+
         """
         try:
             if not self._tracking_enabled:
@@ -84,7 +83,7 @@ class BehaviorTracker:
                     "timestamp": datetime.now(UTC),
                     "context": context,
                     "session_id": session_id,
-                }
+                },
             )
 
             # Track session data if provided
@@ -93,7 +92,9 @@ class BehaviorTracker:
 
             # Find or create behavior pattern
             pattern_result = await self._process_behavior_pattern(
-                user_id, action, context
+                user_id,
+                action,
+                context,
             )
             if pattern_result.is_left():
                 return pattern_result
@@ -108,20 +109,19 @@ class BehaviorTracker:
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Error tracking user action: {str(e)}")
+            logger.error(f"Error tracking user action: {e!s}")
             return Either.left(
-                SuggestionError.learning_failed(f"Action tracking failed: {str(e)}")
+                SuggestionError.learning_failed(f"Action tracking failed: {e!s}"),
             )
 
-    @require(lambda self, automation_id: len(automation_id) > 0)
+    @require(lambda __self, automation_id: len(automation_id) > 0)
     async def track_automation_performance(
         self,
         automation_id: str,
         execution_result: dict[str, Any],
         user_id: str | None = None,
     ) -> Either[SuggestionError, None]:
-        """
-        Track automation performance metrics for optimization analysis.
+        """Track automation performance metrics for optimization analysis.
 
         Args:
             automation_id: Unique automation identifier
@@ -130,6 +130,7 @@ class BehaviorTracker:
 
         Returns:
             Either error or successful tracking confirmation
+
         """
         try:
             success = execution_result.get("success", False)
@@ -143,7 +144,11 @@ class BehaviorTracker:
                 # Update existing metrics
                 existing = self.performance_metrics[automation_id]
                 updated_metrics = self._update_performance_metrics(
-                    existing, success, execution_time, error_occurred, timestamp
+                    existing,
+                    success,
+                    execution_time,
+                    error_occurred,
+                    timestamp,
                 )
                 self.performance_metrics[automation_id] = updated_metrics
             else:
@@ -163,26 +168,30 @@ class BehaviorTracker:
             # Link performance to user behavior if user provided
             if user_id:
                 await self._link_performance_to_behavior(
-                    user_id, automation_id, execution_result
+                    user_id,
+                    automation_id,
+                    execution_result,
                 )
 
             logger.debug(f"Tracked performance for automation {automation_id}")
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Error tracking automation performance: {str(e)}")
+            logger.error(f"Error tracking automation performance: {e!s}")
             return Either.left(
                 SuggestionError.learning_failed(
-                    f"Performance tracking failed: {str(e)}"
-                )
+                    f"Performance tracking failed: {e!s}",
+                ),
             )
 
-    @require(lambda self, user_id: len(user_id) > 0)
+    @require(lambda __self, user_id: len(user_id) > 0)
     def get_user_patterns(
-        self, user_id: str, recent_only: bool = True, min_frequency: int = 1
+        self,
+        user_id: str,
+        recent_only: bool = True,
+        min_frequency: int = 1,
     ) -> list[UserBehaviorPattern]:
-        """
-        Get user behavior patterns with filtering options.
+        """Get user behavior patterns with filtering options.
 
         Args:
             user_id: User identifier
@@ -191,6 +200,7 @@ class BehaviorTracker:
 
         Returns:
             List of filtered behavior patterns sorted by frequency
+
         """
         try:
             patterns = self.behavior_patterns.get(user_id, [])
@@ -206,26 +216,28 @@ class BehaviorTracker:
 
             # Sort by frequency and efficiency
             filtered_patterns.sort(
-                key=lambda p: (p.frequency, p.get_efficiency_score()), reverse=True
+                key=lambda p: (p.frequency, p.get_efficiency_score()),
+                reverse=True,
             )
 
             return filtered_patterns
 
         except Exception as e:
-            logger.error(f"Error getting user patterns: {str(e)}")
+            logger.error(f"Error getting user patterns: {e!s}")
             return []
 
     def get_automation_metrics(
-        self, automation_id: str | None = None
+        self,
+        automation_id: str | None = None,
     ) -> dict[str, AutomationPerformanceMetrics]:
-        """
-        Get automation performance metrics.
+        """Get automation performance metrics.
 
         Args:
             automation_id: Optional specific automation ID
 
         Returns:
             Dictionary of automation metrics
+
         """
         try:
             if automation_id:
@@ -236,13 +248,12 @@ class BehaviorTracker:
             return self.performance_metrics.copy()
 
         except Exception as e:
-            logger.error(f"Error getting automation metrics: {str(e)}")
+            logger.error(f"Error getting automation metrics: {e!s}")
             return {}
 
-    @require(lambda self, user_id: len(user_id) > 0)
+    @require(lambda __self, user_id: len(user_id) > 0)
     def get_user_activity_summary(self, user_id: str, days: int = 7) -> dict[str, Any]:
-        """
-        Get comprehensive user activity summary for analysis.
+        """Get comprehensive user activity summary for analysis.
 
         Args:
             user_id: User identifier
@@ -250,6 +261,7 @@ class BehaviorTracker:
 
         Returns:
             Dictionary containing activity summary and insights
+
         """
         try:
             patterns = self.get_user_patterns(user_id, recent_only=True)
@@ -259,7 +271,8 @@ class BehaviorTracker:
             total_actions = sum(p.frequency for p in patterns)
             unique_patterns = len(patterns)
             average_success_rate = sum(p.success_rate for p in patterns) / max(
-                1, len(patterns)
+                1,
+                len(patterns),
             )
             average_completion_time = sum(
                 p.average_completion_time for p in patterns
@@ -297,11 +310,14 @@ class BehaviorTracker:
             return summary
 
         except Exception as e:
-            logger.error(f"Error generating activity summary: {str(e)}")
+            logger.error(f"Error generating activity summary: {e!s}")
             return {"error": str(e)}
 
     async def _process_behavior_pattern(
-        self, user_id: str, action: str, context: dict[str, Any]
+        self,
+        user_id: str,
+        action: str,
+        context: dict[str, Any],
     ) -> Either[SuggestionError, None]:
         """Process and update behavior patterns."""
         try:
@@ -314,7 +330,9 @@ class BehaviorTracker:
             if existing_pattern:
                 # Update existing pattern
                 updated_pattern = self._update_pattern(
-                    existing_pattern, action, context
+                    existing_pattern,
+                    action,
+                    context,
                 )
                 self._replace_pattern(user_id, existing_pattern, updated_pattern)
             else:
@@ -348,11 +366,14 @@ class BehaviorTracker:
 
         except Exception as e:
             return Either.left(
-                SuggestionError.learning_failed(f"Pattern processing failed: {str(e)}")
+                SuggestionError.learning_failed(f"Pattern processing failed: {e!s}"),
             )
 
     def _find_matching_pattern(
-        self, user_id: str, action: str, context: dict[str, Any]
+        self,
+        user_id: str,
+        action: str,
+        context: dict[str, Any],
     ) -> UserBehaviorPattern | None:
         """Find existing pattern that matches current action and context."""
         patterns = self.behavior_patterns.get(user_id, [])
@@ -396,7 +417,8 @@ class BehaviorTracker:
 
         # Update completion time (moving average)
         action_time = context.get(
-            "execution_time", existing_pattern.average_completion_time
+            "execution_time",
+            existing_pattern.average_completion_time,
         )
         new_completion_time = (
             existing_pattern.average_completion_time * existing_pattern.frequency
@@ -420,7 +442,8 @@ class BehaviorTracker:
             context_tags=new_context_tags,
             last_observed=datetime.now(UTC),
             confidence_score=min(
-                1.0, existing_pattern.confidence_score + 0.01
+                1.0,
+                existing_pattern.confidence_score + 0.01,
             ),  # Increase confidence
         )
 
@@ -485,7 +508,11 @@ class BehaviorTracker:
         )
 
     async def _update_session_data(
-        self, user_id: str, session_id: str, action: str, context: dict[str, Any]
+        self,
+        user_id: str,
+        session_id: str,
+        action: str,
+        context: dict[str, Any],
     ) -> None:
         """Update session-specific tracking data."""
         try:
@@ -506,7 +533,7 @@ class BehaviorTracker:
                     "action": action,
                     "timestamp": datetime.now(UTC),
                     "success": context.get("success", True),
-                }
+                },
             )
 
             if context.get("tool_name"):
@@ -518,10 +545,13 @@ class BehaviorTracker:
                 session["error_count"] += 1
 
         except Exception as e:
-            logger.error(f"Error updating session data: {str(e)}")
+            logger.error(f"Error updating session data: {e!s}")
 
     async def _update_user_preferences(
-        self, user_id: str, action: str, context: dict[str, Any]
+        self,
+        user_id: str,
+        action: str,
+        context: dict[str, Any],
     ) -> None:
         """Update user preferences based on actions."""
         try:
@@ -553,7 +583,7 @@ class BehaviorTracker:
                         "action": action,
                         "context": context.get("tags", []),
                         "timestamp": datetime.now(UTC),
-                    }
+                    },
                 )
 
                 # Keep only recent success patterns
@@ -563,7 +593,7 @@ class BehaviorTracker:
                 ]
 
         except Exception as e:
-            logger.error(f"Error updating user preferences: {str(e)}")
+            logger.error(f"Error updating user preferences: {e!s}")
 
     async def _cleanup_old_patterns(self, user_id: str) -> None:
         """Clean up old patterns to maintain performance."""
@@ -602,10 +632,13 @@ class BehaviorTracker:
             self.behavior_patterns[user_id] = filtered_patterns
 
         except Exception as e:
-            logger.error(f"Error cleaning up patterns: {str(e)}")
+            logger.error(f"Error cleaning up patterns: {e!s}")
 
     async def _link_performance_to_behavior(
-        self, user_id: str, automation_id: str, execution_result: dict[str, Any]
+        self,
+        user_id: str,
+        automation_id: str,
+        execution_result: dict[str, Any],
     ) -> None:
         """Link automation performance to user behavior patterns."""
         try:
@@ -623,7 +656,7 @@ class BehaviorTracker:
                 }
 
         except Exception as e:
-            logger.error(f"Error linking performance to behavior: {str(e)}")
+            logger.error(f"Error linking performance to behavior: {e!s}")
 
     def _hash_user_id(self, user_id: str) -> str:
         """Hash user ID for maximum privacy protection."""
@@ -665,10 +698,9 @@ class BehaviorTracker:
 
             if second_half_rate > first_half_rate * 1.2:
                 return "increasing"
-            elif second_half_rate < first_half_rate * 0.8:
+            if second_half_rate < first_half_rate * 0.8:
                 return "decreasing"
-            else:
-                return "stable"
+            return "stable"
 
         except Exception:
             return "unknown"

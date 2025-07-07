@@ -1,5 +1,4 @@
-"""
-Privacy-Preserving Data Anonymization for Behavioral Intelligence.
+"""Privacy-Preserving Data Anonymization for Behavioral Intelligence.
 
 This module provides comprehensive data anonymization capabilities with configurable
 privacy protection levels, ensuring secure behavioral data processing while
@@ -41,7 +40,8 @@ class DataAnonymizer:
         self._configure_sensitive_patterns()
 
     async def initialize(
-        self, privacy_level: PrivacyLevel
+        self,
+        privacy_level: PrivacyLevel,
     ) -> Either[IntelligenceError, None]:
         """Initialize anonymizer with privacy-specific configuration."""
         try:
@@ -49,20 +49,21 @@ class DataAnonymizer:
             self._configure_sensitive_patterns()
 
             logger.info(
-                f"Data anonymizer initialized for privacy level: {privacy_level.value}"
+                f"Data anonymizer initialized for privacy level: {privacy_level.value}",
             )
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Data anonymizer initialization failed: {str(e)}")
+            logger.error(f"Data anonymizer initialization failed: {e!s}")
             return Either.left(IntelligenceError.initialization_failed(str(e)))
 
-    @require(lambda self, data: isinstance(data, list))
+    @require(lambda __self, data: isinstance(data, list))
     async def anonymize_behavior_data(
-        self, data: list[dict[str, Any]], privacy_level: PrivacyLevel
+        self,
+        data: list[dict[str, Any]],
+        privacy_level: PrivacyLevel,
     ) -> list[dict[str, Any]]:
-        """
-        Anonymize behavioral data based on privacy protection level.
+        """Anonymize behavioral data based on privacy protection level.
 
         Applies comprehensive anonymization techniques including field removal,
         data hashing, pattern obfuscation, and temporal anonymization while
@@ -79,6 +80,7 @@ class DataAnonymizer:
             - Multi-level anonymization based on privacy requirements
             - Sensitive data detection and secure removal
             - Cryptographic hashing for identifier protection
+
         """
         try:
             anonymized_data = []
@@ -86,23 +88,28 @@ class DataAnonymizer:
 
             for record in data:
                 anonymized_record = await self._anonymize_single_record(
-                    record, privacy_level, rules
+                    record,
+                    privacy_level,
+                    rules,
                 )
                 if anonymized_record:  # Only include valid anonymized records
                     anonymized_data.append(anonymized_record)
 
             logger.debug(
                 f"Anonymized {len(data)} records to {len(anonymized_data)} records "
-                f"at privacy level: {privacy_level.value}"
+                f"at privacy level: {privacy_level.value}",
             )
             return anonymized_data
 
         except Exception as e:
-            logger.error(f"Behavioral data anonymization failed: {str(e)}")
+            logger.error(f"Behavioral data anonymization failed: {e!s}")
             return []  # Return empty list on anonymization failure for safety
 
     async def _anonymize_single_record(
-        self, record: dict[str, Any], privacy_level: PrivacyLevel, rules: dict[str, Any]
+        self,
+        record: dict[str, Any],
+        privacy_level: PrivacyLevel,
+        rules: dict[str, Any],
     ) -> dict[str, Any] | None:
         """Anonymize a single behavioral data record."""
         try:
@@ -122,15 +129,15 @@ class DataAnonymizer:
             # Validate anonymized record
             if self._is_valid_anonymized_record(anonymized):
                 return anonymized
-            else:
-                return None
+            return None
 
         except Exception as e:
-            logger.warning(f"Single record anonymization failed: {str(e)}")
+            logger.warning(f"Single record anonymization failed: {e!s}")
             return None
 
     async def _apply_strict_anonymization(
-        self, record: dict[str, Any]
+        self,
+        record: dict[str, Any],
     ) -> dict[str, Any]:
         """Apply strict anonymization - maximum privacy protection."""
         anonymized = {}
@@ -180,7 +187,8 @@ class DataAnonymizer:
         return anonymized
 
     async def _apply_balanced_anonymization(
-        self, record: dict[str, Any]
+        self,
+        record: dict[str, Any],
     ) -> dict[str, Any]:
         """Apply balanced anonymization - moderate privacy with analytical utility."""
         anonymized = record.copy()
@@ -209,7 +217,8 @@ class DataAnonymizer:
         return anonymized
 
     async def _apply_permissive_anonymization(
-        self, record: dict[str, Any]
+        self,
+        record: dict[str, Any],
     ) -> dict[str, Any]:
         """Apply permissive anonymization - minimal privacy for enhanced learning."""
         anonymized = record.copy()
@@ -265,7 +274,7 @@ class DataAnonymizer:
     def _generate_session_salt(self) -> str:
         """Generate session-specific salt for hashing."""
         return hashlib.sha256(
-            f"{datetime.now(UTC).isoformat()}_{uuid.uuid4()}".encode()
+            f"{datetime.now(UTC).isoformat()}_{uuid.uuid4()}".encode(),
         ).hexdigest()[:16]
 
     def _is_safe_value(self, value: str) -> bool:
@@ -303,7 +312,9 @@ class DataAnonymizer:
         """Sanitize value for analytical utility while removing sensitive info."""
         # Remove potential personal information but keep analytical value
         sanitized = re.sub(
-            r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", "[EMAIL]", value
+            r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
+            "[EMAIL]",
+            value,
         )
         sanitized = re.sub(r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b", "[PHONE]", sanitized)
         sanitized = re.sub(r"\b\d{3}-\d{2}-\d{4}\b", "[SSN]", sanitized)
@@ -316,22 +327,16 @@ class DataAnonymizer:
             # Hash all non-safe values for maximum privacy
             if self._is_safe_value(value):
                 return value
-            else:
-                return self._hash_value(value)
-        elif privacy_level == PrivacyLevel.BALANCED:
+            return self._hash_value(value)
+        if privacy_level == PrivacyLevel.BALANCED:
             # Apply moderate anonymization
             if self._contains_sensitive_patterns(value):
                 return self._hash_value(value)
-            else:
-                return value
-        else:  # PERMISSIVE
-            # Minimal anonymization - only highly sensitive patterns
-            if any(
-                pattern in value.lower() for pattern in ["password", "secret", "token"]
-            ):
-                return self._hash_value(value)
-            else:
-                return value
+            return value
+        # Minimal anonymization - only highly sensitive patterns
+        if any(pattern in value.lower() for pattern in ["password", "secret", "token"]):
+            return self._hash_value(value)
+        return value
 
     def _contains_sensitive_patterns(self, value: str) -> bool:
         """Check if value contains sensitive patterns."""
@@ -373,7 +378,7 @@ class DataAnonymizer:
 
         # Check for username patterns
         return bool(
-            any(pattern in value.lower() for pattern in ["user", "admin", "test"])
+            any(pattern in value.lower() for pattern in ["user", "admin", "test"]),
         )
 
     def _is_valid_anonymized_record(self, record: dict[str, Any]) -> bool:
@@ -392,7 +397,7 @@ class DataAnonymizer:
         for pattern in dangerous_patterns:
             if pattern in record_str:
                 logger.warning(
-                    f"Potential sensitive data found in anonymized record: {pattern}"
+                    f"Potential sensitive data found in anonymized record: {pattern}",
                 )
                 return False
 

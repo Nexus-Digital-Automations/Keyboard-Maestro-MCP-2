@@ -1,5 +1,4 @@
-"""
-Path Security Validation and Sanitization
+"""Path Security Validation and Sanitization.
 
 This module implements comprehensive path security validation to prevent
 directory traversal attacks, unauthorized file access, and injection vulnerabilities
@@ -10,6 +9,7 @@ from __future__ import annotations
 
 import os
 import re
+import tempfile
 from enum import Enum
 from pathlib import Path
 from re import Pattern
@@ -26,8 +26,7 @@ class PathAccessLevel(Enum):
 
 
 class PathSecurity:
-    """
-    Comprehensive path security validation and sanitization.
+    """Comprehensive path security validation and sanitization.
 
     Implements defensive programming patterns to prevent directory traversal,
     unauthorized access, and injection attacks while allowing legitimate
@@ -39,7 +38,7 @@ class PathSecurity:
         "~/Documents",
         "~/Downloads",
         "~/Desktop",
-        "/tmp",
+        tempfile.gettempdir(),  # Secure temp directory instead of hardcoded /tmp
         "~/Library/Application Support/Keyboard Maestro MCP",
     }
 
@@ -74,11 +73,11 @@ class PathSecurity:
     UNSAFE_CHARACTERS = r'[<>:"|?*\x00-\x1f\x7f-\xff]'
 
     def __init__(self, custom_allowed_dirs: set[str] | None = None):
-        """
-        Initialize path security with optional custom allowed directories.
+        """Initialize path security with optional custom allowed directories.
 
         Args:
             custom_allowed_dirs: Custom set of allowed directory patterns
+
         """
         self._allowed_directories = (
             custom_allowed_dirs or self.DEFAULT_ALLOWED_DIRECTORIES
@@ -108,13 +107,13 @@ class PathSecurity:
 
         return resolved
 
-    @require(lambda path: isinstance(path, str) and len(path) > 0)
-    @staticmethod
+    @require(lambda __self, path: isinstance(path, str) and len(path) > 0)
     def validate_path(
-        path: str, access_level: PathAccessLevel = PathAccessLevel.READ_WRITE
+        self,
+        path: str,
+        access_level: PathAccessLevel = PathAccessLevel.READ_WRITE,
     ) -> bool:
-        """
-        Comprehensive path security validation.
+        """Comprehensive path security validation.
 
         Args:
             path: File path to validate
@@ -122,6 +121,7 @@ class PathSecurity:
 
         Returns:
             True if path is safe for operations
+
         """
         try:
             # Basic sanitization
@@ -142,7 +142,7 @@ class PathSecurity:
                 return False
 
             # Check if path is within allowed directories
-            if not PathSecurity._is_within_allowed_directories(resolved_path):
+            if not self._is_within_allowed_directories(resolved_path):
                 return False
 
             # Check file system permissions
@@ -152,23 +152,24 @@ class PathSecurity:
             # Any exception during validation means unsafe
             return False
 
+    @staticmethod
     @require(lambda path: isinstance(path, str))
-    def sanitize_path(self, path: str) -> str | None:
-        """
-        Sanitize path for safe operations.
+    def sanitize_path(path: str) -> str | None:
+        """Sanitize path for safe operations.
 
         Args:
             path: Path to sanitize
 
         Returns:
             Sanitized path or None if cannot be made safe
+
         """
         try:
             # Remove unsafe characters
-            sanitized = re.sub(self.UNSAFE_CHARACTERS, "", path.strip())
+            sanitized = re.sub(PathSecurity.UNSAFE_CHARACTERS, "", path.strip())
 
             # Remove dangerous patterns
-            for pattern in self.DANGEROUS_PATTERNS:
+            for pattern in PathSecurity.DANGEROUS_PATTERNS:
                 sanitized = pattern.sub("", sanitized)
 
             # Normalize path separators
@@ -184,7 +185,8 @@ class PathSecurity:
                 return None
 
             # Validate the sanitized path
-            if self.validate_path(sanitized, PathAccessLevel.READ_ONLY):
+            security_instance = PathSecurity()
+            if security_instance.validate_path(sanitized, PathAccessLevel.READ_ONLY):
                 return sanitized
 
             return None
@@ -237,7 +239,7 @@ class PathSecurity:
             try:
                 protected_path = Path(protected_dir).resolve()
                 if path == protected_path or path_str.startswith(
-                    str(protected_path) + "/"
+                    str(protected_path) + "/",
                 ):
                     return True
             except (OSError, ValueError):
@@ -245,10 +247,9 @@ class PathSecurity:
 
         return False
 
-    @staticmethod
-    def _is_within_allowed_directories(path: Path) -> bool:
+    def _is_within_allowed_directories(self, path: Path) -> bool:
         """Check if path is within allowed directories."""
-        for allowed_dir in PathSecurity._resolve_allowed_directories():
+        for allowed_dir in self._resolved_allowed_dirs:
             try:
                 # Check if path is within or equal to allowed directory
                 path.relative_to(allowed_dir)
@@ -292,20 +293,20 @@ class PathSecurity:
 
     @staticmethod
     def get_safe_temp_path(prefix: str = "km_mcp_") -> Path | None:
-        """
-        Get a safe temporary file path within allowed directories.
+        """Get a safe temporary file path within allowed directories.
 
         Args:
             prefix: Filename prefix
 
         Returns:
             Safe temporary file path or None
+
         """
         import uuid
 
         try:
-            # Try to use /tmp if it's in allowed directories
-            temp_dir = Path("/tmp")
+            # Try to use secure temp directory if it's in allowed directories
+            temp_dir = Path(tempfile.gettempdir())
             allowed_dirs = PathSecurity._resolve_allowed_directories()
             if temp_dir in allowed_dirs:
                 temp_file = temp_dir / f"{prefix}{uuid.uuid4().hex}"
@@ -323,8 +324,7 @@ class PathSecurity:
             return None
 
     def check_disk_space(self, path: Path, required_bytes: int) -> bool:
-        """
-        Check if there's enough disk space for an operation.
+        """Check if there's enough disk space for an operation.
 
         Args:
             path: Path to check space for
@@ -332,6 +332,7 @@ class PathSecurity:
 
         Returns:
             True if enough space available
+
         """
         try:
             # Get parent directory if file doesn't exist

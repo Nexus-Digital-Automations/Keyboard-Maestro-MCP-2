@@ -1,5 +1,4 @@
-"""
-Macro Template System
+"""Macro Template System.
 
 Provides template generators for common automation patterns with security
 validation and parameter processing for Keyboard Maestro macro creation.
@@ -21,22 +20,23 @@ class MacroTemplateGenerator(ABC):
 
     @abstractmethod
     async def generate_actions(
-        self, parameters: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate action configurations for this template."""
-        pass
 
     @abstractmethod
     def validate_parameters(self, parameters: dict[str, Any]) -> bool:
         """Validate template-specific parameters."""
-        pass
 
     async def validate_security(self, parameters: dict[str, Any]) -> None:
         """Validate parameters for security compliance."""
         # Base security validation for all templates
         if not isinstance(parameters, dict):
             raise ValidationError(
-                "parameters", parameters, "Parameters must be a dictionary"
+                "parameters",
+                parameters,
+                "Parameters must be a dictionary",
             )
 
         # Check for script injection in string parameters
@@ -74,26 +74,30 @@ class HotkeyActionTemplate(MacroTemplateGenerator):
     """Template for hotkey-triggered actions with comprehensive validation."""
 
     async def generate_actions(
-        self, parameters: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate hotkey action configuration with security validation."""
         if not self.validate_parameters(parameters):
             raise ValidationError(
-                "parameters", parameters, "Invalid hotkey action parameters"
+                "parameters",
+                parameters,
+                "Invalid hotkey action parameters",
             )
 
         action_type = parameters.get("action", "type_text")
 
         if action_type == "open_app":
             return await self._generate_app_launch_action(parameters)
-        elif action_type == "type_text":
+        if action_type == "type_text":
             return await self._generate_text_action(parameters)
-        elif action_type == "run_script":
+        if action_type == "run_script":
             return await self._generate_script_action(parameters)
-        else:
-            raise ValidationError(
-                "action", action_type, "Unsupported hotkey action type"
-            )
+        raise ValidationError(
+            "action",
+            action_type,
+            "Unsupported hotkey action type",
+        )
 
     def validate_parameters(self, parameters: dict[str, Any]) -> bool:
         """Validate hotkey action parameters."""
@@ -146,7 +150,9 @@ class HotkeyActionTemplate(MacroTemplateGenerator):
         parts = [part.strip() for part in hotkey.split("+")]
         if len(parts) < 2:
             raise ValidationError(
-                "hotkey", hotkey, "Hotkey must include modifier + key"
+                "hotkey",
+                hotkey,
+                "Hotkey must include modifier + key",
             )
 
         # Validate modifiers and key
@@ -161,7 +167,8 @@ class HotkeyActionTemplate(MacroTemplateGenerator):
             raise ValidationError("hotkey", hotkey, f"Invalid key: {key}")
 
     async def _generate_app_launch_action(
-        self, parameters: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate application launch action."""
         app_name = parameters.get("app_name", "")
@@ -171,7 +178,9 @@ class HotkeyActionTemplate(MacroTemplateGenerator):
         # Security: Validate app name format
         if not re.match(r"^[a-zA-Z0-9\s\-\.]+$", app_name):
             raise SecurityViolationError(
-                "app_name", app_name, "Invalid application name format"
+                "app_name",
+                app_name,
+                "Invalid application name format",
             )
 
         return [
@@ -182,11 +191,12 @@ class HotkeyActionTemplate(MacroTemplateGenerator):
                     "bundleID": parameters.get("bundle_id", ""),
                     "ignoreIfRunning": parameters.get("ignore_if_running", True),
                 },
-            }
+            },
         ]
 
     async def _generate_text_action(
-        self, parameters: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate text typing action."""
         text = parameters.get("text", "")
@@ -196,7 +206,9 @@ class HotkeyActionTemplate(MacroTemplateGenerator):
         # Security: Limit text length
         if len(text) > 10000:
             raise SecurityViolationError(
-                "text", text, "Text too long (max 10000 characters)"
+                "text",
+                text,
+                "Text too long (max 10000 characters)",
             )
 
         return [
@@ -207,11 +219,12 @@ class HotkeyActionTemplate(MacroTemplateGenerator):
                     "typingSpeed": parameters.get("typing_speed", "Normal"),
                     "simulateTyping": parameters.get("simulate_typing", True),
                 },
-            }
+            },
         ]
 
     async def _generate_script_action(
-        self, parameters: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate script execution action with strict security."""
         script_type = parameters.get("script_type", "applescript")
@@ -220,7 +233,9 @@ class HotkeyActionTemplate(MacroTemplateGenerator):
         # Security: Validate script content
         if not script_content:
             raise ValidationError(
-                "script_content", script_content, "Script content required"
+                "script_content",
+                script_content,
+                "Script content required",
             )
 
         # Security: Strict validation for script execution
@@ -235,18 +250,22 @@ class HotkeyActionTemplate(MacroTemplateGenerator):
                     "timeout": parameters.get("timeout", 30),
                     "outputHandling": parameters.get("output_handling", "None"),
                 },
-            }
+            },
         ]
 
     async def _validate_script_security(
-        self, script_type: str, script_content: str
+        self,
+        script_type: str,
+        script_content: str,
     ) -> None:
         """Strict security validation for script content."""
         # Security: Only allow specific script types
         allowed_types = {"applescript", "shell"}
         if script_type not in allowed_types:
             raise SecurityViolationError(
-                "script_type", script_type, "Script type not allowed"
+                "script_type",
+                script_type,
+                "Script type not allowed",
             )
 
         # Security: Block dangerous script patterns
@@ -277,18 +296,23 @@ class AppLauncherTemplate(MacroTemplateGenerator):
     """Template for application launcher macros with bundle ID validation."""
 
     async def generate_actions(
-        self, parameters: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate app launcher configuration with bundle ID validation."""
         if not self.validate_parameters(parameters):
             raise ValidationError(
-                "parameters", parameters, "Invalid app launcher parameters"
+                "parameters",
+                parameters,
+                "Invalid app launcher parameters",
             )
 
         app_identifier = parameters.get("app_name") or parameters.get("bundle_id")
         if not app_identifier:
             raise ValidationError(
-                "app_identifier", app_identifier, "App name or bundle ID required"
+                "app_identifier",
+                app_identifier,
+                "App name or bundle ID required",
             )
 
         # Determine if identifier is bundle ID or app name
@@ -309,14 +333,16 @@ class AppLauncherTemplate(MacroTemplateGenerator):
                     "ignoreIfRunning": parameters.get("ignore_if_running", True),
                     "bringToFront": parameters.get("bring_to_front", True),
                 },
-            }
+            },
         ]
 
     def validate_parameters(self, parameters: dict[str, Any]) -> bool:
         """Validate app launcher parameters."""
         if not parameters.get("app_name") and not parameters.get("bundle_id"):
             raise ValidationError(
-                "app_identifier", None, "Either app_name or bundle_id required"
+                "app_identifier",
+                None,
+                "Either app_name or bundle_id required",
             )
 
         return True
@@ -327,7 +353,9 @@ class AppLauncherTemplate(MacroTemplateGenerator):
         bundle_pattern = re.compile(r"^[a-zA-Z0-9\-]+(\.[a-zA-Z0-9\-]+)+$")
         if not bundle_pattern.match(bundle_id):
             raise SecurityViolationError(
-                "bundle_id", bundle_id, "Invalid bundle ID format"
+                "bundle_id",
+                bundle_id,
+                "Invalid bundle ID format",
             )
 
         # Security: Block suspicious bundle IDs
@@ -342,7 +370,9 @@ class AppLauncherTemplate(MacroTemplateGenerator):
         for pattern in suspicious_patterns:
             if re.search(pattern, bundle_id, re.IGNORECASE):
                 raise SecurityViolationError(
-                    "bundle_id", bundle_id, "Suspicious bundle ID detected"
+                    "bundle_id",
+                    bundle_id,
+                    "Suspicious bundle ID detected",
                 )
 
     def _validate_app_name(self, app_name: str) -> None:
@@ -350,7 +380,9 @@ class AppLauncherTemplate(MacroTemplateGenerator):
         # Security: Validate app name format
         if not re.match(r"^[a-zA-Z0-9\s\-\.]+$", app_name):
             raise SecurityViolationError(
-                "app_name", app_name, "Invalid application name format"
+                "app_name",
+                app_name,
+                "Invalid application name format",
             )
 
         # Security: Block system application names
@@ -367,7 +399,9 @@ class AppLauncherTemplate(MacroTemplateGenerator):
 
         if app_name.lower() in system_apps:
             raise SecurityViolationError(
-                "app_name", app_name, "System application access restricted"
+                "app_name",
+                app_name,
+                "System application access restricted",
             )
 
 
@@ -375,12 +409,15 @@ class TextExpansionTemplate(MacroTemplateGenerator):
     """Template for text expansion macros with content validation."""
 
     async def generate_actions(
-        self, parameters: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate text expansion configuration."""
         if not self.validate_parameters(parameters):
             raise ValidationError(
-                "parameters", parameters, "Invalid text expansion parameters"
+                "parameters",
+                parameters,
+                "Invalid text expansion parameters",
             )
 
         expansion_text = parameters.get("expansion_text", "")
@@ -395,7 +432,7 @@ class TextExpansionTemplate(MacroTemplateGenerator):
                     "simulateTyping": False,
                     "restoreClipboard": True,
                 },
-            }
+            },
         ]
 
     def validate_parameters(self, parameters: dict[str, Any]) -> bool:
@@ -405,21 +442,27 @@ class TextExpansionTemplate(MacroTemplateGenerator):
         for field in required_fields:
             if field not in parameters or not parameters[field]:
                 raise ValidationError(
-                    field, parameters.get(field), f"Required field {field} missing"
+                    field,
+                    parameters.get(field),
+                    f"Required field {field} missing",
                 )
 
         # Validate abbreviation format
         abbreviation = parameters["abbreviation"]
         if not re.match(r"^[a-zA-Z0-9]+$", abbreviation):
             raise ValidationError(
-                "abbreviation", abbreviation, "Abbreviation must be alphanumeric"
+                "abbreviation",
+                abbreviation,
+                "Abbreviation must be alphanumeric",
             )
 
         # Validate expansion text length
         expansion_text = parameters["expansion_text"]
         if len(expansion_text) > 5000:
             raise ValidationError(
-                "expansion_text", expansion_text, "Expansion text too long (max 5000)"
+                "expansion_text",
+                expansion_text,
+                "Expansion text too long (max 5000)",
             )
 
         return True
@@ -429,12 +472,15 @@ class FileProcessorTemplate(MacroTemplateGenerator):
     """Template for file processing workflows with path validation."""
 
     async def generate_actions(
-        self, parameters: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate file processing workflow."""
         if not self.validate_parameters(parameters):
             raise ValidationError(
-                "parameters", parameters, "Invalid file processor parameters"
+                "parameters",
+                parameters,
+                "Invalid file processor parameters",
             )
 
         actions = []
@@ -449,7 +495,7 @@ class FileProcessorTemplate(MacroTemplateGenerator):
                         "filePattern": parameters.get("file_pattern", "*"),
                         "recursive": parameters.get("recursive", False),
                     },
-                }
+                },
             )
 
         # Add processing actions
@@ -474,7 +520,9 @@ class FileProcessorTemplate(MacroTemplateGenerator):
             for action in parameters["action_chain"]:
                 if action not in allowed_actions:
                     raise ValidationError(
-                        "action_chain", action, f"Action {action} not allowed"
+                        "action_chain",
+                        action,
+                        f"Action {action} not allowed",
                     )
 
         return True
@@ -496,11 +544,15 @@ class FileProcessorTemplate(MacroTemplateGenerator):
         for pattern in dangerous_paths:
             if re.search(pattern, path, re.IGNORECASE):
                 raise SecurityViolationError(
-                    "path", path, f"Dangerous path detected: {pattern}"
+                    "path",
+                    path,
+                    f"Dangerous path detected: {pattern}",
                 )
 
     async def _generate_file_action(
-        self, action: str, parameters: dict[str, Any]
+        self,
+        action: str,
+        parameters: dict[str, Any],
     ) -> dict[str, Any]:
         """Generate specific file action configuration."""
         if action == "copy":
@@ -509,48 +561,53 @@ class FileProcessorTemplate(MacroTemplateGenerator):
                 "destination": parameters.get("destination", ""),
                 "parameters": {"overwrite": parameters.get("overwrite", False)},
             }
-        elif action == "move":
+        if action == "move":
             return {
                 "type": "Move File",
                 "destination": parameters.get("destination", ""),
                 "parameters": {"overwrite": parameters.get("overwrite", False)},
             }
-        elif action == "rename":
+        if action == "rename":
             return {
                 "type": "Rename File",
                 "name_pattern": parameters.get("name_pattern", "File %Index%"),
                 "parameters": {},
             }
-        else:
-            raise ValidationError(
-                "action", action, f"Unsupported file action: {action}"
-            )
+        raise ValidationError(
+            "action",
+            action,
+            f"Unsupported file action: {action}",
+        )
 
 
 class WindowManagerTemplate(MacroTemplateGenerator):
     """Template for window management macros with coordinate validation."""
 
     async def generate_actions(
-        self, parameters: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate window management actions."""
         if not self.validate_parameters(parameters):
             raise ValidationError(
-                "parameters", parameters, "Invalid window manager parameters"
+                "parameters",
+                parameters,
+                "Invalid window manager parameters",
             )
 
         operation = parameters.get("operation", "move")
 
         if operation == "move":
             return await self._generate_move_action(parameters)
-        elif operation == "resize":
+        if operation == "resize":
             return await self._generate_resize_action(parameters)
-        elif operation == "arrange":
+        if operation == "arrange":
             return await self._generate_arrange_action(parameters)
-        else:
-            raise ValidationError(
-                "operation", operation, "Unsupported window operation"
-            )
+        raise ValidationError(
+            "operation",
+            operation,
+            "Unsupported window operation",
+        )
 
     def validate_parameters(self, parameters: dict[str, Any]) -> bool:
         """Validate window manager parameters."""
@@ -575,7 +632,9 @@ class WindowManagerTemplate(MacroTemplateGenerator):
         # Security: Limit coordinates to reasonable ranges
         if not (-5000 <= x <= 10000) or not (-5000 <= y <= 10000):
             raise SecurityViolationError(
-                "coordinates", position, "Coordinates outside safe range"
+                "coordinates",
+                position,
+                "Coordinates outside safe range",
             )
 
     def _validate_size(self, size: dict[str, int]) -> None:
@@ -591,7 +650,8 @@ class WindowManagerTemplate(MacroTemplateGenerator):
             raise SecurityViolationError("size", size, "Size outside safe range")
 
     async def _generate_move_action(
-        self, parameters: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate window move action."""
         position = parameters.get("position", {"x": 100, "y": 100})
@@ -604,11 +664,12 @@ class WindowManagerTemplate(MacroTemplateGenerator):
                     "screen": parameters.get("screen", "Main"),
                     "animate": parameters.get("animate", True),
                 },
-            }
+            },
         ]
 
     async def _generate_resize_action(
-        self, parameters: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate window resize action."""
         size = parameters.get("size", {"width": 800, "height": 600})
@@ -618,11 +679,12 @@ class WindowManagerTemplate(MacroTemplateGenerator):
                 "type": "Resize Window",
                 "size": size,
                 "parameters": {"animate": parameters.get("animate", True)},
-            }
+            },
         ]
 
     async def _generate_arrange_action(
-        self, parameters: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate window arrangement action."""
         arrangement = parameters.get("arrangement", "left_half")
@@ -632,7 +694,7 @@ class WindowManagerTemplate(MacroTemplateGenerator):
                 "type": "Arrange Window",
                 "arrangement": arrangement,
                 "parameters": {"screen": parameters.get("screen", "Main")},
-            }
+            },
         ]
 
 

@@ -1,5 +1,4 @@
-"""
-Automated ML training pipeline with hyperparameter optimization and validation.
+"""Automated ML training pipeline with hyperparameter optimization and validation.
 
 Provides comprehensive training workflow with cross-validation, model selection,
 and performance evaluation for production ML deployment.
@@ -22,8 +21,6 @@ from ...core.errors import AnalyticsError
 
 class TrainingPipelineError(AnalyticsError):
     """Training pipeline related errors."""
-
-    pass
 
 
 class TrainingPipeline:
@@ -49,7 +46,7 @@ class TrainingPipeline:
             # Validate training data
             if len(training_data) < 10:
                 raise TrainingPipelineError(
-                    "Insufficient training data (minimum 10 samples)"
+                    "Insufficient training data (minimum 10 samples)",
                 )
 
             # Create model instance
@@ -60,7 +57,7 @@ class TrainingPipeline:
 
             # Split data for validation
             split_idx = int(len(X) * (1 - validation_split))
-            X_train, X_val = X[:split_idx], X[split_idx:]
+            X_train, x_val = X[:split_idx], X[split_idx:]
             y_train, y_val = (
                 y[:split_idx] if y is not None else None,
                 y[split_idx:] if y is not None else None,
@@ -69,7 +66,9 @@ class TrainingPipeline:
             # Perform hyperparameter optimization if requested
             if optimize_hyperparameters:
                 best_params = await self._optimize_hyperparameters(
-                    model, X_train, y_train
+                    model,
+                    X_train,
+                    y_train,
                 )
                 self._apply_hyperparameters(model, best_params)
 
@@ -80,12 +79,16 @@ class TrainingPipeline:
 
             # Validate model performance
             validation_results = await self._validate_model(
-                model, X_val, y_val, model_type
+                model,
+                x_val,
+                y_val,
+                model_type,
             )
 
             # Calculate comprehensive performance metrics
             performance_metrics = self._calculate_performance_metrics(
-                model, validation_results
+                model,
+                validation_results,
             )
 
             # Save model with version
@@ -103,7 +106,7 @@ class TrainingPipeline:
                     datetime.now(UTC) - training_start
                 ).total_seconds(),
                 "training_data_size": len(training_data),
-                "validation_data_size": len(X_val) if X_val is not None else 0,
+                "validation_data_size": len(x_val) if x_val is not None else 0,
                 "hyperparameter_optimization": optimize_hyperparameters,
                 "performance_metrics": performance_metrics,
                 "model_path": model_path,
@@ -122,7 +125,7 @@ class TrainingPipeline:
 
         except Exception as e:
             self.logger.error(f"Training failed for {model_id}: {e}")
-            raise TrainingPipelineError(f"Training pipeline failed: {e}")
+            raise TrainingPipelineError(f"Training pipeline failed: {e}") from e
 
     def _create_model(self, model_type: MLModelType, model_id: ModelId) -> "MLModel":
         """Create model instance based on type."""
@@ -135,15 +138,16 @@ class TrainingPipeline:
 
         if model_type == MLModelType.PATTERN_RECOGNITION:
             return PatternRecognitionModel(model_id)
-        elif model_type == MLModelType.ANOMALY_DETECTION:
+        if model_type == MLModelType.ANOMALY_DETECTION:
             return AnomalyDetectionModel(model_id)
-        elif model_type == MLModelType.PREDICTIVE_ANALYTICS:
+        if model_type == MLModelType.PREDICTIVE_ANALYTICS:
             return PredictiveAnalyticsModel(model_id)
-        else:
-            raise TrainingPipelineError(f"Unsupported model type: {model_type}")
+        raise TrainingPipelineError(f"Unsupported model type: {model_type}")
 
     def _prepare_training_data(
-        self, training_data: list[MetricValue], model_type: MLModelType
+        self,
+        training_data: list[MetricValue],
+        model_type: MLModelType,
     ) -> tuple[np.ndarray, np.ndarray | None]:
         """Prepare training data for different model types."""
         # Extract features and labels based on model type
@@ -154,7 +158,7 @@ class TrainingPipeline:
                 # Extract numeric features
                 feature_vector = [
                     float(metric.value)
-                    if isinstance(metric.value, (int, float))
+                    if isinstance(metric.value, int | float)
                     else 0.0,
                     metric.timestamp.hour,
                     metric.timestamp.weekday(),
@@ -163,13 +167,13 @@ class TrainingPipeline:
                 features.append(feature_vector)
             return np.array(features), None
 
-        elif model_type == MLModelType.ANOMALY_DETECTION:
+        if model_type == MLModelType.ANOMALY_DETECTION:
             # For anomaly detection, we need normal patterns (no labels)
             features = []
             for metric in training_data:
                 feature_vector = [
                     float(metric.value)
-                    if isinstance(metric.value, (int, float))
+                    if isinstance(metric.value, int | float)
                     else 0.0,
                     metric.timestamp.hour,
                     metric.timestamp.weekday(),
@@ -177,14 +181,14 @@ class TrainingPipeline:
                 features.append(feature_vector)
             return np.array(features), None
 
-        elif model_type == MLModelType.PREDICTIVE_ANALYTICS:
+        if model_type == MLModelType.PREDICTIVE_ANALYTICS:
             # For prediction, we need time series data
             features = []
             labels = []
             for i, metric in enumerate(training_data[:-1]):
                 feature_vector = [
                     float(metric.value)
-                    if isinstance(metric.value, (int, float))
+                    if isinstance(metric.value, int | float)
                     else 0.0,
                     metric.timestamp.hour,
                     metric.timestamp.weekday(),
@@ -194,18 +198,20 @@ class TrainingPipeline:
                 next_metric = training_data[i + 1]
                 labels.append(
                     float(next_metric.value)
-                    if isinstance(next_metric.value, (int, float))
-                    else 0.0
+                    if isinstance(next_metric.value, int | float)
+                    else 0.0,
                 )
             return np.array(features), np.array(labels)
 
-        else:
-            raise TrainingPipelineError(
-                f"Unsupported model type for data preparation: {model_type}"
-            )
+        raise TrainingPipelineError(
+            f"Unsupported model type for data preparation: {model_type}",
+        )
 
     async def _optimize_hyperparameters(
-        self, model: "MLModel", X: np.ndarray, y: np.ndarray | None
+        self,
+        model: "MLModel",
+        x: np.ndarray,
+        y: np.ndarray | None,
     ) -> dict[str, Any]:
         """Optimize hyperparameters using grid search."""
         best_params = {}
@@ -228,18 +234,20 @@ class TrainingPipeline:
                 best_k = 5
 
                 for n_clusters in param_grid["n_clusters"]:
-                    if n_clusters < len(X):
+                    if n_clusters < len(x):
                         from sklearn.cluster import KMeans
 
                         kmeans = KMeans(
-                            n_clusters=n_clusters, random_state=42, n_init=10
+                            n_clusters=n_clusters,
+                            random_state=42,
+                            n_init=10,
                         )
-                        labels = kmeans.fit_predict(X)
+                        labels = kmeans.fit_predict(x)
 
                         if (
                             len(set(labels)) > 1
                         ):  # Need at least 2 clusters for silhouette score
-                            score = silhouette_score(X, labels)
+                            score = silhouette_score(x, labels)
                             if score > best_score:
                                 best_score = score
                                 best_k = n_clusters
@@ -266,7 +274,11 @@ class TrainingPipeline:
                     # Simple cross-validation for regression
                     reg = LinearRegression()
                     scores = cross_val_score(
-                        reg, X, y, cv=min(3, len(X) // 2), scoring="r2"
+                        reg,
+                        x,
+                        y,
+                        cv=min(3, len(x) // 2),
+                        scoring="r2",
                     )
                     best_params["regression_score"] = np.mean(scores)
 
@@ -276,7 +288,9 @@ class TrainingPipeline:
         return best_params
 
     def _apply_hyperparameters(
-        self, model: "MLModel", best_params: dict[str, Any]
+        self,
+        model: "MLModel",
+        best_params: dict[str, Any],
     ) -> None:
         """Apply optimized hyperparameters to model."""
         from ..ml_insights_engine import AnomalyDetectionModel, PatternRecognitionModel
@@ -288,7 +302,9 @@ class TrainingPipeline:
             from sklearn.cluster import KMeans
 
             model.kmeans = KMeans(
-                n_clusters=best_params["kmeans_clusters"], random_state=42, n_init=10
+                n_clusters=best_params["kmeans_clusters"],
+                random_state=42,
+                n_init=10,
             )
 
         elif isinstance(model, AnomalyDetectionModel):
@@ -304,7 +320,7 @@ class TrainingPipeline:
     async def _validate_model(
         self,
         model: "MLModel",
-        X_val: np.ndarray,
+        x_val: np.ndarray,
         y_val: np.ndarray | None,
         model_type: MLModelType,
     ) -> dict[str, Any]:
@@ -320,18 +336,19 @@ class TrainingPipeline:
 
             if (
                 isinstance(model, PatternRecognitionModel)
-                and X_val is not None
-                and len(X_val) > 0
+                and x_val is not None
+                and len(x_val) > 0
             ):
                 # Validate clustering
                 if (
                     hasattr(model, "kmeans")
                     and model.kmeans.cluster_centers_ is not None
                 ):
-                    labels = model.kmeans.predict(X_val)
+                    labels = model.kmeans.predict(x_val)
                     if len(set(labels)) > 1:
                         validation_results["silhouette_score"] = silhouette_score(
-                            X_val, labels
+                            x_val,
+                            labels,
                         )
                     else:
                         validation_results["silhouette_score"] = 0.0
@@ -340,14 +357,15 @@ class TrainingPipeline:
 
             elif (
                 isinstance(model, AnomalyDetectionModel)
-                and X_val is not None
-                and len(X_val) > 0
+                and x_val is not None
+                and len(x_val) > 0
             ):
                 # Validate anomaly detection
                 if hasattr(model, "isolation_forest") and hasattr(
-                    model.isolation_forest, "decision_function"
+                    model.isolation_forest,
+                    "decision_function",
                 ):
-                    anomaly_scores = model.isolation_forest.decision_function(X_val)
+                    anomaly_scores = model.isolation_forest.decision_function(x_val)
                     validation_results["anomaly_score_mean"] = np.mean(anomaly_scores)
                     validation_results["anomaly_score_std"] = np.std(anomaly_scores)
                 else:
@@ -356,19 +374,21 @@ class TrainingPipeline:
 
             elif (
                 isinstance(model, PredictiveAnalyticsModel)
-                and X_val is not None
+                and x_val is not None
                 and y_val is not None
-                and len(X_val) > 0
+                and len(x_val) > 0
             ):
                 # Validate prediction
                 if hasattr(model, "linear_model") and hasattr(
-                    model.linear_model, "predict"
+                    model.linear_model,
+                    "predict",
                 ):
-                    predictions = model.linear_model.predict(X_val)
+                    predictions = model.linear_model.predict(x_val)
                     validation_results["mse"] = mean_squared_error(y_val, predictions)
                     validation_results["mae"] = mean_absolute_error(y_val, predictions)
                     validation_results["r2_score"] = model.linear_model.score(
-                        X_val, y_val
+                        x_val,
+                        y_val,
                     )
                 else:
                     validation_results["mse"] = float("inf")
@@ -381,7 +401,9 @@ class TrainingPipeline:
         return validation_results
 
     def _calculate_performance_metrics(
-        self, model: "MLModel", validation_results: dict[str, Any]
+        self,
+        model: "MLModel",
+        validation_results: dict[str, Any],
     ) -> dict[str, Any]:
         """Calculate comprehensive performance metrics."""
         metrics = {
@@ -406,7 +428,8 @@ class TrainingPipeline:
         elif isinstance(model, AnomalyDetectionModel):
             # For anomaly detection, we use a simple heuristic
             performance_score = min(
-                1.0, abs(validation_results.get("anomaly_score_mean", 0.0)) * 0.1
+                1.0,
+                abs(validation_results.get("anomaly_score_mean", 0.0)) * 0.1,
             )
         elif isinstance(model, PredictiveAnalyticsModel):
             performance_score = max(0.0, validation_results.get("r2_score", 0.0))
@@ -416,7 +439,8 @@ class TrainingPipeline:
         return metrics
 
     async def retrain_all_models(
-        self, training_data: list[MetricValue]
+        self,
+        training_data: list[MetricValue],
     ) -> dict[str, Any]:
         """Retrain all model types with new data."""
         results = {}

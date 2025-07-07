@@ -1,5 +1,4 @@
-"""
-Proactive system optimization engine with ML-powered recommendations.
+"""Proactive system optimization engine with ML-powered recommendations.
 
 This module provides comprehensive optimization capabilities including automated
 performance improvements, resource optimization, and system enhancement recommendations.
@@ -67,16 +66,20 @@ class OptimizationError(Exception):
 
     @classmethod
     def optimization_failed(
-        cls, optimization_id: OptimizationId, reason: str
+        cls,
+        optimization_id: OptimizationId,
+        reason: str,
     ) -> "OptimizationError":
         return cls(
-            "optimization_failed", f"Optimization {optimization_id} failed: {reason}"
+            "optimization_failed",
+            f"Optimization {optimization_id} failed: {reason}",
         )
 
     @classmethod
     def insufficient_data(cls, context: str) -> "OptimizationError":
         return cls(
-            "insufficient_data", f"Insufficient data for optimization: {context}"
+            "insufficient_data",
+            f"Insufficient data for optimization: {context}",
         )
 
 
@@ -121,25 +124,29 @@ class OptimizationEngine:
 
             # Performance-based optimizations
             performance_suggestions = await self._analyze_performance_optimizations(
-                context, strategy
+                context,
+                strategy,
             )
             suggestions.extend(performance_suggestions)
 
             # Resource-based optimizations
             resource_suggestions = await self._analyze_resource_optimizations(
-                context, strategy
+                context,
+                strategy,
             )
             suggestions.extend(resource_suggestions)
 
             # System health optimizations
             health_suggestions = await self._analyze_health_optimizations(
-                context, strategy
+                context,
+                strategy,
             )
             suggestions.extend(health_suggestions)
 
             # Workflow optimizations
             workflow_suggestions = await self._analyze_workflow_optimizations(
-                context, strategy
+                context,
+                strategy,
             )
             suggestions.extend(workflow_suggestions)
 
@@ -149,24 +156,28 @@ class OptimizationEngine:
 
             # Priority and filter suggestions based on strategy
             filtered_suggestions = self._filter_and_prioritize_suggestions(
-                suggestions, strategy, context
+                suggestions,
+                strategy,
+                context,
             )
 
             # Update statistics
             self.optimizations_generated += len(filtered_suggestions)
 
             self.logger.info(
-                f"Generated {len(filtered_suggestions)} optimization suggestions"
+                f"Generated {len(filtered_suggestions)} optimization suggestions",
             )
             return Either.right(filtered_suggestions)
 
         except Exception as e:
             return Either.left(
-                OptimizationError.optimization_failed("analysis", str(e))
+                OptimizationError.optimization_failed("analysis", str(e)),
             )
 
     async def _analyze_performance_optimizations(
-        self, context: OptimizationContext, strategy: OptimizationStrategy
+        self,
+        context: OptimizationContext,
+        strategy: OptimizationStrategy,
     ) -> list[OptimizationSuggestion]:
         """Analyze performance optimization opportunities."""
         suggestions = []
@@ -277,7 +288,9 @@ class OptimizationEngine:
         return suggestions
 
     async def _analyze_resource_optimizations(
-        self, context: OptimizationContext, strategy: OptimizationStrategy
+        self,
+        context: OptimizationContext,
+        strategy: OptimizationStrategy,
     ) -> list[OptimizationSuggestion]:
         """Analyze resource optimization opportunities."""
         suggestions = []
@@ -387,7 +400,9 @@ class OptimizationEngine:
         return suggestions
 
     async def _analyze_health_optimizations(
-        self, context: OptimizationContext, strategy: OptimizationStrategy
+        self,
+        context: OptimizationContext,
+        strategy: OptimizationStrategy,
     ) -> list[OptimizationSuggestion]:
         """Analyze system health optimization opportunities."""
         suggestions = []
@@ -462,7 +477,9 @@ class OptimizationEngine:
         return suggestions
 
     async def _analyze_workflow_optimizations(
-        self, context: OptimizationContext, strategy: OptimizationStrategy
+        self,
+        context: OptimizationContext,
+        strategy: OptimizationStrategy,
     ) -> list[OptimizationSuggestion]:
         """Analyze workflow optimization opportunities."""
         suggestions = []
@@ -509,7 +526,9 @@ class OptimizationEngine:
         return suggestions
 
     async def _analyze_cost_optimizations(
-        self, context: OptimizationContext, strategy: OptimizationStrategy
+        self,
+        context: OptimizationContext,
+        strategy: OptimizationStrategy,
     ) -> list[OptimizationSuggestion]:
         """Analyze cost optimization opportunities."""
         suggestions = []
@@ -560,7 +579,6 @@ class OptimizationEngine:
         context: OptimizationContext,
     ) -> list[OptimizationSuggestion]:
         """Filter and prioritize suggestions based on strategy and context."""
-
         # Filter by strategy
         filtered = []
         for suggestion in suggestions:
@@ -607,27 +625,30 @@ class OptimizationEngine:
         return prioritized[: max_suggestions.get(strategy, 5)]
 
     def _matches_strategy(
-        self, suggestion: OptimizationSuggestion, strategy: OptimizationStrategy
+        self,
+        suggestion: OptimizationSuggestion,
+        strategy: OptimizationStrategy,
     ) -> bool:
         """Check if suggestion matches the optimization strategy."""
-
         if strategy == OptimizationStrategy.CONSERVATIVE:
             return (
                 suggestion.confidence >= 0.8
                 and suggestion.implementation_effort in ["low", "medium"]
                 and len(suggestion.risks) <= 2
             )
-        elif strategy == OptimizationStrategy.BALANCED:
+        if strategy == OptimizationStrategy.BALANCED:
             return suggestion.confidence >= 0.7
-        elif strategy == OptimizationStrategy.AGGRESSIVE:
+        if strategy == OptimizationStrategy.AGGRESSIVE:
             return suggestion.expected_impact >= 20.0
-        elif strategy == OptimizationStrategy.EMERGENCY:
+        if strategy == OptimizationStrategy.EMERGENCY:
             return suggestion.priority == PredictionPriority.CRITICAL
 
         return True
 
     async def implement_optimization(
-        self, optimization_id: OptimizationId, auto_approve: bool = False
+        self,
+        optimization_id: OptimizationId,
+        auto_approve: bool = False,
     ) -> Either[OptimizationError, dict[str, Any]]:
         """Implement a specific optimization suggestion."""
         try:
@@ -641,16 +662,18 @@ class OptimizationEngine:
             if not suggestion:
                 return Either.left(
                     OptimizationError.optimization_failed(
-                        optimization_id, "Optimization not found"
-                    )
+                        optimization_id,
+                        "Optimization not found",
+                    ),
                 )
 
             # Check if already being implemented
             if optimization_id in self.active_optimizations:
                 return Either.left(
                     OptimizationError.optimization_failed(
-                        optimization_id, "Already in progress"
-                    )
+                        optimization_id,
+                        "Already in progress",
+                    ),
                 )
 
             # Start implementation tracking
@@ -664,7 +687,7 @@ class OptimizationEngine:
 
             # Simulate implementation (in real system, this would execute actual optimizations)
             implementation_result = await self._simulate_optimization_implementation(
-                suggestion
+                suggestion,
             )
 
             # Record results
@@ -683,21 +706,21 @@ class OptimizationEngine:
                 self.active_optimizations[optimization_id]["status"] = "failed"
 
             return Either.left(
-                OptimizationError.optimization_failed(optimization_id, str(e))
+                OptimizationError.optimization_failed(optimization_id, str(e)),
             )
 
     async def _simulate_optimization_implementation(
-        self, suggestion: OptimizationSuggestion
+        self,
+        suggestion: OptimizationSuggestion,
     ) -> dict[str, Any]:
         """Simulate optimization implementation (placeholder for actual implementation)."""
-
         # Simulate implementation time
         await asyncio.sleep(0.1)  # Brief delay to simulate work
 
         # Calculate actual impact (with some variance)
         import random
 
-        impact_variance = random.uniform(0.8, 1.2)  # ±20% variance
+        impact_variance = random.uniform(0.8, 1.2)  # ±20% variance  # noqa: S311
         actual_impact = float(suggestion.expected_impact) * impact_variance
 
         return {
@@ -709,7 +732,7 @@ class OptimizationEngine:
             "implementation_time": suggestion.estimated_duration.total_seconds(),
             "steps_completed": len(suggestion.implementation_steps),
             "metrics_baseline": self._get_baseline_metrics(
-                suggestion.metrics_to_monitor
+                suggestion.metrics_to_monitor,
             ),
             "implementation_date": datetime.now(UTC).isoformat(),
             "success": True,
@@ -720,7 +743,7 @@ class OptimizationEngine:
         # Placeholder implementation - would get real metrics
         import random
 
-        return {metric: random.uniform(0.5, 1.0) for metric in metrics}
+        return {metric: random.uniform(0.5, 1.0) for metric in metrics}  # noqa: S311
 
     def get_optimization_status(self) -> dict[str, Any]:
         """Get current optimization engine status."""
@@ -745,10 +768,11 @@ class OptimizationEngine:
         }
 
     def get_optimization_history(
-        self, limit: int = 50, optimization_type: OptimizationType | None = None
+        self,
+        limit: int = 50,
+        optimization_type: OptimizationType | None = None,
     ) -> list[dict[str, Any]]:
         """Get optimization history with filtering."""
-
         history = self.optimization_history
 
         if optimization_type:
@@ -769,7 +793,7 @@ class OptimizationEngine:
                 "affected_components": opt.affected_components,
                 "created_at": opt.created_at.isoformat(),
                 "implementation_result": self.optimization_results.get(
-                    opt.optimization_id
+                    opt.optimization_id,
                 ),
             }
             for opt in history[-limit:]

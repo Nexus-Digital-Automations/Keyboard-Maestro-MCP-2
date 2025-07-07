@@ -1,5 +1,4 @@
-"""
-Context awareness system for intelligent automation.
+"""Context awareness system for intelligent automation.
 
 This module provides comprehensive context awareness capabilities including
 real-time context detection, state management, and intelligent context-based
@@ -13,6 +12,7 @@ Type Safety: Complete integration with intelligent automation architecture.
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
@@ -22,6 +22,8 @@ from ..core.contracts import require
 from ..core.either import Either
 from ..core.errors import ValidationError
 from .intelligent_automation import ContextDimension, ContextState, ContextStateId
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -85,10 +87,10 @@ class ContextDetector:
     @require(lambda self: 1 <= self.privacy_level <= 5)
     def __post_init__(self):
         """Validate context detector configuration."""
-        pass
 
     async def detect_context(
-        self, previous_context: ContextState | None = None
+        self,
+        previous_context: ContextState | None = None,
     ) -> Either[ValidationError, dict[ContextDimension, Any]]:
         """Detect context information based on detection method."""
         try:
@@ -122,7 +124,7 @@ class ContextDetector:
             return Either.right(privacy_filtered_data)
 
         except Exception as e:
-            return Either.left(ValidationError("context_detection_failed", str(e)))
+            return Either.left(ValidationError("context_detection_failed", str(e), "Context detection failed"))
 
     async def _detect_system_context(self) -> dict[ContextDimension, Any]:
         """Detect system-level context information."""
@@ -248,7 +250,8 @@ class ContextDetector:
         return {ContextDimension.WORKFLOW: workflow_context}
 
     def _apply_privacy_filtering(
-        self, context_data: dict[ContextDimension, Any]
+        self,
+        context_data: dict[ContextDimension, Any],
     ) -> dict[ContextDimension, Any]:
         """Apply privacy filtering based on privacy level."""
         if self.privacy_level >= PrivacyLevel(4):  # RESTRICTED or PRIVATE
@@ -265,7 +268,7 @@ class ContextDetector:
                     filtered_data[dim] = value
             return filtered_data
 
-        elif self.privacy_level >= PrivacyLevel(3):  # CONFIDENTIAL
+        if self.privacy_level >= PrivacyLevel(3):  # CONFIDENTIAL
             # Limit sensitive details
             filtered_data = {}
             for dim, value in context_data.items():
@@ -316,7 +319,7 @@ class ContextDetector:
                                 break
                         categorized_apps.append(category)
                     anonymized["running_applications"] = list(
-                        set(categorized_apps)
+                        set(categorized_apps),
                     )  # Remove duplicates
 
             return anonymized
@@ -331,7 +334,8 @@ class ContextDetector:
                 "content_length": len(str(content_data.get("text", ""))),
                 "has_content": bool(content_data.get("text", "")),
                 "timestamp": content_data.get(
-                    "timestamp", datetime.now(UTC).isoformat()
+                    "timestamp",
+                    datetime.now(UTC).isoformat(),
                 ),
             }
             return reduced
@@ -355,7 +359,6 @@ class ContextChangeEvent:
     @require(lambda self: 0.0 <= self.significance_score <= 1.0)
     def __post_init__(self):
         """Validate context change event."""
-        pass
 
     def get_change_summary(self) -> dict[str, Any]:
         """Get summary of context changes."""
@@ -413,7 +416,8 @@ class ContextAwarenessEngine:
             del self.detectors[detector_id]
 
     def add_change_listener(
-        self, listener: Callable[[ContextChangeEvent], None]
+        self,
+        listener: Callable[[ContextChangeEvent], None],
     ) -> None:
         """Add context change event listener."""
         self.change_listeners.append(listener)
@@ -455,14 +459,15 @@ class ContextAwarenessEngine:
                 try:
                     # Detect context
                     detection_result = await detector.detect_context(
-                        self.current_context
+                        self.current_context,
                     )
 
                     if detection_result.is_right():
                         detected_data = detection_result.get_right()
                         if detected_data:
                             await self._process_detected_context(
-                                detector.detector_id, detected_data
+                                detector.detector_id,
+                                detected_data,
                             )
 
                     # Wait for next detection cycle
@@ -478,13 +483,15 @@ class ContextAwarenessEngine:
         self.detection_tasks[detector.detector_id] = task
 
     async def _process_detected_context(
-        self, detector_id: ContextDetectorId, detected_data: dict[ContextDimension, Any]
+        self,
+        detector_id: ContextDetectorId,
+        detected_data: dict[ContextDimension, Any],
     ) -> None:
         """Process detected context data and update state."""
         try:
             # Create new context state
             context_id = ContextStateId(
-                f"ctx_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{detector_id}"
+                f"ctx_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{detector_id}",
             )
 
             # Merge with existing context if available
@@ -504,7 +511,8 @@ class ContextAwarenessEngine:
 
             # Check for significant changes
             change_event = self._analyze_context_change(
-                self.current_context, new_context
+                self.current_context,
+                new_context,
             )
 
             # Update current context
@@ -519,12 +527,13 @@ class ContextAwarenessEngine:
             if change_event and change_event.significance_score > 0.3:
                 await self._notify_change_listeners(change_event)
 
-        except Exception:
+        except Exception as e:
             # Log error but don't crash
-            pass
+            logger.warning(f"Context processing error: {e}")
 
     def _calculate_context_confidence(
-        self, dimensions: dict[ContextDimension, Any]
+        self,
+        dimensions: dict[ContextDimension, Any],
     ) -> float:
         """Calculate confidence score for context state."""
         if not dimensions:
@@ -543,7 +552,7 @@ class ContextAwarenessEngine:
                 non_null_values = sum(1 for v in value.values() if v is not None)
                 total_values = len(value)
                 quality_scores.append(
-                    non_null_values / total_values if total_values > 0 else 0.0
+                    non_null_values / total_values if total_values > 0 else 0.0,
                 )
             else:
                 quality_scores.append(1.0)
@@ -555,7 +564,9 @@ class ContextAwarenessEngine:
         return min((dimension_score + quality_score) / 2.0, 1.0)
 
     def _analyze_context_change(
-        self, previous: ContextState | None, new: ContextState
+        self,
+        previous: ContextState | None,
+        new: ContextState,
     ) -> ContextChangeEvent | None:
         """Analyze context change and determine significance."""
         if not previous:
@@ -575,7 +586,9 @@ class ContextAwarenessEngine:
 
         # Calculate significance score
         significance = self._calculate_change_significance(
-            previous, new, changed_dimensions
+            previous,
+            new,
+            changed_dimensions,
         )
 
         # Determine change type
@@ -628,17 +641,18 @@ class ContextAwarenessEngine:
         return significance
 
     def _determine_change_type(
-        self, significance: float, changed_dimensions: set[ContextDimension]
+        self,
+        significance: float,
+        changed_dimensions: set[ContextDimension],
     ) -> ContextChangeType:
         """Determine type of context change."""
         if significance >= 0.8:
             return ContextChangeType.MAJOR_TRANSITION
-        elif significance >= 0.5:
+        if significance >= 0.5:
             return ContextChangeType.SIGNIFICANT_CHANGE
-        elif len(changed_dimensions) >= 3:
+        if len(changed_dimensions) >= 3:
             return ContextChangeType.PATTERN_DETECTED
-        else:
-            return ContextChangeType.MINOR_UPDATE
+        return ContextChangeType.MINOR_UPDATE
 
     async def _notify_change_listeners(self, change_event: ContextChangeEvent) -> None:
         """Notify all change listeners of context change."""
@@ -648,8 +662,9 @@ class ContextAwarenessEngine:
                     await listener(change_event)
                 else:
                     listener(change_event)
-            except Exception:
+            except Exception as e:
                 # Log error but continue notifying other listeners
+                logger.warning(f"Context listener notification failed: {e}")
                 continue
 
     def get_current_context(self) -> ContextState | None:

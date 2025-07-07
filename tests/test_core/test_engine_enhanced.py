@@ -1,10 +1,12 @@
-"""
-Enhanced comprehensive tests for core macro execution engine.
+"""Enhanced comprehensive tests for core macro execution engine.
 
 Tests cover macro execution, validation, async operations, error handling,
 resource management, and performance monitoring with property-based testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
 import threading
 import time
@@ -40,7 +42,7 @@ from src.core.types import (
 class TestPlaceholderCommand:
     """Test placeholder command implementation."""
 
-    def test_placeholder_command_creation(self):
+    def test_placeholder_command_creation(self) -> None:
         """Test creating placeholder command."""
         command = PlaceholderCommand(
             command_id=CommandId("test_cmd"),
@@ -52,7 +54,7 @@ class TestPlaceholderCommand:
         assert command.command_type == CommandType.TEXT_INPUT
         assert command.parameters.get("text") == "Hello World"
 
-    def test_placeholder_command_execution_text_input(self):
+    def test_placeholder_command_execution_text_input(self) -> None:
         """Test executing text input command."""
         command = PlaceholderCommand(
             command_id=CommandId("text_cmd"),
@@ -68,7 +70,7 @@ class TestPlaceholderCommand:
         assert result.metadata.get("command_id") == "text_cmd"
         assert result.execution_time.total_seconds() >= 0
 
-    def test_placeholder_command_execution_pause(self):
+    def test_placeholder_command_execution_pause(self) -> None:
         """Test executing pause command."""
         command = PlaceholderCommand(
             command_id=CommandId("pause_cmd"),
@@ -86,7 +88,7 @@ class TestPlaceholderCommand:
         # Should have actually paused (but capped for testing)
         assert end_time - start_time >= 0.05
 
-    def test_placeholder_command_execution_sound(self):
+    def test_placeholder_command_execution_sound(self) -> None:
         """Test executing sound command."""
         command = PlaceholderCommand(
             command_id=CommandId("sound_cmd"),
@@ -101,7 +103,7 @@ class TestPlaceholderCommand:
         assert "Played sound: alert" in result.output
         assert result.metadata.get("command_type") == "play_sound"
 
-    def test_placeholder_command_validation(self):
+    def test_placeholder_command_validation(self) -> None:
         """Test command validation."""
         # Valid command
         valid_command = PlaceholderCommand(
@@ -124,7 +126,7 @@ class TestPlaceholderCommand:
         validation_result = invalid_command.validate()
         assert isinstance(validation_result, bool)
 
-    def test_placeholder_command_permissions(self):
+    def test_placeholder_command_permissions(self) -> None:
         """Test command permission requirements."""
         command = PlaceholderCommand(
             command_id=CommandId("perm_cmd"),
@@ -137,7 +139,7 @@ class TestPlaceholderCommand:
         # System control should require some permissions
         assert len(permissions) >= 0  # May vary based on implementation
 
-    def test_placeholder_command_dependencies(self):
+    def test_placeholder_command_dependencies(self) -> None:
         """Test command dependencies."""
         command = PlaceholderCommand(
             command_id=CommandId("dep_cmd"),
@@ -151,8 +153,10 @@ class TestPlaceholderCommand:
 
     @given(st.text(min_size=1, max_size=100), st.sampled_from(list(CommandType)))
     def test_placeholder_command_property_validation(
-        self, command_id: str, command_type: CommandType
-    ):
+        self,
+        command_id: str,
+        command_type: CommandType,
+    ) -> None:
         """Property test for placeholder command creation."""
         assume(len(command_id.strip()) > 0)
 
@@ -183,7 +187,7 @@ class TestPlaceholderCommand:
 class TestMacroEngine:
     """Test macro engine functionality."""
 
-    def test_macro_engine_creation(self):
+    def test_macro_engine_creation(self) -> None:
         """Test creating macro engine."""
         engine = MacroEngine()
 
@@ -191,7 +195,7 @@ class TestMacroEngine:
         assert engine.default_timeout.total_seconds() == 30
         assert isinstance(engine.context_manager, ExecutionContextManager)
 
-    def test_macro_engine_single_command_execution(self):
+    def test_macro_engine_single_command_execution(self) -> None:
         """Test executing single command macro."""
         engine = MacroEngine()
 
@@ -213,7 +217,7 @@ class TestMacroEngine:
         assert result.completed_at is not None
         assert result.total_duration.total_seconds() >= 0
 
-    def test_macro_engine_multiple_commands_execution(self):
+    def test_macro_engine_multiple_commands_execution(self) -> None:
         """Test executing multi-command macro."""
         engine = MacroEngine()
 
@@ -245,7 +249,7 @@ class TestMacroEngine:
         assert all(cmd_result.success for cmd_result in result.command_results)
         assert result.status == ExecutionStatus.COMPLETED
 
-    def test_macro_engine_invalid_macro_handling(self):
+    def test_macro_engine_invalid_macro_handling(self) -> None:
         """Test handling of invalid macro."""
         engine = MacroEngine()
 
@@ -264,7 +268,7 @@ class TestMacroEngine:
         assert result.error_details is not None
         assert "ValidationError" in result.error_details
 
-    def test_macro_engine_execution_with_context(self):
+    def test_macro_engine_execution_with_context(self) -> None:
         """Test macro execution with custom context."""
         engine = MacroEngine()
 
@@ -290,7 +294,7 @@ class TestMacroEngine:
         assert result.status in [ExecutionStatus.COMPLETED, ExecutionStatus.FAILED]
 
     @pytest.mark.asyncio
-    async def test_macro_engine_async_execution(self):
+    async def test_macro_engine_async_execution(self) -> None:
         """Test asynchronous macro execution."""
         engine = MacroEngine()
 
@@ -310,7 +314,7 @@ class TestMacroEngine:
         assert result.total_duration.total_seconds() >= 0
 
     @pytest.mark.asyncio
-    async def test_macro_engine_concurrent_execution_limit(self):
+    async def test_macro_engine_concurrent_execution_limit(self) -> None:
         """Test concurrent execution limits."""
         engine = MacroEngine(max_concurrent_executions=2)
 
@@ -343,7 +347,7 @@ class TestMacroEngine:
         # (implementation may serialize rather than reject)
         assert all(r.execution_token is not None for r in results)
 
-    def test_macro_engine_execution_status_tracking(self):
+    def test_macro_engine_execution_status_tracking(self) -> None:
         """Test execution status tracking."""
         engine = MacroEngine()
 
@@ -365,7 +369,7 @@ class TestMacroEngine:
         final_status = engine.get_execution_status(result.execution_token)
         assert final_status is None
 
-    def test_macro_engine_execution_cancellation(self):
+    def test_macro_engine_execution_cancellation(self) -> None:
         """Test execution cancellation."""
         engine = MacroEngine()
 
@@ -389,7 +393,7 @@ class TestMacroEngine:
         # Check that cancellation logic exists
         assert isinstance(cancellation_result, bool)
 
-    def test_macro_engine_active_executions(self):
+    def test_macro_engine_active_executions(self) -> None:
         """Test tracking active executions."""
         engine = MacroEngine()
 
@@ -411,7 +415,7 @@ class TestMacroEngine:
         final_active = engine.get_active_executions()
         assert isinstance(final_active, list)
 
-    def test_macro_engine_cleanup_expired(self):
+    def test_macro_engine_cleanup_expired(self) -> None:
         """Test cleanup of expired executions."""
         engine = MacroEngine()
 
@@ -425,8 +429,10 @@ class TestMacroEngine:
         st.text(min_size=1, max_size=50),
     )
     def test_macro_engine_property_execution(
-        self, command_types: list[CommandType], macro_name: str
-    ):
+        self,
+        command_types: list[CommandType],
+        macro_name: str,
+    ) -> None:
         """Property test for macro execution."""
         assume(len(macro_name.strip()) > 0)
         assume(len(command_types) > 0)
@@ -457,7 +463,7 @@ class TestMacroEngine:
 class TestEngineMetrics:
     """Test engine metrics functionality."""
 
-    def test_engine_metrics_creation(self):
+    def test_engine_metrics_creation(self) -> None:
         """Test creating engine metrics."""
         metrics = EngineMetrics()
 
@@ -467,7 +473,7 @@ class TestEngineMetrics:
         assert metrics.total_execution_time == 0.0
         assert metrics.average_execution_time == 0.0
 
-    def test_engine_metrics_recording(self):
+    def test_engine_metrics_recording(self) -> None:
         """Test recording execution metrics."""
         metrics = EngineMetrics()
 
@@ -489,7 +495,7 @@ class TestEngineMetrics:
         assert metrics.total_execution_time == 2.0
         assert metrics.average_execution_time == 1.0
 
-    def test_engine_metrics_calculations(self):
+    def test_engine_metrics_calculations(self) -> None:
         """Test metrics calculations."""
         metrics = EngineMetrics()
 
@@ -507,7 +513,7 @@ class TestEngineMetrics:
         assert metrics_data["total_execution_time"] == 3.5
         assert metrics_data["average_execution_time"] == 3.5 / 3.0
 
-    def test_engine_metrics_reset(self):
+    def test_engine_metrics_reset(self) -> None:
         """Test resetting metrics."""
         metrics = EngineMetrics()
 
@@ -524,11 +530,11 @@ class TestEngineMetrics:
         assert metrics.total_execution_time == 0.0
         assert metrics.average_execution_time == 0.0
 
-    def test_engine_metrics_thread_safety(self):
+    def test_engine_metrics_thread_safety(self) -> None:
         """Test metrics thread safety."""
         metrics = EngineMetrics()
 
-        def record_metrics():
+        def record_metrics() -> None:
             for _ in range(100):
                 metrics.record_execution(Duration.from_seconds(0.01), success=True)
 
@@ -552,7 +558,7 @@ class TestEngineMetrics:
 class TestEngineGlobalFunctions:
     """Test global engine functions."""
 
-    def test_get_default_engine(self):
+    def test_get_default_engine(self) -> bool:
         """Test getting default engine instance."""
         engine = get_default_engine()
 
@@ -563,7 +569,7 @@ class TestEngineGlobalFunctions:
         engine2 = get_default_engine()
         assert engine is engine2
 
-    def test_get_engine_metrics(self):
+    def test_get_engine_metrics(self) -> bool:
         """Test getting engine metrics instance."""
         metrics = get_engine_metrics()
 
@@ -573,7 +579,7 @@ class TestEngineGlobalFunctions:
         metrics2 = get_engine_metrics()
         assert metrics is metrics2
 
-    def test_create_test_macro(self):
+    def test_create_test_macro(self) -> None:
         """Test creating test macros."""
         command_types = [
             CommandType.TEXT_INPUT,
@@ -591,7 +597,7 @@ class TestEngineGlobalFunctions:
         for i, command in enumerate(macro.commands):
             assert command.command_type == command_types[i]
 
-    def test_create_test_macro_all_command_types(self):
+    def test_create_test_macro_all_command_types(self) -> None:
         """Test creating test macro with all command types."""
         all_command_types = list(CommandType)
 
@@ -608,7 +614,7 @@ class TestEngineGlobalFunctions:
 class TestEngineErrorHandling:
     """Test engine error handling and recovery."""
 
-    def test_engine_handles_command_execution_errors(self):
+    def test_engine_handles_command_execution_errors(self) -> bool:
         """Test engine handling of command execution errors."""
         engine = MacroEngine()
 
@@ -619,16 +625,16 @@ class TestEngineErrorHandling:
             command_type: CommandType
             parameters: CommandParameters
 
-            def execute(self, context):
+            def execute(self, context) -> bool:
                 raise RuntimeError("Simulated command failure")
 
-            def validate(self):
+            def validate(self) -> bool:
                 return True
 
-            def get_dependencies(self):
+            def get_dependencies(self) -> list[Any]:
                 return []
 
-            def get_required_permissions(self):
+            def get_required_permissions(self) -> None:
                 return frozenset()
 
         failing_command = FailingCommand(
@@ -648,7 +654,7 @@ class TestEngineErrorHandling:
         assert "Simulated command failure" in result.error_details
 
     @pytest.mark.asyncio
-    async def test_engine_handles_async_errors(self):
+    async def test_engine_handles_async_errors(self) -> None:
         """Test engine handling of async execution errors."""
         engine = MacroEngine()
 
@@ -666,7 +672,7 @@ class TestEngineErrorHandling:
         assert result.status == ExecutionStatus.FAILED
         assert result.error_details is not None
 
-    def test_engine_resource_cleanup_on_error(self):
+    def test_engine_resource_cleanup_on_error(self) -> None:
         """Test that engine cleans up resources on error."""
         engine = MacroEngine()
 
@@ -695,7 +701,7 @@ class TestEngineErrorHandling:
 class TestEngineIntegration:
     """Integration tests for macro engine."""
 
-    def test_full_macro_lifecycle(self):
+    def test_full_macro_lifecycle(self) -> None:
         """Test complete macro execution lifecycle."""
         engine = MacroEngine()
         metrics = get_engine_metrics()
@@ -727,7 +733,7 @@ class TestEngineIntegration:
         assert result.execution_token is not None
 
     @pytest.mark.asyncio
-    async def test_mixed_sync_async_execution(self):
+    async def test_mixed_sync_async_execution(self) -> None:
         """Test mixing synchronous and asynchronous execution."""
         engine = MacroEngine()
 

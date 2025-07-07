@@ -1,5 +1,4 @@
-"""
-Advanced AI tools registration for Enterprise AI capabilities.
+"""Advanced AI tools registration for Enterprise AI capabilities.
 
 Registers AI processing, smart suggestions, autonomous agents, and other
 advanced AI-powered tools for the Keyboard Maestro MCP server.
@@ -15,8 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def register_advanced_ai_tools(mcp: "FastMCP") -> None:
-    """
-    Register advanced AI MCP tools for enterprise automation.
+    """Register advanced AI MCP tools for enterprise automation.
 
     Includes:
     - km_ai_processing: AI/ML model integration
@@ -28,6 +26,7 @@ def register_advanced_ai_tools(mcp: "FastMCP") -> None:
 
     Args:
         mcp: FastMCP server instance
+
     """
     try:
         # Import tools from server.tools package

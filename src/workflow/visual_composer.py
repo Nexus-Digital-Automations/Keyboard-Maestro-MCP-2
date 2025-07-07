@@ -1,5 +1,4 @@
-"""
-Visual workflow composition engine with drag-and-drop support.
+"""Visual workflow composition engine with drag-and-drop support.
 
 Core engine for visual workflow creation, editing, and manipulation
 with comprehensive validation and performance optimization.
@@ -102,7 +101,7 @@ class VisualComposer:
             return Either.left(e)
 
     @require(
-        lambda component_type: component_type in ComponentType.__members__.values()
+        lambda component_type: component_type in ComponentType.__members__.values(),
     )
     async def add_component(
         self,
@@ -156,7 +155,9 @@ class VisualComposer:
 
                     if last_component:
                         connection_result = await self._create_auto_connection(
-                            updated_workflow, last_component.component_id, component_id
+                            updated_workflow,
+                            last_component.component_id,
+                            component_id,
                         )
                         if connection_result.is_right():
                             updated_workflow = connection_result.right()
@@ -165,7 +166,7 @@ class VisualComposer:
                 self.workflows[workflow_id] = updated_workflow
 
                 self.logger.info(
-                    f"Added component {component_id} to workflow {workflow_id}"
+                    f"Added component {component_id} to workflow {workflow_id}",
                 )
                 return Either.right(component)
 
@@ -192,11 +193,11 @@ class VisualComposer:
                 # Validate components exist
                 if source_component not in workflow.components:
                     return Either.left(
-                        ValueError(f"Source component {source_component} not found")
+                        ValueError(f"Source component {source_component} not found"),
                     )
                 if target_component not in workflow.components:
                     return Either.left(
-                        ValueError(f"Target component {target_component} not found")
+                        ValueError(f"Target component {target_component} not found"),
                     )
 
                 # Create connection properties
@@ -227,7 +228,7 @@ class VisualComposer:
                 self.workflows[workflow_id] = connection_result.right()
 
                 self.logger.info(
-                    f"Connected components {source_component} -> {target_component}"
+                    f"Connected components {source_component} -> {target_component}",
                 )
                 return Either.right(connection)
 
@@ -252,7 +253,7 @@ class VisualComposer:
 
                 if component_id not in workflow.components:
                     return Either.left(
-                        ValueError(f"Component {component_id} not found")
+                        ValueError(f"Component {component_id} not found"),
                     )
 
                 component = workflow.components[component_id]
@@ -294,7 +295,9 @@ class VisualComposer:
             return Either.left(e)
 
     async def remove_component(
-        self, workflow_id: WorkflowId, component_id: ComponentId
+        self,
+        workflow_id: WorkflowId,
+        component_id: ComponentId,
     ) -> Either[Exception, bool]:
         """Remove component and its connections from workflow."""
         try:
@@ -306,7 +309,7 @@ class VisualComposer:
 
                 if component_id not in workflow.components:
                     return Either.left(
-                        ValueError(f"Component {component_id} not found")
+                        ValueError(f"Component {component_id} not found"),
                     )
 
                 # Remove component
@@ -355,7 +358,7 @@ class VisualComposer:
                 self.workflows[workflow_id] = updated_workflow
 
                 self.logger.info(
-                    f"Removed component {component_id} and {len(connections_to_remove)} connections"
+                    f"Removed component {component_id} and {len(connections_to_remove)} connections",
                 )
                 return Either.right(True)
 
@@ -364,7 +367,8 @@ class VisualComposer:
             return Either.left(e)
 
     async def validate_workflow(
-        self, workflow_id: WorkflowId
+        self,
+        workflow_id: WorkflowId,
     ) -> Either[Exception, list[str]]:
         """Validate workflow logic and structure."""
         try:
@@ -381,7 +385,8 @@ class VisualComposer:
             return Either.left(e)
 
     async def get_workflow(
-        self, workflow_id: WorkflowId
+        self,
+        workflow_id: WorkflowId,
     ) -> Either[Exception, VisualWorkflow]:
         """Get workflow by ID."""
         try:
@@ -408,13 +413,16 @@ class VisualComposer:
                     "created_at": workflow.created_at.isoformat(),
                     "modified_at": workflow.modified_at.isoformat(),
                     "version": workflow.version,
-                }
+                },
             )
 
         return workflows_info
 
     async def _create_auto_connection(
-        self, workflow: VisualWorkflow, source_id: ComponentId, target_id: ComponentId
+        self,
+        workflow: VisualWorkflow,
+        source_id: ComponentId,
+        target_id: ComponentId,
     ) -> Either[Exception, VisualWorkflow]:
         """Create automatic connection between components."""
         try:

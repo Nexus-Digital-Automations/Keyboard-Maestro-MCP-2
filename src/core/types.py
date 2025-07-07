@@ -1,5 +1,4 @@
-"""
-Core types and protocols for the Keyboard Maestro MCP macro engine.
+"""Core types and protocols for the Keyboard Maestro MCP macro engine.
 
 This module defines branded types, protocols, and data structures for type-safe
 macro execution with comprehensive validation and security boundaries.
@@ -211,7 +210,7 @@ class ExecutionContext:
     timeout: Duration
     variables: dict[VariableName, str] = field(default_factory=dict)
     execution_id: ExecutionToken = field(
-        default_factory=lambda: ExecutionToken(str(uuid.uuid4()))
+        default_factory=lambda: ExecutionToken(str(uuid.uuid4())),
     )
     created_at: datetime = field(default_factory=datetime.now)
 
@@ -286,7 +285,10 @@ class CommandResult:
 
     @classmethod
     def failure_result(
-        cls, error_message: str, execution_time: Duration | None = None, **metadata
+        cls,
+        error_message: str,
+        execution_time: Duration | None = None,
+        **metadata,
     ) -> CommandResult:
         """Create a failed command result."""
         return cls(
@@ -317,7 +319,9 @@ class MacroDefinition:
 
     @classmethod
     def create_test_macro(
-        cls, name: str, commands: list[MacroCommand]
+        cls,
+        name: str,
+        commands: list[MacroCommand],
     ) -> MacroDefinition:
         """Create a test macro definition."""
         return cls(macro_id=MacroId(str(uuid.uuid4())), name=name, commands=commands)

@@ -1,5 +1,4 @@
-"""
-NLP Architecture - TASK_60 Phase 1 Core Implementation
+"""NLP Architecture - TASK_60 Phase 1 Core Implementation.
 
 Natural language processing type definitions and architectural framework.
 Provides comprehensive types, enums, and utilities for NLP operations and command interpretation.
@@ -190,28 +189,20 @@ class NLPError(Exception):
 class IntentRecognitionError(NLPError):
     """Error in intent recognition processing."""
 
-    pass
-
 
 @dataclass(frozen=True)
 class EntityExtractionError(NLPError):
     """Error in entity extraction processing."""
-
-    pass
 
 
 @dataclass(frozen=True)
 class ConversationError(NLPError):
     """Error in conversation processing."""
 
-    pass
-
 
 @dataclass(frozen=True)
 class LanguageModelError(NLPError):
     """Error in language model operations."""
-
-    pass
 
 
 @dataclass(frozen=True)
@@ -408,18 +399,18 @@ def determine_confidence_level(confidence: float) -> ConfidenceLevel:
     """Determine confidence level from numeric confidence."""
     if confidence >= 0.8:
         return ConfidenceLevel.VERY_HIGH
-    elif confidence >= 0.6:
+    if confidence >= 0.6:
         return ConfidenceLevel.HIGH
-    elif confidence >= 0.4:
+    if confidence >= 0.4:
         return ConfidenceLevel.MEDIUM
-    elif confidence >= 0.2:
+    if confidence >= 0.2:
         return ConfidenceLevel.LOW
-    else:
-        return ConfidenceLevel.VERY_LOW
+    return ConfidenceLevel.VERY_LOW
 
 
 def validate_text_input(
-    text: str, max_length: int = 10000
+    text: str,
+    max_length: int = 10000,
 ) -> Either[NLPError, TextContent]:
     """Validate and sanitize text input for NLP processing."""
     try:
@@ -429,8 +420,9 @@ def validate_text_input(
         if len(text) > max_length:
             return Either.left(
                 NLPError(
-                    f"Text exceeds maximum length of {max_length}", "TEXT_TOO_LONG"
-                )
+                    f"Text exceeds maximum length of {max_length}",
+                    "TEXT_TOO_LONG",
+                ),
             )
 
         # Check for potential malicious content
@@ -445,15 +437,16 @@ def validate_text_input(
             if re.search(pattern, text, re.IGNORECASE):
                 return Either.left(
                     NLPError(
-                        "Potentially malicious content detected", "MALICIOUS_CONTENT"
-                    )
+                        "Potentially malicious content detected",
+                        "MALICIOUS_CONTENT",
+                    ),
                 )
 
         return Either.right(create_text_content(text))
 
     except Exception as e:
         return Either.left(
-            NLPError(f"Text validation failed: {str(e)}", "VALIDATION_ERROR")
+            NLPError(f"Text validation failed: {e!s}", "VALIDATION_ERROR"),
         )
 
 
@@ -489,14 +482,14 @@ def extract_language_code(language_input: str) -> Either[NLPError, LanguageCode]
 
         if lang_code not in valid_codes:
             return Either.left(
-                NLPError(f"Unsupported language code: {lang_code}", "INVALID_LANGUAGE")
+                NLPError(f"Unsupported language code: {lang_code}", "INVALID_LANGUAGE"),
             )
 
         return Either.right(LanguageCode(lang_code))
 
     except Exception as e:
         return Either.left(
-            NLPError(f"Language code extraction failed: {str(e)}", "LANGUAGE_ERROR")
+            NLPError(f"Language code extraction failed: {e!s}", "LANGUAGE_ERROR"),
         )
 
 
@@ -528,7 +521,8 @@ def merge_entities(entities: list[ExtractedEntity]) -> list[ExtractedEntity]:
 
 
 def calculate_intent_similarity(
-    intent1: RecognizedIntent, intent2: RecognizedIntent
+    intent1: RecognizedIntent,
+    intent2: RecognizedIntent,
 ) -> float:
     """Calculate similarity between two recognized intents."""
     # Compare intent names

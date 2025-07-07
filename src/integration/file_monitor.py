@@ -1,5 +1,4 @@
-"""
-File System Monitor for Keyboard Maestro Library Changes
+"""File System Monitor for Keyboard Maestro Library Changes.
 
 Monitors KM preferences and library files for changes to trigger
 immediate synchronization instead of relying solely on polling.
@@ -71,7 +70,7 @@ class KMFileMonitor:
         """Start file system monitoring."""
         if not WATCHDOG_AVAILABLE:
             logger.warning(
-                "File monitoring unavailable - watchdog package not installed"
+                "File monitoring unavailable - watchdog package not installed",
             )
             logger.info("Install with: pip install watchdog")
             return False
@@ -91,7 +90,9 @@ class KMFileMonitor:
             if self.km_prefs_path.exists():
                 event_handler = KMFileEventHandler(self._on_file_change)
                 self._observer.schedule(
-                    event_handler, str(self.km_prefs_path), recursive=True
+                    event_handler,
+                    str(self.km_prefs_path),
+                    recursive=True,
                 )
                 self._watched_paths.add(self.km_prefs_path)
                 logger.info(f"Monitoring KM preferences: {self.km_prefs_path}")
@@ -103,7 +104,9 @@ class KMFileMonitor:
             ):
                 event_handler = KMFileEventHandler(self._on_file_change)
                 self._observer.schedule(
-                    event_handler, str(self.km_macros_path), recursive=True
+                    event_handler,
+                    str(self.km_macros_path),
+                    recursive=True,
                 )
                 self._watched_paths.add(self.km_macros_path)
                 logger.info(f"Monitoring KM macros: {self.km_macros_path}")
@@ -112,18 +115,17 @@ class KMFileMonitor:
                 self._observer.start()
                 self._is_monitoring = True
                 logger.info(
-                    f"File monitoring started for {len(self._watched_paths)} paths"
+                    f"File monitoring started for {len(self._watched_paths)} paths",
                 )
                 return True
-            else:
-                logger.warning("No valid paths found for file monitoring")
-                return False
+            logger.warning("No valid paths found for file monitoring")
+            return False
 
         except Exception as e:
             logger.exception(f"Failed to start file monitoring: {e}")
             return False
 
-    def stop_monitoring(self):
+    def stop_monitoring(self) -> bool:
         """Stop file system monitoring."""
         if self._observer and self._is_monitoring:
             try:
@@ -132,7 +134,7 @@ class KMFileMonitor:
                 self._observer = None
                 self._is_monitoring = False
                 logger.info(
-                    f"File monitoring stopped (processed {self._change_count} changes)"
+                    f"File monitoring stopped (processed {self._change_count} changes)",
                 )
             except Exception as e:
                 logger.exception(f"Error stopping file monitor: {e}")
@@ -148,7 +150,7 @@ class KMFileMonitor:
             "km_macros_path": str(self.km_macros_path),
         }
 
-    def _on_file_change(self, event: FileSystemEvent):
+    def _on_file_change(self, event: FileSystemEvent) -> bool:
         """Handle file system change events."""
         current_time = time.time()
 
@@ -266,17 +268,18 @@ if WATCHDOG_AVAILABLE:
             super().__init__()
             self.callback = callback
 
-        def on_modified(self, event):
+        def on_modified(self, event) -> None:
             self.callback(event)
 
-        def on_created(self, event):
+        def on_created(self, event) -> None:
             self.callback(event)
 
-        def on_deleted(self, event):
+        def on_deleted(self, event) -> None:
             self.callback(event)
 
-        def on_moved(self, event):
+        def on_moved(self, event) -> None:
             self.callback(event)
+
 else:
     # Fallback implementation when watchdog is not available
     class KMFileEventHandler:

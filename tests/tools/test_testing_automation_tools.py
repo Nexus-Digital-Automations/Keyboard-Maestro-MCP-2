@@ -1,11 +1,13 @@
-"""
-Comprehensive tests for Testing Automation MCP tools using systematic MCP tool test pattern.
+"""Comprehensive tests for Testing Automation MCP tools using systematic MCP tool test pattern.
 
 This module provides extensive testing for testing automation tools including
 comprehensive test execution, quality validation, regression detection, and reporting.
 Tests follow the proven systematic pattern that achieved 100% success across 21 tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import Mock
 
 import pytest
@@ -71,7 +73,7 @@ async def mock_km_run_comprehensive_tests(
                 "status": "passed",
                 "test_count": 15,
                 "execution_time": 25.3,
-            }
+            },
         ],
         "coverage_report": {
             "overall_coverage": 89.2,
@@ -87,7 +89,9 @@ async def mock_km_run_comprehensive_tests(
 
 
 async def mock_km_validate_automation_quality(
-    execution_id, quality_criteria=None, ctx=None
+    execution_id,
+    quality_criteria=None,
+    ctx=None,
 ):
     """Mock implementation for quality validation."""
     if not execution_id:
@@ -117,7 +121,7 @@ async def mock_km_validate_automation_quality(
                     "actual": 75.5,
                     "threshold": 85.0,
                     "score": 65,
-                }
+                },
             },
             "quality_gates": {"coverage_gate": "failed", "overall_gate": "failed"},
             "failure_reasons": ["Coverage below minimum threshold (75.5% < 85%)"],
@@ -135,7 +139,10 @@ async def mock_km_validate_automation_quality(
 
 
 async def mock_km_detect_regressions(
-    current_execution, baseline_execution, comparison_metrics=None, ctx=None
+    current_execution,
+    baseline_execution,
+    comparison_metrics=None,
+    ctx=None,
 ):
     """Mock implementation for regression detection."""
     # Regression detected scenario - use specific IDs that trigger regression
@@ -151,7 +158,7 @@ async def mock_km_detect_regressions(
                         "metric": "performance",
                         "severity": "critical",
                         "impact": "Response time nearly doubled",
-                    }
+                    },
                 ],
                 "quality_assessment": {"risk_level": "high"},
                 "action_required": True,
@@ -209,14 +216,14 @@ class TestKMRunComprehensiveTests:
     """Test suite for km_run_comprehensive_tests MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-123"}
         return context
 
     @pytest.fixture
-    def sample_test_data(self):
+    def sample_test_data(self) -> Any:
         """Sample test data for comprehensive testing."""
         return {
             "basic_test": {
@@ -237,8 +244,10 @@ class TestKMRunComprehensiveTests:
 
     @pytest.mark.asyncio
     async def test_comprehensive_tests_success_basic(
-        self, mock_context, sample_test_data
-    ):
+        self,
+        mock_context,
+        sample_test_data,
+    ) -> None:
         """Test successful comprehensive test execution with basic configuration."""
         test_data = sample_test_data["basic_test"]
         result = await km_run_comprehensive_tests(
@@ -257,10 +266,12 @@ class TestKMRunComprehensiveTests:
         assert "quality_gates" in result
 
     @pytest.mark.asyncio
-    async def test_comprehensive_tests_validation_error(self, mock_context):
+    async def test_comprehensive_tests_validation_error(self, mock_context) -> None:
         """Test comprehensive tests with validation error."""
         result = await km_run_comprehensive_tests(
-            test_scope="invalid_scope", target_ids=["test-001"], ctx=mock_context
+            test_scope="invalid_scope",
+            target_ids=["test-001"],
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -269,8 +280,10 @@ class TestKMRunComprehensiveTests:
 
     @pytest.mark.asyncio
     async def test_comprehensive_tests_execution_error(
-        self, mock_context, sample_test_data
-    ):
+        self,
+        mock_context,
+        sample_test_data,
+    ) -> None:
         """Test comprehensive tests with execution error."""
         test_data = sample_test_data["advanced_test"]
         result = await km_run_comprehensive_tests(
@@ -292,14 +305,14 @@ class TestKMValidateAutomationQuality:
     """Test suite for km_validate_automation_quality MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-456"}
         return context
 
     @pytest.fixture
-    def sample_quality_data(self):
+    def sample_quality_data(self) -> Any:
         """Sample quality validation data."""
         return {
             "execution_id": "exec-test-001",
@@ -318,7 +331,7 @@ class TestKMValidateAutomationQuality:
         }
 
     @pytest.mark.asyncio
-    async def test_quality_validation_success(self, mock_context, sample_quality_data):
+    async def test_quality_validation_success(self, mock_context, sample_quality_data) -> None:
         """Test successful quality validation."""
         result = await km_validate_automation_quality(
             execution_id=sample_quality_data["execution_id"],
@@ -334,7 +347,7 @@ class TestKMValidateAutomationQuality:
         assert "recommendations" in result
 
     @pytest.mark.asyncio
-    async def test_quality_validation_failure(self, mock_context):
+    async def test_quality_validation_failure(self, mock_context) -> None:
         """Test quality validation with failing criteria."""
         result = await km_validate_automation_quality(
             execution_id="exec-test-002",
@@ -353,14 +366,14 @@ class TestKMDetectRegressions:
     """Test suite for km_detect_regressions MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-789"}
         return context
 
     @pytest.fixture
-    def sample_regression_data(self):
+    def sample_regression_data(self) -> Any:
         """Sample regression detection data."""
         return {
             "current_execution": "exec-test-003",
@@ -370,8 +383,10 @@ class TestKMDetectRegressions:
 
     @pytest.mark.asyncio
     async def test_regression_detection_no_regressions(
-        self, mock_context, sample_regression_data
-    ):
+        self,
+        mock_context,
+        sample_regression_data,
+    ) -> None:
         """Test regression detection with no regressions found."""
         result = await km_detect_regressions(
             current_execution=sample_regression_data["current_execution"],
@@ -388,8 +403,10 @@ class TestKMDetectRegressions:
 
     @pytest.mark.asyncio
     async def test_regression_detection_with_regressions(
-        self, mock_context, sample_regression_data
-    ):
+        self,
+        mock_context,
+        sample_regression_data,
+    ) -> None:
         """Test regression detection with regressions found."""
         result = await km_detect_regressions(
             current_execution="exec-test-004",  # Use specific ID that triggers regression
@@ -410,14 +427,14 @@ class TestKMGenerateTestReports:
     """Test suite for km_generate_test_reports MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-012"}
         return context
 
     @pytest.fixture
-    def sample_report_data(self):
+    def sample_report_data(self) -> Any:
         """Sample test report generation data."""
         return {
             "execution_ids": ["exec-test-001", "exec-test-002", "exec-test-003"],
@@ -432,7 +449,7 @@ class TestKMGenerateTestReports:
         }
 
     @pytest.mark.asyncio
-    async def test_report_generation_success(self, mock_context, sample_report_data):
+    async def test_report_generation_success(self, mock_context, sample_report_data) -> None:
         """Test successful test report generation."""
         result = await km_generate_test_reports(
             execution_ids=sample_report_data["execution_ids"],
@@ -451,10 +468,12 @@ class TestKMGenerateTestReports:
         assert "recommendations" in result
 
     @pytest.mark.asyncio
-    async def test_report_generation_validation_error(self, mock_context):
+    async def test_report_generation_validation_error(self, mock_context) -> None:
         """Test report generation with validation error."""
         result = await km_generate_test_reports(
-            execution_ids=[], report_type="comprehensive", ctx=mock_context
+            execution_ids=[],
+            report_type="comprehensive",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -467,18 +486,20 @@ class TestTestingAutomationIntegration:
     """Integration tests for testing automation tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-integration-123"}
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_testing_workflow(self, mock_context):
+    async def test_complete_testing_workflow(self, mock_context) -> None:
         """Test complete testing automation workflow integration."""
         # Execute workflow sequence
         test_result = await km_run_comprehensive_tests(
-            test_scope="workflow", target_ids=["workflow-001"], ctx=mock_context
+            test_scope="workflow",
+            target_ids=["workflow-001"],
+            ctx=mock_context,
         )
 
         quality_result = await km_validate_automation_quality(
@@ -494,7 +515,9 @@ class TestTestingAutomationIntegration:
         )
 
         report_result = await km_generate_test_reports(
-            execution_ids=["exec-test-001"], report_type="summary", ctx=mock_context
+            execution_ids=["exec-test-001"],
+            report_type="summary",
+            ctx=mock_context,
         )
 
         # Verify workflow integration

@@ -1,5 +1,4 @@
-"""
-Knowledge management architecture for documentation automation and knowledge base management.
+"""Knowledge management architecture for documentation automation and knowledge base management.
 
 This module provides the foundational types and contracts for automated documentation
 generation, intelligent content organization, and comprehensive knowledge management.
@@ -219,16 +218,10 @@ def create_content_id() -> ContentId:
 class KnowledgeError(Exception):
     """Base class for knowledge management errors."""
 
-    pass
-
 
 class DocumentGenerationError(KnowledgeError):
     """Error during document generation."""
 
-    pass
-
 
 class SearchError(KnowledgeError):
     """Error during knowledge search."""
-
-    pass

@@ -1,16 +1,19 @@
-"""
-Property-based tests for audit system compliance and security validation.
+"""Property-based tests for audit system compliance and security validation.
 
 This module provides comprehensive property-based testing for the audit system
 using Hypothesis to validate behavior across all input ranges with focus on
 security, compliance, and integrity verification.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import uuid
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from fastmcp.exceptions import ToolError
 from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
 from src.audit.compliance_monitor import ComplianceMonitor
@@ -27,6 +30,7 @@ from src.core.audit_framework import (
     RiskLevel,
 )
 from src.core.either import Either
+from src.core.errors import ValidationError
 from src.server.tools.audit_system_tools import km_audit_system
 
 
@@ -41,8 +45,13 @@ class TestAuditEventProperties:
         st.sampled_from(list(RiskLevel)),
     )
     def test_audit_event_properties(
-        self, user_id, action, result, event_type, risk_level
-    ):
+        self,
+        user_id,
+        action,
+        result,
+        event_type,
+        risk_level,
+    ) -> None:
         """Property: Audit events should handle various inputs and maintain integrity."""
         assume(user_id.strip() != "")
         assume(action.strip() != "")
@@ -84,7 +93,7 @@ class TestAuditEventProperties:
         ),
         st.sets(st.text(min_size=1, max_size=20), max_size=10),
     )
-    def test_audit_event_with_details_properties(self, details, compliance_tags):
+    def test_audit_event_with_details_properties(self, details, compliance_tags) -> None:
         """Property: Audit events should handle complex details and tags."""
         event = AuditEvent(
             event_id=str(uuid.uuid4()),
@@ -111,7 +120,7 @@ class TestAuditEventProperties:
         assert isinstance(sensitive_fields, set)
 
     @given(st.sampled_from(list(ComplianceStandard)))
-    def test_compliance_standard_matching_properties(self, standard):
+    def test_compliance_standard_matching_properties(self, standard) -> None:
         """Property: Compliance standard matching should be consistent."""
         # Create event with appropriate tags for the standard
         standard_tags = {
@@ -167,8 +176,14 @@ class TestComplianceRuleProperties:
         st.sampled_from(list(RiskLevel)),
     )
     def test_compliance_rule_properties(
-        self, rule_id, name, description, condition, standard, severity
-    ):
+        self,
+        rule_id,
+        name,
+        description,
+        condition,
+        standard,
+        severity,
+    ) -> None:
         """Property: Compliance rules should handle various configurations."""
         assume(rule_id.strip() != "")
         assume(name.strip() != "")
@@ -206,10 +221,10 @@ class TestComplianceRuleProperties:
                 "unauthorized_modification",
                 "high_risk",
                 "security_violation",
-            ]
+            ],
         ),
     )
-    def test_compliance_rule_evaluation_properties(self, user_id, condition_type):
+    def test_compliance_rule_evaluation_properties(self, user_id, condition_type) -> None:
         """Property: Compliance rule evaluation should be consistent."""
         assume(user_id.strip() != "")
 
@@ -272,7 +287,7 @@ class TestEventLoggerProperties:
     """Property-based tests for event logger functionality."""
 
     @pytest.fixture
-    def event_logger(self):
+    def event_logger(self) -> Any:
         """Provide event logger for tests."""
         config = AuditConfiguration(audit_level=AuditLevel.STANDARD)
         return EventLogger(config)
@@ -286,8 +301,13 @@ class TestEventLoggerProperties:
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
     async def test_event_logging_properties(
-        self, event_logger, event_type, user_id, action, result
-    ):
+        self,
+        event_logger,
+        event_type,
+        user_id,
+        action,
+        result,
+    ) -> None:
         """Property: Event logging should handle various event types and data."""
         assume(user_id.strip() != "")
         assume(action.strip() != "")
@@ -295,7 +315,10 @@ class TestEventLoggerProperties:
 
         # Property: Event logging should succeed with valid inputs
         log_result = await event_logger.log_event(
-            event_type=event_type, user_id=user_id, action=action, result=result
+            event_type=event_type,
+            user_id=user_id,
+            action=action,
+            result=result,
         )
 
         assert log_result.is_right()
@@ -318,11 +341,11 @@ class TestEventLoggerProperties:
             st.one_of(st.text(max_size=100), st.integers(), st.booleans()),
             min_size=1,
             max_size=5,
-        )
+        ),
     )
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_event_logging_with_filters_properties(self, event_logger, filters):
+    async def test_event_logging_with_filters_properties(self, event_logger, filters) -> None:
         """Property: Event querying with filters should be consistent."""
         # First log some events
         for i in range(3):
@@ -342,7 +365,7 @@ class TestEventLoggerProperties:
         # Property: Query with user filter should return filtered results
         if "user_id" in filters and isinstance(filters["user_id"], str):
             user_events = await event_logger.query_events(
-                {"user_id": filters["user_id"]}
+                {"user_id": filters["user_id"]},
             )
             for event in user_events:
                 assert event.user_id == filters["user_id"]
@@ -350,7 +373,7 @@ class TestEventLoggerProperties:
     @given(st.integers(min_value=1, max_value=100))
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_rate_limiting_properties(self, event_logger, event_count):
+    async def test_rate_limiting_properties(self, event_logger, event_count) -> None:
         """Property: Rate limiting should prevent excessive event logging."""
         user_id = "test_user"
 
@@ -374,7 +397,7 @@ class TestComplianceMonitorProperties:
     """Property-based tests for compliance monitor functionality."""
 
     @pytest.fixture
-    def compliance_monitor(self):
+    def compliance_monitor(self) -> Any:
         """Provide compliance monitor for tests."""
         return ComplianceMonitor()
 
@@ -382,8 +405,10 @@ class TestComplianceMonitorProperties:
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
     async def test_compliance_rule_registration_properties(
-        self, compliance_monitor, standard
-    ):
+        self,
+        compliance_monitor,
+        standard,
+    ) -> None:
         """Property: Compliance rule registration should handle all standards."""
         rule = ComplianceRule(
             rule_id=f"test_rule_{standard.value}",
@@ -417,13 +442,15 @@ class TestComplianceMonitorProperties:
             ),
             min_size=1,
             max_size=10,
-        )
+        ),
     )
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
     async def test_batch_event_monitoring_properties(
-        self, compliance_monitor, event_specs
-    ):
+        self,
+        compliance_monitor,
+        event_specs,
+    ) -> None:
         """Property: Batch event monitoring should handle multiple events."""
         # Create events from specifications
         events = []
@@ -457,7 +484,7 @@ class TestReportGeneratorProperties:
     """Property-based tests for report generator functionality."""
 
     @pytest.fixture
-    def report_generator(self):
+    def report_generator(self) -> bool:
         """Provide report generator for tests."""
         config = AuditConfiguration()
         event_logger = EventLogger(config)
@@ -472,8 +499,12 @@ class TestReportGeneratorProperties:
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
     async def test_compliance_report_properties(
-        self, report_generator, standard, period_days, violation_count
-    ):
+        self,
+        report_generator,
+        standard,
+        period_days,
+        violation_count,
+    ) -> None:
         """Property: Compliance reports should handle various standards and periods."""
         end_time = datetime.now(UTC)
         start_time = end_time - timedelta(days=period_days)
@@ -497,7 +528,9 @@ class TestReportGeneratorProperties:
 
         # Property: Report generation should succeed
         report_result = await report_generator.generate_compliance_report(
-            standard=standard, period_start=start_time, period_end=end_time
+            standard=standard,
+            period_start=start_time,
+            period_end=end_time,
         )
 
         assert report_result.is_right()
@@ -534,14 +567,17 @@ class TestAuditSystemToolProperties:
     )
     @pytest.mark.asyncio
     async def test_audit_tool_operation_properties(
-        self, operation, user_id, event_type
-    ):
+        self,
+        operation,
+        user_id,
+        event_type,
+    ) -> None:
         """Property: Audit tool should handle various operations consistently."""
         assume(user_id.strip() != "")
 
         # Mock the audit system components
         with patch(
-            "src.server.tools.audit_system_tools.get_audit_system"
+            "src.server.tools.audit_system_tools.get_audit_system",
         ) as mock_get_system:
             mock_system = Mock()
             mock_system.initialized = True
@@ -550,7 +586,7 @@ class TestAuditSystemToolProperties:
             # Setup mock responses based on operation
             if operation == "log":
                 mock_system.audit_user_action = AsyncMock(
-                    return_value=Either.right(str(uuid.uuid4()))
+                    return_value=Either.right(str(uuid.uuid4())),
                 )
 
                 result = await km_audit_system(
@@ -572,7 +608,7 @@ class TestAuditSystemToolProperties:
                         "event_logging": {"events_logged": 100},
                         "compliance_monitoring": {"monitoring_enabled": True},
                         "performance": {"average_audit_latency_ms": 10},
-                    }
+                    },
                 )
 
                 result = await km_audit_system(operation=operation)
@@ -583,11 +619,16 @@ class TestAuditSystemToolProperties:
 
     @given(st.text(max_size=0))
     @pytest.mark.asyncio
-    async def test_empty_parameters_validation_properties(self, empty_value):
+    async def test_empty_parameters_validation_properties(self, empty_value) -> None:
         """Property: Empty or invalid parameters should be rejected."""
         assume(len(empty_value.strip()) == 0)
 
-        with pytest.raises(Exception):  # Should raise ToolError
+        with pytest.raises(
+            (
+                ToolError,
+                ValidationError,
+            ),
+        ):  # Should raise specific validation error
             await km_audit_system(
                 operation="log",
                 event_type="automation_executed",
@@ -605,9 +646,9 @@ class TestSecurityProperties:
             st.text(min_size=1, max_size=100),
             min_size=1,
             max_size=10,
-        )
+        ),
     )
-    def test_sensitive_data_detection_properties(self, event_details):
+    def test_sensitive_data_detection_properties(self, event_details) -> None:
         """Property: Sensitive data should be detected and protected."""
         # Add sensitive data patterns
         sensitive_patterns = ["password", "secret", "token", "key", "credential"]
@@ -640,8 +681,11 @@ class TestSecurityProperties:
         st.floats(min_value=0.0, max_value=100.0),
     )
     def test_compliance_report_security_properties(
-        self, total_events, violations, risk_score
-    ):
+        self,
+        total_events,
+        violations,
+        risk_score,
+    ) -> None:
         """Property: Compliance reports should maintain security boundaries."""
         assume(violations <= total_events)
         assume(0.0 <= risk_score <= 100.0)
@@ -655,7 +699,8 @@ class TestSecurityProperties:
             violations_found=violations,
             risk_score=risk_score,
             compliance_percentage=max(
-                0.0, (total_events - violations) / max(total_events, 1) * 100.0
+                0.0,
+                (total_events - violations) / max(total_events, 1) * 100.0,
             ),
         )
 
@@ -681,8 +726,10 @@ class TestSecurityProperties:
     @settings(max_examples=50, deadline=5000)
     @given(st.text(min_size=1, max_size=100), st.integers(min_value=1, max_value=2555))
     def test_audit_configuration_security_properties(
-        self, config_value, retention_days
-    ):
+        self,
+        config_value,
+        retention_days,
+    ) -> None:
         """Property: Audit configuration should enforce security limits."""
         assume(1 <= retention_days <= 2555)
 

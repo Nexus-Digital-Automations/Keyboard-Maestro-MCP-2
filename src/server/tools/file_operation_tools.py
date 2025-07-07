@@ -1,5 +1,4 @@
-"""
-MCP File Operation Tools for Keyboard Maestro
+"""MCP File Operation Tools for Keyboard Maestro.
 
 Provides secure file system operations with comprehensive validation,
 transaction safety, and path security for AI assistant workflows.
@@ -25,12 +24,10 @@ from ...filesystem.path_security import PathSecurity
 class ValidationError(Exception):
     """File operation validation error."""
 
-    pass
-
 
 @require(
     lambda operation: operation
-    in ["copy", "move", "delete", "rename", "create_folder", "get_info"]
+    in ["copy", "move", "delete", "rename", "create_folder", "get_info"],
 )
 @require(lambda source_path: len(source_path) > 0 and len(source_path) <= 1000)
 @ensure(lambda result: isinstance(result, dict) and "success" in result)
@@ -59,7 +56,8 @@ async def km_file_operations(
         ),
     ] = None,
     overwrite: Annotated[
-        bool, Field(default=False, description="Allow overwriting existing files")
+        bool,
+        Field(default=False, description="Allow overwriting existing files"),
     ] = False,
     create_intermediate: Annotated[
         bool,
@@ -75,13 +73,13 @@ async def km_file_operations(
     secure_delete: Annotated[
         bool,
         Field(
-            default=False, description="Use secure deletion (multiple overwrite passes)"
+            default=False,
+            description="Use secure deletion (multiple overwrite passes)",
         ),
     ] = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Secure file system operations with comprehensive validation and safety features.
+    """Secure file system operations with comprehensive validation and safety features.
 
     Supported Operations:
     - copy: Copy files or directories with overwrite protection
@@ -111,6 +109,7 @@ async def km_file_operations(
         ValidationError: If path validation fails
         PermissionError: If insufficient permissions
         OSError: If file system operation fails
+
     """
     if ctx:
         await ctx.info(f"Starting file operation: {operation} on {source_path}")
@@ -122,7 +121,7 @@ async def km_file_operations(
 
         if destination_path and not PathSecurity.validate_path(destination_path):
             raise ValidationError(
-                f"Destination path validation failed: {destination_path}"
+                f"Destination path validation failed: {destination_path}",
             )
 
         # Create type-safe file path objects
@@ -135,7 +134,7 @@ async def km_file_operations(
 
         if destination_file_path and not destination_file_path.is_safe_path():
             raise ValidationError(
-                f"Destination path security check failed: {destination_path}"
+                f"Destination path security check failed: {destination_path}",
             )
 
         # Create file operation request with validation
@@ -196,35 +195,34 @@ async def km_file_operations(
 
             return response
 
-        else:
-            # Handle operation errors
-            error = result.get_left()
+        # Handle operation errors
+        error = result.get_left()
 
-            error_response = {
-                "success": False,
-                "operation": operation,
-                "source_path": source_path,
-                "destination_path": destination_path,
-                "error": {
-                    "code": error.code,
-                    "message": error.message,
-                    "details": error.details or {},
-                },
-                "security_status": {
-                    "path_validated": True,
-                    "permissions_checked": True,
-                    "operation_failed": True,
-                },
-                "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat(),
-                    "operation_id": str(uuid.uuid4()),
-                },
-            }
+        error_response = {
+            "success": False,
+            "operation": operation,
+            "source_path": source_path,
+            "destination_path": destination_path,
+            "error": {
+                "code": error.code,
+                "message": error.message,
+                "details": error.details or {},
+            },
+            "security_status": {
+                "path_validated": True,
+                "permissions_checked": True,
+                "operation_failed": True,
+            },
+            "metadata": {
+                "timestamp": datetime.now(UTC).isoformat(),
+                "operation_id": str(uuid.uuid4()),
+            },
+        }
 
-            if ctx:
-                await ctx.error(f"File operation failed: {error.message}")
+        if ctx:
+            await ctx.error(f"File operation failed: {error.message}")
 
-            return error_response
+        return error_response
 
     except ValidationError as e:
         # Path validation or parameter validation errors
@@ -251,7 +249,7 @@ async def km_file_operations(
         }
 
         if ctx:
-            await ctx.error(f"Path validation failed: {str(e)}")
+            await ctx.error(f"Path validation failed: {e!s}")
 
         return error_response
 
@@ -264,7 +262,7 @@ async def km_file_operations(
             "destination_path": destination_path,
             "error": {
                 "code": "PERMISSION_ERROR",
-                "message": f"Permission denied: {str(e)}",
+                "message": f"Permission denied: {e!s}",
                 "details": {
                     "error_type": "permission_denied",
                     "operation_attempted": operation,
@@ -278,7 +276,7 @@ async def km_file_operations(
         }
 
         if ctx:
-            await ctx.error(f"Permission denied for {operation}: {str(e)}")
+            await ctx.error(f"Permission denied for {operation}: {e!s}")
 
         return error_response
 
@@ -291,7 +289,7 @@ async def km_file_operations(
             "destination_path": destination_path,
             "error": {
                 "code": "OPERATION_ERROR",
-                "message": f"Unexpected error: {str(e)}",
+                "message": f"Unexpected error: {e!s}",
                 "details": {
                     "error_type": type(e).__name__,
                     "operation": operation,
@@ -306,6 +304,6 @@ async def km_file_operations(
         }
 
         if ctx:
-            await ctx.error(f"Unexpected error in {operation}: {str(e)}")
+            await ctx.error(f"Unexpected error in {operation}: {e!s}")
 
         return error_response

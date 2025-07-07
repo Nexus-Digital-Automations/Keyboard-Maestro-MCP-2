@@ -1,23 +1,27 @@
-"""
-Phase 21 Continued Advanced Module Testing & Strategic Coverage Optimization for Keyboard Maestro MCP.
+"""Phase 21 Continued Advanced Module Testing & Strategic Coverage Optimization for Keyboard Maestro MCP.
 
 This module targets continued advanced module testing and strategic coverage optimization,
 focusing on specialized domains, advanced infrastructure systems, and remaining high-value components
 for systematic progression toward 20%+ coverage milestone through comprehensive specialized testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_advanced_voice_natural_language_systems():
+def test_advanced_voice_natural_language_systems() -> None:
     """Test comprehensive coverage of advanced voice and natural language systems."""
-
     # Target advanced voice and natural language modules
     voice_nl_modules = [
         ("voice", "command_dispatcher"),  # Advanced voice command processing
@@ -77,9 +81,9 @@ def test_advanced_voice_natural_language_systems():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -87,9 +91,8 @@ def test_advanced_voice_natural_language_systems():
     assert voice_nl_imports >= 4, f"Only {voice_nl_imports} voice/NL modules found"
 
 
-def test_enterprise_security_authentication_systems():
+def test_enterprise_security_authentication_systems() -> None:
     """Test comprehensive coverage of enterprise security and authentication systems."""
-
     # Target enterprise security and authentication modules
     security_auth_modules = [
         ("security", "access_controller"),  # Advanced access control systems
@@ -155,9 +158,9 @@ def test_enterprise_security_authentication_systems():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -167,9 +170,8 @@ def test_enterprise_security_authentication_systems():
     )
 
 
-def test_cloud_orchestration_infrastructure_systems():
+def test_cloud_orchestration_infrastructure_systems() -> None:
     """Test comprehensive coverage of cloud and orchestration infrastructure systems."""
-
     # Target cloud and orchestration infrastructure modules
     cloud_orchestration_modules = [
         ("cloud", "cloud_orchestrator"),  # Cloud orchestration systems
@@ -234,9 +236,9 @@ def test_cloud_orchestration_infrastructure_systems():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -246,9 +248,8 @@ def test_cloud_orchestration_infrastructure_systems():
     )
 
 
-def test_advanced_vision_computer_systems():
+def test_advanced_vision_computer_systems() -> None:
     """Test comprehensive coverage of advanced vision and computer systems."""
-
     # Target advanced vision and computer vision modules
     vision_computer_modules = [
         ("vision", "image_recognition"),  # Advanced image recognition
@@ -308,9 +309,9 @@ def test_advanced_vision_computer_systems():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -320,9 +321,8 @@ def test_advanced_vision_computer_systems():
     )
 
 
-def test_specialized_enterprise_tools():
+def test_specialized_enterprise_tools() -> None:
     """Test comprehensive coverage of specialized enterprise tools."""
-
     # Target specialized enterprise tool modules
     specialized_enterprise_modules = [
         ("enterprise", "ldap_integration"),  # LDAP enterprise integration
@@ -381,9 +381,8 @@ def test_specialized_enterprise_tools():
     )
 
 
-def test_comprehensive_specialized_functionality_patterns():
+def test_comprehensive_specialized_functionality_patterns() -> None:
     """Test comprehensive functionality patterns across specialized domains."""
-
     # Test specialized functionality patterns
     specialized_functionality_data = {
         "voice_natural_language": {
@@ -505,7 +504,8 @@ def test_comprehensive_specialized_functionality_patterns():
         op
         for op in security_data["security_operations"]
         if op.get(
-            "success_rate", op.get("compliance_rate", op.get("detection_rate", 0))
+            "success_rate",
+            op.get("compliance_rate", op.get("detection_rate", 0)),
         )
         > 0.95
     ]
@@ -534,7 +534,7 @@ def test_comprehensive_specialized_functionality_patterns():
     assert vision_metrics["quality_score"] > 0.85
 
 
-def test_advanced_specialized_async_functionality():
+def test_advanced_specialized_async_functionality() -> bool:
     """Test advanced async functionality for Phase 21 specialized modules."""
 
     @pytest.mark.asyncio
@@ -658,9 +658,8 @@ def test_advanced_specialized_async_functionality():
     assert result is True
 
 
-def test_strategic_continued_coverage_optimization():
+def test_strategic_continued_coverage_optimization() -> None:
     """Test strategic patterns for continued coverage optimization in Phase 21."""
-
     # Test strategic continued coverage optimization scenarios
     continued_coverage_optimization = {
         "specialized_domain_targeting": {
@@ -811,9 +810,8 @@ def test_strategic_continued_coverage_optimization():
     assert remaining_to_target < 0.75  # Should be making solid progress toward 95%
 
 
-def test_phase_21_completion_validation():
+def test_phase_21_completion_validation() -> None:
     """Test Phase 21 completion validation for continued coverage optimization."""
-
     # Test Phase 21 completion validation scenarios
     phase_21_validation = {
         "completion_criteria": {

@@ -1,5 +1,4 @@
-"""
-Machine learning insights engine for intelligent automation analytics.
+"""Machine learning insights engine for intelligent automation analytics.
 
 This module provides ML-powered pattern recognition, anomaly detection,
 predictive analytics, and optimization recommendations.
@@ -41,6 +40,8 @@ from .training.training_pipeline import TrainingPipeline
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore", category=FutureWarning)
+
+logger = logging.getLogger(__name__)
 
 
 class MLModel:
@@ -123,10 +124,10 @@ class PatternRecognitionModel(MLModel):
                             "hour": item.timestamp.hour,
                             "day_of_week": item.timestamp.weekday(),
                             "value": float(item.value)
-                            if isinstance(item.value, (int, float))
+                            if isinstance(item.value, int | float)
                             else 0,
                             "source_tool": item.source_tool,
-                        }
+                        },
                     )
 
             if len(df_data) < 10:
@@ -137,16 +138,16 @@ class PatternRecognitionModel(MLModel):
             # Create features for clustering
             features = ["hour", "day_of_week", "value"]
             self.feature_columns = features
-            X = df[features].values
+            feature_values = df[features].values
 
             # Scale features
-            X_scaled = self.scaler.fit_transform(X)
+            scaled_features = self.scaler.fit_transform(feature_values)
 
             # Train K-means clustering
-            self.kmeans.fit(X_scaled)
+            self.kmeans.fit(scaled_features)
 
             # Train DBSCAN
-            dbscan_labels = self.dbscan.fit_predict(X_scaled)
+            dbscan_labels = self.dbscan.fit_predict(scaled_features)
 
             # Store training results
             self.trained_models = {
@@ -164,9 +165,10 @@ class PatternRecognitionModel(MLModel):
             from sklearn.metrics import silhouette_score
 
             try:
-                silhouette_avg = silhouette_score(X_scaled, self.kmeans.labels_)
+                silhouette_avg = silhouette_score(scaled_features, self.kmeans.labels_)
                 self.model_accuracy = max(
-                    0.0, min(1.0, (silhouette_avg + 1) / 2)
+                    0.0,
+                    min(1.0, (silhouette_avg + 1) / 2),
                 )  # Normalize to 0-1
             except ValueError:
                 self.model_accuracy = 0.7  # Default if calculation fails
@@ -177,7 +179,8 @@ class PatternRecognitionModel(MLModel):
             return False
 
     async def find_patterns(
-        self, metrics_data: list[MetricValue]
+        self,
+        metrics_data: list[MetricValue],
     ) -> list[dict[str, Any]]:
         """Find patterns in metrics data using trained ML models."""
         patterns = []
@@ -198,7 +201,9 @@ class PatternRecognitionModel(MLModel):
         return patterns
 
     async def _analyze_usage_pattern(
-        self, tool: str, metrics: list[MetricValue]
+        self,
+        tool: str,
+        metrics: list[MetricValue],
     ) -> dict[str, Any]:
         """Analyze usage patterns using real ML clustering algorithms."""
         # Extract features from metrics
@@ -208,19 +213,23 @@ class PatternRecognitionModel(MLModel):
 
         for metric in metrics:
             timestamps.append(metric.timestamp)
-            if isinstance(metric.value, (int, float)):
+            if isinstance(metric.value, int | float):
                 values.append(float(metric.value))
                 features_data.append(
                     [
                         metric.timestamp.hour,
                         metric.timestamp.weekday(),
                         float(metric.value),
-                    ]
+                    ],
                 )
             else:
                 values.append(0.0)
                 features_data.append(
-                    [metric.timestamp.hour, metric.timestamp.weekday(), 0.0]
+                    [
+                        metric.timestamp.hour,
+                        metric.timestamp.weekday(),
+                        0.0,
+                    ],
                 )
 
         if len(features_data) < 5:
@@ -286,7 +295,7 @@ class PatternRecognitionModel(MLModel):
                             1,
                         )[0]
                         seasonality_strength = np.std(
-                            decomposition.seasonal.dropna()
+                            decomposition.seasonal.dropna(),
                         ) / np.std(df_ts["value"])
                     else:
                         trend_slope = (values[-1] - values[0]) / len(values)
@@ -400,16 +409,15 @@ class AnomalyDetectionModel(MLModel):
                     hasattr(item, "timestamp")
                     and hasattr(item, "value")
                     and hasattr(item, "source_tool")
-                ):
-                    if isinstance(item.value, (int, float)):
-                        features_data.append(
-                            [
-                                item.timestamp.hour,
-                                item.timestamp.weekday(),
-                                float(item.value),
-                                len(item.source_tool),  # Tool name length as feature
-                            ]
-                        )
+                ) and isinstance(item.value, int | float):
+                    features_data.append(
+                        [
+                            item.timestamp.hour,
+                            item.timestamp.weekday(),
+                            float(item.value),
+                            len(item.source_tool),  # Tool name length as feature
+                        ],
+                    )
 
             if len(features_data) < 20:
                 return False
@@ -444,7 +452,8 @@ class AnomalyDetectionModel(MLModel):
             return False
 
     async def detect_anomalies(
-        self, metrics_data: list[MetricValue]
+        self,
+        metrics_data: list[MetricValue],
     ) -> list[dict[str, Any]]:
         """Detect anomalies using ensemble of ML models."""
         anomalies = []
@@ -453,7 +462,7 @@ class AnomalyDetectionModel(MLModel):
         grouped_metrics = defaultdict(list)
         for metric in metrics_data:
             key = f"{metric.source_tool}_{metric.metric_id}"
-            if isinstance(metric.value, (int, float)):
+            if isinstance(metric.value, int | float):
                 grouped_metrics[key].append(metric)
 
         for key, metrics in grouped_metrics.items():
@@ -473,7 +482,9 @@ class AnomalyDetectionModel(MLModel):
         return anomalies
 
     async def _detect_ml_anomaly(
-        self, metric_key: str, metrics: list[MetricValue]
+        self,
+        metric_key: str,
+        metrics: list[MetricValue],
     ) -> dict[str, Any] | None:
         """Detect anomalies using trained ML models."""
         try:
@@ -489,7 +500,7 @@ class AnomalyDetectionModel(MLModel):
                         metric.timestamp.weekday(),
                         float(metric.value),
                         len(metric.source_tool),
-                    ]
+                    ],
                 )
                 values.append(float(metric.value))
                 timestamps.append(metric.timestamp)
@@ -513,7 +524,7 @@ class AnomalyDetectionModel(MLModel):
             # Find anomalous points (negative scores indicate anomalies)
             anomalous_indices = []
             for i, (if_pred, svm_pred, score) in enumerate(
-                zip(if_outliers, svm_outliers, ensemble_scores, strict=False)
+                zip(if_outliers, svm_outliers, ensemble_scores, strict=False),
             ):
                 # Consider point anomalous if either model flags it OR ensemble score is very low
                 if if_pred == -1 or svm_pred == -1 or score < -0.5:
@@ -533,7 +544,7 @@ class AnomalyDetectionModel(MLModel):
                         "svm_score": svm_scores[idx],
                         "ensemble_score": ensemble_scores[idx],
                         "severity_score": abs(ensemble_scores[idx]),
-                    }
+                    },
                 )
 
             # Calculate severity based on worst ensemble score
@@ -576,7 +587,9 @@ class AnomalyDetectionModel(MLModel):
             return await self._detect_statistical_anomaly(metric_key, values)
 
     async def _detect_statistical_anomaly(
-        self, metric_key: str, values: list[float]
+        self,
+        metric_key: str,
+        values: list[float],
     ) -> dict[str, Any] | None:
         """Detect statistical anomalies using z-score method."""
         if len(values) < 10:
@@ -598,7 +611,11 @@ class AnomalyDetectionModel(MLModel):
             z_score = abs(value - mean) / std_dev
             if z_score > self.anomaly_threshold:
                 anomalous_values.append(
-                    {"value": value, "z_score": z_score, "deviation": abs(value - mean)}
+                    {
+                        "value": value,
+                        "z_score": z_score,
+                        "deviation": abs(value - mean),
+                    },
                 )
 
         if anomalous_values:
@@ -646,14 +663,19 @@ class PredictiveAnalyticsModel(MLModel):
         for metric in metrics_data:
             if isinstance(metric.value, int | float):
                 tool_metrics[metric.source_tool].append(
-                    {"timestamp": metric.timestamp, "value": metric.value}
+                    {
+                        "timestamp": metric.timestamp,
+                        "value": metric.value,
+                    },
                 )
 
         forecasts = {}
         for tool, metrics in tool_metrics.items():
             if len(metrics) >= 7:  # Minimum data for forecasting
                 forecast = await self._generate_tool_forecast(
-                    tool, metrics, forecast_horizon
+                    tool,
+                    metrics,
+                    forecast_horizon,
                 )
                 forecasts[tool] = forecast
 
@@ -677,11 +699,13 @@ class PredictiveAnalyticsModel(MLModel):
                     hasattr(item, "timestamp")
                     and hasattr(item, "value")
                     and hasattr(item, "source_tool")
-                ):
-                    if isinstance(item.value, (int, float)):
-                        tool_data[item.source_tool].append(
-                            {"timestamp": item.timestamp, "value": float(item.value)}
-                        )
+                ) and isinstance(item.value, int | float):
+                    tool_data[item.source_tool].append(
+                        {
+                            "timestamp": item.timestamp,
+                            "value": float(item.value),
+                        },
+                    )
 
             models_trained = 0
             for tool, data in tool_data.items():
@@ -695,7 +719,8 @@ class PredictiveAnalyticsModel(MLModel):
                 self.trained = True
                 self.last_training_time = datetime.now(UTC)
                 self.model_accuracy = min(
-                    0.95, 0.7 + (models_trained * 0.05)
+                    0.95,
+                    0.7 + (models_trained * 0.05),
                 )  # Accuracy based on successful models
                 return True
 
@@ -766,7 +791,10 @@ class PredictiveAnalyticsModel(MLModel):
                                         best_aic = aic
                                         best_order = (p, d, q)
                                         best_model = fitted_model
-                                except Exception:
+                                except Exception as e:
+                                    logger.debug(
+                                        f"ARIMA model fitting failed for order ({p},{d},{q}): {e}",
+                                    )
                                     continue
 
                     if best_model is not None:
@@ -813,7 +841,10 @@ class PredictiveAnalyticsModel(MLModel):
             return False
 
     async def _generate_tool_forecast(
-        self, tool: str, metrics: list[dict[str, Any]], horizon: timedelta
+        self,
+        tool: str,
+        metrics: list[dict[str, Any]],
+        horizon: timedelta,
     ) -> dict[str, Any]:
         """Generate forecast for a specific tool using trained models."""
         # Sort by timestamp
@@ -823,12 +854,18 @@ class PredictiveAnalyticsModel(MLModel):
         # Use trained model if available
         if tool in self.trained_models and self.trained:
             return await self._generate_trained_forecast(
-                tool, sorted_metrics, values, horizon
+                tool,
+                sorted_metrics,
+                values,
+                horizon,
             )
 
         # Fallback to simple regression for untrained models
         return await self._generate_simple_forecast(
-            tool, sorted_metrics, values, horizon
+            tool,
+            sorted_metrics,
+            values,
+            horizon,
         )
 
     async def _generate_trained_forecast(
@@ -852,7 +889,7 @@ class PredictiveAnalyticsModel(MLModel):
                 arima_model = self.arima_models[tool]
                 forecast_result = arima_model.forecast(steps=days_to_forecast)
                 confidence_intervals = arima_model.get_forecast(
-                    steps=days_to_forecast
+                    steps=days_to_forecast,
                 ).conf_int()
 
                 for i in range(days_to_forecast):
@@ -884,16 +921,16 @@ class PredictiveAnalyticsModel(MLModel):
                             "predicted_value": float(predicted_value),
                             "confidence": confidence,
                             "prediction_interval_lower": float(
-                                confidence_intervals.iloc[i, 0]
+                                confidence_intervals.iloc[i, 0],
                             )
                             if len(confidence_intervals) > i
                             else None,
                             "prediction_interval_upper": float(
-                                confidence_intervals.iloc[i, 1]
+                                confidence_intervals.iloc[i, 1],
                             )
                             if len(confidence_intervals) > i
                             else None,
-                        }
+                        },
                     )
 
                 # Calculate trend from ARIMA forecast
@@ -918,22 +955,24 @@ class PredictiveAnalyticsModel(MLModel):
                     "data_quality": "excellent" if len(values) >= 50 else "good",
                     "model_used": "arima",
                     "model_order": model_info["performance"]["arima"].get(
-                        "order", "unknown"
+                        "order",
+                        "unknown",
                     ),
                     "model_aic": self.model_selection_criteria.get(tool, "unknown"),
                 }
 
-            elif best_model == "linear":
+            if best_model == "linear":
                 # Use trained linear regression
                 X_future = np.array(
-                    range(len(values), len(values) + days_to_forecast)
+                    range(len(values), len(values) + days_to_forecast),
                 ).reshape(-1, 1)
                 predictions = self.linear_model.predict(X_future)
 
                 for i, pred in enumerate(predictions):
                     forecast_time = current_time + timedelta(days=i + 1)
                     confidence = max(
-                        0.5, 0.9 - (i * 0.08)
+                        0.5,
+                        0.9 - (i * 0.08),
                     )  # Decrease confidence over time
 
                     forecast_points.append(
@@ -941,7 +980,7 @@ class PredictiveAnalyticsModel(MLModel):
                             "timestamp": forecast_time,
                             "predicted_value": float(pred),
                             "confidence": confidence,
-                        }
+                        },
                     )
 
                 # Calculate trend from linear model
@@ -966,12 +1005,15 @@ class PredictiveAnalyticsModel(MLModel):
                     "model_aic": self.model_selection_criteria.get(tool, "unknown"),
                 }
 
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Trained forecast generation failed: {e}")
 
         # Fallback to simple forecast
         return await self._generate_simple_forecast(
-            tool, sorted_metrics, values, horizon
+            tool,
+            sorted_metrics,
+            values,
+            horizon,
         )
 
     async def _generate_simple_forecast(
@@ -1009,9 +1051,10 @@ class PredictiveAnalyticsModel(MLModel):
                         "timestamp": forecast_time,
                         "predicted_value": forecast_value,
                         "confidence": max(
-                            0.5, 0.9 - (i * 0.1)
+                            0.5,
+                            0.9 - (i * 0.1),
                         ),  # Decreasing confidence over time
-                    }
+                    },
                 )
 
             return {
@@ -1044,7 +1087,6 @@ class MLInsightsEngine:
         self.privacy_mode = privacy_mode
         self.models: dict[MLModelType, MLModel] = {}
         self.insights_generated = 0
-        self.logger = logging.getLogger(__name__)
 
         # Initialize model persistence and training infrastructure
         self.model_storage = ModelStorage()
@@ -1053,21 +1095,21 @@ class MLInsightsEngine:
         # Initialize ML models
         self._initialize_models()
 
-    def _initialize_models(self):
+    def _initialize_models(self) -> bool:
         """Initialize all ML models."""
         self.models[MLModelType.PATTERN_RECOGNITION] = PatternRecognitionModel(
-            "pattern_model_001"
+            "pattern_model_001",
         )
         self.models[MLModelType.ANOMALY_DETECTION] = AnomalyDetectionModel(
-            "anomaly_model_001"
+            "anomaly_model_001",
         )
         self.models[MLModelType.PREDICTIVE_ANALYTICS] = PredictiveAnalyticsModel(
-            "prediction_model_001"
+            "prediction_model_001",
         )
 
     @require(
-        lambda self, metrics_data, analysis_scope=None: metrics_data is not None
-        and len(metrics_data) > 0
+        lambda _self, metrics_data, analysis_scope=None: metrics_data is not None
+        and len(metrics_data) > 0,
     )
     async def generate_comprehensive_insights(
         self,
@@ -1121,7 +1163,7 @@ class MLInsightsEngine:
                     if forecast.get("forecast_points"):
                         insight = MLInsight(
                             insight_id=create_insight_id(
-                                MLModelType.PREDICTIVE_ANALYTICS
+                                MLModelType.PREDICTIVE_ANALYTICS,
                             ),
                             model_type=MLModelType.PREDICTIVE_ANALYTICS,
                             confidence=0.75,
@@ -1133,12 +1175,12 @@ class MLInsightsEngine:
                         insights.append(insight)
 
             self.insights_generated += len(insights)
-            self.logger.info(f"Generated {len(insights)} ML insights")
+            logger.info(f"Generated {len(insights)} ML insights")
 
             return insights
 
         except Exception as e:
-            self.logger.error(f"Error generating ML insights: {e}")
+            logger.error(f"Error generating ML insights: {e}")
             return []
 
     async def get_model_performance(self) -> dict[str, Any]:
@@ -1164,10 +1206,10 @@ class MLInsightsEngine:
             try:
                 success = await model.train(training_data)
                 results[model_type.value] = success
-                self.logger.info(f"Retrained {model_type.value} model")
+                logger.info(f"Retrained {model_type.value} model")
             except Exception as e:
                 results[model_type.value] = False
-                self.logger.error(f"Failed to retrain {model_type.value} model: {e}")
+                logger.error(f"Failed to retrain {model_type.value} model: {e}")
 
         return results
 
@@ -1181,9 +1223,9 @@ class MLInsightsEngine:
                     version = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
                     model_path = self.model_storage.save_model(model, version)
                     saved_models[model_type.value] = model_path
-                    self.logger.info(f"Saved {model_type.value} model to {model_path}")
+                    logger.info(f"Saved {model_type.value} model to {model_path}")
                 except Exception as e:
-                    self.logger.error(f"Failed to save {model_type.value} model: {e}")
+                    logger.error(f"Failed to save {model_type.value} model: {e}")
                     saved_models[model_type.value] = f"Error: {e}"
 
         return saved_models
@@ -1200,19 +1242,23 @@ class MLInsightsEngine:
             try:
                 model_id = f"{model_type.value}_model_001"
                 loaded_model = self.model_storage.load_model(
-                    model_type, model_id, version
+                    model_type,
+                    model_id,
+                    version,
                 )
                 self.models[model_type] = loaded_model
                 loaded_models[model_type.value] = True
-                self.logger.info(f"Loaded {model_type.value} model from storage")
+                logger.info(f"Loaded {model_type.value} model from storage")
             except Exception as e:
-                self.logger.warning(f"Could not load {model_type.value} model: {e}")
+                logger.warning(f"Could not load {model_type.value} model: {e}")
                 loaded_models[model_type.value] = False
 
         return loaded_models
 
     async def train_with_pipeline(
-        self, training_data: list[MetricValue], optimize_hyperparameters: bool = True
+        self,
+        training_data: list[MetricValue],
+        optimize_hyperparameters: bool = True,
     ) -> dict[str, Any]:
         """Train models using the automated training pipeline."""
         pipeline_results = {}
@@ -1234,16 +1280,16 @@ class MLInsightsEngine:
                 if result["success"]:
                     # Load the trained model into the engine
                     trained_model = self.model_storage.load_model(
-                        model_type, model_id, result["version"]
+                        model_type,
+                        model_id,
+                        result["version"],
                     )
                     self.models[model_type] = trained_model
 
                 pipeline_results[model_type.value] = result
 
             except Exception as e:
-                self.logger.error(
-                    f"Pipeline training failed for {model_type.value}: {e}"
-                )
+                logger.error(f"Pipeline training failed for {model_type.value}: {e}")
                 pipeline_results[model_type.value] = {"success": False, "error": str(e)}
 
         return pipeline_results
@@ -1269,7 +1315,8 @@ class MLInsightsEngine:
             return {"error": str(e)}
 
     async def deploy_best_models(
-        self, training_data: list[MetricValue]
+        self,
+        training_data: list[MetricValue],
     ) -> dict[str, Any]:
         """Deploy the best performing models for production use."""
         deployment_results = {}
@@ -1299,10 +1346,12 @@ class MLInsightsEngine:
 
                 # Select best performing model
                 optimized_score = optimized_result.get("performance", {}).get(
-                    "overall_performance_score", 0.0
+                    "overall_performance_score",
+                    0.0,
                 )
                 baseline_score = baseline_result.get("performance", {}).get(
-                    "overall_performance_score", 0.0
+                    "overall_performance_score",
+                    0.0,
                 )
 
                 if optimized_score >= baseline_score:
@@ -1314,21 +1363,24 @@ class MLInsightsEngine:
 
                 # Deploy best model
                 best_model = self.model_storage.load_model(
-                    model_type, best_model_id, best_result["version"]
+                    model_type,
+                    best_model_id,
+                    best_result["version"],
                 )
                 self.models[model_type] = best_model
 
                 deployment_results[model_type.value] = {
                     "deployed_model": best_model_id,
                     "performance_score": best_result.get("performance", {}).get(
-                        "overall_performance_score", 0.0
+                        "overall_performance_score",
+                        0.0,
                     ),
                     "training_time": best_result.get("training_time", 0),
                     "model_path": best_result.get("model_path", ""),
                 }
 
             except Exception as e:
-                self.logger.error(f"Deployment failed for {model_type.value}: {e}")
+                logger.error(f"Deployment failed for {model_type.value}: {e}")
                 deployment_results[model_type.value] = {"error": str(e)}
 
         return deployment_results

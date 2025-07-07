@@ -1,5 +1,4 @@
-"""
-Analytics architecture for comprehensive automation insights and business intelligence.
+"""Analytics architecture for comprehensive automation insights and business intelligence.
 
 This module defines the analytics type system, metrics framework, and ML infrastructure
 for deep analysis of the complete 48-tool enterprise automation ecosystem.
@@ -17,7 +16,7 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, NewType
 
-from .errors import AnalyticsError, ValidationError
+from .errors import ValidationError
 from .types import Permission
 
 # Branded Types for Analytics
@@ -144,7 +143,9 @@ class MetricValue:
 
         if not (0.0 <= self.quality_score <= 1.0):
             raise ValidationError(
-                "quality_score", self.quality_score, "must be between 0.0 and 1.0"
+                "quality_score",
+                self.quality_score,
+                "must be between 0.0 and 1.0",
             )
 
 
@@ -165,17 +166,23 @@ class PerformanceMetrics:
     def __post_init__(self):
         if self.execution_time_ms < 0:
             raise ValidationError(
-                "execution_time_ms", self.execution_time_ms, "cannot be negative"
+                "execution_time_ms",
+                self.execution_time_ms,
+                "cannot be negative",
             )
 
         if self.memory_usage_mb < 0:
             raise ValidationError(
-                "memory_usage_mb", self.memory_usage_mb, "cannot be negative"
+                "memory_usage_mb",
+                self.memory_usage_mb,
+                "cannot be negative",
             )
 
         if not (0.0 <= self.success_rate <= 1.0):
             raise ValidationError(
-                "success_rate", self.success_rate, "must be between 0.0 and 1.0"
+                "success_rate",
+                self.success_rate,
+                "must be between 0.0 and 1.0",
             )
 
 
@@ -223,12 +230,16 @@ class MLInsight:
     def __post_init__(self):
         if not (0.0 <= self.confidence <= 1.0):
             raise ValidationError(
-                "confidence", self.confidence, "must be between 0.0 and 1.0"
+                "confidence",
+                self.confidence,
+                "must be between 0.0 and 1.0",
             )
 
         if not (0.0 <= self.impact_score <= 1.0):
             raise ValidationError(
-                "impact_score", self.impact_score, "must be between 0.0 and 1.0"
+                "impact_score",
+                self.impact_score,
+                "must be between 0.0 and 1.0",
             )
 
 
@@ -255,7 +266,9 @@ class AnalyticsDashboard:
 
         if self.refresh_interval.total_seconds() < 30:
             raise ValidationError(
-                "refresh_interval", self.refresh_interval, "must be at least 30 seconds"
+                "refresh_interval",
+                self.refresh_interval,
+                "must be at least 30 seconds",
             )
 
 
@@ -386,7 +399,4 @@ class AnomalyDetection:
     timestamp: datetime
 
 
-class AnalyticsError(Exception):
-    """Base exception for analytics-related errors."""
-
-    pass
+# AnalyticsError imported from .errors module

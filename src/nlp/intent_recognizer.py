@@ -1,5 +1,4 @@
-"""
-Intent Recognizer - TASK_60 Phase 1 Core Implementation
+"""Intent Recognizer - TASK_60 Phase 1 Core Implementation.
 
 Intent recognition and classification system for natural language processing.
 Provides ML-powered intent recognition, entity extraction, and context-aware classification.
@@ -108,14 +107,14 @@ class EntityExtractor:
                 re.compile(
                     r"\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b",
                     re.IGNORECASE,
-                )
+                ),
             ],
             EntityType.PHONE_NUMBER: [
                 re.compile(
-                    r"\b(\+?1[-.\s]?)?(\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4})\b"
+                    r"\b(\+?1[-.\s]?)?(\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4})\b",
                 ),
                 re.compile(
-                    r"\b(\+?[0-9]{1,3}[-.\s]?[0-9]{1,4}[-.\s]?[0-9]{1,4}[-.\s]?[0-9]{1,9})\b"
+                    r"\b(\+?[0-9]{1,3}[-.\s]?[0-9]{1,4}[-.\s]?[0-9]{1,4}[-.\s]?[0-9]{1,9})\b",
                 ),
             ],
             EntityType.DATE: [
@@ -131,7 +130,8 @@ class EntityExtractor:
             ],
             EntityType.TIME: [
                 re.compile(
-                    r"\b(\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM|am|pm)?)\b", re.IGNORECASE
+                    r"\b(\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM|am|pm)?)\b",
+                    re.IGNORECASE,
                 ),
                 re.compile(
                     r"\b((?:at\s+)?(?:noon|midnight|morning|afternoon|evening|night))\b",
@@ -145,7 +145,8 @@ class EntityExtractor:
                     re.IGNORECASE,
                 ),
                 re.compile(
-                    r"\b(\d+(?:\.\d+)?\s*(?:sec|min|hr|hrs)s?)\b", re.IGNORECASE
+                    r"\b(\d+(?:\.\d+)?\s*(?:sec|min|hr|hrs)s?)\b",
+                    re.IGNORECASE,
                 ),
             ],
             EntityType.NUMBER: [
@@ -162,7 +163,8 @@ class EntityExtractor:
             EntityType.CURRENCY: [
                 re.compile(r"\b(\$\d+(?:\.\d{2})?)\b"),
                 re.compile(
-                    r"\b(\d+(?:\.\d{2})?\s*(?:dollars?|USD|cents?))\b", re.IGNORECASE
+                    r"\b(\d+(?:\.\d{2})?\s*(?:dollars?|USD|cents?))\b",
+                    re.IGNORECASE,
                 ),
                 re.compile(r"\b(€\d+(?:\.\d{2})?)\b"),
                 re.compile(r"\b(£\d+(?:\.\d{2})?)\b"),
@@ -203,12 +205,15 @@ class EntityExtractor:
                         entity_type=entity_type,
                         value=create_entity(entity_value),
                         confidence=self._calculate_entity_confidence(
-                            entity_type, entity_value
+                            entity_type,
+                            entity_value,
                         ),
                         start_position=match.start(),
                         end_position=match.end(),
                         context=self._extract_entity_context(
-                            text_str, match.start(), match.end()
+                            text_str,
+                            match.start(),
+                            match.end(),
                         ),
                         metadata={
                             "pattern_type": "regex",
@@ -222,7 +227,9 @@ class EntityExtractor:
         return self._remove_overlapping_entities(entities)
 
     def _calculate_entity_confidence(
-        self, entity_type: EntityType, value: str
+        self,
+        entity_type: EntityType,
+        value: str,
     ) -> float:
         """Calculate confidence score for extracted entity."""
         base_confidence = 0.7
@@ -232,24 +239,22 @@ class EntityExtractor:
             # Email pattern is quite reliable
             return 0.95 if "@" in value and "." in value else 0.5
 
-        elif entity_type == EntityType.URL:
+        if entity_type == EntityType.URL:
             # URL pattern reliability
             if value.startswith(("http://", "https://")):
                 return 0.95
-            elif value.startswith("www."):
+            if value.startswith("www."):
                 return 0.85
-            else:
-                return 0.7
+            return 0.7
 
-        elif entity_type == EntityType.PHONE_NUMBER:
+        if entity_type == EntityType.PHONE_NUMBER:
             # Phone number validation
             digits = re.sub(r"\D", "", value)
             if len(digits) == 10 or len(digits) == 11 and digits.startswith("1"):
                 return 0.9
-            else:
-                return 0.6
+            return 0.6
 
-        elif entity_type == EntityType.APPLICATION:
+        if entity_type == EntityType.APPLICATION:
             # Known application names
             known_apps = {
                 "chrome",
@@ -268,23 +273,25 @@ class EntityExtractor:
             }
             if value.lower() in known_apps:
                 return 0.95
-            else:
-                return 0.7
+            return 0.7
 
-        elif entity_type == EntityType.HOTKEY:
+        if entity_type == EntityType.HOTKEY:
             # Hotkey pattern validation
             if any(
                 modifier in value.lower()
                 for modifier in ["cmd", "ctrl", "alt", "shift"]
             ):
                 return 0.9
-            else:
-                return 0.6
+            return 0.6
 
         return base_confidence
 
     def _extract_entity_context(
-        self, text: str, start: int, end: int, window: int = 20
+        self,
+        text: str,
+        start: int,
+        end: int,
+        window: int = 20,
     ) -> str:
         """Extract context around entity for better understanding."""
         context_start = max(0, start - window)
@@ -304,7 +311,8 @@ class EntityExtractor:
         return context
 
     def _remove_overlapping_entities(
-        self, entities: list[ExtractedEntity]
+        self,
+        entities: list[ExtractedEntity],
     ) -> list[ExtractedEntity]:
         """Remove overlapping entities, keeping those with higher confidence."""
         if not entities:
@@ -526,10 +534,13 @@ class IntentClassifier:
     @require(lambda text: isinstance(text, TextContent))
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.left_value, IntentRecognitionError)
+        or isinstance(result.left_value, IntentRecognitionError),
     )
     async def recognize_intent(
-        self, text: TextContent, confidence_threshold: float = 0.5, max_intents: int = 3
+        self,
+        text: TextContent,
+        confidence_threshold: float = 0.5,
+        max_intents: int = 3,
     ) -> Either[IntentRecognitionError, list[RecognizedIntent]]:
         """Recognize intents from natural language text."""
         try:
@@ -551,7 +562,10 @@ class IntentClassifier:
 
                     # Adjust confidence based on entities and context
                     adjusted_confidence = self._adjust_confidence_with_context(
-                        confidence, pattern, entities, text_str
+                        confidence,
+                        pattern,
+                        entities,
+                        text_str,
                     )
 
                     intent_scores.append((pattern, adjusted_confidence, entities))
@@ -568,11 +582,14 @@ class IntentClassifier:
                     confidence=confidence,
                     entities=entities,
                     parameters=self._extract_intent_parameters(
-                        pattern, entities, text_str
+                        pattern,
+                        entities,
+                        text_str,
                     ),
                     context_requirements=self._determine_context_requirements(pattern),
                     suggested_actions=self._generate_suggested_actions(
-                        pattern, entities
+                        pattern,
+                        entities,
                     ),
                 )
                 recognized_intents.append(recognized_intent)
@@ -588,10 +605,10 @@ class IntentClassifier:
         except Exception as e:
             return Either.left(
                 IntentRecognitionError(
-                    f"Intent recognition failed: {str(e)}",
+                    f"Intent recognition failed: {e!s}",
                     "RECOGNITION_ERROR",
                     context={"text_length": len(str(text))},
-                )
+                ),
             )
 
     def _adjust_confidence_with_context(
@@ -641,7 +658,10 @@ class IntentClassifier:
         return min(1.0, adjusted_confidence)
 
     def _extract_intent_parameters(
-        self, pattern: IntentPattern, entities: list[ExtractedEntity], text: str
+        self,
+        pattern: IntentPattern,
+        entities: list[ExtractedEntity],
+        text: str,
     ) -> dict[str, Any]:
         """Extract parameters relevant to the recognized intent."""
         parameters = {}
@@ -660,7 +680,8 @@ class IntentClassifier:
 
         elif pattern.category == IntentCategory.WORKFLOW_CREATION:
             parameters["workflow_complexity"] = self._estimate_complexity(
-                text, entities
+                text,
+                entities,
             )
             parameters["workflow_type"] = (
                 "visual" if "visual" in text.lower() else "standard"
@@ -696,7 +717,9 @@ class IntentClassifier:
         return requirements
 
     def _generate_suggested_actions(
-        self, pattern: IntentPattern, entities: list[ExtractedEntity]
+        self,
+        pattern: IntentPattern,
+        entities: list[ExtractedEntity],
     ) -> list[str]:
         """Generate suggested actions for this intent."""
         actions = []
@@ -708,7 +731,7 @@ class IntentClassifier:
                         "Open workflow designer",
                         "Select automation template",
                         "Configure automation parameters",
-                    ]
+                    ],
                 )
             elif pattern.intent == "run_automation":
                 actions.extend(
@@ -716,7 +739,7 @@ class IntentClassifier:
                         "Find matching automation",
                         "Verify prerequisites",
                         "Execute automation",
-                    ]
+                    ],
                 )
 
         elif pattern.category == IntentCategory.TROUBLESHOOTING:
@@ -725,7 +748,7 @@ class IntentClassifier:
                     "Gather diagnostic information",
                     "Check error logs",
                     "Suggest potential solutions",
-                ]
+                ],
             )
 
         elif pattern.category == IntentCategory.HELP_REQUEST:
@@ -734,7 +757,7 @@ class IntentClassifier:
                     "Provide relevant documentation",
                     "Offer step-by-step guidance",
                     "Suggest tutorials or examples",
-                ]
+                ],
             )
 
         return actions
@@ -746,10 +769,9 @@ class IntentClassifier:
 
         if any(word in text_lower for word in urgent_words):
             return "high"
-        elif any(word in text_lower for word in ["please", "when possible"]):
+        if any(word in text_lower for word in ["please", "when possible"]):
             return "low"
-        else:
-            return "normal"
+        return "normal"
 
     def _estimate_complexity(self, text: str, entities: list[ExtractedEntity]) -> str:
         """Estimate workflow complexity from description."""
@@ -775,10 +797,9 @@ class IntentClassifier:
             or any(word in text_lower for word in complexity_indicators["complex"])
         ):
             return "complex"
-        elif any(word in text_lower for word in complexity_indicators["simple"]):
+        if any(word in text_lower for word in complexity_indicators["simple"]):
             return "simple"
-        else:
-            return "intermediate"
+        return "intermediate"
 
     def _assess_error_severity(self, text: str) -> str:
         """Assess error severity from description."""
@@ -789,12 +810,11 @@ class IntentClassifier:
 
         if any(word in text_lower for word in critical_words):
             return "critical"
-        elif any(word in text_lower for word in warning_words):
+        if any(word in text_lower for word in warning_words):
             return "warning"
-        else:
-            return "info"
+        return "info"
 
-    def _update_learning_data(self, text: str, intents: list[RecognizedIntent]):
+    def _update_learning_data(self, text: str, intents: list[RecognizedIntent]) -> bool:
         """Update learning data for continuous improvement."""
         timestamp = datetime.now(UTC)
 
@@ -805,7 +825,7 @@ class IntentClassifier:
                     "confidence": intent.confidence,
                     "timestamp": timestamp,
                     "entities_count": len(intent.entities),
-                }
+                },
             )
 
         # Limit learning data size
@@ -816,7 +836,10 @@ class IntentClassifier:
                 ]
 
     async def improve_from_feedback(
-        self, text: TextContent, correct_intent: Intent, feedback_confidence: float
+        self,
+        text: TextContent,
+        correct_intent: Intent,
+        feedback_confidence: float,
     ) -> bool:
         """Improve classifier based on user feedback."""
         try:
@@ -833,11 +856,13 @@ class IntentClassifier:
                 # Update success rate based on feedback
                 if feedback_confidence > 0.7:
                     correct_pattern.success_rate = min(
-                        1.0, correct_pattern.success_rate * 1.05
+                        1.0,
+                        correct_pattern.success_rate * 1.05,
                     )
                 else:
                     correct_pattern.success_rate = max(
-                        0.1, correct_pattern.success_rate * 0.95
+                        0.1,
+                        correct_pattern.success_rate * 0.95,
                     )
 
                 # Clear cache to force re-evaluation

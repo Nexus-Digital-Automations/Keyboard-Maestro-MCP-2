@@ -1,5 +1,4 @@
-"""
-Performance Alert System - TASK_54 Phase 2 Implementation
+"""Performance Alert System - TASK_54 Phase 2 Implementation.
 
 Advanced alerting system for performance threshold monitoring, alert management,
 and automated notification delivery with escalation policies.
@@ -138,8 +137,7 @@ class ActiveAlert:
 
 
 class AlertSystem:
-    """
-    Advanced performance alert system with threshold monitoring and notifications.
+    """Advanced performance alert system with threshold monitoring and notifications.
 
     Provides real-time alert evaluation, escalation policies, and multi-channel
     notification delivery with comprehensive alert lifecycle management.
@@ -173,7 +171,7 @@ class AlertSystem:
             NotificationChannel.CONSOLE: self._send_console_notification,
         }
 
-    @require(lambda self, rule: len(rule.name.strip()) > 0, "Alert rule name required")
+    @require(lambda __self, rule: len(rule.name.strip()) > 0, "Alert rule name required")
     def add_alert_rule(self, rule: AlertRule) -> Either[str, str]:
         """Add a new alert rule to the system."""
         try:
@@ -184,7 +182,7 @@ class AlertSystem:
             for notification in rule.notification_channels:
                 if notification.channel not in self.notification_handlers:
                     return Either.left(
-                        f"Unsupported notification channel: {notification.channel}"
+                        f"Unsupported notification channel: {notification.channel}",
                     )
 
             self.alert_rules[rule.rule_id] = rule
@@ -193,7 +191,7 @@ class AlertSystem:
             return Either.right(rule.rule_id)
 
         except Exception as e:
-            error_msg = f"Failed to add alert rule: {str(e)}"
+            error_msg = f"Failed to add alert rule: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -209,13 +207,15 @@ class AlertSystem:
             return Either.right(rule_id)
 
         except Exception as e:
-            error_msg = f"Failed to remove alert rule: {str(e)}"
+            error_msg = f"Failed to remove alert rule: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
-    @require(lambda self, metric: metric.value is not None, "Metric value required")
+    @require(lambda __self, metric: metric.value is not None, "Metric value required")
     async def evaluate_metric(
-        self, metric: MetricValue, session_id: MonitoringSessionID | None = None
+        self,
+        metric: MetricValue,
+        session_id: MonitoringSessionID | None = None,
     ) -> list[PerformanceAlert]:
         """Evaluate a metric against all applicable alert rules."""
         alerts_generated = []
@@ -237,7 +237,7 @@ class AlertSystem:
                     if cooldown_key in self.cooldown_cache:
                         last_alert_time = self.cooldown_cache[cooldown_key]
                         if current_time - last_alert_time < timedelta(
-                            seconds=rule.threshold.cooldown_period
+                            seconds=rule.threshold.cooldown_period,
                         ):
                             continue  # Still in cooldown
 
@@ -290,14 +290,15 @@ class AlertSystem:
                 handler = self.notification_handlers.get(notification_config.channel)
                 if handler:
                     task = asyncio.create_task(
-                        handler(active_alert, notification_config)
+                        handler(active_alert, notification_config),
                     )
                     notification_tasks.append(task)
 
             # Wait for all notifications to complete
             if notification_tasks:
                 results = await asyncio.gather(
-                    *notification_tasks, return_exceptions=True
+                    *notification_tasks,
+                    return_exceptions=True,
                 )
 
                 # Log notification results
@@ -311,7 +312,7 @@ class AlertSystem:
                                 "status": "failed",
                                 "error": str(result),
                                 "timestamp": datetime.now(UTC).isoformat(),
-                            }
+                            },
                         )
                     else:
                         active_alert.notification_history.append(
@@ -319,55 +320,69 @@ class AlertSystem:
                                 "channel": channel.value,
                                 "status": "sent",
                                 "timestamp": datetime.now(UTC).isoformat(),
-                            }
+                            },
                         )
 
         except Exception as e:
             logger.error(f"Alert notification failed: {e}")
 
     async def _send_log_notification(
-        self, active_alert: ActiveAlert, config: NotificationConfig
+        self,
+        active_alert: ActiveAlert,
+        config: NotificationConfig,
     ) -> None:
         """Send alert notification to log."""
         logger.warning(f"ALERT: {active_alert.alert.message}")
 
     async def _send_email_notification(
-        self, active_alert: ActiveAlert, config: NotificationConfig
+        self,
+        active_alert: ActiveAlert,
+        config: NotificationConfig,
     ) -> None:
         """Send alert notification via email (placeholder)."""
         # This would integrate with an email service
         logger.info(f"EMAIL ALERT: {active_alert.alert.message}")
 
     async def _send_sms_notification(
-        self, active_alert: ActiveAlert, config: NotificationConfig
+        self,
+        active_alert: ActiveAlert,
+        config: NotificationConfig,
     ) -> None:
         """Send alert notification via SMS (placeholder)."""
         # This would integrate with an SMS service
         logger.info(f"SMS ALERT: {active_alert.alert.message}")
 
     async def _send_webhook_notification(
-        self, active_alert: ActiveAlert, config: NotificationConfig
+        self,
+        active_alert: ActiveAlert,
+        config: NotificationConfig,
     ) -> None:
         """Send alert notification via webhook (placeholder)."""
         # This would make HTTP POST to configured webhook URL
         logger.info(f"WEBHOOK ALERT: {active_alert.alert.message}")
 
     async def _send_slack_notification(
-        self, active_alert: ActiveAlert, config: NotificationConfig
+        self,
+        active_alert: ActiveAlert,
+        config: NotificationConfig,
     ) -> None:
         """Send alert notification to Slack (placeholder)."""
         # This would integrate with Slack API
         logger.info(f"SLACK ALERT: {active_alert.alert.message}")
 
     async def _send_desktop_notification(
-        self, active_alert: ActiveAlert, config: NotificationConfig
+        self,
+        active_alert: ActiveAlert,
+        config: NotificationConfig,
     ) -> None:
         """Send desktop notification (placeholder)."""
         # This would show OS-level notification
         logger.info(f"DESKTOP ALERT: {active_alert.alert.message}")
 
     async def _send_console_notification(
-        self, active_alert: ActiveAlert, config: NotificationConfig
+        self,
+        active_alert: ActiveAlert,
+        config: NotificationConfig,
     ) -> None:
         """Send alert to console output."""
         print(f"🚨 PERFORMANCE ALERT: {active_alert.alert.message}")
@@ -382,7 +397,9 @@ class AlertSystem:
         )
 
     def acknowledge_alert(
-        self, alert_id: AlertID, acknowledged_by: str
+        self,
+        alert_id: AlertID,
+        acknowledged_by: str,
     ) -> Either[str, str]:
         """Acknowledge an active alert."""
         try:
@@ -396,7 +413,7 @@ class AlertSystem:
             return Either.right(alert_id)
 
         except Exception as e:
-            error_msg = f"Failed to acknowledge alert: {str(e)}"
+            error_msg = f"Failed to acknowledge alert: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -421,12 +438,13 @@ class AlertSystem:
             return Either.right(alert_id)
 
         except Exception as e:
-            error_msg = f"Failed to resolve alert: {str(e)}"
+            error_msg = f"Failed to resolve alert: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
     def get_active_alerts(
-        self, severity_filter: AlertSeverity | None = None
+        self,
+        severity_filter: AlertSeverity | None = None,
     ) -> list[ActiveAlert]:
         """Get all active alerts, optionally filtered by severity."""
         alerts = list(self.active_alerts.values())
@@ -448,7 +466,7 @@ class AlertSystem:
             key=lambda a: (
                 severity_order.get(a.alert.threshold.severity, 4),
                 a.alert.triggered_at,
-            )
+            ),
         )
 
         return alerts
@@ -480,7 +498,7 @@ class AlertSystem:
                     nc.channel.value
                     for rule in self.alert_rules.values()
                     for nc in rule.notification_channels
-                }
+                },
             ),
         }
 
@@ -498,7 +516,7 @@ class AlertSystem:
                 ):
                     # Check if escalation is due
                     escalation_delay = timedelta(
-                        minutes=active_alert.rule.escalation_policy.escalation_delay_minutes
+                        minutes=active_alert.rule.escalation_policy.escalation_delay_minutes,
                     )
                     last_time = (
                         active_alert.last_escalation or active_alert.alert.triggered_at
@@ -518,7 +536,7 @@ class AlertSystem:
             active_alert.status = AlertStatus.ESCALATED
 
             logger.warning(
-                f"Alert {active_alert.alert.alert_id} escalated to level {active_alert.escalation_level}"
+                f"Alert {active_alert.alert.alert_id} escalated to level {active_alert.escalation_level}",
             )
 
             # Send escalation notifications

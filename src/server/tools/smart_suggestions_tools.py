@@ -1,5 +1,4 @@
-"""
-Smart suggestions MCP tool implementation for AI-powered automation optimization.
+"""Smart suggestions MCP tool implementation for AI-powered automation optimization.
 
 This tool provides intelligent automation suggestions, workflow optimization
 recommendations, and adaptive learning capabilities that improve over time
@@ -50,10 +49,12 @@ class SmartSuggestionsManager:
         try:
             self.ai_processor = ai_processor
             self.recommendation_engine = RecommendationEngine(
-                ai_processor, self.pattern_analyzer
+                ai_processor,
+                self.pattern_analyzer,
             )
             self.learning_system = AdaptiveLearningSystem(
-                self.recommendation_engine, self.pattern_analyzer
+                self.recommendation_engine,
+                self.pattern_analyzer,
             )
             self.initialized = True
 
@@ -61,7 +62,7 @@ class SmartSuggestionsManager:
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Smart suggestions initialization failed: {str(e)}")
+            logger.error(f"Smart suggestions initialization failed: {e!s}")
             return Either.left(SuggestionError.initialization_failed(str(e)))
 
     async def get_suggestions(
@@ -77,27 +78,31 @@ class SmartSuggestionsManager:
 
             # Generate suggestions
             suggestions = await self.recommendation_engine.generate_suggestions(
-                context, suggestion_types, max_suggestions
+                context,
+                suggestion_types,
+                max_suggestions,
             )
 
             # Apply personalization if user has learning profile
             personalized_suggestions = (
                 await self.learning_system.personalize_suggestions(
-                    context.user_id, suggestions
+                    context.user_id,
+                    suggestions,
                 )
             )
 
             logger.info(
-                f"Generated {len(personalized_suggestions)} suggestions for user {context.user_id}"
+                f"Generated {len(personalized_suggestions)} suggestions for user {context.user_id}",
             )
             return Either.right(personalized_suggestions)
 
         except Exception as e:
-            logger.error(f"Error generating suggestions: {str(e)}")
+            logger.error(f"Error generating suggestions: {e!s}")
             return Either.left(SuggestionError.generation_failed(str(e)))
 
     async def process_feedback(
-        self, feedback: SuggestionFeedback
+        self,
+        feedback: SuggestionFeedback,
     ) -> Either[SuggestionError, None]:
         """Process user feedback for adaptive learning."""
         try:
@@ -107,20 +112,25 @@ class SmartSuggestionsManager:
             return await self.learning_system.process_feedback(feedback)
 
         except Exception as e:
-            logger.error(f"Error processing feedback: {str(e)}")
+            logger.error(f"Error processing feedback: {e!s}")
             return Either.left(SuggestionError.learning_failed(str(e)))
 
     async def track_user_action(
-        self, user_id: str, action: str, context: dict[str, Any]
+        self,
+        user_id: str,
+        action: str,
+        context: dict[str, Any],
     ) -> Either[SuggestionError, None]:
         """Track user action for behavior learning."""
         try:
             return await self.behavior_tracker.track_user_action(
-                user_id, action, context
+                user_id,
+                action,
+                context,
             )
 
         except Exception as e:
-            logger.error(f"Error tracking user action: {str(e)}")
+            logger.error(f"Error tracking user action: {e!s}")
             return Either.left(SuggestionError.learning_failed(str(e)))
 
     def get_user_stats(self, user_id: str) -> dict[str, Any]:
@@ -141,7 +151,7 @@ async def _ensure_initialized():
         init_result = await _smart_suggestions_manager.initialize()
         if init_result.is_left():
             raise RuntimeError(
-                f"Smart suggestions initialization failed: {init_result.get_left().message}"
+                f"Smart suggestions initialization failed: {init_result.get_left().message}",
             )
 
 
@@ -160,8 +170,7 @@ async def km_smart_suggestions(
     privacy_level: str = "high",  # low|medium|high privacy protection
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    AI-powered smart suggestions for automation optimization and workflow improvement.
+    """AI-powered smart suggestions for automation optimization and workflow improvement.
 
     This tool provides intelligent automation suggestions, learns from user behavior,
     and continuously improves recommendations based on feedback and usage patterns.
@@ -181,6 +190,7 @@ async def km_smart_suggestions(
 
     Returns:
         Dictionary containing suggestions, analysis, or configuration results
+
     """
     try:
         await _ensure_initialized()
@@ -269,12 +279,15 @@ async def km_smart_suggestions(
                 privacy_enum,
             )
 
-        elif operation == "analyze":
+        if operation == "analyze":
             return await _handle_analyze_operation(
-                user_id, context, analysis_depth, privacy_enum
+                user_id,
+                context,
+                analysis_depth,
+                privacy_enum,
             )
 
-        elif operation == "optimize":
+        if operation == "optimize":
             return await _handle_optimize_operation(
                 user_id,
                 context,
@@ -283,25 +296,27 @@ async def km_smart_suggestions(
                 privacy_enum,
             )
 
-        elif operation == "learn":
+        if operation == "learn":
             return await _handle_learn_operation(
-                user_id, context, learning_mode, privacy_enum
+                user_id,
+                context,
+                learning_mode,
+                privacy_enum,
             )
 
-        elif operation == "configure":
+        if operation == "configure":
             return await _handle_configure_operation(user_id, context, privacy_enum)
 
-        elif operation == "feedback":
+        if operation == "feedback":
             return await _handle_feedback_operation(user_id, context, privacy_enum)
 
-        else:
-            return {"success": False, "error": f"Operation {operation} not implemented"}
+        return {"success": False, "error": f"Operation {operation} not implemented"}
 
     except Exception as e:
-        logger.error(f"Smart suggestions tool error: {str(e)}")
+        logger.error(f"Smart suggestions tool error: {e!s}")
         return {
             "success": False,
-            "error": f"Smart suggestions failed: {str(e)}",
+            "error": f"Smart suggestions failed: {e!s}",
             "operation": operation,
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -342,7 +357,9 @@ async def _handle_suggest_operation(
 
         # Generate suggestions
         suggestions_result = await _smart_suggestions_manager.get_suggestions(
-            suggestion_context, suggestion_types, max_suggestions
+            suggestion_context,
+            suggestion_types,
+            max_suggestions,
         )
 
         if suggestions_result.is_left():
@@ -362,7 +379,7 @@ async def _handle_suggest_operation(
                 {
                     "suggestion_types": [t.value for t in suggestion_types]
                     if suggestion_types
-                    else ["all"]
+                    else ["all"],
                 },
             )
 
@@ -384,7 +401,7 @@ async def _handle_suggest_operation(
                     "urgency_score": suggestion.get_urgency_score(),
                     "personalization_score": suggestion.personalization_score,
                     "created_at": suggestion.created_at.isoformat(),
-                }
+                },
             )
 
         return {
@@ -400,29 +417,33 @@ async def _handle_suggest_operation(
         }
 
     except Exception as e:
-        logger.error(f"Error in suggest operation: {str(e)}")
+        logger.error(f"Error in suggest operation: {e!s}")
         return {
             "success": False,
-            "error": f"Suggestion generation failed: {str(e)}",
+            "error": f"Suggestion generation failed: {e!s}",
             "user_id": user_id,
         }
 
 
 async def _handle_analyze_operation(
-    user_id: str, context: dict | None, analysis_depth: str, privacy_level: PrivacyLevel
+    user_id: str,
+    context: dict | None,
+    analysis_depth: str,
+    privacy_level: PrivacyLevel,
 ) -> dict[str, Any]:
     """Handle user behavior analysis operation."""
     try:
         # Get user patterns and insights
         insights = (
             await _smart_suggestions_manager.pattern_analyzer.analyze_user_patterns(
-                user_id, depth=analysis_depth
+                user_id,
+                depth=analysis_depth,
             )
         )
 
         # Get optimization opportunities
         opportunities = await _smart_suggestions_manager.pattern_analyzer.identify_optimization_opportunities(
-            user_id
+            user_id,
         )
 
         # Get user learning statistics
@@ -441,10 +462,10 @@ async def _handle_analyze_operation(
         }
 
     except Exception as e:
-        logger.error(f"Error in analyze operation: {str(e)}")
+        logger.error(f"Error in analyze operation: {e!s}")
         return {
             "success": False,
-            "error": f"Analysis failed: {str(e)}",
+            "error": f"Analysis failed: {e!s}",
             "user_id": user_id,
         }
 
@@ -474,7 +495,9 @@ async def _handle_optimize_operation(
 
         # Generate optimization-focused suggestions
         suggestions_result = await _smart_suggestions_manager.get_suggestions(
-            suggestion_context, optimization_types, max_suggestions
+            suggestion_context,
+            optimization_types,
+            max_suggestions,
         )
 
         if suggestions_result.is_left():
@@ -508,7 +531,7 @@ async def _handle_optimize_operation(
                     "implementation_effort": suggestion.implementation_effort,
                     "suggested_actions": suggestion.suggested_actions,
                     "urgency_score": suggestion.get_urgency_score(),
-                }
+                },
             )
 
         return {
@@ -523,16 +546,19 @@ async def _handle_optimize_operation(
         }
 
     except Exception as e:
-        logger.error(f"Error in optimize operation: {str(e)}")
+        logger.error(f"Error in optimize operation: {e!s}")
         return {
             "success": False,
-            "error": f"Optimization failed: {str(e)}",
+            "error": f"Optimization failed: {e!s}",
             "user_id": user_id,
         }
 
 
 async def _handle_learn_operation(
-    user_id: str, context: dict | None, learning_mode: bool, privacy_level: PrivacyLevel
+    user_id: str,
+    context: dict | None,
+    learning_mode: bool,
+    privacy_level: PrivacyLevel,
 ) -> dict[str, Any]:
     """Handle learning and training operation."""
     try:
@@ -552,7 +578,9 @@ async def _handle_learn_operation(
         # Track learning interaction
         if context:
             await _smart_suggestions_manager.track_user_action(
-                user_id, "learning_interaction", context
+                user_id,
+                "learning_interaction",
+                context,
             )
 
         return {
@@ -567,16 +595,18 @@ async def _handle_learn_operation(
         }
 
     except Exception as e:
-        logger.error(f"Error in learn operation: {str(e)}")
+        logger.error(f"Error in learn operation: {e!s}")
         return {
             "success": False,
-            "error": f"Learning operation failed: {str(e)}",
+            "error": f"Learning operation failed: {e!s}",
             "user_id": user_id,
         }
 
 
 async def _handle_configure_operation(
-    user_id: str, context: dict | None, privacy_level: PrivacyLevel
+    user_id: str,
+    context: dict | None,
+    privacy_level: PrivacyLevel,
 ) -> dict[str, Any]:
     """Handle system configuration operation."""
     try:
@@ -602,16 +632,18 @@ async def _handle_configure_operation(
         }
 
     except Exception as e:
-        logger.error(f"Error in configure operation: {str(e)}")
+        logger.error(f"Error in configure operation: {e!s}")
         return {
             "success": False,
-            "error": f"Configuration failed: {str(e)}",
+            "error": f"Configuration failed: {e!s}",
             "user_id": user_id,
         }
 
 
 async def _handle_feedback_operation(
-    user_id: str, context: dict | None, privacy_level: PrivacyLevel
+    user_id: str,
+    context: dict | None,
+    privacy_level: PrivacyLevel,
 ) -> dict[str, Any]:
     """Handle user feedback processing operation."""
     try:
@@ -670,9 +702,9 @@ async def _handle_feedback_operation(
         }
 
     except Exception as e:
-        logger.error(f"Error in feedback operation: {str(e)}")
+        logger.error(f"Error in feedback operation: {e!s}")
         return {
             "success": False,
-            "error": f"Feedback processing failed: {str(e)}",
+            "error": f"Feedback processing failed: {e!s}",
             "user_id": user_id,
         }

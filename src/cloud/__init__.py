@@ -1,5 +1,4 @@
-"""
-Cloud integration package for multi-cloud platform automation.
+"""Cloud integration package for multi-cloud platform automation.
 
 This package provides comprehensive cloud integration capabilities including
 AWS, Azure, Google Cloud Platform connectivity, multi-cloud orchestration,
@@ -18,12 +17,12 @@ from .cost_optimizer import CloudCostOptimizer
 from .gcp_connector import GCPConnector
 
 __all__ = [
-    "CloudConnectorManager",
-    "get_cloud_manager",
-    "initialize_cloud_manager",
     "AWSConnector",
     "AzureConnector",
-    "GCPConnector",
-    "CloudOrchestrator",
+    "CloudConnectorManager",
     "CloudCostOptimizer",
+    "CloudOrchestrator",
+    "GCPConnector",
+    "get_cloud_manager",
+    "initialize_cloud_manager",
 ]

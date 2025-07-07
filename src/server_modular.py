@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Keyboard Maestro MCP Server - Modular Version
+"""Keyboard Maestro MCP Server - Modular Version.
 
 Advanced macOS automation through Model Context Protocol using FastMCP framework.
 Provides 10 production-ready tools for comprehensive Keyboard Maestro integration.
@@ -90,7 +89,7 @@ def get_server_status() -> dict[str, Any]:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         connection_test = loop.run_until_complete(
-            km_client.list_macros_async(enabled_only=True)
+            km_client.list_macros_async(enabled_only=True),
         )
         loop.close()
 
@@ -361,12 +360,12 @@ def create_macro_prompt(
     app_context: Annotated[
         str,
         Field(
-            default="", description="Specific application or context for the automation"
+            default="",
+            description="Specific application or context for the automation",
         ),
     ] = "",
 ) -> list[Message]:
     """Generate a structured prompt for creating Keyboard Maestro macros."""
-
     system_prompt = """You are an expert Keyboard Maestro macro developer. Help create efficient, reliable macros for macOS automation tasks."""
 
     user_prompt = f"""
@@ -392,7 +391,7 @@ Focus on reliability, user experience, and maintainability.
     ]
 
 
-def main():
+def main() -> None:
     """Main entry point for the Keyboard Maestro MCP server."""
     import argparse
 
@@ -409,7 +408,10 @@ def main():
         help="Host for HTTP transport (default: 127.0.0.1)",
     )
     parser.add_argument(
-        "--port", type=int, default=8000, help="Port for HTTP transport (default: 8000)"
+        "--port",
+        type=int,
+        default=8000,
+        help="Port for HTTP transport (default: 8000)",
     )
     parser.add_argument(
         "--log-level",

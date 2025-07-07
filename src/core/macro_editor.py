@@ -1,5 +1,4 @@
-"""
-Comprehensive macro editing type system with interactive modification capabilities.
+"""Comprehensive macro editing type system with interactive modification capabilities.
 
 This module provides type-safe macro editing operations including action modification,
 conditional logic editing, trigger management, and interactive debugging with
@@ -47,7 +46,6 @@ class MacroModification:
     @require(lambda self: self.position is None or self.position >= 0)
     def __post_init__(self):
         """Validate modification specification."""
-        pass
 
 
 @dataclass(frozen=True)
@@ -76,7 +74,6 @@ class MacroInspection:
     @require(lambda self: 0 <= self.health_score <= 100)
     def __post_init__(self):
         """Validate inspection results."""
-        pass
 
 
 @dataclass(frozen=True)
@@ -94,7 +91,6 @@ class DebugSession:
     @require(lambda self: len(self.watch_variables) <= 20)
     def __post_init__(self):
         """Validate debug session configuration."""
-        pass
 
 
 @dataclass(frozen=True)
@@ -110,25 +106,27 @@ class MacroComparison:
     @require(lambda self: 0.0 <= self.similarity_score <= 1.0)
     def __post_init__(self):
         """Validate comparison results."""
-        pass
 
 
 class MacroEditor:
     """Fluent API for type-safe macro editing operations."""
 
     @require(
-        lambda self, macro_id: isinstance(macro_id, str) and len(macro_id.strip()) > 0
+        lambda _self, macro_id: isinstance(macro_id, str) and len(macro_id.strip()) > 0,
     )
     def __init__(self, macro_id: str):
         self.macro_id = macro_id
         self._modifications: list[MacroModification] = []
 
     @require(
-        lambda self, action_type: isinstance(action_type, str) and len(action_type) > 0
+        lambda _self, action_type: isinstance(action_type, str) and len(action_type) > 0,
     )
-    @require(lambda self, config: isinstance(config, dict))
+    @require(lambda __self, config: isinstance(config, dict))
     def add_action(
-        self, action_type: str, config: dict, position: int | None = None
+        self,
+        action_type: str,
+        config: dict,
+        position: int | None = None,
     ) -> MacroEditor:
         """Add new action to macro with validation."""
         mod = MacroModification(
@@ -139,8 +137,8 @@ class MacroEditor:
         self._modifications.append(mod)
         return self
 
-    @require(lambda self, action_id: isinstance(action_id, str) and len(action_id) > 0)
-    @require(lambda self, new_config: isinstance(new_config, dict))
+    @require(lambda __self, action_id: isinstance(action_id, str) and len(action_id) > 0)
+    @require(lambda __self, new_config: isinstance(new_config, dict))
     def modify_action(self, action_id: str, new_config: dict) -> MacroEditor:
         """Modify existing action with type safety."""
         mod = MacroModification(
@@ -151,16 +149,17 @@ class MacroEditor:
         self._modifications.append(mod)
         return self
 
-    @require(lambda self, action_id: isinstance(action_id, str) and len(action_id) > 0)
+    @require(lambda __self, action_id: isinstance(action_id, str) and len(action_id) > 0)
     def delete_action(self, action_id: str) -> MacroEditor:
         """Delete action from macro."""
         mod = MacroModification(
-            operation=EditOperation.DELETE_ACTION, target_element=action_id
+            operation=EditOperation.DELETE_ACTION,
+            target_element=action_id,
         )
         self._modifications.append(mod)
         return self
 
-    @require(lambda self, new_order: isinstance(new_order, list) and len(new_order) > 0)
+    @require(lambda __self, new_order: isinstance(new_order, list) and len(new_order) > 0)
     def reorder_actions(self, new_order: list[str]) -> MacroEditor:
         """Reorder actions in macro."""
         mod = MacroModification(
@@ -171,10 +170,10 @@ class MacroEditor:
         return self
 
     @require(
-        lambda self, condition_type: isinstance(condition_type, str)
-        and len(condition_type) > 0
+        lambda _self, condition_type: isinstance(condition_type, str)
+        and len(condition_type) > 0,
     )
-    @require(lambda self, config: isinstance(config, dict))
+    @require(lambda __self, config: isinstance(config, dict))
     def add_condition(self, condition_type: str, config: dict) -> MacroEditor:
         """Add conditional logic to macro."""
         mod = MacroModification(
@@ -185,10 +184,10 @@ class MacroEditor:
         return self
 
     @require(
-        lambda self, trigger_type: isinstance(trigger_type, str)
-        and len(trigger_type) > 0
+        lambda _self, trigger_type: isinstance(trigger_type, str)
+        and len(trigger_type) > 0,
     )
-    @require(lambda self, config: isinstance(config, dict))
+    @require(lambda __self, config: isinstance(config, dict))
     def add_trigger(self, trigger_type: str, config: dict) -> MacroEditor:
         """Add trigger to macro."""
         mod = MacroModification(
@@ -198,11 +197,12 @@ class MacroEditor:
         self._modifications.append(mod)
         return self
 
-    @require(lambda self, properties: isinstance(properties, dict))
+    @require(lambda __self, properties: isinstance(properties, dict))
     def update_properties(self, properties: dict[str, Any]) -> MacroEditor:
         """Update macro properties."""
         mod = MacroModification(
-            operation=EditOperation.UPDATE_PROPERTIES, new_value=properties
+            operation=EditOperation.UPDATE_PROPERTIES,
+            new_value=properties,
         )
         self._modifications.append(mod)
         return self
@@ -223,23 +223,26 @@ class MacroEditorValidator:
 
     @staticmethod
     def validate_modification_permissions(
-        macro_id: str, operation: EditOperation
+        macro_id: str,
+        operation: EditOperation,
     ) -> Either[SecurityViolationError, None]:
         """Validate user has permission to modify macro."""
         # Check if macro identifier is valid
         if not macro_id or len(macro_id.strip()) == 0:
             return Either.left(
                 SecurityViolationError(
-                    "invalid_macro_id", "Empty or invalid macro identifier"
-                )
+                    "invalid_macro_id",
+                    "Empty or invalid macro identifier",
+                ),
             )
 
         # Check for system macro protection
         if macro_id.startswith("com.stairways.keyboardmaestro."):
             return Either.left(
                 SecurityViolationError(
-                    "system_macro_protection", "Cannot modify system macros"
-                )
+                    "system_macro_protection",
+                    "Cannot modify system macros",
+                ),
             )
 
         # Validate operation type
@@ -259,8 +262,9 @@ class MacroEditorValidator:
         if not isinstance(action_config, dict):
             return Either.left(
                 SecurityViolationError(
-                    "invalid_action_config", "Action configuration must be a dictionary"
-                )
+                    "invalid_action_config",
+                    "Action configuration must be a dictionary",
+                ),
             )
 
         # Sanitize script content
@@ -275,7 +279,7 @@ class MacroEditorValidator:
                         SecurityViolationError(
                             "dangerous_script_content",
                             f"Script contains dangerous pattern: {pattern}",
-                        )
+                        ),
                     )
 
         # Validate file paths
@@ -284,16 +288,18 @@ class MacroEditorValidator:
             if ".." in file_path or file_path.startswith("/"):
                 return Either.left(
                     SecurityViolationError(
-                        "invalid_file_path", "File path contains dangerous patterns"
-                    )
+                        "invalid_file_path",
+                        "File path contains dangerous patterns",
+                    ),
                 )
 
         # Limit action complexity (basic check)
         if len(str(action_config)) > 10000:
             return Either.left(
                 SecurityViolationError(
-                    "action_too_complex", "Action configuration exceeds size limit"
-                )
+                    "action_too_complex",
+                    "Action configuration exceeds size limit",
+                ),
             )
 
         return Either.right(action_config)
@@ -306,8 +312,9 @@ class MacroEditorValidator:
         if not isinstance(debug_config, dict):
             return Either.left(
                 SecurityViolationError(
-                    "invalid_debug_config", "Debug configuration must be a dictionary"
-                )
+                    "invalid_debug_config",
+                    "Debug configuration must be a dictionary",
+                ),
             )
 
         # Limit breakpoint count
@@ -318,8 +325,9 @@ class MacroEditorValidator:
         if len(breakpoints) > 50:
             return Either.left(
                 SecurityViolationError(
-                    "too_many_breakpoints", "Maximum 50 breakpoints allowed"
-                )
+                    "too_many_breakpoints",
+                    "Maximum 50 breakpoints allowed",
+                ),
             )
 
         # Validate timeout
@@ -329,7 +337,7 @@ class MacroEditorValidator:
                 SecurityViolationError(
                     "invalid_debug_timeout",
                     "Debug timeout must be between 1 and 300 seconds",
-                )
+                ),
             )
 
         # Check watch variable count
@@ -340,8 +348,9 @@ class MacroEditorValidator:
         if len(watch_vars) > 20:
             return Either.left(
                 SecurityViolationError(
-                    "too_many_watch_variables", "Maximum 20 watch variables allowed"
-                )
+                    "too_many_watch_variables",
+                    "Maximum 20 watch variables allowed",
+                ),
             )
 
         return Either.right(None)

@@ -1,5 +1,4 @@
-"""
-Pattern recognition engine for automation workflow analysis.
+"""Pattern recognition engine for automation workflow analysis.
 
 This module provides advanced pattern recognition capabilities for identifying
 automation patterns, usage trends, and optimization opportunities.
@@ -30,7 +29,8 @@ class PatternRecognitionEngine:
         self.logger = logging.getLogger(__name__)
 
     async def analyze_patterns(
-        self, data: dict[str, Any]
+        self,
+        data: dict[str, Any],
     ) -> Either[Exception, list[PatternAnalysis]]:
         """Analyze patterns in automation data."""
         try:

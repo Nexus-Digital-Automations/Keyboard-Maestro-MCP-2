@@ -1,5 +1,4 @@
-"""
-Master ecosystem orchestrator tool for coordinating all 48 tools in the automation platform.
+"""Master ecosystem orchestrator tool for coordinating all 48 tools in the automation platform.
 
 This tool provides intelligent orchestration, workflow coordination, performance optimization,
 and strategic automation planning across the complete tool ecosystem.
@@ -41,8 +40,7 @@ async def km_ecosystem_orchestrator(
     timeout: int = 600,  # Orchestration timeout
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Master orchestration system for coordinating all 48 ecosystem tools.
+    """Master orchestration system for coordinating all 48 ecosystem tools.
 
     Provides intelligent workflow orchestration, system-wide optimization,
     performance monitoring, and strategic automation planning across the
@@ -71,8 +69,8 @@ async def km_ecosystem_orchestrator(
         ValidationError: Invalid operation parameters
         SystemError: Orchestration system failure
         AutonomousAgentError: Agent coordination failure
-    """
 
+    """
     try:
         # Initialize ecosystem orchestrator
         orchestrator = EcosystemOrchestrator()
@@ -99,17 +97,26 @@ async def km_ecosystem_orchestrator(
             )
         elif operation == "optimize":
             result = await _handle_optimize(
-                orchestrator, optimization_target, resource_strategy, timeout
+                orchestrator,
+                optimization_target,
+                resource_strategy,
+                timeout,
             )
         elif operation == "monitor":
             result = await _handle_monitor(orchestrator, monitoring_level, timeout)
         elif operation == "plan":
             result = await _handle_strategic_plan(
-                orchestrator, workflow_definition, strategic_planning, timeout
+                orchestrator,
+                workflow_definition,
+                strategic_planning,
+                timeout,
             )
         elif operation == "coordinate":
             result = await _handle_coordinate(
-                orchestrator, tool_selection, resource_strategy, timeout
+                orchestrator,
+                tool_selection,
+                resource_strategy,
+                timeout,
             )
         elif operation == "analyze":
             result = await _handle_analyze(orchestrator, monitoring_level, timeout)
@@ -138,7 +145,7 @@ async def km_ecosystem_orchestrator(
                     "enterprise_mode": enterprise_mode,
                     "ml_optimization": ml_optimization,
                     "timestamp": datetime.now(UTC).isoformat(),
-                }
+                },
             )
 
         return result
@@ -163,7 +170,7 @@ async def km_ecosystem_orchestrator(
         logging.error(f"Ecosystem orchestrator error: {e}")
         return {
             "success": False,
-            "error": f"Unexpected error: {str(e)}",
+            "error": f"Unexpected error: {e!s}",
             "operation": operation,
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -177,7 +184,6 @@ async def _handle_orchestrate(
     timeout: int,
 ) -> dict[str, Any]:
     """Handle intelligent workflow orchestration."""
-
     # Map string parameters to enums
     execution_mode_mapping = {
         "sequential": ExecutionMode.SEQUENTIAL,
@@ -197,7 +203,8 @@ async def _handle_orchestrate(
 
     exec_mode = execution_mode_mapping.get(execution_mode, ExecutionMode.ADAPTIVE)
     opt_target = optimization_target_mapping.get(
-        optimization_target, OptimizationTarget.EFFICIENCY
+        optimization_target,
+        OptimizationTarget.EFFICIENCY,
     )
 
     # Execute intelligent workflow
@@ -251,7 +258,6 @@ async def _handle_optimize(
     timeout: int,
 ) -> dict[str, Any]:
     """Handle system-wide optimization."""
-
     # Map string to optimization target enum
     target_mapping = {
         "performance": OptimizationTarget.PERFORMANCE,
@@ -290,10 +296,11 @@ async def _handle_optimize(
 
 
 async def _handle_monitor(
-    orchestrator: EcosystemOrchestrator, monitoring_level: str, timeout: int
+    orchestrator: EcosystemOrchestrator,
+    monitoring_level: str,
+    timeout: int,
 ) -> dict[str, Any]:
     """Handle system-wide performance monitoring."""
-
     # Get comprehensive monitoring data
     result = await orchestrator.monitor()
 
@@ -312,15 +319,15 @@ async def _handle_monitor(
     # Add detailed monitoring if requested
     if monitoring_level in ["detailed", "comprehensive"]:
         monitoring_data["tool_performance"] = await _get_tool_performance_details(
-            orchestrator
+            orchestrator,
         )
 
     if monitoring_level == "comprehensive":
         monitoring_data["historical_trends"] = await _get_performance_trends(
-            orchestrator
+            orchestrator,
         )
         monitoring_data["predictive_insights"] = await _get_predictive_insights(
-            orchestrator
+            orchestrator,
         )
 
     return monitoring_data
@@ -333,7 +340,6 @@ async def _handle_strategic_plan(
     timeout: int,
 ) -> dict[str, Any]:
     """Handle strategic automation planning."""
-
     if not strategic_planning:
         return {
             "success": False,
@@ -350,7 +356,8 @@ async def _handle_strategic_plan(
         target_phase = workflow_definition.get("target_phase", "optimization")
         timeline_months = workflow_definition.get("timeline_months", 12)
         focus_areas = workflow_definition.get(
-            "focus_areas", ["intelligence", "enterprise"]
+            "focus_areas",
+            ["intelligence", "enterprise"],
         )
 
     # Generate strategic plan
@@ -388,7 +395,6 @@ async def _handle_coordinate(
     timeout: int,
 ) -> dict[str, Any]:
     """Handle inter-tool coordination."""
-
     # Get ecosystem statistics for coordination analysis
     orchestrator.tool_registry.get_ecosystem_statistics()
 
@@ -449,10 +455,11 @@ async def _handle_coordinate(
 
 
 async def _handle_analyze(
-    orchestrator: EcosystemOrchestrator, monitoring_level: str, timeout: int
+    orchestrator: EcosystemOrchestrator,
+    monitoring_level: str,
+    timeout: int,
 ) -> dict[str, Any]:
     """Handle comprehensive ecosystem analysis."""
-
     # Get comprehensive ecosystem analysis
     result = await orchestrator.analyze()
 
@@ -470,10 +477,10 @@ async def _handle_analyze(
 
     # Add additional analysis details
     analysis["capability_analysis"] = _analyze_ecosystem_capabilities(
-        orchestrator.tool_registry
+        orchestrator.tool_registry,
     )
     analysis["integration_analysis"] = _analyze_integration_patterns(
-        orchestrator.tool_registry
+        orchestrator.tool_registry,
     )
     analysis["ecosystem_optimization_recommendations"] = (
         _generate_optimization_recommendations(orchestrator)
@@ -550,7 +557,7 @@ def _identify_coordination_clusters(tool_registry) -> list[dict[str, Any]]:
                 ],  # Limit for readability
                 "coordination_strength": "high",
                 "recommended_use": "Core automation workflows",
-            }
+            },
         )
 
     # Intelligence cluster
@@ -563,7 +570,7 @@ def _identify_coordination_clusters(tool_registry) -> list[dict[str, Any]]:
                 "tools": [t.tool_id for t in intelligence_tools],
                 "coordination_strength": "very_high",
                 "recommended_use": "Smart automation and optimization",
-            }
+            },
         )
 
     # Enterprise cluster
@@ -576,7 +583,7 @@ def _identify_coordination_clusters(tool_registry) -> list[dict[str, Any]]:
                 "tools": [t.tool_id for t in enterprise_tools],
                 "coordination_strength": "high",
                 "recommended_use": "Enterprise compliance and integration",
-            }
+            },
         )
 
     return clusters
@@ -620,7 +627,9 @@ def _analyze_ecosystem_capabilities(tool_registry) -> dict[str, Any]:
         "capability_list": sorted(all_capabilities),
         "capability_coverage": capability_coverage,
         "most_common_capabilities": sorted(
-            capability_coverage.items(), key=lambda x: x[1], reverse=True
+            capability_coverage.items(),
+            key=lambda x: x[1],
+            reverse=True,
         )[:10],
     }
 
@@ -696,7 +705,7 @@ def _analyze_integration_patterns(tool_registry) -> dict[str, Any]:
 
     if len(tool_registry.tools) > 0:
         integration_analysis["integration_density"] = total_integrations / len(
-            tool_registry.tools
+            tool_registry.tools,
         )
 
     return integration_analysis

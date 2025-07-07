@@ -1,5 +1,4 @@
-"""
-MCP tools for real-time performance monitoring and optimization.
+"""MCP tools for real-time performance monitoring and optimization.
 
 Comprehensive FastMCP tools for performance monitoring, bottleneck detection,
 resource optimization, and automated performance tuning through Claude Desktop.
@@ -53,7 +52,7 @@ class PerformanceMonitorTools:
             monitoring_scope: Annotated[
                 str,
                 Field(
-                    description="Monitoring scope (system|automation|macro|specific)"
+                    description="Monitoring scope (system|automation|macro|specific)",
                 ),
             ],
             target_id: Annotated[
@@ -61,26 +60,31 @@ class PerformanceMonitorTools:
                 Field(description="Specific macro or automation UUID to monitor"),
             ] = None,
             metrics_types: Annotated[
-                list[str], Field(description="Metrics to collect")
+                list[str],
+                Field(description="Metrics to collect"),
             ] = None,
             monitoring_duration: Annotated[
-                int, Field(description="Monitoring duration in seconds", ge=1, le=3600)
+                int,
+                Field(description="Monitoring duration in seconds", ge=1, le=3600),
             ] = 60,
             sampling_interval: Annotated[
-                float, Field(description="Sampling interval in seconds", ge=0.1, le=60)
+                float,
+                Field(description="Sampling interval in seconds", ge=0.1, le=60),
             ] = 1.0,
             include_historical: Annotated[
-                bool, Field(description="Include historical performance data")
+                bool,
+                Field(description="Include historical performance data"),
             ] = False,
             alert_thresholds: Annotated[
-                str | None, Field(description="JSON string with alert thresholds")
+                str | None,
+                Field(description="JSON string with alert thresholds"),
             ] = None,
             export_format: Annotated[
-                str, Field(description="Export format (json|csv|dashboard)")
+                str,
+                Field(description="Export format (json|csv|dashboard)"),
             ] = "json",
         ) -> str:
-            """
-            Monitor real-time performance metrics for system, automations, or specific macros.
+            """Monitor real-time performance metrics for system, automations, or specific macros.
 
             FastMCP Tool for comprehensive performance monitoring through Claude Desktop.
             Collects CPU, memory, disk, network, and automation-specific performance metrics.
@@ -116,11 +120,11 @@ class PerformanceMonitorTools:
                                 metric_type = MetricType(metric_name.lower())
                                 if metric_type == MetricType.CPU:
                                     thresholds.append(
-                                        create_cpu_threshold(threshold_value)
+                                        create_cpu_threshold(threshold_value),
                                     )
                                 elif metric_type == MetricType.MEMORY:
                                     thresholds.append(
-                                        create_memory_threshold(threshold_value)
+                                        create_memory_threshold(threshold_value),
                                     )
                                 # Add more threshold types as needed
                             except ValueError:
@@ -143,7 +147,7 @@ class PerformanceMonitorTools:
 
                 # Start monitoring session
                 session_result = await self.metrics_collector.start_monitoring_session(
-                    config
+                    config,
                 )
                 if session_result.is_left():
                     return f"Error: Failed to start monitoring - {session_result.get_left()}"
@@ -154,7 +158,7 @@ class PerformanceMonitorTools:
 
                 # Get current metrics
                 metrics_result = await self.metrics_collector.get_session_metrics(
-                    session_id
+                    session_id,
                 )
                 if metrics_result.is_left():
                     return f"Error: Failed to get metrics - {metrics_result.get_left()}"
@@ -163,7 +167,8 @@ class PerformanceMonitorTools:
 
                 # Basic analysis
                 analysis_result = await self.performance_analyzer.analyze_performance(
-                    metrics, "basic"
+                    metrics,
+                    "basic",
                 )
                 analysis = (
                     analysis_result.get_right() if analysis_result.is_right() else {}
@@ -215,41 +220,46 @@ class PerformanceMonitorTools:
 
             except Exception as e:
                 self.logger.error(f"Performance monitoring failed: {e}")
-                return f"Error: Performance monitoring failed - {str(e)}"
+                return f"Error: Performance monitoring failed - {e!s}"
 
         @mcp.tool()
         async def km_analyze_bottlenecks(
             analysis_scope: Annotated[
-                str, Field(description="Analysis scope (system|automation|workflow)")
+                str,
+                Field(description="Analysis scope (system|automation|workflow)"),
             ],
             time_range: Annotated[
                 str,
                 Field(
-                    description="Analysis time range (last_hour|last_day|last_week|custom)"
+                    description="Analysis time range (last_hour|last_day|last_week|custom)",
                 ),
             ] = "last_hour",
             custom_start_time: Annotated[
-                str | None, Field(description="Custom start time (ISO format)")
+                str | None,
+                Field(description="Custom start time (ISO format)"),
             ] = None,
             custom_end_time: Annotated[
-                str | None, Field(description="Custom end time (ISO format)")
+                str | None,
+                Field(description="Custom end time (ISO format)"),
             ] = None,
             bottleneck_types: Annotated[
-                list[str], Field(description="Bottleneck types to analyze")
+                list[str],
+                Field(description="Bottleneck types to analyze"),
             ] = None,
             severity_threshold: Annotated[
                 str,
                 Field(description="Minimum severity level (low|medium|high|critical)"),
             ] = "medium",
             include_recommendations: Annotated[
-                bool, Field(description="Include optimization recommendations")
+                bool,
+                Field(description="Include optimization recommendations"),
             ] = True,
             generate_report: Annotated[
-                bool, Field(description="Generate detailed analysis report")
+                bool,
+                Field(description="Generate detailed analysis report"),
             ] = True,
         ) -> str:
-            """
-            Analyze performance bottlenecks and identify optimization opportunities.
+            """Analyze performance bottlenecks and identify optimization opportunities.
 
             FastMCP Tool for comprehensive bottleneck analysis through Claude Desktop.
             Identifies CPU, memory, I/O, and network bottlenecks with optimization suggestions.
@@ -272,7 +282,7 @@ class PerformanceMonitorTools:
 
                 # Get metrics for analysis
                 metrics_result = await self.metrics_collector.get_session_metrics(
-                    session_id
+                    session_id,
                 )
                 if metrics_result.is_left():
                     return f"Error: Failed to get metrics - {metrics_result.get_left()}"
@@ -281,7 +291,8 @@ class PerformanceMonitorTools:
 
                 # Perform comprehensive analysis
                 analysis_result = await self.performance_analyzer.analyze_performance(
-                    metrics, "full"
+                    metrics,
+                    "full",
                 )
                 if analysis_result.is_left():
                     return f"Error: Analysis failed - {analysis_result.get_left()}"
@@ -309,7 +320,7 @@ class PerformanceMonitorTools:
                                     b
                                     for b in filtered_bottlenecks
                                     if b["severity"] == "critical"
-                                ]
+                                ],
                             ),
                             "overall_performance_score": analysis["performance_score"],
                             "analysis_timeframe": self._format_time_range(metrics),
@@ -318,7 +329,7 @@ class PerformanceMonitorTools:
                         "detailed_findings": {
                             "performance_trends": analysis.get("trends", {}),
                             "resource_utilization": self._format_resource_utilization(
-                                metrics
+                                metrics,
                             ),
                             "alert_summary": self._format_alert_summary(metrics),
                         },
@@ -356,7 +367,7 @@ class PerformanceMonitorTools:
 
             except Exception as e:
                 self.logger.error(f"Bottleneck analysis failed: {e}")
-                return f"Error: Bottleneck analysis failed - {str(e)}"
+                return f"Error: Bottleneck analysis failed - {e!s}"
 
         @mcp.tool()
         async def km_optimize_resources(
@@ -365,12 +376,13 @@ class PerformanceMonitorTools:
                 Field(description="Optimization scope (system|automation|specific)"),
             ],
             target_resources: Annotated[
-                list[str], Field(description="Resources to optimize")
+                list[str],
+                Field(description="Resources to optimize"),
             ] = None,
             optimization_strategy: Annotated[
                 str,
                 Field(
-                    description="Optimization strategy (conservative|balanced|aggressive)"
+                    description="Optimization strategy (conservative|balanced|aggressive)",
                 ),
             ] = "balanced",
             auto_apply: Annotated[
@@ -378,14 +390,16 @@ class PerformanceMonitorTools:
                 Field(description="Automatically apply optimization recommendations"),
             ] = False,
             backup_current_settings: Annotated[
-                bool, Field(description="Backup current settings before optimization")
+                bool,
+                Field(description="Backup current settings before optimization"),
             ] = True,
             performance_target: Annotated[
                 str | None,
                 Field(description="Performance target (throughput|latency|efficiency)"),
             ] = None,
             resource_limits: Annotated[
-                str | None, Field(description="JSON string with resource usage limits")
+                str | None,
+                Field(description="JSON string with resource usage limits"),
             ] = None,
             monitoring_period: Annotated[
                 int,
@@ -396,8 +410,7 @@ class PerformanceMonitorTools:
                 ),
             ] = 300,
         ) -> str:
-            """
-            Optimize system and automation resource usage for improved performance.
+            """Optimize system and automation resource usage for improved performance.
 
             FastMCP Tool for automated resource optimization through Claude Desktop.
             Optimizes CPU, memory, disk usage, and automation workflow efficiency.
@@ -435,7 +448,7 @@ class PerformanceMonitorTools:
 
                 if session_id:
                     baseline_result = await self.metrics_collector.get_session_metrics(
-                        session_id
+                        session_id,
                     )
                     baseline_metrics = (
                         baseline_result.get_right()
@@ -449,7 +462,7 @@ class PerformanceMonitorTools:
                 if baseline_metrics:
                     analysis_result = (
                         await self.performance_analyzer.analyze_performance(
-                            baseline_metrics
+                            baseline_metrics,
                         )
                     )
                     if analysis_result.is_right():
@@ -459,12 +472,14 @@ class PerformanceMonitorTools:
                 else:
                     # Generate general recommendations
                     recommendations = self._generate_default_optimizations(
-                        target_resources, optimization_strategy
+                        target_resources,
+                        optimization_strategy,
                     )
 
                 # Filter recommendations by strategy
                 filtered_recommendations = self._filter_recommendations_by_strategy(
-                    recommendations, optimization_strategy
+                    recommendations,
+                    optimization_strategy,
                 )
 
                 # Apply optimizations if requested
@@ -474,7 +489,8 @@ class PerformanceMonitorTools:
                         :3
                     ]:  # Apply top 3 recommendations
                         result = await self._apply_optimization(
-                            rec, backup_current_settings
+                            rec,
+                            backup_current_settings,
                         )
                         optimization_results.append(result)
 
@@ -501,7 +517,8 @@ class PerformanceMonitorTools:
 
                 # Calculate estimated improvements
                 estimated_improvements = self._calculate_estimated_improvements(
-                    filtered_recommendations, optimization_strategy
+                    filtered_recommendations,
+                    optimization_strategy,
                 )
 
                 response = {
@@ -561,40 +578,47 @@ class PerformanceMonitorTools:
 
             except Exception as e:
                 self.logger.error(f"Resource optimization failed: {e}")
-                return f"Error: Resource optimization failed - {str(e)}"
+                return f"Error: Resource optimization failed - {e!s}"
 
         @mcp.tool()
         async def km_set_performance_alerts(
             alert_name: Annotated[
                 str,
                 Field(
-                    description="Alert configuration name", min_length=1, max_length=100
+                    description="Alert configuration name",
+                    min_length=1,
+                    max_length=100,
                 ),
             ],
             metric_type: Annotated[
                 str,
                 Field(
-                    description="Metric type to monitor (cpu|memory|execution_time|error_rate)"
+                    description="Metric type to monitor (cpu|memory|execution_time|error_rate)",
                 ),
             ],
             threshold_value: Annotated[
-                float, Field(description="Alert threshold value")
+                float,
+                Field(description="Alert threshold value"),
             ],
             threshold_operator: Annotated[
-                str, Field(description="Threshold operator (gt|lt|eq|gte|lte)")
+                str,
+                Field(description="Threshold operator (gt|lt|eq|gte|lte)"),
             ] = "gt",
             alert_severity: Annotated[
                 str,
                 Field(description="Alert severity level (low|medium|high|critical)"),
             ] = "medium",
             notification_channels: Annotated[
-                list[str], Field(description="Notification channels")
+                list[str],
+                Field(description="Notification channels"),
             ] = None,
             monitoring_scope: Annotated[
-                str, Field(description="Monitoring scope (system|automation|macro)")
+                str,
+                Field(description="Monitoring scope (system|automation|macro)"),
             ] = "system",
             evaluation_period: Annotated[
-                int, Field(description="Evaluation period in seconds", ge=30, le=3600)
+                int,
+                Field(description="Evaluation period in seconds", ge=30, le=3600),
             ] = 300,
             alert_cooldown: Annotated[
                 int,
@@ -605,11 +629,11 @@ class PerformanceMonitorTools:
                 ),
             ] = 900,
             auto_resolution: Annotated[
-                bool, Field(description="Enable automatic issue resolution")
+                bool,
+                Field(description="Enable automatic issue resolution"),
             ] = False,
         ) -> str:
-            """
-            Set up performance monitoring alerts with customizable thresholds and notifications.
+            """Set up performance monitoring alerts with customizable thresholds and notifications.
 
             FastMCP Tool for configuring performance alerts through Claude Desktop.
             Monitors performance metrics and triggers alerts when thresholds are exceeded.
@@ -664,7 +688,9 @@ class PerformanceMonitorTools:
 
                 # Test threshold value against recent metrics
                 test_result = await self._test_alert_threshold(
-                    metric, threshold_value, operator
+                    metric,
+                    threshold_value,
+                    operator,
                 )
 
                 response = {
@@ -687,16 +713,17 @@ class PerformanceMonitorTools:
                     "threshold_test": test_result,
                     "monitoring_status": {
                         "active_sessions": len(
-                            self.metrics_collector.get_active_sessions()
+                            self.metrics_collector.get_active_sessions(),
                         ),
                         "will_be_monitored": len(
-                            self.metrics_collector.get_active_sessions()
+                            self.metrics_collector.get_active_sessions(),
                         )
                         > 0,
                         "recommendation": "Start monitoring with km_monitor_performance if not already active",
                     },
                     "estimated_sensitivity": self._estimate_alert_sensitivity(
-                        metric, threshold_value
+                        metric,
+                        threshold_value,
                     ),
                     "configuration_tips": [
                         f"Threshold set at {threshold_value} for {metric.value}",
@@ -715,12 +742,11 @@ class PerformanceMonitorTools:
 
             except Exception as e:
                 self.logger.error(f"Alert configuration failed: {e}")
-                return f"Error: Alert configuration failed - {str(e)}"
+                return f"Error: Alert configuration failed - {e!s}"
 
         @mcp.tool()
         async def km_get_performance_dashboard() -> str:
-            """
-            Get comprehensive performance dashboard with real-time metrics and insights.
+            """Get comprehensive performance dashboard with real-time metrics and insights.
 
             FastMCP Tool for accessing performance dashboards through Claude Desktop.
             Provides real-time metrics, historical trends, and optimization recommendations.
@@ -754,14 +780,14 @@ class PerformanceMonitorTools:
                 # Process each active session
                 for session_id in active_sessions:
                     session_status = self.metrics_collector.get_session_status(
-                        session_id
+                        session_id,
                     )
                     if session_status:
                         dashboard_data["system_overview"][session_id] = session_status
 
                     # Get metrics
                     metrics_result = await self.metrics_collector.get_session_metrics(
-                        session_id
+                        session_id,
                     )
                     if metrics_result.is_right():
                         metrics = metrics_result.get_right()
@@ -780,7 +806,7 @@ class PerformanceMonitorTools:
                                 for alert in metrics.alerts[
                                     -3:
                                 ]  # Last 3 alerts per session
-                            ]
+                            ],
                         )
 
                         # Add performance metrics summary
@@ -811,7 +837,7 @@ class PerformanceMonitorTools:
 
             except Exception as e:
                 self.logger.error(f"Dashboard generation failed: {e}")
-                return f"Error: Dashboard generation failed - {str(e)}"
+                return f"Error: Dashboard generation failed - {e!s}"
 
         self.logger.info("Registered performance monitoring MCP tools successfully")
 
@@ -871,7 +897,9 @@ class PerformanceMonitorTools:
         }
 
     def _generate_default_optimizations(
-        self, target_resources: list[str], strategy: str
+        self,
+        target_resources: list[str],
+        strategy: str,
     ) -> list[dict[str, Any]]:
         """Generate default optimization recommendations."""
         recommendations = []
@@ -884,7 +912,7 @@ class PerformanceMonitorTools:
                     "expected_improvement": 15.0 if strategy == "aggressive" else 10.0,
                     "complexity": "medium",
                     "risk": "low",
-                }
+                },
             )
 
         if "memory" in target_resources:
@@ -895,28 +923,30 @@ class PerformanceMonitorTools:
                     "expected_improvement": 20.0 if strategy == "aggressive" else 12.0,
                     "complexity": "medium",
                     "risk": "medium",
-                }
+                },
             )
 
         return recommendations
 
     def _filter_recommendations_by_strategy(
-        self, recommendations: list[dict[str, Any]], strategy: str
+        self,
+        recommendations: list[dict[str, Any]],
+        strategy: str,
     ) -> list[dict[str, Any]]:
         """Filter recommendations based on optimization strategy."""
         if strategy == "conservative":
             return [r for r in recommendations if r.get("risk", "medium") == "low"]
-        elif strategy == "aggressive":
+        if strategy == "aggressive":
             return recommendations  # Include all recommendations
-        else:  # balanced
-            return [
-                r
-                for r in recommendations
-                if r.get("risk", "medium") in ["low", "medium"]
-            ]
+        # balanced
+        return [
+            r for r in recommendations if r.get("risk", "medium") in ["low", "medium"]
+        ]
 
     async def _apply_optimization(
-        self, recommendation: dict[str, Any], backup: bool
+        self,
+        recommendation: dict[str, Any],
+        backup: bool,
     ) -> dict[str, Any]:
         """Apply optimization recommendation (mock implementation)."""
         # In a real implementation, this would apply actual optimizations
@@ -929,7 +959,9 @@ class PerformanceMonitorTools:
         }
 
     def _calculate_estimated_improvements(
-        self, recommendations: list[dict[str, Any]], strategy: str
+        self,
+        recommendations: list[dict[str, Any]],
+        strategy: str,
     ) -> dict[str, float]:
         """Calculate estimated performance improvements."""
         cpu_improvement = sum(
@@ -947,7 +979,8 @@ class PerformanceMonitorTools:
 
         # Apply strategy multiplier
         multiplier = {"conservative": 0.7, "balanced": 1.0, "aggressive": 1.3}.get(
-            strategy, 1.0
+            strategy,
+            1.0,
         )
 
         return {
@@ -995,7 +1028,9 @@ class PerformanceMonitorTools:
         }
 
     def _estimate_alert_sensitivity(
-        self, metric_type: MetricType, threshold_value: float
+        self,
+        metric_type: MetricType,
+        threshold_value: float,
     ) -> str:
         """Estimate alert sensitivity based on threshold."""
         # Simple heuristic based on typical ranges
@@ -1011,10 +1046,9 @@ class PerformanceMonitorTools:
 
         if normalized_threshold <= 0.3:
             return "high"
-        elif normalized_threshold >= 0.8:
+        if normalized_threshold >= 0.8:
             return "low"
-        else:
-            return "medium"
+        return "medium"
 
 
 # Global instance for tool registration

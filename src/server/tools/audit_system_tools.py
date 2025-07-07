@@ -1,5 +1,4 @@
-"""
-Advanced audit system MCP tools for enterprise compliance and security monitoring.
+"""Advanced audit system MCP tools for enterprise compliance and security monitoring.
 
 This module provides comprehensive audit system tools enabling AI to manage
 audit logging, compliance monitoring, report generation, and security analysis
@@ -33,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 @require(
     lambda operation: operation
-    in ["log", "query", "report", "monitor", "configure", "status"]
+    in ["log", "query", "report", "monitor", "configure", "status"],
 )
 async def km_audit_system(
     operation: str,
@@ -50,8 +49,7 @@ async def km_audit_system(
     encrypt_logs: bool = True,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """
-    Advanced audit system for enterprise compliance and security monitoring.
+    """Advanced audit system for enterprise compliance and security monitoring.
 
     Operations:
     - log: Log audit events for compliance tracking
@@ -115,45 +113,63 @@ async def km_audit_system(
         # Execute operation
         if operation == "log":
             return await _handle_log_operation(
-                audit_system, event_type, user_id, action_details, ctx
+                audit_system,
+                event_type,
+                user_id,
+                action_details,
+                ctx,
             )
-        elif operation == "query":
+        if operation == "query":
             return await _handle_query_operation(
-                audit_system, time_range, action_details, include_sensitive, ctx
+                audit_system,
+                time_range,
+                action_details,
+                include_sensitive,
+                ctx,
             )
-        elif operation == "report":
+        if operation == "report":
             return await _handle_report_operation(
-                audit_system, compliance_standard, time_range, report_format, ctx
+                audit_system,
+                compliance_standard,
+                time_range,
+                report_format,
+                ctx,
             )
-        elif operation == "monitor":
+        if operation == "monitor":
             return await _handle_monitor_operation(
-                audit_system, compliance_standard, action_details, ctx
+                audit_system,
+                compliance_standard,
+                action_details,
+                ctx,
             )
-        elif operation == "configure":
+        if operation == "configure":
             return await _handle_configure_operation(
-                audit_system, audit_level, retention_period, encrypt_logs, ctx
+                audit_system,
+                audit_level,
+                retention_period,
+                encrypt_logs,
+                ctx,
             )
-        elif operation == "status":
+        if operation == "status":
             return await _handle_status_operation(audit_system, ctx)
-        else:
-            return {
-                "success": False,
-                "error": {
-                    "code": "OPERATION_NOT_IMPLEMENTED",
-                    "message": f"Operation '{operation}' not implemented",
-                },
-            }
+        return {
+            "success": False,
+            "error": {
+                "code": "OPERATION_NOT_IMPLEMENTED",
+                "message": f"Operation '{operation}' not implemented",
+            },
+        }
 
     except ValidationError:
         # Re-raise validation errors for proper error handling
         raise
     except Exception as e:
-        logger.error(f"Audit system error: {str(e)}")
+        logger.error(f"Audit system error: {e!s}")
         return {
             "success": False,
             "error": {
                 "code": "SYSTEM_ERROR",
-                "message": f"Audit system operation failed: {str(e)}",
+                "message": f"Audit system operation failed: {e!s}",
             },
         }
 
@@ -268,7 +284,7 @@ async def _handle_log_operation(
             "success": False,
             "error": {
                 "code": "LOG_OPERATION_FAILED",
-                "message": f"Audit logging failed: {str(e)}",
+                "message": f"Audit logging failed: {e!s}",
             },
         }
 
@@ -294,13 +310,13 @@ async def _handle_query_operation(
 
                 if start_str and end_str:
                     start_time = datetime.fromisoformat(
-                        start_str.replace("Z", "+00:00")
+                        start_str.replace("Z", "+00:00"),
                     )
                     end_time = datetime.fromisoformat(end_str.replace("Z", "+00:00"))
                     time_range_tuple = (start_time, end_time)
                 elif start_str:
                     start_time = datetime.fromisoformat(
-                        start_str.replace("Z", "+00:00")
+                        start_str.replace("Z", "+00:00"),
                     )
                     end_time = datetime.now(UTC)
                     time_range_tuple = (start_time, end_time)
@@ -327,7 +343,9 @@ async def _handle_query_operation(
 
         # Query events
         events = await audit_system.query_audit_events(
-            filters=query_filters, time_range=time_range_tuple, limit=limit
+            filters=query_filters,
+            time_range=time_range_tuple,
+            limit=limit,
         )
 
         # Filter sensitive data if not requested
@@ -395,7 +413,7 @@ async def _handle_query_operation(
             "success": False,
             "error": {
                 "code": "QUERY_OPERATION_FAILED",
-                "message": f"Audit query failed: {str(e)}",
+                "message": f"Audit query failed: {e!s}",
             },
         }
 
@@ -432,7 +450,7 @@ async def _handle_report_operation(
 
                 if start_str and end_str:
                     start_time = datetime.fromisoformat(
-                        start_str.replace("Z", "+00:00")
+                        start_str.replace("Z", "+00:00"),
                     )
                     end_time = datetime.fromisoformat(end_str.replace("Z", "+00:00"))
                 else:
@@ -451,7 +469,9 @@ async def _handle_report_operation(
 
         # Generate compliance report
         report_result = await audit_system.generate_compliance_report(
-            standard=standard, period_start=start_time, period_end=end_time
+            standard=standard,
+            period_start=start_time,
+            period_end=end_time,
         )
 
         if report_result.is_left():
@@ -489,7 +509,7 @@ async def _handle_report_operation(
         if ctx:
             await ctx.report_progress(100, 100, "Report generation complete")
             await ctx.info(
-                f"Report generated: {report_data['summary']['compliance_percentage']:.1f}% compliant"
+                f"Report generated: {report_data['summary']['compliance_percentage']:.1f}% compliant",
             )
 
         return {
@@ -510,13 +530,16 @@ async def _handle_report_operation(
             "success": False,
             "error": {
                 "code": "REPORT_OPERATION_FAILED",
-                "message": f"Compliance report generation failed: {str(e)}",
+                "message": f"Compliance report generation failed: {e!s}",
             },
         }
 
 
 async def _handle_monitor_operation(
-    audit_system, compliance_standard: str, config: dict | None, ctx: Context | None
+    audit_system,
+    compliance_standard: str,
+    config: dict | None,
+    ctx: Context | None,
 ) -> dict[str, Any]:
     """Handle compliance monitoring configuration operation."""
     try:
@@ -570,7 +593,7 @@ async def _handle_monitor_operation(
                 "statistics": stats,
                 "status_message": status_message,
                 "active_standards": list(
-                    {rule.standard.value for rule in monitor.get_active_rules()}
+                    {rule.standard.value for rule in monitor.get_active_rules()},
                 ),
             },
             "metadata": {
@@ -585,7 +608,7 @@ async def _handle_monitor_operation(
             "success": False,
             "error": {
                 "code": "MONITOR_OPERATION_FAILED",
-                "message": f"Compliance monitoring configuration failed: {str(e)}",
+                "message": f"Compliance monitoring configuration failed: {e!s}",
             },
         }
 
@@ -636,7 +659,7 @@ async def _handle_configure_operation(
 
         if ctx:
             await ctx.info(
-                f"Configuration updated: {audit_level} level, {retention_period} days retention"
+                f"Configuration updated: {audit_level} level, {retention_period} days retention",
             )
 
         return {
@@ -663,7 +686,7 @@ async def _handle_configure_operation(
             "success": False,
             "error": {
                 "code": "CONFIGURE_OPERATION_FAILED",
-                "message": f"Audit system configuration failed: {str(e)}",
+                "message": f"Audit system configuration failed: {e!s}",
             },
         }
 
@@ -725,7 +748,8 @@ async def _handle_status_operation(audit_system, ctx: Context | None) -> dict[st
                     "compliance_monitoring": True,
                     "report_generation": True,
                     "encryption": status.get("configuration", {}).get(
-                        "encryption_enabled", False
+                        "encryption_enabled",
+                        False,
                     ),
                     "real_time_monitoring": True,
                 },
@@ -747,6 +771,6 @@ async def _handle_status_operation(audit_system, ctx: Context | None) -> dict[st
             "success": False,
             "error": {
                 "code": "STATUS_OPERATION_FAILED",
-                "message": f"Audit system status retrieval failed: {str(e)}",
+                "message": f"Audit system status retrieval failed: {e!s}",
             },
         }

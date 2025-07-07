@@ -1,5 +1,4 @@
-"""
-Adaptive learning system for continuous improvement of smart suggestions.
+"""Adaptive learning system for continuous improvement of smart suggestions.
 
 This module implements sophisticated learning algorithms that process user feedback,
 adapt suggestion generation, and continuously improve the quality and relevance
@@ -134,18 +133,19 @@ class AdaptiveLearningSystem:
         self.feedback_window_days = 30
         self.insight_confidence_threshold = 0.75
 
-    @require(lambda self, feedback: isinstance(feedback, SuggestionFeedback))
+    @require(lambda __self, feedback: isinstance(feedback, SuggestionFeedback))
     async def process_feedback(
-        self, feedback: SuggestionFeedback
+        self,
+        feedback: SuggestionFeedback,
     ) -> Either[SuggestionError, None]:
-        """
-        Process user feedback to improve suggestion quality and personalization.
+        """Process user feedback to improve suggestion quality and personalization.
 
         Args:
             feedback: User feedback on a suggestion
 
         Returns:
             Either error or successful processing confirmation
+
         """
         try:
             # Store feedback
@@ -175,17 +175,18 @@ class AdaptiveLearningSystem:
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Error processing feedback: {str(e)}")
+            logger.error(f"Error processing feedback: {e!s}")
             return Either.left(
-                SuggestionError.learning_failed(f"Feedback processing failed: {str(e)}")
+                SuggestionError.learning_failed(f"Feedback processing failed: {e!s}"),
             )
 
-    @require(lambda self, user_id: len(user_id) > 0)
+    @require(lambda __self, user_id: len(user_id) > 0)
     async def personalize_suggestions(
-        self, user_id: str, suggestions: list[IntelligentSuggestion]
+        self,
+        user_id: str,
+        suggestions: list[IntelligentSuggestion],
     ) -> list[IntelligentSuggestion]:
-        """
-        Personalize suggestions based on user learning profile.
+        """Personalize suggestions based on user learning profile.
 
         Args:
             user_id: User identifier
@@ -193,6 +194,7 @@ class AdaptiveLearningSystem:
 
         Returns:
             Personalized and re-ranked suggestions
+
         """
         try:
             if not self.learning_enabled or user_id not in self.user_profiles:
@@ -232,24 +234,24 @@ class AdaptiveLearningSystem:
             )
 
             logger.debug(
-                f"Personalized {len(suggestions)} suggestions for user {user_id}"
+                f"Personalized {len(suggestions)} suggestions for user {user_id}",
             )
             return personalized_suggestions
 
         except Exception as e:
-            logger.error(f"Error personalizing suggestions: {str(e)}")
+            logger.error(f"Error personalizing suggestions: {e!s}")
             return suggestions  # Return original suggestions if personalization fails
 
-    @require(lambda self, user_id: len(user_id) > 0)
+    @require(lambda __self, user_id: len(user_id) > 0)
     def get_user_learning_stats(self, user_id: str) -> dict[str, Any]:
-        """
-        Get learning statistics and insights for a user.
+        """Get learning statistics and insights for a user.
 
         Args:
             user_id: User identifier
 
         Returns:
             Dictionary containing learning statistics and insights
+
         """
         try:
             if user_id not in self.user_profiles:
@@ -304,7 +306,7 @@ class AdaptiveLearningSystem:
             return stats
 
         except Exception as e:
-            logger.error(f"Error getting learning stats: {str(e)}")
+            logger.error(f"Error getting learning stats: {e!s}")
             return {"error": str(e)}
 
     async def get_system_learning_insights(self) -> list[dict[str, Any]]:
@@ -324,7 +326,7 @@ class AdaptiveLearningSystem:
                             "priority": insight.priority.value,
                             "created_at": insight.created_at.isoformat(),
                             "supporting_evidence": insight.supporting_evidence,
-                        }
+                        },
                     )
 
             # Sort by priority and confidence
@@ -339,11 +341,12 @@ class AdaptiveLearningSystem:
             return insights_data
 
         except Exception as e:
-            logger.error(f"Error getting system learning insights: {str(e)}")
+            logger.error(f"Error getting system learning insights: {e!s}")
             return []
 
     async def _update_personalization_profile(
-        self, feedback: SuggestionFeedback
+        self,
+        feedback: SuggestionFeedback,
     ) -> Either[SuggestionError, None]:
         """Update user personalization profile based on feedback."""
         try:
@@ -408,11 +411,12 @@ class AdaptiveLearningSystem:
 
         except Exception as e:
             return Either.left(
-                SuggestionError.learning_failed(f"Profile update failed: {str(e)}")
+                SuggestionError.learning_failed(f"Profile update failed: {e!s}"),
             )
 
     async def _learn_from_feedback(
-        self, feedback: SuggestionFeedback
+        self,
+        feedback: SuggestionFeedback,
     ) -> Either[SuggestionError, None]:
         """Learn from feedback patterns across all users."""
         try:
@@ -452,7 +456,7 @@ class AdaptiveLearningSystem:
 
         except Exception as e:
             return Either.left(
-                SuggestionError.learning_failed(f"Pattern learning failed: {str(e)}")
+                SuggestionError.learning_failed(f"Pattern learning failed: {e!s}"),
             )
 
     async def _update_adaptation_metrics(self, feedback: SuggestionFeedback) -> None:
@@ -494,12 +498,12 @@ class AdaptiveLearningSystem:
 
                 if first_half and second_half:
                     learning_velocity = statistics.mean(second_half) - statistics.mean(
-                        first_half
+                        first_half,
                     )
                     metrics["learning_velocity"] = learning_velocity
 
         except Exception as e:
-            logger.error(f"Error updating adaptation metrics: {str(e)}")
+            logger.error(f"Error updating adaptation metrics: {e!s}")
 
     async def _generate_learning_insights(self, user_id: str) -> None:
         """Generate learning insights for a user."""
@@ -518,7 +522,7 @@ class AdaptiveLearningSystem:
 
             # Insight: Low acceptance rate
             acceptance_rate = sum(1 for f in recent_feedback if f.accepted) / len(
-                recent_feedback
+                recent_feedback,
             )
             if acceptance_rate < 0.3:
                 await self._create_learning_insight(
@@ -553,7 +557,7 @@ class AdaptiveLearningSystem:
                     )
 
         except Exception as e:
-            logger.error(f"Error generating learning insights: {str(e)}")
+            logger.error(f"Error generating learning insights: {e!s}")
 
     async def _create_learning_insight(
         self,
@@ -589,10 +593,11 @@ class AdaptiveLearningSystem:
                 logger.info(f"Created learning insight: {insight_type}")
 
         except Exception as e:
-            logger.error(f"Error creating learning insight: {str(e)}")
+            logger.error(f"Error creating learning insight: {e!s}")
 
     def _infer_suggestion_type_from_feedback(
-        self, feedback: SuggestionFeedback
+        self,
+        feedback: SuggestionFeedback,
     ) -> SuggestionType:
         """Infer suggestion type from feedback context."""
         # In practice, this would be stored with the feedback
@@ -602,11 +607,11 @@ class AdaptiveLearningSystem:
             notes_lower = feedback.notes.lower()
             if "workflow" in notes_lower or "optimize" in notes_lower:
                 return SuggestionType.WORKFLOW_OPTIMIZATION
-            elif "tool" in notes_lower or "recommend" in notes_lower:
+            if "tool" in notes_lower or "recommend" in notes_lower:
                 return SuggestionType.TOOL_RECOMMENDATION
-            elif "automation" in notes_lower or "new" in notes_lower:
+            if "automation" in notes_lower or "new" in notes_lower:
                 return SuggestionType.NEW_AUTOMATION
-            elif "performance" in notes_lower or "speed" in notes_lower:
+            if "performance" in notes_lower or "speed" in notes_lower:
                 return SuggestionType.PERFORMANCE_IMPROVEMENT
 
         # Default to workflow optimization

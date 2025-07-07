@@ -1,21 +1,26 @@
-"""
-Comprehensive test coverage for Foundation Tools (TASK_1-9).
+"""Comprehensive test coverage for Foundation Tools (TASK_1-9).
 
 This module provides systematic testing for the core macro engine components
 with focus on MCP tool functionality, error handling, and integration patterns.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from src.core.errors import ValidationError
+
+logger = logging.getLogger(__name__)
 
 
 class TestCoreToolsFoundation:
     """Test foundation tools from TASK_1-9 core macro engine."""
 
     @pytest.fixture
-    def sample_macro_data(self):
+    def sample_macro_data(self) -> Any:
         """Sample macro data for testing."""
         return {
             "macro_id": "test-macro-001",
@@ -29,7 +34,7 @@ class TestCoreToolsFoundation:
         }
 
     @pytest.fixture
-    def sample_group_data(self):
+    def sample_group_data(self) -> Any:
         """Sample group data for testing."""
         return {
             "group_id": "test-group-001",
@@ -42,7 +47,7 @@ class TestCoreToolsFoundation:
 class TestMacroExecutionTools:
     """Test macro execution MCP tools from core engine."""
 
-    def test_core_tools_import(self):
+    def test_core_tools_import(self) -> None:
         """Test that core tools can be imported without errors."""
         try:
             from src.server.tools import core_tools
@@ -52,7 +57,7 @@ class TestMacroExecutionTools:
         except ImportError as e:
             pytest.fail(f"Failed to import core tools: {e}")
 
-    def test_engine_tools_import(self):
+    def test_engine_tools_import(self) -> None:
         """Test that engine tools can be imported without errors."""
         try:
             from src.server.tools import engine_tools
@@ -62,7 +67,7 @@ class TestMacroExecutionTools:
             pytest.fail(f"Failed to import engine tools: {e}")
 
     @pytest.fixture
-    def mock_fastmcp_context(self):
+    def mock_fastmcp_context(self) -> Any:
         """Create mock FastMCP context."""
         context = AsyncMock()
         context.session_id = "test-session-123"
@@ -74,13 +79,16 @@ class TestMacroExecutionTools:
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
     async def test_macro_execution_basic_functionality(
-        self, mock_get_km_client, mock_fastmcp_context
-    ):
+        self,
+        mock_get_km_client,
+        mock_fastmcp_context,
+    ) -> None:
         """Test basic macro execution functionality."""
         # Mock successful execution and connection
         mock_client = Mock()
         mock_client.check_connection.return_value = Mock(
-            is_left=Mock(return_value=False), get_right=Mock(return_value=True)
+            is_left=Mock(return_value=False),
+            get_right=Mock(return_value=True),
         )
         mock_client.execute_macro.return_value = Mock(
             is_left=Mock(return_value=False),
@@ -89,7 +97,7 @@ class TestMacroExecutionTools:
                     "success": True,
                     "execution_id": "exec-123",
                     "output": "Success",
-                }
+                },
             ),
         )
         mock_get_km_client.return_value = mock_client
@@ -112,8 +120,10 @@ class TestMacroExecutionTools:
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
     async def test_macro_listing_functionality(
-        self, mock_get_km_client, mock_fastmcp_context
-    ):
+        self,
+        mock_get_km_client,
+        mock_fastmcp_context,
+    ) -> None:
         """Test macro listing MCP tool."""
         # Mock macro list response
         mock_client = Mock()
@@ -123,7 +133,7 @@ class TestMacroExecutionTools:
                 return_value=[
                     {"macro_id": "m1", "name": "Macro 1", "enabled": True},
                     {"macro_id": "m2", "name": "Macro 2", "enabled": False},
-                ]
+                ],
             ),
         )
         mock_get_km_client.return_value = mock_client
@@ -145,7 +155,7 @@ class TestMacroExecutionTools:
 class TestGroupManagementTools:
     """Test group management tools."""
 
-    def test_group_tools_import(self):
+    def test_group_tools_import(self) -> None:
         """Test group tools can be imported."""
         try:
             from src.server.tools import group_tools
@@ -155,7 +165,7 @@ class TestGroupManagementTools:
             pytest.fail(f"Failed to import group tools: {e}")
 
     @pytest.fixture
-    def mock_fastmcp_context(self):
+    def mock_fastmcp_context(self) -> Any:
         """Create mock FastMCP context."""
         context = AsyncMock()
         context.session_id = "test-session-123"
@@ -166,13 +176,13 @@ class TestGroupManagementTools:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_group_listing(self, mock_get_km_client, mock_fastmcp_context):
+    async def test_group_listing(self, mock_get_km_client, mock_fastmcp_context) -> None:
         """Test group listing functionality."""
         mock_client = Mock()
         mock_client.list_groups.return_value = Mock(
             is_left=Mock(return_value=False),
             get_right=Mock(
-                return_value=[{"group_id": "g1", "name": "Group 1", "enabled": True}]
+                return_value=[{"group_id": "g1", "name": "Group 1", "enabled": True}],
             ),
         )
         mock_get_km_client.return_value = mock_client
@@ -180,7 +190,9 @@ class TestGroupManagementTools:
         from src.server.tools.group_tools import km_list_groups
 
         result = await km_list_groups(
-            include_disabled=True, sort_by="name", ctx=mock_fastmcp_context
+            include_disabled=True,
+            sort_by="name",
+            ctx=mock_fastmcp_context,
         )
 
         assert isinstance(result, dict)
@@ -190,7 +202,7 @@ class TestGroupManagementTools:
 class TestActionBuilderTools:
     """Test action builder tools from TASK_14."""
 
-    def test_action_tools_import(self):
+    def test_action_tools_import(self) -> None:
         """Test action tools can be imported."""
         try:
             from src.server.tools import action_tools
@@ -202,8 +214,10 @@ class TestActionBuilderTools:
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
     async def test_action_creation_functionality(
-        self, mock_get_km_client, execution_context
-    ):
+        self,
+        mock_get_km_client,
+        execution_context,
+    ) -> None:
         """Test action creation basic functionality."""
         mock_client = AsyncMock()
         mock_client.add_action.return_value = {"success": True}
@@ -226,7 +240,7 @@ class TestActionBuilderTools:
 class TestCalculatorTools:
     """Test calculator tools from TASK_18."""
 
-    def test_calculator_tools_import(self):
+    def test_calculator_tools_import(self) -> None:
         """Test calculator tools can be imported."""
         try:
             from src.server.tools import calculator_tools
@@ -236,12 +250,14 @@ class TestCalculatorTools:
             pytest.fail(f"Failed to import calculator tools: {e}")
 
     @pytest.mark.asyncio
-    async def test_basic_calculation(self, execution_context):
+    async def test_basic_calculation(self, execution_context) -> None:
         """Test basic calculation functionality."""
         from src.server.tools.calculator_tools import km_calculate
 
         result = await km_calculate(
-            expression="2 + 2", variables={}, ctx=execution_context
+            expression="2 + 2",
+            variables={},
+            ctx=execution_context,
         )
 
         assert isinstance(result, dict)
@@ -251,7 +267,7 @@ class TestCalculatorTools:
 class TestClipboardTools:
     """Test clipboard tools from TASK_11."""
 
-    def test_clipboard_tools_import(self):
+    def test_clipboard_tools_import(self) -> None:
         """Test clipboard tools can be imported."""
         try:
             from src.server.tools import clipboard_tools
@@ -263,7 +279,7 @@ class TestClipboardTools:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_clipboard_operations(self, mock_get_km_client, execution_context):
+    async def test_clipboard_operations(self, mock_get_km_client, execution_context) -> None:
         """Test basic clipboard operations."""
         mock_client = AsyncMock()
         mock_client.set_clipboard.return_value = {"success": True}
@@ -277,7 +293,9 @@ class TestClipboardTools:
 
         # Test setting clipboard
         set_result = await km_set_clipboard(
-            content="Test content", clipboard_type="text", ctx=execution_context
+            content="Test content",
+            clipboard_type="text",
+            ctx=execution_context,
         )
 
         assert isinstance(set_result, dict)
@@ -285,7 +303,8 @@ class TestClipboardTools:
 
         # Test getting clipboard
         get_result = await km_get_clipboard(
-            clipboard_type="text", ctx=execution_context
+            clipboard_type="text",
+            ctx=execution_context,
         )
 
         assert isinstance(get_result, dict)
@@ -295,7 +314,7 @@ class TestClipboardTools:
 class TestFileOperationTools:
     """Test file operation tools from TASK_13."""
 
-    def test_file_tools_import(self):
+    def test_file_tools_import(self) -> None:
         """Test file tools can be imported."""
         try:
             from src.server.tools import file_operation_tools
@@ -305,11 +324,18 @@ class TestFileOperationTools:
             pytest.fail(f"Failed to import file operation tools: {e}")
 
     @pytest.mark.asyncio
-    async def test_file_existence_check(self, execution_context):
+    async def test_file_existence_check(self, execution_context) -> None:
         """Test file existence checking."""
+        # S108 fix: Use secure temporary file for testing
+        import tempfile
+
         from src.server.tools.file_operation_tools import km_file_exists
 
-        result = await km_file_exists(file_path="/tmp/test.txt", ctx=execution_context)
+        with tempfile.NamedTemporaryFile() as temp_file:
+            result = await km_file_exists(
+                file_path=temp_file.name,
+                ctx=execution_context,
+            )
 
         assert isinstance(result, dict)
         assert "success" in result
@@ -318,7 +344,7 @@ class TestFileOperationTools:
 class TestNotificationTools:
     """Test notification tools from TASK_17."""
 
-    def test_notification_tools_import(self):
+    def test_notification_tools_import(self) -> None:
         """Test notification tools can be imported."""
         try:
             from src.server.tools import notification_tools
@@ -329,7 +355,7 @@ class TestNotificationTools:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_notification_display(self, mock_get_km_client, execution_context):
+    async def test_notification_display(self, mock_get_km_client, execution_context) -> None:
         """Test notification display functionality."""
         mock_client = AsyncMock()
         mock_client.show_notification.return_value = {"success": True}
@@ -353,11 +379,11 @@ class TestIntegrationPatterns:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_error_handling_pattern(self, mock_get_km_client, execution_context):
+    async def test_error_handling_pattern(self, mock_get_km_client, execution_context) -> None:
         """Test consistent error handling across tools."""
         mock_client = AsyncMock()
         mock_client.execute_macro.side_effect = ValidationError(
-            "Invalid macro identifier"
+            "Invalid macro identifier",
         )
         mock_get_km_client.return_value = mock_client
 
@@ -380,7 +406,7 @@ class TestIntegrationPatterns:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_metadata_consistency(self, mock_get_km_client, execution_context):
+    async def test_metadata_consistency(self, mock_get_km_client, execution_context) -> None:
         """Test that all tools return consistent metadata."""
         mock_client = AsyncMock()
         mock_client.list_macros.return_value = []
@@ -409,11 +435,15 @@ class TestIntegrationPatterns:
                     )
                 elif tool_name == "km_list_groups":
                     result = await tool_func(
-                        include_disabled=True, sort_by="name", ctx=execution_context
+                        include_disabled=True,
+                        sort_by="name",
+                        ctx=execution_context,
                     )
                 elif tool_name == "km_calculate":
                     result = await tool_func(
-                        expression="1+1", variables={}, ctx=execution_context
+                        expression="1+1",
+                        variables={},
+                        ctx=execution_context,
                     )
 
                 # Verify basic structure
@@ -429,7 +459,7 @@ class TestIntegrationPatterns:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_context_usage_pattern(self, mock_get_km_client, execution_context):
+    async def test_context_usage_pattern(self, mock_get_km_client, execution_context) -> None:
         """Test that tools properly use MCP context."""
         mock_client = AsyncMock()
         mock_client.list_macros.return_value = []
@@ -454,7 +484,7 @@ class TestPropertyBasedFoundationTesting:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_tool_response_structure_property(self, mock_get_km_client):
+    async def test_tool_response_structure_property(self, mock_get_km_client) -> None:
         """Property: All tools should return dict with 'success' key."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -464,7 +494,7 @@ class TestPropertyBasedFoundationTesting:
         mock_get_km_client.return_value = mock_client
 
         @given(group_filter=st.text(max_size=20), enabled_only=st.booleans())
-        async def test_response_structure(group_filter, enabled_only):
+        async def test_response_structure(group_filter, enabled_only) -> None:
             """Test response structure property."""
             from src.core import Duration, ExecutionContext, Permission
 
@@ -489,9 +519,7 @@ class TestPropertyBasedFoundationTesting:
                 assert "success" in result
                 assert isinstance(result["success"], bool)
 
-            except Exception:
-                # Tools may fail but shouldn't crash
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
-        # Run a test case
         await test_response_structure("", True)

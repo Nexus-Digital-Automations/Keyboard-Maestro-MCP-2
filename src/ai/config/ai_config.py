@@ -1,5 +1,4 @@
-"""
-Centralized AI configuration management system.
+"""Centralized AI configuration management system.
 
 This module provides comprehensive configuration management for AI operations
 including provider settings, model parameters, caching policies, cost limits,
@@ -150,7 +149,8 @@ class AIConfigManager:
         self._environment_overrides: dict[str, Any] = {}
 
     def load_config(
-        self, config_path: Path | None = None
+        self,
+        config_path: Path | None = None,
     ) -> Either[ValidationError, AIConfig]:
         """Load configuration from file with environment overrides."""
         try:
@@ -165,7 +165,7 @@ class AIConfigManager:
             if self.config_path.exists():
                 file_result = self._load_from_file(self.config_path)
                 if file_result.is_right():
-                    self._merge_config(file_result.right_value)
+                    self._merge_config(file_result.value)
                     self.loaded_sources.append(ConfigSource.FILE)
 
             # Apply environment overrides
@@ -180,10 +180,11 @@ class AIConfigManager:
             return Either.right(self.config)
 
         except Exception as e:
-            return Either.left(ValidationError("config_load_failed", str(e)))
+            return Either.left(ValidationError("config_load_failed", str(e), "Configuration loading failed"))
 
     def save_config(
-        self, config_path: Path | None = None
+        self,
+        config_path: Path | None = None,
     ) -> Either[ValidationError, None]:
         """Save configuration to file."""
         try:
@@ -204,21 +205,24 @@ class AIConfigManager:
                 return Either.left(
                     ValidationError(
                         "unsupported_format",
-                        f"Unsupported config format: {save_path.suffix}",
-                    )
+                        save_path.suffix,
+                        "Unsupported config format",
+                    ),
                 )
 
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError("config_save_failed", str(e)))
+            return Either.left(ValidationError("config_save_failed", str(e), "Configuration saving failed"))
 
     def get_provider_config(self, provider_name: str) -> ProviderConfig | None:
         """Get configuration for specific provider."""
         return self.config.providers.get(provider_name)
 
     def get_model_config(
-        self, provider_name: str, model_name: str
+        self,
+        provider_name: str,
+        model_name: str,
     ) -> ModelConfig | None:
         """Get configuration for specific model."""
         provider_config = self.get_provider_config(provider_name)
@@ -227,7 +231,9 @@ class AIConfigManager:
         return None
 
     def update_provider_config(
-        self, provider_name: str, config: ProviderConfig
+        self,
+        provider_name: str,
+        config: ProviderConfig,
     ) -> None:
         """Update provider configuration."""
         self.config.providers[provider_name] = config
@@ -300,17 +306,19 @@ class AIConfigManager:
                     return Either.left(
                         ValidationError(
                             "unsupported_format",
-                            f"Unsupported format: {file_path.suffix}",
-                        )
+                            file_path.suffix,
+                            "Unsupported format",
+                        ),
                     )
 
             return self._dict_to_config(data)
 
         except Exception as e:
-            return Either.left(ValidationError("file_read_failed", str(e)))
+            return Either.left(ValidationError("file_read_failed", str(e), "Configuration file read failed"))
 
     def _dict_to_config(
-        self, data: dict[str, Any]
+        self,
+        data: dict[str, Any],
     ) -> Either[ValidationError, AIConfig]:
         """Convert dictionary to configuration object."""
         try:
@@ -340,7 +348,7 @@ class AIConfigManager:
             return Either.right(config)
 
         except Exception as e:
-            return Either.left(ValidationError("config_parsing_failed", str(e)))
+            return Either.left(ValidationError("config_parsing_failed", str(e), "Configuration parsing failed"))
 
     def _config_to_dict(self, config: AIConfig) -> dict[str, Any]:
         """Convert configuration object to dictionary."""
@@ -438,7 +446,7 @@ class AIConfigManager:
             # Check required providers
             if not config.providers:
                 return Either.left(
-                    ValidationError("no_providers", "No AI providers configured")
+                    ValidationError("no_providers", None, "At least one AI provider must be configured"),
                 )
 
             # Check default provider exists
@@ -446,8 +454,9 @@ class AIConfigManager:
                 return Either.left(
                     ValidationError(
                         "invalid_default_provider",
-                        f"Default provider '{config.default_provider}' not configured",
-                    )
+                        config.default_provider,
+                        "Default provider not configured",
+                    ),
                 )
 
             # Validate provider configurations
@@ -456,14 +465,15 @@ class AIConfigManager:
                     return Either.left(
                         ValidationError(
                             "missing_api_key_config",
-                            f"No API key configuration for provider: {name}",
-                        )
+                            name,
+                            "No API key configuration for provider",
+                        ),
                     )
 
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError("validation_failed", str(e)))
+            return Either.left(ValidationError("validation_failed", str(e), "Configuration validation failed"))
 
 
 # Global configuration manager

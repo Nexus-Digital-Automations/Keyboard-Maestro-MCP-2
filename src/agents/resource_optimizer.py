@@ -1,5 +1,4 @@
-"""
-Resource management and optimization system for autonomous agents.
+"""Resource management and optimization system for autonomous agents.
 
 This module provides intelligent resource allocation, optimization, and monitoring
 for autonomous agents. Implements sophisticated algorithms for resource prediction,
@@ -102,7 +101,7 @@ class ResourceOptimizer:
         self.total_resources = total_resources
         self.allocations: dict[tuple[AgentId, ResourceType], ResourceAllocation] = {}
         self.usage_history: dict[ResourceType, deque] = defaultdict(
-            lambda: deque(maxlen=10000)
+            lambda: deque(maxlen=10000),
         )
         self.resource_pools: dict[ResourceType, float] = total_resources.copy()
         self.optimization_metrics = {
@@ -137,7 +136,7 @@ class ResourceOptimizer:
                                 "multiple_resources",
                                 sum(requirements.values()),
                                 sum(self.resource_pools.values()),
-                            )
+                            ),
                         )
 
                 # Allocate resources
@@ -172,12 +171,14 @@ class ResourceOptimizer:
             except Exception as e:
                 return Either.left(
                     AutonomousAgentError.unexpected_error(
-                        f"Resource allocation failed: {str(e)}"
-                    )
+                        f"Resource allocation failed: {e!s}",
+                    ),
                 )
 
     async def release_resources(
-        self, agent_id: AgentId, resources: dict[ResourceType, float] | None = None
+        self,
+        agent_id: AgentId,
+        resources: dict[ResourceType, float] | None = None,
     ) -> Either[AutonomousAgentError, None]:
         """Release resources allocated to an agent."""
         async with self._lock:
@@ -212,8 +213,8 @@ class ResourceOptimizer:
             except Exception as e:
                 return Either.left(
                     AutonomousAgentError.unexpected_error(
-                        f"Resource release failed: {str(e)}"
-                    )
+                        f"Resource release failed: {e!s}",
+                    ),
                 )
 
     async def report_usage(
@@ -243,7 +244,9 @@ class ResourceOptimizer:
                 self.usage_history[resource_type].append(history_entry)
 
     async def predict_requirements(
-        self, agent_id: AgentId, time_horizon: timedelta
+        self,
+        agent_id: AgentId,
+        time_horizon: timedelta,
     ) -> dict[ResourceType, ResourcePrediction]:
         """Predict future resource requirements for an agent."""
         predictions = {}
@@ -263,7 +266,7 @@ class ResourceOptimizer:
             # Simple prediction based on recent average
             recent_usage = agent_history[-20:]  # Last 20 entries
             avg_usage = sum(entry.usage_amount for entry in recent_usage) / len(
-                recent_usage
+                recent_usage,
             )
 
             # Adjust for time horizon
@@ -321,13 +324,13 @@ class ResourceOptimizer:
                     "used": allocation.used_amount,
                     "utilization": allocation.utilization_rate,
                     "priority": allocation.priority,
-                }
+                },
             )
 
         # Calculate average utilization
         if status["utilization_rates"]:
             avg_utilization = sum(status["utilization_rates"].values()) / len(
-                status["utilization_rates"]
+                status["utilization_rates"],
             )
             self.optimization_metrics["average_utilization"] = avg_utilization
 
@@ -356,7 +359,7 @@ class ResourceOptimizer:
 
         # Reclaim underutilized resources
         underutilized_threshold = 30.0  # 30% utilization
-        for key, allocation in list(self.allocations.items()):
+        for _, allocation in list(self.allocations.items()):
             if allocation.utilization_rate < underutilized_threshold:
                 # Reclaim unused portion
                 unused = allocation.allocated_amount - allocation.used_amount
@@ -398,7 +401,8 @@ class ResourceOptimizer:
                             break
 
     def _check_availability(
-        self, requirements: dict[ResourceType, float]
+        self,
+        requirements: dict[ResourceType, float],
     ) -> dict[ResourceType, bool]:
         """Check if required resources are available."""
         availability = {}
@@ -450,7 +454,7 @@ class ResourceOptimizer:
                         for rt, util in status["utilization_rates"].items()
                         if util > 85
                     ],
-                }
+                },
             )
         elif avg_utilization < 30:
             recommendations.append(
@@ -463,7 +467,7 @@ class ResourceOptimizer:
                         for rt, util in status["utilization_rates"].items()
                         if util < 30
                     ],
-                }
+                },
             )
 
         # Check for resource contention
@@ -474,7 +478,7 @@ class ResourceOptimizer:
                     "urgency": "medium",
                     "description": f"{self.optimization_metrics['allocation_failures']} allocation failures detected",
                     "suggestion": "Review agent priorities and resource requirements",
-                }
+                },
             )
 
         # Check for imbalanced allocations
@@ -491,7 +495,7 @@ class ResourceOptimizer:
                             "urgency": "medium",
                             "description": f"Large utilization variance for {resource_type.value}",
                             "suggestion": "Rebalance allocations or adjust agent behaviors",
-                        }
+                        },
                     )
 
         return recommendations

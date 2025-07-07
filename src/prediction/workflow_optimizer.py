@@ -1,6 +1,4 @@
-"""
-Workflow optimization for intelligent automation improvements.
-"""
+"""Workflow optimization for intelligent automation improvements."""
 
 import logging
 from typing import Any
@@ -26,7 +24,8 @@ class WorkflowOptimizer:
         self.logger = logging.getLogger(__name__)
 
     async def optimize_workflow(
-        self, workflow_data: dict[str, Any]
+        self,
+        workflow_data: dict[str, Any],
     ) -> Either[Exception, WorkflowOptimization]:
         """Optimize workflow for better performance."""
         try:

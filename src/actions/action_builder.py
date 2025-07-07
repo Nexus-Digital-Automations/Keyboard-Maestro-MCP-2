@@ -1,5 +1,4 @@
-"""
-Core Action Building System with Builder Pattern and XML Security
+"""Core Action Building System with Builder Pattern and XML Security.
 
 Provides comprehensive action building functionality with type safety,
 security validation, and XML generation for Keyboard Maestro automation.
@@ -87,7 +86,7 @@ class ActionConfiguration:
                 value=list(self.parameters.keys()),
                 constraint=f"Must include required parameters: {self.action_type.required_params}. Missing: {missing}",
             )
-        
+
         # Check security validation
         if not self._validate_parameter_security():
             raise ValidationError(
@@ -164,7 +163,7 @@ class ActionBuilder:
 
     @require(
         lambda self, action_type, parameters, **kwargs: action_type
-        and action_type.strip()
+        and action_type.strip(),
     )
     def add_action(
         self,
@@ -205,17 +204,24 @@ class ActionBuilder:
         return self
 
     def add_text_action(
-        self, text: str, by_typing: bool = True, **kwargs
+        self,
+        text: str,
+        by_typing: bool = True,
+        **kwargs,
     ) -> "ActionBuilder":
         """Convenience method for adding text input actions."""
         return self.add_action(
-            "Type a String", {"text": text, "by_typing": by_typing}, **kwargs
+            "Type a String",
+            {"text": text, "by_typing": by_typing},
+            **kwargs,
         )
 
     def add_pause_action(self, duration: Duration, **kwargs) -> "ActionBuilder":
         """Convenience method for adding pause actions."""
         return self.add_action(
-            "Pause", {"duration": duration.total_seconds()}, **kwargs
+            "Pause",
+            {"duration": duration.total_seconds()},
+            **kwargs,
         )
 
     def add_if_action(self, condition: dict[str, Any], **kwargs) -> "ActionBuilder":
@@ -223,15 +229,23 @@ class ActionBuilder:
         return self.add_action("If Then Else", {"condition": condition}, **kwargs)
 
     def add_variable_action(
-        self, variable_name: str, value: str, **kwargs
+        self,
+        variable_name: str,
+        value: str,
+        **kwargs,
     ) -> "ActionBuilder":
         """Convenience method for setting variables."""
         return self.add_action(
-            "Set Variable to Text", {"variable": variable_name, "text": value}, **kwargs
+            "Set Variable to Text",
+            {"variable": variable_name, "text": value},
+            **kwargs,
         )
 
     def add_app_action(
-        self, application: str, bring_all_windows: bool = False, **kwargs
+        self,
+        application: str,
+        bring_all_windows: bool = False,
+        **kwargs,
     ) -> "ActionBuilder":
         """Convenience method for activating applications."""
         return self.add_action(
@@ -241,7 +255,9 @@ class ActionBuilder:
         )
 
     @ensure(
-        lambda self, result: result and isinstance(result, dict) and "success" in result
+        lambda _self, result: result
+        and isinstance(result, dict)
+        and "success" in result,
     )
     def build_xml(self) -> dict[str, Any]:
         """Generate XML for all actions with security validation."""
@@ -279,15 +295,17 @@ class ActionBuilder:
             }
 
         except Exception as e:
-            logger.error(f"XML generation failed: {str(e)}")
+            logger.error(f"XML generation failed: {e!s}")
             return {
                 "success": False,
-                "error": f"XML generation failed: {str(e)}",
+                "error": f"XML generation failed: {e!s}",
                 "xml": "",
             }
 
     def _generate_action_xml(
-        self, action: ActionConfiguration, index: int
+        self,
+        action: ActionConfiguration,
+        index: int,
     ) -> ET.Element:
         """Generate XML element for single action with proper escaping."""
         action_elem = ET.Element("action")
@@ -316,12 +334,10 @@ class ActionBuilder:
                     param_elem.set(key, escape(str(value)))
             else:
                 # String values - escape properly (quotes only for attributes, not text content)
-                param_elem.text = escape(str(param_value), entities={
-                    "&": "&amp;",
-                    "<": "&lt;", 
-                    ">": "&gt;",
-                    '"': "&quot;"
-                })
+                param_elem.text = escape(
+                    str(param_value),
+                    entities={"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"},
+                )
 
         return action_elem
 
@@ -354,7 +370,7 @@ class ActionBuilder:
 
             DefusedET.fromstring(xml_string)
         except Exception as e:
-            logger.warning(f"Generated XML is malformed: {str(e)}")
+            logger.warning(f"Generated XML is malformed: {e!s}")
             return False
 
         # Check size limits
@@ -367,9 +383,9 @@ class ActionBuilder:
     def _format_xml(self, xml_string: str) -> str:
         """Format XML string for readability using secure parsing."""
         try:
-            from defusedxml import minidom as DefusedMinidom
+            from defusedxml import minidom
 
-            dom = DefusedMinidom.parseString(xml_string)
+            dom = minidom.parseString(xml_string)
             return dom.toprettyxml(indent="  ")
         except Exception:
             # Fallback to unformatted XML if pretty printing fails
@@ -415,7 +431,7 @@ class ActionBuilder:
                 ]
                 if missing_params:
                     result["issues"].append(
-                        f"Missing required parameters: {missing_params}"
+                        f"Missing required parameters: {missing_params}",
                     )
 
                 if not action._validate_parameter_security():

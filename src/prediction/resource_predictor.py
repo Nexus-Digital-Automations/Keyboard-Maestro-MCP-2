@@ -1,5 +1,4 @@
-"""
-Resource usage prediction and capacity planning with intelligent forecasting.
+"""Resource usage prediction and capacity planning with intelligent forecasting.
 
 This module provides comprehensive resource prediction capabilities including
 usage forecasting, capacity planning, and resource optimization recommendations.
@@ -67,22 +66,28 @@ class ResourcePredictor:
         self,
         resource_type: str,
         prediction_horizon: timedelta = timedelta(hours=24),
-        confidence_level: ConfidenceLevel = create_confidence_level(0.8),
+        confidence_level: ConfidenceLevel | None = None,
     ) -> Either[ResourcePredictionError, ResourcePrediction]:
         """Predict future resource usage patterns."""
         try:
+            # B008 fix: Move function call from default argument to function body
+            if confidence_level is None:
+                confidence_level = create_confidence_level(0.8)
             # Get historical data
             historical_data = self._get_resource_history(resource_type)
 
             if len(historical_data) < 5:
                 # Generate synthetic data for testing
                 historical_data = self._generate_synthetic_resource_data(
-                    resource_type, 30
+                    resource_type,
+                    30,
                 )
 
             # Make prediction
             predicted_usage = await self._predict_usage_pattern(
-                resource_type, historical_data, prediction_horizon
+                resource_type,
+                historical_data,
+                prediction_horizon,
             )
 
             current_usage = historical_data[-1].utilization if historical_data else 0.5
@@ -90,16 +95,21 @@ class ResourcePredictor:
 
             # Predict shortage
             expected_shortage = self._predict_shortage(
-                predicted_usage, capacity_threshold
+                predicted_usage,
+                capacity_threshold,
             )
 
             # Generate recommendations
             optimization_opportunities = self._generate_resource_optimizations(
-                resource_type, current_usage, predicted_usage
+                resource_type,
+                current_usage,
+                predicted_usage,
             )
 
             scaling_recommendation = self._generate_scaling_recommendation(
-                resource_type, predicted_usage, expected_shortage
+                resource_type,
+                predicted_usage,
+                expected_shortage,
             )
 
             prediction = ResourcePrediction(
@@ -120,7 +130,9 @@ class ResourcePredictor:
             return Either.left(ResourcePredictionError("prediction_failed", str(e)))
 
     def _generate_synthetic_resource_data(
-        self, resource_type: str, count: int
+        self,
+        resource_type: str,
+        count: int,
     ) -> list[ResourceMetrics]:
         """Generate synthetic resource data for testing."""
         import math
@@ -143,7 +155,7 @@ class ResourcePredictor:
 
             # Daily pattern
             daily_factor = 1.0 + 0.3 * math.sin(2 * math.pi * hour / 24)
-            noise = random.uniform(0.9, 1.1)
+            noise = random.uniform(0.9, 1.1)  # noqa: S311
             utilization = min(0.95, base_utilization * daily_factor * noise)
 
             metrics = ResourceMetrics(
@@ -165,21 +177,21 @@ class ResourcePredictor:
         horizon: timedelta,
     ) -> list[tuple[datetime, ResourceUtilization, ConfidenceLevel]]:
         """Predict resource usage pattern."""
-
         predicted_usage = []
 
         if len(historical_data) >= 2:
             # Calculate trend
             recent_utilizations = [m.utilization for m in historical_data[-10:]]
             trend = (recent_utilizations[-1] - recent_utilizations[0]) / len(
-                recent_utilizations
+                recent_utilizations,
             )
 
             # Generate predictions
             last_timestamp = historical_data[-1].timestamp
             last_utilization = historical_data[-1].utilization
             hours_to_predict = min(
-                int(horizon.total_seconds() / 3600), 72
+                int(horizon.total_seconds() / 3600),
+                72,
             )  # Max 72 hours
 
             for hour in range(1, hours_to_predict + 1):
@@ -187,7 +199,7 @@ class ResourcePredictor:
 
                 # Apply trend with daily pattern
                 daily_factor = 1.0 + 0.2 * math.sin(
-                    2 * math.pi * future_timestamp.hour / 24
+                    2 * math.pi * future_timestamp.hour / 24,
                 )
                 predicted_value = last_utilization + (trend * hour)
                 predicted_value *= daily_factor
@@ -201,7 +213,7 @@ class ResourcePredictor:
                         future_timestamp,
                         create_resource_utilization(predicted_value),
                         create_confidence_level(confidence),
-                    )
+                    ),
                 )
 
         return predicted_usage
@@ -212,7 +224,6 @@ class ResourcePredictor:
         threshold: ResourceUtilization,
     ) -> datetime | None:
         """Predict when resource shortage might occur."""
-
         for timestamp, usage, confidence in predicted_usage:
             if usage >= threshold and confidence >= 0.6:
                 return timestamp
@@ -226,12 +237,11 @@ class ResourcePredictor:
         predicted_usage: list[tuple[datetime, ResourceUtilization, ConfidenceLevel]],
     ) -> list[str]:
         """Generate resource optimization opportunities."""
-
         optimizations = []
 
         if current_usage > 0.8:
             optimizations.append(
-                f"Current {resource_type} usage is high - immediate optimization needed"
+                f"Current {resource_type} usage is high - immediate optimization needed",
             )
 
         # Check future high usage
@@ -245,7 +255,7 @@ class ResourcePredictor:
             high_usage_count > len(predicted_usage) * 0.3
         ):  # More than 30% of predictions
             optimizations.append(
-                f"High {resource_type} usage predicted - plan capacity increases"
+                f"High {resource_type} usage predicted - plan capacity increases",
             )
 
         # Resource-specific optimizations
@@ -254,28 +264,28 @@ class ResourcePredictor:
                 [
                     "Consider CPU optimization through async processing",
                     "Implement task prioritization and load balancing",
-                ]
+                ],
             )
         elif resource_type == "memory":
             optimizations.extend(
                 [
                     "Implement memory pooling and caching strategies",
                     "Monitor for memory leaks and optimize data structures",
-                ]
+                ],
             )
         elif resource_type == "storage":
             optimizations.extend(
                 [
                     "Implement data archiving and cleanup policies",
                     "Consider data compression and deduplication",
-                ]
+                ],
             )
         elif resource_type == "network":
             optimizations.extend(
                 [
                     "Optimize network protocols and compression",
                     "Implement request batching and caching",
-                ]
+                ],
             )
 
         return optimizations or [f"{resource_type} usage appears optimal"]
@@ -287,15 +297,13 @@ class ResourcePredictor:
         expected_shortage: datetime | None,
     ) -> str:
         """Generate scaling recommendation."""
-
         if expected_shortage:
             days_until_shortage = (expected_shortage - datetime.now(UTC)).days
             if days_until_shortage <= 3:
                 return f"Immediate {resource_type} scaling required - shortage in {days_until_shortage} days"
-            elif days_until_shortage <= 14:
+            if days_until_shortage <= 14:
                 return f"Plan {resource_type} scaling within {days_until_shortage} days"
-            else:
-                return f"Monitor {resource_type} - scaling may be needed in ~{days_until_shortage} days"
+            return f"Monitor {resource_type} - scaling may be needed in ~{days_until_shortage} days"
 
         # Check if any high usage periods
         max_usage = max((usage for _, usage, _ in predicted_usage), default=0.0)
@@ -303,10 +311,9 @@ class ResourcePredictor:
             return (
                 f"Proactive {resource_type} scaling recommended for peak usage periods"
             )
-        elif max_usage > 0.7:
+        if max_usage > 0.7:
             return f"Monitor {resource_type} usage trends - scaling may be beneficial"
-        else:
-            return f"Current {resource_type} capacity appears sufficient"
+        return f"Current {resource_type} capacity appears sufficient"
 
     def _get_resource_history(self, resource_type: str) -> list[ResourceMetrics]:
         """Get historical resource data."""

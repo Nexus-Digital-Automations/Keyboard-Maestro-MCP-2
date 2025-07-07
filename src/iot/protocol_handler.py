@@ -1,5 +1,4 @@
-"""
-Protocol Handler - TASK_65 Phase 2 Core IoT Engine
+"""Protocol Handler - TASK_65 Phase 2 Core IoT Engine.
 
 Multi-protocol support for various IoT communication standards with unified interface.
 Provides comprehensive protocol abstraction and intelligent communication management.
@@ -11,11 +10,8 @@ Protocols: MQTT, CoAP, HTTP/HTTPS, Zigbee, Z-Wave, Bluetooth, WiFi, Thread, Matt
 
 from __future__ import annotations
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 import asyncio
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -29,6 +25,8 @@ from src.core.iot_architecture import (
     IoTIntegrationError,
     IoTProtocol,
 )
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -198,42 +196,42 @@ class ProtocolHandler(ABC):
     @abstractmethod
     async def connect(self) -> Either[IoTIntegrationError, bool]:
         """Connect to the protocol endpoint."""
-        pass
 
     @abstractmethod
     async def disconnect(self) -> Either[IoTIntegrationError, bool]:
         """Disconnect from the protocol endpoint."""
-        pass
 
     @abstractmethod
     async def send_message(
-        self, message: IoTMessage
+        self,
+        message: IoTMessage,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Send a message using this protocol."""
-        pass
 
     @abstractmethod
     async def receive_message(
-        self, timeout: int | None = None
+        self,
+        timeout: int | None = None,
     ) -> Either[IoTIntegrationError, IoTMessage]:
         """Receive a message using this protocol."""
-        pass
 
     @abstractmethod
     async def subscribe(
-        self, topic: str, handler: Callable[[IoTMessage], None]
+        self,
+        topic: str,
+        handler: Callable[[IoTMessage], None],
     ) -> Either[IoTIntegrationError, bool]:
         """Subscribe to messages on a topic."""
-        pass
 
     @abstractmethod
     async def unsubscribe(self, topic: str) -> Either[IoTIntegrationError, bool]:
         """Unsubscribe from messages on a topic."""
-        pass
 
     def add_message_handler(
-        self, message_type: MessageType, handler: Callable[[IoTMessage], None]
-    ):
+        self,
+        message_type: MessageType,
+        handler: Callable[[IoTMessage], None],
+    ) -> None:
         """Add message handler for specific message type."""
         if message_type not in self.message_handlers:
             self.message_handlers[message_type] = []
@@ -245,8 +243,12 @@ class ProtocolHandler(ABC):
             for handler in self.message_handlers[message.message_type]:
                 try:
                     await handler(message)
-                except Exception:
-                    pass  # Don't let handler errors affect protocol
+                except Exception as e:
+                    # SIM105/S110 fix: Proper error handling instead of silent pass
+                    logger.warning(
+                        f"Message handler error for {message.message_type}: {e}",
+                    )
+                    # Continue processing other handlers without failing
 
     def update_metrics(
         self,
@@ -254,7 +256,7 @@ class ProtocolHandler(ABC):
         received: bool = False,
         error: bool = False,
         response_time: float = 0.0,
-    ):
+    ) -> None:
         """Update protocol metrics."""
         if sent:
             self.metrics["messages_sent"] += 1
@@ -288,7 +290,7 @@ class HTTPProtocolHandler(ProtocolHandler):
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"HTTP connection failed: {str(e)}")
+                IoTIntegrationError(f"HTTP connection failed: {e!s}"),
             )
 
     async def disconnect(self) -> Either[IoTIntegrationError, bool]:
@@ -297,7 +299,8 @@ class HTTPProtocolHandler(ProtocolHandler):
         return Either.success(True)
 
     async def send_message(
-        self, message: IoTMessage
+        self,
+        message: IoTMessage,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Send HTTP request."""
         try:
@@ -319,10 +322,11 @@ class HTTPProtocolHandler(ProtocolHandler):
 
         except Exception as e:
             self.update_metrics(error=True)
-            return Either.error(IoTIntegrationError(f"HTTP send failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"HTTP send failed: {e!s}"))
 
     async def receive_message(
-        self, timeout: int | None = None
+        self,
+        timeout: int | None = None,
     ) -> Either[IoTIntegrationError, IoTMessage]:
         """Receive HTTP response."""
         # HTTP is request-response, so this would handle webhook-style receives
@@ -332,10 +336,12 @@ class HTTPProtocolHandler(ProtocolHandler):
             return Either.error(IoTIntegrationError("No HTTP message available"))
 
         except Exception as e:
-            return Either.error(IoTIntegrationError(f"HTTP receive failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"HTTP receive failed: {e!s}"))
 
     async def subscribe(
-        self, topic: str, handler: Callable[[IoTMessage], None]
+        self,
+        topic: str,
+        handler: Callable[[IoTMessage], None],
     ) -> Either[IoTIntegrationError, bool]:
         """Subscribe to HTTP webhook."""
         # Would implement webhook subscription
@@ -363,7 +369,7 @@ class MQTTProtocolHandler(ProtocolHandler):
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"MQTT connection failed: {str(e)}")
+                IoTIntegrationError(f"MQTT connection failed: {e!s}"),
             )
 
     async def disconnect(self) -> Either[IoTIntegrationError, bool]:
@@ -372,7 +378,8 @@ class MQTTProtocolHandler(ProtocolHandler):
         return Either.success(True)
 
     async def send_message(
-        self, message: IoTMessage
+        self,
+        message: IoTMessage,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Publish MQTT message."""
         try:
@@ -392,10 +399,11 @@ class MQTTProtocolHandler(ProtocolHandler):
 
         except Exception as e:
             self.update_metrics(error=True)
-            return Either.error(IoTIntegrationError(f"MQTT publish failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"MQTT publish failed: {e!s}"))
 
     async def receive_message(
-        self, timeout: int | None = None
+        self,
+        timeout: int | None = None,
     ) -> Either[IoTIntegrationError, IoTMessage]:
         """Receive MQTT message."""
         try:
@@ -404,10 +412,12 @@ class MQTTProtocolHandler(ProtocolHandler):
             return Either.error(IoTIntegrationError("No MQTT message available"))
 
         except Exception as e:
-            return Either.error(IoTIntegrationError(f"MQTT receive failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"MQTT receive failed: {e!s}"))
 
     async def subscribe(
-        self, topic: str, handler: Callable[[IoTMessage], None]
+        self,
+        topic: str,
+        handler: Callable[[IoTMessage], None],
     ) -> Either[IoTIntegrationError, bool]:
         """Subscribe to MQTT topic."""
         try:
@@ -416,7 +426,7 @@ class MQTTProtocolHandler(ProtocolHandler):
             return Either.success(True)
 
         except Exception as e:
-            return Either.error(IoTIntegrationError(f"MQTT subscribe failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"MQTT subscribe failed: {e!s}"))
 
     async def unsubscribe(self, topic: str) -> Either[IoTIntegrationError, bool]:
         """Unsubscribe from MQTT topic."""
@@ -436,7 +446,7 @@ class CoAPProtocolHandler(ProtocolHandler):
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"CoAP connection failed: {str(e)}")
+                IoTIntegrationError(f"CoAP connection failed: {e!s}"),
             )
 
     async def disconnect(self) -> Either[IoTIntegrationError, bool]:
@@ -445,7 +455,8 @@ class CoAPProtocolHandler(ProtocolHandler):
         return Either.success(True)
 
     async def send_message(
-        self, message: IoTMessage
+        self,
+        message: IoTMessage,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Send CoAP request."""
         try:
@@ -465,10 +476,11 @@ class CoAPProtocolHandler(ProtocolHandler):
 
         except Exception as e:
             self.update_metrics(error=True)
-            return Either.error(IoTIntegrationError(f"CoAP send failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"CoAP send failed: {e!s}"))
 
     async def receive_message(
-        self, timeout: int | None = None
+        self,
+        timeout: int | None = None,
     ) -> Either[IoTIntegrationError, IoTMessage]:
         """Receive CoAP message."""
         try:
@@ -476,10 +488,12 @@ class CoAPProtocolHandler(ProtocolHandler):
             return Either.error(IoTIntegrationError("No CoAP message available"))
 
         except Exception as e:
-            return Either.error(IoTIntegrationError(f"CoAP receive failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"CoAP receive failed: {e!s}"))
 
     async def subscribe(
-        self, topic: str, handler: Callable[[IoTMessage], None]
+        self,
+        topic: str,
+        handler: Callable[[IoTMessage], None],
     ) -> Either[IoTIntegrationError, bool]:
         """Subscribe to CoAP observe."""
         try:
@@ -488,7 +502,7 @@ class CoAPProtocolHandler(ProtocolHandler):
             return Either.success(True)
 
         except Exception as e:
-            return Either.error(IoTIntegrationError(f"CoAP observe failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"CoAP observe failed: {e!s}"))
 
     async def unsubscribe(self, topic: str) -> Either[IoTIntegrationError, bool]:
         """Unsubscribe from CoAP observe."""
@@ -508,7 +522,7 @@ class ZigbeeProtocolHandler(ProtocolHandler):
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Zigbee connection failed: {str(e)}")
+                IoTIntegrationError(f"Zigbee connection failed: {e!s}"),
             )
 
     async def disconnect(self) -> Either[IoTIntegrationError, bool]:
@@ -517,7 +531,8 @@ class ZigbeeProtocolHandler(ProtocolHandler):
         return Either.success(True)
 
     async def send_message(
-        self, message: IoTMessage
+        self,
+        message: IoTMessage,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Send Zigbee command."""
         try:
@@ -538,10 +553,11 @@ class ZigbeeProtocolHandler(ProtocolHandler):
 
         except Exception as e:
             self.update_metrics(error=True)
-            return Either.error(IoTIntegrationError(f"Zigbee send failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"Zigbee send failed: {e!s}"))
 
     async def receive_message(
-        self, timeout: int | None = None
+        self,
+        timeout: int | None = None,
     ) -> Either[IoTIntegrationError, IoTMessage]:
         """Receive Zigbee message."""
         try:
@@ -549,10 +565,12 @@ class ZigbeeProtocolHandler(ProtocolHandler):
             return Either.error(IoTIntegrationError("No Zigbee message available"))
 
         except Exception as e:
-            return Either.error(IoTIntegrationError(f"Zigbee receive failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"Zigbee receive failed: {e!s}"))
 
     async def subscribe(
-        self, topic: str, handler: Callable[[IoTMessage], None]
+        self,
+        topic: str,
+        handler: Callable[[IoTMessage], None],
     ) -> Either[IoTIntegrationError, bool]:
         """Subscribe to Zigbee attributes."""
         return Either.success(True)
@@ -623,20 +641,23 @@ class ProtocolMultiplexer:
 
         # Zigbee handler
         zigbee_config = ProtocolConfiguration(
-            protocol=IoTProtocol.ZIGBEE, security_mode=SecurityMode.CERTIFICATE
+            protocol=IoTProtocol.ZIGBEE,
+            security_mode=SecurityMode.CERTIFICATE,
         )
         self.protocol_configs[IoTProtocol.ZIGBEE] = zigbee_config
         self.protocol_handlers[IoTProtocol.ZIGBEE] = ZigbeeProtocolHandler(
-            zigbee_config
+            zigbee_config,
         )
 
         # Start message processor
         self._message_processor_task = asyncio.create_task(
-            self._process_message_queue()
+            self._process_message_queue(),
         )
 
     async def add_protocol_handler(
-        self, protocol: IoTProtocol, handler: ProtocolHandler
+        self,
+        protocol: IoTProtocol,
+        handler: ProtocolHandler,
     ) -> Either[IoTIntegrationError, bool]:
         """Add or update protocol handler."""
         try:
@@ -644,11 +665,13 @@ class ProtocolMultiplexer:
             return Either.success(True)
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Failed to add protocol handler: {str(e)}")
+                IoTIntegrationError(f"Failed to add protocol handler: {e!s}"),
             )
 
     async def configure_protocol(
-        self, protocol: IoTProtocol, config: ProtocolConfiguration
+        self,
+        protocol: IoTProtocol,
+        config: ProtocolConfiguration,
     ) -> Either[IoTIntegrationError, bool]:
         """Configure protocol settings."""
         try:
@@ -662,19 +685,21 @@ class ProtocolMultiplexer:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Protocol configuration failed: {str(e)}")
+                IoTIntegrationError(f"Protocol configuration failed: {e!s}"),
             )
 
     async def register_device_protocol(
-        self, device_id: DeviceId, protocol: IoTProtocol
+        self,
+        device_id: DeviceId,
+        protocol: IoTProtocol,
     ) -> Either[IoTIntegrationError, bool]:
         """Register device with specific protocol."""
         try:
             if protocol not in self.protocol_handlers:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Protocol handler not available: {protocol.value}"
-                    )
+                        f"Protocol handler not available: {protocol.value}",
+                    ),
                 )
 
             self.routing_table[device_id] = protocol
@@ -682,12 +707,13 @@ class ProtocolMultiplexer:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Device protocol registration failed: {str(e)}")
+                IoTIntegrationError(f"Device protocol registration failed: {e!s}"),
             )
 
     @require(lambda message: isinstance(message, IoTMessage))
     async def send_message(
-        self, message: IoTMessage
+        self,
+        message: IoTMessage,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Send message using appropriate protocol."""
         try:
@@ -698,15 +724,17 @@ class ProtocolMultiplexer:
             if not protocol:
                 return Either.error(
                     IoTIntegrationError(
-                        f"No protocol available for device: {message.device_id}"
-                    )
+                        f"No protocol available for device: {message.device_id}",
+                    ),
                 )
 
             # Get protocol handler
             handler = self.protocol_handlers.get(protocol)
             if not handler:
                 return Either.error(
-                    IoTIntegrationError(f"Protocol handler not found: {protocol.value}")
+                    IoTIntegrationError(
+                        f"Protocol handler not found: {protocol.value}"
+                    ),
                 )
 
             # Ensure handler is connected
@@ -726,10 +754,12 @@ class ProtocolMultiplexer:
 
         except Exception as e:
             self.multiplexer_metrics["routing_errors"] += 1
-            return Either.error(IoTIntegrationError(f"Message send failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"Message send failed: {e!s}"))
 
     async def receive_message(
-        self, protocol: IoTProtocol | None = None, timeout: int | None = None
+        self,
+        protocol: IoTProtocol | None = None,
+        timeout: int | None = None,
     ) -> Either[IoTIntegrationError, IoTMessage]:
         """Receive message from specified protocol or any available."""
         try:
@@ -739,31 +769,33 @@ class ProtocolMultiplexer:
                 if not handler:
                     return Either.error(
                         IoTIntegrationError(
-                            f"Protocol handler not found: {protocol.value}"
-                        )
+                            f"Protocol handler not found: {protocol.value}",
+                        ),
                     )
 
                 return await handler.receive_message(timeout)
-            else:
-                # Check all protocols for messages
-                for handler in self.protocol_handlers.values():
-                    if handler.connected:
-                        try:
-                            result = await handler.receive_message(1)  # Short timeout
-                            if result.is_success():
-                                return result
-                        except (Exception) as e:
-                            logger.debug(f"Operation failed during operation: {e}")
-                            continue
-                return Either.error(IoTIntegrationError("No messages available"))
+            # Check all protocols for messages
+            for handler in self.protocol_handlers.values():
+                if handler.connected:
+                    try:
+                        result = await handler.receive_message(1)  # Short timeout
+                        if result.is_success():
+                            return result
+                    except Exception as e:
+                        logger.debug(f"Operation failed during operation: {e}")
+                        continue
+            return Either.error(IoTIntegrationError("No messages available"))
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Message receive failed: {str(e)}")
+                IoTIntegrationError(f"Message receive failed: {e!s}"),
             )
 
     async def subscribe_device(
-        self, device_id: DeviceId, topic: str, handler: Callable[[IoTMessage], None]
+        self,
+        device_id: DeviceId,
+        topic: str,
+        handler: Callable[[IoTMessage], None],
     ) -> Either[IoTIntegrationError, bool]:
         """Subscribe to device messages."""
         try:
@@ -772,15 +804,17 @@ class ProtocolMultiplexer:
             if not protocol:
                 return Either.error(
                     IoTIntegrationError(
-                        f"No protocol registered for device: {device_id}"
-                    )
+                        f"No protocol registered for device: {device_id}",
+                    ),
                 )
 
             # Get protocol handler
             protocol_handler = self.protocol_handlers.get(protocol)
             if not protocol_handler:
                 return Either.error(
-                    IoTIntegrationError(f"Protocol handler not found: {protocol.value}")
+                    IoTIntegrationError(
+                        f"Protocol handler not found: {protocol.value}"
+                    ),
                 )
 
             # Subscribe using protocol handler
@@ -788,7 +822,7 @@ class ProtocolMultiplexer:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Device subscription failed: {str(e)}")
+                IoTIntegrationError(f"Device subscription failed: {e!s}"),
             )
 
     def _determine_protocol(self, message: IoTMessage) -> IoTProtocol | None:
@@ -808,7 +842,7 @@ class ProtocolMultiplexer:
 
         return None
 
-    def _update_multiplexer_metrics(self, routing_time: float, protocol_switched: bool):
+    def _update_multiplexer_metrics(self, routing_time: float, protocol_switched: bool) -> Any:
         """Update multiplexer performance metrics."""
         self.multiplexer_metrics["total_messages"] += 1
 
@@ -839,7 +873,8 @@ class ProtocolMultiplexer:
                 await asyncio.sleep(1)  # Error recovery delay
 
     async def queue_message(
-        self, message: IoTMessage
+        self,
+        message: IoTMessage,
     ) -> Either[IoTIntegrationError, bool]:
         """Queue message for background processing."""
         try:
@@ -851,7 +886,7 @@ class ProtocolMultiplexer:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Failed to queue message: {str(e)}")
+                IoTIntegrationError(f"Failed to queue message: {e!s}"),
             )
 
     def get_protocol_status(self) -> dict[str, Any]:
@@ -903,15 +938,15 @@ class ProtocolMultiplexer:
 
 # Export the protocol handler classes
 __all__ = [
-    "ProtocolMultiplexer",
-    "ProtocolHandler",
-    "IoTMessage",
-    "ProtocolConfiguration",
-    "HTTPProtocolHandler",
-    "MQTTProtocolHandler",
     "CoAPProtocolHandler",
-    "ZigbeeProtocolHandler",
+    "HTTPProtocolHandler",
+    "IoTMessage",
+    "MQTTProtocolHandler",
     "MessageType",
+    "ProtocolConfiguration",
+    "ProtocolHandler",
+    "ProtocolMultiplexer",
     "QualityOfService",
     "SecurityMode",
+    "ZigbeeProtocolHandler",
 ]

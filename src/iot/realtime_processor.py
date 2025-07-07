@@ -1,5 +1,4 @@
-"""
-IoT Real-Time Processing Engine - TASK_65 Phase 5 Integration & Optimization
+"""IoT Real-Time Processing Engine - TASK_65 Phase 5 Integration & Optimization.
 
 Real-time IoT data processing, stream analytics, event-driven automation,
 and low-latency decision-making for responsive IoT systems.
@@ -106,12 +105,12 @@ class StreamWindow:
     events: deque = field(default_factory=deque)
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
-    def add_event(self, event: RealTimeEvent):
+    def add_event(self, event: RealTimeEvent) -> bool:
         """Add event to window."""
         self.events.append(event)
         self._maintain_window_size()
 
-    def _maintain_window_size(self):
+    def _maintain_window_size(self) -> bool:
         """Maintain window size constraints."""
         if self.window_type == "count" and isinstance(self.size, int):
             while len(self.events) > self.size:
@@ -163,13 +162,12 @@ class StreamProcessor:
             return result if isinstance(result, list) else [result] if result else []
 
         except Exception as e:
-            logger.error(f"Stream processor {self.processor_id} failed: {str(e)}")
+            logger.error(f"Stream processor {self.processor_id} failed: {e!s}")
             return []
 
 
 class RealTimeProcessor:
-    """
-    Real-time IoT data processing engine with stream analytics.
+    """Real-time IoT data processing engine with stream analytics.
 
     Contracts:
         Preconditions:
@@ -190,7 +188,7 @@ class RealTimeProcessor:
 
     def __init__(self):
         self.event_streams: dict[StreamId, deque] = defaultdict(
-            lambda: deque(maxlen=10000)
+            lambda: deque(maxlen=10000),
         )
         self.stream_processors: dict[ProcessorId, StreamProcessor] = {}
         self.processing_pipelines: dict[str, list[ProcessorId]] = {}
@@ -223,7 +221,7 @@ class RealTimeProcessor:
         self.processing_task = None
         self._start_background_processing()
 
-    def _start_background_processing(self):
+    def _start_background_processing(self) -> bool:
         """Start background processing tasks."""
         if self.processing_task is None:
             self.processing_task = asyncio.create_task(self._background_processor())
@@ -245,16 +243,16 @@ class RealTimeProcessor:
                 await asyncio.sleep(0.001)  # 1ms
 
             except Exception as e:
-                logger.error(f"Background processor error: {str(e)}")
+                logger.error(f"Background processor error: {e!s}")
                 await asyncio.sleep(0.1)
 
-    @require(lambda self, event: event.event_id and event.source_device)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, event: event.event_id and event.source_device)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def process_event(
-        self, event: RealTimeEvent
+        self,
+        event: RealTimeEvent,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
-        """
-        Process real-time IoT event through the processing pipeline.
+        """Process real-time IoT event through the processing pipeline.
 
         Performance:
             - <10ms event ingestion
@@ -267,7 +265,7 @@ class RealTimeProcessor:
             # Validate event
             if event.age_ms() > 5000:  # 5 seconds max age
                 return Either.error(
-                    IoTIntegrationError(f"Event too old: {event.age_ms()}ms")
+                    IoTIntegrationError(f"Event too old: {event.age_ms()}ms"),
                 )
 
             # Add to appropriate stream
@@ -315,23 +313,23 @@ class RealTimeProcessor:
                     "success": True,
                     "processing_info": processing_info,
                     "results": processing_results,
-                }
+                },
             )
 
         except Exception as e:
             self.error_count += 1
-            error_msg = f"Failed to process real-time event: {str(e)}"
+            error_msg = f"Failed to process real-time event: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg))
 
     @require(
-        lambda self, processor: processor.processor_id and processor.operation_function
+        lambda _self, processor: processor.processor_id and processor.operation_function,
     )
     async def register_stream_processor(
-        self, processor: StreamProcessor
+        self,
+        processor: StreamProcessor,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
-        """
-        Register stream processor for real-time data processing.
+        """Register stream processor for real-time data processing.
 
         Architecture:
             - Validates processor configuration and dependencies
@@ -343,8 +341,8 @@ class RealTimeProcessor:
             if processor.processor_id in self.stream_processors:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Processor {processor.processor_id} already exists"
-                    )
+                        f"Processor {processor.processor_id} already exists",
+                    ),
                 )
 
             # Test processor function
@@ -361,7 +359,7 @@ class RealTimeProcessor:
                 await processor.process(test_event)
             except Exception as e:
                 return Either.error(
-                    IoTIntegrationError(f"Processor function test failed: {str(e)}")
+                    IoTIntegrationError(f"Processor function test failed: {e!s}"),
                 )
 
             # Register processor
@@ -382,11 +380,11 @@ class RealTimeProcessor:
                     "success": True,
                     "processor_info": processor_info,
                     "total_processors": len(self.stream_processors),
-                }
+                },
             )
 
         except Exception as e:
-            error_msg = f"Failed to register stream processor: {str(e)}"
+            error_msg = f"Failed to register stream processor: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg))
 
@@ -396,8 +394,7 @@ class RealTimeProcessor:
         duration: timedelta,
         device_filter: list[DeviceId] | None = None,
     ) -> Either[IoTIntegrationError, StreamWindow]:
-        """
-        Create time-based window for stream aggregation and analysis.
+        """Create time-based window for stream aggregation and analysis.
 
         Performance:
             - Efficient window maintenance with automatic cleanup
@@ -407,11 +404,13 @@ class RealTimeProcessor:
         try:
             if window_id in self.stream_windows:
                 return Either.error(
-                    IoTIntegrationError(f"Window {window_id} already exists")
+                    IoTIntegrationError(f"Window {window_id} already exists"),
                 )
 
             window = StreamWindow(
-                window_id=window_id, window_type="time", size=duration
+                window_id=window_id,
+                window_type="time",
+                size=duration,
             )
 
             self.stream_windows[window_id] = window
@@ -421,7 +420,7 @@ class RealTimeProcessor:
             return Either.success(window)
 
         except Exception as e:
-            error_msg = f"Failed to create time window: {str(e)}"
+            error_msg = f"Failed to create time window: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg))
 
@@ -440,7 +439,7 @@ class RealTimeProcessor:
                             "event_id": processed_event.event_id,
                             "operation": processor.operation_type.value,
                             "result_data": processed_event.data,
-                        }
+                        },
                     )
 
         return results
@@ -507,11 +506,13 @@ class RealTimeProcessor:
 
         # Process batch (placeholder implementation)
         return [
-            {"batch_processed": True, "processed_at": datetime.now(UTC).isoformat()}
+            {"batch_processed": True, "processed_at": datetime.now(UTC).isoformat()},
         ]
 
     def _should_process_event(
-        self, event: RealTimeEvent, processor: StreamProcessor
+        self,
+        event: RealTimeEvent,
+        processor: StreamProcessor,
     ) -> bool:
         """Check if event should be processed by processor."""
         # Check if event stream matches processor input streams
@@ -526,7 +527,7 @@ class RealTimeProcessor:
             try:
                 await handler(event)
             except Exception as e:
-                logger.error(f"Event handler failed: {str(e)}")
+                logger.error(f"Event handler failed: {e!s}")
 
     async def _check_automation_triggers(self, event: RealTimeEvent):
         """Check and execute automation triggers."""
@@ -535,22 +536,26 @@ class RealTimeProcessor:
                 if await self._evaluate_trigger_condition(event, trigger_config):
                     await self._execute_automation_action(trigger_config)
             except Exception as e:
-                logger.error(f"Automation trigger {trigger_id} failed: {str(e)}")
+                logger.error(f"Automation trigger {trigger_id} failed: {e!s}")
 
     async def _evaluate_trigger_condition(
-        self, event: RealTimeEvent, trigger_config: dict[str, Any]
+        self,
+        event: RealTimeEvent,
+        trigger_config: dict[str, Any],
     ) -> bool:
         """Evaluate if trigger condition is met."""
         # Simple condition evaluation (can be extended)
         condition = trigger_config.get("condition", {})
 
-        if "event_type" in condition:
-            if event.event_type.value != condition["event_type"]:
-                return False
+        # SIM102 fix: Combine nested if statements
+        if (
+            "event_type" in condition
+            and event.event_type.value != condition["event_type"]
+        ):
+            return False
 
-        if "device_id" in condition:
-            if event.source_device != condition["device_id"]:
-                return False
+        if "device_id" in condition and event.source_device != condition["device_id"]:
+            return False
 
         if "threshold" in condition and "value" in event.data:
             threshold = condition["threshold"]
@@ -576,7 +581,7 @@ class RealTimeProcessor:
 
         if action_type == "log":
             logger.info(
-                f"Automation triggered: {action.get('message', 'Action executed')}"
+                f"Automation triggered: {action.get('message', 'Action executed')}",
             )
         elif action_type == "device_control":
             # Trigger device control action
@@ -602,7 +607,7 @@ class RealTimeProcessor:
             await self._trigger_event_handlers(event)
             await self._check_automation_triggers(event)
         except Exception as e:
-            logger.error(f"Background event processing failed: {str(e)}")
+            logger.error(f"Background event processing failed: {e!s}")
 
     async def _update_metrics(self):
         """Update real-time processing metrics."""
@@ -637,13 +642,15 @@ class RealTimeProcessor:
         for _window_id, window in list(self.stream_windows.items()):
             window._maintain_window_size()
 
-    def register_event_handler(self, event_type: EventType, handler: Callable):
+    def register_event_handler(self, event_type: EventType, handler: Callable) -> None:
         """Register event handler for specific event type."""
         self.event_handlers[event_type].append(handler)
 
     def register_automation_trigger(
-        self, trigger_id: str, trigger_config: dict[str, Any]
-    ):
+        self,
+        trigger_id: str,
+        trigger_config: dict[str, Any],
+    ) -> None:
         """Register automation trigger with conditions and actions."""
         self.automation_triggers[trigger_id] = trigger_config
 
@@ -670,7 +677,9 @@ class RealTimeProcessor:
 
 # Helper functions for real-time processing
 def create_sensor_event(
-    device_id: DeviceId, sensor_data: dict[str, Any], priority: int = 5
+    device_id: DeviceId,
+    sensor_data: dict[str, Any],
+    priority: int = 5,
 ) -> RealTimeEvent:
     """Create sensor reading event."""
     return RealTimeEvent(
@@ -684,19 +693,21 @@ def create_sensor_event(
 
 
 def create_threshold_processor(
-    threshold: float, comparison: str = ">="
+    threshold: float,
+    comparison: str = ">=",
 ) -> StreamProcessor:
     """Create threshold-based filter processor."""
 
     async def threshold_filter(event: RealTimeEvent) -> bool:
         value = event.data.get("value", 0)
-        if comparison == ">=":
-            return value >= threshold
-        elif comparison == "<=":
-            return value <= threshold
-        elif comparison == "==":
-            return value == threshold
-        return False
+        # SIM116 fix: Use dictionary instead of consecutive if statements
+        comparison_ops = {
+            ">=": lambda v, t: v >= t,
+            "<=": lambda v, t: v <= t,
+            "==": lambda v, t: v == t,
+        }
+        op_func = comparison_ops.get(comparison)
+        return op_func(value, threshold) if op_func else False
 
     return StreamProcessor(
         processor_id=f"threshold_{comparison}_{threshold}",

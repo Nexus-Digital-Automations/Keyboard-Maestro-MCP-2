@@ -1,5 +1,4 @@
-"""
-Safety validation and constraint enforcement for autonomous agents.
+"""Safety validation and constraint enforcement for autonomous agents.
 
 This module provides comprehensive safety checks, constraint validation, and
 risk assessment for autonomous agent operations. Implements defense-in-depth
@@ -102,7 +101,8 @@ class SafetyValidator:
         self._initialize_default_policies()
 
     async def validate_goal_safety(
-        self, goal: AgentGoal
+        self,
+        goal: AgentGoal,
     ) -> Either[AutonomousAgentError, None]:
         """Validate goal safety constraints."""
         self.safety_metrics["total_validations"] += 1
@@ -131,8 +131,8 @@ class SafetyValidator:
                     )
                     return Either.left(
                         AutonomousAgentError.safety_constraint_violated(
-                            f"Goal contains forbidden operation: {pattern}"
-                        )
+                            f"Goal contains forbidden operation: {pattern}",
+                        ),
                     )
 
             # Validate resource requirements
@@ -146,8 +146,10 @@ class SafetyValidator:
                 )
                 return Either.left(
                     AutonomousAgentError.resource_limit_exceeded(
-                        "total_resources", total_resources, 100
-                    )
+                        "total_resources",
+                        total_resources,
+                        100,
+                    ),
                 )
 
             # Check deadline feasibility
@@ -156,8 +158,8 @@ class SafetyValidator:
                 if time_until_deadline < timedelta(minutes=5):
                     return Either.left(
                         AutonomousAgentError.safety_constraint_violated(
-                            "Goal deadline is too aggressive"
-                        )
+                            "Goal deadline is too aggressive",
+                        ),
                     )
 
             return Either.right(None)
@@ -165,12 +167,14 @@ class SafetyValidator:
         except Exception as e:
             return Either.left(
                 AutonomousAgentError.unexpected_error(
-                    f"Goal validation failed: {str(e)}"
-                )
+                    f"Goal validation failed: {e!s}",
+                ),
             )
 
     async def validate_action_safety(
-        self, agent, action: AgentAction
+        self,
+        agent,
+        action: AgentAction,
     ) -> Either[AutonomousAgentError, None]:
         """Validate action safety constraints."""
         self.safety_metrics["total_validations"] += 1
@@ -189,8 +193,8 @@ class SafetyValidator:
                 )
                 return Either.left(
                     AutonomousAgentError.safety_constraint_violated(
-                        f"Action {action.action_type.value} is forbidden by safety policy"
-                    )
+                        f"Action {action.action_type.value} is forbidden by safety policy",
+                    ),
                 )
 
             # Calculate risk score
@@ -204,8 +208,8 @@ class SafetyValidator:
                 )
                 return Either.left(
                     AutonomousAgentError.safety_constraint_violated(
-                        f"Action risk score {risk_score} exceeds safety threshold"
-                    )
+                        f"Action risk score {risk_score} exceeds safety threshold",
+                    ),
                 )
 
             # Check resource limits
@@ -220,8 +224,10 @@ class SafetyValidator:
                     )
                     return Either.left(
                         AutonomousAgentError.resource_limit_exceeded(
-                            resource, cost, limit
-                        )
+                            resource,
+                            cost,
+                            limit,
+                        ),
                     )
 
             # Mark if human approval required
@@ -234,8 +240,8 @@ class SafetyValidator:
         except Exception as e:
             return Either.left(
                 AutonomousAgentError.unexpected_error(
-                    f"Action validation failed: {str(e)}"
-                )
+                    f"Action validation failed: {e!s}",
+                ),
             )
 
     def assess_system_risk(self) -> dict[str, Any]:
@@ -256,7 +262,7 @@ class SafetyValidator:
             ]
             if category_violations:
                 risk_assessment["risk_by_category"][category.value] = len(
-                    category_violations
+                    category_violations,
                 )
 
         # Critical violations
@@ -274,12 +280,12 @@ class SafetyValidator:
         # Recommendations
         if len(recent_violations) > 10:
             risk_assessment["recommendations"].append(
-                "High violation rate detected. Consider increasing safety constraints."
+                "High violation rate detected. Consider increasing safety constraints.",
             )
 
         if risk_assessment["overall_risk"] > 0.7:
             risk_assessment["recommendations"].append(
-                "System risk level is high. Manual review recommended."
+                "System risk level is high. Manual review recommended.",
             )
 
         return risk_assessment
@@ -343,7 +349,8 @@ class SafetyValidator:
         # Critical agent types get enhanced safety
         if agent_type in [AgentType.HEALER, AgentType.RESOURCE_MANAGER]:
             return self.safety_policies.get(
-                "enhanced", self.safety_policies["standard"]
+                "enhanced",
+                self.safety_policies["standard"],
             )
 
         return self.safety_policies["standard"]

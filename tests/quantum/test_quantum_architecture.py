@@ -1,5 +1,4 @@
-"""
-Test Quantum Architecture - Core Quantum Types and Architecture Testing
+"""Test Quantum Architecture - Core Quantum Types and Architecture Testing.
 
 Comprehensive tests for quantum computing type definitions, post-quantum cryptography,
 and quantum security architecture components.
@@ -9,6 +8,9 @@ Performance: <100ms test execution, comprehensive type validation, security comp
 Security: Post-quantum algorithm validation, threat assessment testing, cryptographic strength verification
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from dataclasses import FrozenInstanceError
 from datetime import UTC, datetime, timedelta
 
@@ -39,7 +41,7 @@ from src.core.quantum_architecture import (
 class TestPostQuantumAlgorithms:
     """Test post-quantum algorithm enumeration and properties."""
 
-    def test_post_quantum_algorithm_values(self):
+    def test_post_quantum_algorithm_values(self) -> None:
         """Test all post-quantum algorithm values are valid."""
         expected_algorithms = {
             "kyber-512",
@@ -56,7 +58,7 @@ class TestPostQuantumAlgorithms:
         actual_algorithms = {alg.value for alg in PostQuantumAlgorithm}
         assert actual_algorithms == expected_algorithms
 
-    def test_post_quantum_algorithm_categories(self):
+    def test_post_quantum_algorithm_categories(self) -> None:
         """Test post-quantum algorithms are properly categorized."""
         kem_algorithms = [
             PostQuantumAlgorithm.KYBER_512,
@@ -82,14 +84,14 @@ class TestPostQuantumAlgorithms:
 class TestQuantumThreatLevels:
     """Test quantum threat level enumeration and ordering."""
 
-    def test_quantum_threat_level_values(self):
+    def test_quantum_threat_level_values(self) -> None:
         """Test quantum threat level enumeration values."""
         expected_levels = {"minimal", "low", "medium", "high", "critical"}
 
         actual_levels = {level.value for level in QuantumThreatLevel}
         assert actual_levels == expected_levels
 
-    def test_quantum_threat_level_ordering(self):
+    def test_quantum_threat_level_ordering(self) -> None:
         """Test quantum threat levels have logical ordering."""
         levels = [
             QuantumThreatLevel.MINIMAL,
@@ -107,7 +109,7 @@ class TestQuantumThreatLevels:
 class TestCryptographicAsset:
     """Test cryptographic asset data structure and validation."""
 
-    def test_cryptographic_asset_creation(self):
+    def test_cryptographic_asset_creation(self) -> None:
         """Test valid cryptographic asset creation."""
         asset = CryptographicAsset(
             asset_id=CryptographicAssetId("test_asset_001"),
@@ -129,7 +131,7 @@ class TestCryptographicAsset:
         assert asset.threat_assessment == QuantumThreatLevel.HIGH
         assert asset.migration_priority == 4
 
-    def test_cryptographic_asset_immutability(self):
+    def test_cryptographic_asset_immutability(self) -> None:
         """Test cryptographic asset is immutable (frozen dataclass)."""
         asset = CryptographicAsset(
             asset_id=CryptographicAssetId("test_asset_002"),
@@ -146,7 +148,7 @@ class TestCryptographicAsset:
         with pytest.raises(FrozenInstanceError):
             asset.algorithm = "rsa"
 
-    def test_cryptographic_asset_invalid_key_size(self):
+    def test_cryptographic_asset_invalid_key_size(self) -> None:
         """Test cryptographic asset validation for invalid key size."""
         from src.core.errors import ContractViolationError
 
@@ -163,7 +165,7 @@ class TestCryptographicAsset:
                 migration_priority=1,
             )
 
-    def test_cryptographic_asset_invalid_priority(self):
+    def test_cryptographic_asset_invalid_priority(self) -> None:
         """Test cryptographic asset validation for invalid priority."""
         from src.core.errors import ContractViolationError
 
@@ -180,7 +182,7 @@ class TestCryptographicAsset:
                 migration_priority=6,  # Invalid priority (> 5)
             )
 
-    def test_needs_immediate_migration(self):
+    def test_needs_immediate_migration(self) -> None:
         """Test immediate migration requirement detection."""
         # Asset needing immediate migration
         critical_asset = CryptographicAsset(
@@ -212,7 +214,7 @@ class TestCryptographicAsset:
 
         assert low_risk_asset.needs_immediate_migration() is False
 
-    def test_get_quantum_risk_score(self):
+    def test_get_quantum_risk_score(self) -> None:
         """Test quantum risk score calculation."""
         # High-risk asset
         high_risk_asset = CryptographicAsset(
@@ -251,7 +253,7 @@ class TestCryptographicAsset:
 class TestPostQuantumMigrationPlan:
     """Test post-quantum migration plan data structure."""
 
-    def test_migration_plan_creation(self):
+    def test_migration_plan_creation(self) -> None:
         """Test valid migration plan creation."""
         plan = PostQuantumMigrationPlan(
             plan_id="plan_001",
@@ -274,7 +276,7 @@ class TestPostQuantumMigrationPlan:
         assert plan.migration_strategy == "hybrid"
         assert plan.estimated_duration == timedelta(hours=24)
 
-    def test_migration_plan_immutability(self):
+    def test_migration_plan_immutability(self) -> None:
         """Test migration plan is immutable."""
         plan = PostQuantumMigrationPlan(
             plan_id="plan_002",
@@ -292,7 +294,7 @@ class TestPostQuantumMigrationPlan:
         with pytest.raises(FrozenInstanceError):
             plan.migration_strategy = "gradual"
 
-    def test_get_migration_phases_gradual(self):
+    def test_get_migration_phases_gradual(self) -> None:
         """Test migration phases for gradual strategy."""
         plan = PostQuantumMigrationPlan(
             plan_id="plan_gradual",
@@ -315,7 +317,7 @@ class TestPostQuantumMigrationPlan:
         assert phases[0]["phase"] == 1
         assert "Critical asset migration" in phases[0]["description"]
 
-    def test_get_migration_phases_hybrid(self):
+    def test_get_migration_phases_hybrid(self) -> None:
         """Test migration phases for hybrid strategy."""
         plan = PostQuantumMigrationPlan(
             plan_id="plan_hybrid",
@@ -338,7 +340,7 @@ class TestPostQuantumMigrationPlan:
 class TestQuantumReadinessAssessment:
     """Test quantum readiness assessment data structure."""
 
-    def test_readiness_assessment_creation(self):
+    def test_readiness_assessment_creation(self) -> None:
         """Test valid readiness assessment creation."""
         assessment = QuantumReadinessAssessment(
             assessment_id="assessment_001",
@@ -346,7 +348,7 @@ class TestQuantumReadinessAssessment:
             overall_readiness_score=0.75,
             quantum_vulnerable_assets=[],
             threat_timeline_estimate={
-                "quantum_advantage": datetime.now(UTC) + timedelta(days=365 * 5)
+                "quantum_advantage": datetime.now(UTC) + timedelta(days=365 * 5),
             },
             migration_recommendations=["Implement hybrid security"],
             compliance_status={"nist_compliant": True},
@@ -359,7 +361,7 @@ class TestQuantumReadinessAssessment:
         assert assessment.overall_readiness_score == 0.75
         assert assessment.estimated_migration_cost == 50000.0
 
-    def test_readiness_assessment_invalid_score(self):
+    def test_readiness_assessment_invalid_score(self) -> None:
         """Test readiness assessment validation for invalid score."""
         from src.core.errors import ContractViolationError
 
@@ -375,7 +377,7 @@ class TestQuantumReadinessAssessment:
                 risk_factors={},
             )
 
-    def test_get_readiness_level(self):
+    def test_get_readiness_level(self) -> None:
         """Test readiness level categorization."""
         test_cases = [
             (0.9, "quantum_ready"),
@@ -399,7 +401,7 @@ class TestQuantumReadinessAssessment:
 
             assert assessment.get_readiness_level() == expected_level
 
-    def test_get_critical_vulnerabilities(self):
+    def test_get_critical_vulnerabilities(self) -> None:
         """Test critical vulnerability identification."""
         critical_asset = CryptographicAsset(
             asset_id=CryptographicAssetId("critical_001"),
@@ -444,7 +446,7 @@ class TestQuantumReadinessAssessment:
 class TestQuantumInterface:
     """Test quantum interface data structure."""
 
-    def test_quantum_interface_creation(self):
+    def test_quantum_interface_creation(self) -> None:
         """Test valid quantum interface creation."""
         interface = QuantumInterface(
             interface_id="qi_001",
@@ -466,7 +468,7 @@ class TestQuantumInterface:
         assert interface.qubit_capacity == 127
         assert interface.gate_fidelity == 0.999
 
-    def test_quantum_interface_invalid_operations(self):
+    def test_quantum_interface_invalid_operations(self) -> None:
         """Test quantum interface validation for empty operations."""
         from src.core.errors import ContractViolationError
 
@@ -485,7 +487,7 @@ class TestQuantumInterface:
                 classical_integration=True,
             )
 
-    def test_is_suitable_for_algorithm(self):
+    def test_is_suitable_for_algorithm(self) -> None:
         """Test algorithm suitability checking."""
         interface = QuantumInterface(
             interface_id="qi_suitability",
@@ -519,7 +521,7 @@ class TestQuantumInterface:
 class TestQuantumSimulationResult:
     """Test quantum simulation result data structure."""
 
-    def test_simulation_result_creation(self):
+    def test_simulation_result_creation(self) -> None:
         """Test valid simulation result creation."""
         result = QuantumSimulationResult(
             simulation_id="sim_001",
@@ -540,7 +542,7 @@ class TestQuantumSimulationResult:
         assert result.circuit_depth == 50
         assert result.execution_time == 1.5
 
-    def test_get_measurement_distribution(self):
+    def test_get_measurement_distribution(self) -> None:
         """Test measurement probability distribution calculation."""
         result = QuantumSimulationResult(
             simulation_id="sim_dist",
@@ -560,7 +562,7 @@ class TestQuantumSimulationResult:
             assert prob == 0.25  # Equal distribution
         assert sum(distribution.values()) == 1.0
 
-    def test_calculate_quantum_advantage(self):
+    def test_calculate_quantum_advantage(self) -> None:
         """Test quantum advantage calculation."""
         result = QuantumSimulationResult(
             simulation_id="sim_advantage",
@@ -590,7 +592,7 @@ class TestQuantumSimulationResult:
 class TestQuantumSecurityConfiguration:
     """Test quantum security configuration."""
 
-    def test_security_config_creation(self):
+    def test_security_config_creation(self) -> None:
         """Test valid security configuration creation."""
         config = QuantumSecurityConfiguration(
             config_id="qsc_001",
@@ -612,7 +614,7 @@ class TestQuantumSecurityConfiguration:
         assert len(config.enabled_algorithms) == 2
         assert config.key_management_mode == "hybrid"
 
-    def test_is_quantum_safe(self):
+    def test_is_quantum_safe(self) -> None:
         """Test quantum safety determination."""
         safe_config = QuantumSecurityConfiguration(
             config_id="safe_001",
@@ -642,7 +644,7 @@ class TestQuantumSecurityConfiguration:
 
         assert unsafe_config.is_quantum_safe() is False
 
-    def test_get_security_level(self):
+    def test_get_security_level(self) -> None:
         """Test security level mapping."""
         test_cases = [
             (QuantumSecurityPolicy.LEGACY, CryptographicStrength.CLASSICAL_ONLY),
@@ -673,7 +675,7 @@ class TestQuantumSecurityConfiguration:
 class TestQuantumUtilityFunctions:
     """Test quantum utility functions."""
 
-    def test_generate_quantum_ids(self):
+    def test_generate_quantum_ids(self) -> None:
         """Test quantum ID generation functions."""
         key_id = generate_quantum_key_id()
         session_id = generate_quantum_session_id()
@@ -688,7 +690,7 @@ class TestQuantumUtilityFunctions:
         assert generate_quantum_session_id() != generate_quantum_session_id()
         assert generate_circuit_id() != generate_circuit_id()
 
-    def test_assess_algorithm_quantum_vulnerability(self):
+    def test_assess_algorithm_quantum_vulnerability(self) -> None:
         """Test algorithm vulnerability assessment."""
         # RSA vulnerabilities
         is_vuln, threat = assess_algorithm_quantum_vulnerability("rsa", 1024)
@@ -709,7 +711,7 @@ class TestQuantumUtilityFunctions:
         assert is_vuln is False
         assert threat == QuantumThreatLevel.MINIMAL
 
-    def test_calculate_migration_priority(self):
+    def test_calculate_migration_priority(self) -> None:
         """Test migration priority calculation."""
         critical_asset = CryptographicAsset(
             asset_id=CryptographicAssetId("critical"),
@@ -744,7 +746,7 @@ class TestQuantumUtilityFunctions:
         low_priority = calculate_migration_priority(low_priority_asset)
         assert low_priority <= 2  # Should be low priority
 
-    def test_recommend_post_quantum_algorithm(self):
+    def test_recommend_post_quantum_algorithm(self) -> None:
         """Test post-quantum algorithm recommendations."""
         # Encryption use case
         encryption_rec = recommend_post_quantum_algorithm("rsa", "encryption")
@@ -772,7 +774,7 @@ class TestQuantumUtilityFunctions:
         unknown_rec = recommend_post_quantum_algorithm("unknown", "unknown")
         assert unknown_rec == PostQuantumAlgorithm.KYBER_768
 
-    def test_create_default_quantum_config(self):
+    def test_create_default_quantum_config(self) -> None:
         """Test default quantum configuration creation."""
         config = create_default_quantum_config()
 
@@ -787,7 +789,7 @@ class TestQuantumUtilityFunctions:
 class TestQuantumErrorHandling:
     """Test quantum error handling and exceptions."""
 
-    def test_quantum_error_creation(self):
+    def test_quantum_error_creation(self) -> None:
         """Test quantum error creation and properties."""
         error = QuantumError("Test error message", "TEST_ERROR", {"detail": "test"})
 
@@ -796,7 +798,7 @@ class TestQuantumErrorHandling:
         assert error.details == {"detail": "test"}
         assert isinstance(error.timestamp, datetime)
 
-    def test_quantum_error_factory_methods(self):
+    def test_quantum_error_factory_methods(self) -> None:
         """Test quantum error factory methods."""
         alg_error = QuantumError.algorithm_not_supported("test_algorithm")
         assert alg_error.error_code == "ALGORITHM_NOT_SUPPORTED"
@@ -816,7 +818,7 @@ class TestQuantumErrorHandling:
 
 # Property-based testing with Hypothesis
 try:
-    import hypothesis
+    # F401 fix: Remove unused base import, keep only used imports
     from hypothesis import given
     from hypothesis import strategies as st
 
@@ -824,7 +826,7 @@ try:
         """Property-based tests for quantum architecture components."""
 
         @given(st.integers(min_value=1, max_value=10000))
-        def test_key_size_always_positive(self, key_size):
+        def test_key_size_always_positive(self, key_size) -> None:
             """Test that valid key sizes are always positive."""
             asset = CryptographicAsset(
                 asset_id=CryptographicAssetId(f"test_{key_size}"),
@@ -840,7 +842,7 @@ try:
             assert asset.key_size > 0
 
         @given(st.integers(min_value=1, max_value=5))
-        def test_migration_priority_range(self, priority):
+        def test_migration_priority_range(self, priority) -> None:
             """Test that migration priorities are within valid range."""
             asset = CryptographicAsset(
                 asset_id=CryptographicAssetId(f"priority_{priority}"),
@@ -856,7 +858,7 @@ try:
             assert 1 <= asset.migration_priority <= 5
 
         @given(st.floats(min_value=0.0, max_value=1.0))
-        def test_readiness_score_range(self, score):
+        def test_readiness_score_range(self, score) -> None:
             """Test that readiness scores are within valid range."""
             assessment = QuantumReadinessAssessment(
                 assessment_id=f"score_{score}",

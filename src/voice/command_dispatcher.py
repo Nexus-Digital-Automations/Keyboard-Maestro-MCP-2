@@ -1,5 +1,4 @@
-"""
-Voice Command Dispatcher - TASK_66 Phase 2 Core Voice Engine
+"""Voice Command Dispatcher - TASK_66 Phase 2 Core Voice Engine.
 
 Voice command execution, automation workflow triggering, and comprehensive
 command routing with security validation and performance optimization.
@@ -12,6 +11,7 @@ Security: Command authorization, execution validation, safe parameter handling
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -61,18 +61,21 @@ class CommandHandler:
         return command.command_type == self.command_type
 
     async def execute(
-        self, command: VoiceCommand, context: dict[str, Any]
+        self,
+        command: VoiceCommand,
+        context: dict[str, Any],
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Execute the voice command."""
         raise NotImplementedError("Subclasses must implement execute method")
 
     async def validate_command(
-        self, command: VoiceCommand
+        self,
+        command: VoiceCommand,
     ) -> Either[VoiceCommandError, None]:
         """Validate command before execution."""
         return Either.success(None)
 
-    def update_stats(self, execution_time: float, success: bool):
+    def update_stats(self, execution_time: float, success: bool) -> None:
         """Update handler execution statistics."""
         self.execution_count += 1
         if success:
@@ -112,7 +115,9 @@ class AutomationHandler(CommandHandler):
         super().__init__(VoiceCommandType.AUTOMATION_TRIGGER, "automation_handler")
 
     async def execute(
-        self, command: VoiceCommand, context: dict[str, Any]
+        self,
+        command: VoiceCommand,
+        context: dict[str, Any],
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Execute automation trigger command."""
         try:
@@ -120,8 +125,9 @@ class AutomationHandler(CommandHandler):
             if not automation_name:
                 return Either.error(
                     VoiceCommandError.command_execution_failed(
-                        command.command_id, "Missing automation name"
-                    )
+                        command.command_id,
+                        "Missing automation name",
+                    ),
                 )
 
             # Placeholder for actual automation execution
@@ -142,7 +148,7 @@ class AutomationHandler(CommandHandler):
 
         except Exception as e:
             return Either.error(
-                VoiceCommandError.command_execution_failed(command.command_id, str(e))
+                VoiceCommandError.command_execution_failed(command.command_id, str(e)),
             )
 
 
@@ -153,7 +159,9 @@ class ApplicationControlHandler(CommandHandler):
         super().__init__(VoiceCommandType.APPLICATION_CONTROL, "application_handler")
 
     async def execute(
-        self, command: VoiceCommand, context: dict[str, Any]
+        self,
+        command: VoiceCommand,
+        context: dict[str, Any],
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Execute application control command."""
         try:
@@ -161,8 +169,9 @@ class ApplicationControlHandler(CommandHandler):
             if not application:
                 return Either.error(
                     VoiceCommandError.command_execution_failed(
-                        command.command_id, "Missing application name"
-                    )
+                        command.command_id,
+                        "Missing application name",
+                    ),
                 )
 
             intent = command.intent
@@ -174,15 +183,16 @@ class ApplicationControlHandler(CommandHandler):
             else:
                 return Either.error(
                     VoiceCommandError.command_execution_failed(
-                        command.command_id, f"Unknown application intent: {intent}"
-                    )
+                        command.command_id,
+                        f"Unknown application intent: {intent}",
+                    ),
                 )
 
             return Either.success(result)
 
         except Exception as e:
             return Either.error(
-                VoiceCommandError.command_execution_failed(command.command_id, str(e))
+                VoiceCommandError.command_execution_failed(command.command_id, str(e)),
             )
 
     async def _open_application(self, app_name: str) -> dict[str, Any]:
@@ -221,7 +231,9 @@ class SystemControlHandler(CommandHandler):
         super().__init__(VoiceCommandType.SYSTEM_CONTROL, "system_handler")
 
     async def execute(
-        self, command: VoiceCommand, context: dict[str, Any]
+        self,
+        command: VoiceCommand,
+        context: dict[str, Any],
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Execute system control command."""
         try:
@@ -229,24 +241,25 @@ class SystemControlHandler(CommandHandler):
 
             if intent == "system_volume":
                 return await self._handle_volume_control(command)
-            elif intent == "system_display":
+            if intent == "system_display":
                 return await self._handle_display_control(command)
-            elif intent == "file_operation":
+            if intent == "file_operation":
                 return await self._handle_file_operation(command)
-            else:
-                return Either.error(
-                    VoiceCommandError.command_execution_failed(
-                        command.command_id, f"Unknown system intent: {intent}"
-                    )
-                )
+            return Either.error(
+                VoiceCommandError.command_execution_failed(
+                    command.command_id,
+                    f"Unknown system intent: {intent}",
+                ),
+            )
 
         except Exception as e:
             return Either.error(
-                VoiceCommandError.command_execution_failed(command.command_id, str(e))
+                VoiceCommandError.command_execution_failed(command.command_id, str(e)),
             )
 
     async def _handle_volume_control(
-        self, command: VoiceCommand
+        self,
+        command: VoiceCommand,
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Handle volume control commands."""
         volume = command.get_parameter("volume")
@@ -268,8 +281,9 @@ class SystemControlHandler(CommandHandler):
         else:
             return Either.error(
                 VoiceCommandError.command_execution_failed(
-                    command.command_id, "No volume parameter specified"
-                )
+                    command.command_id,
+                    "No volume parameter specified",
+                ),
             )
 
         return Either.success(
@@ -277,11 +291,12 @@ class SystemControlHandler(CommandHandler):
                 "intent": "volume_control",
                 "parameters": command.parameters,
                 "result": result,
-            }
+            },
         )
 
     async def _handle_display_control(
-        self, command: VoiceCommand
+        self,
+        command: VoiceCommand,
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Handle display control commands."""
         brightness = command.get_parameter("brightness")
@@ -300,8 +315,9 @@ class SystemControlHandler(CommandHandler):
         else:
             return Either.error(
                 VoiceCommandError.command_execution_failed(
-                    command.command_id, "No display parameter specified"
-                )
+                    command.command_id,
+                    "No display parameter specified",
+                ),
             )
 
         return Either.success(
@@ -309,11 +325,12 @@ class SystemControlHandler(CommandHandler):
                 "intent": "display_control",
                 "parameters": command.parameters,
                 "result": result,
-            }
+            },
         )
 
     async def _handle_file_operation(
-        self, command: VoiceCommand
+        self,
+        command: VoiceCommand,
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Handle file operation commands."""
         action = command.get_parameter("action")
@@ -322,8 +339,9 @@ class SystemControlHandler(CommandHandler):
         if not action:
             return Either.error(
                 VoiceCommandError.command_execution_failed(
-                    command.command_id, "No file action specified"
-                )
+                    command.command_id,
+                    "No file action specified",
+                ),
             )
 
         logger.info(f"File operation: {action} {file_name}")
@@ -334,7 +352,7 @@ class SystemControlHandler(CommandHandler):
                 "action": action,
                 "file_name": file_name,
                 "result": f"File operation '{action}' executed for '{file_name}'",
-            }
+            },
         )
 
 
@@ -345,7 +363,9 @@ class TextInputHandler(CommandHandler):
         super().__init__(VoiceCommandType.TEXT_INPUT, "text_input_handler")
 
     async def execute(
-        self, command: VoiceCommand, context: dict[str, Any]
+        self,
+        command: VoiceCommand,
+        context: dict[str, Any],
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Execute text input command."""
         try:
@@ -353,8 +373,9 @@ class TextInputHandler(CommandHandler):
             if not text:
                 return Either.error(
                     VoiceCommandError.command_execution_failed(
-                        command.command_id, "No text content specified"
-                    )
+                        command.command_id,
+                        "No text content specified",
+                    ),
                 )
 
             # Sanitize text for typing
@@ -371,12 +392,12 @@ class TextInputHandler(CommandHandler):
                     "text": sanitized_text,
                     "length": len(sanitized_text),
                     "result": f"Typed {len(sanitized_text)} characters successfully",
-                }
+                },
             )
 
         except Exception as e:
             return Either.error(
-                VoiceCommandError.command_execution_failed(command.command_id, str(e))
+                VoiceCommandError.command_execution_failed(command.command_id, str(e)),
             )
 
     def _sanitize_text_input(self, text: str) -> str:
@@ -398,7 +419,9 @@ class NavigationHandler(CommandHandler):
         super().__init__(VoiceCommandType.NAVIGATION, "navigation_handler")
 
     async def execute(
-        self, command: VoiceCommand, context: dict[str, Any]
+        self,
+        command: VoiceCommand,
+        context: dict[str, Any],
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Execute navigation command."""
         try:
@@ -406,8 +429,9 @@ class NavigationHandler(CommandHandler):
             if not direction:
                 return Either.error(
                     VoiceCommandError.command_execution_failed(
-                        command.command_id, "No navigation direction specified"
-                    )
+                        command.command_id,
+                        "No navigation direction specified",
+                    ),
                 )
 
             logger.info(f"Navigation: {direction}")
@@ -420,18 +444,17 @@ class NavigationHandler(CommandHandler):
                     "intent": "navigate_direction",
                     "direction": direction,
                     "result": f"Navigated {direction} successfully",
-                }
+                },
             )
 
         except Exception as e:
             return Either.error(
-                VoiceCommandError.command_execution_failed(command.command_id, str(e))
+                VoiceCommandError.command_execution_failed(command.command_id, str(e)),
             )
 
 
 class VoiceCommandDispatcher:
-    """
-    Comprehensive voice command dispatcher and execution system.
+    """Comprehensive voice command dispatcher and execution system.
 
     Contracts:
         Preconditions:
@@ -475,13 +498,12 @@ class VoiceCommandDispatcher:
 
         # Start background processing if event loop is running
         self.processing_task = None
-        try:
-            self.processing_task = asyncio.create_task(self._process_command_queue())
-        except RuntimeError:
+        # SIM105 fix: Use contextlib.suppress for cleaner exception handling
+        with contextlib.suppress(RuntimeError):
             # No event loop running, will start task later if needed
-            pass
+            self.processing_task = asyncio.create_task(self._process_command_queue())
 
-    def _initialize_default_handlers(self):
+    def _initialize_default_handlers(self) -> bool:
         """Initialize default command handlers."""
         handlers = [
             AutomationHandler(),
@@ -496,16 +518,15 @@ class VoiceCommandDispatcher:
 
         logger.info(f"Initialized {len(handlers)} command handlers")
 
-    @require(lambda self, command: command.command_id and command.intent)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, command: command.command_id and command.intent)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def dispatch_command(
         self,
         command: VoiceCommand,
         speaker_profile: VoiceProfile | None = None,
         context: dict[str, Any] | None = None,
     ) -> Either[VoiceCommandError, VoiceCommandExecution]:
-        """
-        Dispatch voice command for execution with comprehensive validation.
+        """Dispatch voice command for execution with comprehensive validation.
 
         Performance:
             - <100ms command validation and routing
@@ -524,16 +545,18 @@ class VoiceCommandDispatcher:
             if command.command_id in self.pending_commands:
                 return Either.error(
                     VoiceCommandError.command_execution_failed(
-                        command.command_id, "Command already pending"
-                    )
+                        command.command_id,
+                        "Command already pending",
+                    ),
                 )
 
             # Check pending command limit
             if len(self.pending_commands) >= self.max_pending_commands:
                 return Either.error(
                     VoiceCommandError.command_execution_failed(
-                        command.command_id, "Too many pending commands"
-                    )
+                        command.command_id,
+                        "Too many pending commands",
+                    ),
                 )
 
             # Get appropriate handler
@@ -543,7 +566,7 @@ class VoiceCommandDispatcher:
                     VoiceCommandError.command_execution_failed(
                         command.command_id,
                         f"No handler for command type: {command.command_type.value}",
-                    )
+                    ),
                 )
 
             # Create execution context
@@ -553,7 +576,7 @@ class VoiceCommandDispatcher:
                     "speaker_profile": speaker_profile,
                     "dispatch_time": start_time,
                     "handler": handler,
-                }
+                },
             )
 
             # Check if confirmation is required
@@ -582,43 +605,49 @@ class VoiceCommandDispatcher:
 
             # Execute command immediately
             execution_result = await self._execute_command_with_handler(
-                command, handler, execution_context
+                command,
+                handler,
+                execution_context,
             )
 
             # Update statistics
             execution_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
             self._update_execution_stats(
-                command, execution_time, execution_result.is_success()
+                command,
+                execution_time,
+                execution_result.is_success(),
             )
 
             return execution_result
 
         except Exception as e:
-            error_msg = f"Command dispatch failed: {str(e)}"
+            error_msg = f"Command dispatch failed: {e!s}"
             logger.error(error_msg)
             return Either.error(
-                VoiceCommandError.command_execution_failed(command.command_id, str(e))
+                VoiceCommandError.command_execution_failed(command.command_id, str(e)),
             )
 
     async def _validate_command(
-        self, command: VoiceCommand, speaker_profile: VoiceProfile | None
+        self,
+        command: VoiceCommand,
+        speaker_profile: VoiceProfile | None,
     ) -> Either[VoiceCommandError, None]:
         """Validate command for execution."""
         try:
-            # Check speaker authorization for sensitive commands
+            # SIM102 fix: Combine nested if statements
             if (
                 self.require_speaker_auth_for_system_commands
                 and command.command_type == VoiceCommandType.SYSTEM_CONTROL
+                and (
+                    not speaker_profile or not speaker_profile.requires_authentication()
+                )
             ):
-                if not speaker_profile or not speaker_profile.requires_authentication():
-                    return Either.error(
-                        VoiceCommandError.speaker_not_authorized(
-                            speaker_profile.speaker_id
-                            if speaker_profile
-                            else "unknown",
-                            command.intent,
-                        )
-                    )
+                return Either.error(
+                    VoiceCommandError.speaker_not_authorized(
+                        speaker_profile.speaker_id if speaker_profile else "unknown",
+                        command.intent,
+                    ),
+                )
 
             # Get handler and validate command with it
             handler = self.command_handlers.get(command.command_type)
@@ -632,12 +661,15 @@ class VoiceCommandDispatcher:
         except Exception as e:
             return Either.error(
                 VoiceCommandError.command_execution_failed(
-                    command.command_id, f"Validation failed: {str(e)}"
-                )
+                    command.command_id,
+                    f"Validation failed: {e!s}",
+                ),
             )
 
     def _requires_confirmation(
-        self, command: VoiceCommand, speaker_profile: VoiceProfile | None
+        self,
+        command: VoiceCommand,
+        speaker_profile: VoiceProfile | None,
     ) -> bool:
         """Check if command requires confirmation."""
         # Command explicitly requires confirmation
@@ -652,7 +684,10 @@ class VoiceCommandDispatcher:
         return command.command_type == VoiceCommandType.SYSTEM_CONTROL
 
     async def _execute_command_with_handler(
-        self, command: VoiceCommand, handler: CommandHandler, context: dict[str, Any]
+        self,
+        command: VoiceCommand,
+        handler: CommandHandler,
+        context: dict[str, Any],
     ) -> Either[VoiceCommandError, VoiceCommandExecution]:
         """Execute command with specified handler."""
         try:
@@ -673,7 +708,8 @@ class VoiceCommandDispatcher:
                     result_data=result.value,
                     execution_time_ms=execution_time,
                     voice_feedback=result.value.get(
-                        "result", "Command completed successfully"
+                        "result",
+                        "Command completed successfully",
                     ),
                 )
 
@@ -681,7 +717,7 @@ class VoiceCommandDispatcher:
                 handler.update_stats(execution_time, True)
 
                 logger.info(
-                    f"Command executed successfully: {command.intent} ({execution_time:.0f}ms)"
+                    f"Command executed successfully: {command.intent} ({execution_time:.0f}ms)",
                 )
             else:
                 # Create failed execution
@@ -690,14 +726,14 @@ class VoiceCommandDispatcher:
                     execution_status="failed",
                     error_message=str(result.error_value),
                     execution_time_ms=execution_time,
-                    voice_feedback=f"Command failed: {str(result.error_value)}",
+                    voice_feedback=f"Command failed: {result.error_value!s}",
                 )
 
                 # Update handler stats
                 handler.update_stats(execution_time, False)
 
                 logger.error(
-                    f"Command execution failed: {command.intent} - {str(result.error_value)}"
+                    f"Command execution failed: {command.intent} - {result.error_value!s}",
                 )
 
             # Add to execution history
@@ -719,7 +755,7 @@ class VoiceCommandDispatcher:
                 execution_status="failed",
                 error_message=str(e),
                 execution_time_ms=execution_time,
-                voice_feedback=f"Command execution error: {str(e)}",
+                voice_feedback=f"Command execution error: {e!s}",
             )
 
             handler.update_stats(execution_time, False)
@@ -728,15 +764,18 @@ class VoiceCommandDispatcher:
             return Either.success(execution)
 
     async def confirm_command(
-        self, command_id: VoiceCommandId, confirmed: bool
+        self,
+        command_id: VoiceCommandId,
+        confirmed: bool,
     ) -> Either[VoiceCommandError, VoiceCommandExecution]:
         """Confirm or cancel a pending command."""
         try:
             if command_id not in self.pending_commands:
                 return Either.error(
                     VoiceCommandError.command_execution_failed(
-                        command_id, "No pending command found"
-                    )
+                        command_id,
+                        "No pending command found",
+                    ),
                 )
 
             pending_command = self.pending_commands[command_id]
@@ -746,8 +785,9 @@ class VoiceCommandDispatcher:
                 del self.pending_commands[command_id]
                 return Either.error(
                     VoiceCommandError.command_execution_failed(
-                        command_id, "Command has expired"
-                    )
+                        command_id,
+                        "Command has expired",
+                    ),
                 )
 
             if confirmed:
@@ -761,26 +801,28 @@ class VoiceCommandDispatcher:
 
                 # Execute command
                 return await self._execute_command_with_handler(
-                    command, handler, context
+                    command,
+                    handler,
+                    context,
                 )
-            else:
-                # Cancel the command
-                del self.pending_commands[command_id]
+            # Cancel the command
+            del self.pending_commands[command_id]
 
-                execution = VoiceCommandExecution(
-                    command_id=command_id,
-                    execution_status="cancelled",
-                    voice_feedback="Command cancelled by user",
-                )
+            execution = VoiceCommandExecution(
+                command_id=command_id,
+                execution_status="cancelled",
+                voice_feedback="Command cancelled by user",
+            )
 
-                logger.info(f"Command cancelled: {command_id}")
-                return Either.success(execution)
+            logger.info(f"Command cancelled: {command_id}")
+            return Either.success(execution)
 
         except Exception as e:
             return Either.error(
                 VoiceCommandError.command_execution_failed(
-                    command_id, f"Confirmation failed: {str(e)}"
-                )
+                    command_id,
+                    f"Confirmation failed: {e!s}",
+                ),
             )
 
     async def _process_command_queue(self):
@@ -797,7 +839,7 @@ class VoiceCommandDispatcher:
                 await asyncio.sleep(1.0)
 
             except Exception as e:
-                logger.error(f"Command queue processing error: {str(e)}")
+                logger.error(f"Command queue processing error: {e!s}")
                 await asyncio.sleep(5.0)
 
     async def _cleanup_expired_commands(self):
@@ -813,8 +855,11 @@ class VoiceCommandDispatcher:
             logger.info(f"Expired pending command removed: {command_id}")
 
     def _update_execution_stats(
-        self, command: VoiceCommand, execution_time: float, success: bool
-    ):
+        self,
+        command: VoiceCommand,
+        execution_time: float,
+        success: bool,
+    ) -> bool:
         """Update command execution statistics."""
         self.execution_stats["total_commands"] += 1
 
@@ -844,7 +889,8 @@ class VoiceCommandDispatcher:
         self.execution_stats["commands_by_priority"][priority] += 1
 
     async def register_handler(
-        self, handler: CommandHandler
+        self,
+        handler: CommandHandler,
     ) -> Either[VoiceCommandError, None]:
         """Register custom command handler."""
         try:
@@ -854,8 +900,9 @@ class VoiceCommandDispatcher:
         except Exception as e:
             return Either.error(
                 VoiceCommandError.command_execution_failed(
-                    "handler_registration", f"Handler registration failed: {str(e)}"
-                )
+                    "handler_registration",
+                    f"Handler registration failed: {e!s}",
+                ),
             )
 
     async def get_pending_commands(self) -> list[dict[str, Any]]:
@@ -872,7 +919,7 @@ class VoiceCommandDispatcher:
                     "expires_at": pending_command.expires_at.isoformat(),
                     "confirmation_required": pending_command.confirmation_required,
                     "original_text": pending_command.command.original_text,
-                }
+                },
             )
 
         return pending
@@ -890,7 +937,7 @@ class VoiceCommandDispatcher:
                     "result_data": execution.result_data,
                     "error_message": execution.error_message,
                     "automation_triggered": execution.automation_triggered,
-                }
+                },
             )
 
         return history
@@ -912,7 +959,7 @@ class VoiceCommandDispatcher:
                     }
                     for handler in self.command_handlers.values()
                 },
-            }
+            },
         )
 
         return stats
@@ -920,7 +967,9 @@ class VoiceCommandDispatcher:
 
 # Helper functions for command dispatch
 def create_emergency_command(
-    intent: str, parameters: dict[str, Any], original_text: str
+    intent: str,
+    parameters: dict[str, Any],
+    original_text: str,
 ) -> VoiceCommand:
     """Create emergency priority voice command."""
     from ..core.voice_architecture import create_voice_command_id
@@ -938,7 +987,9 @@ def create_emergency_command(
 
 
 def create_automation_command(
-    automation_name: str, original_text: str, confidence: float = 0.8
+    automation_name: str,
+    original_text: str,
+    confidence: float = 0.8,
 ) -> VoiceCommand:
     """Create automation trigger command."""
     from ..core.voice_architecture import create_voice_command_id

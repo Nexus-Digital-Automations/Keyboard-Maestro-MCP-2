@@ -1,5 +1,4 @@
-"""
-Core macro execution engine for the Keyboard Maestro MCP system.
+"""Core macro execution engine for the Keyboard Maestro MCP system.
 
 This module provides the main execution engine with type-safe macro execution,
 contract-based validation, and comprehensive security enforcement.
@@ -47,8 +46,7 @@ from .types import (
 
 @dataclass(frozen=True)
 class PlaceholderCommand:
-    """
-    Placeholder command implementation for the core engine.
+    """Placeholder command implementation for the core engine.
 
     This is a minimal implementation that satisfies the MacroCommand protocol
     and will be replaced by full command implementations in TASK_3.
@@ -99,7 +97,8 @@ class PlaceholderCommand:
         try:
             # Use the same validation logic as the parser
             validated_params = CommandValidator.validate_command_parameters(
-                self.command_type, self.parameters.data
+                self.command_type,
+                self.parameters.data,
             )
             # If validation succeeds and returns CommandParameters, it's valid
             return isinstance(validated_params, CommandParameters)
@@ -117,20 +116,20 @@ class PlaceholderCommand:
 
 @dataclass(frozen=True)
 class MacroEngine:
-    """
-    Type-safe macro execution engine with contract enforcement.
+    """Type-safe macro execution engine with contract enforcement.
 
     This engine provides secure, reliable macro execution with comprehensive
     validation, permission checking, and error handling.
     """
 
     context_manager: ExecutionContextManager = field(
-        default_factory=get_context_manager
+        default_factory=get_context_manager,
     )
     max_concurrent_executions: int = 10
     default_timeout: Duration = field(default_factory=lambda: Duration.from_seconds(30))
     _active_executions: dict[ExecutionToken, dict[str, Any]] = field(
-        default_factory=dict, init=False
+        default_factory=dict,
+        init=False,
     )
     _execution_lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False)
 
@@ -141,7 +140,8 @@ class MacroEngine:
         object.__setattr__(self, "_execution_lock", asyncio.Lock())
 
     @require(
-        lambda self, macro, context=None: macro is not None, "macro cannot be None"
+        lambda self, macro, context=None: macro is not None,
+        "macro cannot be None",
     )
     @ensure(
         lambda self, macro, context=None, result=None: result.execution_token
@@ -149,10 +149,11 @@ class MacroEngine:
         "must return execution token",
     )
     def execute_macro(
-        self, macro: MacroDefinition, context: ExecutionContext | None = None
+        self,
+        macro: MacroDefinition,
+        context: ExecutionContext | None = None,
     ) -> ExecutionResult:
-        """
-        Execute a macro with comprehensive safety checks.
+        """Execute a macro with comprehensive safety checks.
 
         Args:
             macro: The macro definition to execute
@@ -165,6 +166,7 @@ class MacroEngine:
             PermissionDeniedError: If required permissions are not available
             TimeoutError: If execution exceeds timeout
             ExecutionError: If execution fails
+
         """
         # Create default context if none provided
         if context is None:
@@ -201,7 +203,7 @@ class MacroEngine:
             # Calculate total duration
             completed_at = datetime.now()
             total_duration = Duration.from_seconds(
-                (completed_at - execution_result.started_at).total_seconds()
+                (completed_at - execution_result.started_at).total_seconds(),
             )
 
             # Determine final status based on command results
@@ -243,7 +245,7 @@ class MacroEngine:
 
             completed_at = datetime.now()
             total_duration = Duration.from_seconds(
-                (completed_at - execution_result.started_at).total_seconds()
+                (completed_at - execution_result.started_at).total_seconds(),
             )
 
             # Create comprehensive error details
@@ -271,13 +273,15 @@ class MacroEngine:
     # TASK_9: Enhanced async execution with proper validation and resource management
 
     @require(
-        lambda self, macro, context=None: macro is not None, "macro cannot be None"
+        lambda self, macro, context=None: macro is not None,
+        "macro cannot be None",
     )
     async def execute_macro_async(
-        self, macro: MacroDefinition, context: ExecutionContext | None = None
+        self,
+        macro: MacroDefinition,
+        context: ExecutionContext | None = None,
     ) -> ExecutionResult:
-        """
-        Execute macro asynchronously with guaranteed ExecutionResult return.
+        """Execute macro asynchronously with guaranteed ExecutionResult return.
 
         Provides enhanced reliability:
         - Always returns ExecutionResult regardless of error conditions
@@ -299,7 +303,7 @@ class MacroEngine:
                     started_at=datetime.now(),
                     completed_at=datetime.now(),
                     total_duration=Duration.from_seconds(
-                        time.perf_counter() - start_time
+                        time.perf_counter() - start_time,
                     ),
                     error_details=validation_result.get_left(),
                 )
@@ -319,7 +323,7 @@ class MacroEngine:
                             started_at=datetime.now(),
                             completed_at=datetime.now(),
                             total_duration=Duration.from_seconds(
-                                time.perf_counter() - start_time
+                                time.perf_counter() - start_time,
                             ),
                             error_details=f"Maximum concurrent executions ({self.max_concurrent_executions}) exceeded",
                         )
@@ -337,13 +341,16 @@ class MacroEngine:
                         # Check for cancellation
                         if execution_id in self._active_executions:
                             command_result = await self._execute_command_safe(
-                                command, exec_context
+                                command,
+                                exec_context,
                             )
                             command_results.append(command_result)
 
                             # Stop on first failure if configured
                             if not command_result.success and getattr(
-                                exec_context, "stop_on_failure", True
+                                exec_context,
+                                "stop_on_failure",
+                                True,
                             ):
                                 break
                         else:
@@ -364,7 +371,7 @@ class MacroEngine:
                         started_at=datetime.fromtimestamp(start_time),
                         completed_at=completed_at,
                         total_duration=Duration.from_seconds(
-                            time.perf_counter() - start_time
+                            time.perf_counter() - start_time,
                         ),
                         command_results=command_results,
                     )
@@ -382,14 +389,14 @@ class MacroEngine:
                 started_at=datetime.fromtimestamp(start_time),
                 completed_at=datetime.now(),
                 total_duration=Duration.from_seconds(time.perf_counter() - start_time),
-                error_details=f"Unexpected execution error: {str(e)}",
+                error_details=f"Unexpected execution error: {e!s}",
             )
 
     def _validate_macro_enhanced(
-        self, macro: MacroDefinition
+        self,
+        macro: MacroDefinition,
     ) -> Either[str, MacroDefinition]:
         """Enhanced macro validation with comprehensive checks."""
-
         # Maximum limits for resource management
         MAX_COMMANDS_PER_MACRO = 1000
         MAX_MACRO_MEMORY_MB = 50
@@ -406,7 +413,7 @@ class MacroEngine:
         # Check for resource limits
         if len(macro.commands) > MAX_COMMANDS_PER_MACRO:
             return Either.left(
-                f"Macro exceeds maximum command limit ({MAX_COMMANDS_PER_MACRO})"
+                f"Macro exceeds maximum command limit ({MAX_COMMANDS_PER_MACRO})",
             )
 
         # Estimate memory usage for large inputs
@@ -415,13 +422,15 @@ class MacroEngine:
         )
         if estimated_memory_mb > MAX_MACRO_MEMORY_MB:
             return Either.left(
-                f"Macro estimated memory usage ({estimated_memory_mb:.1f}MB) exceeds limit ({MAX_MACRO_MEMORY_MB}MB)"
+                f"Macro estimated memory usage ({estimated_memory_mb:.1f}MB) exceeds limit ({MAX_MACRO_MEMORY_MB}MB)",
             )
 
         return Either.right(macro)
 
     async def _execute_command_safe(
-        self, command: MacroCommand, context: ExecutionContext
+        self,
+        command: MacroCommand,
+        context: ExecutionContext,
     ) -> CommandResult:
         """Execute command with proper error handling and resource management."""
         command_start = time.perf_counter()
@@ -429,68 +438,74 @@ class MacroEngine:
         try:
             # Apply timeout to command execution
             timeout_seconds = getattr(
-                context, "timeout", self.default_timeout
+                context,
+                "timeout",
+                self.default_timeout,
             ).total_seconds()
 
             # Execute with timeout
             if hasattr(command, "execute_async"):
                 try:
                     result = await asyncio.wait_for(
-                        command.execute_async(context), timeout=timeout_seconds
+                        command.execute_async(context),
+                        timeout=timeout_seconds,
                     )
                 except AttributeError:
                     # Fallback to sync execution in executor
                     result = await asyncio.get_event_loop().run_in_executor(
-                        None, command.execute, context
+                        None,
+                        command.execute,
+                        context,
                     )
             else:
                 # Execute sync command in executor to avoid blocking
                 result = await asyncio.get_event_loop().run_in_executor(
-                    None, command.execute, context
+                    None,
+                    command.execute,
+                    context,
                 )
 
             # Ensure result is a CommandResult
             if isinstance(result, CommandResult):
                 return result
-            else:
-                # Wrap raw result in CommandResult
-                return CommandResult.success_result(
-                    output=str(result),
-                    execution_time=Duration.from_seconds(
-                        time.perf_counter() - command_start
-                    ),
-                )
+            # Wrap raw result in CommandResult
+            return CommandResult.success_result(
+                output=str(result),
+                execution_time=Duration.from_seconds(
+                    time.perf_counter() - command_start,
+                ),
+            )
 
         except asyncio.TimeoutError:
             return CommandResult.failure_result(
                 error_message=f"Command execution timeout after {timeout_seconds}s",
                 execution_time=Duration.from_seconds(
-                    time.perf_counter() - command_start
+                    time.perf_counter() - command_start,
                 ),
             )
         except Exception as e:
             return CommandResult.failure_result(
-                error_message=f"Command execution failed: {str(e)}",
+                error_message=f"Command execution failed: {e!s}",
                 execution_time=Duration.from_seconds(
-                    time.perf_counter() - command_start
+                    time.perf_counter() - command_start,
                 ),
             )
 
-    @require(lambda self, token: token is not None, "token cannot be None")
+    @require(lambda __self, token: token is not None, "token cannot be None")
     def get_execution_status(self, token: ExecutionToken) -> ExecutionStatus | None:
         """Retrieve current execution status."""
         return self.context_manager.get_status(token)
 
-    @require(lambda self, token: token is not None, "token cannot be None")
+    @require(lambda __self, token: token is not None, "token cannot be None")
     def cancel_execution(self, token: ExecutionToken) -> bool:
-        """
-        Cancel a running macro execution.
+        """Cancel a running macro execution.
 
         Args:
             token: Execution token to cancel
 
         Returns:
             True if cancellation was successful, False if execution not found or already finished
+
         """
         status = self.context_manager.get_status(token)
 
@@ -506,7 +521,9 @@ class MacroEngine:
         return self.context_manager.get_active_contexts()
 
     def _execute_commands(
-        self, commands: list[MacroCommand], context: ExecutionContext
+        self,
+        commands: list[MacroCommand],
+        context: ExecutionContext,
     ) -> list[CommandResult]:
         """Execute a list of commands in sequence."""
         results = []
@@ -551,7 +568,8 @@ class MacroEngine:
             except Exception as e:
                 # Create error result for this command
                 error_result = CommandResult.failure_result(
-                    error_message=str(e), command_id=f"cmd_{i}"
+                    error_message=str(e),
+                    command_id=f"cmd_{i}",
                 )
                 results.append(error_result)
 
@@ -657,21 +675,34 @@ def create_test_macro(name: str, command_types: list[CommandType]) -> MacroDefin
             params = CommandParameters({"sound_name": "beep", "volume": 50})
         elif cmd_type == CommandType.VARIABLE_SET:
             params = CommandParameters(
-                {"name": f"test_var_{i}", "value": f"test_value_{i}"}
+                {
+                    "name": f"test_var_{i}",
+                    "value": f"test_value_{i}",
+                },
             )
         elif cmd_type == CommandType.VARIABLE_GET:
             params = CommandParameters(
-                {"name": f"test_var_{i}", "default": "default_value"}
+                {
+                    "name": f"test_var_{i}",
+                    "default": "default_value",
+                },
             )
         elif cmd_type == CommandType.APPLICATION_CONTROL:
             params = CommandParameters(
-                {"action": "activate", "application": "TextEdit"}
+                {
+                    "action": "activate",
+                    "application": "TextEdit",
+                },
             )
         elif cmd_type == CommandType.SYSTEM_CONTROL:
             params = CommandParameters({"action": "volume", "value": 50})
         elif cmd_type == CommandType.CONDITIONAL:
             params = CommandParameters(
-                {"condition": "true", "then_commands": [], "else_commands": []}
+                {
+                    "condition": "true",
+                    "then_commands": [],
+                    "else_commands": [],
+                },
             )
         elif cmd_type == CommandType.LOOP:
             params = CommandParameters({"count": 3, "commands": []})

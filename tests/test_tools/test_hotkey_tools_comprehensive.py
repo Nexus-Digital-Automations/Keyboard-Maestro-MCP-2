@@ -1,10 +1,12 @@
-"""
-Comprehensive tests for hotkey tools module.
+"""Comprehensive tests for hotkey tools module.
 
 Tests cover hotkey trigger creation, conflict detection, validation,
 key combination management, and integration with property-based testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -18,7 +20,7 @@ from src.server.tools.hotkey_tools import (
 
 # Test data generators
 @st.composite
-def hotkey_key_strategy(draw):
+def hotkey_key_strategy(draw) -> Any:
     """Generate valid hotkey keys."""
     regular_keys = [chr(i) for i in range(ord("a"), ord("z") + 1)] + [
         str(i) for i in range(10)
@@ -60,7 +62,7 @@ def hotkey_key_strategy(draw):
 
 
 @st.composite
-def hotkey_modifiers_strategy(draw):
+def hotkey_modifiers_strategy(draw) -> list[Any]:
     """Generate valid modifier combinations."""
     all_modifiers = ["cmd", "opt", "shift", "ctrl", "fn"]
     # Generate 0-3 modifiers (empty list is valid)
@@ -73,19 +75,19 @@ def hotkey_modifiers_strategy(draw):
             min_size=1,
             max_size=num_modifiers,
             unique=True,
-        )
+        ),
     )
 
 
 @st.composite
-def activation_mode_strategy(draw):
+def activation_mode_strategy(draw) -> Any:
     """Generate valid activation modes."""
     modes = ["pressed", "released", "tapped", "held"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def macro_id_strategy(draw):
+def macro_id_strategy(draw) -> Any:
     """Generate valid macro IDs."""
     # UUID format or descriptive name (systematic pattern alignment)
     # Ensure we always generate valid, non-empty strings
@@ -96,7 +98,7 @@ def macro_id_strategy(draw):
                 min_size=1,
                 max_size=50,
                 alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _-",
-            )
+            ),
         ),
         # UUID-like format
         "550e8400-e29b-41d4-a716-446655440000",
@@ -108,14 +110,14 @@ def macro_id_strategy(draw):
 
 
 @st.composite
-def invalid_key_strategy(draw):
+def invalid_key_strategy(draw) -> Any:
     """Generate invalid hotkey keys for testing."""
     invalid_keys = ["invalid", "ctrl+a", "cmd+space", "", "  ", "F13", "shift", "cmd"]
     return draw(st.sampled_from(invalid_keys))
 
 
 @st.composite
-def invalid_modifier_strategy(draw):
+def invalid_modifier_strategy(draw) -> Any:
     """Generate invalid modifier combinations."""
     invalid_modifiers = ["invalid", "command", "alt", "control", "windows", "meta"]
     return draw(st.lists(st.sampled_from(invalid_modifiers), min_size=1, max_size=2))
@@ -124,7 +126,7 @@ def invalid_modifier_strategy(draw):
 class TestHotkeyToolsDependencies:
     """Test hotkey tools dependencies and imports."""
 
-    def test_hotkey_manager_import(self):
+    def test_hotkey_manager_import(self) -> None:
         """Test importing hotkey dependencies."""
         try:
             from src.core.types import MacroId
@@ -143,7 +145,7 @@ class TestHotkeyToolsDependencies:
             # Mock the dependencies for testing
             pytest.skip("Hotkey dependencies not available - using mocks")
 
-    def test_hotkey_validation_types(self):
+    def test_hotkey_validation_types(self) -> None:
         """Test hotkey validation type constants."""
         # Valid key patterns should be recognized
         valid_keys = ["a", "z", "0", "9", "space", "f1", "f12", "escape", "return"]
@@ -162,7 +164,7 @@ class TestHotkeyParameterValidation:
     """Test hotkey parameter validation."""
 
     @given(hotkey_key_strategy())
-    def test_valid_key_types(self, key: str):
+    def test_valid_key_types(self, key: str) -> None:
         """Test that valid key types are accepted."""
         # Valid keys should match expected patterns
         regular_keys = [chr(i) for i in range(ord("a"), ord("z") + 1)] + [
@@ -204,7 +206,7 @@ class TestHotkeyParameterValidation:
         assert key in all_valid_keys
 
     @given(hotkey_modifiers_strategy())
-    def test_valid_modifier_combinations(self, modifiers: list[str]):
+    def test_valid_modifier_combinations(self, modifiers: list[str]) -> None:
         """Test that valid modifier combinations are accepted."""
         valid_modifiers = {"cmd", "opt", "shift", "ctrl", "fn"}
         for modifier in modifiers:
@@ -213,18 +215,18 @@ class TestHotkeyParameterValidation:
         assert len(modifiers) == len(set(modifiers))
 
     @given(activation_mode_strategy())
-    def test_valid_activation_modes(self, mode: str):
+    def test_valid_activation_modes(self, mode: str) -> None:
         """Test that valid activation modes are accepted."""
         valid_modes = {"pressed", "released", "tapped", "held"}
         assert mode in valid_modes
 
     @given(st.integers(min_value=1, max_value=4))
-    def test_valid_tap_counts(self, tap_count: int):
+    def test_valid_tap_counts(self, tap_count: int) -> None:
         """Test that valid tap counts are accepted."""
         assert 1 <= tap_count <= 4
         assert isinstance(tap_count, int)
 
-    def test_invalid_key_validation(self):
+    def test_invalid_key_validation(self) -> None:
         """Test that invalid keys are handled."""
         invalid_keys = ["", "  ", "ctrl+a", "invalid", "F13", "shift"]
         for key in invalid_keys:
@@ -235,7 +237,7 @@ class TestHotkeyParameterValidation:
                 # Contains invalid patterns
                 assert any(char in key for char in ["+", "ctrl", "shift"])
 
-    def test_invalid_modifier_validation(self):
+    def test_invalid_modifier_validation(self) -> None:
         """Test that invalid modifiers are handled."""
         invalid_modifiers = ["invalid", "command", "alt", "control", "windows", "meta"]
         valid_modifiers = {"cmd", "opt", "shift", "ctrl", "fn"}
@@ -247,16 +249,16 @@ class TestHotkeyCreationMocked:
     """Test hotkey creation with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_create_hotkey_trigger_success(self):
+    async def test_km_create_hotkey_trigger_success(self) -> None:
         """Test successful hotkey trigger creation."""
         with (
             patch(
-                "src.server.tools.hotkey_tools.create_hotkey_spec"
+                "src.server.tools.hotkey_tools.create_hotkey_spec",
             ) as mock_create_spec,
             patch("src.server.tools.hotkey_tools.HotkeyManager") as mock_manager_class,
             patch("src.server.tools.hotkey_tools.KMClient") as mock_km_client,
             patch(
-                "src.server.tools.hotkey_tools.TriggerRegistrationManager"
+                "src.server.tools.hotkey_tools.TriggerRegistrationManager",
             ) as mock_trigger_manager,
         ):
             # Setup mock dependencies (systematic pattern alignment)
@@ -314,16 +316,16 @@ class TestHotkeyCreationMocked:
             assert "correlation_id" in result["metadata"]
 
     @pytest.mark.asyncio
-    async def test_km_create_hotkey_trigger_with_conflicts(self):
+    async def test_km_create_hotkey_trigger_with_conflicts(self) -> None:
         """Test hotkey creation with conflicts detected."""
         with (
             patch(
-                "src.server.tools.hotkey_tools.create_hotkey_spec"
+                "src.server.tools.hotkey_tools.create_hotkey_spec",
             ) as mock_create_spec,
             patch("src.server.tools.hotkey_tools.HotkeyManager") as mock_manager_class,
             patch("src.server.tools.hotkey_tools.KMClient") as mock_km_client,
             patch(
-                "src.server.tools.hotkey_tools.TriggerRegistrationManager"
+                "src.server.tools.hotkey_tools.TriggerRegistrationManager",
             ) as mock_trigger_manager,
         ):
             # Setup mock dependencies (systematic pattern alignment)
@@ -389,15 +391,15 @@ class TestHotkeyCreationMocked:
             assert alternatives[0]["display"] == "Cmd+Shift+C"
 
     @pytest.mark.asyncio
-    async def test_km_create_hotkey_trigger_invalid_spec(self):
+    async def test_km_create_hotkey_trigger_invalid_spec(self) -> None:
         """Test hotkey creation with invalid specification."""
         with (
             patch(
-                "src.server.tools.hotkey_tools.create_hotkey_spec"
+                "src.server.tools.hotkey_tools.create_hotkey_spec",
             ) as mock_create_spec,
             patch("src.server.tools.hotkey_tools.KMClient") as mock_km_client,
             patch(
-                "src.server.tools.hotkey_tools.TriggerRegistrationManager"
+                "src.server.tools.hotkey_tools.TriggerRegistrationManager",
             ) as mock_trigger_manager,
         ):
             # Setup mock dependencies (systematic pattern alignment)
@@ -408,7 +410,9 @@ class TestHotkeyCreationMocked:
             from src.core.errors import ValidationError
 
             mock_validation_error = ValidationError(
-                "Invalid key", "invalid", "field_constraint"
+                "Invalid key",
+                "invalid",
+                "field_constraint",
             )
             # Add field and value as attributes for test compatibility
             mock_validation_error.field = "key"
@@ -417,7 +421,9 @@ class TestHotkeyCreationMocked:
 
             # Execute operation
             result = await km_create_hotkey_trigger(
-                macro_id="test_macro", key="invalid", modifiers=["cmd"]
+                macro_id="test_macro",
+                key="invalid",
+                modifiers=["cmd"],
             )
 
             # Verify validation error response
@@ -429,16 +435,16 @@ class TestHotkeyCreationMocked:
             assert "recovery_suggestion" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_km_create_hotkey_trigger_creation_failure(self):
+    async def test_km_create_hotkey_trigger_creation_failure(self) -> None:
         """Test hotkey creation when trigger creation fails."""
         with (
             patch(
-                "src.server.tools.hotkey_tools.create_hotkey_spec"
+                "src.server.tools.hotkey_tools.create_hotkey_spec",
             ) as mock_create_spec,
             patch("src.server.tools.hotkey_tools.HotkeyManager") as mock_manager_class,
             patch("src.server.tools.hotkey_tools.KMClient") as mock_km_client,
             patch(
-                "src.server.tools.hotkey_tools.TriggerRegistrationManager"
+                "src.server.tools.hotkey_tools.TriggerRegistrationManager",
             ) as mock_trigger_manager,
         ):
             # Setup mock dependencies (systematic pattern alignment)
@@ -468,7 +474,9 @@ class TestHotkeyCreationMocked:
 
             # Execute operation
             result = await km_create_hotkey_trigger(
-                macro_id="nonexistent_macro", key="n", modifiers=["cmd"]
+                macro_id="nonexistent_macro",
+                key="n",
+                modifiers=["cmd"],
             )
 
             # Verify failure response
@@ -478,7 +486,7 @@ class TestHotkeyCreationMocked:
             assert result["error"]["details"]["macro_id"] == "nonexistent_macro"
 
     @pytest.mark.asyncio
-    async def test_km_create_hotkey_trigger_with_context(self):
+    async def test_km_create_hotkey_trigger_with_context(self) -> None:
         """Test hotkey creation with FastMCP context integration."""
         mock_context = Mock()
         mock_context.info = AsyncMock()
@@ -486,12 +494,12 @@ class TestHotkeyCreationMocked:
 
         with (
             patch(
-                "src.server.tools.hotkey_tools.create_hotkey_spec"
+                "src.server.tools.hotkey_tools.create_hotkey_spec",
             ) as mock_create_spec,
             patch("src.server.tools.hotkey_tools.HotkeyManager") as mock_manager_class,
             patch("src.server.tools.hotkey_tools.KMClient") as mock_km_client,
             patch(
-                "src.server.tools.hotkey_tools.TriggerRegistrationManager"
+                "src.server.tools.hotkey_tools.TriggerRegistrationManager",
             ) as mock_trigger_manager,
         ):
             # Setup mock dependencies (systematic pattern alignment)
@@ -520,7 +528,10 @@ class TestHotkeyCreationMocked:
 
             # Execute operation with context
             result = await km_create_hotkey_trigger(
-                macro_id="test_macro", key="t", modifiers=["cmd"], ctx=mock_context
+                macro_id="test_macro",
+                key="t",
+                modifiers=["cmd"],
+                ctx=mock_context,
             )
 
             # Verify successful response
@@ -539,13 +550,13 @@ class TestHotkeyListingMocked:
     """Test hotkey listing with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_list_hotkey_triggers_all(self):
+    async def test_km_list_hotkey_triggers_all(self) -> None:
         """Test listing all hotkey triggers."""
         with (
             patch("src.server.tools.hotkey_tools.HotkeyManager") as mock_manager_class,
             patch("src.server.tools.hotkey_tools.KMClient") as mock_km_client,
             patch(
-                "src.server.tools.hotkey_tools.TriggerRegistrationManager"
+                "src.server.tools.hotkey_tools.TriggerRegistrationManager",
             ) as mock_trigger_manager,
         ):
             # Setup mock dependencies (systematic pattern alignment)
@@ -602,13 +613,13 @@ class TestHotkeyListingMocked:
             assert first_hotkey["allow_repeat"] is False
 
     @pytest.mark.asyncio
-    async def test_km_list_hotkey_triggers_filtered(self):
+    async def test_km_list_hotkey_triggers_filtered(self) -> None:
         """Test listing hotkey triggers filtered by macro ID."""
         with (
             patch("src.server.tools.hotkey_tools.HotkeyManager") as mock_manager_class,
             patch("src.server.tools.hotkey_tools.KMClient") as mock_km_client,
             patch(
-                "src.server.tools.hotkey_tools.TriggerRegistrationManager"
+                "src.server.tools.hotkey_tools.TriggerRegistrationManager",
             ) as mock_trigger_manager,
         ):
             # Setup mock dependencies (systematic pattern alignment)
@@ -648,13 +659,13 @@ class TestHotkeyListingMocked:
             assert hotkeys[0]["hotkey_string"] == "⌘N"
 
     @pytest.mark.asyncio
-    async def test_km_list_hotkey_triggers_with_conflicts(self):
+    async def test_km_list_hotkey_triggers_with_conflicts(self) -> None:
         """Test listing hotkey triggers with conflict information."""
         with (
             patch("src.server.tools.hotkey_tools.HotkeyManager") as mock_manager_class,
             patch("src.server.tools.hotkey_tools.KMClient") as mock_km_client,
             patch(
-                "src.server.tools.hotkey_tools.TriggerRegistrationManager"
+                "src.server.tools.hotkey_tools.TriggerRegistrationManager",
             ) as mock_trigger_manager,
         ):
             # Setup mock dependencies (systematic pattern alignment)
@@ -701,13 +712,13 @@ class TestHotkeyListingMocked:
             assert hotkey["conflicts"][0]["conflict_type"] == "system_shortcut"
 
     @pytest.mark.asyncio
-    async def test_km_list_hotkey_triggers_empty_list(self):
+    async def test_km_list_hotkey_triggers_empty_list(self) -> None:
         """Test listing hotkey triggers when none are registered."""
         with (
             patch("src.server.tools.hotkey_tools.HotkeyManager") as mock_manager_class,
             patch("src.server.tools.hotkey_tools.KMClient") as mock_km_client,
             patch(
-                "src.server.tools.hotkey_tools.TriggerRegistrationManager"
+                "src.server.tools.hotkey_tools.TriggerRegistrationManager",
             ) as mock_trigger_manager,
         ):
             # Setup mock dependencies (systematic pattern alignment)
@@ -733,7 +744,7 @@ class TestHotkeyErrorHandling:
     """Test hotkey tools error handling."""
 
     @pytest.mark.asyncio
-    async def test_create_hotkey_unexpected_error(self):
+    async def test_create_hotkey_unexpected_error(self) -> None:
         """Test handling of unexpected errors in hotkey creation."""
         with patch("src.server.tools.hotkey_tools.MacroId") as mock_macro_id:
             # Setup unexpected error
@@ -741,7 +752,9 @@ class TestHotkeyErrorHandling:
 
             # Execute operation
             result = await km_create_hotkey_trigger(
-                macro_id="test_macro", key="n", modifiers=["cmd"]
+                macro_id="test_macro",
+                key="n",
+                modifiers=["cmd"],
             )
 
             # Verify error response
@@ -752,7 +765,7 @@ class TestHotkeyErrorHandling:
             assert "recovery_suggestion" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_list_hotkey_unexpected_error(self):
+    async def test_list_hotkey_unexpected_error(self) -> None:
         """Test handling of unexpected errors in hotkey listing."""
         with patch("src.server.tools.hotkey_tools.KMClient") as mock_km_client:
             # Setup unexpected error
@@ -768,7 +781,7 @@ class TestHotkeyErrorHandling:
             assert result["error"]["details"]["error_type"] == "ConnectionError"
 
     @pytest.mark.asyncio
-    async def test_create_hotkey_error_with_context(self):
+    async def test_create_hotkey_error_with_context(self) -> None:
         """Test error handling with context integration."""
         mock_context = Mock()
         mock_context.info = AsyncMock()
@@ -780,7 +793,10 @@ class TestHotkeyErrorHandling:
 
             # Execute operation with context
             result = await km_create_hotkey_trigger(
-                macro_id="invalid_macro", key="n", modifiers=["cmd"], ctx=mock_context
+                macro_id="invalid_macro",
+                key="n",
+                modifiers=["cmd"],
+                ctx=mock_context,
             )
 
             # Verify error response
@@ -796,16 +812,16 @@ class TestHotkeyIntegration:
     """Integration tests for hotkey tools."""
 
     @pytest.mark.asyncio
-    async def test_complete_hotkey_workflow(self):
+    async def test_complete_hotkey_workflow(self) -> None:
         """Test complete hotkey creation and listing workflow."""
         with (
             patch(
-                "src.server.tools.hotkey_tools.create_hotkey_spec"
+                "src.server.tools.hotkey_tools.create_hotkey_spec",
             ) as mock_create_spec,
             patch("src.server.tools.hotkey_tools.HotkeyManager") as mock_manager_class,
             patch("src.server.tools.hotkey_tools.KMClient") as mock_km_client,
             patch(
-                "src.server.tools.hotkey_tools.TriggerRegistrationManager"
+                "src.server.tools.hotkey_tools.TriggerRegistrationManager",
             ) as mock_trigger_manager,
         ):
             # Setup mock dependencies (systematic pattern alignment)
@@ -865,10 +881,10 @@ class TestHotkeyIntegration:
             assert hotkey["modifiers"] == ["cmd", "opt"]
 
     @pytest.mark.asyncio
-    async def test_hotkey_validation_integration(self):
+    async def test_hotkey_validation_integration(self) -> None:
         """Test integration of validation across hotkey operations."""
         with patch(
-            "src.server.tools.hotkey_tools.create_hotkey_spec"
+            "src.server.tools.hotkey_tools.create_hotkey_spec",
         ) as mock_create_spec:
             # Test multiple validation scenarios
             test_cases = [
@@ -925,7 +941,7 @@ class TestHotkeyProperties:
         activation_mode: str,
         tap_count: int,
         allow_repeat: bool,
-    ):
+    ) -> str:
         """Property test for hotkey parameter validation."""
         # Properties that should always hold
         valid_keys = (
@@ -964,7 +980,7 @@ class TestHotkeyProperties:
         assert len(modifiers) == len(set(modifiers))
 
     @given(macro_id_strategy())
-    def test_macro_id_properties(self, macro_id: str):
+    def test_macro_id_properties(self, macro_id: str) -> str:
         """Property test for macro ID validation."""
         # Macro ID properties
         assert isinstance(macro_id, str)
@@ -975,7 +991,7 @@ class TestHotkeyProperties:
         assert len(macro_id.strip()) >= 1
 
     @given(invalid_key_strategy())
-    def test_invalid_key_detection_properties(self, invalid_key: str):
+    def test_invalid_key_detection_properties(self, invalid_key: str) -> str:
         """Property test for invalid key detection."""
         valid_keys = (
             [chr(i) for i in range(ord("a"), ord("z") + 1)]
@@ -1010,7 +1026,7 @@ class TestHotkeyProperties:
             assert True  # Invalid pattern detected
 
     @given(invalid_modifier_strategy())
-    def test_invalid_modifier_detection_properties(self, invalid_modifiers: list[str]):
+    def test_invalid_modifier_detection_properties(self, invalid_modifiers: list[str]) -> None:
         """Property test for invalid modifier detection."""
         valid_modifiers = {"cmd", "opt", "shift", "ctrl", "fn"}
 

@@ -1,5 +1,4 @@
-"""
-Service Coordinator - TASK_64 Phase 2 Core Orchestration Engine
+"""Service Coordinator - TASK_64 Phase 2 Core Orchestration Engine.
 
 Multi-service orchestration and dependency management for complex API workflows.
 Provides intelligent service coordination with fault tolerance and performance optimization.
@@ -70,7 +69,7 @@ class ServiceRegistry:
     circuit_breakers: dict[ServiceId, dict[str, Any]] = field(default_factory=dict)
     load_balancers: dict[ServiceId, dict[str, Any]] = field(default_factory=dict)
 
-    def register_service(self, service: ServiceDefinition):
+    def register_service(self, service: ServiceDefinition) -> None:
         """Register a service in the registry."""
         self.services[service.service_id] = service
 
@@ -119,7 +118,8 @@ class ServiceCoordinator:
 
     @require(lambda service: isinstance(service, ServiceDefinition))
     def register_service(
-        self, service: ServiceDefinition
+        self,
+        service: ServiceDefinition,
     ) -> Either[APIOrchestrationError, bool]:
         """Register a service for orchestration."""
         try:
@@ -127,7 +127,7 @@ class ServiceCoordinator:
             return Either.success(True)
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Service registration failed: {str(e)}")
+                APIOrchestrationError(f"Service registration failed: {e!s}"),
             )
 
     @require(lambda workflow: isinstance(workflow, OrchestrationWorkflow))
@@ -138,8 +138,7 @@ class ServiceCoordinator:
         input_data: dict[str, Any] | None = None,
         execution_options: dict[str, Any] | None = None,
     ) -> Either[WorkflowExecutionError, OrchestrationResult]:
-        """
-        Execute API orchestration workflow with dependency management.
+        """Execute API orchestration workflow with dependency management.
 
         Args:
             workflow: Workflow to execute
@@ -148,6 +147,7 @@ class ServiceCoordinator:
 
         Returns:
             Either workflow execution error or orchestration result
+
         """
         try:
             # Validate workflow configuration
@@ -155,8 +155,8 @@ class ServiceCoordinator:
             if validation_result.is_error():
                 return Either.error(
                     WorkflowExecutionError(
-                        f"Workflow validation failed: {validation_result.error}"
-                    )
+                        f"Workflow validation failed: {validation_result.error}",
+                    ),
                 )
 
             # Create execution context
@@ -182,8 +182,8 @@ class ServiceCoordinator:
                 else:
                     return Either.error(
                         WorkflowExecutionError(
-                            f"Unsupported orchestration strategy: {workflow.strategy}"
-                        )
+                            f"Unsupported orchestration strategy: {workflow.strategy}",
+                        ),
                     )
 
                 # Clean up active workflow
@@ -199,16 +199,17 @@ class ServiceCoordinator:
                 if context.orchestration_id in self.active_workflows:
                     del self.active_workflows[context.orchestration_id]
                 return Either.error(
-                    WorkflowExecutionError(f"Workflow execution failed: {str(e)}")
+                    WorkflowExecutionError(f"Workflow execution failed: {e!s}"),
                 )
 
         except Exception as e:
             return Either.error(
-                WorkflowExecutionError(f"Workflow execution error: {str(e)}")
+                WorkflowExecutionError(f"Workflow execution error: {e!s}"),
             )
 
     async def _execute_sequential(
-        self, context: ExecutionContext
+        self,
+        context: ExecutionContext,
     ) -> OrchestrationResult:
         """Execute workflow steps sequentially."""
         step_results = []
@@ -219,10 +220,11 @@ class ServiceCoordinator:
             try:
                 # Check circuit breaker
                 if await self._is_circuit_breaker_open(
-                    step.service_id, step.endpoint_id
+                    step.service_id,
+                    step.endpoint_id,
                 ):
                     raise CircuitBreakerOpenError(
-                        f"Circuit breaker open for {step.service_id}:{step.endpoint_id}"
+                        f"Circuit breaker open for {step.service_id}:{step.endpoint_id}",
                     )
 
                 # Execute step
@@ -230,7 +232,8 @@ class ServiceCoordinator:
 
                 # Record success
                 await self._record_circuit_breaker_success(
-                    step.service_id, step.endpoint_id
+                    step.service_id,
+                    step.endpoint_id,
                 )
 
                 step_end_time = datetime.now(UTC)
@@ -243,7 +246,7 @@ class ServiceCoordinator:
                         "duration_ms": step_duration,
                         "result": step_result,
                         "timestamp": step_end_time.isoformat(),
-                    }
+                    },
                 )
 
                 # Store result for subsequent steps
@@ -253,7 +256,8 @@ class ServiceCoordinator:
             except Exception as e:
                 # Record failure
                 await self._record_circuit_breaker_failure(
-                    step.service_id, step.endpoint_id
+                    step.service_id,
+                    step.endpoint_id,
                 )
 
                 step_end_time = datetime.now(UTC)
@@ -269,13 +273,13 @@ class ServiceCoordinator:
                         "duration_ms": step_duration,
                         "error": error_msg,
                         "timestamp": step_end_time.isoformat(),
-                    }
+                    },
                 )
 
                 # Handle error based on strategy
                 if context.workflow.error_handling_strategy == "fail_fast":
                     break
-                elif context.workflow.error_handling_strategy == "continue":
+                if context.workflow.error_handling_strategy == "continue":
                     continue
                 # For retry strategy, implement retry logic here
 
@@ -305,7 +309,7 @@ class ServiceCoordinator:
             tasks = []
             for step in steps:
                 task = asyncio.create_task(
-                    self._execute_step_with_error_handling(context, step)
+                    self._execute_step_with_error_handling(context, step),
                 )
                 tasks.append((step, task))
 
@@ -327,7 +331,7 @@ class ServiceCoordinator:
                             "result": step_result,
                             "parallel_group": group_name,
                             "timestamp": group_end_time.isoformat(),
-                        }
+                        },
                     )
 
                     context.step_results[step.step_id] = step_result
@@ -340,7 +344,7 @@ class ServiceCoordinator:
 
                     error_msg = str(e)
                     context.error_log.append(
-                        f"Parallel step {step.step_id} failed: {error_msg}"
+                        f"Parallel step {step.step_id} failed: {error_msg}",
                     )
 
                     step_results.append(
@@ -351,7 +355,7 @@ class ServiceCoordinator:
                             "error": error_msg,
                             "parallel_group": group_name,
                             "timestamp": group_end_time.isoformat(),
-                        }
+                        },
                     )
 
         # Execute sequential steps after parallel groups
@@ -371,7 +375,7 @@ class ServiceCoordinator:
                         "duration_ms": step_duration,
                         "result": step_result,
                         "timestamp": step_end_time.isoformat(),
-                    }
+                    },
                 )
 
                 context.step_results[step.step_id] = step_result
@@ -383,7 +387,7 @@ class ServiceCoordinator:
 
                 error_msg = str(e)
                 context.error_log.append(
-                    f"Sequential step {step.step_id} failed: {error_msg}"
+                    f"Sequential step {step.step_id} failed: {error_msg}",
                 )
 
                 step_results.append(
@@ -393,13 +397,14 @@ class ServiceCoordinator:
                         "duration_ms": step_duration,
                         "error": error_msg,
                         "timestamp": step_end_time.isoformat(),
-                    }
+                    },
                 )
 
         return self._create_orchestration_result(context, step_results)
 
     async def _execute_conditional(
-        self, context: ExecutionContext
+        self,
+        context: ExecutionContext,
     ) -> OrchestrationResult:
         """Execute workflow steps based on conditions."""
         step_results = []
@@ -409,7 +414,8 @@ class ServiceCoordinator:
             should_execute = True
             if step.conditions:
                 should_execute = await self._evaluate_conditions(
-                    context, step.conditions
+                    context,
+                    step.conditions,
                 )
 
             if not should_execute:
@@ -420,7 +426,7 @@ class ServiceCoordinator:
                         "reason": "conditions_not_met",
                         "conditions": step.conditions,
                         "timestamp": datetime.now(UTC).isoformat(),
-                    }
+                    },
                 )
                 continue
 
@@ -440,7 +446,7 @@ class ServiceCoordinator:
                         "duration_ms": step_duration,
                         "result": step_result,
                         "timestamp": step_end_time.isoformat(),
-                    }
+                    },
                 )
 
                 context.step_results[step.step_id] = step_result
@@ -452,7 +458,7 @@ class ServiceCoordinator:
 
                 error_msg = str(e)
                 context.error_log.append(
-                    f"Conditional step {step.step_id} failed: {error_msg}"
+                    f"Conditional step {step.step_id} failed: {error_msg}",
                 )
 
                 step_results.append(
@@ -462,7 +468,7 @@ class ServiceCoordinator:
                         "duration_ms": step_duration,
                         "error": error_msg,
                         "timestamp": step_end_time.isoformat(),
-                    }
+                    },
                 )
 
         return self._create_orchestration_result(context, step_results)
@@ -478,24 +484,27 @@ class ServiceCoordinator:
             try:
                 # Apply input mapping
                 step_input = self._apply_input_mapping(
-                    pipeline_data, step.input_mapping
+                    pipeline_data,
+                    step.input_mapping,
                 )
 
                 # Execute step with mapped input
                 step_result = await self._execute_step_with_input(
-                    context, step, step_input
+                    context,
+                    step,
+                    step_input,
                 )
 
                 # Apply output mapping to pipeline data
                 if step.output_mapping:
                     pipeline_data.update(
-                        self._apply_output_mapping(step_result, step.output_mapping)
+                        self._apply_output_mapping(step_result, step.output_mapping),
                     )
                 else:
                     pipeline_data.update(
                         step_result
                         if isinstance(step_result, dict)
-                        else {"result": step_result}
+                        else {"result": step_result},
                     )
 
                 step_end_time = datetime.now(UTC)
@@ -509,7 +518,7 @@ class ServiceCoordinator:
                         "result": step_result,
                         "pipeline_data_size": len(str(pipeline_data)),
                         "timestamp": step_end_time.isoformat(),
-                    }
+                    },
                 )
 
                 context.step_results[step.step_id] = step_result
@@ -521,7 +530,7 @@ class ServiceCoordinator:
 
                 error_msg = str(e)
                 context.error_log.append(
-                    f"Pipeline step {step.step_id} failed: {error_msg}"
+                    f"Pipeline step {step.step_id} failed: {error_msg}",
                 )
 
                 step_results.append(
@@ -531,7 +540,7 @@ class ServiceCoordinator:
                         "duration_ms": step_duration,
                         "error": error_msg,
                         "timestamp": step_end_time.isoformat(),
-                    }
+                    },
                 )
 
                 break  # Pipeline stops on failure
@@ -542,7 +551,8 @@ class ServiceCoordinator:
         return self._create_orchestration_result(context, step_results)
 
     async def _execute_scatter_gather(
-        self, context: ExecutionContext
+        self,
+        context: ExecutionContext,
     ) -> OrchestrationResult:
         """Execute scatter-gather pattern."""
         step_results = []
@@ -553,7 +563,7 @@ class ServiceCoordinator:
 
         for step in context.workflow.steps:
             task = asyncio.create_task(
-                self._execute_step_with_error_handling(context, step)
+                self._execute_step_with_error_handling(context, step),
             )
             scatter_tasks.append((step, task))
 
@@ -578,7 +588,7 @@ class ServiceCoordinator:
                         "result": step_result,
                         "pattern": "scatter_gather",
                         "timestamp": scatter_end_time.isoformat(),
-                    }
+                    },
                 )
 
                 context.step_results[step.step_id] = step_result
@@ -591,7 +601,7 @@ class ServiceCoordinator:
 
                 error_msg = str(e)
                 context.error_log.append(
-                    f"Scatter-gather step {step.step_id} failed: {error_msg}"
+                    f"Scatter-gather step {step.step_id} failed: {error_msg}",
                 )
 
                 step_results.append(
@@ -602,7 +612,7 @@ class ServiceCoordinator:
                         "error": error_msg,
                         "pattern": "scatter_gather",
                         "timestamp": scatter_end_time.isoformat(),
-                    }
+                    },
                 )
 
         # Store gathered results
@@ -631,7 +641,9 @@ class ServiceCoordinator:
         }
 
     async def _execute_step_with_error_handling(
-        self, context: ExecutionContext, step: WorkflowStep
+        self,
+        context: ExecutionContext,
+        step: WorkflowStep,
     ) -> Any:
         """Execute step with comprehensive error handling."""
         try:
@@ -639,12 +651,16 @@ class ServiceCoordinator:
         except Exception:
             # Record failure for circuit breaker
             await self._record_circuit_breaker_failure(
-                step.service_id, step.endpoint_id
+                step.service_id,
+                step.endpoint_id,
             )
             raise
 
     async def _execute_step_with_input(
-        self, context: ExecutionContext, step: WorkflowStep, input_data: dict[str, Any]
+        self,
+        context: ExecutionContext,
+        step: WorkflowStep,
+        input_data: dict[str, Any],
     ) -> Any:
         """Execute step with specific input data."""
         # Simulate step execution with input
@@ -661,35 +677,44 @@ class ServiceCoordinator:
     # Helper methods
 
     async def _is_circuit_breaker_open(
-        self, service_id: ServiceId, endpoint_id: str
+        self,
+        service_id: ServiceId,
+        endpoint_id: str,
     ) -> bool:
         """Check if circuit breaker is open for service endpoint."""
         if service_id not in self.service_registry.circuit_breakers:
             return False
 
         cb_state = self.service_registry.circuit_breakers[service_id].get(
-            endpoint_id, {}
+            endpoint_id,
+            {},
         )
         return cb_state.get("state") == CircuitBreakerState.OPEN
 
     async def _record_circuit_breaker_success(
-        self, service_id: ServiceId, endpoint_id: str
+        self,
+        service_id: ServiceId,
+        endpoint_id: str,
     ):
         """Record successful call for circuit breaker."""
         if service_id in self.service_registry.circuit_breakers:
             cb_state = self.service_registry.circuit_breakers[service_id].get(
-                endpoint_id, {}
+                endpoint_id,
+                {},
             )
             cb_state["success_count"] = cb_state.get("success_count", 0) + 1
             cb_state["failure_count"] = 0  # Reset failure count on success
 
     async def _record_circuit_breaker_failure(
-        self, service_id: ServiceId, endpoint_id: str
+        self,
+        service_id: ServiceId,
+        endpoint_id: str,
     ):
         """Record failed call for circuit breaker."""
         if service_id in self.service_registry.circuit_breakers:
             cb_state = self.service_registry.circuit_breakers[service_id].get(
-                endpoint_id, {}
+                endpoint_id,
+                {},
             )
             cb_state["failure_count"] = cb_state.get("failure_count", 0) + 1
             cb_state["last_failure_time"] = datetime.now(UTC)
@@ -700,19 +725,24 @@ class ServiceCoordinator:
                 cb_state["state"] = CircuitBreakerState.OPEN
 
     async def _evaluate_conditions(
-        self, context: ExecutionContext, conditions: list[str]
+        self,
+        context: ExecutionContext,
+        conditions: list[str],
     ) -> bool:
         """Evaluate conditional expressions."""
         # Simplified condition evaluation - in production would use expression parser
         for condition in conditions:
-            if "step_results" in condition:
+            if "step_results" in condition and "success" not in str(
+                context.step_results,
+            ):
                 # Example: step_results.step1.status == 'success'
-                if "success" not in str(context.step_results):
-                    return False
+                return False
         return True
 
     def _apply_input_mapping(
-        self, data: dict[str, Any], mapping: dict[str, str]
+        self,
+        data: dict[str, Any],
+        mapping: dict[str, str],
     ) -> dict[str, Any]:
         """Apply input mapping to data."""
         if not mapping:
@@ -727,7 +757,9 @@ class ServiceCoordinator:
         return mapped_data
 
     def _apply_output_mapping(
-        self, result: Any, mapping: dict[str, str]
+        self,
+        result: Any,
+        mapping: dict[str, str],
     ) -> dict[str, Any]:
         """Apply output mapping to result."""
         if not mapping:
@@ -744,7 +776,9 @@ class ServiceCoordinator:
         return mapped_data
 
     def _create_orchestration_result(
-        self, context: ExecutionContext, step_results: list[dict[str, Any]]
+        self,
+        context: ExecutionContext,
+        step_results: list[dict[str, Any]],
     ) -> OrchestrationResult:
         """Create orchestration result from execution context."""
         end_time = datetime.now(UTC)
@@ -752,7 +786,7 @@ class ServiceCoordinator:
 
         # Determine overall status
         successful_steps = len(
-            [r for r in step_results if r.get("status") == "success"]
+            [r for r in step_results if r.get("status") == "success"],
         )
         failed_steps = len([r for r in step_results if r.get("status") == "failure"])
 
@@ -794,4 +828,4 @@ class ServiceCoordinator:
 
 
 # Export the service coordinator class
-__all__ = ["ServiceCoordinator", "ExecutionContext", "ServiceRegistry"]
+__all__ = ["ExecutionContext", "ServiceCoordinator", "ServiceRegistry"]

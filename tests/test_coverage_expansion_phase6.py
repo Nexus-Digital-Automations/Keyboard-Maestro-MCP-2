@@ -1,5 +1,4 @@
-"""
-Phase 6 Intelligence & Knowledge Systems Test Coverage Expansion for Keyboard Maestro MCP.
+"""Phase 6 Intelligence & Knowledge Systems Test Coverage Expansion for Keyboard Maestro MCP.
 
 This module targets intelligence, knowledge management, and enterprise systems
 with the highest impact for coverage expansion, focusing on workflow intelligence
@@ -7,17 +6,23 @@ with the highest impact for coverage expansion, focusing on workflow intelligenc
 and other strategic modules for maximum coverage gain toward the 95% target.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_intelligence_workflow_analyzer_systematic_import():
+def test_intelligence_workflow_analyzer_systematic_import() -> None:
     """Test import of intelligence workflow analyzer (988 lines - mega intelligence module)."""
     try:
         from src.intelligence import workflow_analyzer
@@ -34,22 +39,20 @@ def test_intelligence_workflow_analyzer_systematic_import():
             try:
                 analysis = workflow_analyzer.analyze_workflow({"workflow": "test"})
                 assert analysis is not None
-            except Exception:
-                pass  # Method may require specific workflow format
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test workflow optimization if available
         if hasattr(workflow_analyzer, "optimize_workflow"):
             try:
                 optimization = workflow_analyzer.optimize_workflow("workflow_id")
                 assert optimization is not None or optimization == {}
-            except Exception:
-                pass  # Method may require actual workflow data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Intelligence workflow analyzer import failed: {e}")
 
 
-def test_knowledge_search_engine_systematic_import():
+def test_knowledge_search_engine_systematic_import() -> None:
     """Test import of knowledge search engine (754 lines - mega knowledge module)."""
     try:
         from src.knowledge import search_engine
@@ -66,24 +69,25 @@ def test_knowledge_search_engine_systematic_import():
             try:
                 results = search_engine.search("test query")
                 assert results is not None or results == []
-            except Exception:
-                pass  # Method may require search index
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test indexing functionality if available
         if hasattr(search_engine, "index_document"):
             try:
                 result = search_engine.index_document(
-                    {"id": "test", "content": "test content"}
+                    {
+                        "id": "test",
+                        "content": "test content",
+                    },
                 )
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require specific document format
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Knowledge search engine import failed: {e}")
 
 
-def test_knowledge_export_system_systematic_import():
+def test_knowledge_export_system_systematic_import() -> None:
     """Test import of knowledge export system (687 lines - large knowledge module)."""
     try:
         from src.knowledge import export_system
@@ -100,22 +104,20 @@ def test_knowledge_export_system_systematic_import():
             try:
                 export_result = export_system.export_data({"data": "test"}, "json")
                 assert export_result is not None
-            except Exception:
-                pass  # Method may require specific data format
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test format conversion if available
         if hasattr(export_system, "convert_format"):
             try:
                 converted = export_system.convert_format("test", "markdown", "html")
                 assert converted is not None or isinstance(converted, str)
-            except Exception:
-                pass  # Method may require specific format handlers
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Knowledge export system import failed: {e}")
 
 
-def test_intelligence_performance_optimizer_systematic_import():
+def test_intelligence_performance_optimizer_systematic_import() -> None:
     """Test import of intelligence performance optimizer (671 lines - large intelligence module)."""
     try:
         from src.intelligence import performance_optimizer
@@ -132,22 +134,20 @@ def test_intelligence_performance_optimizer_systematic_import():
             try:
                 optimization = performance_optimizer.optimize_performance("system")
                 assert optimization is not None
-            except Exception:
-                pass  # Method may require performance metrics
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test analysis functionality if available
         if hasattr(performance_optimizer, "analyze_bottlenecks"):
             try:
                 analysis = performance_optimizer.analyze_bottlenecks()
                 assert analysis is not None or analysis == []
-            except Exception:
-                pass  # Method may require system monitoring data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Intelligence performance optimizer import failed: {e}")
 
 
-def test_knowledge_template_manager_systematic_import():
+def test_knowledge_template_manager_systematic_import() -> None:
     """Test import of knowledge template manager (655 lines - large knowledge module)."""
     try:
         from src.knowledge import template_manager
@@ -163,27 +163,27 @@ def test_knowledge_template_manager_systematic_import():
         if hasattr(template_manager, "create_template"):
             try:
                 template = template_manager.create_template(
-                    "test_template", {"content": "test"}
+                    "test_template",
+                    {"content": "test"},
                 )
                 assert template is not None
-            except Exception:
-                pass  # Method may require specific template format
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test template rendering if available
         if hasattr(template_manager, "render_template"):
             try:
                 rendered = template_manager.render_template(
-                    "template_id", {"var": "value"}
+                    "template_id",
+                    {"var": "value"},
                 )
                 assert rendered is not None or isinstance(rendered, str)
-            except Exception:
-                pass  # Method may require template data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Knowledge template manager import failed: {e}")
 
 
-def test_knowledge_version_control_systematic_import():
+def test_knowledge_version_control_systematic_import() -> None:
     """Test import of knowledge version control (629 lines - large knowledge module)."""
     try:
         from src.knowledge import version_control
@@ -199,25 +199,24 @@ def test_knowledge_version_control_systematic_import():
         if hasattr(version_control, "create_version"):
             try:
                 version = version_control.create_version(
-                    "document_id", {"content": "test"}
+                    "document_id",
+                    {"content": "test"},
                 )
                 assert version is not None
-            except Exception:
-                pass  # Method may require document data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test version history if available
         if hasattr(version_control, "get_version_history"):
             try:
                 history = version_control.get_version_history("document_id")
                 assert history is not None or history == []
-            except Exception:
-                pass  # Method may require document database
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Knowledge version control import failed: {e}")
 
 
-def test_iot_automation_hub_systematic_import():
+def test_iot_automation_hub_systematic_import() -> None:
     """Test import of IoT automation hub (870 lines - mega IoT module)."""
     try:
         from src.iot import automation_hub
@@ -232,31 +231,26 @@ def test_iot_automation_hub_systematic_import():
                     mock_create_task.return_value = None
                     hub = automation_hub.AutomationHub()
                     assert hub is not None
-            except Exception:
-                # Skip if instantiation requires running event loop
-                pass
-
-        # Test automation functionality if available
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         if hasattr(automation_hub, "create_automation"):
             try:
                 automation = automation_hub.create_automation("test_automation", {})
                 assert automation is not None
-            except Exception:
-                pass  # Method may require automation definition
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test device management if available
         if hasattr(automation_hub, "manage_devices"):
             try:
                 devices = automation_hub.manage_devices()
                 assert devices is not None or devices == []
-            except Exception:
-                pass  # Method may require device connections
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"IoT automation hub import failed: {e}")
 
 
-def test_iot_cloud_integration_systematic_import():
+def test_iot_cloud_integration_systematic_import() -> None:
     """Test import of IoT cloud integration (798 lines - large IoT module)."""
     try:
         from src.iot import cloud_integration
@@ -273,22 +267,20 @@ def test_iot_cloud_integration_systematic_import():
             try:
                 connection = cloud_integration.connect_to_cloud("aws")
                 assert connection is not None or isinstance(connection, bool)
-            except Exception:
-                pass  # Method may require cloud credentials
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test data sync if available
         if hasattr(cloud_integration, "sync_data"):
             try:
                 sync_result = cloud_integration.sync_data({"data": "test"})
                 assert sync_result is not None or isinstance(sync_result, bool)
-            except Exception:
-                pass  # Method may require cloud connection
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"IoT cloud integration import failed: {e}")
 
 
-def test_orchestration_ecosystem_orchestrator_systematic_import():
+def test_orchestration_ecosystem_orchestrator_systematic_import() -> None:
     """Test import of orchestration ecosystem orchestrator (776 lines - large orchestration module)."""
     try:
         from src.orchestration import ecosystem_orchestrator
@@ -305,22 +297,20 @@ def test_orchestration_ecosystem_orchestrator_systematic_import():
             try:
                 result = ecosystem_orchestrator.orchestrate({"workflow": "test"})
                 assert result is not None
-            except Exception:
-                pass  # Method may require workflow definition
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test ecosystem management if available
         if hasattr(ecosystem_orchestrator, "manage_ecosystem"):
             try:
                 management = ecosystem_orchestrator.manage_ecosystem()
                 assert management is not None or management == {}
-            except Exception:
-                pass  # Method may require ecosystem configuration
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Orchestration ecosystem orchestrator import failed: {e}")
 
 
-def test_orchestration_strategic_planner_systematic_import():
+def test_orchestration_strategic_planner_systematic_import() -> None:
     """Test import of orchestration strategic planner (748 lines - large orchestration module)."""
     try:
         from src.orchestration import strategic_planner
@@ -337,24 +327,21 @@ def test_orchestration_strategic_planner_systematic_import():
             try:
                 plan = strategic_planner.create_plan("goal", {"constraints": []})
                 assert plan is not None
-            except Exception:
-                pass  # Method may require planning parameters
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test strategy optimization if available
         if hasattr(strategic_planner, "optimize_strategy"):
             try:
                 optimization = strategic_planner.optimize_strategy("strategy_id")
                 assert optimization is not None or isinstance(optimization, bool)
-            except Exception:
-                pass  # Method may require strategy data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Orchestration strategic planner import failed: {e}")
 
 
-def test_comprehensive_intelligence_knowledge_integration():
+def test_comprehensive_intelligence_knowledge_integration() -> None:
     """Test comprehensive integration across intelligence and knowledge systems."""
-
     # Test intelligence modules integration
     intelligence_modules = ["workflow_analyzer", "performance_optimizer"]
 
@@ -363,7 +350,8 @@ def test_comprehensive_intelligence_knowledge_integration():
     for module_name in intelligence_modules:
         try:
             module = __import__(
-                f"src.intelligence.{module_name}", fromlist=[module_name]
+                f"src.intelligence.{module_name}",
+                fromlist=[module_name],
             )
             if module is not None:
                 intelligence_imports += 1
@@ -388,9 +376,9 @@ def test_comprehensive_intelligence_knowledge_integration():
                                 if hasattr(instance, method):
                                     assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -418,9 +406,9 @@ def test_comprehensive_intelligence_knowledge_integration():
                             instance = getattr(module, potential_class)()
                             assert instance is not None
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -433,9 +421,8 @@ def test_comprehensive_intelligence_knowledge_integration():
     )
 
 
-def test_iot_orchestration_integration():
+def test_iot_orchestration_integration() -> None:
     """Test IoT and orchestration systems integration."""
-
     # Test IoT modules integration
     iot_modules = ["automation_hub", "cloud_integration"]
 
@@ -455,9 +442,9 @@ def test_iot_orchestration_integration():
                             instance = getattr(module, potential_class)()
                             assert instance is not None
 
-                        except Exception:
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
                             continue
-
         except ImportError:
             continue
 
@@ -469,7 +456,8 @@ def test_iot_orchestration_integration():
     for module_name in orchestration_modules:
         try:
             module = __import__(
-                f"src.orchestration.{module_name}", fromlist=[module_name]
+                f"src.orchestration.{module_name}",
+                fromlist=[module_name],
             )
             if module is not None:
                 orchestration_imports += 1
@@ -484,9 +472,8 @@ def test_iot_orchestration_integration():
     )
 
 
-def test_advanced_intelligence_data_processing():
+def test_advanced_intelligence_data_processing() -> None:
     """Test advanced data processing patterns for intelligence systems."""
-
     # Test intelligence data processing scenarios
     intelligence_data = {
         "workflow_analysis": {
@@ -589,7 +576,7 @@ def test_advanced_intelligence_data_processing():
     assert most_used_format == "json"
 
 
-def test_intelligence_async_workflow_patterns():
+def test_intelligence_async_workflow_patterns() -> bool:
     """Test async workflow patterns for intelligence systems."""
 
     @pytest.mark.asyncio
@@ -687,9 +674,8 @@ def test_intelligence_async_workflow_patterns():
     assert result is True
 
 
-def test_knowledge_version_control_patterns():
+def test_knowledge_version_control_patterns() -> None:
     """Test version control patterns for knowledge management systems."""
-
     # Test version control scenarios
     version_scenarios = {
         "document_versions": [
@@ -769,9 +755,8 @@ def test_knowledge_version_control_patterns():
     assert author_contributions["user1"] == 2
 
 
-def test_iot_orchestration_configuration_patterns():
+def test_iot_orchestration_configuration_patterns() -> None:
     """Test configuration patterns for IoT and orchestration systems."""
-
     # Test IoT and orchestration configuration scenarios
     system_config = {
         "iot_automation": {

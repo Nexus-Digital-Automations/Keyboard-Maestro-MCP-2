@@ -1,5 +1,4 @@
-"""
-Comprehensive Test Suite for Advanced Extensions Tools (TASK_56-68).
+"""Comprehensive Test Suite for Advanced Extensions Tools (TASK_56-68).
 
 This module provides systematic testing for knowledge management, accessibility, testing automation,
 advanced intelligence (predictive analytics, NLP, computer vision), enterprise security (zero trust,
@@ -7,16 +6,22 @@ API orchestration), and IoT/future technologies (IoT integration, voice control,
 comprehensive coverage for next-generation automation capabilities.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+
+logger = logging.getLogger(__name__)
 
 
 class TestAdvancedExtensionsFoundation:
     """Test foundation for advanced extensions MCP tools from TASK_56-68."""
 
     @pytest.fixture
-    def execution_context(self):
+    def execution_context(self) -> Any:
         """Create mock execution context for testing."""
         context = AsyncMock()
         context.session_id = "test-session-advanced-extensions"
@@ -26,7 +31,7 @@ class TestAdvancedExtensionsFoundation:
         return context
 
     @pytest.fixture
-    def sample_knowledge_data(self):
+    def sample_knowledge_data(self) -> Any:
         """Sample knowledge management data for testing."""
         return {
             "document_type": "automation_guide",
@@ -43,7 +48,7 @@ class TestAdvancedExtensionsFoundation:
         }
 
     @pytest.fixture
-    def sample_accessibility_data(self):
+    def sample_accessibility_data(self) -> Any:
         """Sample accessibility testing data for testing."""
         return {
             "test_scope": "wcag_2_1_compliance",
@@ -64,7 +69,7 @@ class TestAdvancedExtensionsFoundation:
         }
 
     @pytest.fixture
-    def sample_testing_data(self):
+    def sample_testing_data(self) -> Any:
         """Sample testing automation data for testing."""
         return {
             "test_suite": "macro_validation",
@@ -84,7 +89,7 @@ class TestAdvancedExtensionsFoundation:
         }
 
     @pytest.fixture
-    def sample_intelligence_data(self):
+    def sample_intelligence_data(self) -> Any:
         """Sample advanced intelligence data for testing."""
         return {
             "intelligence_type": "predictive_analytics",
@@ -108,7 +113,7 @@ class TestAdvancedExtensionsFoundation:
 class TestKnowledgeManagementTools(TestAdvancedExtensionsFoundation):
     """Test knowledge management tools from TASK_56."""
 
-    def test_knowledge_management_tools_import(self):
+    def test_knowledge_management_tools_import(self) -> None:
         """Test that knowledge management tools can be imported successfully."""
         try:
             from src.server.tools import knowledge_management_tools
@@ -120,11 +125,13 @@ class TestKnowledgeManagementTools(TestAdvancedExtensionsFoundation):
             ]
             for tool in expected_tools:
                 # Just check if the tool exists - that's sufficient for import testing
-                assert hasattr(knowledge_management_tools, tool), f"Tool {tool} not found"
+                assert hasattr(knowledge_management_tools, tool), (
+                    f"Tool {tool} not found"
+                )
         except ImportError as e:
             pytest.skip(f"Knowledge management tools not available: {e}")
 
-    def test_documentation_generation(self):
+    def test_documentation_generation(self) -> None:
         """Test automated documentation generation functionality."""
         try:
             from src.server.tools.knowledge_management_tools import (
@@ -132,15 +139,15 @@ class TestKnowledgeManagementTools(TestAdvancedExtensionsFoundation):
             )
 
             # Test that the tool exists and has proper structure
-            assert hasattr(km_generate_documentation, 'name')
-            assert hasattr(km_generate_documentation, 'description')
+            assert hasattr(km_generate_documentation, "name")
+            assert hasattr(km_generate_documentation, "description")
             # Skip functional testing for FunctionTool objects - they work correctly in the server
             # The actual functionality is tested through integration tests
 
         except ImportError:
             pytest.skip("Documentation generation tools not available for testing")
 
-    def test_knowledge_base_management(self):
+    def test_knowledge_base_management(self) -> None:
         """Test knowledge base management functionality."""
         try:
             from src.server.tools.knowledge_management_tools import (
@@ -148,22 +155,22 @@ class TestKnowledgeManagementTools(TestAdvancedExtensionsFoundation):
             )
 
             # Test that the tool exists and has proper structure
-            assert hasattr(km_manage_knowledge_base, 'name')
-            assert hasattr(km_manage_knowledge_base, 'description')
+            assert hasattr(km_manage_knowledge_base, "name")
+            assert hasattr(km_manage_knowledge_base, "description")
             # Skip functional testing for FunctionTool objects - they work correctly in the server
             # The actual functionality is tested through integration tests
 
         except ImportError:
             pytest.skip("Knowledge base management tools not available for testing")
 
-    def test_knowledge_search(self):
+    def test_knowledge_search(self) -> None:
         """Test intelligent knowledge search functionality."""
         try:
             from src.server.tools.knowledge_management_tools import km_search_knowledge
 
             # Test that the tool exists and has proper structure
-            assert hasattr(km_search_knowledge, 'name')
-            assert hasattr(km_search_knowledge, 'description')
+            assert hasattr(km_search_knowledge, "name")
+            assert hasattr(km_search_knowledge, "description")
             # Skip functional testing for FunctionTool objects - they work correctly in the server
             # The actual functionality is tested through integration tests
             if False:  # Skip the rest of the test
@@ -205,10 +212,9 @@ class TestKnowledgeManagementTools(TestAdvancedExtensionsFoundation):
                     is_left=Mock(return_value=False),
                     get_right=Mock(return_value=mock_search_result),
                 )
-                mock_search_func.return_value = mock_search
+                # mock_search_func.return_value = mock_search  # Undefined variable - commented out
 
                 # This code is skipped due to the if False above
-                pass
 
         except ImportError:
             pytest.skip("Knowledge search tools not available for testing")
@@ -217,7 +223,7 @@ class TestKnowledgeManagementTools(TestAdvancedExtensionsFoundation):
 class TestAccessibilityTools(TestAdvancedExtensionsFoundation):
     """Test accessibility tools from TASK_57."""
 
-    def test_accessibility_tools_import(self):
+    def test_accessibility_tools_import(self) -> None:
         """Test that accessibility tools can be imported."""
         try:
             from src.server.tools import accessibility_engine_tools
@@ -235,8 +241,10 @@ class TestAccessibilityTools(TestAdvancedExtensionsFoundation):
 
     @pytest.mark.asyncio
     async def test_accessibility_compliance_testing(
-        self, execution_context, sample_accessibility_data
-    ):
+        self,
+        execution_context,
+        sample_accessibility_data,
+    ) -> None:
         """Test accessibility compliance testing functionality."""
         try:
             from src.server.tools.accessibility_engine_tools import (
@@ -245,7 +253,7 @@ class TestAccessibilityTools(TestAdvancedExtensionsFoundation):
 
             # Mock accessibility tester
             with patch(
-                "src.server.tools.accessibility_engine_tools.AccessibilityTester"
+                "src.server.tools.accessibility_engine_tools.AccessibilityTester",
             ) as mock_tester_class:
                 mock_tester = Mock()
                 mock_test_result = {
@@ -269,7 +277,7 @@ class TestAccessibilityTools(TestAdvancedExtensionsFoundation):
                             "severity": "critical",
                             "description": "Missing ARIA labels for complex controls",
                             "recommendation": "Add descriptive ARIA labels to all interactive elements",
-                        }
+                        },
                     ],
                     "assistive_tech_compatibility": {
                         "VoiceOver": "compatible",
@@ -300,8 +308,10 @@ class TestAccessibilityTools(TestAdvancedExtensionsFoundation):
 
     @pytest.mark.asyncio
     async def test_assistive_technology_integration(
-        self, execution_context, sample_accessibility_data
-    ):
+        self,
+        execution_context,
+        sample_accessibility_data,
+    ) -> None:
         """Test assistive technology integration functionality."""
         try:
             from src.server.tools.accessibility_engine_tools import (
@@ -310,7 +320,7 @@ class TestAccessibilityTools(TestAdvancedExtensionsFoundation):
 
             # Mock assistive tech configurator
             with patch(
-                "src.server.tools.accessibility_engine_tools.AssistiveTechConfigurator"
+                "src.server.tools.accessibility_engine_tools.AssistiveTechConfigurator",
             ) as mock_config_class:
                 mock_config = Mock()
                 mock_config_result = {
@@ -364,14 +374,14 @@ class TestAccessibilityTools(TestAdvancedExtensionsFoundation):
 
         except ImportError:
             pytest.skip(
-                "Assistive technology integration tools not available for testing"
+                "Assistive technology integration tools not available for testing",
             )
 
 
 class TestTestingAutomationTools(TestAdvancedExtensionsFoundation):
     """Test testing automation tools from TASK_58."""
 
-    def test_testing_automation_import(self):
+    def test_testing_automation_import(self) -> None:
         """Test that testing automation tools can be imported."""
         try:
             from src.server.tools import testing_automation_tools
@@ -389,15 +399,17 @@ class TestTestingAutomationTools(TestAdvancedExtensionsFoundation):
 
     @pytest.mark.asyncio
     async def test_macro_testing_framework(
-        self, execution_context, sample_testing_data
-    ):
+        self,
+        execution_context,
+        sample_testing_data,
+    ) -> None:
         """Test comprehensive macro testing framework."""
         try:
             from src.server.tools.testing_automation_tools import km_run_macro_tests
 
             # Mock macro testing framework
             with patch(
-                "src.server.tools.testing_automation_tools.MacroTestingFramework"
+                "src.server.tools.testing_automation_tools.MacroTestingFramework",
             ) as mock_framework_class:
                 mock_framework = Mock()
                 mock_test_result = {
@@ -464,7 +476,7 @@ class TestTestingAutomationTools(TestAdvancedExtensionsFoundation):
 class TestAdvancedIntelligenceTools(TestAdvancedExtensionsFoundation):
     """Test advanced intelligence tools from TASK_59-61."""
 
-    def test_advanced_intelligence_import(self):
+    def test_advanced_intelligence_import(self) -> None:
         """Test that advanced intelligence tools can be imported."""
         try:
             from src.server.tools import (
@@ -491,23 +503,30 @@ class TestAdvancedIntelligenceTools(TestAdvancedExtensionsFoundation):
             for module, expected_tools in tools_to_check:
                 for tool in expected_tools:
                     # Just check if the tool exists - that's sufficient for import testing
-                    assert hasattr(module, tool), f"Tool {tool} not found in {module.__name__}"
+                    assert hasattr(module, tool), (
+                        f"Tool {tool} not found in {module.__name__}"
+                    )
         except ImportError as e:
             pytest.skip(f"Advanced intelligence tools not available: {e}")
 
     @pytest.mark.asyncio
     async def test_predictive_analytics(
-        self, execution_context, sample_intelligence_data
-    ):
+        self,
+        execution_context,
+        sample_intelligence_data,
+    ) -> None:
         """Test predictive analytics functionality."""
         try:
             import src.server.tools.predictive_analytics_tools as predictive_tools
+
             # Use systematic pattern - access the actual function from FastMCP tool
-            km_predict_automation_patterns = predictive_tools.km_predict_automation_patterns.fn
+            km_predict_automation_patterns = (
+                predictive_tools.km_predict_automation_patterns.fn
+            )
 
             # Mock predictive analytics components
             with patch(
-                "src.server.tools.predictive_analytics_tools.pattern_predictor"
+                "src.server.tools.predictive_analytics_tools.pattern_predictor",
             ) as mock_pattern_predictor:
                 mock_prediction_result = {
                     "prediction_id": "pred-analytics-123",
@@ -565,8 +584,10 @@ class TestAdvancedIntelligenceTools(TestAdvancedExtensionsFoundation):
 
     @pytest.mark.asyncio
     async def test_natural_language_processing(
-        self, execution_context, sample_intelligence_data
-    ):
+        self,
+        execution_context,
+        sample_intelligence_data,
+    ) -> None:
         """Test natural language processing functionality."""
         try:
             from src.server.tools.natural_language_tools import (
@@ -575,7 +596,7 @@ class TestAdvancedIntelligenceTools(TestAdvancedExtensionsFoundation):
 
             # Mock NLP processor
             with patch(
-                "src.server.tools.natural_language_tools.NLPProcessor"
+                "src.server.tools.natural_language_tools.NLPProcessor",
             ) as mock_nlp_class:
                 mock_nlp = Mock()
                 mock_nlp_result = {
@@ -604,7 +625,7 @@ class TestAdvancedIntelligenceTools(TestAdvancedExtensionsFoundation):
                                 {"type": "move_to_folders", "create_if_missing": True},
                             ],
                             "complexity_score": 0.6,
-                        }
+                        },
                     ],
                     "language_metadata": {
                         "language": "en",
@@ -637,7 +658,7 @@ class TestAdvancedIntelligenceTools(TestAdvancedExtensionsFoundation):
 class TestEnterpriseSecurityTools(TestAdvancedExtensionsFoundation):
     """Test enterprise security tools from TASK_62-64."""
 
-    def test_enterprise_security_import(self):
+    def test_enterprise_security_import(self) -> None:
         """Test that enterprise security tools can be imported."""
         try:
             from src.server.tools import (
@@ -664,7 +685,7 @@ class TestEnterpriseSecurityTools(TestAdvancedExtensionsFoundation):
             pytest.skip(f"Enterprise security tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_zero_trust_security(self, execution_context):
+    async def test_zero_trust_security(self, execution_context) -> None:
         """Test zero trust security framework functionality."""
         try:
             from src.server.tools.zero_trust_security_tools import (
@@ -673,7 +694,7 @@ class TestEnterpriseSecurityTools(TestAdvancedExtensionsFoundation):
 
             # Mock zero trust validator
             with patch(
-                "src.server.tools.zero_trust_security_tools.ZeroTrustValidator"
+                "src.server.tools.zero_trust_security_tools.ZeroTrustValidator",
             ) as mock_validator_class:
                 mock_validator = Mock()
                 mock_validation_result = {
@@ -726,7 +747,7 @@ class TestEnterpriseSecurityTools(TestAdvancedExtensionsFoundation):
 class TestIoTAndFutureTechTools(TestAdvancedExtensionsFoundation):
     """Test IoT and future technology tools from TASK_65-68."""
 
-    def test_iot_future_tech_import(self):
+    def test_iot_future_tech_import(self) -> None:
         """Test that IoT and future tech tools can be imported."""
         try:
             from src.server.tools import (
@@ -736,7 +757,10 @@ class TestIoTAndFutureTechTools(TestAdvancedExtensionsFoundation):
             )
 
             tools_to_check = [
-                (iot_integration_tools, ["km_control_iot_devices", "km_monitor_sensors"]),
+                (
+                    iot_integration_tools,
+                    ["km_control_iot_devices", "km_monitor_sensors"],
+                ),
                 (
                     voice_control_tools,
                     ["km_process_voice_commands", "km_configure_voice_control"],
@@ -752,27 +776,31 @@ class TestIoTAndFutureTechTools(TestAdvancedExtensionsFoundation):
                     if hasattr(module, tool):
                         # Handle both FastMCP tools and regular functions
                         tool_obj = getattr(module, tool)
-                        if hasattr(tool_obj, 'fn'):
+                        if hasattr(tool_obj, "fn"):
                             # FastMCP tool - check the actual function
-                            assert callable(tool_obj.fn), f"Tool {tool}.fn should be callable"
+                            assert callable(tool_obj.fn), (
+                                f"Tool {tool}.fn should be callable"
+                            )
                         elif callable(tool_obj):
                             # Regular function - already callable
                             assert True
                         else:
                             # Neither callable nor FastMCP tool
-                            assert False, f"Tool {tool} is neither callable nor a FastMCP tool"
+                            raise AssertionError(
+                                f"Tool {tool} is neither callable nor a FastMCP tool",
+                            )
         except ImportError as e:
             pytest.skip(f"IoT and future tech tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_iot_device_integration(self, execution_context):
+    async def test_iot_device_integration(self, execution_context) -> None:
         """Test IoT device integration functionality."""
         try:
             from src.server.tools.iot_integration_tools import km_control_iot_device
 
             # Mock IoT controller
             with patch(
-                "src.server.tools.iot_integration_tools.IoTController"
+                "src.server.tools.iot_integration_tools.IoTController",
             ) as mock_iot_class:
                 mock_iot = Mock()
                 mock_iot_result = {
@@ -830,7 +858,7 @@ class TestAdvancedExtensionsIntegration(TestAdvancedExtensionsFoundation):
     """Test integration patterns across advanced extension tools."""
 
     @pytest.mark.asyncio
-    async def test_cross_extension_integration(self, execution_context):
+    async def test_cross_extension_integration(self, execution_context) -> None:
         """Test integration between different advanced extension categories."""
         advanced_extension_tools = [
             (
@@ -852,7 +880,7 @@ class TestAdvancedExtensionsIntegration(TestAdvancedExtensionsFoundation):
                 tool_func = getattr(module, tool_name)
 
                 # Verify function exists and is callable - handle both FastMCP tools and regular functions
-                if hasattr(tool_func, 'fn'):
+                if hasattr(tool_func, "fn"):
                     # FastMCP tool - check the actual function
                     assert callable(tool_func.fn)
                 elif callable(tool_func):
@@ -860,7 +888,9 @@ class TestAdvancedExtensionsIntegration(TestAdvancedExtensionsFoundation):
                     assert True
                 else:
                     # Neither callable nor FastMCP tool
-                    assert False, f"Tool {tool_name} is neither callable nor a FastMCP tool"
+                    raise AssertionError(
+                        f"Tool {tool_name} is neither callable nor a FastMCP tool",
+                    )
 
                 # Check for proper async function definition
                 import inspect
@@ -873,7 +903,7 @@ class TestAdvancedExtensionsIntegration(TestAdvancedExtensionsFoundation):
                 continue
 
     @pytest.mark.asyncio
-    async def test_advanced_tool_response_consistency(self, execution_context):
+    async def test_advanced_tool_response_consistency(self, execution_context) -> None:
         """Test that all advanced extension tools return consistent response structure."""
         advanced_extension_tools = [
             (
@@ -901,7 +931,8 @@ class TestAdvancedExtensionsIntegration(TestAdvancedExtensionsFoundation):
                 # Verify basic function structure
                 assert callable(tool_func)
                 assert hasattr(tool_func, "__annotations__") or hasattr(
-                    tool_func, "__doc__"
+                    tool_func,
+                    "__doc__",
                 )
 
                 # For async functions, check they're properly defined
@@ -922,15 +953,14 @@ class TestPropertyBasedAdvancedExtensionsTesting(TestAdvancedExtensionsFoundatio
     """Property-based testing for advanced extension tools using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_knowledge_management_properties(self, execution_context):
+    async def test_knowledge_management_properties(self, execution_context) -> None:
         """Property: Knowledge management should handle various content types consistently."""
-        from hypothesis import given
-        from hypothesis import strategies as st
 
-        async def test_knowledge_properties():
+        async def test_knowledge_properties() -> None:
             """Test knowledge management properties."""
             try:
                 import src.server.tools.knowledge_management_tools as km_tools
+
                 # Use systematic pattern - access the actual function from FastMCP tool
                 km_generate_documentation = km_tools.km_generate_documentation.fn
 
@@ -956,23 +986,20 @@ class TestPropertyBasedAdvancedExtensionsTesting(TestAdvancedExtensionsFoundatio
                         metadata = data["metadata"]
                         assert "generated_at" in metadata
 
-            except Exception:
-                # Tools may fail with invalid combinations, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
-        # Run a test case manually (since we're not using Hypothesis execution here)
         await test_knowledge_properties()
 
     @pytest.mark.asyncio
-    async def test_accessibility_testing_properties(self, execution_context):
+    async def test_accessibility_testing_properties(self, execution_context) -> None:
         """Property: Accessibility testing should maintain consistent scoring."""
-        from hypothesis import given
-        from hypothesis import strategies as st
 
-        async def test_accessibility_properties():
+        async def test_accessibility_properties() -> None:
             """Test accessibility testing properties."""
             try:
                 import src.server.tools.accessibility_engine_tools as acc_tools
+
                 # Use systematic pattern - access the actual function from FastMCP tool
                 km_test_accessibility = acc_tools.km_test_accessibility.fn
 
@@ -996,9 +1023,7 @@ class TestPropertyBasedAdvancedExtensionsTesting(TestAdvancedExtensionsFoundatio
                             score = assessment["overall_score"]
                             assert 0.0 <= score <= 1.0
 
-            except Exception:
-                # Tools may fail with invalid combinations, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
-        # Run a test case manually (since we're not using Hypothesis execution here)
         await test_accessibility_properties()

@@ -1,5 +1,4 @@
-"""
-Session Manager - TASK_67 Phase 2 Core Identity Engine
+"""Session Manager - TASK_67 Phase 2 Core Identity Engine.
 
 Multi-user session management with context switching, session persistence, and security monitoring.
 Handles user session lifecycle, context isolation, and cross-session data management.
@@ -130,7 +129,8 @@ class SessionManager:
             # Check concurrent session limits
             user_session_count = len(self.user_sessions.get(user_profile_id, set()))
             session_limit = self.concurrent_session_limits.get(
-                user_profile_id, 5
+                user_profile_id,
+                5,
             )  # Default limit
 
             if user_session_count >= session_limit:
@@ -138,7 +138,7 @@ class SessionManager:
                     IdentityError(
                         f"Maximum concurrent sessions exceeded: {session_limit}",
                         "SESSION_LIMIT_EXCEEDED",
-                    )
+                    ),
                 )
 
             # Store session
@@ -180,21 +180,24 @@ class SessionManager:
             logger.error(f"Session creation failed: {e}")
             return Either.error(
                 IdentityError(
-                    f"Session creation error: {str(e)}", "SESSION_CREATION_ERROR"
-                )
+                    f"Session creation error: {e!s}",
+                    "SESSION_CREATION_ERROR",
+                ),
             )
 
     @require(lambda session_id: session_id is not None)
     async def get_session(
-        self, session_id: UserSessionId
+        self,
+        session_id: UserSessionId,
     ) -> Either[IdentityError, UserSession]:
         """Get session by ID with validation."""
         try:
             if session_id not in self.active_sessions:
                 return Either.error(
                     IdentityError(
-                        f"Session not found: {session_id}", "SESSION_NOT_FOUND"
-                    )
+                        f"Session not found: {session_id}",
+                        "SESSION_NOT_FOUND",
+                    ),
                 )
 
             session = self.active_sessions[session_id]
@@ -214,13 +217,15 @@ class SessionManager:
             logger.error(f"Session retrieval failed: {e}")
             return Either.error(
                 IdentityError(
-                    f"Session retrieval error: {str(e)}", "SESSION_RETRIEVAL_ERROR"
-                )
+                    f"Session retrieval error: {e!s}",
+                    "SESSION_RETRIEVAL_ERROR",
+                ),
             )
 
     @require(lambda session_id: session_id is not None)
     async def get_session_context(
-        self, session_id: UserSessionId
+        self,
+        session_id: UserSessionId,
     ) -> Either[IdentityError, SessionContext]:
         """Get session context information."""
         try:
@@ -229,7 +234,7 @@ class SessionManager:
                     IdentityError(
                         f"Session context not found: {session_id}",
                         "SESSION_CONTEXT_NOT_FOUND",
-                    )
+                    ),
                 )
 
             # Verify session is still active
@@ -244,13 +249,15 @@ class SessionManager:
             logger.error(f"Session context retrieval failed: {e}")
             return Either.error(
                 IdentityError(
-                    f"Context retrieval error: {str(e)}", "CONTEXT_RETRIEVAL_ERROR"
-                )
+                    f"Context retrieval error: {e!s}",
+                    "CONTEXT_RETRIEVAL_ERROR",
+                ),
             )
 
     @require(lambda switch_request: switch_request.target_user_profile_id is not None)
     async def switch_user_context(
-        self, switch_request: SessionSwitchRequest
+        self,
+        switch_request: SessionSwitchRequest,
     ) -> Either[IdentityError, SessionContext]:
         """Switch user context with security validation."""
         try:
@@ -260,7 +267,7 @@ class SessionManager:
             # Security validation if required
             if switch_request.security_validation:
                 security_result = await self._validate_context_switch_security(
-                    switch_request
+                    switch_request,
                 )
                 if security_result.is_error():
                     return Either.error(security_result.error)
@@ -269,7 +276,7 @@ class SessionManager:
             preserved_context = {}
             if switch_request.preserve_context and current_session_id:
                 current_context_result = await self.get_session_context(
-                    current_session_id
+                    current_session_id,
                 )
                 if current_context_result.is_success():
                     preserved_context = (
@@ -286,7 +293,8 @@ class SessionManager:
                 # Update context with preserved data
                 if preserved_context:
                     await self._merge_session_context(
-                        target_session_id, preserved_context
+                        target_session_id,
+                        preserved_context,
                     )
 
                 context_result = await self.get_session_context(target_session_id)
@@ -301,7 +309,7 @@ class SessionManager:
                     )
 
                     logger.info(
-                        f"Switched to existing session {target_session_id} for user {target_user_id}"
+                        f"Switched to existing session {target_session_id} for user {target_user_id}",
                     )
                     return context_result
 
@@ -310,17 +318,18 @@ class SessionManager:
                 IdentityError(
                     f"No active session found for user {target_user_id}",
                     "NO_TARGET_SESSION",
-                )
+                ),
             )
 
         except Exception as e:
             logger.error(f"Context switch failed: {e}")
             return Either.error(
-                IdentityError(f"Context switch error: {str(e)}", "CONTEXT_SWITCH_ERROR")
+                IdentityError(f"Context switch error: {e!s}", "CONTEXT_SWITCH_ERROR"),
             )
 
     async def _validate_context_switch_security(
-        self, switch_request: SessionSwitchRequest
+        self,
+        switch_request: SessionSwitchRequest,
     ) -> Either[IdentityError, bool]:
         """Validate security requirements for context switching."""
         try:
@@ -344,7 +353,7 @@ class SessionManager:
                         IdentityError(
                             "Insufficient permissions for context switching",
                             "INSUFFICIENT_PERMISSIONS",
-                        )
+                        ),
                     )
 
             return Either.success(True)
@@ -353,12 +362,15 @@ class SessionManager:
             logger.error(f"Security validation failed: {e}")
             return Either.error(
                 IdentityError(
-                    f"Security validation error: {str(e)}", "SECURITY_VALIDATION_ERROR"
-                )
+                    f"Security validation error: {e!s}",
+                    "SECURITY_VALIDATION_ERROR",
+                ),
             )
 
     async def _merge_session_context(
-        self, session_id: UserSessionId, preserved_data: dict[str, Any]
+        self,
+        session_id: UserSessionId,
+        preserved_data: dict[str, Any],
     ) -> None:
         """Merge preserved context data into target session."""
         try:
@@ -382,15 +394,18 @@ class SessionManager:
 
     @require(lambda session_id: session_id is not None)
     async def terminate_session(
-        self, session_id: UserSessionId, reason: str = "user_logout"
+        self,
+        session_id: UserSessionId,
+        reason: str = "user_logout",
     ) -> Either[IdentityError, bool]:
         """Terminate a user session."""
         try:
             if session_id not in self.active_sessions:
                 return Either.error(
                     IdentityError(
-                        f"Session not found: {session_id}", "SESSION_NOT_FOUND"
-                    )
+                        f"Session not found: {session_id}",
+                        "SESSION_NOT_FOUND",
+                    ),
                 )
 
             # Use session lock to prevent race conditions
@@ -424,7 +439,7 @@ class SessionManager:
                 )
 
                 logger.info(
-                    f"Terminated session {session_id} for user {user_profile_id}, reason: {reason}"
+                    f"Terminated session {session_id} for user {user_profile_id}, reason: {reason}",
                 )
                 return Either.success(True)
 
@@ -432,8 +447,9 @@ class SessionManager:
             logger.error(f"Session termination failed: {e}")
             return Either.error(
                 IdentityError(
-                    f"Session termination error: {str(e)}", "SESSION_TERMINATION_ERROR"
-                )
+                    f"Session termination error: {e!s}",
+                    "SESSION_TERMINATION_ERROR",
+                ),
             )
 
     async def _expire_session(self, session_id: UserSessionId, reason: str) -> None:
@@ -499,7 +515,8 @@ class SessionManager:
             return 0
 
     async def get_user_sessions(
-        self, user_profile_id: UserProfileId
+        self,
+        user_profile_id: UserProfileId,
     ) -> Either[IdentityError, list[dict[str, Any]]]:
         """Get all active sessions for a user."""
         try:
@@ -530,8 +547,9 @@ class SessionManager:
             logger.error(f"Failed to get user sessions: {e}")
             return Either.error(
                 IdentityError(
-                    f"User sessions retrieval error: {str(e)}", "USER_SESSIONS_ERROR"
-                )
+                    f"User sessions retrieval error: {e!s}",
+                    "USER_SESSIONS_ERROR",
+                ),
             )
 
     async def get_session_analytics(self) -> dict[str, Any]:
@@ -592,13 +610,15 @@ class SessionManager:
             return {}
 
     async def set_concurrent_session_limit(
-        self, user_profile_id: UserProfileId, limit: int
+        self,
+        user_profile_id: UserProfileId,
+        limit: int,
     ) -> Either[IdentityError, bool]:
         """Set concurrent session limit for a user."""
         try:
             if limit < 1:
                 return Either.error(
-                    IdentityError("Session limit must be at least 1", "INVALID_LIMIT")
+                    IdentityError("Session limit must be at least 1", "INVALID_LIMIT"),
                 )
 
             self.concurrent_session_limits[user_profile_id] = limit
@@ -620,6 +640,7 @@ class SessionManager:
             logger.error(f"Failed to set session limit: {e}")
             return Either.error(
                 IdentityError(
-                    f"Session limit setting error: {str(e)}", "LIMIT_SETTING_ERROR"
-                )
+                    f"Session limit setting error: {e!s}",
+                    "LIMIT_SETTING_ERROR",
+                ),
             )

@@ -1,5 +1,4 @@
-"""
-Phase 18 Ultra-High Impact Modules & Final Strategic Coverage Optimization for Keyboard Maestro MCP.
+"""Phase 18 Ultra-High Impact Modules & Final Strategic Coverage Optimization for Keyboard Maestro MCP.
 
 This module targets ultra-high impact modules and final strategic coverage optimization patterns,
 focusing on enterprise-scale systems, cloud infrastructure, advanced AI processing, security systems,
@@ -7,18 +6,23 @@ workflow orchestration, data analytics pipelines, and comprehensive system integ
 for maximum coverage gain toward the 95% target through systematic ultra-high impact module testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_enterprise_ai_processing_comprehensive():
+def test_enterprise_ai_processing_comprehensive() -> None:
     """Test comprehensive coverage of enterprise AI processing systems."""
-
     # Target actual AI processing modules with highest line counts
     ai_processing_modules = [
         ("server.tools", "ai_processing_tools"),  # Estimated 500+ lines
@@ -73,9 +77,8 @@ def test_enterprise_ai_processing_comprehensive():
     )
 
 
-def test_cloud_infrastructure_comprehensive():
+def test_cloud_infrastructure_comprehensive() -> None:
     """Test comprehensive coverage of cloud infrastructure systems."""
-
     # Target actual cloud infrastructure modules
     cloud_modules = [
         ("server.tools", "api_orchestration_tools"),  # 400+ lines
@@ -122,9 +125,8 @@ def test_cloud_infrastructure_comprehensive():
     )
 
 
-def test_advanced_security_systems_comprehensive():
+def test_advanced_security_systems_comprehensive() -> None:
     """Test comprehensive coverage of advanced security systems."""
-
     # Target actual security modules with highest impact
     security_modules = [
         ("security", "access_controller"),  # 1009+ lines
@@ -182,9 +184,9 @@ def test_advanced_security_systems_comprehensive():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -192,9 +194,8 @@ def test_advanced_security_systems_comprehensive():
     assert security_imports >= 4, f"Only {security_imports} security modules found"
 
 
-def test_advanced_workflow_orchestration_comprehensive():
+def test_advanced_workflow_orchestration_comprehensive() -> None:
     """Test comprehensive coverage of advanced workflow orchestration systems."""
-
     # Target actual workflow orchestration modules
     workflow_modules = [
         ("server.tools", "workflow_intelligence_tools"),  # 690+ lines
@@ -251,9 +252,8 @@ def test_advanced_workflow_orchestration_comprehensive():
     assert workflow_imports >= 3, f"Only {workflow_imports} workflow modules found"
 
 
-def test_data_analytics_pipelines_comprehensive():
+def test_data_analytics_pipelines_comprehensive() -> None:
     """Test comprehensive coverage of data analytics pipeline systems."""
-
     # Target actual analytics pipeline modules
     analytics_modules = [
         ("server.tools", "analytics_engine_tools"),  # 400+ lines
@@ -298,9 +298,8 @@ def test_data_analytics_pipelines_comprehensive():
     assert analytics_imports >= 3, f"Only {analytics_imports} analytics modules found"
 
 
-def test_enterprise_integration_systems_comprehensive():
+def test_enterprise_integration_systems_comprehensive() -> None:
     """Test comprehensive coverage of enterprise integration systems."""
-
     # Target actual enterprise integration modules
     integration_modules = [
         ("integration", "km_client"),  # 1170+ lines
@@ -347,9 +346,8 @@ def test_enterprise_integration_systems_comprehensive():
     )
 
 
-def test_comprehensive_ultra_high_impact_functionality_patterns():
+def test_comprehensive_ultra_high_impact_functionality_patterns() -> None:
     """Test comprehensive functionality patterns across ultra-high impact modules."""
-
     # Test ultra-high impact functionality patterns
     ultra_high_impact_data = {
         "enterprise_ai_processing": {
@@ -495,7 +493,7 @@ def test_comprehensive_ultra_high_impact_functionality_patterns():
     assert security_metrics["compliance_score"] > 0.99
 
 
-def test_advanced_ultra_high_impact_async_functionality():
+def test_advanced_ultra_high_impact_async_functionality() -> bool:
     """Test advanced async functionality for ultra-high impact modules."""
 
     @pytest.mark.asyncio
@@ -622,9 +620,8 @@ def test_advanced_ultra_high_impact_async_functionality():
     assert result is True
 
 
-def test_strategic_final_coverage_optimization_patterns():
+def test_strategic_final_coverage_optimization_patterns() -> None:
     """Test strategic patterns for final coverage optimization toward 95%."""
-
     # Test strategic final coverage optimization scenarios
     final_coverage_optimization = {
         "ultra_high_impact_targeting": {
@@ -746,9 +743,8 @@ def test_strategic_final_coverage_optimization_patterns():
     assert remaining_to_target < 0.75  # Should be making significant progress
 
 
-def test_ultra_final_optimization_validation():
+def test_ultra_final_optimization_validation() -> None:
     """Test ultra final optimization validation for Phase 18 completion."""
-
     # Test ultra final optimization validation scenarios
     ultra_optimization_validation = {
         "phase_18_completion_criteria": {
@@ -806,9 +802,8 @@ def test_ultra_final_optimization_validation():
     )  # Should have significant remaining potential for final phases
 
 
-def test_comprehensive_enterprise_system_validation():
+def test_comprehensive_enterprise_system_validation() -> None:
     """Test comprehensive enterprise system validation for ultra-high impact modules."""
-
     # Test comprehensive enterprise system validation scenarios
     enterprise_system_validation = {
         "enterprise_ai_systems": {
@@ -890,7 +885,7 @@ def test_comprehensive_enterprise_system_validation():
     assert ai_avg_score >= 0.94
 
     cloud_avg_score = sum(orchestration_validation.values()) / len(
-        orchestration_validation
+        orchestration_validation,
     )
     assert cloud_avg_score >= 0.94
 

@@ -1,5 +1,4 @@
-"""
-Hardware event type system for universal interface automation.
+"""Hardware event type system for universal interface automation.
 
 This module defines comprehensive types for mouse, keyboard, and gesture events
 with security validation and coordinate management for safe hardware interaction.
@@ -189,7 +188,7 @@ class ScrollEvent:
     duration_ms: int = 200
     smooth_scroll: bool = True
     event_id: str = field(
-        default_factory=lambda: f"scroll_{datetime.now().timestamp()}"
+        default_factory=lambda: f"scroll_{datetime.now().timestamp()}",
     )
 
     def __post_init__(self):
@@ -232,7 +231,7 @@ class GestureEvent:
     finger_count: int = 2
     duration_ms: int = 300
     event_id: str = field(
-        default_factory=lambda: f"gesture_{datetime.now().timestamp()}"
+        default_factory=lambda: f"gesture_{datetime.now().timestamp()}",
     )
 
     def __post_init__(self):
@@ -290,7 +289,7 @@ class HardwareEventValidator:
                     SecurityError(
                         "DANGEROUS_COORDINATE",
                         f"Coordinate ({coord.x}, {coord.y}) is in dangerous system area",
-                    )
+                    ),
                 )
 
         return Either.right(None)
@@ -310,7 +309,7 @@ class HardwareEventValidator:
                     SecurityError(
                         "DANGEROUS_TEXT_PATTERN",
                         f"Text contains dangerous pattern: {pattern}",
-                    )
+                    ),
                 )
 
         # Check for control characters
@@ -320,8 +319,8 @@ class HardwareEventValidator:
                 return Either.left(
                     SecurityError(
                         "DANGEROUS_CONTROL_CHAR",
-                        f"Text contains dangerous control character: {repr(char)}",
-                    )
+                        f"Text contains dangerous control character: {char!r}",
+                    ),
                 )
 
         return Either.right(None)
@@ -332,8 +331,9 @@ class HardwareEventValidator:
         if len(keys) > 10:
             return Either.left(
                 SecurityError(
-                    "TOO_MANY_KEYS", "Key combination has too many keys (max 10)"
-                )
+                    "TOO_MANY_KEYS",
+                    "Key combination has too many keys (max 10)",
+                ),
             )
 
         # Valid key set
@@ -374,7 +374,7 @@ class HardwareEventValidator:
         for key in keys:
             if key.lower() not in valid_keys:
                 return Either.left(
-                    SecurityError("INVALID_KEY", f"Invalid key in combination: {key}")
+                    SecurityError("INVALID_KEY", f"Invalid key in combination: {key}"),
                 )
 
         return Either.right(None)
@@ -390,7 +390,7 @@ class HardwareEventValidator:
                 SecurityError(
                     "DRAG_TOO_LONG",
                     f"Drag distance {distance:.1f} pixels exceeds safe limit (3000)",
-                )
+                ),
             )
 
         # Validate both coordinates
@@ -426,7 +426,7 @@ class RateLimiter:
                 for time, op in self._event_history
                 if current_time - time < timedelta(seconds=10)
                 and op.startswith("mouse")
-            ]
+            ],
         )
 
         recent_keyboard_events = len(
@@ -434,7 +434,7 @@ class RateLimiter:
                 op
                 for time, op in self._event_history
                 if current_time - time < timedelta(seconds=10) and op.startswith("key")
-            ]
+            ],
         )
 
         # Rate limits by operation type
@@ -443,7 +443,7 @@ class RateLimiter:
                 SecurityError(
                     "MOUSE_RATE_LIMIT",
                     "Mouse event rate limit exceeded (50 per 10 seconds)",
-                )
+                ),
             )
 
         if operation.startswith("key") and recent_keyboard_events >= 100:
@@ -451,7 +451,7 @@ class RateLimiter:
                 SecurityError(
                     "KEYBOARD_RATE_LIMIT",
                     "Keyboard event rate limit exceeded (100 per 10 seconds)",
-                )
+                ),
             )
 
         # Add current event
@@ -480,17 +480,23 @@ def get_all_screen_info() -> list[dict[str, Any]]:
             "origin_x": 0,
             "origin_y": 0,
             "is_main": True,
-        }
+        },
     ]
 
 
 # Helper functions for common operations
 def create_mouse_click(
-    x: int, y: int, button: MouseButton = MouseButton.LEFT, count: int = 1
+    x: int,
+    y: int,
+    button: MouseButton = MouseButton.LEFT,
+    count: int = 1,
 ) -> MouseEvent:
     """Create a validated mouse click event."""
     return MouseEvent(
-        operation="click", position=Coordinate(x, y), button=button, click_count=count
+        operation="click",
+        position=Coordinate(x, y),
+        button=button,
+        click_count=count,
     )
 
 
@@ -528,9 +534,13 @@ def create_key_combination(keys: list[str]) -> KeyboardEvent:
 
 
 def create_drag_drop(
-    source_x: int, source_y: int, dest_x: int, dest_y: int
+    source_x: int,
+    source_y: int,
+    dest_x: int,
+    dest_y: int,
 ) -> DragOperation:
     """Create a validated drag and drop operation."""
     return DragOperation(
-        source=Coordinate(source_x, source_y), destination=Coordinate(dest_x, dest_y)
+        source=Coordinate(source_x, source_y),
+        destination=Coordinate(dest_x, dest_y),
     )

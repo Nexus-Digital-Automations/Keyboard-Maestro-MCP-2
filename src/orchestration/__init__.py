@@ -1,5 +1,4 @@
-"""
-Ecosystem orchestration package for coordinating all 46+ automation tools.
+"""Ecosystem orchestration package for coordinating all 46+ automation tools.
 
 This package provides comprehensive orchestration capabilities including:
 - Tool registry and capability mapping
@@ -23,17 +22,17 @@ from .ecosystem_orchestrator import EcosystemOrchestrator
 from .tool_registry import ComprehensiveToolRegistry as ToolRegistry
 
 __all__ = [
-    # Core types
-    "ToolCategory",
+    "EcosystemOrchestrator",
+    "EcosystemWorkflow",
     "ExecutionMode",
     "OptimizationTarget",
     "OrchestrationError",
+    "SystemPerformanceMetrics",
+    # Core types
+    "ToolCategory",
     # Data structures
     "ToolDescriptor",
-    "WorkflowStep",
-    "EcosystemWorkflow",
-    "SystemPerformanceMetrics",
     # Main classes
     "ToolRegistry",
-    "EcosystemOrchestrator",
+    "WorkflowStep",
 ]

@@ -1,5 +1,4 @@
-"""
-Circuit Breaker Pattern Implementation - TASK_64 Phase 2 Implementation
+"""Circuit Breaker Pattern Implementation - TASK_64 Phase 2 Implementation.
 
 Advanced fault tolerance and resilience patterns for API orchestration with
 Design by Contract patterns, type safety, and comprehensive monitoring.
@@ -67,7 +66,9 @@ class CircuitBreakerConfig:
     def __post_init__(self):
         if self.failure_threshold <= 0:
             raise ValidationError(
-                "failure_threshold", self.failure_threshold, "Must be positive"
+                "failure_threshold",
+                self.failure_threshold,
+                "Must be positive",
             )
         if self.recovery_timeout_seconds <= 0:
             raise ValidationError(
@@ -104,8 +105,7 @@ class CircuitBreakerMetrics:
 
 
 class CircuitBreaker:
-    """
-    Advanced circuit breaker implementation with comprehensive failure tracking.
+    """Advanced circuit breaker implementation with comprehensive failure tracking.
 
     Implements the circuit breaker pattern for fault tolerance in API calls,
     with sophisticated failure detection, recovery mechanisms, and monitoring.
@@ -128,7 +128,10 @@ class CircuitBreaker:
     @require(lambda func: callable(func), "Function must be callable")
     @ensure(lambda result: result is not None, "Returns call result")
     async def call(
-        self, func: Callable[..., Awaitable[Any]], *args, **kwargs
+        self,
+        func: Callable[..., Awaitable[Any]],
+        *args,
+        **kwargs,
     ) -> Either[str, Any]:
         """Execute function call with circuit breaker protection."""
         async with self.lock:
@@ -148,7 +151,8 @@ class CircuitBreaker:
         try:
             # Execute call with timeout
             result = await asyncio.wait_for(
-                func(*args, **kwargs), timeout=self.config.timeout_seconds
+                func(*args, **kwargs),
+                timeout=self.config.timeout_seconds,
             )
 
             # Record successful call
@@ -207,10 +211,9 @@ class CircuitBreaker:
                 return None  # Allow call in half-open state
             return f"Circuit breaker is open, recovery in {self.config.recovery_timeout_seconds - time_since_state_change.total_seconds():.1f}s"
 
-        elif self.state == CircuitState.HALF_OPEN:
+        if self.state == CircuitState.HALF_OPEN and self.concurrent_calls > 0:
             # In half-open, only allow limited calls
-            if self.concurrent_calls > 0:
-                return "Circuit breaker is half-open, testing with single call"
+            return "Circuit breaker is half-open, testing with single call"
 
         return None
 
@@ -238,11 +241,10 @@ class CircuitBreaker:
                 self.metrics.last_failure_time = result.timestamp
 
                 # Handle state transitions on failure
-                if self.state == CircuitState.HALF_OPEN:
+                if self.state == CircuitState.HALF_OPEN or (
+                    self.state == CircuitState.CLOSED and self._should_open_circuit()
+                ):
                     self._transition_to_open()
-                elif self.state == CircuitState.CLOSED:
-                    if self._should_open_circuit():
-                        self._transition_to_open()
 
             # Add to call history (maintain rolling window)
             self.call_history.append(result)
@@ -252,7 +254,7 @@ class CircuitBreaker:
         """Check if circuit should be opened based on recent failures."""
         # Get recent calls within rolling window
         cutoff_time = datetime.now(UTC) - timedelta(
-            seconds=self.config.rolling_window_seconds
+            seconds=self.config.rolling_window_seconds,
         )
         recent_calls = [
             call for call in self.call_history if call.timestamp >= cutoff_time
@@ -320,23 +322,22 @@ class CircuitBreaker:
 
         if "timeout" in exception_name or "timeout" in exception_msg:
             return FailureType.TIMEOUT
-        elif "network" in exception_msg or "connection" in exception_msg:
+        if "network" in exception_msg or "connection" in exception_msg:
             return FailureType.NETWORK
-        elif "auth" in exception_msg or "unauthorized" in exception_msg:
+        if "auth" in exception_msg or "unauthorized" in exception_msg:
             return FailureType.AUTHENTICATION
-        elif "rate" in exception_msg and "limit" in exception_msg:
+        if "rate" in exception_msg and "limit" in exception_msg:
             return FailureType.RATE_LIMIT
-        elif "http" in exception_name or any(
+        if "http" in exception_name or any(
             code in exception_msg for code in ["400", "500", "502", "503", "504"]
         ):
             return FailureType.ERROR_RESPONSE
-        else:
-            return FailureType.EXCEPTION
+        return FailureType.EXCEPTION
 
     def _cleanup_old_call_history(self) -> None:
         """Remove old call history outside rolling window."""
         cutoff_time = datetime.now(UTC) - timedelta(
-            seconds=self.config.rolling_window_seconds * 2
+            seconds=self.config.rolling_window_seconds * 2,
         )
         self.call_history = [
             call for call in self.call_history if call.timestamp >= cutoff_time
@@ -389,7 +390,7 @@ class CircuitBreaker:
     def _get_recent_calls(self) -> list[CallResult]:
         """Get calls within the rolling window."""
         cutoff_time = datetime.now(UTC) - timedelta(
-            seconds=self.config.rolling_window_seconds
+            seconds=self.config.rolling_window_seconds,
         )
         return [call for call in self.call_history if call.timestamp >= cutoff_time]
 
@@ -409,7 +410,7 @@ class CircuitBreaker:
                 call
                 for call in calls
                 if call.duration_ms > self.config.slow_call_threshold_ms
-            ]
+            ],
         )
         return slow_calls / len(calls)
 
@@ -431,8 +432,7 @@ class CircuitBreaker:
 
 
 class CircuitBreakerRegistry:
-    """
-    Registry for managing multiple circuit breakers.
+    """Registry for managing multiple circuit breakers.
 
     Provides centralized management and monitoring of circuit breakers
     across different services and API endpoints.
@@ -443,7 +443,9 @@ class CircuitBreakerRegistry:
         self.default_config = CircuitBreakerConfig(name="default")
 
     def get_or_create(
-        self, name: str, config: CircuitBreakerConfig | None = None
+        self,
+        name: str,
+        config: CircuitBreakerConfig | None = None,
     ) -> CircuitBreaker:
         """Get existing circuit breaker or create new one."""
         if name not in self.circuit_breakers:
@@ -511,10 +513,10 @@ def get_circuit_breaker_registry() -> CircuitBreakerRegistry:
     return _circuit_breaker_registry
 
 
-def circuit_breaker(name: str, config: CircuitBreakerConfig | None = None):
+def circuit_breaker(name: str, config: CircuitBreakerConfig | None = None) -> bool:
     """Decorator for protecting functions with circuit breaker."""
 
-    def decorator(func: Callable):
+    def decorator(func: Callable) -> bool:
         registry = get_circuit_breaker_registry()
         breaker = registry.get_or_create(name, config)
 
@@ -528,7 +530,8 @@ def circuit_breaker(name: str, config: CircuitBreakerConfig | None = None):
 
 @asynccontextmanager
 async def circuit_breaker_context(
-    name: str, config: CircuitBreakerConfig | None = None
+    name: str,
+    config: CircuitBreakerConfig | None = None,
 ):
     """Context manager for circuit breaker protection."""
     registry = get_circuit_breaker_registry()
@@ -545,7 +548,8 @@ async def circuit_breaker_context(
 
 
 def create_api_circuit_breaker(
-    service_name: str, timeout_seconds: float = 30.0
+    service_name: str,
+    timeout_seconds: float = 30.0,
 ) -> CircuitBreakerConfig:
     """Create circuit breaker config optimized for API calls."""
     return CircuitBreakerConfig(

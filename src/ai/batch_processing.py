@@ -1,5 +1,4 @@
-"""
-Advanced batch processing system for AI operations.
+"""Advanced batch processing system for AI operations.
 
 This module provides comprehensive batch processing capabilities for AI operations
 including parallel processing, dependency management, progress tracking, and
@@ -14,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import heapq
+import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
@@ -23,6 +23,8 @@ from ..core.ai_integration import AIOperation, AIResponse, create_ai_request
 from ..core.contracts import require
 from ..core.either import Either
 from ..core.errors import ValidationError
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -88,7 +90,6 @@ class BatchTask:
     @require(lambda self: self.timeout.total_seconds() > 0)
     def __post_init__(self):
         """Validate batch task configuration."""
-        pass
 
     def estimate_resource_usage(self) -> dict[str, float]:
         """Estimate resource usage for this task."""
@@ -178,7 +179,6 @@ class BatchJob:
     @require(lambda self: 1 <= self.priority <= 10)
     def __post_init__(self):
         """Validate batch job configuration."""
-        pass
 
     def get_dependency_graph(self) -> dict[BatchTaskId, set[BatchTaskId]]:
         """Build task dependency graph."""
@@ -200,7 +200,7 @@ class BatchJob:
                             ValidationError(
                                 "invalid_dependency",
                                 f"Task {task.task_id} depends on non-existent task {dep_id}",
-                            )
+                            ),
                         )
 
             # Check for cycles using DFS
@@ -209,13 +209,13 @@ class BatchJob:
                     ValidationError(
                         "circular_dependency",
                         "Circular dependency detected in task graph",
-                    )
+                    ),
                 )
 
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError("dependency_validation_failed", str(e)))
+            return Either.left(ValidationError("dependency_validation_failed", str(e), "Dependency validation failed"))
 
     def _has_dependency_cycle(self) -> bool:
         """Check for cycles in dependency graph using DFS."""
@@ -265,16 +265,17 @@ class BatchJob:
                             total_resources[resource] += usage
                         else:
                             total_resources[resource] = max(
-                                total_resources[resource], usage
+                                total_resources[resource],
+                                usage,
                             )
+                    # Parallel: max time, add others
+                    elif resource == "estimated_time":
+                        total_resources[resource] = max(
+                            total_resources[resource],
+                            usage,
+                        )
                     else:
-                        # Parallel: max time, add others
-                        if resource == "estimated_time":
-                            total_resources[resource] = max(
-                                total_resources[resource], usage
-                            )
-                        else:
-                            total_resources[resource] += usage
+                        total_resources[resource] += usage
 
         # Apply concurrency limits for parallel processing
         if self.processing_mode in [BatchMode.PARALLEL, BatchMode.RESOURCE_AWARE]:
@@ -317,7 +318,7 @@ class BatchJobState:
                 r
                 for r in self.task_results.values()
                 if r.status in [BatchStatus.COMPLETED, BatchStatus.FAILED]
-            ]
+            ],
         )
         return ProgressPercentage((completed_tasks / total_tasks) * 100.0)
 
@@ -341,7 +342,7 @@ class BatchJobState:
         """Get comprehensive execution summary."""
         total_tasks = len(self.job.tasks)
         completed_tasks = len(
-            [r for r in self.task_results.values() if r.is_successful()]
+            [r for r in self.task_results.values() if r.is_successful()],
         )
         failed_tasks = len([r for r in self.task_results.values() if r.is_failed()])
 
@@ -409,7 +410,8 @@ class BatchProcessor:
         # Wait for tasks to complete
         if self.processing_tasks:
             await asyncio.gather(
-                *self.processing_tasks.values(), return_exceptions=True
+                *self.processing_tasks.values(),
+                return_exceptions=True,
             )
 
         self.processing_tasks.clear()
@@ -429,7 +431,7 @@ class BatchProcessor:
                     ValidationError(
                         "insufficient_resources",
                         f"Job requires more resources than available: {estimated_resources}",
-                    )
+                    ),
                 )
 
             # Create job state
@@ -442,10 +444,11 @@ class BatchProcessor:
             return Either.right(job.job_id)
 
         except Exception as e:
-            return Either.left(ValidationError("job_submission_failed", str(e)))
+            return Either.left(ValidationError("job_submission_failed", str(e), "Job submission failed"))
 
     def _check_resource_availability(
-        self, required_resources: dict[str, float]
+        self,
+        required_resources: dict[str, float],
     ) -> bool:
         """Check if required resources are available."""
         current_usage = self._calculate_current_resource_usage()
@@ -453,7 +456,8 @@ class BatchProcessor:
         for resource, required in required_resources.items():
             if resource in self.global_resource_limits:
                 available = self.global_resource_limits[resource] - current_usage.get(
-                    resource, 0
+                    resource,
+                    0,
                 )
                 if required > available:
                     return False
@@ -573,7 +577,7 @@ class BatchProcessor:
 
             # Limit concurrent tasks
             available_slots = job_state.job.max_concurrent_tasks - len(
-                job_state.active_tasks
+                job_state.active_tasks,
             )
             tasks_to_start = ready_tasks[:available_slots]
 
@@ -609,7 +613,9 @@ class BatchProcessor:
         """Process tasks by priority order."""
         # Sort tasks by priority
         sorted_tasks = sorted(
-            job_state.job.tasks, key=lambda t: t.priority, reverse=True
+            job_state.job.tasks,
+            key=lambda t: t.priority,
+            reverse=True,
         )
 
         for task in sorted_tasks:
@@ -626,7 +632,9 @@ class BatchProcessor:
         await self._process_parallel(job_state)
 
     async def _execute_task(
-        self, task: BatchTask, job_state: BatchJobState
+        self,
+        task: BatchTask,
+        job_state: BatchJobState,
     ) -> TaskResult:
         """Execute a single batch task."""
         start_time = datetime.now(UTC)
@@ -673,13 +681,12 @@ class BatchProcessor:
                         execution_time=execution_time,
                         resource_usage=task.estimate_resource_usage(),
                     )
-                else:
-                    return TaskResult(
-                        task_id=task.task_id,
-                        status=BatchStatus.FAILED,
-                        error=str(response_result.get_left()),
-                        execution_time=execution_time,
-                    )
+                return TaskResult(
+                    task_id=task.task_id,
+                    status=BatchStatus.FAILED,
+                    error=str(response_result.get_left()),
+                    execution_time=execution_time,
+                )
 
             except asyncio.TimeoutError:
                 return TaskResult(
@@ -705,9 +712,9 @@ class BatchProcessor:
                     await callback(job_state)
                 else:
                     callback(job_state)
-            except Exception:
-                # Log error but continue
-                pass
+            except Exception as e:
+                # Log error but continue with other callbacks
+                logger.warning(f"Notification callback failed: {e}")
 
     def get_job_status(self, job_id: BatchJobId) -> dict[str, Any] | None:
         """Get current status of a batch job."""
@@ -736,7 +743,11 @@ class BatchProcessor:
         """Get comprehensive batch processing system status."""
         active_jobs = len(self.active_jobs)
         running_jobs = len(
-            [js for js in self.active_jobs.values() if js.status == BatchStatus.RUNNING]
+            [
+                js
+                for js in self.active_jobs.values()
+                if js.status == BatchStatus.RUNNING
+            ],
         )
         queued_jobs = len(self.job_queue)
 

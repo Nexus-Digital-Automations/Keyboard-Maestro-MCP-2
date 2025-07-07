@@ -1,5 +1,4 @@
-"""
-Testing Automation MCP Tools - TASK_58 Phase 3 Implementation
+"""Testing Automation MCP Tools - TASK_58 Phase 3 Implementation.
 
 FastMCP tools for comprehensive testing automation, quality validation, regression detection,
 and test reporting through Claude Desktop interaction.
@@ -10,6 +9,8 @@ Integration: Complete FastMCP compliance for Claude Desktop
 """
 
 import json
+import logging
+import tempfile
 import uuid
 from datetime import UTC, datetime
 from typing import Any
@@ -38,6 +39,8 @@ from src.testing.test_runner import AdvancedTestRunner
 
 from ..mcp_server import mcp
 
+logger = logging.getLogger(__name__)
+
 # Global testing automation components
 test_runner = AdvancedTestRunner()
 test_execution_history: dict[str, Any] = {}
@@ -58,8 +61,7 @@ async def km_run_comprehensive_tests(
     stop_on_failure: bool = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Execute comprehensive testing suites with parallel execution and detailed reporting.
+    """Execute comprehensive testing suites with parallel execution and detailed reporting.
 
     FastMCP Tool for comprehensive testing through Claude Desktop.
     Runs functional, performance, and integration tests with advanced reporting.
@@ -173,7 +175,8 @@ async def km_run_comprehensive_tests(
 
         # Generate quality assessment
         quality_assessment = await _generate_quality_assessment(
-            test_results, test_suite
+            test_results,
+            test_suite,
         )
 
         # Store results in history
@@ -189,7 +192,7 @@ async def km_run_comprehensive_tests(
         if ctx:
             await ctx.report_progress(100, 100, "Test execution completed")
             await ctx.info(
-                f"Test execution completed: {execution_summary['success_rate_percent']:.1f}% success rate"
+                f"Test execution completed: {execution_summary['success_rate_percent']:.1f}% success rate",
             )
 
         return {
@@ -221,13 +224,14 @@ async def km_run_comprehensive_tests(
                     "average_execution_time_ms"
                 ],
                 "parallel_efficiency": _calculate_parallel_efficiency(
-                    test_results, parallel_execution
+                    test_results,
+                    parallel_execution,
                 ),
             },
         }
 
     except Exception as e:
-        error_msg = f"Test execution failed: {str(e)}"
+        error_msg = f"Test execution failed: {e!s}"
         if ctx:
             await ctx.error(error_msg)
 
@@ -247,8 +251,7 @@ async def km_validate_automation_quality(
     provide_recommendations: bool = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Validate automation quality against comprehensive criteria and standards.
+    """Validate automation quality against comprehensive criteria and standards.
 
     FastMCP Tool for quality validation through Claude Desktop.
     Assesses reliability, performance, maintainability, and security aspects.
@@ -258,7 +261,7 @@ async def km_validate_automation_quality(
     try:
         if ctx:
             await ctx.info(
-                f"Starting quality validation for {validation_target}: {target_id}"
+                f"Starting quality validation for {validation_target}: {target_id}",
             )
 
         # Validate input parameters
@@ -329,7 +332,9 @@ async def km_validate_automation_quality(
 
         # Calculate quality scores
         quality_scores = await _calculate_quality_scores(
-            test_results, quality_criteria, criteria_mapping
+            test_results,
+            quality_criteria,
+            criteria_mapping,
         )
 
         # Evaluate quality gates
@@ -355,7 +360,9 @@ async def km_validate_automation_quality(
         recommendations = []
         if provide_recommendations:
             recommendations = await _generate_quality_recommendations(
-                quality_scores, gates_failed, test_results
+                quality_scores,
+                gates_failed,
+                test_results,
             )
 
         # Create quality assessment
@@ -377,7 +384,7 @@ async def km_validate_automation_quality(
         if ctx:
             await ctx.report_progress(100, 100, "Quality validation completed")
             await ctx.info(
-                f"Quality score: {overall_score:.1f}/100, Risk level: {risk_level}"
+                f"Quality score: {overall_score:.1f}/100, Risk level: {risk_level}",
             )
 
         return {
@@ -411,7 +418,7 @@ async def km_validate_automation_quality(
         }
 
     except Exception as e:
-        error_msg = f"Quality validation failed: {str(e)}"
+        error_msg = f"Quality validation failed: {e!s}"
         if ctx:
             await ctx.error(error_msg)
 
@@ -431,8 +438,7 @@ async def km_detect_regressions(
     provide_fix_suggestions: bool = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Detect regressions and changes between automation versions with impact analysis.
+    """Detect regressions and changes between automation versions with impact analysis.
 
     FastMCP Tool for regression detection through Claude Desktop.
     Compares versions and identifies functional, performance, and behavioral regressions.
@@ -442,7 +448,7 @@ async def km_detect_regressions(
     try:
         if ctx:
             await ctx.info(
-                f"Starting regression detection: {baseline_version} vs {current_version}"
+                f"Starting regression detection: {baseline_version} vs {current_version}",
             )
 
         # Validate input parameters
@@ -485,7 +491,8 @@ async def km_detect_regressions(
 
         # Simulate baseline analysis (in real implementation, this would retrieve historical data)
         baseline_metrics = await _analyze_version_metrics(
-            baseline_version, comparison_scope
+            baseline_version,
+            comparison_scope,
         )
 
         if ctx:
@@ -493,7 +500,8 @@ async def km_detect_regressions(
 
         # Simulate current version analysis
         current_metrics = await _analyze_version_metrics(
-            current_version, comparison_scope
+            current_version,
+            comparison_scope,
         )
 
         if ctx:
@@ -527,12 +535,13 @@ async def km_detect_regressions(
                             "current_value": current_value,
                             "percentage_change": percentage_change,
                             "severity": _determine_regression_severity(
-                                percentage_change, threshold
+                                percentage_change,
+                                threshold,
                             ),
                             "category": _categorize_regression(metric_name)
                             if auto_categorize_issues
                             else "uncategorized",
-                        }
+                        },
                     )
                 elif percentage_change > 0:  # Improvement
                     improvements_found.append(
@@ -542,7 +551,7 @@ async def km_detect_regressions(
                             "current_value": current_value,
                             "percentage_change": percentage_change,
                             "improvement_type": _categorize_improvement(metric_name),
-                        }
+                        },
                     )
 
         if ctx:
@@ -552,7 +561,9 @@ async def km_detect_regressions(
         impact_analysis = None
         if generate_impact_analysis:
             impact_analysis = await _generate_impact_analysis(
-                regressions_found, improvements_found, comparison_scope
+                regressions_found,
+                improvements_found,
+                comparison_scope,
             )
 
         # Generate fix suggestions
@@ -578,7 +589,7 @@ async def km_detect_regressions(
         if ctx:
             await ctx.report_progress(100, 100, "Regression detection completed")
             await ctx.info(
-                f"Found {len(regressions_found)} regressions and {len(improvements_found)} improvements"
+                f"Found {len(regressions_found)} regressions and {len(improvements_found)} improvements",
             )
 
         return {
@@ -604,14 +615,14 @@ async def km_detect_regressions(
             "risk_assessment": {
                 "overall_risk": _assess_overall_risk(regressions_found),
                 "critical_regressions": len(
-                    [r for r in regressions_found if r["severity"] == "critical"]
+                    [r for r in regressions_found if r["severity"] == "critical"],
                 ),
                 "high_impact_areas": _identify_high_impact_areas(regressions_found),
             },
         }
 
     except Exception as e:
-        error_msg = f"Regression detection failed: {str(e)}"
+        error_msg = f"Regression detection failed: {e!s}"
         if ctx:
             await ctx.error(error_msg)
 
@@ -631,8 +642,7 @@ async def km_generate_test_reports(
     schedule_distribution: dict[str, Any] | None = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Generate comprehensive testing reports with visualizations and actionable insights.
+    """Generate comprehensive testing reports with visualizations and actionable insights.
 
     FastMCP Tool for test reporting through Claude Desktop.
     Creates professional testing reports with trends, insights, and recommendations.
@@ -642,7 +652,7 @@ async def km_generate_test_reports(
     try:
         if ctx:
             await ctx.info(
-                f"Generating {report_scope} report in {report_format} format"
+                f"Generating {report_scope} report in {report_format} format",
             )
 
         # Validate input parameters
@@ -681,7 +691,8 @@ async def km_generate_test_reports(
         visualizations = []
         if include_visualizations:
             visualizations = await _generate_report_visualizations(
-                report_data, report_scope
+                report_data,
+                report_scope,
             )
 
         if ctx:
@@ -699,14 +710,18 @@ async def km_generate_test_reports(
         recommendations = []
         if include_recommendations:
             recommendations = await _generate_report_recommendations(
-                insights, trend_analysis
+                insights,
+                trend_analysis,
             )
 
         # Create executive summary
         exec_summary = None
         if executive_summary:
             exec_summary = await _create_executive_summary(
-                report_data, insights, recommendations, report_scope
+                report_data,
+                insights,
+                recommendations,
+                report_scope,
             )
 
         # Generate report content
@@ -736,13 +751,14 @@ async def km_generate_test_reports(
         distribution_status = None
         if schedule_distribution:
             distribution_status = await _handle_report_distribution(
-                formatted_report, schedule_distribution
+                formatted_report,
+                schedule_distribution,
             )
 
         if ctx:
             await ctx.report_progress(100, 100, "Report generation completed")
             await ctx.info(
-                f"Report generated successfully: {formatted_report.get('file_path', 'in-memory')}"
+                f"Report generated successfully: {formatted_report.get('file_path', 'in-memory')}",
             )
 
         return {
@@ -754,7 +770,7 @@ async def km_generate_test_reports(
             "insights_summary": {
                 "total_insights": len(insights),
                 "critical_findings": len(
-                    [i for i in insights if i.get("severity") == "critical"]
+                    [i for i in insights if i.get("severity") == "critical"],
                 ),
                 "recommendations_count": len(recommendations),
             },
@@ -767,7 +783,7 @@ async def km_generate_test_reports(
                 if trend_analysis
                 else 0,
                 "forecast_available": bool(
-                    trend_analysis and trend_analysis.get("forecast")
+                    trend_analysis and trend_analysis.get("forecast"),
                 ),
             },
             "distribution_status": distribution_status,
@@ -779,7 +795,7 @@ async def km_generate_test_reports(
         }
 
     except Exception as e:
-        error_msg = f"Report generation failed: {str(e)}"
+        error_msg = f"Report generation failed: {e!s}"
         if ctx:
             await ctx.error(error_msg)
 
@@ -867,7 +883,7 @@ def _create_quality_gates_for_depth(depth: str) -> list[QualityGate]:
 
     if depth == "basic":
         return base_gates[:2]  # Only reliability and performance
-    elif depth == "comprehensive":
+    if depth == "comprehensive":
         # Add additional gates
         additional_gates = [
             QualityGate(
@@ -929,7 +945,9 @@ def _create_quality_validation_tests(
 
 
 async def _calculate_quality_scores(
-    test_results, quality_criteria, criteria_mapping
+    test_results,
+    quality_criteria,
+    criteria_mapping,
 ) -> dict[QualityMetric, float]:
     """Calculate quality scores from test results."""
     scores = {}
@@ -958,20 +976,22 @@ def _evaluate_quality_gate(score: float, gate: QualityGate) -> bool:
     """Evaluate if a quality gate passes."""
     if gate.operator == "gte":
         return score >= gate.threshold
-    elif gate.operator == "gt":
+    if gate.operator == "gt":
         return score > gate.threshold
-    elif gate.operator == "lte":
+    if gate.operator == "lte":
         return score <= gate.threshold
-    elif gate.operator == "lt":
+    if gate.operator == "lt":
         return score < gate.threshold
-    elif gate.operator == "eq":
+    if gate.operator == "eq":
         return score == gate.threshold
 
     return False
 
 
 async def _generate_quality_recommendations(
-    quality_scores, gates_failed, test_results
+    quality_scores,
+    gates_failed,
+    test_results,
 ) -> list[str]:
     """Generate quality improvement recommendations."""
     recommendations = []
@@ -979,22 +999,22 @@ async def _generate_quality_recommendations(
     for gate in gates_failed:
         if gate.metric == QualityMetric.RELIABILITY:
             recommendations.append(
-                "Improve error handling and add more comprehensive test coverage"
+                "Improve error handling and add more comprehensive test coverage",
             )
         elif gate.metric == QualityMetric.PERFORMANCE:
             recommendations.append(
-                "Optimize critical execution paths and reduce resource usage"
+                "Optimize critical execution paths and reduce resource usage",
             )
         elif gate.metric == QualityMetric.SECURITY:
             recommendations.append(
-                "Implement additional security validations and input sanitization"
+                "Implement additional security validations and input sanitization",
             )
 
     # Add general recommendations based on test results
     failed_tests = [r for r in test_results if r.status == TestStatus.FAILED]
     if failed_tests:
         recommendations.append(
-            f"Address {len(failed_tests)} failing tests to improve overall reliability"
+            f"Address {len(failed_tests)} failing tests to improve overall reliability",
         )
 
     return recommendations
@@ -1073,24 +1093,22 @@ def _determine_regression_severity(percentage_change: float, threshold: float) -
 
     if abs_change >= threshold * 4:
         return "critical"
-    elif abs_change >= threshold * 2:
+    if abs_change >= threshold * 2:
         return "high"
-    elif abs_change >= threshold:
+    if abs_change >= threshold:
         return "medium"
-    else:
-        return "low"
+    return "low"
 
 
 def _categorize_regression(metric_name: str) -> str:
     """Categorize regression by type."""
     if "time" in metric_name or "performance" in metric_name:
         return "performance"
-    elif "memory" in metric_name or "cpu" in metric_name:
+    if "memory" in metric_name or "cpu" in metric_name:
         return "resource"
-    elif "error" in metric_name or "success" in metric_name:
+    if "error" in metric_name or "success" in metric_name:
         return "functional"
-    else:
-        return "other"
+    return "other"
 
 
 def _categorize_improvement(metric_name: str) -> str:
@@ -1099,7 +1117,9 @@ def _categorize_improvement(metric_name: str) -> str:
 
 
 async def _generate_impact_analysis(
-    regressions_found, improvements_found, scope: str
+    regressions_found,
+    improvements_found,
+    scope: str,
 ) -> dict[str, Any]:
     """Generate impact analysis for regressions and improvements."""
     return {
@@ -1127,15 +1147,15 @@ async def _generate_fix_suggestions(regressions_found) -> list[str]:
 
         if category == "performance":
             suggestions.append(
-                f"Optimize {metric} by reviewing algorithm efficiency and resource usage"
+                f"Optimize {metric} by reviewing algorithm efficiency and resource usage",
             )
         elif category == "resource":
             suggestions.append(
-                f"Investigate {metric} increase and implement resource optimization"
+                f"Investigate {metric} increase and implement resource optimization",
             )
         elif category == "functional":
             suggestions.append(
-                f"Review recent changes affecting {metric} and add error handling"
+                f"Review recent changes affecting {metric} and add error handling",
             )
 
     return suggestions
@@ -1151,12 +1171,11 @@ def _assess_overall_risk(regressions_found) -> str:
 
     if critical_count > 0:
         return "critical"
-    elif high_count > 2:
+    if high_count > 2:
         return "high"
-    elif len(regressions_found) > 5:
+    if len(regressions_found) > 5:
         return "medium"
-    else:
-        return "low"
+    return "low"
 
 
 def _identify_high_impact_areas(regressions_found) -> list[str]:
@@ -1171,7 +1190,8 @@ def _identify_high_impact_areas(regressions_found) -> list[str]:
 
 
 async def _collect_report_data(
-    data_sources: list[str], report_scope: str
+    data_sources: list[str],
+    report_scope: str,
 ) -> dict[str, Any]:
     """Collect data from specified sources for report generation."""
     report_data = {
@@ -1194,7 +1214,8 @@ async def _collect_report_data(
 
 
 async def _generate_report_insights(
-    report_data: dict[str, Any], report_scope: str
+    report_data: dict[str, Any],
+    report_scope: str,
 ) -> list[dict[str, Any]]:
     """Generate insights from report data."""
     insights = []
@@ -1210,7 +1231,7 @@ async def _generate_report_insights(
                 "severity": "info",
                 "message": f"Analyzed {total_tests} total test executions",
                 "value": total_tests,
-            }
+            },
         )
 
     # Quality insights
@@ -1225,7 +1246,7 @@ async def _generate_report_insights(
                 "severity": "medium" if avg_quality < 80 else "info",
                 "message": f"Average quality score: {avg_quality:.1f}/100",
                 "value": avg_quality,
-            }
+            },
         )
 
     # Regression insights
@@ -1241,14 +1262,15 @@ async def _generate_report_insights(
                     "severity": "high",
                     "message": f"Found {total_regressions} regressions across analyzed versions",
                     "value": total_regressions,
-                }
+                },
             )
 
     return insights
 
 
 async def _generate_report_visualizations(
-    report_data: dict[str, Any], report_scope: str
+    report_data: dict[str, Any],
+    report_scope: str,
 ) -> list[dict[str, Any]]:
     """Generate visualizations for the report."""
     visualizations = []
@@ -1263,7 +1285,7 @@ async def _generate_report_visualizations(
                     "x_axis": ["Week 1", "Week 2", "Week 3", "Week 4"],
                     "y_axis": [95, 97, 93, 96],
                 },
-            }
+            },
         )
 
     # Quality metrics pie chart
@@ -1273,7 +1295,7 @@ async def _generate_report_visualizations(
                 "type": "pie_chart",
                 "title": "Quality Gate Distribution",
                 "data": {"passed": 75, "failed": 25},
-            }
+            },
         )
 
     return visualizations
@@ -1304,7 +1326,8 @@ async def _generate_trend_analysis(report_data: dict[str, Any]) -> dict[str, Any
 
 
 async def _generate_report_recommendations(
-    insights: list[dict[str, Any]], trend_analysis: dict[str, Any]
+    insights: list[dict[str, Any]],
+    trend_analysis: dict[str, Any],
 ) -> list[str]:
     """Generate recommendations based on insights and trends."""
     recommendations = []
@@ -1315,7 +1338,7 @@ async def _generate_report_recommendations(
             recommendations.append(f"Address {insight['type']}: {insight['message']}")
         elif insight["severity"] == "medium" and insight["value"] < 80:
             recommendations.append(
-                f"Investigate {insight['type']} for improvement opportunities"
+                f"Investigate {insight['type']} for improvement opportunities",
             )
 
     # Add trend-based recommendations
@@ -1323,7 +1346,7 @@ async def _generate_report_recommendations(
         for trend in trend_analysis["trends"]:
             if trend["direction"] == "declining" and trend["significance"] != "low":
                 recommendations.append(
-                    f"Monitor {trend['metric']} trend - showing decline"
+                    f"Monitor {trend['metric']} trend - showing decline",
                 )
 
     return recommendations
@@ -1356,16 +1379,17 @@ async def _create_executive_summary(
 
 
 async def _format_report(
-    report_content: dict[str, Any], report_format: str
+    report_content: dict[str, Any],
+    report_format: str,
 ) -> dict[str, Any]:
     """Format report content based on requested format."""
     if report_format == "json":
         return {
             "content": json.dumps(report_content, indent=2),
-            "file_path": f"/tmp/report_{report_content['metadata']['report_id']}.json",
+            "file_path": f"{tempfile.gettempdir()}/report_{report_content['metadata']['report_id']}.json",
             "file_size": len(json.dumps(report_content)),
         }
-    elif report_format == "html":
+    if report_format == "html":
         html_content = f"""
         <html>
         <head><title>Testing Report</title></head>
@@ -1378,20 +1402,20 @@ async def _format_report(
         """
         return {
             "content": html_content,
-            "file_path": f"/tmp/report_{report_content['metadata']['report_id']}.html",
+            "file_path": f"{tempfile.gettempdir()}/report_{report_content['metadata']['report_id']}.html",
             "file_size": len(html_content),
         }
-    else:
-        # Default to JSON for other formats
-        return {
-            "content": json.dumps(report_content, indent=2),
-            "file_path": f"/tmp/report_{report_content['metadata']['report_id']}.{report_format}",
-            "file_size": len(json.dumps(report_content)),
-        }
+    # Default to JSON for other formats
+    return {
+        "content": json.dumps(report_content, indent=2),
+        "file_path": f"{tempfile.gettempdir()}/report_{report_content['metadata']['report_id']}.{report_format}",
+        "file_size": len(json.dumps(report_content)),
+    }
 
 
 async def _handle_report_distribution(
-    formatted_report: dict[str, Any], schedule_distribution: dict[str, Any]
+    formatted_report: dict[str, Any],
+    schedule_distribution: dict[str, Any],
 ) -> dict[str, Any]:
     """Handle report distribution scheduling."""
     return {

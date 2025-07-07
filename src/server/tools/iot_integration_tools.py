@@ -1,5 +1,4 @@
-"""
-IoT Integration Tools - TASK_65 Phase 3 MCP Tools Implementation
+"""IoT Integration Tools - TASK_65 Phase 3 MCP Tools Implementation.
 
 FastMCP tools for comprehensive IoT device control, sensor monitoring, smart home automation,
 and workflow coordination through Claude Desktop interaction.
@@ -75,14 +74,16 @@ def validate_device_identifier(identifier: str) -> Either[ValidationError, Devic
     """Validate device identifier format."""
     if not identifier:
         return Either.error(
-            ValidationError("device_identifier", identifier, "cannot be empty")
+            ValidationError("device_identifier", identifier, "cannot be empty"),
         )
 
     if len(identifier) > 100:
         return Either.error(
             ValidationError(
-                "device_identifier", identifier, "cannot exceed 100 characters"
-            )
+                "device_identifier",
+                identifier,
+                "cannot exceed 100 characters",
+            ),
         )
 
     # Check for dangerous characters
@@ -90,8 +91,10 @@ def validate_device_identifier(identifier: str) -> Either[ValidationError, Devic
     if any(char in identifier for char in dangerous_chars):
         return Either.error(
             ValidationError(
-                "device_identifier", identifier, "contains dangerous characters"
-            )
+                "device_identifier",
+                identifier,
+                "contains dangerous characters",
+            ),
         )
 
     return Either.success(create_device_id(identifier))
@@ -103,21 +106,23 @@ def validate_sensor_identifiers(
     """Validate list of sensor identifiers."""
     if not identifiers:
         return Either.error(
-            ValidationError("sensor_identifiers", identifiers, "cannot be empty")
+            ValidationError("sensor_identifiers", identifiers, "cannot be empty"),
         )
 
     if len(identifiers) > 50:
         return Either.error(
             ValidationError(
-                "sensor_identifiers", identifiers, "cannot exceed 50 sensors"
-            )
+                "sensor_identifiers",
+                identifiers,
+                "cannot exceed 50 sensors",
+            ),
         )
 
     validated_ids = []
     for identifier in identifiers:
         if not identifier or len(identifier) > 100:
             return Either.error(
-                ValidationError("sensor_identifier", identifier, "invalid format")
+                ValidationError("sensor_identifier", identifier, "invalid format"),
             )
 
         validated_ids.append(create_sensor_id(identifier))
@@ -134,12 +139,12 @@ def validate_device_parameters(
 
     if not isinstance(parameters, dict):
         return Either.error(
-            ValidationError("parameters", parameters, "must be a dictionary")
+            ValidationError("parameters", parameters, "must be a dictionary"),
         )
 
     if len(parameters) > 20:
         return Either.error(
-            ValidationError("parameters", parameters, "cannot exceed 20 parameters")
+            ValidationError("parameters", parameters, "cannot exceed 20 parameters"),
         )
 
     # Validate parameter values
@@ -147,7 +152,7 @@ def validate_device_parameters(
     for key, value in parameters.items():
         if not isinstance(key, str) or len(key) > 50:
             return Either.error(
-                ValidationError("parameter_key", key, "invalid parameter key")
+                ValidationError("parameter_key", key, "invalid parameter key"),
             )
 
         # Convert values to safe types
@@ -164,31 +169,36 @@ def validate_device_parameters(
 async def km_control_iot_devices(
     device_identifier: Annotated[str, Field(description="Device ID, name, or address")],
     action: Annotated[
-        str, Field(description="Action to perform (on|off|set|get|toggle)")
+        str,
+        Field(description="Action to perform (on|off|set|get|toggle)"),
     ],
     device_type: Annotated[
         str | None,
         Field(description="Device type (light|sensor|thermostat|switch|camera)"),
     ] = None,
     parameters: Annotated[
-        dict[str, Any] | None, Field(description="Action-specific parameters")
+        dict[str, Any] | None,
+        Field(description="Action-specific parameters"),
     ] = None,
     protocol: Annotated[
-        str | None, Field(description="Communication protocol (mqtt|http|zigbee|zwave)")
+        str | None,
+        Field(description="Communication protocol (mqtt|http|zigbee|zwave)"),
     ] = None,
     timeout: Annotated[
-        int, Field(description="Operation timeout in seconds", ge=1, le=300)
+        int,
+        Field(description="Operation timeout in seconds", ge=1, le=300),
     ] = 30,
     retry_attempts: Annotated[
-        int, Field(description="Number of retry attempts", ge=0, le=5)
+        int,
+        Field(description="Number of retry attempts", ge=0, le=5),
     ] = 2,
     verify_action: Annotated[
-        bool, Field(description="Verify action completion")
+        bool,
+        Field(description="Verify action completion"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Control IoT devices with support for multiple protocols and device types.
+    """Control IoT devices with support for multiple protocols and device types.
 
     FastMCP Tool for IoT device control through Claude Desktop.
     Supports lights, sensors, thermostats, switches, cameras, and other smart devices.
@@ -236,7 +246,9 @@ async def km_control_iot_devices(
 
         # Execute device action
         result = await controller.execute_device_action(
-            device_id, device_action, safe_params
+            device_id,
+            device_action,
+            safe_params,
         )
 
         execution_time = (datetime.now(UTC) - execution_start).total_seconds() * 1000
@@ -269,21 +281,20 @@ async def km_control_iot_devices(
                 "verification": verification_result,
                 "timestamp": datetime.now(UTC).isoformat(),
             }
-        else:
-            return {
-                "success": False,
-                "error": str(result.error_value),
-                "device_identifier": device_identifier,
-                "action": action,
-                "execution_time_ms": round(execution_time, 2),
-                "retry_attempts_used": retry_attempts,
-                "timestamp": datetime.now(UTC).isoformat(),
-            }
+        return {
+            "success": False,
+            "error": str(result.error_value),
+            "device_identifier": device_identifier,
+            "action": action,
+            "execution_time_ms": round(execution_time, 2),
+            "retry_attempts_used": retry_attempts,
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
 
     except Exception as e:
         return {
             "success": False,
-            "error": f"IoT device control failed: {str(e)}",
+            "error": f"IoT device control failed: {e!s}",
             "device_identifier": device_identifier,
             "action": action,
             "timestamp": datetime.now(UTC).isoformat(),
@@ -292,33 +303,40 @@ async def km_control_iot_devices(
 
 async def km_monitor_sensors(
     sensor_identifiers: Annotated[
-        list[str], Field(description="List of sensor IDs or names to monitor")
+        list[str],
+        Field(description="List of sensor IDs or names to monitor"),
     ],
     monitoring_duration: Annotated[
-        int, Field(description="Monitoring duration in seconds", ge=10, le=86400)
+        int,
+        Field(description="Monitoring duration in seconds", ge=10, le=86400),
     ] = 300,
     sampling_interval: Annotated[
-        int, Field(description="Data sampling interval in seconds", ge=1, le=3600)
+        int,
+        Field(description="Data sampling interval in seconds", ge=1, le=3600),
     ] = 30,
     trigger_conditions: Annotated[
-        list[dict[str, Any]] | None, Field(description="Automation trigger conditions")
+        list[dict[str, Any]] | None,
+        Field(description="Automation trigger conditions"),
     ] = None,
     data_aggregation: Annotated[
-        str | None, Field(description="Data aggregation method (avg|min|max|sum)")
+        str | None,
+        Field(description="Data aggregation method (avg|min|max|sum)"),
     ] = None,
     alert_thresholds: Annotated[
-        dict[str, float] | None, Field(description="Alert threshold values")
+        dict[str, float] | None,
+        Field(description="Alert threshold values"),
     ] = None,
     export_data: Annotated[
-        bool, Field(description="Export sensor data for analysis")
+        bool,
+        Field(description="Export sensor data for analysis"),
     ] = False,
     real_time_alerts: Annotated[
-        bool, Field(description="Enable real-time alerting")
+        bool,
+        Field(description="Enable real-time alerting"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Monitor sensor data and trigger automation workflows based on readings and conditions.
+    """Monitor sensor data and trigger automation workflows based on readings and conditions.
 
     FastMCP Tool for sensor monitoring through Claude Desktop.
     Collects sensor data, analyzes patterns, and triggers automation based on conditions.
@@ -368,7 +386,8 @@ async def km_monitor_sensors(
 
         # Sample monitoring loop (simplified for demonstration)
         samples_collected = min(
-            monitoring_duration // sampling_interval, 100
+            monitoring_duration // sampling_interval,
+            100,
         )  # Limit samples
 
         for i in range(samples_collected):
@@ -425,7 +444,8 @@ async def km_monitor_sensors(
                                         "trigger_condition": condition_config,
                                         "sensor_reading": reading.to_dict(),
                                         "action_triggered": condition_config.get(
-                                            "action", "alert"
+                                            "action",
+                                            "alert",
                                         ),
                                         "timestamp": datetime.now(UTC).isoformat(),
                                     }
@@ -472,7 +492,8 @@ async def km_monitor_sensors(
                 "alerts_count": len(alerts_triggered),
                 "actions_triggered": len(automation_actions),
                 "data_quality_score": min(
-                    1.0, len(readings) / (samples_collected * len(sensor_ids))
+                    1.0,
+                    len(readings) / (samples_collected * len(sensor_ids)),
                 )
                 if samples_collected > 0
                 else 0.0,
@@ -493,7 +514,7 @@ async def km_monitor_sensors(
     except Exception as e:
         return {
             "success": False,
-            "error": f"Sensor monitoring failed: {str(e)}",
+            "error": f"Sensor monitoring failed: {e!s}",
             "sensor_identifiers": sensor_identifiers,
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -505,30 +526,36 @@ async def km_manage_smart_home(
         Field(description="Operation (create_scene|activate_scene|schedule|status)"),
     ],
     scene_name: Annotated[
-        str | None, Field(description="Scene name for scene operations")
+        str | None,
+        Field(description="Scene name for scene operations"),
     ] = None,
     device_settings: Annotated[
-        dict[str, Any] | None, Field(description="Device settings for scene creation")
+        dict[str, Any] | None,
+        Field(description="Device settings for scene creation"),
     ] = None,
     schedule_config: Annotated[
-        dict[str, Any] | None, Field(description="Scheduling configuration")
+        dict[str, Any] | None,
+        Field(description="Scheduling configuration"),
     ] = None,
     location_context: Annotated[
-        str | None, Field(description="Location or room context")
+        str | None,
+        Field(description="Location or room context"),
     ] = None,
     user_preferences: Annotated[
-        dict[str, Any] | None, Field(description="User preferences and customization")
+        dict[str, Any] | None,
+        Field(description="User preferences and customization"),
     ] = None,
     energy_optimization: Annotated[
-        bool, Field(description="Enable energy optimization")
+        bool,
+        Field(description="Enable energy optimization"),
     ] = True,
     adaptive_automation: Annotated[
-        bool, Field(description="Enable adaptive automation based on usage patterns")
+        bool,
+        Field(description="Enable adaptive automation based on usage patterns"),
     ] = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Manage smart home automation with scenes, scheduling, and adaptive optimization.
+    """Manage smart home automation with scenes, scheduling, and adaptive optimization.
 
     FastMCP Tool for smart home management through Claude Desktop.
     Creates scenes, manages schedules, and optimizes energy usage across smart devices.
@@ -592,15 +619,14 @@ async def km_manage_smart_home(
                     "scene_created": True,
                     "timestamp": datetime.now(UTC).isoformat(),
                 }
-            else:
-                return {
-                    "success": False,
-                    "error": str(result.error_value),
-                    "operation": operation,
-                    "scene_name": scene_name,
-                }
+            return {
+                "success": False,
+                "error": str(result.error_value),
+                "operation": operation,
+                "scene_name": scene_name,
+            }
 
-        elif operation == "activate_scene":
+        if operation == "activate_scene":
             if not scene_name:
                 return {
                     "success": False,
@@ -636,15 +662,14 @@ async def km_manage_smart_home(
                     * 1000,
                     "timestamp": datetime.now(UTC).isoformat(),
                 }
-            else:
-                return {
-                    "success": False,
-                    "error": str(result.error_value),
-                    "operation": operation,
-                    "scene_name": scene_name,
-                }
+            return {
+                "success": False,
+                "error": str(result.error_value),
+                "operation": operation,
+                "scene_name": scene_name,
+            }
 
-        elif operation == "status":
+        if operation == "status":
             # Get smart home status
             status_result = await automation_hub.get_system_status()
 
@@ -670,14 +695,13 @@ async def km_manage_smart_home(
                     "adaptive_automation": adaptive_automation,
                     "timestamp": datetime.now(UTC).isoformat(),
                 }
-            else:
-                return {
-                    "success": False,
-                    "error": str(status_result.error_value),
-                    "operation": operation,
-                }
+            return {
+                "success": False,
+                "error": str(status_result.error_value),
+                "operation": operation,
+            }
 
-        elif operation == "schedule":
+        if operation == "schedule":
             if not schedule_config:
                 return {
                     "success": False,
@@ -700,15 +724,14 @@ async def km_manage_smart_home(
                     "location_context": location_context,
                     "timestamp": datetime.now(UTC).isoformat(),
                 }
-            else:
-                return {
-                    "success": False,
-                    "error": str(schedule_result.error_value),
-                    "operation": operation,
-                    "schedule_config": schedule_config,
-                }
+            return {
+                "success": False,
+                "error": str(schedule_result.error_value),
+                "operation": operation,
+                "schedule_config": schedule_config,
+            }
 
-        elif operation == "list_scenes":
+        if operation == "list_scenes":
             # List all scenes
             scenes_result = await automation_hub.list_scenes()
 
@@ -723,24 +746,22 @@ async def km_manage_smart_home(
                     "location_context": location_context,
                     "timestamp": datetime.now(UTC).isoformat(),
                 }
-            else:
-                return {
-                    "success": False,
-                    "error": str(scenes_result.error_value),
-                    "operation": operation,
-                }
-
-        else:
             return {
                 "success": False,
-                "error": f"Operation not implemented: {operation}",
-                "valid_operations": valid_operations,
+                "error": str(scenes_result.error_value),
+                "operation": operation,
             }
+
+        return {
+            "success": False,
+            "error": f"Operation not implemented: {operation}",
+            "valid_operations": valid_operations,
+        }
 
     except Exception as e:
         return {
             "success": False,
-            "error": f"Smart home management failed: {str(e)}",
+            "error": f"Smart home management failed: {e!s}",
             "operation": operation,
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -749,30 +770,36 @@ async def km_manage_smart_home(
 async def km_coordinate_iot_workflows(
     workflow_name: Annotated[str, Field(description="IoT workflow name")],
     device_sequence: Annotated[
-        list[dict[str, Any]], Field(description="Sequence of IoT device actions")
+        list[dict[str, Any]],
+        Field(description="Sequence of IoT device actions"),
     ],
     trigger_conditions: Annotated[
-        list[dict[str, Any]], Field(description="Workflow trigger conditions")
+        list[dict[str, Any]],
+        Field(description="Workflow trigger conditions"),
     ],
     coordination_type: Annotated[
-        str, Field(description="Coordination type (sequential|parallel|conditional)")
+        str,
+        Field(description="Coordination type (sequential|parallel|conditional)"),
     ] = "sequential",
     dependency_management: Annotated[
-        bool, Field(description="Enable device dependency management")
+        bool,
+        Field(description="Enable device dependency management"),
     ] = True,
     fault_tolerance: Annotated[
-        bool, Field(description="Enable fault tolerance and error recovery")
+        bool,
+        Field(description="Enable fault tolerance and error recovery"),
     ] = True,
     performance_optimization: Annotated[
-        bool, Field(description="Enable performance optimization")
+        bool,
+        Field(description="Enable performance optimization"),
     ] = True,
     learning_mode: Annotated[
-        bool, Field(description="Enable learning from workflow execution")
+        bool,
+        Field(description="Enable learning from workflow execution"),
     ] = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Coordinate complex IoT automation workflows with device dependencies and optimization.
+    """Coordinate complex IoT automation workflows with device dependencies and optimization.
 
     FastMCP Tool for IoT workflow coordination through Claude Desktop.
     Orchestrates multiple IoT devices with dependency management and fault tolerance.
@@ -855,7 +882,7 @@ async def km_coordinate_iot_workflows(
                 action_id=f"action_{i}",
                 action_type="device_control",
                 device_id=create_device_id(
-                    action_config.get("device_id", f"device_{i}")
+                    action_config.get("device_id", f"device_{i}"),
                 ),
                 parameters=action_config.get("parameters", {}),
                 delay_seconds=action_config.get("delay", 0),
@@ -884,7 +911,7 @@ async def km_coordinate_iot_workflows(
                 "fault_tolerance": fault_tolerance,
                 "performance_optimization": performance_optimization,
                 "learning_mode": learning_mode,
-            }
+            },
         )
 
         workflow_time = (datetime.now(UTC) - workflow_start).total_seconds() * 1000
@@ -929,7 +956,7 @@ async def km_coordinate_iot_workflows(
                     "enabled": learning_mode,
                     "patterns_detected": 0,  # Placeholder
                     "optimization_suggestions": [
-                        "Consider parallel execution for independent actions"
+                        "Consider parallel execution for independent actions",
                     ]
                     if coordination_type == "sequential"
                     else [],
@@ -938,22 +965,21 @@ async def km_coordinate_iot_workflows(
                 else None,
                 "timestamp": datetime.now(UTC).isoformat(),
             }
-        else:
-            return {
-                "success": False,
-                "error": str(execution_result.error_value),
-                "workflow_id": workflow_id,
-                "workflow_name": workflow_name,
-                "coordination_type": coordination_type,
-                "execution_time_ms": round(workflow_time, 2),
-                "fault_tolerance": fault_tolerance,
-                "timestamp": datetime.now(UTC).isoformat(),
-            }
+        return {
+            "success": False,
+            "error": str(execution_result.error_value),
+            "workflow_id": workflow_id,
+            "workflow_name": workflow_name,
+            "coordination_type": coordination_type,
+            "execution_time_ms": round(workflow_time, 2),
+            "fault_tolerance": fault_tolerance,
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
 
     except Exception as e:
         return {
             "success": False,
-            "error": f"IoT workflow coordination failed: {str(e)}",
+            "error": f"IoT workflow coordination failed: {e!s}",
             "workflow_name": workflow_name,
             "coordination_type": coordination_type,
             "timestamp": datetime.now(UTC).isoformat(),
@@ -963,7 +989,7 @@ async def km_coordinate_iot_workflows(
 # Export all tools
 __all__ = [
     "km_control_iot_devices",
-    "km_monitor_sensors",
-    "km_manage_smart_home",
     "km_coordinate_iot_workflows",
+    "km_manage_smart_home",
+    "km_monitor_sensors",
 ]

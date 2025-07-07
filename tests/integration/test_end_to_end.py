@@ -1,10 +1,12 @@
-"""
-End-to-end integration tests for the complete macro system.
+"""End-to-end integration tests for the complete macro system.
 
 This module tests the entire macro execution pipeline from parsing
 through execution to result validation with realistic scenarios.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
 import time
 
@@ -36,7 +38,7 @@ from tests.utils.mocks import (
 class TestCompleteWorkflows:
     """End-to-end tests for complete macro workflows."""
 
-    def test_simple_text_macro_workflow(self):
+    def test_simple_text_macro_workflow(self) -> None:
         """Test complete workflow for a simple text input macro."""
         # 1. Create macro definition
         macro = create_test_macro("Simple Text Test", [CommandType.TEXT_INPUT])
@@ -58,7 +60,7 @@ class TestCompleteWorkflows:
         assert len(result.command_results) == 1, "Should have one command result"
         assert result.command_results[0].success, "Text command should succeed"
 
-    def test_complex_multi_command_workflow(self):
+    def test_complex_multi_command_workflow(self) -> None:
         """Test workflow with multiple different command types."""
         # Create complex macro with multiple command types
         command_types = [
@@ -79,7 +81,7 @@ class TestCompleteWorkflows:
                     Permission.TEXT_INPUT,
                     Permission.SYSTEM_SOUND,
                     Permission.APPLICATION_CONTROL,
-                ]
+                ],
             ),
             timeout=Duration.from_seconds(60),
         )
@@ -99,7 +101,7 @@ class TestCompleteWorkflows:
                 f"Command {i} should have execution time"
             )
 
-    def test_macro_parsing_to_execution_workflow(self):
+    def test_macro_parsing_to_execution_workflow(self) -> None:
         """Test complete workflow from JSON parsing to execution."""
         # JSON macro definition
         macro_json = """
@@ -143,7 +145,7 @@ class TestCompleteWorkflows:
         assert_execution_successful(result, "Parsed macro execution")
         assert result.macro_id == "parsed_test", "Should preserve parsed macro ID"
 
-    def test_error_handling_workflow(self):
+    def test_error_handling_workflow(self) -> None:
         """Test complete error handling workflow."""
         # Create macro that will fail due to missing permissions
         macro = create_test_macro("Permission Test", [CommandType.PLAY_SOUND])
@@ -166,7 +168,7 @@ class TestCompleteWorkflows:
             or "system_sound" in result.error_details
         )
 
-    def test_concurrent_macro_execution_workflow(self):
+    def test_concurrent_macro_execution_workflow(self) -> None:
         """Test concurrent execution of multiple macros."""
         import concurrent.futures
 
@@ -186,7 +188,7 @@ class TestCompleteWorkflows:
         results = []
         errors = []
 
-        def execute_macro(macro, context):
+        def execute_macro(macro, context) -> None:
             try:
                 result = engine.execute_macro(macro, context)
                 return result
@@ -195,7 +197,7 @@ class TestCompleteWorkflows:
 
         # Execute concurrently
         with concurrent.futures.ThreadPoolExecutor(
-            max_workers=num_concurrent
+            max_workers=num_concurrent,
         ) as executor:
             futures = [
                 executor.submit(execute_macro, macro, context)
@@ -222,7 +224,7 @@ class TestCompleteWorkflows:
 class TestRealisticScenarios:
     """Tests with realistic usage scenarios."""
 
-    def test_text_automation_scenario(self):
+    def test_text_automation_scenario(self) -> None:
         """Test realistic text automation scenario."""
         # Simulate a text automation workflow
         steps = [
@@ -249,7 +251,7 @@ class TestRealisticScenarios:
         assert execution_time < 5.0, "Should complete within reasonable time"
         assert len(result.command_results) == len(steps), "Should execute all steps"
 
-    def test_system_integration_scenario(self):
+    def test_system_integration_scenario(self) -> None:
         """Test scenario involving system interactions."""
         # Simulate system automation workflow
         steps = [
@@ -267,7 +269,7 @@ class TestRealisticScenarios:
                     Permission.TEXT_INPUT,
                     Permission.SYSTEM_SOUND,
                     Permission.APPLICATION_CONTROL,
-                ]
+                ],
             ),
             timeout=Duration.from_seconds(60),
         )
@@ -281,7 +283,7 @@ class TestRealisticScenarios:
         for cmd_result in result.command_results:
             assert cmd_result.success, "All system interactions should succeed"
 
-    def test_error_recovery_scenario(self):
+    def test_error_recovery_scenario(self) -> None:
         """Test error recovery in realistic scenarios."""
         # Create macro that might encounter errors
         macro = create_test_macro(
@@ -313,7 +315,7 @@ class TestRealisticScenarios:
             # Exception is also acceptable for permission errors
             assert "permission" in str(e).lower(), "Should be permission-related error"
 
-    def test_performance_sensitive_scenario(self):
+    def test_performance_sensitive_scenario(self) -> None:
         """Test scenario with performance requirements."""
         # Create macro with timing constraints
         macro = create_test_macro(
@@ -322,7 +324,7 @@ class TestRealisticScenarios:
         )
 
         context = ExecutionContext.create_test_context(
-            timeout=Duration.from_seconds(10)  # Tight timeout
+            timeout=Duration.from_seconds(10),  # Tight timeout
         )
 
         engine = MacroEngine()
@@ -342,7 +344,7 @@ class TestRealisticScenarios:
 class TestKMIntegrationScenarios:
     """Tests for Keyboard Maestro integration scenarios."""
 
-    def test_reliable_km_integration(self):
+    def test_reliable_km_integration(self) -> None:
         """Test integration with reliable KM client."""
         km_client = create_reliable_km_client()
 
@@ -365,7 +367,7 @@ class TestKMIntegrationScenarios:
         assert stats["success_rate"] > 0.9, "Should have high success rate"
         assert stats["call_count"] >= 2, "Should record all calls"
 
-    def test_unreliable_km_integration(self):
+    def test_unreliable_km_integration(self) -> None:
         """Test integration with unreliable KM client."""
         km_client = create_failing_km_client()
 
@@ -391,7 +393,7 @@ class TestKMIntegrationScenarios:
         assert stats["error_count"] > 0, "Should record errors"
 
     @pytest.mark.asyncio
-    async def test_async_km_integration(self):
+    async def test_async_km_integration(self) -> None:
         """Test asynchronous KM integration."""
         km_client = create_reliable_km_client()
 
@@ -414,7 +416,7 @@ class TestKMIntegrationScenarios:
 class TestSystemIntegration:
     """Tests for system-level integration."""
 
-    def test_file_system_integration(self):
+    def test_file_system_integration(self) -> None:
         """Test integration with file system operations."""
         mock_fs = MockFileSystem()
 
@@ -436,7 +438,7 @@ class TestSystemIntegration:
         assert mock_fs.read_count > 0, "Should track read operations"
         assert mock_fs.write_count > 0, "Should track write operations"
 
-    def test_resource_management_integration(self):
+    def test_resource_management_integration(self) -> None:
         """Test integration of resource management across components."""
         from src.core.context import get_context_manager, get_variable_manager
 
@@ -468,7 +470,7 @@ class TestSystemIntegration:
         )
         assert variable_manager.get_context_variable(token, "test_local") is None
 
-    def test_metrics_integration(self):
+    def test_metrics_integration(self) -> None:
         """Test integration of metrics and monitoring."""
         from src.core.engine import get_engine_metrics
 

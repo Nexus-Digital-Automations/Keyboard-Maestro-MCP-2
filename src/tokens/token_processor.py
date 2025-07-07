@@ -1,5 +1,4 @@
-"""
-Core Token Processing Engine for Keyboard Maestro MCP
+"""Core Token Processing Engine for Keyboard Maestro MCP.
 
 Provides secure token processing with comprehensive validation, context evaluation,
 and injection prevention while maintaining proper token syntax handling.
@@ -10,7 +9,6 @@ from __future__ import annotations
 import os
 import platform
 import re
-import subprocess
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -81,13 +79,10 @@ class TokenExpression:
             if re.search(pattern, text, re.IGNORECASE):
                 return False
 
-        # Context-specific validation
-        if self.context == ProcessingContext.FILENAME:
-            # Additional filename-specific checks
-            if re.search(r'[<>:"|?*]', text):
-                return False
-
-        return True
+        # SIM103 fix: Return the negated condition directly
+        return not (
+            self.context == ProcessingContext.FILENAME and re.search(r'[<>:"|?*]', text)
+        )
 
 
 @dataclass(frozen=True)
@@ -123,17 +118,18 @@ class TokenProcessor:
         }
 
     @require(
-        lambda self, expression: expression.text != "",
+        lambda _self, expression: expression.text != "",
         "Expression text cannot be empty",
     )
     @ensure(
-        lambda self, expression, result: result.is_right()
+        lambda _self, _expression, result: result.is_right()
         or result.get_left().code
         in ["TOKEN_ERROR", "SECURITY_ERROR", "VALIDATION_ERROR"],
         "Must return valid Either with expected error codes",
     )
     async def process_tokens(
-        self, expression: TokenExpression
+        self,
+        expression: TokenExpression,
     ) -> Either[KMError, TokenProcessingResult]:
         """Process tokens with comprehensive security validation and context awareness."""
         start_time = time.time()
@@ -163,7 +159,9 @@ class TokenProcessor:
 
             for token_info in tokens:
                 token_result = await self._process_single_token(
-                    token_info, expression.variables, expression.context
+                    token_info,
+                    expression.variables,
+                    expression.context,
                 )
 
                 if token_result.is_right():
@@ -181,7 +179,7 @@ class TokenProcessor:
                     # Log error but continue processing other tokens
                     error = token_result.get_left()
                     security_warnings.append(
-                        f"Token '{token_info['full_match']}' failed: {error.message}"
+                        f"Token '{token_info['full_match']}' failed: {error.message}",
                     )
 
             processing_time = time.time() - start_time
@@ -206,9 +204,9 @@ class TokenProcessor:
             self._processing_stats["errors"] += 1
             return Either.left(
                 KMError.execution_error(
-                    f"Token processing failed: {str(e)}",
+                    f"Token processing failed: {e!s}",
                     details={"expression": expression.text[:100]},
-                )
+                ),
             )
 
     def _initialize_system_tokens(self) -> dict[str, Callable[[], str]]:
@@ -229,7 +227,7 @@ class TokenProcessor:
 
     def _parse_tokens(self, text: str) -> list[dict[str, Any]]:
         """Parse tokens from text with type identification and security validation."""
-        token_pattern = r"%([^%]+)%"
+        token_pattern = r"%([^%]+)%"  # noqa: S105 - Regex pattern, not a secret
         tokens = []
 
         for match in re.finditer(token_pattern, text):
@@ -275,18 +273,17 @@ class TokenProcessor:
 
         if content.startswith("Calculate"):
             return TokenType.CALCULATION
-        elif content.startswith("ICUDateTime"):
+        if content.startswith("ICUDateTime"):
             return TokenType.DATE_TIME
-        elif content in self.system_tokens:
+        if content in self.system_tokens:
             return TokenType.SYSTEM
-        elif content.startswith("Variable"):
+        if content.startswith("Variable"):
             return TokenType.VARIABLE
-        elif "clipboard" in content_lower:
+        if "clipboard" in content_lower:
             return TokenType.CLIPBOARD
-        elif "application" in content_lower:
+        if "application" in content_lower:
             return TokenType.APPLICATION
-        else:
-            return TokenType.UNKNOWN
+        return TokenType.UNKNOWN
 
     async def _process_single_token(
         self,
@@ -304,31 +301,30 @@ class TokenProcessor:
                 result = self._resolve_system_token(content)
                 if result is None:
                     return Either.left(
-                        KMError.not_found_error(f"System token '{content}' not found")
+                        KMError.not_found_error(f"System token '{content}' not found"),
                     )
                 return Either.right((result, warnings))
 
-            elif token_type == TokenType.VARIABLE:
+            if token_type == TokenType.VARIABLE:
                 return self._process_variable_token(content, variables, warnings)
 
-            elif token_type == TokenType.CALCULATION:
+            if token_type == TokenType.CALCULATION:
                 return self._process_calculation_token(content, context, warnings)
 
-            elif token_type == TokenType.DATE_TIME:
+            if token_type == TokenType.DATE_TIME:
                 return self._process_datetime_token(content, warnings)
 
-            elif token_type == TokenType.CLIPBOARD:
+            if token_type == TokenType.CLIPBOARD:
                 return self._process_clipboard_token(content, warnings)
 
-            else:
-                warnings.append(f"Unknown token type: {content}")
-                return Either.right((token_info["full_match"], warnings))
+            warnings.append(f"Unknown token type: {content}")
+            return Either.right((token_info["full_match"], warnings))
 
         except Exception as e:
             return Either.left(
                 KMError.execution_error(
-                    f"Failed to process token '{content}': {str(e)}"
-                )
+                    f"Failed to process token '{content}': {e!s}",
+                ),
             )
 
     def _resolve_system_token(self, token_name: str) -> str | None:
@@ -342,7 +338,10 @@ class TokenProcessor:
         return None
 
     def _process_variable_token(
-        self, content: str, variables: dict[str, str], warnings: list[str]
+        self,
+        content: str,
+        variables: dict[str, str],
+        warnings: list[str],
     ) -> Either[KMError, tuple[str, list[str]]]:
         """Process variable token with scope resolution."""
         # Extract variable name from %Variable%name% format
@@ -356,22 +355,24 @@ class TokenProcessor:
                     warnings.append(f"Variable '{var_name}' value truncated (too long)")
                     value = value[:1000] + "..."
                 return Either.right((value, warnings))
-            else:
-                return Either.left(
-                    KMError.not_found_error(f"Variable '{var_name}' not found")
-                )
+            return Either.left(
+                KMError.not_found_error(f"Variable '{var_name}' not found"),
+            )
 
         return Either.left(
-            KMError.validation_error(f"Invalid variable token format: {content}")
+            KMError.validation_error(f"Invalid variable token format: {content}"),
         )
 
     def _process_calculation_token(
-        self, content: str, context: ProcessingContext, warnings: list[str]
+        self,
+        content: str,
+        context: ProcessingContext,
+        warnings: list[str],
     ) -> Either[KMError, tuple[str, list[str]]]:
         """Process calculation token with security validation."""
         if not content.startswith("Calculate"):
             return Either.left(
-                KMError.validation_error("Invalid calculation token format")
+                KMError.validation_error("Invalid calculation token format"),
             )
 
         # For now, return placeholder - actual calculation would need the calculator module
@@ -379,7 +380,9 @@ class TokenProcessor:
         return Either.right(("0", warnings))
 
     def _process_datetime_token(
-        self, content: str, warnings: list[str]
+        self,
+        content: str,
+        warnings: list[str],
     ) -> Either[KMError, tuple[str, list[str]]]:
         """Process datetime token with format validation."""
         if content.startswith("ICUDateTime"):
@@ -396,13 +399,15 @@ class TokenProcessor:
                 return Either.right((result, warnings))
             except Exception as e:
                 return Either.left(
-                    KMError.execution_error(f"DateTime formatting failed: {str(e)}")
+                    KMError.execution_error(f"DateTime formatting failed: {e!s}"),
                 )
 
         return Either.left(KMError.validation_error("Invalid datetime token format"))
 
     def _process_clipboard_token(
-        self, content: str, warnings: list[str]
+        self,
+        content: str,
+        warnings: list[str],
     ) -> Either[KMError, tuple[str, list[str]]]:
         """Process clipboard token with privacy protection."""
         # For security, provide preview only
@@ -463,9 +468,22 @@ class TokenProcessor:
         """
 
         try:
-            result = subprocess.run(
-                ["osascript", "-e", script], capture_output=True, text=True, timeout=5
+            # S607 SECURITY FIX: Use secure subprocess execution
+            from ..commands.secure_subprocess import (
+                CommandType,
+                SecureCommand,
+                get_secure_subprocess_manager,
             )
+
+            secure_manager = get_secure_subprocess_manager()
+            command = SecureCommand(
+                command_type=CommandType.SYSTEM_INFO,
+                executable="osascript",
+                args=["-e", script],
+                timeout=5.0,
+                allowed_return_codes={0, 1},
+            )
+            result = secure_manager.execute_secure_command(command)
             return result.stdout.strip() if result.returncode == 0 else "Unknown Window"
         except Exception:
             return "Unknown Window"
@@ -484,9 +502,22 @@ class TokenProcessor:
         """
 
         try:
-            result = subprocess.run(
-                ["osascript", "-e", script], capture_output=True, text=True, timeout=5
+            # S607 SECURITY FIX: Use secure subprocess execution
+            from ..commands.secure_subprocess import (
+                CommandType,
+                SecureCommand,
+                get_secure_subprocess_manager,
             )
+
+            secure_manager = get_secure_subprocess_manager()
+            command = SecureCommand(
+                command_type=CommandType.SYSTEM_INFO,
+                executable="osascript",
+                args=["-e", script],
+                timeout=5.0,
+                allowed_return_codes={0, 1},
+            )
+            result = secure_manager.execute_secure_command(command)
             return (
                 result.stdout.strip()
                 if result.returncode == 0
@@ -500,7 +531,9 @@ class TokenProcessor:
         return "[Clipboard Preview - Access Restricted]"
 
     async def process_tokens_in_text(
-        self, text: str, variables: dict[str, str] | None = None
+        self,
+        text: str,
+        variables: dict[str, str] | None = None,
     ) -> str:
         """Simple text-based token processing interface for web requests."""
         if not text or not text.strip():
@@ -508,7 +541,9 @@ class TokenProcessor:
 
         try:
             expression = TokenExpression(
-                text=text, context=ProcessingContext.TEXT, variables=variables or {}
+                text=text,
+                context=ProcessingContext.TEXT,
+                variables=variables or {},
             )
 
             result = await self.process_tokens(expression)
@@ -516,9 +551,8 @@ class TokenProcessor:
             if result.is_right():
                 processing_result = result.get_right()
                 return processing_result.processed_text
-            else:
-                # Return original text if processing fails
-                return text
+            # Return original text if processing fails
+            return text
 
         except Exception:
             # Return original text if expression creation fails

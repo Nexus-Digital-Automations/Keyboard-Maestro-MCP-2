@@ -1,5 +1,4 @@
-"""
-Cloud connector manager for comprehensive multi-cloud platform integration.
+"""Cloud connector manager for comprehensive multi-cloud platform integration.
 
 This module provides the main manager for coordinating cloud connections,
 orchestrating multi-cloud operations, and managing cloud resources with
@@ -74,7 +73,9 @@ class CloudConnectorManager:
 
     @require(lambda self: self.initialized)
     async def establish_cloud_connection(
-        self, provider: CloudProvider, credentials: CloudCredentials
+        self,
+        provider: CloudProvider,
+        credentials: CloudCredentials,
     ) -> Either[CloudError, str]:
         """Establish connection to cloud provider with session management."""
         try:
@@ -92,14 +93,14 @@ class CloudConnectorManager:
                 ):
                     return Either.left(
                         CloudError.connection_failed(
-                            "Maximum connections reached for provider"
-                        )
+                            "Maximum connections reached for provider",
+                        ),
                     )
 
             # Validate credentials security
             if not self._validate_credentials_security(credentials):
                 return Either.left(
-                    CloudError.insecure_auth_method(credentials.auth_method)
+                    CloudError.insecure_auth_method(credentials.auth_method),
                 )
 
             start_time = datetime.now(UTC)
@@ -136,7 +137,7 @@ class CloudConnectorManager:
                 self._track_operation_metric("connection_time", duration)
 
                 logger.info(
-                    f"Cloud connection established: {provider.value} - {session_id}"
+                    f"Cloud connection established: {provider.value} - {session_id}",
                 )
 
             return result
@@ -146,7 +147,9 @@ class CloudConnectorManager:
             return Either.left(CloudError.connection_establishment_failed(str(e)))
 
     async def sync_cloud_data(
-        self, session_id: str, sync_config: dict[str, Any]
+        self,
+        session_id: str,
+        sync_config: dict[str, Any],
     ) -> Either[CloudError, dict[str, Any]]:
         """Synchronize data with cloud storage."""
         try:
@@ -198,7 +201,9 @@ class CloudConnectorManager:
             return Either.left(CloudError.sync_operation_failed(str(e)))
 
     async def get_monitoring_data(
-        self, provider: CloudProvider, config: dict[str, Any]
+        self,
+        provider: CloudProvider,
+        config: dict[str, Any],
     ) -> Either[CloudError, dict[str, Any]]:
         """Get monitoring data for cloud resources."""
         try:
@@ -212,8 +217,8 @@ class CloudConnectorManager:
             if not provider_sessions:
                 return Either.left(
                     CloudError.session_not_found(
-                        f"No active sessions for {provider.value}"
-                    )
+                        f"No active sessions for {provider.value}",
+                    ),
                 )
 
             monitoring_data = {
@@ -236,8 +241,8 @@ class CloudConnectorManager:
             else:
                 return Either.left(
                     CloudError.monitoring_failed(
-                        f"Monitoring not supported for {provider.value}"
-                    )
+                        f"Monitoring not supported for {provider.value}",
+                    ),
                 )
 
             if resources_result.is_right():
@@ -259,9 +264,11 @@ class CloudConnectorManager:
             provider = session_info["provider"]
 
             # Remove from connection pool
-            if provider in self.connection_pool:
-                if session_id in self.connection_pool[provider]:
-                    self.connection_pool[provider].remove(session_id)
+            if (
+                provider in self.connection_pool
+                and session_id in self.connection_pool[provider]
+            ):
+                self.connection_pool[provider].remove(session_id)
 
             # Disconnect from provider
             if provider == CloudProvider.AWS:
@@ -336,7 +343,7 @@ class CloudConnectorManager:
         for session_id in expired_sessions:
             await self.disconnect_session(session_id)
 
-    def _track_operation_metric(self, metric_name: str, value: float):
+    def _track_operation_metric(self, metric_name: str, value: float) -> dict[str, Any]:
         """Track operation performance metrics."""
         if metric_name not in self.operation_metrics:
             self.operation_metrics[metric_name] = []

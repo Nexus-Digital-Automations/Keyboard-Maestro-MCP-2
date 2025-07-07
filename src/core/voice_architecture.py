@@ -1,5 +1,4 @@
-"""
-Voice Control Architecture - TASK_66 Phase 1 Architecture & Design
+"""Voice Control Architecture - TASK_66 Phase 1 Architecture & Design.
 
 Voice command recognition, speech processing, and automation control architecture
 with enterprise-grade type safety and security boundaries.
@@ -147,7 +146,7 @@ class AudioInput:
     @require(lambda self: self.channels > 0)
     @require(lambda self: self.bit_depth > 0)
     @require(
-        lambda self: self.audio_data is not None or self.audio_file_path is not None
+        lambda self: self.audio_data is not None or self.audio_file_path is not None,
     )
     def __post_init__(self):
         pass
@@ -185,7 +184,7 @@ class RecognitionSettings:
     enable_continuous_listening: bool = False
     wake_word: str | None = None
     recognition_timeout: timedelta = field(
-        default_factory=lambda: timedelta(seconds=10)
+        default_factory=lambda: timedelta(seconds=10),
     )
 
     @require(lambda self: 0.0 <= self.confidence_threshold <= 1.0)
@@ -328,8 +327,6 @@ class VoiceControlSession:
 class VoiceControlError(SystemError):
     """Base exception for voice control errors."""
 
-    pass
-
 
 class SpeechRecognitionError(VoiceControlError):
     """Speech recognition specific errors."""
@@ -344,13 +341,16 @@ class SpeechRecognitionError(VoiceControlError):
 
     @classmethod
     def engine_unavailable(
-        cls, engine: SpeechRecognitionEngine
+        cls,
+        engine: SpeechRecognitionEngine,
     ) -> SpeechRecognitionError:
         return cls(f"Speech recognition engine unavailable: {engine.value}")
 
     @classmethod
     def confidence_too_low(
-        cls, confidence: float, threshold: float
+        cls,
+        confidence: float,
+        threshold: float,
     ) -> SpeechRecognitionError:
         return cls(f"Recognition confidence too low: {confidence} < {threshold}")
 
@@ -364,7 +364,9 @@ class VoiceCommandError(VoiceControlError):
 
     @classmethod
     def command_execution_failed(
-        cls, command_id: str, reason: str
+        cls,
+        command_id: str,
+        reason: str,
     ) -> VoiceCommandError:
         return cls(f"Command {command_id} execution failed: {reason}")
 
@@ -420,7 +422,7 @@ def validate_audio_input_security(
             # Check for path traversal
             if ".." in str(audio_path):
                 return Either.error(
-                    VoiceControlError("Path traversal detected in audio file")
+                    VoiceControlError("Path traversal detected in audio file"),
                 )
 
             # Validate file extension
@@ -433,10 +435,8 @@ def validate_audio_input_security(
                 return Either.error(VoiceControlError("Audio file too large"))
 
         # Validate audio data if provided
-        if audio_input.audio_data:
-            # Check audio data size (max 50MB)
-            if len(audio_input.audio_data) > 50 * 1024 * 1024:
-                return Either.error(VoiceControlError("Audio data too large"))
+        if audio_input.audio_data and len(audio_input.audio_data) > 50 * 1024 * 1024:
+            return Either.error(VoiceControlError("Audio data too large"))
 
         # Validate technical parameters
         if not (8000 <= audio_input.sample_rate <= 48000):
@@ -451,7 +451,7 @@ def validate_audio_input_security(
         return Either.success(None)
 
     except Exception as e:
-        return Either.error(VoiceControlError(f"Audio validation failed: {str(e)}"))
+        return Either.error(VoiceControlError(f"Audio validation failed: {e!s}"))
 
 
 def validate_voice_command_security(
@@ -477,7 +477,7 @@ def validate_voice_command_security(
         for pattern in dangerous_patterns:
             if re.search(pattern, text_to_check):
                 return Either.error(
-                    VoiceCommandError.unsafe_command_detected(command.intent)
+                    VoiceCommandError.unsafe_command_detected(command.intent),
                 )
 
         # Validate parameter safety
@@ -494,18 +494,19 @@ def validate_voice_command_security(
                     if re.search(pattern, value.lower()):
                         return Either.error(
                             VoiceCommandError.unsafe_command_detected(
-                                f"Parameter {key}"
-                            )
+                                f"Parameter {key}",
+                            ),
                         )
 
         return Either.success(None)
 
     except Exception as e:
-        return Either.error(VoiceControlError(f"Command validation failed: {str(e)}"))
+        return Either.error(VoiceControlError(f"Command validation failed: {e!s}"))
 
 
 def estimate_recognition_cost(
-    audio_input: AudioInput, engine: SpeechRecognitionEngine
+    audio_input: AudioInput,
+    engine: SpeechRecognitionEngine,
 ) -> float:
     """Estimate cost for speech recognition processing."""
     # Base cost estimation (placeholder values)

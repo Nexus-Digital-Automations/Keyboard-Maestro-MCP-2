@@ -1,5 +1,4 @@
-"""
-Action Building System for Keyboard Maestro MCP Tools
+"""Action Building System for Keyboard Maestro MCP Tools.
 
 Provides comprehensive action building functionality with security validation,
 XML generation, and integration with the macro creation system.
@@ -15,8 +14,8 @@ from .action_registry import ActionRegistry
 
 __all__ = [
     "ActionBuilder",
-    "ActionConfiguration",
-    "ActionType",
     "ActionCategory",
+    "ActionConfiguration",
     "ActionRegistry",
+    "ActionType",
 ]

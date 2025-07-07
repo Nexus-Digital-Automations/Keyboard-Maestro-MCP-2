@@ -1,5 +1,4 @@
-"""
-Zero Trust Architecture - TASK_62 Phase 1 Core Implementation
+"""Zero Trust Architecture - TASK_62 Phase 1 Core Implementation.
 
 Zero trust security type definitions and architectural framework for continuous validation.
 Provides comprehensive types, enums, and utilities for trust validation, policy enforcement, and security monitoring.
@@ -83,7 +82,8 @@ def create_risk_score(score: float) -> RiskScore:
 def create_compliance_id(compliance_framework: str) -> ComplianceId:
     """Create compliance framework identifier."""
     if not compliance_framework or not re.match(
-        r"^[a-zA-Z][a-zA-Z0-9_-]*$", compliance_framework
+        r"^[a-zA-Z][a-zA-Z0-9_-]*$",
+        compliance_framework,
     ):
         raise ValueError("Compliance ID must be a valid identifier")
     return ComplianceId(compliance_framework.upper())
@@ -189,35 +189,25 @@ class ZeroTrustError(Exception):
 class TrustValidationError(ZeroTrustError):
     """Error in trust validation processing."""
 
-    pass
-
 
 @dataclass(frozen=True)
 class PolicyEnforcementError(ZeroTrustError):
     """Error in security policy enforcement."""
-
-    pass
 
 
 @dataclass(frozen=True)
 class SecurityMonitoringError(ZeroTrustError):
     """Error in security monitoring operations."""
 
-    pass
-
 
 @dataclass(frozen=True)
 class AccessControlError(ZeroTrustError):
     """Error in access control operations."""
 
-    pass
-
 
 @dataclass(frozen=True)
 class ComplianceError(ZeroTrustError):
     """Error in compliance operations."""
-
-    pass
 
 
 @dataclass(frozen=True)
@@ -412,14 +402,13 @@ def determine_trust_level(trust_score: TrustScore) -> TrustLevel:
     """Determine trust level from numeric trust score."""
     if trust_score >= 0.9:
         return TrustLevel.VERIFIED
-    elif trust_score >= 0.7:
+    if trust_score >= 0.7:
         return TrustLevel.HIGH
-    elif trust_score >= 0.3:
+    if trust_score >= 0.3:
         return TrustLevel.MEDIUM
-    elif trust_score > 0.0:
+    if trust_score > 0.0:
         return TrustLevel.LOW
-    else:
-        return TrustLevel.UNTRUSTED
+    return TrustLevel.UNTRUSTED
 
 
 def calculate_composite_trust_score(
@@ -451,7 +440,7 @@ def validate_security_context(
         # Check required fields
         if not context.context_id:
             return Either.left(
-                ZeroTrustError("Security context ID is required", "MISSING_CONTEXT_ID")
+                ZeroTrustError("Security context ID is required", "MISSING_CONTEXT_ID"),
             )
 
         # Validate IP address format if provided
@@ -462,21 +451,22 @@ def validate_security_context(
                 ipaddress.ip_address(context.ip_address)
             except ValueError:
                 return Either.left(
-                    ZeroTrustError("Invalid IP address format", "INVALID_IP_ADDRESS")
+                    ZeroTrustError("Invalid IP address format", "INVALID_IP_ADDRESS"),
                 )
 
         # Check expiration
         if context.expires_at and context.expires_at < datetime.now(UTC):
             return Either.left(
-                ZeroTrustError("Security context has expired", "CONTEXT_EXPIRED")
+                ZeroTrustError("Security context has expired", "CONTEXT_EXPIRED"),
             )
 
         # Validate trust level and risk score consistency
         if context.trust_level == TrustLevel.HIGH and context.risk_score > 0.3:
             return Either.left(
                 ZeroTrustError(
-                    "Inconsistent trust level and risk score", "INCONSISTENT_SCORES"
-                )
+                    "Inconsistent trust level and risk score",
+                    "INCONSISTENT_SCORES",
+                ),
             )
 
         return Either.right(context)
@@ -484,13 +474,17 @@ def validate_security_context(
     except Exception as e:
         return Either.left(
             ZeroTrustError(
-                f"Security context validation failed: {str(e)}", "VALIDATION_ERROR"
-            )
+                f"Security context validation failed: {e!s}",
+                "VALIDATION_ERROR",
+            ),
         )
 
 
 def is_policy_applicable(
-    policy: SecurityPolicy, context: SecurityContext, resource: str, action: str
+    policy: SecurityPolicy,
+    context: SecurityContext,
+    resource: str,
+    action: str,
 ) -> bool:
     """Check if a security policy is applicable to the current context."""
     # Check if policy is enabled and not expired
@@ -533,7 +527,8 @@ def is_policy_applicable(
 
 
 def calculate_threat_risk_score(
-    threat: SecurityThreat, context: SecurityContext | None = None
+    threat: SecurityThreat,
+    context: SecurityContext | None = None,
 ) -> RiskScore:
     """Calculate risk score for a security threat."""
     # Base risk from severity
@@ -616,9 +611,11 @@ def validate_trust_result(validation_result: TrustValidationResult) -> bool:
         return False
 
     # Check expiration
-    if validation_result.expires_at:
-        if validation_result.expires_at <= validation_result.validation_timestamp:
-            return False
+    if (
+        validation_result.expires_at
+        and validation_result.expires_at <= validation_result.validation_timestamp
+    ):
+        return False
 
     # Check criteria results completeness
     required_criteria = ["identity", "device", "location", "behavior"]

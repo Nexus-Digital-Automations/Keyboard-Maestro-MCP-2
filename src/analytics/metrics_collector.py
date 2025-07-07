@@ -1,5 +1,4 @@
-"""
-Comprehensive metrics collection system for the automation ecosystem.
+"""Comprehensive metrics collection system for the automation ecosystem.
 
 This module provides real-time metrics collection across all 48 tools with
 privacy-compliant aggregation and storage.
@@ -36,7 +35,7 @@ class MetricsCollector:
         self.privacy_mode = privacy_mode
         self.metric_definitions: dict[MetricId, MetricDefinition] = {}
         self.metric_buffer: deque = deque(
-            maxlen=10000
+            maxlen=10000,
         )  # Circular buffer for efficiency
         self.collection_intervals: dict[MetricId, timedelta] = {}
         self.last_collection: dict[MetricId, datetime] = {}
@@ -56,7 +55,7 @@ class MetricsCollector:
         # Initialize standard metric definitions
         self._initialize_standard_metrics()
 
-    def _initialize_standard_metrics(self):
+    def _initialize_standard_metrics(self) -> int:
         """Initialize standard metrics for all tools."""
         standard_metrics = [
             # Performance metrics
@@ -101,15 +100,18 @@ class MetricsCollector:
 
     @require(lambda metric_def: metric_def is not None and len(metric_def.name) > 0)
     def register_metric(
-        self, metric_def: MetricDefinition
+        self,
+        metric_def: MetricDefinition,
     ) -> Either[ValidationError, bool]:
         """Register a new metric definition."""
         try:
             if metric_def.metric_id in self.metric_definitions:
                 return Either.left(
                     ValidationError(
-                        "metric_id", metric_def.metric_id, "already registered"
-                    )
+                        "metric_id",
+                        metric_def.metric_id,
+                        "already registered",
+                    ),
                 )
 
             self.metric_definitions[metric_def.metric_id] = metric_def
@@ -118,20 +120,24 @@ class MetricsCollector:
             )
 
             self.logger.info(
-                f"Registered metric: {metric_def.name} ({metric_def.metric_id})"
+                f"Registered metric: {metric_def.name} ({metric_def.metric_id})",
             )
             return Either.right(True)
 
         except Exception as e:
             return Either.left(
                 ValidationError(
-                    "metric_registration", str(e), "failed to register metric"
-                )
+                    "metric_registration",
+                    str(e),
+                    "failed to register metric",
+                ),
             )
 
     @require(lambda tool_name: tool_name and len(tool_name) > 0)
     async def collect_performance_metrics(
-        self, tool_name: str, operation: str
+        self,
+        tool_name: str,
+        operation: str,
     ) -> Either[ValidationError, PerformanceMetrics]:
         """Collect performance metrics for a specific tool operation."""
         try:
@@ -152,7 +158,9 @@ class MetricsCollector:
 
             # Store metrics with privacy protection
             await self._store_metric_value(
-                create_metric_id("performance", tool_name), metrics, tool_name
+                create_metric_id("performance", tool_name),
+                metrics,
+                tool_name,
             )
 
             # Update collection stats
@@ -170,12 +178,15 @@ class MetricsCollector:
                     "performance_collection",
                     str(e),
                     "failed to collect performance metrics",
-                )
+                ),
             )
 
     @require(lambda tool_name: tool_name and len(tool_name) > 0)
     async def collect_roi_metrics(
-        self, tool_name: str, time_saved: float, cost_saved: float
+        self,
+        tool_name: str,
+        time_saved: float,
+        cost_saved: float,
     ) -> Either[ValidationError, ROIMetrics]:
         """Collect ROI metrics for a specific tool."""
         try:
@@ -199,12 +210,17 @@ class MetricsCollector:
             # Calculate ROI
             roi_value = roi_metrics.calculate_roi()
             roi_metrics = ROIMetrics(
-                **{**roi_metrics.__dict__, "calculated_roi": roi_value}
+                **{
+                    **roi_metrics.__dict__,
+                    "calculated_roi": roi_value,
+                },
             )
 
             # Store with privacy protection
             await self._store_metric_value(
-                create_metric_id("roi", tool_name), roi_metrics, tool_name
+                create_metric_id("roi", tool_name),
+                roi_metrics,
+                tool_name,
             )
 
             return Either.right(roi_metrics)
@@ -212,12 +228,17 @@ class MetricsCollector:
         except Exception as e:
             return Either.left(
                 ValidationError(
-                    "roi_collection", str(e), "failed to collect ROI metrics"
-                )
+                    "roi_collection",
+                    str(e),
+                    "failed to collect ROI metrics",
+                ),
             )
 
     async def _store_metric_value(
-        self, metric_id: MetricId, value: Any, source_tool: str
+        self,
+        metric_id: MetricId,
+        value: Any,
+        source_tool: str,
     ):
         """Store metric value with privacy protection."""
         if self.privacy_mode == PrivacyMode.STRICT:
@@ -242,16 +263,20 @@ class MetricsCollector:
 
     def _anonymize_metric_value(self, value: Any) -> Any:
         """Anonymize metric values for privacy protection."""
-        if isinstance(value, PerformanceMetrics | ROIMetrics):
-            # Remove or hash identifying information
-            if hasattr(value, "tool_name"):
-                # Hash tool name for privacy while maintaining analytics
-                import hashlib
+        if isinstance(value, PerformanceMetrics | ROIMetrics) and hasattr(
+            value,
+            "tool_name",
+        ):
+            # Hash tool name for privacy while maintaining analytics
+            import hashlib
 
-                tool_hash = hashlib.sha256(value.tool_name.encode()).hexdigest()[:8]
-                return value.__class__(
-                    **{**value.__dict__, "tool_name": f"tool_{tool_hash}"}
-                )
+            tool_hash = hashlib.sha256(value.tool_name.encode()).hexdigest()[:8]
+            return value.__class__(
+                **{
+                    **value.__dict__,
+                    "tool_name": f"tool_{tool_hash}",
+                },
+            )
         return value
 
     async def _process_metric_batch(self):
@@ -350,7 +375,7 @@ class MetricsCollector:
         avg_processing_time = 0
         if self.collection_stats["processing_time_ms"]:
             avg_processing_time = sum(
-                self.collection_stats["processing_time_ms"]
+                self.collection_stats["processing_time_ms"],
             ) / len(self.collection_stats["processing_time_ms"])
 
         return {

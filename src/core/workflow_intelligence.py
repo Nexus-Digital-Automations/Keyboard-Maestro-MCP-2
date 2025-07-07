@@ -1,5 +1,4 @@
-"""
-Workflow intelligence type definitions and contracts for AI-powered workflow analysis.
+"""Workflow intelligence type definitions and contracts for AI-powered workflow analysis.
 
 This module defines the comprehensive type system for intelligent workflow analysis,
 natural language processing, pattern recognition, and optimization capabilities.
@@ -117,7 +116,9 @@ class WorkflowComponent:
 
         if not (0.0 <= self.complexity_score <= 1.0):
             raise ValidationError(
-                "complexity_score", self.complexity_score, "must be between 0.0 and 1.0"
+                "complexity_score",
+                self.complexity_score,
+                "must be between 0.0 and 1.0",
             )
 
 
@@ -147,7 +148,9 @@ class WorkflowPattern:
         ]:
             if not (0.0 <= score_value <= 1.0):
                 raise ValidationError(
-                    score_name, score_value, "must be between 0.0 and 1.0"
+                    score_name,
+                    score_value,
+                    "must be between 0.0 and 1.0",
                 )
 
 
@@ -173,7 +176,9 @@ class OptimizationRecommendation:
     def __post_init__(self):
         if not (0.0 <= self.confidence_score <= 1.0):
             raise ValidationError(
-                "confidence_score", self.confidence_score, "must be between 0.0 and 1.0"
+                "confidence_score",
+                self.confidence_score,
+                "must be between 0.0 and 1.0",
             )
 
 
@@ -196,7 +201,9 @@ class NLPProcessingResult:
     def __post_init__(self):
         if not (0.0 <= self.confidence_score <= 1.0):
             raise ValidationError(
-                "confidence_score", self.confidence_score, "must be between 0.0 and 1.0"
+                "confidence_score",
+                self.confidence_score,
+                "must be between 0.0 and 1.0",
             )
 
 
@@ -228,7 +235,9 @@ class WorkflowAnalysisResult:
         ]:
             if not (0.0 <= score_value <= 1.0):
                 raise ValidationError(
-                    score_name, score_value, "must be between 0.0 and 1.0"
+                    score_name,
+                    score_value,
+                    "must be between 0.0 and 1.0",
                 )
 
 
@@ -256,12 +265,16 @@ class IntelligentWorkflowTemplate:
     def __post_init__(self):
         if not (0.0 <= self.success_rate <= 1.0):
             raise ValidationError(
-                "success_rate", self.success_rate, "must be between 0.0 and 1.0"
+                "success_rate",
+                self.success_rate,
+                "must be between 0.0 and 1.0",
             )
 
         if not (0.0 <= self.ai_confidence <= 1.0):
             raise ValidationError(
-                "ai_confidence", self.ai_confidence, "must be between 0.0 and 1.0"
+                "ai_confidence",
+                self.ai_confidence,
+                "must be between 0.0 and 1.0",
             )
 
         if not (0.0 <= self.effectiveness_rating <= 5.0):
@@ -285,7 +298,7 @@ class WorkflowIntelligenceConfig:
     maximum_analysis_time_ms: int = 5000
     nlp_language_models: list[str] = field(default_factory=lambda: ["en", "auto"])
     optimization_priorities: list[OptimizationGoal] = field(
-        default_factory=lambda: [OptimizationGoal.EFFICIENCY]
+        default_factory=lambda: [OptimizationGoal.EFFICIENCY],
     )
     pattern_discovery_threshold: float = 0.8
     enable_caching: bool = True
@@ -374,7 +387,8 @@ def calculate_workflow_complexity_score(components: list[WorkflowComponent]) -> 
 
     # Complexity factors
     component_count_factor = min(
-        1.0, len(components) / 20.0
+        1.0,
+        len(components) / 20.0,
     )  # Normalize by expected max
     avg_complexity = sum(c.complexity_score for c in components) / len(components)
     dependency_factor = (
@@ -408,22 +422,14 @@ def estimate_workflow_execution_time(components: list[WorkflowComponent]) -> tim
 class WorkflowIntelligenceError(Exception):
     """Base exception for workflow intelligence-related errors."""
 
-    pass
-
 
 class NLPProcessingError(WorkflowIntelligenceError):
     """Exception for natural language processing errors."""
-
-    pass
 
 
 class PatternRecognitionError(WorkflowIntelligenceError):
     """Exception for pattern recognition errors."""
 
-    pass
-
 
 class OptimizationError(WorkflowIntelligenceError):
     """Exception for workflow optimization errors."""
-
-    pass

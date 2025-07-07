@@ -1,5 +1,4 @@
-"""
-Gesture and advanced interaction controller for hardware automation.
+"""Gesture and advanced interaction controller for hardware automation.
 
 This module implements advanced gesture controls including multi-touch gestures,
 precise timing, accessibility integration, and complex interaction sequences
@@ -63,7 +62,7 @@ class GestureEvent:
     duration_ms: int = 500
     finger_count: int = 2
     event_id: str = field(
-        default_factory=lambda: f"gesture_{datetime.now().timestamp()}"
+        default_factory=lambda: f"gesture_{datetime.now().timestamp()}",
     )
 
     def __post_init__(self):
@@ -86,7 +85,7 @@ class TimingSequence:
     total_duration_ms: int
     synchronous: bool = False
     event_id: str = field(
-        default_factory=lambda: f"sequence_{datetime.now().timestamp()}"
+        default_factory=lambda: f"sequence_{datetime.now().timestamp()}",
     )
 
     def __post_init__(self):
@@ -106,10 +105,10 @@ class GestureController:
         self.active_gestures: dict[str, GestureEvent] = {}
         self.sequence_history: list[TimingSequence] = []
 
-    @require(lambda self, gesture: isinstance(gesture, GestureEvent))
+    @require(lambda __self, gesture: isinstance(gesture, GestureEvent))
     @ensure(
         lambda result: result.is_right()
-        or result.get_left().error_code.startswith("GESTURE_")
+        or result.get_left().error_code.startswith("GESTURE_"),
     )
     async def perform_gesture(
         self,
@@ -120,8 +119,7 @@ class GestureController:
         duration_ms: int = 500,
         finger_count: int = 2,
     ) -> Either[SecurityError, dict[str, Any]]:
-        """
-        Perform multi-touch gesture with validation and timing control.
+        """Perform multi-touch gesture with validation and timing control.
 
         Args:
             gesture_type: Type of gesture to perform
@@ -133,10 +131,11 @@ class GestureController:
 
         Returns:
             Either security error or operation result with gesture details
+
         """
         try:
             logger.info(
-                f"Gesture {gesture_type.value} at ({center_position.x}, {center_position.y})"
+                f"Gesture {gesture_type.value} at ({center_position.x}, {center_position.y})",
             )
 
             # Create gesture event
@@ -174,7 +173,8 @@ class GestureController:
                 "duration_ms": duration_ms,
                 "finger_count": finger_count,
                 "execution_time_ms": execution_result.get_right().get(
-                    "execution_time_ms", 0
+                    "execution_time_ms",
+                    0,
                 ),
                 "event_id": gesture_event.event_id,
                 "timestamp": datetime.now().isoformat(),
@@ -184,19 +184,21 @@ class GestureController:
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Error in gesture execution: {str(e)}")
+            logger.error(f"Error in gesture execution: {e!s}")
             return Either.left(
                 SecurityError(
-                    "GESTURE_EXECUTION_ERROR", f"Failed to execute gesture: {str(e)}"
-                )
+                    "GESTURE_EXECUTION_ERROR",
+                    f"Failed to execute gesture: {e!s}",
+                ),
             )
 
-    @require(lambda self, sequence: isinstance(sequence, TimingSequence))
+    @require(lambda __self, sequence: isinstance(sequence, TimingSequence))
     async def execute_timing_sequence(
-        self, events: list[tuple[str, dict[str, Any], int]], synchronous: bool = False
+        self,
+        events: list[tuple[str, dict[str, Any], int]],
+        synchronous: bool = False,
     ) -> Either[SecurityError, dict[str, Any]]:
-        """
-        Execute a precisely timed sequence of interactions.
+        """Execute a precisely timed sequence of interactions.
 
         Args:
             events: List of (operation, parameters, delay_ms) tuples
@@ -204,17 +206,20 @@ class GestureController:
 
         Returns:
             Either security error or sequence execution result
+
         """
         try:
             total_duration = sum(delay for _, _, delay in events)
 
             # Create timing sequence
             timing_sequence = TimingSequence(
-                events=events, total_duration_ms=total_duration, synchronous=synchronous
+                events=events,
+                total_duration_ms=total_duration,
+                synchronous=synchronous,
             )
 
             logger.info(
-                f"Executing timing sequence: {len(events)} events over {total_duration}ms"
+                f"Executing timing sequence: {len(events)} events over {total_duration}ms",
             )
 
             # Rate limit check
@@ -239,7 +244,8 @@ class GestureController:
                 "total_duration_ms": total_duration,
                 "synchronous": synchronous,
                 "execution_time_ms": execution_result.get_right().get(
-                    "execution_time_ms", 0
+                    "execution_time_ms",
+                    0,
                 ),
                 "event_id": timing_sequence.event_id,
                 "timestamp": datetime.now().isoformat(),
@@ -249,12 +255,12 @@ class GestureController:
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Error in timing sequence: {str(e)}")
+            logger.error(f"Error in timing sequence: {e!s}")
             return Either.left(
                 SecurityError(
                     "SEQUENCE_EXECUTION_ERROR",
-                    f"Failed to execute timing sequence: {str(e)}",
-                )
+                    f"Failed to execute timing sequence: {e!s}",
+                ),
             )
 
     async def create_accessibility_interaction(
@@ -264,8 +270,7 @@ class GestureController:
         position: Coordinate,
         accessibility_info: dict[str, Any] | None = None,
     ) -> Either[SecurityError, dict[str, Any]]:
-        """
-        Create accessibility-aware interaction for screen readers and assistive technology.
+        """Create accessibility-aware interaction for screen readers and assistive technology.
 
         Args:
             element_type: Type of UI element (button, textfield, etc.)
@@ -275,20 +280,26 @@ class GestureController:
 
         Returns:
             Either security error or accessibility interaction result
+
         """
         try:
             logger.info(f"Accessibility interaction: {action} on {element_type}")
 
             # Validate accessibility parameters
             validation_result = self._validate_accessibility_interaction(
-                element_type, action, position
+                element_type,
+                action,
+                position,
             )
             if validation_result.is_left():
                 return Either.left(validation_result.get_left())
 
             # Execute accessibility interaction
             execution_result = await self._execute_accessibility_interaction(
-                element_type, action, position, accessibility_info
+                element_type,
+                action,
+                position,
+                accessibility_info,
             )
             if execution_result.is_left():
                 return execution_result
@@ -301,7 +312,8 @@ class GestureController:
                 "position": position.to_dict(),
                 "accessibility_info": accessibility_info or {},
                 "execution_time_ms": execution_result.get_right().get(
-                    "execution_time_ms", 0
+                    "execution_time_ms",
+                    0,
                 ),
                 "timestamp": datetime.now().isoformat(),
             }
@@ -310,19 +322,19 @@ class GestureController:
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Error in accessibility interaction: {str(e)}")
+            logger.error(f"Error in accessibility interaction: {e!s}")
             return Either.left(
                 SecurityError(
                     "ACCESSIBILITY_ERROR",
-                    f"Failed to execute accessibility interaction: {str(e)}",
-                )
+                    f"Failed to execute accessibility interaction: {e!s}",
+                ),
             )
 
     def _validate_gesture(self, gesture: GestureEvent) -> Either[SecurityError, None]:
         """Validate gesture parameters for security and feasibility."""
         # Validate center position
         coord_result = HardwareEventValidator.validate_coordinate_safety(
-            gesture.center_position
+            gesture.center_position,
         )
         if coord_result.is_left():
             return Either.left(coord_result.get_left())
@@ -342,23 +354,28 @@ class GestureController:
                 SecurityError(
                     "INCOMPATIBLE_GESTURE",
                     f"Gesture {gesture.gesture_type.value} incompatible with {gesture.finger_count} fingers",
-                )
+                ),
             )
 
         # Validate magnitude is reasonable
-        if gesture.gesture_type in [GestureType.PINCH, GestureType.ROTATE]:
-            if not (0.1 <= gesture.magnitude <= 5.0):
-                return Either.left(
-                    SecurityError(
-                        "INVALID_MAGNITUDE",
-                        f"Magnitude {gesture.magnitude} outside safe range (0.1-5.0)",
-                    )
-                )
+        # SIM102 fix: Combine nested if statements
+        if gesture.gesture_type in [GestureType.PINCH, GestureType.ROTATE] and not (
+            0.1 <= gesture.magnitude <= 5.0
+        ):
+            return Either.left(
+                SecurityError(
+                    "INVALID_MAGNITUDE",
+                    f"Magnitude {gesture.magnitude} outside safe range (0.1-5.0)",
+                ),
+            )
 
         return Either.right(None)
 
     def _validate_accessibility_interaction(
-        self, element_type: str, action: str, position: Coordinate
+        self,
+        element_type: str,
+        action: str,
+        position: Coordinate,
     ) -> Either[SecurityError, None]:
         """Validate accessibility interaction parameters."""
         # Valid element types
@@ -382,7 +399,7 @@ class GestureController:
                 SecurityError(
                     "INVALID_ELEMENT_TYPE",
                     f"Element type '{element_type}' not supported",
-                )
+                ),
             )
 
         # Valid accessibility actions
@@ -402,8 +419,9 @@ class GestureController:
         if action.lower() not in valid_actions:
             return Either.left(
                 SecurityError(
-                    "INVALID_ACCESSIBILITY_ACTION", f"Action '{action}' not supported"
-                )
+                    "INVALID_ACCESSIBILITY_ACTION",
+                    f"Action '{action}' not supported",
+                ),
             )
 
         # Validate position
@@ -414,7 +432,8 @@ class GestureController:
         return Either.right(None)
 
     async def _execute_gesture(
-        self, gesture: GestureEvent
+        self,
+        gesture: GestureEvent,
     ) -> Either[IntegrationError, dict[str, Any]]:
         """Execute gesture with proper timing and AppleScript generation."""
         try:
@@ -446,18 +465,20 @@ class GestureController:
                     "applescript_generated": True,
                     "execution_time_ms": execution_time,
                     "gesture_executed": True,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
                 IntegrationError(
-                    "GESTURE_EXECUTION_ERROR", f"Failed to execute gesture: {str(e)}"
-                )
+                    "GESTURE_EXECUTION_ERROR",
+                    f"Failed to execute gesture: {e!s}",
+                ),
             )
 
     async def _execute_timing_sequence(
-        self, sequence: TimingSequence
+        self,
+        sequence: TimingSequence,
     ) -> Either[IntegrationError, dict[str, Any]]:
         """Execute timing sequence with precise event scheduling."""
         try:
@@ -465,7 +486,8 @@ class GestureController:
 
             if sequence.synchronous:
                 # Execute events sequentially with delays
-                for operation, params, delay_ms in sequence.events:
+                # B007 fix: Mark unused loop variable with underscore
+                for operation, _params, delay_ms in sequence.events:
                     await asyncio.sleep(delay_ms / 1000.0)
                     logger.debug(f"Sequence event: {operation} with delay {delay_ms}ms")
             else:
@@ -473,7 +495,7 @@ class GestureController:
                 tasks = []
                 for _i, (operation, params, delay_ms) in enumerate(sequence.events):
                     task = asyncio.create_task(
-                        self._execute_sequence_event(operation, params, delay_ms)
+                        self._execute_sequence_event(operation, params, delay_ms),
                     )
                     tasks.append(task)
 
@@ -486,15 +508,15 @@ class GestureController:
                     "execution_time_ms": execution_time,
                     "events_executed": len(sequence.events),
                     "sequence_completed": True,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
                 IntegrationError(
                     "SEQUENCE_EXECUTION_ERROR",
-                    f"Failed to execute timing sequence: {str(e)}",
-                )
+                    f"Failed to execute timing sequence: {e!s}",
+                ),
             )
 
     async def _execute_accessibility_interaction(
@@ -510,7 +532,10 @@ class GestureController:
 
             # Generate AppleScript for accessibility interaction
             self._generate_accessibility_applescript(
-                element_type, action, position, accessibility_info
+                element_type,
+                action,
+                position,
+                accessibility_info,
             )
 
             # Simulate accessibility interaction
@@ -523,15 +548,15 @@ class GestureController:
                     "applescript_generated": True,
                     "execution_time_ms": execution_time,
                     "accessibility_executed": True,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
                 IntegrationError(
                     "ACCESSIBILITY_EXECUTION_ERROR",
-                    f"Failed to execute accessibility interaction: {str(e)}",
-                )
+                    f"Failed to execute accessibility interaction: {e!s}",
+                ),
             )
 
     async def _simulate_pinch_gesture(self, gesture: GestureEvent):
@@ -573,7 +598,10 @@ class GestureController:
             await asyncio.sleep(step_duration)
 
     async def _execute_sequence_event(
-        self, operation: str, params: dict[str, Any], delay_ms: int
+        self,
+        operation: str,
+        params: dict[str, Any],
+        delay_ms: int,
     ):
         """Execute a single event in a timing sequence."""
         await asyncio.sleep(delay_ms / 1000.0)

@@ -1,5 +1,4 @@
-"""
-Computer Vision Architecture - TASK_61 Phase 1 Core Implementation
+"""Computer Vision Architecture - TASK_61 Phase 1 Core Implementation.
 
 Advanced computer vision type definitions and architectural framework for AI-powered image understanding.
 Provides comprehensive types, enums, and utilities for object detection, scene analysis, and intelligent image processing.
@@ -202,28 +201,20 @@ class VisionError(Exception):
 class ObjectDetectionError(VisionError):
     """Error in object detection processing."""
 
-    pass
-
 
 @dataclass(frozen=True)
 class SceneAnalysisError(VisionError):
     """Error in scene analysis processing."""
-
-    pass
 
 
 @dataclass(frozen=True)
 class ModelLoadingError(VisionError):
     """Error in computer vision model loading."""
 
-    pass
-
 
 @dataclass(frozen=True)
 class ImageProcessingError(VisionError):
     """Error in image processing operations."""
-
-    pass
 
 
 @dataclass(frozen=True)
@@ -440,7 +431,7 @@ def validate_image_content(image_data: bytes) -> Either[VisionError, ImageConten
 
         if len(image_data) > 100 * 1024 * 1024:  # 100MB limit
             return Either.left(
-                VisionError("Image exceeds maximum size", "IMAGE_TOO_LARGE")
+                VisionError("Image exceeds maximum size", "IMAGE_TOO_LARGE"),
             )
 
         # Check for malicious content patterns
@@ -455,15 +446,16 @@ def validate_image_content(image_data: bytes) -> Either[VisionError, ImageConten
             if pattern in image_data[:1024]:  # Check first 1KB
                 return Either.left(
                     VisionError(
-                        "Potentially malicious content detected", "MALICIOUS_CONTENT"
-                    )
+                        "Potentially malicious content detected",
+                        "MALICIOUS_CONTENT",
+                    ),
                 )
 
         return Either.right(create_image_content(image_data))
 
     except Exception as e:
         return Either.left(
-            VisionError(f"Image validation failed: {str(e)}", "VALIDATION_ERROR")
+            VisionError(f"Image validation failed: {e!s}", "VALIDATION_ERROR"),
         )
 
 
@@ -489,14 +481,16 @@ def calculate_iou(box1: BoundingBox, box2: BoundingBox) -> float:
 
 
 def filter_objects_by_confidence(
-    objects: list[DetectedObject], threshold: float
+    objects: list[DetectedObject],
+    threshold: float,
 ) -> list[DetectedObject]:
     """Filter detected objects by confidence threshold."""
     return [obj for obj in objects if obj.confidence >= threshold]
 
 
 def non_maximum_suppression(
-    objects: list[DetectedObject], iou_threshold: float = 0.5
+    objects: list[DetectedObject],
+    iou_threshold: float = 0.5,
 ) -> list[DetectedObject]:
     """Apply Non-Maximum Suppression to remove overlapping detections."""
     if not objects:
@@ -525,7 +519,8 @@ def non_maximum_suppression(
 
 
 def merge_overlapping_boxes(
-    boxes: list[BoundingBox], iou_threshold: float = 0.3
+    boxes: list[BoundingBox],
+    iou_threshold: float = 0.3,
 ) -> list[BoundingBox]:
     """Merge overlapping bounding boxes."""
     if not boxes:
@@ -575,18 +570,21 @@ def merge_overlapping_boxes(
 
 
 def calculate_scene_complexity(
-    scene: SceneAnalysis, objects: list[DetectedObject]
+    scene: SceneAnalysis,
+    objects: list[DetectedObject],
 ) -> float:
     """Calculate scene complexity score based on objects and scene analysis."""
     # Base complexity from number of objects
     object_complexity = min(
-        1.0, len(objects) / 20.0
+        1.0,
+        len(objects) / 20.0,
     )  # Normalize to 20 objects = max complexity
 
     # Complexity from object diversity
     unique_categories = len({obj.category for obj in objects})
     diversity_complexity = min(
-        1.0, unique_categories / 10.0
+        1.0,
+        unique_categories / 10.0,
     )  # 10+ categories = max diversity
 
     # Complexity from confidence distribution
@@ -600,18 +598,34 @@ def calculate_scene_complexity(
     else:
         confidence_complexity = 0.0
 
-    # Combined complexity score
+    # Scene analysis complexity factors
+    scene_base_complexity = scene.complexity_score
+
+    # Color palette complexity (more colors = more complex)
+    color_complexity = min(1.0, len(scene.color_palette) / 10.0)
+
+    # Lighting conditions complexity (more conditions = more complex)
+    lighting_complexity = min(1.0, len(scene.lighting_conditions) / 5.0)
+
+    # Environment attributes complexity
+    env_complexity = min(1.0, len(scene.environment_attributes) / 8.0)
+
+    # Combined complexity score with scene analysis integration
     complexity = (
-        object_complexity * 0.4
-        + diversity_complexity * 0.4
-        + confidence_complexity * 0.2
+        object_complexity * 0.25
+        + diversity_complexity * 0.25
+        + confidence_complexity * 0.15
+        + scene_base_complexity * 0.15
+        + color_complexity * 0.08
+        + lighting_complexity * 0.08
+        + env_complexity * 0.04
     )
 
     return min(1.0, complexity)
 
 
 @require(
-    lambda processing_result: isinstance(processing_result, VisionProcessingResult)
+    lambda processing_result: isinstance(processing_result, VisionProcessingResult),
 )
 def validate_processing_result(processing_result: VisionProcessingResult) -> bool:
     """Validate computer vision processing result integrity."""

@@ -1,5 +1,4 @@
-"""
-Intelligent caching system for AI operations.
+"""Intelligent caching system for AI operations.
 
 This module provides comprehensive caching capabilities for AI operations
 including multi-level caching, intelligent cache management, predictive
@@ -14,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import pickle
 import threading
 import zlib
@@ -26,6 +26,8 @@ from typing import Any, NewType
 
 from ..core.ai_integration import AIOperation
 from ..core.contracts import require
+
+logger = logging.getLogger(__name__)
 
 # Branded Types for Caching System
 CacheKey = NewType("CacheKey", str)
@@ -85,7 +87,6 @@ class CacheEntry:
     @require(lambda self: self.access_count >= 0)
     def __post_init__(self):
         """Validate cache entry."""
-        pass
 
     def is_expired(self) -> bool:
         """Check if cache entry is expired."""
@@ -143,7 +144,9 @@ class CacheManager:
     """Base cache manager with common functionality."""
 
     def __init__(
-        self, max_size: int = 1000, eviction_policy: EvictionPolicy = EvictionPolicy.LRU
+        self,
+        max_size: int = 1000,
+        eviction_policy: EvictionPolicy = EvictionPolicy.LRU,
     ):
         self.max_size = max_size
         self.eviction_policy = eviction_policy
@@ -153,7 +156,10 @@ class CacheManager:
         self.namespace_stats: dict[CacheNamespace, CacheStatistics] = {}
 
     def _generate_key(
-        self, operation: AIOperation, input_data: Any, parameters: dict[str, Any] = None
+        self,
+        operation: AIOperation,
+        input_data: Any,
+        parameters: dict[str, Any] = None,
     ) -> CacheKey:
         """Generate cache key for AI operation."""
         # Create deterministic key from operation and inputs
@@ -189,7 +195,7 @@ class CacheManager:
             # OrderedDict maintains insertion order, first item is least recently used
             return next(iter(self.cache))
 
-        elif self.eviction_policy == EvictionPolicy.LFU:
+        if self.eviction_policy == EvictionPolicy.LFU:
             # Find entry with lowest access count
             min_access = min(entry.access_count for entry in self.cache.values())
             for key, entry in self.cache.items():
@@ -266,7 +272,9 @@ class CacheManager:
                 ns_stats.entry_count -= 1
 
     def get(
-        self, key: CacheKey, namespace: CacheNamespace = CacheNamespace("default")
+        self,
+        key: CacheKey,
+        namespace: CacheNamespace = CacheNamespace("default"),
     ) -> Any | None:
         """Get value from cache."""
         with self._lock:
@@ -303,10 +311,9 @@ class CacheManager:
                 self.statistics.update_hit_ratio()
 
                 return entry.value
-            else:
-                self.statistics.misses += 1
-                self.statistics.update_hit_ratio()
-                return None
+            self.statistics.misses += 1
+            self.statistics.update_hit_ratio()
+            return None
 
     def put(
         self,
@@ -368,7 +375,9 @@ class CacheManager:
             return True
 
     def invalidate(
-        self, key: CacheKey, namespace: CacheNamespace = CacheNamespace("default")
+        self,
+        key: CacheKey,
+        namespace: CacheNamespace = CacheNamespace("default"),
     ) -> bool:
         """Invalidate specific cache entry."""
         with self._lock:
@@ -435,10 +444,12 @@ class MultiLevelCache:
 
     def __init__(self, cache_dir: Path | None = None):
         self.l1_cache = CacheManager(
-            max_size=500, eviction_policy=EvictionPolicy.LRU
+            max_size=500,
+            eviction_policy=EvictionPolicy.LRU,
         )  # Fast memory
         self.l2_cache = CacheManager(
-            max_size=2000, eviction_policy=EvictionPolicy.INTELLIGENT
+            max_size=2000,
+            eviction_policy=EvictionPolicy.INTELLIGENT,
         )  # Compressed
         self.cache_dir = cache_dir or Path("./cache")
         self.cache_dir.mkdir(exist_ok=True)
@@ -451,7 +462,9 @@ class MultiLevelCache:
         self.disk_cache_enabled = True
 
     async def get(
-        self, key: CacheKey, namespace: CacheNamespace = CacheNamespace("default")
+        self,
+        key: CacheKey,
+        namespace: CacheNamespace = CacheNamespace("default"),
     ) -> Any | None:
         """Get value from multi-level cache."""
         # Try L1 first
@@ -522,7 +535,9 @@ class MultiLevelCache:
             return pickle.loads(compressed_data)  # noqa: S301
 
     async def _get_from_disk(
-        self, key: CacheKey, namespace: CacheNamespace
+        self,
+        key: CacheKey,
+        namespace: CacheNamespace,
     ) -> Any | None:
         """Get value from disk cache."""
         try:
@@ -576,7 +591,9 @@ class MultiLevelCache:
             # Don't fail the cache operation - disk caching is optional
 
     def invalidate(
-        self, key: CacheKey, namespace: CacheNamespace = CacheNamespace("default")
+        self,
+        key: CacheKey,
+        namespace: CacheNamespace = CacheNamespace("default"),
     ) -> bool:
         """Invalidate key from all cache levels."""
         l1_result = self.l1_cache.invalidate(key, namespace)
@@ -629,7 +646,10 @@ class IntelligentCacheManager:
         self.ai_cache_namespace = CacheNamespace("ai_operations")
 
     async def get_ai_result(
-        self, operation: AIOperation, input_data: Any, parameters: dict[str, Any] = None
+        self,
+        operation: AIOperation,
+        input_data: Any,
+        parameters: dict[str, Any] = None,
     ) -> Any | None:
         """Get AI result from cache or compute if missing."""
         cache_key = self._generate_ai_cache_key(operation, input_data, parameters)
@@ -664,11 +684,18 @@ class IntelligentCacheManager:
         tags = self._generate_cache_tags(operation, input_data, parameters)
 
         return await self.cache.put(
-            cache_key, result, ttl=ttl, namespace=self.ai_cache_namespace, tags=tags
+            cache_key,
+            result,
+            ttl=ttl,
+            namespace=self.ai_cache_namespace,
+            tags=tags,
         )
 
     def _generate_ai_cache_key(
-        self, operation: AIOperation, input_data: Any, parameters: dict[str, Any] = None
+        self,
+        operation: AIOperation,
+        input_data: Any,
+        parameters: dict[str, Any] = None,
     ) -> CacheKey:
         """Generate cache key for AI operation."""
         return self.cache.l1_cache._generate_key(operation, input_data, parameters)
@@ -678,7 +705,7 @@ class IntelligentCacheManager:
         # Different operations have different cache lifetimes
         ttl_map = {
             AIOperation.ANALYZE: timedelta(
-                hours=6
+                hours=6,
             ),  # Analysis results change moderately
             AIOperation.GENERATE: timedelta(hours=2),  # Generation is more dynamic
             AIOperation.CLASSIFY: timedelta(hours=12),  # Classification is more stable
@@ -689,7 +716,10 @@ class IntelligentCacheManager:
         return ttl_map.get(operation, timedelta(hours=4))
 
     def _generate_cache_tags(
-        self, operation: AIOperation, input_data: Any, parameters: dict[str, Any] = None
+        self,
+        operation: AIOperation,
+        input_data: Any,
+        parameters: dict[str, Any] = None,
     ) -> set[str]:
         """Generate cache tags for intelligent invalidation."""
         tags = {operation.value}
@@ -751,7 +781,9 @@ class IntelligentCacheManager:
                 pass
 
     def _predict_upcoming_access(
-        self, access_times: list[datetime], now: datetime
+        self,
+        access_times: list[datetime],
+        now: datetime,
     ) -> bool:
         """Predict if cache key will be accessed soon based on patterns."""
         if len(access_times) < 3:
@@ -769,7 +801,7 @@ class IntelligentCacheManager:
         # Check if intervals are relatively consistent (within 50% variance)
         avg_interval = sum(intervals) / len(intervals)
         variance = sum((interval - avg_interval) ** 2 for interval in intervals) / len(
-            intervals
+            intervals,
         )
         std_dev = variance**0.5
 

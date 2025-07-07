@@ -1,5 +1,4 @@
-"""
-Token Processing MCP Tools
+"""Token Processing MCP Tools.
 
 Provides secure token processing capabilities for Keyboard Maestro MCP including
 token parsing, context-aware processing, and comprehensive security validation.
@@ -35,17 +34,20 @@ async def km_token_processor(
     variables: Annotated[
         dict[str, str],
         Field(
-            default_factory=dict, description="Variable values for token substitution"
+            default_factory=dict,
+            description="Variable values for token substitution",
         ),
     ] = None,
     use_km_engine: Annotated[
         bool,
         Field(
-            default=True, description="Use Keyboard Maestro's token processing engine"
+            default=True,
+            description="Use Keyboard Maestro's token processing engine",
         ),
     ] = True,
     preview_only: Annotated[
-        bool, Field(default=False, description="Preview tokens without processing")
+        bool,
+        Field(default=False, description="Preview tokens without processing"),
     ] = False,
     security_level: Annotated[
         str,
@@ -57,8 +59,7 @@ async def km_token_processor(
     ] = "standard",
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Process Keyboard Maestro tokens with comprehensive security and context support.
+    """Process Keyboard Maestro tokens with comprehensive security and context support.
 
     Features:
     - Secure token parsing with injection prevention
@@ -82,7 +83,7 @@ async def km_token_processor(
         variables = {}
     if ctx:
         await ctx.info(
-            f"Processing tokens in text: {text[:50]}{'...' if len(text) > 50 else ''}"
+            f"Processing tokens in text: {text[:50]}{'...' if len(text) > 50 else ''}",
         )
 
     try:
@@ -105,16 +106,18 @@ async def km_token_processor(
         # Create token expression with validation
         try:
             token_expr = TokenExpression(
-                text=text, context=ProcessingContext(context), variables=variables
+                text=text,
+                context=ProcessingContext(context),
+                variables=variables,
             )
         except ValueError as e:
             return {
                 "success": False,
                 "error": {
                     "code": "VALIDATION_ERROR",
-                    "message": f"Token expression validation failed: {str(e)}",
+                    "message": f"Token expression validation failed: {e!s}",
                     "details": {
-                        "text": text[:100] + "..." if len(text) > 100 else text
+                        "text": text[:100] + "..." if len(text) > 100 else text,
                     },
                 },
                 "metadata": {"timestamp": datetime.now(UTC).isoformat()},
@@ -227,12 +230,12 @@ async def km_token_processor(
 
         if ctx:
             await ctx.info(
-                f"Token processing complete: {result.substitutions_made} substitutions made"
+                f"Token processing complete: {result.substitutions_made} substitutions made",
             )
 
             if result.has_security_issues():
                 await ctx.info(
-                    f"Security warnings generated: {len(result.security_warnings)}"
+                    f"Security warnings generated: {len(result.security_warnings)}",
                 )
 
         return {
@@ -260,7 +263,7 @@ async def km_token_processor(
 
     except Exception as e:
         if ctx:
-            await ctx.error(f"Token processing failed: {str(e)}")
+            await ctx.error(f"Token processing failed: {e!s}")
 
         return {
             "success": False,
@@ -280,14 +283,14 @@ async def km_token_processor(
 
 
 async def km_token_stats(ctx: Context = None) -> dict[str, Any]:
-    """
-    Get token processing statistics and system status.
+    """Get token processing statistics and system status.
 
     Returns:
     - Processing statistics (total processed, errors, security violations)
     - Engine status and availability
     - Performance metrics
     - Security summary
+
     """
     if ctx:
         await ctx.info("Retrieving token processing statistics")
@@ -340,7 +343,7 @@ async def km_token_stats(ctx: Context = None) -> dict[str, Any]:
             "success": False,
             "error": {
                 "code": "STATS_ERROR",
-                "message": f"Failed to retrieve statistics: {str(e)}",
+                "message": f"Failed to retrieve statistics: {e!s}",
             },
             "metadata": {"timestamp": datetime.now(UTC).isoformat()},
         }

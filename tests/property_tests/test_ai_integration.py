@@ -1,11 +1,13 @@
-"""
-Property-based tests for AI integration system.
+"""Property-based tests for AI integration system.
 
 This module provides comprehensive property-based testing for the AI/ML
 integration system using Hypothesis to validate behavior across input ranges.
 Tests security boundaries, performance characteristics, and functional correctness.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock
 
@@ -51,7 +53,7 @@ from src.server.tools.ai_processing_tools import AIProcessingManager
 
 # Hypothesis strategies for AI types
 @st.composite
-def ai_model_strategy(draw):
+def ai_model_strategy(draw) -> Any:
     """Generate valid AI model configurations."""
     return AIModel(
         model_id=AIModelId(
@@ -60,8 +62,8 @@ def ai_model_strategy(draw):
                     min_size=5,
                     max_size=20,
                     alphabet=st.characters(whitelist_categories="L"),
-                )
-            )
+                ),
+            ),
         ),
         model_type=draw(st.sampled_from(AIModelType)),
         model_name=draw(st.text(min_size=3, max_size=30)),
@@ -69,7 +71,7 @@ def ai_model_strategy(draw):
         max_tokens=TokenCount(draw(st.integers(min_value=512, max_value=32768))),
         cost_per_input_token=CostAmount(draw(st.floats(min_value=0.0, max_value=0.01))),
         cost_per_output_token=CostAmount(
-            draw(st.floats(min_value=0.0, max_value=0.01))
+            draw(st.floats(min_value=0.0, max_value=0.01)),
         ),
         context_window=TokenCount(draw(st.integers(min_value=512, max_value=128000))),
         rate_limit_per_minute=draw(st.integers(min_value=1, max_value=10000)),
@@ -77,7 +79,7 @@ def ai_model_strategy(draw):
 
 
 @st.composite
-def ai_request_strategy(draw):
+def ai_request_strategy(draw) -> Any:
     """Generate valid AI request configurations."""
     model = draw(ai_model_strategy())
     operation = draw(st.sampled_from(AIOperation))
@@ -92,15 +94,16 @@ def ai_request_strategy(draw):
             st.one_of(
                 st.text(min_size=1, max_size=1000),
                 st.dictionaries(
-                    st.text(min_size=1, max_size=20), st.text(min_size=1, max_size=100)
+                    st.text(min_size=1, max_size=20),
+                    st.text(min_size=1, max_size=100),
                 ),
                 st.lists(st.text(min_size=1, max_size=100), min_size=1, max_size=10),
-            )
+            ),
         )
 
     return AIRequest(
         request_id=AIRequestId(
-            f"test_req_{draw(st.integers(min_value=1000, max_value=9999))}"
+            f"test_req_{draw(st.integers(min_value=1000, max_value=9999))}",
         ),
         operation=operation,
         input_data=input_data,
@@ -109,8 +112,9 @@ def ai_request_strategy(draw):
         temperature=draw(st.floats(min_value=0.0, max_value=2.0)),
         max_tokens=draw(
             st.one_of(
-                st.none(), st.integers(min_value=1, max_value=8192).map(TokenCount)
-            )
+                st.none(),
+                st.integers(min_value=1, max_value=8192).map(TokenCount),
+            ),
         ),
         privacy_mode=draw(st.booleans()),
     )
@@ -120,7 +124,7 @@ class TestAIIntegrationProperties:
     """Property-based tests for AI integration components."""
 
     @given(ai_model_strategy())
-    def test_ai_model_properties(self, model):
+    def test_ai_model_properties(self, model) -> None:
         """Property: AI models should have consistent cost calculations."""
         # Test cost estimation properties
         input_tokens = TokenCount(100)
@@ -140,7 +144,7 @@ class TestAIIntegrationProperties:
             assert model.estimate_cost(TokenCount(0), TokenCount(0)) == 0.0
 
     @given(ai_model_strategy(), st.sampled_from(AIOperation))
-    def test_model_operation_support(self, model, operation):
+    def test_model_operation_support(self, model, operation) -> None:
         """Property: Model operation support should be consistent."""
         # Test with different input sizes
         model.can_handle_operation(operation, 100)
@@ -156,7 +160,7 @@ class TestAIIntegrationProperties:
             assert model.can_handle_operation(operation, 100)
 
     @given(ai_request_strategy())
-    def test_ai_request_validation(self, request):
+    def test_ai_request_validation(self, request) -> None:
         """Property: AI request validation should be consistent."""
         validation_result = request.validate_for_model()
 
@@ -175,7 +179,7 @@ class TestAIIntegrationProperties:
             assert request.max_tokens > 0
 
     @given(st.text(min_size=1, max_size=1000))
-    def test_input_data_preparation(self, text_input):
+    def test_input_data_preparation(self, text_input) -> None:
         """Property: Input data preparation should preserve essential content."""
         # Create a simple request for testing
         model = AIModel(
@@ -209,7 +213,7 @@ class TestSecurityValidatorProperties:
     """Property-based tests for security validation."""
 
     @given(st.text(min_size=0, max_size=10000))
-    def test_pii_detection_properties(self, text):
+    def test_pii_detection_properties(self, text) -> None:
         """Property: PII detection should handle various text inputs safely."""
         detector = PIIDetector()
 
@@ -226,7 +230,7 @@ class TestSecurityValidatorProperties:
             assert 0.0 <= threat.confidence <= 1.0
 
     @given(st.text(min_size=0, max_size=5000))
-    def test_content_filter_properties(self, content):
+    def test_content_filter_properties(self, content) -> None:
         """Property: Content filtering should be consistent and safe."""
         filter_system = ContentFilter()
 
@@ -243,7 +247,7 @@ class TestSecurityValidatorProperties:
             assert len(threat.description) > 0
 
     @given(ai_request_strategy())
-    async def test_security_validation_properties(self, request):
+    async def test_security_validation_properties(self, request) -> None:
         """Property: Security validation should provide consistent results."""
         validator = AISecurityValidator()
 
@@ -267,7 +271,7 @@ class TestSecurityValidatorProperties:
                 assert not scan_result.is_safe
 
     @given(st.lists(st.text(min_size=5, max_size=100), min_size=1, max_size=20))
-    def test_threat_aggregation_properties(self, threat_descriptions):
+    def test_threat_aggregation_properties(self, threat_descriptions) -> None:
         """Property: Threat aggregation should scale appropriately."""
         threats = []
 
@@ -297,12 +301,12 @@ class TestModelManagerProperties:
     """Property-based tests for AI model management."""
 
     @pytest.fixture
-    def model_manager(self):
+    def model_manager(self) -> Any:
         """Create model manager for testing."""
         return AIModelManager()
 
     @given(st.lists(ai_model_strategy(), min_size=1, max_size=10))
-    def test_model_selection_properties(self, models):
+    def test_model_selection_properties(self, models) -> None:
         """Property: Model selection should be deterministic and optimal."""
         manager = AIModelManager()
 
@@ -329,7 +333,7 @@ class TestModelManagerProperties:
         st.integers(min_value=1, max_value=1000),
         st.floats(min_value=0.0, max_value=1.0),
     )
-    def test_usage_tracking_properties(self, token_count, cost):
+    def test_usage_tracking_properties(self, token_count, cost) -> None:
         """Property: Usage tracking should accumulate correctly."""
         tracker = ModelUsageTracker(AIModelId("test_model"))
 
@@ -354,13 +358,13 @@ class TestTextProcessorProperties:
     """Property-based tests for text processing."""
 
     @pytest.fixture
-    def text_processor(self):
+    def text_processor(self) -> Any:
         """Create text processor for testing."""
         mock_manager = Mock(spec=AIModelManager)
         return TextProcessor(mock_manager)
 
     @given(st.text(min_size=1, max_size=2000), st.sampled_from(TextAnalysisType))
-    def test_analysis_prompt_generation(self, text, analysis_type):
+    def test_analysis_prompt_generation(self, text, analysis_type) -> None:
         """Property: Analysis prompts should be well-formed."""
         processor = TextProcessor(Mock())
 
@@ -377,10 +381,13 @@ class TestTextProcessorProperties:
         assert "JSON" in prompt or "json" in prompt
 
     @given(st.text(min_size=1, max_size=100), st.sampled_from(TextGenerationStyle))
-    def test_generation_request_properties(self, prompt, style):
+    def test_generation_request_properties(self, prompt, style) -> None:
         """Property: Generation requests should be valid."""
         request = TextGenerationRequest(
-            prompt=prompt, style=style, max_length=500, temperature=0.7
+            prompt=prompt,
+            style=style,
+            max_length=500,
+            temperature=0.7,
         )
 
         # System prompt should be appropriate for style
@@ -407,7 +414,7 @@ class TestImageAnalyzerProperties:
     """Property-based tests for image analysis."""
 
     @given(st.text(min_size=1, max_size=1000))
-    def test_image_path_validation(self, path_input):
+    def test_image_path_validation(self, path_input) -> None:
         """Property: Image path validation should be secure."""
         validator = ImageSecurityValidator()
 
@@ -426,7 +433,7 @@ class TestImageAnalyzerProperties:
             pass  # This is acceptable behavior
 
     @given(st.sampled_from(ImageAnalysisType))
-    def test_analysis_prompt_generation(self, analysis_type):
+    def test_analysis_prompt_generation(self, analysis_type) -> None:
         """Property: Image analysis prompts should be appropriate."""
         analyzer = ImageAnalyzer(Mock())
 
@@ -474,9 +481,10 @@ class AISystemStateMachine(RuleBasedStateMachine):
         self.manager.image_analyzer = Mock(spec=ImageAnalyzer)
 
     @rule(
-        target=requests, operation=st.sampled_from(["analyze", "generate", "classify"])
+        target=requests,
+        operation=st.sampled_from(["analyze", "generate", "classify"]),
     )
-    def create_request(self, operation):
+    def create_request(self, operation) -> None:
         """Create AI processing requests."""
         request_data = {
             "operation": operation,
@@ -509,7 +517,7 @@ class TestAIIntegrationE2E:
     """End-to-end property tests for AI integration."""
 
     @given(st.text(min_size=10, max_size=500))
-    async def test_text_analysis_workflow(self, input_text):
+    async def test_text_analysis_workflow(self, input_text) -> None:
         """Property: Text analysis workflow should be robust."""
         # Skip if text is too problematic
         assume(len(input_text.strip()) > 5)
@@ -530,8 +538,8 @@ class TestAIIntegrationE2E:
                     processing_time=0.1,
                     model_used="mock_model",
                     get_metadata=Mock(return_value={}),
-                )
-            )
+                ),
+            ),
         )
 
         manager.text_processor = mock_processor
@@ -539,9 +547,11 @@ class TestAIIntegrationE2E:
         manager.security_validator.validate_request = AsyncMock(
             return_value=Either.right(
                 Mock(
-                    get_summary=Mock(return_value={"is_safe": True, "risk_score": 10.0})
-                )
-            )
+                    get_summary=Mock(
+                        return_value={"is_safe": True, "risk_score": 10.0}
+                    ),
+                ),
+            ),
         )
 
         # Test processing
@@ -561,5 +571,10 @@ class TestAIIntegrationE2E:
 if __name__ == "__main__":
     # Run property tests with custom settings
     pytest.main(
-        [__file__, "-v", "--hypothesis-show-statistics", "--hypothesis-seed=42"]
+        [
+            __file__,
+            "-v",
+            "--hypothesis-show-statistics",
+            "--hypothesis-seed=42",
+        ],
     )

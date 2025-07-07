@@ -1,5 +1,4 @@
-"""
-Advanced window management tools for sophisticated multi-monitor workflows.
+"""Advanced window management tools for sophisticated multi-monitor workflows.
 
 This module implements the km_window_manager_advanced MCP tool, enabling AI to
 create complex window arrangements, cross-monitor workflows, and intelligent
@@ -45,10 +44,10 @@ class AdvancedWindowProcessor:
         self.positioning = AdvancedPositioning(self.display_manager)
         self.workspace_manager = WorkspaceManager(self.positioning)
 
-    @require(lambda self, operation: isinstance(operation, str) and len(operation) > 0)
+    @require(lambda __self, operation: isinstance(operation, str) and len(operation) > 0)
     @require(
-        lambda self, window_targets: isinstance(window_targets, list)
-        and len(window_targets) > 0
+        lambda _self, window_targets: isinstance(window_targets, list)
+        and len(window_targets) > 0,
     )
     async def process_advanced_window_request(
         self,
@@ -63,8 +62,7 @@ class AdvancedWindowProcessor:
         save_layout: bool = False,
         ctx: Context | None = None,
     ) -> Either[MCPError, dict[str, Any]]:
-        """
-        Process advanced window management with comprehensive validation and security.
+        """Process advanced window management with comprehensive validation and security.
 
         Architecture: Multi-monitor with intelligent positioning and workspace management
         Security: Window identifier validation, display bounds checking, operation validation
@@ -103,7 +101,8 @@ class AdvancedWindowProcessor:
             # Validate display targets if provided
             if target_displays:
                 display_result = await _validate_display_targets(
-                    target_displays, self.display_manager
+                    target_displays,
+                    self.display_manager,
                 )
                 if display_result.is_left():
                     return {
@@ -127,19 +126,29 @@ class AdvancedWindowProcessor:
             # Process operation based on type
             if operation_type == "grid_layout":
                 result = await self._process_grid_layout(
-                    sanitized_targets, grid_pattern, target_displays, preserve_ratios
+                    sanitized_targets,
+                    grid_pattern,
+                    target_displays,
+                    preserve_ratios,
                 )
             elif operation_type == "cross_monitor_move":
                 result = await self._process_cross_monitor_move(
-                    sanitized_targets, target_displays, preserve_ratios
+                    sanitized_targets,
+                    target_displays,
+                    preserve_ratios,
                 )
             elif operation_type == "smart_arrange":
                 result = await self._process_smart_arrangement(
-                    sanitized_targets, positioning_rules, target_displays
+                    sanitized_targets,
+                    positioning_rules,
+                    target_displays,
                 )
             elif operation_type == "workspace_setup":
                 result = await self._process_workspace_operation(
-                    workspace_name, sanitized_targets, target_displays, save_layout
+                    workspace_name,
+                    sanitized_targets,
+                    target_displays,
+                    save_layout,
                 )
             else:
                 return {
@@ -159,7 +168,7 @@ class AdvancedWindowProcessor:
             processing_time = (time.time() - start_time) * 1000
 
             logger.info(
-                f"Advanced window operation completed in {processing_time:.2f}ms"
+                f"Advanced window operation completed in {processing_time:.2f}ms",
             )
 
             return {
@@ -183,11 +192,11 @@ class AdvancedWindowProcessor:
             }
 
         except Exception as e:
-            logger.error(f"Error processing advanced window request: {str(e)}")
+            logger.error(f"Error processing advanced window request: {e!s}")
             return {
                 "success": False,
                 "error": "INTERNAL_ERROR",
-                "message": f"Failed to process window operation: {str(e)}",
+                "message": f"Failed to process window operation: {e!s}",
             }
 
     async def _process_grid_layout(
@@ -211,7 +220,7 @@ class AdvancedWindowProcessor:
                 target_display = topology.get_display_by_id(target_displays[0])
                 if target_display is None:
                     return Either.left(
-                        WindowError(f"Display {target_displays[0]} not found")
+                        WindowError(f"Display {target_displays[0]} not found"),
                     )
             else:
                 target_display = topology.get_main_display()
@@ -219,7 +228,8 @@ class AdvancedWindowProcessor:
             # Determine grid pattern
             if pattern is None:
                 pattern_result = await self.grid_manager.calculate_optimal_pattern(
-                    len(window_targets), target_display
+                    len(window_targets),
+                    target_display,
                 )
                 if pattern_result.is_left():
                     return Either.left(pattern_result.get_left())
@@ -227,13 +237,17 @@ class AdvancedWindowProcessor:
 
             # Arrange windows in grid
             results = await self.grid_manager.arrange_windows_in_grid(
-                window_targets, target_display, pattern, padding=15, cache_layout=True
+                window_targets,
+                target_display,
+                pattern,
+                padding=15,
+                cache_layout=True,
             )
 
             return results
 
         except Exception as e:
-            return Either.left(WindowError(f"Grid layout failed: {str(e)}"))
+            return Either.left(WindowError(f"Grid layout failed: {e!s}"))
 
     async def _process_cross_monitor_move(
         self,
@@ -245,7 +259,7 @@ class AdvancedWindowProcessor:
         try:
             if not target_displays or len(target_displays) == 0:
                 return Either.left(
-                    WindowError("Target display required for cross-monitor move")
+                    WindowError("Target display required for cross-monitor move"),
                 )
 
             results = []
@@ -253,7 +267,9 @@ class AdvancedWindowProcessor:
                 display_id = target_displays[min(i, len(target_displays) - 1)]
 
                 migration_result = await self.positioning.migrate_window_to_display(
-                    window_id, display_id, preserve_relative_position=preserve_ratios
+                    window_id,
+                    display_id,
+                    preserve_relative_position=preserve_ratios,
                 )
 
                 if migration_result.is_left():
@@ -262,7 +278,7 @@ class AdvancedWindowProcessor:
                             "window_identifier": window_id,
                             "success": False,
                             "error": migration_result.get_left().message,
-                        }
+                        },
                     )
                 else:
                     migration = migration_result.get_right()
@@ -275,13 +291,13 @@ class AdvancedWindowProcessor:
                             "new_position": migration.new_position,
                             "migration_time_ms": migration.migration_time_ms,
                             "success": migration.was_successful(),
-                        }
+                        },
                     )
 
             return Either.right(results)
 
         except Exception as e:
-            return Either.left(WindowError(f"Cross-monitor move failed: {str(e)}"))
+            return Either.left(WindowError(f"Cross-monitor move failed: {e!s}"))
 
     async def _process_smart_arrangement(
         self,
@@ -324,13 +340,14 @@ class AdvancedWindowProcessor:
 
             # Perform intelligent arrangement
             results = await self.positioning.arrange_windows_intelligently(
-                requests, target_display_id
+                requests,
+                target_display_id,
             )
 
             return results
 
         except Exception as e:
-            return Either.left(WindowError(f"Smart arrangement failed: {str(e)}"))
+            return Either.left(WindowError(f"Smart arrangement failed: {e!s}"))
 
     async def _process_workspace_operation(
         self,
@@ -343,7 +360,7 @@ class AdvancedWindowProcessor:
         try:
             if not workspace_name:
                 return Either.left(
-                    WindowError("Workspace name required for workspace operations")
+                    WindowError("Workspace name required for workspace operations"),
                 )
 
             if save_layout:
@@ -352,7 +369,8 @@ class AdvancedWindowProcessor:
                     SmartPositionRequest(window_id) for window_id in window_targets
                 ]
                 save_result = await self.workspace_manager.save_workspace_layout(
-                    workspace_name, requests
+                    workspace_name,
+                    requests,
                 )
                 if save_result.is_left():
                     return Either.left(save_result.get_left())
@@ -364,19 +382,19 @@ class AdvancedWindowProcessor:
                             "workspace_name": workspace_name,
                             "windows_saved": len(window_targets),
                             "success": True,
-                        }
-                    ]
+                        },
+                    ],
                 )
-            else:
-                # Restore workspace layout
-                target_display_id = target_displays[0] if target_displays else None
-                restore_result = await self.workspace_manager.restore_workspace_layout(
-                    workspace_name, target_display_id
-                )
-                return restore_result
+            # Restore workspace layout
+            target_display_id = target_displays[0] if target_displays else None
+            restore_result = await self.workspace_manager.restore_workspace_layout(
+                workspace_name,
+                target_display_id,
+            )
+            return restore_result
 
         except Exception as e:
-            return Either.left(WindowError(f"Workspace operation failed: {str(e)}"))
+            return Either.left(WindowError(f"Workspace operation failed: {e!s}"))
 
     async def _get_display_summary(self) -> dict[str, Any]:
         """Get summary of current display topology."""
@@ -423,14 +441,15 @@ def _validate_operation_type(operation: str) -> Either[ValidationError, str]:
                 field_name="operation",
                 value=operation,
                 constraint=f"Valid operations: {', '.join(valid_operations)}",
-            )
+            ),
         )
 
     return Either.right(operation.lower())
 
 
 async def _validate_display_targets(
-    target_displays: list[int], display_manager: DisplayManager
+    target_displays: list[int],
+    display_manager: DisplayManager,
 ) -> Either[ValidationError, None]:
     """Validate target display indices."""
     try:
@@ -441,7 +460,7 @@ async def _validate_display_targets(
                     field_name="target_displays",
                     value=str(target_displays),
                     constraint="Failed to detect available displays",
-                )
+                ),
             )
 
         topology = topology_result.get_right()
@@ -454,7 +473,7 @@ async def _validate_display_targets(
                         field_name="target_displays",
                         value=str(display_id),
                         constraint=f"Available displays: {available_ids}",
-                    )
+                    ),
                 )
 
         return Either.right(None)
@@ -464,8 +483,8 @@ async def _validate_display_targets(
             ValidationError(
                 field_name="target_displays",
                 value=str(target_displays),
-                constraint=f"Display validation failed: {str(e)}",
-            )
+                constraint=f"Display validation failed: {e!s}",
+            ),
         )
 
 
@@ -482,12 +501,13 @@ def _validate_layout_pattern(
                 field_name="layout_pattern",
                 value=pattern,
                 constraint=f"Valid patterns: {', '.join(valid_patterns)}",
-            )
+            ),
         )
 
 
 def _suggest_next_actions(
-    operation_type: str, results: list[dict[str, Any]]
+    operation_type: str,
+    results: list[dict[str, Any]],
 ) -> list[str]:
     """Suggest next actions based on operation results."""
     suggestions = []
@@ -498,7 +518,7 @@ def _suggest_next_actions(
                 "Test window arrangement by interacting with applications",
                 "Save current layout as workspace for future use",
                 "Adjust grid pattern if window sizes don't fit content well",
-            ]
+            ],
         )
     elif operation_type == "cross_monitor_move":
         suggestions.extend(
@@ -506,7 +526,7 @@ def _suggest_next_actions(
                 "Verify windows are positioned correctly on target displays",
                 "Use smart_arrange for better content-aware positioning",
                 "Consider saving multi-monitor layout as workspace",
-            ]
+            ],
         )
     elif operation_type == "smart_arrange":
         suggestions.extend(
@@ -514,7 +534,7 @@ def _suggest_next_actions(
                 "Customize positioning rules for specific window types",
                 "Create workspace template for this arrangement",
                 "Test overlap avoidance with different window sizes",
-            ]
+            ],
         )
     elif operation_type == "workspace_setup":
         suggestions.extend(
@@ -522,7 +542,7 @@ def _suggest_next_actions(
                 "Test workspace restoration across different display configurations",
                 "Create additional workspace templates for different workflows",
                 "Consider automation triggers for automatic workspace switching",
-            ]
+            ],
         )
 
     return suggestions

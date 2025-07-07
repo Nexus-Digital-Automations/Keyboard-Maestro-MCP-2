@@ -1,5 +1,4 @@
-"""
-Smart suggestions system architecture for AI-powered automation optimization.
+"""Smart suggestions system architecture for AI-powered automation optimization.
 
 This module provides comprehensive type definitions and core architecture for the
 intelligent suggestion system that learns from user behavior and provides AI-powered
@@ -76,8 +75,6 @@ class PrivacyLevel(Enum):
 class SuggestionError(ValidationError):
     """Base error for suggestion system operations."""
 
-    pass
-
     @classmethod
     def initialization_failed(cls, message: str) -> SuggestionError:
         return cls(
@@ -88,13 +85,15 @@ class SuggestionError(ValidationError):
     @classmethod
     def not_initialized(cls) -> SuggestionError:
         return cls(
-            "SUGGESTION_NOT_INITIALIZED", "Suggestion system not properly initialized"
+            "SUGGESTION_NOT_INITIALIZED",
+            "Suggestion system not properly initialized",
         )
 
     @classmethod
     def generation_failed(cls, message: str) -> SuggestionError:
         return cls(
-            "SUGGESTION_GENERATION_FAILED", f"Suggestion generation failed: {message}"
+            "SUGGESTION_GENERATION_FAILED",
+            f"Suggestion generation failed: {message}",
         )
 
     @classmethod
@@ -104,7 +103,8 @@ class SuggestionError(ValidationError):
     @classmethod
     def sensitive_data_detected(cls) -> SuggestionError:
         return cls(
-            "SENSITIVE_DATA_DETECTED", "Sensitive data detected in suggestion context"
+            "SENSITIVE_DATA_DETECTED",
+            "Sensitive data detected in suggestion context",
         )
 
     @classmethod
@@ -219,12 +219,11 @@ class AutomationPerformanceMetrics:
 
         if score < 0.3 or self.error_frequency > 0.5:
             return PriorityLevel.CRITICAL
-        elif score < 0.5 or self.error_frequency > 0.2:
+        if score < 0.5 or self.error_frequency > 0.2:
             return PriorityLevel.HIGH
-        elif score < 0.7 or self.trend_direction == "declining":
+        if score < 0.7 or self.trend_direction == "declining":
             return PriorityLevel.MEDIUM
-        else:
-            return PriorityLevel.LOW
+        return PriorityLevel.LOW
 
 
 @dataclass(frozen=True)
@@ -414,7 +413,8 @@ class SuggestionSecurityValidator:
     ]
 
     def validate_suggestion_context(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> Either[SuggestionError, None]:
         """Validate suggestion context for security and privacy."""
         try:
@@ -437,15 +437,16 @@ class SuggestionSecurityValidator:
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Context validation error: {str(e)}")
+            logger.error(f"Context validation error: {e!s}")
             return Either.left(
                 SuggestionError.generation_failed(
-                    f"Context validation failed: {str(e)}"
-                )
+                    f"Context validation failed: {e!s}",
+                ),
             )
 
     def sanitize_suggestion_content(
-        self, suggestion: IntelligentSuggestion
+        self,
+        suggestion: IntelligentSuggestion,
     ) -> IntelligentSuggestion:
         """Sanitize suggestion content to remove potential sensitive information."""
         try:
@@ -488,7 +489,7 @@ class SuggestionSecurityValidator:
             )
 
         except Exception as e:
-            logger.error(f"Suggestion sanitization error: {str(e)}")
+            logger.error(f"Suggestion sanitization error: {e!s}")
             return suggestion  # Return original if sanitization fails
 
     def _is_safe_user_id(self, user_id: str) -> bool:

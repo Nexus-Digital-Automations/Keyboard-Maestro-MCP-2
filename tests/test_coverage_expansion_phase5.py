@@ -1,5 +1,4 @@
-"""
-Phase 5 Ultra-Strategic Test Coverage Expansion for Keyboard Maestro MCP.
+"""Phase 5 Ultra-Strategic Test Coverage Expansion for Keyboard Maestro MCP.
 
 This module targets the absolute highest-impact modules with 0% coverage,
 focusing on analytics model management (1374 lines), security systems (4000+ lines),
@@ -7,17 +6,23 @@ AI processing backup (1843 lines), and other mega-modules for maximum
 coverage gain toward the 95% target.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_analytics_scenario_modeler_systematic_import():
+def test_analytics_scenario_modeler_systematic_import() -> None:
     """Test import of analytics scenario modeler (1374 lines - mega module)."""
     try:
         from src.analytics import scenario_modeler
@@ -34,22 +39,20 @@ def test_analytics_scenario_modeler_systematic_import():
             try:
                 scenario = scenario_modeler.create_scenario("test_scenario", {})
                 assert scenario is not None or scenario is False
-            except Exception:
-                pass  # Method may require specific parameters
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test scenario analysis functionality if available
         if hasattr(scenario_modeler, "analyze_scenario"):
             try:
                 analysis = scenario_modeler.analyze_scenario("test_scenario")
                 assert analysis is not None or analysis == {}
-            except Exception:
-                pass  # Method may require actual scenario data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics scenario modeler import failed: {e}")
 
 
-def test_security_access_controller_systematic_import():
+def test_security_access_controller_systematic_import() -> None:
     """Test import of security access controller (1284 lines - mega security module)."""
     try:
         from src.security import access_controller
@@ -66,22 +69,20 @@ def test_security_access_controller_systematic_import():
             try:
                 result = access_controller.check_access("user_id", "resource", "action")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require specific security context
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test permission management if available
         if hasattr(access_controller, "grant_permission"):
             try:
                 result = access_controller.grant_permission("user_id", "permission")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require admin privileges
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Security access controller import failed: {e}")
 
 
-def test_security_policy_enforcer_systematic_import():
+def test_security_policy_enforcer_systematic_import() -> None:
     """Test import of security policy enforcer (1265 lines - mega security module)."""
     try:
         from src.security import policy_enforcer
@@ -97,25 +98,24 @@ def test_security_policy_enforcer_systematic_import():
         if hasattr(policy_enforcer, "enforce_policy"):
             try:
                 result = policy_enforcer.enforce_policy(
-                    "policy_id", {"context": "test"}
+                    "policy_id",
+                    {"context": "test"},
                 )
                 assert result is not None
-            except Exception:
-                pass  # Method may require specific policy context
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test policy validation if available
         if hasattr(policy_enforcer, "validate_policy"):
             try:
                 result = policy_enforcer.validate_policy({"rule": "test_rule"})
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require specific policy format
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Security policy enforcer import failed: {e}")
 
 
-def test_analytics_model_manager_systematic_import():
+def test_analytics_model_manager_systematic_import() -> None:
     """Test import of analytics model manager (1232 lines - mega analytics module)."""
     try:
         from src.analytics import model_manager
@@ -132,22 +132,20 @@ def test_analytics_model_manager_systematic_import():
             try:
                 model = model_manager.load_model("test_model")
                 assert model is not None or model is False
-            except Exception:
-                pass  # Method may require actual model files
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test model training if available
         if hasattr(model_manager, "train_model"):
             try:
                 result = model_manager.train_model("test_model", [])
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require training data
-
+            except (OSError, FileNotFoundError, PermissionError) as e:
+                logger.debug(f"File operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics model manager import failed: {e}")
 
 
-def test_security_monitor_systematic_import():
+def test_security_monitor_systematic_import() -> None:
     """Test import of security monitor (1138 lines - mega security module)."""
     try:
         from src.security import security_monitor
@@ -164,22 +162,20 @@ def test_security_monitor_systematic_import():
             try:
                 result = security_monitor.start_monitoring()
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require system permissions
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test threat detection if available
         if hasattr(security_monitor, "detect_threats"):
             try:
                 threats = security_monitor.detect_threats()
                 assert threats is not None or threats == []
-            except Exception:
-                pass  # Method may require active monitoring
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Security monitor import failed: {e}")
 
 
-def test_analytics_optimization_modeler_systematic_import():
+def test_analytics_optimization_modeler_systematic_import() -> None:
     """Test import of analytics optimization modeler (1108 lines - mega module)."""
     try:
         from src.analytics import optimization_modeler
@@ -196,22 +192,20 @@ def test_analytics_optimization_modeler_systematic_import():
             try:
                 result = optimization_modeler.optimize({"parameter": "value"})
                 assert result is not None
-            except Exception:
-                pass  # Method may require specific optimization data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test model optimization if available
         if hasattr(optimization_modeler, "optimize_model"):
             try:
                 result = optimization_modeler.optimize_model("test_model")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require actual model
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics optimization modeler import failed: {e}")
 
 
-def test_analytics_insight_generator_systematic_import():
+def test_analytics_insight_generator_systematic_import() -> None:
     """Test import of analytics insight generator (1103 lines - mega module)."""
     try:
         from src.analytics import insight_generator
@@ -227,34 +221,30 @@ def test_analytics_insight_generator_systematic_import():
                 pattern_predictor = Mock()
                 usage_forecaster = Mock()
                 generator = insight_generator.InsightGenerator(
-                    pattern_predictor, usage_forecaster
+                    pattern_predictor,
+                    usage_forecaster,
                 )
                 assert generator is not None
-            except Exception:
-                # Skip if instantiation requires complex dependencies
-                pass
-
-        # Test insight generation functionality if available
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         if hasattr(insight_generator, "generate_insights"):
             try:
                 insights = insight_generator.generate_insights({"data": "test"})
                 assert insights is not None or insights == []
-            except Exception:
-                pass  # Method may require specific data format
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test insight analysis if available
         if hasattr(insight_generator, "analyze_data"):
             try:
                 analysis = insight_generator.analyze_data([1, 2, 3, 4, 5])
                 assert analysis is not None or analysis == {}
-            except Exception:
-                pass  # Method may require specific data structure
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics insight generator import failed: {e}")
 
 
-def test_analytics_usage_forecaster_systematic_import():
+def test_analytics_usage_forecaster_systematic_import() -> None:
     """Test import of analytics usage forecaster (1048 lines - mega module)."""
     try:
         from src.analytics import usage_forecaster
@@ -266,38 +256,33 @@ def test_analytics_usage_forecaster_systematic_import():
             try:
                 # Try with mocked ModelType enum if needed
                 with patch(
-                    "src.analytics.usage_forecaster.ModelType"
+                    "src.analytics.usage_forecaster.ModelType",
                 ) as mock_model_type:
                     mock_model_type.POLYNOMIAL_REGRESSION = "polynomial_regression"
                     mock_model_type.LINEAR_REGRESSION = "linear_regression"
                     mock_model_type.EXPONENTIAL_SMOOTHING = "exponential_smoothing"
                     forecaster = usage_forecaster.UsageForecaster()
                     assert forecaster is not None
-            except Exception:
-                # Skip if instantiation requires complex dependencies
-                pass
-
-        # Test forecasting functionality if available
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         if hasattr(usage_forecaster, "forecast_usage"):
             try:
                 forecast = usage_forecaster.forecast_usage("resource_type", 30)
                 assert forecast is not None
-            except Exception:
-                pass  # Method may require historical data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test trend analysis if available
         if hasattr(usage_forecaster, "analyze_trends"):
             try:
                 trends = usage_forecaster.analyze_trends([1, 2, 3, 4, 5])
                 assert trends is not None or trends == {}
-            except Exception:
-                pass  # Method may require specific data format
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics usage forecaster import failed: {e}")
 
 
-def test_analytics_pattern_predictor_systematic_import():
+def test_analytics_pattern_predictor_systematic_import() -> None:
     """Test import of analytics pattern predictor (1035 lines - mega module)."""
     try:
         from src.analytics import pattern_predictor
@@ -314,22 +299,20 @@ def test_analytics_pattern_predictor_systematic_import():
             try:
                 patterns = pattern_predictor.predict_patterns([1, 2, 3, 4, 5])
                 assert patterns is not None or patterns == []
-            except Exception:
-                pass  # Method may require specific data structure
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test pattern analysis if available
         if hasattr(pattern_predictor, "analyze_patterns"):
             try:
                 analysis = pattern_predictor.analyze_patterns(["pattern1", "pattern2"])
                 assert analysis is not None or analysis == {}
-            except Exception:
-                pass  # Method may require pattern data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics pattern predictor import failed: {e}")
 
 
-def test_security_trust_validator_systematic_import():
+def test_security_trust_validator_systematic_import() -> None:
     """Test import of security trust validator (967 lines - large security module)."""
     try:
         from src.security import trust_validator
@@ -346,22 +329,20 @@ def test_security_trust_validator_systematic_import():
             try:
                 result = trust_validator.validate_trust("entity_id", "trust_level")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require trust context
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test trust scoring if available
         if hasattr(trust_validator, "calculate_trust_score"):
             try:
                 score = trust_validator.calculate_trust_score("entity_id")
                 assert score is not None or isinstance(score, int | float)
-            except Exception:
-                pass  # Method may require trust history
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Security trust validator import failed: {e}")
 
 
-def test_iot_security_manager_systematic_import():
+def test_iot_security_manager_systematic_import() -> None:
     """Test import of IoT security manager (882 lines - large IoT module)."""
     try:
         from src.iot import security_manager
@@ -381,24 +362,21 @@ def test_iot_security_manager_systematic_import():
             try:
                 result = security_manager.secure_device("device_id")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require device connection
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test IoT threat detection if available
         if hasattr(security_manager, "detect_iot_threats"):
             try:
                 threats = security_manager.detect_iot_threats()
                 assert threats is not None or threats == []
-            except Exception:
-                pass  # Method may require active monitoring
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"IoT security manager import failed: {e}")
 
 
-def test_comprehensive_mega_module_functionality():
+def test_comprehensive_mega_module_functionality() -> None:
     """Test comprehensive functionality across mega modules for maximum coverage."""
-
     # Test module instantiation patterns
     mega_modules = [
         "scenario_modeler",
@@ -433,9 +411,9 @@ def test_comprehensive_mega_module_functionality():
                         try:
                             instance = getattr(module, potential_class)()
                             assert instance is not None
-                        except Exception:
-                            continue  # Skip if instantiation requires parameters
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -445,9 +423,8 @@ def test_comprehensive_mega_module_functionality():
     )
 
 
-def test_security_mega_module_integration():
+def test_security_mega_module_integration() -> None:
     """Test security mega module integration for maximum coverage."""
-
     # Test security module integration
     security_modules = [
         "access_controller",
@@ -482,9 +459,9 @@ def test_security_mega_module_integration():
                                     # Method exists, good for coverage
                                     assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -494,9 +471,8 @@ def test_security_mega_module_integration():
     )
 
 
-def test_advanced_data_processing_mega_patterns():
+def test_advanced_data_processing_mega_patterns() -> None:
     """Test advanced data processing patterns for mega module coverage."""
-
     # Test various data processing scenarios for mega modules
     test_data_scenarios = {
         "analytics": {
@@ -542,7 +518,7 @@ def test_advanced_data_processing_mega_patterns():
 
     # Test analytics data processing
     cpu_avg = sum(test_data_scenarios["analytics"]["metrics"]["cpu_usage"]) / len(
-        test_data_scenarios["analytics"]["metrics"]["cpu_usage"]
+        test_data_scenarios["analytics"]["metrics"]["cpu_usage"],
     )
     assert 40 < cpu_avg < 60
 
@@ -567,9 +543,8 @@ def test_advanced_data_processing_mega_patterns():
     assert sorted_policies[0]["rule"] == "block_external_access"
 
 
-def test_mega_module_error_handling_patterns():
+def test_mega_module_error_handling_patterns() -> None:
     """Test error handling patterns across mega modules."""
-
     # Test error handling scenarios for mega modules
     error_scenarios = [
         ("ValidationError", "Invalid data format"),
@@ -600,11 +575,12 @@ def test_mega_module_error_handling_patterns():
             except Exception as e:
                 assert str(e) == message
 
-        except Exception:
-            continue  # Skip individual error tests if they fail
+        except (ValueError, TypeError) as e:
+            logger.debug(f"Type conversion failed during operation: {e}")
+            continue
 
 
-def test_mega_module_async_functionality():
+def test_mega_module_async_functionality() -> bool:
     """Test async functionality patterns for mega modules."""
 
     @pytest.mark.asyncio
@@ -670,9 +646,8 @@ def test_mega_module_async_functionality():
     assert result is True
 
 
-def test_mega_module_configuration_and_metadata():
+def test_mega_module_configuration_and_metadata() -> None:
     """Test configuration and metadata patterns for mega modules."""
-
     # Test mega module configuration scenarios
     mega_config = {
         "analytics": {

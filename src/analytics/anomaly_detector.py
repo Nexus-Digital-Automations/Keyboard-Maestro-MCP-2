@@ -1,5 +1,4 @@
-"""
-Anomaly detection system for identifying performance and security issues.
+"""Anomaly detection system for identifying performance and security issues.
 
 Provides real-time anomaly detection with ML-powered analysis and
 automated alerting for critical system deviations.
@@ -22,7 +21,8 @@ class AnomalyDetector:
         self.detected_anomalies = []
 
     async def detect_anomalies(
-        self, metrics_data: list[MetricValue]
+        self,
+        metrics_data: list[MetricValue],
     ) -> list[dict[str, Any]]:
         """Detect anomalies in metrics data using statistical analysis."""
         anomalies = []
@@ -46,7 +46,9 @@ class AnomalyDetector:
         return anomalies
 
     async def _detect_statistical_anomaly(
-        self, metric_key: str, values: list[float]
+        self,
+        metric_key: str,
+        values: list[float],
     ) -> dict[str, Any] | None:
         """Detect statistical anomalies using z-score method."""
         if len(values) < 10:
@@ -68,7 +70,11 @@ class AnomalyDetector:
             z_score = abs(value - mean) / std_dev
             if z_score > self.anomaly_threshold:
                 anomalous_values.append(
-                    {"value": value, "z_score": z_score, "deviation": abs(value - mean)}
+                    {
+                        "value": value,
+                        "z_score": z_score,
+                        "deviation": abs(value - mean),
+                    },
                 )
 
         if anomalous_values:

@@ -1,5 +1,4 @@
-"""
-Autonomous agent lifecycle management and execution system.
+"""Autonomous agent lifecycle management and execution system.
 
 This module provides comprehensive agent lifecycle management including creation,
 initialization, execution, monitoring, and termination of autonomous agents.
@@ -125,7 +124,10 @@ class AutonomousAgent:
         self._shutdown_event = asyncio.Event()
 
     async def initialize(
-        self, ai_processor=None, decision_engine=None, safety_validator=None
+        self,
+        ai_processor=None,
+        decision_engine=None,
+        safety_validator=None,
     ) -> Either[AutonomousAgentError, None]:
         """Initialize the autonomous agent with required components."""
         try:
@@ -156,7 +158,7 @@ class AutonomousAgent:
             self.state.status = AgentStatus.ERROR
             return Either.left(AutonomousAgentError.initialization_failed(str(e)))
 
-    @require(lambda self, goal: isinstance(goal, AgentGoal))
+    @require(lambda __self, goal: isinstance(goal, AgentGoal))
     async def add_goal(self, goal: AgentGoal) -> Either[AutonomousAgentError, None]:
         """Add a new goal for the agent to pursue."""
         try:
@@ -179,7 +181,7 @@ class AutonomousAgent:
                         "goal_resources",
                         sum(goal.resource_requirements.values()),
                         sum(available_resources.values()),
-                    )
+                    ),
                 )
 
             self.state.current_goals.append(goal)
@@ -240,17 +242,20 @@ class AutonomousAgent:
                         "status": "no_active_goals",
                         "actions_taken": 0,
                         "cycle_duration": 0.0,
-                    }
+                    },
                 )
 
             # 3. Plan actions using decision engine
             if self.decision_engine:
                 planned_actions = await self.decision_engine.plan_actions(
-                    current_goal, situation, self.state.learned_patterns
+                    current_goal,
+                    situation,
+                    self.state.learned_patterns,
                 )
             else:
                 planned_actions = await self._fallback_action_planning(
-                    current_goal, situation
+                    current_goal,
+                    situation,
                 )
 
             # 4. Execute actions with safety validation
@@ -261,7 +266,8 @@ class AutonomousAgent:
                 # Safety validation
                 if self.safety_validator:
                     safety_result = await self.safety_validator.validate_action_safety(
-                        self, action
+                        self,
+                        action,
                     )
                     if safety_result.is_left():
                         continue
@@ -285,7 +291,7 @@ class AutonomousAgent:
                         "goal_id": action.goal_id,
                         "success": execution_result.is_right(),
                         "confidence": action.confidence,
-                    }
+                    },
                 )
 
                 # Learn from execution
@@ -314,7 +320,7 @@ class AutonomousAgent:
                         "actions_executed": self.state.metrics.actions_executed,
                     },
                     "actions": actions_taken,
-                }
+                },
             )
 
         except Exception as e:
@@ -332,7 +338,7 @@ class AutonomousAgent:
 
                 if cycle_result.is_left():
                     logging.warning(
-                        f"Agent {self.state.agent_id} cycle failed: {cycle_result.get_left()}"
+                        f"Agent {self.state.agent_id} cycle failed: {cycle_result.get_left()}",
                     )
                     await asyncio.sleep(60)  # Wait before retry
                 else:
@@ -357,19 +363,21 @@ class AutonomousAgent:
                     self._error_count = getattr(self, "_error_count", 0) + 1
 
                     recovery_result = await self._agent_manager.handle_agent_error(
-                        self.state.agent_id, e, context
+                        self.state.agent_id,
+                        e,
+                        context,
                     )
 
                     if recovery_result.is_right():
                         logging.info(
-                            f"Agent {self.state.agent_id} self-healing successful"
+                            f"Agent {self.state.agent_id} self-healing successful",
                         )
                         # Reset error count on successful recovery
                         self._error_count = 0
                         await asyncio.sleep(30)  # Short wait after successful recovery
                     else:
                         logging.warning(
-                            f"Agent {self.state.agent_id} self-healing failed: {recovery_result.get_left()}"
+                            f"Agent {self.state.agent_id} self-healing failed: {recovery_result.get_left()}",
                         )
                         await asyncio.sleep(300)  # Wait 5 minutes before retry
                 else:
@@ -390,7 +398,9 @@ class AutonomousAgent:
         }
 
     async def _fallback_action_planning(
-        self, goal: AgentGoal, situation: dict[str, Any]
+        self,
+        goal: AgentGoal,
+        situation: dict[str, Any],
     ) -> list[AgentAction]:
         """Fallback rule-based action planning when no decision engine available."""
         actions = []
@@ -424,7 +434,8 @@ class AutonomousAgent:
         return actions[: self.state.configuration.max_concurrent_actions]
 
     async def _execute_action(
-        self, action: AgentAction
+        self,
+        action: AgentAction,
     ) -> Either[AutonomousAgentError, dict[str, Any]]:
         """Execute the specified action."""
         try:
@@ -481,7 +492,7 @@ class AutonomousAgent:
                 outcome=outcome,
                 success=success,
                 learning_value=ConfidenceScore(
-                    0.8 if success else 0.9
+                    0.8 if success else 0.9,
                 ),  # Failures teach more
                 performance_impact=PerformanceMetric(performance_impact),
             )
@@ -517,25 +528,29 @@ class AutonomousAgent:
                 return
 
             success_rate = sum(1 for exp in recent_experiences if exp.success) / len(
-                recent_experiences
+                recent_experiences,
             )
 
             # Adjust configuration based on performance
             if success_rate < 0.7:
                 # Low success rate - be more conservative
                 self.state.configuration.decision_threshold = min(
-                    0.9, self.state.configuration.decision_threshold + 0.1
+                    0.9,
+                    self.state.configuration.decision_threshold + 0.1,
                 )
                 self.state.configuration.risk_tolerance = max(
-                    0.1, self.state.configuration.risk_tolerance - 0.1
+                    0.1,
+                    self.state.configuration.risk_tolerance - 0.1,
                 )
             elif success_rate > 0.9:
                 # High success rate - can be more aggressive
                 self.state.configuration.decision_threshold = max(
-                    0.3, self.state.configuration.decision_threshold - 0.05
+                    0.3,
+                    self.state.configuration.decision_threshold - 0.05,
                 )
                 self.state.configuration.risk_tolerance = min(
-                    0.8, self.state.configuration.risk_tolerance + 0.05
+                    0.8,
+                    self.state.configuration.risk_tolerance + 0.05,
                 )
 
             # Update performance metrics
@@ -549,7 +564,7 @@ class AutonomousAgent:
                 AgentStatus.ACTIVE
             )  # Continue operation even if optimization fails
             logging.warning(
-                f"Self-optimization failed for agent {self.state.agent_id}: {e}"
+                f"Self-optimization failed for agent {self.state.agent_id}: {e}",
             )
 
     def _should_optimize(self) -> bool:
@@ -567,13 +582,13 @@ class AutonomousAgent:
             return 0.0
 
         return sum(1 for exp in recent_experiences if exp.success) / len(
-            recent_experiences
+            recent_experiences,
         )
 
     async def _update_performance_metrics(self) -> None:
         """Update agent performance metrics."""
         self.state.metrics.success_rate = PerformanceMetric(
-            self._calculate_recent_success_rate()
+            self._calculate_recent_success_rate(),
         )
         self.state.metrics.total_runtime = datetime.now(UTC) - self.state.created_at
 
@@ -599,16 +614,18 @@ class AutonomousAgent:
             # Check resource conflicts
             for resource, requirement in new_goal.resource_requirements.items():
                 existing_requirement = existing_goal.resource_requirements.get(
-                    resource, 0
+                    resource,
+                    0,
                 )
                 total_requirement = requirement + existing_requirement
                 limit = self.state.configuration.resource_limits.get(
-                    resource, float("inf")
+                    resource,
+                    float("inf"),
                 )
 
                 if total_requirement > limit:
                     conflicts.append(
-                        f"Resource conflict: {resource} ({total_requirement} > {limit})"
+                        f"Resource conflict: {resource} ({total_requirement} > {limit})",
                     )
 
             # Check for contradictory objectives
@@ -628,7 +645,7 @@ class AutonomousAgent:
         """Request human approval for high-risk actions."""
         # Placeholder - in production this would integrate with notification system
         logging.info(
-            f"Human approval requested for action {action.action_id}: {action.action_type.value}"
+            f"Human approval requested for action {action.action_id}: {action.action_type.value}",
         )
         # For testing, approve low-risk actions automatically
         return action.get_risk_score() < 0.5
@@ -662,16 +679,16 @@ class AutonomousAgent:
         ):
             return Either.left(
                 AutonomousAgentError.initialization_failed(
-                    "Decision threshold too high for autonomous operation"
-                )
+                    "Decision threshold too high for autonomous operation",
+                ),
             )
 
         # Validate resource limits
         if not config.resource_limits:
             return Either.left(
                 AutonomousAgentError.initialization_failed(
-                    "Resource limits must be specified"
-                )
+                    "Resource limits must be specified",
+                ),
             )
 
         return Either.right(None)
@@ -745,13 +762,15 @@ class AgentManager:
                 ResourceType.API_CALLS: 1000.0,
                 ResourceType.ACTIONS: 100.0,
                 ResourceType.TIME: 86400.0,  # 24 hours in seconds
-            }
+            },
         )
         self.self_healing_engine = SelfHealingEngine()
 
-    @require(lambda self, agent_type: isinstance(agent_type, AgentType))
+    @require(lambda __self, agent_type: isinstance(agent_type, AgentType))
     async def create_agent(
-        self, agent_type: AgentType, config: AgentConfiguration | None = None
+        self,
+        agent_type: AgentType,
+        config: AgentConfiguration | None = None,
     ) -> Either[AutonomousAgentError, AgentId]:
         """Create and initialize a new autonomous agent."""
         try:
@@ -781,7 +800,8 @@ class AgentManager:
             return Either.left(AutonomousAgentError.agent_creation_failed(str(e)))
 
     async def start_agent(
-        self, agent_id: AgentId
+        self,
+        agent_id: AgentId,
     ) -> Either[AutonomousAgentError, None]:
         """Start autonomous execution for specified agent."""
         if agent_id not in self.agents:
@@ -809,7 +829,9 @@ class AgentManager:
         return result
 
     async def add_goal_to_agent(
-        self, agent_id: AgentId, goal: AgentGoal
+        self,
+        agent_id: AgentId,
+        goal: AgentGoal,
     ) -> Either[AutonomousAgentError, None]:
         """Add goal to specified agent."""
         if agent_id not in self.agents:
@@ -818,7 +840,8 @@ class AgentManager:
         return await self.agents[agent_id].add_goal(goal)
 
     def get_agent_status(
-        self, agent_id: AgentId
+        self,
+        agent_id: AgentId,
     ) -> Either[AutonomousAgentError, dict[str, Any]]:
         """Get comprehensive status information for agent."""
         if agent_id not in self.agents:
@@ -843,7 +866,7 @@ class AgentManager:
                 },
                 "last_activity": agent.state.last_activity.isoformat(),
                 "uptime": (datetime.now(UTC) - agent.state.created_at).total_seconds(),
-            }
+            },
         )
 
     def list_agents(self) -> dict[AgentId, dict[str, Any]]:
@@ -870,13 +893,18 @@ class AgentManager:
         await self.resource_optimizer.optimize_allocations()
 
     async def handle_agent_error(
-        self, agent_id: AgentId, error: Exception, context: dict[str, Any]
+        self,
+        agent_id: AgentId,
+        error: Exception,
+        context: dict[str, Any],
     ) -> Either[AutonomousAgentError, dict[str, Any]]:
         """Handle agent error using self-healing capabilities."""
         try:
             # Diagnose the error
             diagnosis_result = await self.self_healing_engine.detect_and_diagnose(
-                agent_id, error, context
+                agent_id,
+                error,
+                context,
             )
             if diagnosis_result.is_left():
                 return diagnosis_result
@@ -885,7 +913,7 @@ class AgentManager:
 
             # Plan recovery
             recovery_plan_result = await self.self_healing_engine.plan_recovery(
-                error_event
+                error_event,
             )
             if recovery_plan_result.is_left():
                 return recovery_plan_result
@@ -894,13 +922,15 @@ class AgentManager:
 
             # Execute recovery
             recovery_result = await self.self_healing_engine.execute_recovery(
-                agent_id, recovery_action, agent_manager=self
+                agent_id,
+                recovery_action,
+                agent_manager=self,
             )
 
             if recovery_result.is_right():
                 # Log successful recovery
                 logging.info(
-                    f"Successfully recovered agent {agent_id} using {recovery_action.strategy.value}"
+                    f"Successfully recovered agent {agent_id} using {recovery_action.strategy.value}",
                 )
 
                 # Update agent metrics
@@ -929,10 +959,10 @@ class AgentManager:
             "healing_statistics": self.get_healing_statistics(),
             "system_health": {
                 "resource_efficiency": asyncio.run(
-                    self.resource_optimizer.calculate_efficiency_score()
+                    self.resource_optimizer.calculate_efficiency_score(),
                 ),
                 "optimization_recommendations": asyncio.run(
-                    self.resource_optimizer.get_optimization_recommendations()
+                    self.resource_optimizer.get_optimization_recommendations(),
                 ),
             },
         }

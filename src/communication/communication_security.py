@@ -1,5 +1,4 @@
-"""
-Comprehensive security validation and anti-spam protection for communication.
+"""Comprehensive security validation and anti-spam protection for communication.
 
 This module provides enterprise-grade security for all communication channels
 with threat detection, rate limiting, and comprehensive validation.
@@ -92,7 +91,9 @@ class RateLimitTracker:
         self.global_history: deque = deque()
 
     def can_send_communication(
-        self, request: CommunicationRequest, sender_id: str
+        self,
+        request: CommunicationRequest,
+        sender_id: str,
     ) -> Either[RateLimitError, None]:
         """Check if communication can be sent based on rate limits."""
         current_time = time.time()
@@ -102,7 +103,9 @@ class RateLimitTracker:
 
         # Check sender rate limits
         sender_check = self._check_sender_limits(
-            sender_id, request.communication_type, current_time
+            sender_id,
+            request.communication_type,
+            current_time,
         )
         if sender_check.is_left():
             return sender_check
@@ -114,14 +117,15 @@ class RateLimitTracker:
 
         # Check global rate limits
         global_check = self._check_global_limits(
-            request.communication_type, current_time
+            request.communication_type,
+            current_time,
         )
         if global_check.is_left():
             return global_check
 
         return Either.right(None)
 
-    def record_communication_sent(self, request: CommunicationRequest, sender_id: str):
+    def record_communication_sent(self, request: CommunicationRequest, sender_id: str) -> Any:
         """Record that a communication was sent for rate limiting."""
         current_time = time.time()
 
@@ -136,7 +140,7 @@ class RateLimitTracker:
         # Record globally
         self.global_history.append((current_time, request.communication_type))
 
-    def _clean_old_entries(self, current_time: float):
+    def _clean_old_entries(self, current_time: float) -> Any:
         """Remove entries older than 1 hour."""
         cutoff_time = current_time - 3600  # 1 hour
 
@@ -161,7 +165,10 @@ class RateLimitTracker:
             self.global_history.popleft()
 
     def _check_sender_limits(
-        self, sender_id: str, comm_type: CommunicationType, current_time: float
+        self,
+        sender_id: str,
+        comm_type: CommunicationType,
+        current_time: float,
     ) -> Either[RateLimitError, None]:
         """Check rate limits for specific sender."""
         if sender_id not in self.user_history:
@@ -186,8 +193,8 @@ class RateLimitTracker:
         ):
             return Either.left(
                 RateLimitError(
-                    f"Email rate limit exceeded for sender: {email_count}/{self.config.max_emails_per_hour}"
-                )
+                    f"Email rate limit exceeded for sender: {email_count}/{self.config.max_emails_per_hour}",
+                ),
             )
 
         if (
@@ -196,14 +203,16 @@ class RateLimitTracker:
         ):
             return Either.left(
                 RateLimitError(
-                    f"SMS rate limit exceeded for sender: {sms_count}/{self.config.max_sms_per_hour}"
-                )
+                    f"SMS rate limit exceeded for sender: {sms_count}/{self.config.max_sms_per_hour}",
+                ),
             )
 
         return Either.right(None)
 
     def _check_recipient_limits(
-        self, recipients: list, current_time: float
+        self,
+        recipients: list,
+        current_time: float,
     ) -> Either[RateLimitError, None]:
         """Check rate limits for recipients."""
         # Limit messages per recipient (anti-harassment)
@@ -216,14 +225,16 @@ class RateLimitTracker:
                 if count >= max_per_recipient:
                     return Either.left(
                         RateLimitError(
-                            f"Recipient rate limit exceeded: {recipient_key}"
-                        )
+                            f"Recipient rate limit exceeded: {recipient_key}",
+                        ),
                     )
 
         return Either.right(None)
 
     def _check_global_limits(
-        self, comm_type: CommunicationType, current_time: float
+        self,
+        comm_type: CommunicationType,
+        current_time: float,
     ) -> Either[RateLimitError, None]:
         """Check global system rate limits."""
         max_global_per_hour = 1000  # System-wide limit
@@ -232,8 +243,8 @@ class RateLimitTracker:
         if total_count >= max_global_per_hour:
             return Either.left(
                 RateLimitError(
-                    f"Global rate limit exceeded: {total_count}/{max_global_per_hour}"
-                )
+                    f"Global rate limit exceeded: {total_count}/{max_global_per_hour}",
+                ),
             )
 
         return Either.right(None)
@@ -242,10 +253,9 @@ class RateLimitTracker:
         """Get standardized key for recipient."""
         if isinstance(recipient, EmailAddress):
             return f"email:{recipient.address.lower()}"
-        elif isinstance(recipient, PhoneNumber):
+        if isinstance(recipient, PhoneNumber):
             return f"phone:{recipient.format_for_sms()}"
-        else:
-            return f"unknown:{str(recipient)}"
+        return f"unknown:{recipient!s}"
 
 
 class SpamDetector:
@@ -255,7 +265,7 @@ class SpamDetector:
         self.config = config
         self._load_spam_patterns()
 
-    def _load_spam_patterns(self):
+    def _load_spam_patterns(self) -> bool:
         """Load spam detection patterns."""
         self.spam_keywords = {
             # Financial scams
@@ -305,7 +315,9 @@ class SpamDetector:
         ]
 
     def analyze_content(
-        self, subject: str | None, body: str
+        self,
+        subject: str | None,
+        body: str,
     ) -> tuple[float, list[SecurityThreat]]:
         """Analyze content for spam indicators and return score and threats."""
         threats = []
@@ -353,7 +365,7 @@ class SpamDetector:
                     severity="medium" if len(found_keywords) < 3 else "high",
                     description=f"Contains {len(found_keywords)} spam keywords",
                     evidence=found_keywords[:5],  # Limit evidence
-                )
+                ),
             )
 
         return score, threats
@@ -377,13 +389,15 @@ class SpamDetector:
                     severity="high",
                     description=f"Contains {len(found_patterns)} spam patterns",
                     evidence=[str(p) for p in found_patterns],
-                )
+                ),
             )
 
         return score, threats
 
     def _analyze_structure(
-        self, subject: str | None, body: str
+        self,
+        subject: str | None,
+        body: str,
     ) -> tuple[float, list[SecurityThreat]]:
         """Analyze message structure for spam indicators."""
         threats = []
@@ -400,7 +414,7 @@ class SpamDetector:
                         severity="medium",
                         description=f"Subject line {caps_ratio:.1%} uppercase",
                         evidence=[subject[:50]],
-                    )
+                    ),
                 )
 
         # Excessive exclamation marks
@@ -413,7 +427,7 @@ class SpamDetector:
                     severity="low",
                     description=f"Contains {exclamation_count} exclamation marks",
                     evidence=[f"Exclamation count: {exclamation_count}"],
-                )
+                ),
             )
 
         # Very short or very long messages (unusual for legitimate communication)
@@ -425,7 +439,7 @@ class SpamDetector:
                     severity="low",
                     description="Message body too short",
                     evidence=[f"Length: {len(body)} chars"],
-                )
+                ),
             )
         elif len(body) > 5000:
             score += 0.5
@@ -479,7 +493,7 @@ class SpamDetector:
                     severity="high" if len(suspicious_urls) > 2 else "medium",
                     description=f"Contains {len(suspicious_urls)} suspicious URLs",
                     evidence=suspicious_urls[:3],
-                )
+                ),
             )
 
         return score, threats
@@ -494,10 +508,12 @@ class CommunicationSecurityManager:
         self.spam_detector = SpamDetector(self.config)
         self.threat_log: list[SecurityThreat] = []
 
-    @require(lambda self, request: isinstance(request, CommunicationRequest))
-    @ensure(lambda self, result: isinstance(result, Either))
+    @require(lambda __self, request: isinstance(request, CommunicationRequest))
+    @ensure(lambda __self, result: isinstance(result, Either))
     def validate_communication_security(
-        self, request: CommunicationRequest, sender_id: str
+        self,
+        request: CommunicationRequest,
+        sender_id: str,
     ) -> Either[SecurityError, dict[str, Any]]:
         """Comprehensive security validation for communication request."""
         try:
@@ -513,8 +529,8 @@ class CommunicationSecurityManager:
             if rate_check.is_left():
                 return Either.left(
                     SecurityError(
-                        f"Rate limit violation: {rate_check.get_left().message}"
-                    )
+                        f"Rate limit violation: {rate_check.get_left().message}",
+                    ),
                 )
 
             # Content security analysis
@@ -549,9 +565,9 @@ class CommunicationSecurityManager:
                     SecurityError(
                         "SPAM_DETECTED",
                         f"Content appears to be spam (score: {spam_score:.1f})",
-                    )
+                    ),
                 )
-            elif spam_score >= 5.0 or threat_count >= 3:
+            if spam_score >= 5.0 or threat_count >= 3:
                 validation_results["security_level"] = "suspicious"
             elif spam_score >= 3.0 or threat_count >= 1:
                 validation_results["security_level"] = "caution"
@@ -564,18 +580,21 @@ class CommunicationSecurityManager:
         except Exception as e:
             return Either.left(
                 SecurityError(
-                    "VALIDATION_FAILED", f"Security validation failed: {str(e)}"
-                )
+                    "VALIDATION_FAILED",
+                    f"Security validation failed: {e!s}",
+                ),
             )
 
     def _analyze_content_security(
-        self, request: CommunicationRequest
+        self,
+        request: CommunicationRequest,
     ) -> Either[SecurityError, dict[str, Any]]:
         """Analyze content for security threats."""
         try:
             # Spam analysis
             spam_score, threats = self.spam_detector.analyze_content(
-                request.subject, request.message_content
+                request.subject,
+                request.message_content,
             )
 
             # Log threats
@@ -612,21 +631,22 @@ class CommunicationSecurityManager:
                     "spam_score": spam_score,
                     "threats_detected": [self._threat_to_dict(t) for t in threats],
                     "security_threats": len(security_threats),
-                }
+                },
             )
 
         except Exception as e:
-            return Either.left(SecurityError(f"Content analysis failed: {str(e)}"))
+            return Either.left(SecurityError(f"Content analysis failed: {e!s}"))
 
     def _validate_recipients(
-        self, request: CommunicationRequest
+        self,
+        request: CommunicationRequest,
     ) -> Either[SecurityError, None]:
         """Validate recipients for security concerns."""
         if len(request.recipients) > self.config.max_recipients_per_message:
             return Either.left(
                 SecurityError(
-                    f"Too many recipients: {len(request.recipients)} > {self.config.max_recipients_per_message}"
-                )
+                    f"Too many recipients: {len(request.recipients)} > {self.config.max_recipients_per_message}",
+                ),
             )
 
         # Email-specific validation
@@ -638,7 +658,7 @@ class CommunicationSecurityManager:
                     # Check blocked domains
                     if domain in self.config.blocked_domains:
                         return Either.left(
-                            SecurityError(f"Recipient domain is blocked: {domain}")
+                            SecurityError(f"Recipient domain is blocked: {domain}"),
                         )
 
                     # Check allowed domains (if configured)
@@ -648,21 +668,22 @@ class CommunicationSecurityManager:
                     ):
                         return Either.left(
                             SecurityError(
-                                f"Recipient domain not in allowed list: {domain}"
-                            )
+                                f"Recipient domain not in allowed list: {domain}",
+                            ),
                         )
 
         return Either.right(None)
 
     def _validate_attachments(
-        self, attachments: list[str]
+        self,
+        attachments: list[str],
     ) -> Either[SecurityError, None]:
         """Validate email attachments for security."""
         if len(attachments) > self.config.max_attachments_per_email:
             return Either.left(
                 SecurityError(
-                    f"Too many attachments: {len(attachments)} > {self.config.max_attachments_per_email}"
-                )
+                    f"Too many attachments: {len(attachments)} > {self.config.max_attachments_per_email}",
+                ),
             )
 
         dangerous_extensions = {
@@ -689,7 +710,7 @@ class CommunicationSecurityManager:
             )
             if f".{extension}" in dangerous_extensions:
                 return Either.left(
-                    SecurityError(f"Dangerous attachment type: {extension}")
+                    SecurityError(f"Dangerous attachment type: {extension}"),
                 )
 
         return Either.right(None)

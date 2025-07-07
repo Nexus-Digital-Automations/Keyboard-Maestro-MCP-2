@@ -1,5 +1,4 @@
-"""
-Core dictionary management engine with type-safe operations.
+"""Core dictionary management engine with type-safe operations.
 
 This module provides the main dictionary management functionality with
 comprehensive validation, security checking, and error handling.
@@ -46,32 +45,33 @@ class DataSecurityManager:
         """Validate dictionary name for security constraints."""
         if not name or len(name.strip()) == 0:
             return Either.left(
-                SecurityError("INVALID_NAME", "Dictionary name cannot be empty")
+                SecurityError("INVALID_NAME", "Dictionary name cannot be empty"),
             )
 
         if len(name) > 100:
             return Either.left(
-                SecurityError("NAME_TOO_LONG", "Dictionary name too long")
+                SecurityError("NAME_TOO_LONG", "Dictionary name too long"),
             )
 
         # Allow alphanumeric, underscores, hyphens, dots
         if not all(c.isalnum() or c in "_-." for c in name):
             return Either.left(
-                SecurityError("INVALID_CHARS", "Invalid characters in dictionary name")
+                SecurityError("INVALID_CHARS", "Invalid characters in dictionary name"),
             )
 
         # Prevent reserved names
         reserved_names = {"__system__", "__internal__", "null", "undefined", "system"}
         if name.lower() in reserved_names:
             return Either.left(
-                SecurityError("RESERVED_NAME", f"Name '{name}' is reserved")
+                SecurityError("RESERVED_NAME", f"Name '{name}' is reserved"),
             )
 
         return Either.right(None)
 
     @staticmethod
     def validate_key_path(
-        path: DictionaryPath, limits: SecurityLimits = DEFAULT_SECURITY_LIMITS
+        path: DictionaryPath,
+        limits: SecurityLimits = DEFAULT_SECURITY_LIMITS,
     ) -> Either[SecurityError, None]:
         """Validate key path for security and depth limits."""
         if len(path.path) > limits.max_key_length:
@@ -79,7 +79,7 @@ class DataSecurityManager:
                 SecurityError(
                     "PATH_TOO_LONG",
                     f"Key path exceeds {limits.max_key_length} characters",
-                )
+                ),
             )
 
         segments = path.segments()
@@ -88,29 +88,31 @@ class DataSecurityManager:
                 SecurityError(
                     "PATH_TOO_DEEP",
                     f"Key path exceeds {limits.max_nesting_depth} levels",
-                )
+                ),
             )
 
         # Check for dangerous patterns in path segments
         for segment in segments:
             if not segment or len(segment.strip()) == 0:
                 return Either.left(
-                    SecurityError("EMPTY_SEGMENT", "Key path contains empty segment")
+                    SecurityError("EMPTY_SEGMENT", "Key path contains empty segment"),
                 )
 
             for pattern in DataSecurityManager.DANGEROUS_PATTERNS:
                 if re.search(pattern, segment, re.IGNORECASE):
                     return Either.left(
                         SecurityError(
-                            "DANGEROUS_PATTERN", f"Dangerous pattern in key: {segment}"
-                        )
+                            "DANGEROUS_PATTERN",
+                            f"Dangerous pattern in key: {segment}",
+                        ),
                     )
 
         return Either.right(None)
 
     @staticmethod
     def validate_value_content(
-        value: Any, limits: SecurityLimits = DEFAULT_SECURITY_LIMITS
+        value: Any,
+        limits: SecurityLimits = DEFAULT_SECURITY_LIMITS,
     ) -> Either[SecurityError, None]:
         """Validate value content for security and size limits."""
         # Calculate size and validate serializability
@@ -125,8 +127,9 @@ class DataSecurityManager:
         except (TypeError, ValueError, RecursionError) as e:
             return Either.left(
                 SecurityError(
-                    "NOT_SERIALIZABLE", f"Value not JSON serializable: {str(e)}"
-                )
+                    "NOT_SERIALIZABLE",
+                    f"Value not JSON serializable: {e!s}",
+                ),
             )
 
         # Check depth
@@ -148,7 +151,7 @@ class DataSecurityManager:
                         SecurityError(
                             "DANGEROUS_CONTENT",
                             f"Dangerous content detected: {pattern}",
-                        )
+                        ),
                     )
 
         elif isinstance(value, dict):
@@ -185,15 +188,14 @@ class DataSecurityManager:
                 DataSecurityManager.calculate_data_depth(v, current_depth + 1)
                 for v in data.values()
             )
-        elif isinstance(data, list):
+        if isinstance(data, list):
             if not data:
                 return current_depth
             return max(
                 DataSecurityManager.calculate_data_depth(item, current_depth + 1)
                 for item in data
             )
-        else:
-            return current_depth
+        return current_depth
 
 
 class DictionaryEngine:
@@ -230,29 +232,31 @@ class DictionaryEngine:
                     DataError(
                         "create_dictionary",
                         f"Invalid name: {name_result.get_left().message}",
-                    )
+                    ),
                 )
 
             # Check if dictionary already exists
             if name in self._dictionaries:
                 return Either.left(
                     DataError(
-                        "create_dictionary", f"Dictionary '{name}' already exists"
-                    )
+                        "create_dictionary",
+                        f"Dictionary '{name}' already exists",
+                    ),
                 )
 
             # Validate initial data if provided
             data = initial_data or {}
             if data:
                 content_result = DataSecurityManager.validate_value_content(
-                    data, self.security_limits
+                    data,
+                    self.security_limits,
                 )
                 if content_result.is_left():
                     return Either.left(
                         DataError(
                             "create_dictionary",
                             f"Invalid initial data: {content_result.get_left().message}",
-                        )
+                        ),
                     )
 
                 # Validate against schema if provided
@@ -263,7 +267,7 @@ class DictionaryEngine:
                             DataError(
                                 "create_dictionary",
                                 f"Schema validation failed: {schema_result.get_left().message}",
-                            )
+                            ),
                         )
 
             # Calculate metadata
@@ -293,21 +297,26 @@ class DictionaryEngine:
 
         except Exception as e:
             context = create_error_context(
-                "create_dictionary", "dictionary_engine", name=name, error=str(e)
+                "create_dictionary",
+                "dictionary_engine",
+                name=name,
+                error=str(e),
             )
             return Either.left(
-                DataError("create_dictionary", f"Unexpected error: {str(e)}", context)
+                DataError("create_dictionary", f"Unexpected error: {e!s}", context),
             )
 
     async def get_value(
-        self, name: str, path: DictionaryPath | None = None
+        self,
+        name: str,
+        path: DictionaryPath | None = None,
     ) -> Either[DataError, Any]:
         """Retrieve value from dictionary by path."""
         try:
             # Check if dictionary exists
             if name not in self._dictionaries:
                 return Either.left(
-                    DataError("get_value", f"Dictionary '{name}' not found")
+                    DataError("get_value", f"Dictionary '{name}' not found"),
                 )
 
             data = self._dictionaries[name]
@@ -318,13 +327,15 @@ class DictionaryEngine:
 
             # Validate path
             path_result = DataSecurityManager.validate_key_path(
-                path, self.security_limits
+                path,
+                self.security_limits,
             )
             if path_result.is_left():
                 return Either.left(
                     DataError(
-                        "get_value", f"Invalid path: {path_result.get_left().message}"
-                    )
+                        "get_value",
+                        f"Invalid path: {path_result.get_left().message}",
+                    ),
                 )
 
             # Navigate to value
@@ -332,7 +343,7 @@ class DictionaryEngine:
             for segment in path.segments():
                 if not isinstance(current, dict) or segment not in current:
                     return Either.left(
-                        DataError("get_value", f"Path '{path.path}' not found")
+                        DataError("get_value", f"Path '{path.path}' not found"),
                     )
                 current = current[segment]
 
@@ -346,39 +357,47 @@ class DictionaryEngine:
                 path=path.path if path else None,
             )
             return Either.left(
-                DataError("get_value", f"Unexpected error: {str(e)}", context)
+                DataError("get_value", f"Unexpected error: {e!s}", context),
             )
 
     async def set_value(
-        self, name: str, path: DictionaryPath, value: Any, create_path: bool = True
+        self,
+        name: str,
+        path: DictionaryPath,
+        value: Any,
+        create_path: bool = True,
     ) -> Either[DataError, None]:
         """Set value in dictionary at specified path."""
         try:
             # Check if dictionary exists
             if name not in self._dictionaries:
                 return Either.left(
-                    DataError("set_value", f"Dictionary '{name}' not found")
+                    DataError("set_value", f"Dictionary '{name}' not found"),
                 )
 
             # Validate path and value
             path_result = DataSecurityManager.validate_key_path(
-                path, self.security_limits
+                path,
+                self.security_limits,
             )
             if path_result.is_left():
                 return Either.left(
                     DataError(
-                        "set_value", f"Invalid path: {path_result.get_left().message}"
-                    )
+                        "set_value",
+                        f"Invalid path: {path_result.get_left().message}",
+                    ),
                 )
 
             value_result = DataSecurityManager.validate_value_content(
-                value, self.security_limits
+                value,
+                self.security_limits,
             )
             if value_result.is_left():
                 return Either.left(
                     DataError(
-                        "set_value", f"Invalid value: {value_result.get_left().message}"
-                    )
+                        "set_value",
+                        f"Invalid value: {value_result.get_left().message}",
+                    ),
                 )
 
             # Check schema validation if schema exists
@@ -395,7 +414,7 @@ class DictionaryEngine:
                         DataError(
                             "set_value",
                             f"Schema validation failed: {schema_result.get_left().message}",
-                        )
+                        ),
                     )
 
             # Set the value
@@ -408,7 +427,9 @@ class DictionaryEngine:
             nested_levels = DataSecurityManager.calculate_data_depth(data)
 
             self._metadata[name] = metadata.update_size(
-                size_bytes, key_count, nested_levels
+                size_bytes,
+                key_count,
+                nested_levels,
             )
 
             # Persist changes
@@ -418,32 +439,39 @@ class DictionaryEngine:
 
         except Exception as e:
             context = create_error_context(
-                "set_value", "dictionary_engine", name=name, path=path.path
+                "set_value",
+                "dictionary_engine",
+                name=name,
+                path=path.path,
             )
             return Either.left(
-                DataError("set_value", f"Unexpected error: {str(e)}", context)
+                DataError("set_value", f"Unexpected error: {e!s}", context),
             )
 
     async def delete_key(
-        self, name: str, path: DictionaryPath
+        self,
+        name: str,
+        path: DictionaryPath,
     ) -> Either[DataError, None]:
         """Delete key from dictionary."""
         try:
             # Check if dictionary exists
             if name not in self._dictionaries:
                 return Either.left(
-                    DataError("delete_key", f"Dictionary '{name}' not found")
+                    DataError("delete_key", f"Dictionary '{name}' not found"),
                 )
 
             # Validate path
             path_result = DataSecurityManager.validate_key_path(
-                path, self.security_limits
+                path,
+                self.security_limits,
             )
             if path_result.is_left():
                 return Either.left(
                     DataError(
-                        "delete_key", f"Invalid path: {path_result.get_left().message}"
-                    )
+                        "delete_key",
+                        f"Invalid path: {path_result.get_left().message}",
+                    ),
                 )
 
             # Navigate to parent and delete key
@@ -454,7 +482,7 @@ class DictionaryEngine:
                 # Top-level key
                 if segments[0] not in data:
                     return Either.left(
-                        DataError("delete_key", f"Key '{segments[0]}' not found")
+                        DataError("delete_key", f"Key '{segments[0]}' not found"),
                     )
                 del data[segments[0]]
             else:
@@ -463,14 +491,14 @@ class DictionaryEngine:
                 for segment in segments[:-1]:
                     if not isinstance(current, dict) or segment not in current:
                         return Either.left(
-                            DataError("delete_key", f"Path '{path.path}' not found")
+                            DataError("delete_key", f"Path '{path.path}' not found"),
                         )
                     current = current[segment]
 
                 final_key = segments[-1]
                 if not isinstance(current, dict) or final_key not in current:
                     return Either.left(
-                        DataError("delete_key", f"Key '{final_key}' not found")
+                        DataError("delete_key", f"Key '{final_key}' not found"),
                     )
                 del current[final_key]
 
@@ -481,7 +509,9 @@ class DictionaryEngine:
             nested_levels = DataSecurityManager.calculate_data_depth(data)
 
             self._metadata[name] = metadata.update_size(
-                size_bytes, key_count, nested_levels
+                size_bytes,
+                key_count,
+                nested_levels,
             )
 
             # Persist changes
@@ -491,10 +521,13 @@ class DictionaryEngine:
 
         except Exception as e:
             context = create_error_context(
-                "delete_key", "dictionary_engine", name=name, path=path.path
+                "delete_key",
+                "dictionary_engine",
+                name=name,
+                path=path.path,
             )
             return Either.left(
-                DataError("delete_key", f"Unexpected error: {str(e)}", context)
+                DataError("delete_key", f"Unexpected error: {e!s}", context),
             )
 
     def list_dictionaries(self) -> list[DictionaryMetadata]:
@@ -535,7 +568,11 @@ class DictionaryEngine:
             json.dump(metadata_dict, f, ensure_ascii=False, indent=2)
 
     def _set_value_at_path(
-        self, data: dict[str, Any], path: DictionaryPath, value: Any, create_path: bool
+        self,
+        data: dict[str, Any],
+        path: DictionaryPath,
+        value: Any,
+        create_path: bool,
     ) -> None:
         """Internal method to set value at path."""
         segments = path.segments()
@@ -561,13 +598,14 @@ class DictionaryEngine:
         """Count total number of keys in nested structure."""
         if isinstance(data, dict):
             return len(data) + sum(self._count_keys(v) for v in data.values())
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return sum(self._count_keys(item) for item in data)
-        else:
-            return 0
+        return 0
 
     def _validate_against_schema(
-        self, data: dict[str, Any], schema: DataSchema
+        self,
+        data: dict[str, Any],
+        schema: DataSchema,
     ) -> Either[ValidationError, None]:
         """Validate data against schema (basic implementation)."""
         # This is a simplified schema validation
@@ -577,14 +615,14 @@ class DictionaryEngine:
         if schema_dict.get("type") == "object":
             if not isinstance(data, dict):
                 return Either.left(
-                    ValidationError("Schema validation failed: expected object")
+                    ValidationError("Schema validation failed: expected object"),
                 )
 
             required = schema_dict.get("required", [])
             for req_field in required:
                 if req_field not in data:
                     return Either.left(
-                        ValidationError(f"Required field '{req_field}' missing")
+                        ValidationError(f"Required field '{req_field}' missing"),
                     )
 
             properties = schema_dict.get("properties", {})
@@ -595,27 +633,27 @@ class DictionaryEngine:
 
                     if prop_type == "string" and not isinstance(value, str):
                         return Either.left(
-                            ValidationError(f"Field '{key}' must be string")
+                            ValidationError(f"Field '{key}' must be string"),
                         )
-                    elif prop_type == "number" and not isinstance(value, int | float):
+                    if prop_type == "number" and not isinstance(value, int | float):
                         return Either.left(
-                            ValidationError(f"Field '{key}' must be number")
+                            ValidationError(f"Field '{key}' must be number"),
                         )
-                    elif prop_type == "integer" and not isinstance(value, int):
+                    if prop_type == "integer" and not isinstance(value, int):
                         return Either.left(
-                            ValidationError(f"Field '{key}' must be integer")
+                            ValidationError(f"Field '{key}' must be integer"),
                         )
-                    elif prop_type == "boolean" and not isinstance(value, bool):
+                    if prop_type == "boolean" and not isinstance(value, bool):
                         return Either.left(
-                            ValidationError(f"Field '{key}' must be boolean")
+                            ValidationError(f"Field '{key}' must be boolean"),
                         )
-                    elif prop_type == "array" and not isinstance(value, list):
+                    if prop_type == "array" and not isinstance(value, list):
                         return Either.left(
-                            ValidationError(f"Field '{key}' must be array")
+                            ValidationError(f"Field '{key}' must be array"),
                         )
-                    elif prop_type == "object" and not isinstance(value, dict):
+                    if prop_type == "object" and not isinstance(value, dict):
                         return Either.left(
-                            ValidationError(f"Field '{key}' must be object")
+                            ValidationError(f"Field '{key}' must be object"),
                         )
 
         return Either.right(None)

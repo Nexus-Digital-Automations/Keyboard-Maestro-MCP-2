@@ -1,5 +1,4 @@
-"""
-AI model management system for Keyboard Maestro MCP tools.
+"""AI model management system for Keyboard Maestro MCP tools.
 
 This module provides comprehensive AI model management with support for
 multiple providers, automatic model selection, and usage optimization.
@@ -47,7 +46,8 @@ class AIError(Exception):
     @classmethod
     def initialization_failed(cls, details: str) -> "AIError":
         return cls(
-            "initialization_failed", f"AI system initialization failed: {details}"
+            "initialization_failed",
+            f"AI system initialization failed: {details}",
         )
 
     @classmethod
@@ -76,7 +76,8 @@ class AIError(Exception):
     @classmethod
     def cost_limit_exceeded(cls, estimated: float, limit: float) -> "AIError":
         return cls(
-            "cost_limit_exceeded", f"Cost estimate {estimated} exceeds limit {limit}"
+            "cost_limit_exceeded",
+            f"Cost estimate {estimated} exceeds limit {limit}",
         )
 
 
@@ -157,7 +158,8 @@ class AIModelManager:
             self.usage_trackers[model.model_id] = ModelUsageTracker(model.model_id)
 
     async def initialize(
-        self, api_keys: dict[str, str] | None = None
+        self,
+        api_keys: dict[str, str] | None = None,
     ) -> Either[AIError, None]:
         """Initialize AI model manager with API keys and validation."""
         try:
@@ -176,7 +178,7 @@ class AIModelManager:
 
             self.initialized = True
             logger.info(
-                f"AI model manager initialized with {len(self.available_models)} models"
+                f"AI model manager initialized with {len(self.available_models)} models",
             )
 
             return Either.right(None)
@@ -217,7 +219,7 @@ class AIModelManager:
             for _model_id, model in self.available_models.items():
                 if model.api_key_required and model.model_type not in self.api_keys:
                     missing_keys.append(
-                        f"{model.model_type.value} (for {model.display_name})"
+                        f"{model.model_type.value} (for {model.display_name})",
                     )
 
             if missing_keys:
@@ -228,7 +230,7 @@ class AIModelManager:
 
         except Exception as e:
             return Either.left(
-                AIError.initialization_failed(f"Model validation failed: {e}")
+                AIError.initialization_failed(f"Model validation failed: {e}"),
             )
 
     async def _initialize_providers(self) -> None:
@@ -242,7 +244,7 @@ class AIModelManager:
 
             if initialized_providers:
                 logger.info(
-                    f"Successfully initialized AI providers: {initialized_providers}"
+                    f"Successfully initialized AI providers: {initialized_providers}",
                 )
 
                 # Get provider registry for request processing
@@ -252,13 +254,13 @@ class AIModelManager:
                 healthy_provider = await self.provider_registry.get_healthy_provider()
                 if healthy_provider:
                     logger.info(
-                        f"Healthy provider available: {healthy_provider.provider_name}"
+                        f"Healthy provider available: {healthy_provider.provider_name}",
                     )
                 else:
                     logger.warning("No healthy providers available")
             else:
                 logger.warning(
-                    "No AI providers initialized - check API key configuration"
+                    "No AI providers initialized - check API key configuration",
                 )
                 self.provider_registry = None
 
@@ -278,7 +280,7 @@ class AIModelManager:
         try:
             if not self.initialized:
                 return Either.left(
-                    AIError.initialization_failed("Manager not initialized")
+                    AIError.initialization_failed("Manager not initialized"),
                 )
 
             # Filter suitable models
@@ -309,7 +311,7 @@ class AIModelManager:
             # Apply cost filter
             if cost_limit:
                 estimated_tokens = TokenCount(
-                    max(input_size // 4, 100)
+                    max(input_size // 4, 100),
                 )  # Rough estimate
                 suitable_models = [
                     model
@@ -320,14 +322,14 @@ class AIModelManager:
 
                 if not suitable_models:
                     return Either.left(
-                        AIError.cost_limit_exceeded(0, float(cost_limit))
+                        AIError.cost_limit_exceeded(0, float(cost_limit)),
                     )
 
             # Select based on processing mode
             selected_model = self._select_by_mode(suitable_models, mode, operation)
 
             logger.debug(
-                f"Selected model {selected_model.display_name} for {operation.value} in {mode.value} mode"
+                f"Selected model {selected_model.display_name} for {operation.value} in {mode.value} mode",
             )
             return Either.right(selected_model)
 
@@ -335,67 +337,73 @@ class AIModelManager:
             return Either.left(AIError.model_selection_failed(str(e)))
 
     def _select_by_mode(
-        self, models: list[AIModel], mode: ProcessingMode, operation: AIOperation
+        self,
+        models: list[AIModel],
+        mode: ProcessingMode,
+        operation: AIOperation,
     ) -> AIModel:
         """Select model based on processing mode preferences."""
         if mode == ProcessingMode.FAST:
             # Prefer faster, smaller models
             return min(models, key=lambda m: (m.max_tokens, m.cost_per_input_token))
 
-        elif mode == ProcessingMode.ACCURATE:
+        if mode == ProcessingMode.ACCURATE:
             # Prefer larger, more capable models
             return max(models, key=lambda m: (m.context_window, m.max_tokens))
 
-        elif mode == ProcessingMode.COST_EFFECTIVE:
+        if mode == ProcessingMode.COST_EFFECTIVE:
             # Prefer lowest cost models
             return min(
-                models, key=lambda m: m.cost_per_input_token + m.cost_per_output_token
+                models,
+                key=lambda m: m.cost_per_input_token + m.cost_per_output_token,
             )
 
-        elif mode == ProcessingMode.CREATIVE:
+        if mode == ProcessingMode.CREATIVE:
             # Prefer models known for creativity (bias toward GPT-4)
             gpt4_models = [m for m in models if "gpt-4" in m.model_name.lower()]
             if gpt4_models:
                 return max(gpt4_models, key=lambda m: m.max_tokens)
             return max(models, key=lambda m: m.max_tokens)
 
-        else:  # BALANCED
-            # Balance between capability and cost
-            scored_models = []
-            for model in models:
-                # Score based on context window, cost efficiency, and features
-                capability_score = model.context_window / 1000  # Normalize
-                cost_efficiency = 1.0 / (
-                    model.cost_per_input_token + 0.000001
-                )  # Avoid division by zero
-                feature_score = (
-                    (2 if model.supports_vision else 0)
-                    + (1 if model.supports_function_calling else 0)
-                    + (1 if model.supports_streaming else 0)
-                )
+        # BALANCED
+        # Balance between capability and cost
+        scored_models = []
+        for model in models:
+            # Score based on context window, cost efficiency, and features
+            capability_score = model.context_window / 1000  # Normalize
+            cost_efficiency = 1.0 / (
+                model.cost_per_input_token + 0.000001
+            )  # Avoid division by zero
+            feature_score = (
+                (2 if model.supports_vision else 0)
+                + (1 if model.supports_function_calling else 0)
+                + (1 if model.supports_streaming else 0)
+            )
 
-                total_score = capability_score + cost_efficiency + feature_score
-                scored_models.append((total_score, model))
+            total_score = capability_score + cost_efficiency + feature_score
+            scored_models.append((total_score, model))
 
-            return max(scored_models, key=lambda x: x[0])[1]
+        return max(scored_models, key=lambda x: x[0])[1]
 
     def get_model_by_id(self, model_id: AIModelId) -> Either[AIError, AIModel]:
         """Get model by ID with validation."""
         if model_id not in self.available_models:
             return Either.left(
-                AIError.model_selection_failed(f"Model not found: {model_id}")
+                AIError.model_selection_failed(f"Model not found: {model_id}"),
             )
 
         model = self.available_models[model_id]
         if model.api_key_required and model.model_type not in self.api_keys:
             return Either.left(
-                AIError.model_selection_failed(f"No API key for model: {model_id}")
+                AIError.model_selection_failed(f"No API key for model: {model_id}"),
             )
 
         return Either.right(model)
 
     def list_available_models(
-        self, operation: AIOperation | None = None, provider: AIModelType | None = None
+        self,
+        operation: AIOperation | None = None,
+        provider: AIModelType | None = None,
     ) -> list[dict[str, Any]]:
         """List available models with metadata."""
         models = []
@@ -433,7 +441,7 @@ class AIModelManager:
                         "total_cost": tracker.total_cost,
                         "requests_this_minute": tracker.requests_this_minute,
                     },
-                }
+                },
             )
 
         return sorted(models, key=lambda x: x["display_name"])
@@ -471,27 +479,26 @@ class AIModelManager:
                 ),
                 "can_make_request": tracker.can_make_request(model),
             }
-        else:
-            # Aggregate statistics
-            total_requests = sum(t.total_requests for t in self.usage_trackers.values())
-            total_tokens = sum(t.total_tokens for t in self.usage_trackers.values())
-            total_cost = sum(t.total_cost for t in self.usage_trackers.values())
+        # Aggregate statistics
+        total_requests = sum(t.total_requests for t in self.usage_trackers.values())
+        total_tokens = sum(t.total_tokens for t in self.usage_trackers.values())
+        total_cost = sum(t.total_cost for t in self.usage_trackers.values())
 
-            return {
-                "total_models": len(self.available_models),
-                "available_models": len(
-                    [
-                        m
-                        for m in self.available_models.values()
-                        if not m.api_key_required or m.model_type in self.api_keys
-                    ]
-                ),
-                "total_requests": total_requests,
-                "total_tokens": total_tokens,
-                "total_cost": total_cost,
-                "cache_size": len(self.model_cache),
-                "cache_hit_ratio": self._calculate_cache_hit_ratio(),
-            }
+        return {
+            "total_models": len(self.available_models),
+            "available_models": len(
+                [
+                    m
+                    for m in self.available_models.values()
+                    if not m.api_key_required or m.model_type in self.api_keys
+                ],
+            ),
+            "total_requests": total_requests,
+            "total_tokens": total_tokens,
+            "total_cost": total_cost,
+            "cache_size": len(self.model_cache),
+            "cache_hit_ratio": self._calculate_cache_hit_ratio(),
+        }
 
     def _calculate_cache_hit_ratio(self) -> float:
         """Calculate cache hit ratio."""
@@ -532,7 +539,9 @@ class AIModelManager:
 
         # Cache the response
         self.model_cache[request_hash] = ModelCacheEntry(
-            request_hash=request_hash, response=response, timestamp=datetime.now(UTC)
+            request_hash=request_hash,
+            response=response,
+            timestamp=datetime.now(UTC),
         )
 
         logger.debug(f"Cached response for request {request.request_id}")
@@ -549,7 +558,7 @@ class AIModelManager:
         }
 
         key_string = json.dumps(cache_key, sort_keys=True)
-        return hashlib.md5(key_string.encode()).hexdigest()
+        return hashlib.sha256(key_string.encode()).hexdigest()
 
     def _evict_cache_entries(self) -> None:
         """Evict least recently used cache entries."""

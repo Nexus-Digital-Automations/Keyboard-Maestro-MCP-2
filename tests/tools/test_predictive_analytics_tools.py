@@ -1,12 +1,13 @@
-"""
-Comprehensive test suite for predictive analytics tools using systematic MCP tool test pattern.
+"""Comprehensive test suite for predictive analytics tools using systematic MCP tool test pattern.
 
 Tests the complete predictive analytics functionality including automation pattern prediction,
 resource usage forecasting, insights generation, trend analysis, and analytics status monitoring.
 Tests follow the proven systematic pattern that achieved 100% success across 27+ tool suites.
 """
 
-from datetime import UTC, datetime
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import Mock
 
 import pytest
@@ -17,16 +18,12 @@ import src.server.tools.predictive_analytics_tools as pa_tools
 
 # Access the actual functions from the tool functions
 km_predict_automation_patterns = pa_tools.km_predict_automation_patterns.fn
-km_forecast_resource_usage = pa_tools.km_forecast_resource_usage.fn  
+km_forecast_resource_usage = pa_tools.km_forecast_resource_usage.fn
 km_generate_insights = pa_tools.km_generate_insights.fn
 km_analyze_trends = pa_tools.km_analyze_trends.fn
 km_get_analytics_status = pa_tools.km_get_analytics_status.fn
 
 # Import supporting modules for complete testing
-from src.analytics.insight_generator import InsightCategory, InsightData, InsightGenerator
-from src.analytics.pattern_predictor import PatternFeature, PatternPredictor, PatternType
-from src.analytics.usage_forecaster import CapacityStatus, ForecastScenario, ResourceType, UsageForecaster
-from src.core.predictive_modeling import ConfidenceLevel, ForecastGranularity, TimeSeriesData
 
 # SYSTEMATIC PATTERN ALIGNMENT: Use real implementation functions
 # Import functions are already available from actual modules at top of file
@@ -36,18 +33,20 @@ class TestKMPredictAutomationPatterns:
     """Test suite for km_predict_automation_patterns MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-predict-001"}
+
         # Make info method async-compatible
         async def mock_info(message):
             return f"Info: {message}"
+
         context.info = mock_info
         return context
 
     @pytest.mark.asyncio
-    async def test_predict_automation_patterns_comprehensive(self, mock_context):
+    async def test_predict_automation_patterns_comprehensive(self, mock_context) -> None:
         """Test comprehensive automation pattern prediction - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Test actual km_predict_automation_patterns implementation
         result = await km_predict_automation_patterns(
@@ -74,18 +73,24 @@ class TestKMPredictAutomationPatterns:
             # Handle different error response formats from actual source code
             if isinstance(result["error"], str):
                 # Simple string error format
-                assert "not initialized" in result["error"] or "failed" in result["error"]
+                assert (
+                    "not initialized" in result["error"] or "failed" in result["error"]
+                )
             else:
                 # Structured error format
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "PREDICTION_ERROR"]
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "PREDICTION_ERROR",
+                ]
 
     @pytest.mark.asyncio
-    async def test_predict_automation_patterns_without_intervals(self, mock_context):
+    async def test_predict_automation_patterns_without_intervals(self, mock_context) -> None:
         """Test pattern prediction without confidence intervals."""
         result = await km_predict_automation_patterns(
             prediction_scope="macro",
-            target_id="test_macro_001", 
+            target_id="test_macro_001",
             prediction_horizon=7,
             include_confidence_intervals=False,
         )
@@ -93,24 +98,30 @@ class TestKMPredictAutomationPatterns:
         # SYSTEMATIC ALIGNMENT: Handle actual response structure
         if result["success"]:
             assert "prediction" in result
-            assert result["prediction"]["include_confidence_intervals"] == False
+            assert not result["prediction"]["include_confidence_intervals"]
             assert "metadata" in result
         else:
             # Contract violation case: verify error structure
             assert "error" in result
             # Handle different error response formats from actual source code
             if isinstance(result["error"], str):
-                assert "not initialized" in result["error"] or "failed" in result["error"]
+                assert (
+                    "not initialized" in result["error"] or "failed" in result["error"]
+                )
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "PREDICTION_ERROR"]
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "PREDICTION_ERROR",
+                ]
 
     @pytest.mark.asyncio
-    async def test_predict_automation_patterns_invalid_scope(self, mock_context):
+    async def test_predict_automation_patterns_invalid_scope(self, mock_context) -> None:
         """Test pattern prediction with invalid scope."""
         result = await km_predict_automation_patterns(
             prediction_scope="invalid_scope",
-            target_id="test_001"
+            target_id="test_001",
         )
 
         # SYSTEMATIC ALIGNMENT: Handle actual implementation response structure
@@ -120,15 +131,25 @@ class TestKMPredictAutomationPatterns:
         if isinstance(result["error"], str):
             # Check for initialization error or validation error
             error_msg = result["error"].lower()
-            is_init_error = "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg
+            is_init_error = (
+                "not initialized" in error_msg
+                or "initialize_predictive_analytics" in error_msg
+            )
             is_validation_error = "invalid" in error_msg or "scope" in error_msg
-            assert is_init_error or is_validation_error, f"Expected initialization or validation error, got: {result['error']}"
+            assert is_init_error or is_validation_error, (
+                f"Expected initialization or validation error, got: {result['error']}"
+            )
         else:
             assert "code" in result["error"]
-            assert result["error"]["code"] in ["VALIDATION_ERROR", "INVALID_SCOPE", "INPUT_ERROR", "INITIALIZATION_ERROR"]
+            assert result["error"]["code"] in [
+                "VALIDATION_ERROR",
+                "INVALID_SCOPE",
+                "INPUT_ERROR",
+                "INITIALIZATION_ERROR",
+            ]
 
     @pytest.mark.asyncio
-    async def test_predict_automation_patterns_invalid_horizon(self, mock_context):
+    async def test_predict_automation_patterns_invalid_horizon(self, mock_context) -> None:
         """Test pattern prediction with invalid time horizon."""
         result = await km_predict_automation_patterns(
             prediction_scope="system",
@@ -142,19 +163,31 @@ class TestKMPredictAutomationPatterns:
         # Real implementation may return initialization errors or validation errors
         if isinstance(result["error"], str):
             error_msg = result["error"].lower()
-            is_init_error = "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg
-            is_validation_error = "invalid" in error_msg or "horizon" in error_msg or "range" in error_msg
-            assert is_init_error or is_validation_error, f"Expected initialization or validation error, got: {result['error']}"
+            is_init_error = (
+                "not initialized" in error_msg
+                or "initialize_predictive_analytics" in error_msg
+            )
+            is_validation_error = (
+                "invalid" in error_msg or "horizon" in error_msg or "range" in error_msg
+            )
+            assert is_init_error or is_validation_error, (
+                f"Expected initialization or validation error, got: {result['error']}"
+            )
         else:
             assert "code" in result["error"]
-            assert result["error"]["code"] in ["VALIDATION_ERROR", "INVALID_HORIZON", "INPUT_ERROR", "INITIALIZATION_ERROR"]
+            assert result["error"]["code"] in [
+                "VALIDATION_ERROR",
+                "INVALID_HORIZON",
+                "INPUT_ERROR",
+                "INITIALIZATION_ERROR",
+            ]
 
     @pytest.mark.asyncio
-    async def test_predict_automation_patterns_empty_scope(self, mock_context):
+    async def test_predict_automation_patterns_empty_scope(self, mock_context) -> None:
         """Test pattern prediction with empty scope."""
         result = await km_predict_automation_patterns(
             prediction_scope="",
-            target_id="test_001"
+            target_id="test_001",
         )
 
         # SYSTEMATIC ALIGNMENT: Handle actual implementation response structure
@@ -163,29 +196,42 @@ class TestKMPredictAutomationPatterns:
         # Real implementation may return initialization errors or validation errors
         if isinstance(result["error"], str):
             error_msg = result["error"].lower()
-            is_init_error = "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg
-            is_validation_error = "empty" in error_msg or "required" in error_msg or "scope" in error_msg
-            assert is_init_error or is_validation_error, f"Expected initialization or validation error, got: {result['error']}"
+            is_init_error = (
+                "not initialized" in error_msg
+                or "initialize_predictive_analytics" in error_msg
+            )
+            is_validation_error = (
+                "empty" in error_msg or "required" in error_msg or "scope" in error_msg
+            )
+            assert is_init_error or is_validation_error, (
+                f"Expected initialization or validation error, got: {result['error']}"
+            )
         else:
             assert "code" in result["error"]
-            assert result["error"]["code"] in ["VALIDATION_ERROR", "REQUIRED_FIELD", "INPUT_ERROR", "INITIALIZATION_ERROR"]
+            assert result["error"]["code"] in [
+                "VALIDATION_ERROR",
+                "REQUIRED_FIELD",
+                "INPUT_ERROR",
+                "INITIALIZATION_ERROR",
+            ]
 
 
 class TestKMForecastResourceUsage:
     """Test suite for km_forecast_resource_usage MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-forecast-001"}
         # Make info method async-compatible for systematic pattern alignment
         from unittest.mock import AsyncMock
+
         context.info = AsyncMock()
         return context
 
     @pytest.mark.asyncio
-    async def test_forecast_resource_usage_comprehensive(self, mock_context):
+    async def test_forecast_resource_usage_comprehensive(self, mock_context) -> None:
         """Test comprehensive resource usage forecasting - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_forecast_resource_usage(
             resource_types=["cpu", "memory", "storage"],
@@ -209,14 +255,21 @@ class TestKMForecastResourceUsage:
             if isinstance(result["error"], str):
                 # Check for initialization error pattern
                 error_msg = result["error"].lower()
-                assert "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg, f"Expected initialization error, got: {result['error']}"
+                assert (
+                    "not initialized" in error_msg
+                    or "initialize_predictive_analytics" in error_msg
+                ), f"Expected initialization error, got: {result['error']}"
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "FORECAST_ERROR"]
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "FORECAST_ERROR",
+                ]
             print(f"Resource forecasting initialization detected: {result['error']}")
 
     @pytest.mark.asyncio
-    async def test_forecast_resource_usage_without_scenarios(self, mock_context):
+    async def test_forecast_resource_usage_without_scenarios(self, mock_context) -> None:
         """Test resource forecasting without scenarios."""
         result = await km_forecast_resource_usage(
             resource_types=["cpu"],
@@ -237,14 +290,21 @@ class TestKMForecastResourceUsage:
             if isinstance(result["error"], str):
                 # Check for initialization error pattern
                 error_msg = result["error"].lower()
-                assert "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg, f"Expected initialization error, got: {result['error']}"
+                assert (
+                    "not initialized" in error_msg
+                    or "initialize_predictive_analytics" in error_msg
+                ), f"Expected initialization error, got: {result['error']}"
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "FORECAST_ERROR"]
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "FORECAST_ERROR",
+                ]
             print(f"Resource forecasting initialization detected: {result['error']}")
 
     @pytest.mark.asyncio
-    async def test_forecast_resource_usage_invalid_horizon(self, mock_context):
+    async def test_forecast_resource_usage_invalid_horizon(self, mock_context) -> None:
         """Test resource forecasting with invalid horizon."""
         result = await km_forecast_resource_usage(
             resource_types=["cpu"],
@@ -257,15 +317,29 @@ class TestKMForecastResourceUsage:
         # Real implementation may return initialization errors or validation errors
         if isinstance(result["error"], str):
             error_msg = result["error"].lower()
-            is_init_error = "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg
-            is_validation_error = "invalid" in error_msg or "period" in error_msg or "horizon" in error_msg
-            assert is_init_error or is_validation_error, f"Expected initialization or validation error, got: {result['error']}"
+            is_init_error = (
+                "not initialized" in error_msg
+                or "initialize_predictive_analytics" in error_msg
+            )
+            is_validation_error = (
+                "invalid" in error_msg
+                or "period" in error_msg
+                or "horizon" in error_msg
+            )
+            assert is_init_error or is_validation_error, (
+                f"Expected initialization or validation error, got: {result['error']}"
+            )
         else:
             assert "code" in result["error"]
-            assert result["error"]["code"] in ["VALIDATION_ERROR", "INVALID_PERIOD", "INPUT_ERROR", "INITIALIZATION_ERROR"]
+            assert result["error"]["code"] in [
+                "VALIDATION_ERROR",
+                "INVALID_PERIOD",
+                "INPUT_ERROR",
+                "INITIALIZATION_ERROR",
+            ]
 
     @pytest.mark.asyncio
-    async def test_forecast_resource_usage_invalid_granularity(self, mock_context):
+    async def test_forecast_resource_usage_invalid_granularity(self, mock_context) -> None:
         """Test resource forecasting with invalid granularity."""
         result = await km_forecast_resource_usage(
             resource_types=["memory"],
@@ -278,15 +352,25 @@ class TestKMForecastResourceUsage:
         # Real implementation may return initialization errors or validation errors
         if isinstance(result["error"], str):
             error_msg = result["error"].lower()
-            is_init_error = "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg
+            is_init_error = (
+                "not initialized" in error_msg
+                or "initialize_predictive_analytics" in error_msg
+            )
             is_validation_error = "invalid" in error_msg or "granularity" in error_msg
-            assert is_init_error or is_validation_error, f"Expected initialization or validation error, got: {result['error']}"
+            assert is_init_error or is_validation_error, (
+                f"Expected initialization or validation error, got: {result['error']}"
+            )
         else:
             assert "code" in result["error"]
-            assert result["error"]["code"] in ["VALIDATION_ERROR", "INVALID_GRANULARITY", "INPUT_ERROR", "INITIALIZATION_ERROR"]
+            assert result["error"]["code"] in [
+                "VALIDATION_ERROR",
+                "INVALID_GRANULARITY",
+                "INPUT_ERROR",
+                "INITIALIZATION_ERROR",
+            ]
 
     @pytest.mark.asyncio
-    async def test_forecast_resource_usage_invalid_model(self, mock_context):
+    async def test_forecast_resource_usage_invalid_model(self, mock_context) -> None:
         """Test resource forecasting with invalid model."""
         result = await km_forecast_resource_usage(
             resource_types=["storage"],
@@ -299,29 +383,40 @@ class TestKMForecastResourceUsage:
         # Real implementation may return initialization errors or validation errors
         if isinstance(result["error"], str):
             error_msg = result["error"].lower()
-            is_init_error = "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg
+            is_init_error = (
+                "not initialized" in error_msg
+                or "initialize_predictive_analytics" in error_msg
+            )
             is_validation_error = "invalid" in error_msg or "granularity" in error_msg
-            assert is_init_error or is_validation_error, f"Expected initialization or validation error, got: {result['error']}"
+            assert is_init_error or is_validation_error, (
+                f"Expected initialization or validation error, got: {result['error']}"
+            )
         else:
             assert "code" in result["error"]
-            assert result["error"]["code"] in ["VALIDATION_ERROR", "INVALID_GRANULARITY", "INPUT_ERROR", "INITIALIZATION_ERROR"]
+            assert result["error"]["code"] in [
+                "VALIDATION_ERROR",
+                "INVALID_GRANULARITY",
+                "INPUT_ERROR",
+                "INITIALIZATION_ERROR",
+            ]
 
 
 class TestKMGenerateInsights:
     """Test suite for km_generate_insights MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-insights-001"}
         # Make info method async-compatible for systematic pattern alignment
         from unittest.mock import AsyncMock
+
         context.info = AsyncMock()
         return context
 
     @pytest.mark.asyncio
-    async def test_generate_insights_comprehensive(self, mock_context):
+    async def test_generate_insights_comprehensive(self, mock_context) -> None:
         """Test comprehensive insights generation - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_generate_insights(
             analysis_scope="automation",
@@ -343,14 +438,21 @@ class TestKMGenerateInsights:
             if isinstance(result["error"], str):
                 # Check for initialization error pattern
                 error_msg = result["error"].lower()
-                assert "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg, f"Expected initialization error, got: {result['error']}"
+                assert (
+                    "not initialized" in error_msg
+                    or "initialize_predictive_analytics" in error_msg
+                ), f"Expected initialization error, got: {result['error']}"
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "INSIGHTS_ERROR"]
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "INSIGHTS_ERROR",
+                ]
             print(f"Insights generation initialization detected: {result['error']}")
 
     @pytest.mark.asyncio
-    async def test_generate_insights_high_confidence(self, mock_context):
+    async def test_generate_insights_high_confidence(self, mock_context) -> None:
         """Test insights generation with high confidence threshold."""
         result = await km_generate_insights(
             analysis_scope="performance",
@@ -369,14 +471,23 @@ class TestKMGenerateInsights:
             assert "error" in result
             if isinstance(result["error"], str):
                 error_msg = result["error"].lower()
-                assert "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg, f"Expected initialization error, got: {result['error']}"
+                assert (
+                    "not initialized" in error_msg
+                    or "initialize_predictive_analytics" in error_msg
+                ), f"Expected initialization error, got: {result['error']}"
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "INSIGHTS_ERROR"]
-            print(f"High confidence insights initialization detected: {result['error']}")
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "INSIGHTS_ERROR",
+                ]
+            print(
+                f"High confidence insights initialization detected: {result['error']}",
+            )
 
     @pytest.mark.asyncio
-    async def test_generate_insights_specific_types(self, mock_context):
+    async def test_generate_insights_specific_types(self, mock_context) -> None:
         """Test insights generation with specific insight types."""
         result = await km_generate_insights(
             analysis_scope="usage",
@@ -395,14 +506,21 @@ class TestKMGenerateInsights:
             assert "error" in result
             if isinstance(result["error"], str):
                 error_msg = result["error"].lower()
-                assert "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg, f"Expected initialization error, got: {result['error']}"
+                assert (
+                    "not initialized" in error_msg
+                    or "initialize_predictive_analytics" in error_msg
+                ), f"Expected initialization error, got: {result['error']}"
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "INSIGHTS_ERROR"]
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "INSIGHTS_ERROR",
+                ]
             print(f"Specific types insights initialization detected: {result['error']}")
 
     @pytest.mark.asyncio
-    async def test_generate_insights_invalid_scope(self, mock_context):
+    async def test_generate_insights_invalid_scope(self, mock_context) -> None:
         """Test insights generation with invalid scope."""
         result = await km_generate_insights(
             analysis_scope="invalid_scope",
@@ -414,15 +532,25 @@ class TestKMGenerateInsights:
         # Real implementation may return initialization errors or validation errors
         if isinstance(result["error"], str):
             error_msg = result["error"].lower()
-            is_init_error = "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg
+            is_init_error = (
+                "not initialized" in error_msg
+                or "initialize_predictive_analytics" in error_msg
+            )
             is_validation_error = "invalid" in error_msg or "scope" in error_msg
-            assert is_init_error or is_validation_error, f"Expected initialization or validation error, got: {result['error']}"
+            assert is_init_error or is_validation_error, (
+                f"Expected initialization or validation error, got: {result['error']}"
+            )
         else:
             assert "code" in result["error"]
-            assert result["error"]["code"] in ["VALIDATION_ERROR", "INVALID_SCOPE", "INPUT_ERROR", "INITIALIZATION_ERROR"]
+            assert result["error"]["code"] in [
+                "VALIDATION_ERROR",
+                "INVALID_SCOPE",
+                "INPUT_ERROR",
+                "INITIALIZATION_ERROR",
+            ]
 
     @pytest.mark.asyncio
-    async def test_generate_insights_invalid_confidence(self, mock_context):
+    async def test_generate_insights_invalid_confidence(self, mock_context) -> None:
         """Test insights generation with invalid confidence threshold."""
         result = await km_generate_insights(
             analysis_scope="efficiency",
@@ -435,29 +563,40 @@ class TestKMGenerateInsights:
         # Real implementation may return initialization errors or validation errors
         if isinstance(result["error"], str):
             error_msg = result["error"].lower()
-            is_init_error = "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg
+            is_init_error = (
+                "not initialized" in error_msg
+                or "initialize_predictive_analytics" in error_msg
+            )
             is_validation_error = "invalid" in error_msg or "timeframe" in error_msg
-            assert is_init_error or is_validation_error, f"Expected initialization or validation error, got: {result['error']}"
+            assert is_init_error or is_validation_error, (
+                f"Expected initialization or validation error, got: {result['error']}"
+            )
         else:
             assert "code" in result["error"]
-            assert result["error"]["code"] in ["VALIDATION_ERROR", "INVALID_TIMEFRAME", "INPUT_ERROR", "INITIALIZATION_ERROR"]
+            assert result["error"]["code"] in [
+                "VALIDATION_ERROR",
+                "INVALID_TIMEFRAME",
+                "INPUT_ERROR",
+                "INITIALIZATION_ERROR",
+            ]
 
 
 class TestKMAnalyzeTrends:
     """Test suite for km_analyze_trends MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-trends-001"}
         # Make info method async-compatible for systematic pattern alignment
         from unittest.mock import AsyncMock
+
         context.info = AsyncMock()
         return context
 
     @pytest.mark.asyncio
-    async def test_analyze_trends_system_wide(self, mock_context):
+    async def test_analyze_trends_system_wide(self, mock_context) -> None:
         """Test system-wide trend analysis - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_analyze_trends(
             trend_analysis_scope="usage",
@@ -478,14 +617,23 @@ class TestKMAnalyzeTrends:
             assert "error" in result
             if isinstance(result["error"], str):
                 error_msg = result["error"].lower()
-                assert "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg, f"Expected initialization error, got: {result['error']}"
+                assert (
+                    "not initialized" in error_msg
+                    or "initialize_predictive_analytics" in error_msg
+                ), f"Expected initialization error, got: {result['error']}"
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "TRENDS_ERROR"]
-            print(f"System-wide trend analysis initialization detected: {result['error']}")
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "TRENDS_ERROR",
+                ]
+            print(
+                f"System-wide trend analysis initialization detected: {result['error']}",
+            )
 
     @pytest.mark.asyncio
-    async def test_analyze_trends_without_forecasts(self, mock_context):
+    async def test_analyze_trends_without_forecasts(self, mock_context) -> None:
         """Test trend analysis without forecasts."""
         result = await km_analyze_trends(
             trend_analysis_scope="performance",
@@ -504,14 +652,23 @@ class TestKMAnalyzeTrends:
             assert "error" in result
             if isinstance(result["error"], str):
                 error_msg = result["error"].lower()
-                assert "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg, f"Expected initialization error, got: {result['error']}"
+                assert (
+                    "not initialized" in error_msg
+                    or "initialize_predictive_analytics" in error_msg
+                ), f"Expected initialization error, got: {result['error']}"
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "TRENDS_ERROR"]
-            print(f"Trends without forecasts initialization detected: {result['error']}")
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "TRENDS_ERROR",
+                ]
+            print(
+                f"Trends without forecasts initialization detected: {result['error']}",
+            )
 
     @pytest.mark.asyncio
-    async def test_analyze_trends_high_sensitivity(self, mock_context):
+    async def test_analyze_trends_high_sensitivity(self, mock_context) -> None:
         """Test trend analysis with high sensitivity."""
         result = await km_analyze_trends(
             trend_analysis_scope="errors",
@@ -529,14 +686,21 @@ class TestKMAnalyzeTrends:
             assert "error" in result
             if isinstance(result["error"], str):
                 error_msg = result["error"].lower()
-                assert "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg, f"Expected initialization error, got: {result['error']}"
+                assert (
+                    "not initialized" in error_msg
+                    or "initialize_predictive_analytics" in error_msg
+                ), f"Expected initialization error, got: {result['error']}"
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "TRENDS_ERROR"]
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "TRENDS_ERROR",
+                ]
             print(f"High sensitivity trends initialization detected: {result['error']}")
 
     @pytest.mark.asyncio
-    async def test_analyze_trends_invalid_scope(self, mock_context):
+    async def test_analyze_trends_invalid_scope(self, mock_context) -> None:
         """Test trend analysis with invalid scope."""
         result = await km_analyze_trends(
             trend_analysis_scope="invalid_scope",
@@ -548,36 +712,50 @@ class TestKMAnalyzeTrends:
         # Real implementation may return initialization errors or validation errors
         if isinstance(result["error"], str):
             error_msg = result["error"].lower()
-            is_init_error = "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg
+            is_init_error = (
+                "not initialized" in error_msg
+                or "initialize_predictive_analytics" in error_msg
+            )
             is_validation_error = "invalid" in error_msg or "scope" in error_msg
-            assert is_init_error or is_validation_error, f"Expected initialization or validation error, got: {result['error']}"
+            assert is_init_error or is_validation_error, (
+                f"Expected initialization or validation error, got: {result['error']}"
+            )
         else:
             assert "code" in result["error"]
-            assert result["error"]["code"] in ["VALIDATION_ERROR", "INVALID_SCOPE", "INPUT_ERROR", "INITIALIZATION_ERROR"]
+            assert result["error"]["code"] in [
+                "VALIDATION_ERROR",
+                "INVALID_SCOPE",
+                "INPUT_ERROR",
+                "INITIALIZATION_ERROR",
+            ]
 
 
 class TestKMGetAnalyticsStatus:
     """Test suite for km_get_analytics_status MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-status-001"}
         # Make info method async-compatible for systematic pattern alignment
         from unittest.mock import AsyncMock
+
         context.info = AsyncMock()
         return context
 
     @pytest.mark.asyncio
-    async def test_get_analytics_status_complete(self, mock_context):
+    async def test_get_analytics_status_complete(self, mock_context) -> None:
         """Test complete analytics status retrieval - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_get_analytics_status()
 
         # SYSTEMATIC ALIGNMENT: Handle actual response structure
         if result["success"]:
             assert "status" in result
-            assert "system_health" in result["status"] or "analytics_system" in result["status"]
+            assert (
+                "system_health" in result["status"]
+                or "analytics_system" in result["status"]
+            )
             assert "metadata" in result
             print(f"Complete analytics status success: {result}")
         else:
@@ -585,14 +763,23 @@ class TestKMGetAnalyticsStatus:
             assert "error" in result
             if isinstance(result["error"], str):
                 error_msg = result["error"].lower()
-                assert "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg, f"Expected initialization error, got: {result['error']}"
+                assert (
+                    "not initialized" in error_msg
+                    or "initialize_predictive_analytics" in error_msg
+                ), f"Expected initialization error, got: {result['error']}"
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "STATUS_ERROR"]
-            print(f"Complete analytics status initialization detected: {result['error']}")
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "STATUS_ERROR",
+                ]
+            print(
+                f"Complete analytics status initialization detected: {result['error']}",
+            )
 
     @pytest.mark.asyncio
-    async def test_get_analytics_status_system_health_only(self, mock_context):
+    async def test_get_analytics_status_system_health_only(self, mock_context) -> None:
         """Test analytics status with system health only."""
         result = await km_get_analytics_status()
 
@@ -606,14 +793,23 @@ class TestKMGetAnalyticsStatus:
             assert "error" in result
             if isinstance(result["error"], str):
                 error_msg = result["error"].lower()
-                assert "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg, f"Expected initialization error, got: {result['error']}"
+                assert (
+                    "not initialized" in error_msg
+                    or "initialize_predictive_analytics" in error_msg
+                ), f"Expected initialization error, got: {result['error']}"
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "STATUS_ERROR"]
-            print(f"System health analytics status initialization detected: {result['error']}")
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "STATUS_ERROR",
+                ]
+            print(
+                f"System health analytics status initialization detected: {result['error']}",
+            )
 
     @pytest.mark.asyncio
-    async def test_get_analytics_status_model_status_only(self, mock_context):
+    async def test_get_analytics_status_model_status_only(self, mock_context) -> None:
         """Test analytics status with model status only."""
         result = await km_get_analytics_status()
 
@@ -627,14 +823,21 @@ class TestKMGetAnalyticsStatus:
             assert "error" in result
             if isinstance(result["error"], str):
                 error_msg = result["error"].lower()
-                assert "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg, f"Expected initialization error, got: {result['error']}"
+                assert (
+                    "not initialized" in error_msg
+                    or "initialize_predictive_analytics" in error_msg
+                ), f"Expected initialization error, got: {result['error']}"
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "STATUS_ERROR"]
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "STATUS_ERROR",
+                ]
             print(f"Model status analytics initialization detected: {result['error']}")
 
     @pytest.mark.asyncio
-    async def test_get_analytics_status_recent_activities_only(self, mock_context):
+    async def test_get_analytics_status_recent_activities_only(self, mock_context) -> None:
         """Test analytics status with recent activities only."""
         result = await km_get_analytics_status()
 
@@ -648,8 +851,17 @@ class TestKMGetAnalyticsStatus:
             assert "error" in result
             if isinstance(result["error"], str):
                 error_msg = result["error"].lower()
-                assert "not initialized" in error_msg or "initialize_predictive_analytics" in error_msg, f"Expected initialization error, got: {result['error']}"
+                assert (
+                    "not initialized" in error_msg
+                    or "initialize_predictive_analytics" in error_msg
+                ), f"Expected initialization error, got: {result['error']}"
             else:
                 assert "code" in result["error"]
-                assert result["error"]["code"] in ["INITIALIZATION_ERROR", "SERVICE_UNAVAILABLE", "STATUS_ERROR"]
-            print(f"Recent activities analytics initialization detected: {result['error']}")
+                assert result["error"]["code"] in [
+                    "INITIALIZATION_ERROR",
+                    "SERVICE_UNAVAILABLE",
+                    "STATUS_ERROR",
+                ]
+            print(
+                f"Recent activities analytics initialization detected: {result['error']}",
+            )

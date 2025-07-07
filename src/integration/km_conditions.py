@@ -1,14 +1,25 @@
-"""
-Keyboard Maestro condition integration layer.
+"""Keyboard Maestro condition integration layer.
 
 This module handles the integration between our condition system and Keyboard Maestro,
 generating safe AppleScript, managing condition XML, and providing KM-specific validation.
 """
 
 import re
-import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import Any
+
+try:
+    from defusedxml import ElementTree as ET
+except ImportError:
+    # Fallback with security warning if defusedxml not available
+    import warnings
+    import xml.etree.ElementTree as ET
+
+    warnings.warn(
+        "defusedxml not available, using standard xml library",
+        RuntimeWarning,
+        stacklevel=2,
+    )
 
 from src.core.conditions import ComparisonOperator, ConditionSpec, ConditionType
 from src.core.either import Either
@@ -21,8 +32,7 @@ logger = get_logger(__name__)
 
 
 class KMConditionIntegrator:
-    """
-    Integration layer for adding conditions to Keyboard Maestro macros.
+    """Integration layer for adding conditions to Keyboard Maestro macros.
 
     This class handles:
     - Converting condition specifications to KM XML format
@@ -41,8 +51,7 @@ class KMConditionIntegrator:
         action_on_true: str | None = None,
         action_on_false: str | None = None,
     ) -> Either[IntegrationError, dict[str, Any]]:
-        """
-        Add a condition to a Keyboard Maestro macro.
+        """Add a condition to a Keyboard Maestro macro.
 
         Args:
             macro_id: Target macro identifier
@@ -52,6 +61,7 @@ class KMConditionIntegrator:
 
         Returns:
             Either containing integration details or error
+
         """
         try:
             start_time = datetime.now()
@@ -66,15 +76,19 @@ class KMConditionIntegrator:
             if xml_result.is_left():
                 return Either.left(
                     IntegrationError(
-                        "XML_GENERATION_FAILED", xml_result.get_left().message
-                    )
+                        "XML_GENERATION_FAILED",
+                        xml_result.get_left().message,
+                    ),
                 )
 
             condition_xml = xml_result.get_right()
 
             # Generate AppleScript to add condition
             script_result = self._generate_add_condition_script(
-                macro_id, condition_xml, action_on_true, action_on_false
+                macro_id,
+                condition_xml,
+                action_on_true,
+                action_on_false,
             )
             if script_result.is_left():
                 return Either.left(script_result.get_left())
@@ -88,14 +102,14 @@ class KMConditionIntegrator:
                     IntegrationError(
                         "APPLESCRIPT_EXECUTION_FAILED",
                         execution_result.get_left().message,
-                    )
+                    ),
                 )
 
             end_time = datetime.now()
             execution_duration = (end_time - start_time).total_seconds() * 1000
 
             logger.info(
-                f"Successfully added condition {condition.condition_id} to macro {macro_id}"
+                f"Successfully added condition {condition.condition_id} to macro {macro_id}",
             )
 
             return Either.right(
@@ -108,24 +122,26 @@ class KMConditionIntegrator:
                     "integration_time_ms": execution_duration,
                     "km_result": execution_result.get_right(),
                     "created_at": start_time.isoformat(),
-                }
+                },
             )
 
         except Exception as e:
-            logger.error(f"Error integrating condition with KM: {str(e)}")
+            logger.error(f"Error integrating condition with KM: {e!s}")
             return Either.left(
                 IntegrationError(
-                    "INTEGRATION_ERROR", f"Failed to integrate condition: {str(e)}"
-                )
+                    "INTEGRATION_ERROR",
+                    f"Failed to integrate condition: {e!s}",
+                ),
             )
 
     async def _validate_macro_exists(
-        self, macro_id: MacroId
+        self,
+        macro_id: MacroId,
     ) -> Either[IntegrationError, bool]:
         """Validate that the target macro exists in KM."""
         try:
             # Use KM client to check macro existence
-            script = f'''
+            script = f"""
                 tell application "Keyboard Maestro"
                     set macroExists to false
                     try
@@ -134,20 +150,23 @@ class KMConditionIntegrator:
                     end try
                     return macroExists
                 end tell
-            '''
+            """
 
             result = await self.km_client.execute_applescript(script)
             if result.is_left():
                 return Either.left(
                     IntegrationError(
-                        "MACRO_VALIDATION_FAILED", result.get_left().message
-                    )
+                        "MACRO_VALIDATION_FAILED",
+                        result.get_left().message,
+                    ),
                 )
 
             exists = result.get_right().strip().lower() == "true"
             if not exists:
                 return Either.left(
-                    IntegrationError("MACRO_NOT_FOUND", f"Macro '{macro_id}' not found")
+                    IntegrationError(
+                        "MACRO_NOT_FOUND", f"Macro '{macro_id}' not found"
+                    ),
                 )
 
             return Either.right(True)
@@ -155,28 +174,31 @@ class KMConditionIntegrator:
         except Exception as e:
             return Either.left(
                 IntegrationError(
-                    "VALIDATION_ERROR", f"Failed to validate macro: {str(e)}"
-                )
+                    "VALIDATION_ERROR",
+                    f"Failed to validate macro: {e!s}",
+                ),
             )
 
     def _generate_condition_xml(
-        self, condition: ConditionSpec
+        self,
+        condition: ConditionSpec,
     ) -> Either[SecurityError, str]:
-        """
-        Generate KM-compatible XML for the condition.
+        """Generate KM-compatible XML for the condition.
 
         Args:
             condition: Condition specification
 
         Returns:
             Either containing XML string or security error
+
         """
         try:
             # Create root condition element
             condition_elem = ET.Element("condition")
             condition_elem.set("id", condition.condition_id)
             condition_elem.set(
-                "type", self._map_condition_type_to_km(condition.condition_type)
+                "type",
+                self._map_condition_type_to_km(condition.condition_type),
             )
 
             # Add operator
@@ -225,8 +247,9 @@ class KMConditionIntegrator:
         except Exception as e:
             return Either.left(
                 SecurityError(
-                    "XML_GENERATION_ERROR", f"Failed to generate XML: {str(e)}"
-                )
+                    "XML_GENERATION_ERROR",
+                    f"Failed to generate XML: {e!s}",
+                ),
             )
 
     def _generate_add_condition_script(
@@ -242,7 +265,7 @@ class KMConditionIntegrator:
             escaped_xml = condition_xml.replace('"', '\\"').replace("\n", "\\n")
 
             # Base script to add condition
-            script = f'''
+            script = f"""
                 tell application "Keyboard Maestro"
                     try
                         set targetMacro to macro "{self._escape_applescript_string(macro_id)}"
@@ -254,7 +277,7 @@ class KMConditionIntegrator:
                         return "error: " & errorMessage
                     end try
                 end tell
-            '''
+            """
 
             return Either.right(script)
 
@@ -262,8 +285,8 @@ class KMConditionIntegrator:
             return Either.left(
                 IntegrationError(
                     "SCRIPT_GENERATION_ERROR",
-                    f"Failed to generate AppleScript: {str(e)}",
-                )
+                    f"Failed to generate AppleScript: {e!s}",
+                ),
             )
 
     def _map_condition_type_to_km(self, condition_type: ConditionType) -> str:
@@ -340,16 +363,17 @@ class KMConditionIntegrator:
             if re.search(pattern, xml_lower):
                 return Either.left(
                     SecurityError(
-                        "XML_INJECTION", f"Dangerous XML pattern detected: {pattern}"
-                    )
+                        "XML_INJECTION",
+                        f"Dangerous XML pattern detected: {pattern}",
+                    ),
                 )
 
         # Validate XML structure
         try:
-            ET.fromstring(xml_content)
+            ET.fromstring(xml_content)  # noqa: S314 # Using defusedxml import
         except ET.ParseError as e:
             return Either.left(
-                SecurityError("INVALID_XML", f"XML parsing error: {str(e)}")
+                SecurityError("INVALID_XML", f"XML parsing error: {e!s}"),
             )
 
         return Either.right(None)
@@ -371,8 +395,9 @@ async def add_text_condition(
     if condition_result.is_left():
         return Either.left(
             IntegrationError(
-                "CONDITION_BUILD_FAILED", condition_result.get_left().message
-            )
+                "CONDITION_BUILD_FAILED",
+                condition_result.get_left().message,
+            ),
         )
 
     condition = condition_result.get_right()
@@ -394,8 +419,9 @@ async def add_app_condition(
     if condition_result.is_left():
         return Either.left(
             IntegrationError(
-                "CONDITION_BUILD_FAILED", condition_result.get_left().message
-            )
+                "CONDITION_BUILD_FAILED",
+                condition_result.get_left().message,
+            ),
         )
 
     condition = condition_result.get_right()

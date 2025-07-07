@@ -1,5 +1,4 @@
-"""
-Workflow intelligence MCP tools for AI-powered workflow analysis and optimization.
+"""Workflow intelligence MCP tools for AI-powered workflow analysis and optimization.
 
 This module provides comprehensive MCP tools for intelligent workflow analysis,
 natural language workflow creation, pattern recognition, and optimization.
@@ -38,33 +37,38 @@ workflow_analyzer = WorkflowAnalyzer()
 @mcp.tool()
 async def km_analyze_workflow_intelligence(
     workflow_source: Annotated[
-        str, Field(description="Workflow source (description|existing|template)")
+        str,
+        Field(description="Workflow source (description|existing|template)"),
     ],
     workflow_data: Annotated[
-        str | dict, Field(description="Natural language description or workflow data")
+        str | dict,
+        Field(description="Natural language description or workflow data"),
     ],
     analysis_depth: Annotated[
-        str, Field(description="Analysis depth (basic|comprehensive|ai_enhanced)")
+        str,
+        Field(description="Analysis depth (basic|comprehensive|ai_enhanced)"),
     ] = "comprehensive",
     optimization_focus: Annotated[
         list[str],
         Field(
-            description="Optimization areas (performance|efficiency|reliability|cost)"
+            description="Optimization areas (performance|efficiency|reliability|cost)",
         ),
     ] = None,
     include_predictions: Annotated[
-        bool, Field(description="Include predictive performance analysis")
+        bool,
+        Field(description="Include predictive performance analysis"),
     ] = True,
     generate_alternatives: Annotated[
-        bool, Field(description="Generate alternative workflow designs")
+        bool,
+        Field(description="Generate alternative workflow designs"),
     ] = True,
     cross_tool_optimization: Annotated[
-        bool, Field(description="Enable cross-tool optimization analysis")
+        bool,
+        Field(description="Enable cross-tool optimization analysis"),
     ] = True,
     ctx: ExecutionContext = None,
 ) -> dict[str, Any]:
-    """
-    Analyze workflow intelligence with AI-powered insights and optimization recommendations.
+    """Analyze workflow intelligence with AI-powered insights and optimization recommendations.
 
     Provides comprehensive workflow analysis including pattern recognition, performance prediction,
     cross-tool optimization, and intelligent improvement suggestions.
@@ -91,7 +95,8 @@ async def km_analyze_workflow_intelligence(
             "ai_enhanced": IntelligenceLevel.AI_POWERED,
         }
         intelligence_level = depth_mapping.get(
-            analysis_depth, IntelligenceLevel.STANDARD
+            analysis_depth,
+            IntelligenceLevel.STANDARD,
         )
 
         # Parse optimization goals
@@ -160,7 +165,9 @@ async def km_analyze_workflow_intelligence(
 
             # Analyze the generated workflow
             analysis_result = await workflow_analyzer.analyze_workflow(
-                workflow_dict, intelligence_level, parsed_goals
+                workflow_dict,
+                intelligence_level,
+                parsed_goals,
             )
 
         elif workflow_source in ["existing", "template"]:
@@ -182,7 +189,9 @@ async def km_analyze_workflow_intelligence(
 
             # Analyze the existing workflow
             analysis_result = await workflow_analyzer.analyze_workflow(
-                workflow_dict, intelligence_level, parsed_goals
+                workflow_dict,
+                intelligence_level,
+                parsed_goals,
             )
 
         else:
@@ -210,7 +219,7 @@ async def km_analyze_workflow_intelligence(
             "analysis_summary": {
                 "quality_score": analysis_data.quality_score,
                 "complexity_level": analysis_data.complexity_analysis.get(
-                    "complexity_level"
+                    "complexity_level",
                 ),
                 "maintainability_score": analysis_data.maintainability_score,
                 "analysis_depth": analysis_data.analysis_depth.value,
@@ -278,7 +287,7 @@ async def km_analyze_workflow_intelligence(
         logger.error(f"Workflow intelligence analysis failed: {e}")
         return {
             "success": False,
-            "error": f"Analysis failed: {str(e)}",
+            "error": f"Analysis failed: {e!s}",
             "error_type": "system_error",
         }
 
@@ -286,28 +295,32 @@ async def km_analyze_workflow_intelligence(
 @mcp.tool()
 async def km_create_workflow_from_description(
     description: Annotated[
-        str, Field(description="Natural language workflow description", min_length=10)
+        str,
+        Field(description="Natural language workflow description", min_length=10),
     ],
     target_complexity: Annotated[
-        str, Field(description="Target complexity (simple|intermediate|advanced)")
+        str,
+        Field(description="Target complexity (simple|intermediate|advanced)"),
     ] = "intermediate",
     preferred_tools: Annotated[
-        list[str] | None, Field(description="Preferred tools to use")
+        list[str] | None,
+        Field(description="Preferred tools to use"),
     ] = None,
     optimization_goals: Annotated[
         list[str],
         Field(description="Optimization goals (speed|reliability|efficiency)"),
     ] = None,
     include_error_handling: Annotated[
-        bool, Field(description="Include error handling and validation")
+        bool,
+        Field(description="Include error handling and validation"),
     ] = True,
     generate_visual_design: Annotated[
-        bool, Field(description="Generate visual workflow design")
+        bool,
+        Field(description="Generate visual workflow design"),
     ] = True,
     ctx: ExecutionContext = None,
 ) -> dict[str, Any]:
-    """
-    Create intelligent workflow from natural language description.
+    """Create intelligent workflow from natural language description.
 
     Uses NLP and AI to parse user descriptions and generate complete, optimized workflows
     with appropriate actions, conditions, and error handling.
@@ -344,7 +357,8 @@ async def km_create_workflow_from_description(
         }
 
         nlp_result = await nlp_processor.process_natural_language(
-            description, user_preferences
+            description,
+            user_preferences,
         )
         if nlp_result.is_left():
             return {
@@ -442,12 +456,12 @@ async def km_create_workflow_from_description(
 
         if nlp_data.confidence_score < 0.7:
             implementation_suggestions.append(
-                "Low confidence in interpretation - please review generated workflow carefully"
+                "Low confidence in interpretation - please review generated workflow carefully",
             )
 
         if nlp_data.complexity_estimate == WorkflowComplexity.ADVANCED:
             implementation_suggestions.append(
-                "Complex workflow detected - consider breaking into smaller sub-workflows"
+                "Complex workflow detected - consider breaking into smaller sub-workflows",
             )
 
         # Calculate generation metrics
@@ -502,7 +516,7 @@ async def km_create_workflow_from_description(
         logger.error(f"Workflow generation failed: {e}")
         return {
             "success": False,
-            "error": f"Generation failed: {str(e)}",
+            "error": f"Generation failed: {e!s}",
             "error_type": "system_error",
         }
 
@@ -513,25 +527,28 @@ async def km_optimize_workflow_performance(
     optimization_criteria: Annotated[
         list[str],
         Field(
-            description="Optimization criteria (execution_time|resource_usage|reliability|cost)"
+            description="Optimization criteria (execution_time|resource_usage|reliability|cost)",
         ),
     ] = None,
     use_analytics_data: Annotated[
-        bool, Field(description="Use analytics engine data for optimization")
+        bool,
+        Field(description="Use analytics engine data for optimization"),
     ] = True,
     cross_tool_analysis: Annotated[
-        bool, Field(description="Analyze cross-tool optimization opportunities")
+        bool,
+        Field(description="Analyze cross-tool optimization opportunities"),
     ] = True,
     generate_alternatives: Annotated[
-        bool, Field(description="Generate optimized alternative workflows")
+        bool,
+        Field(description="Generate optimized alternative workflows"),
     ] = True,
     preserve_functionality: Annotated[
-        bool, Field(description="Preserve all original functionality")
+        bool,
+        Field(description="Preserve all original functionality"),
     ] = True,
     ctx: ExecutionContext = None,
 ) -> dict[str, Any]:
-    """
-    Optimize workflow performance using AI-powered analysis and cross-tool optimization.
+    """Optimize workflow performance using AI-powered analysis and cross-tool optimization.
 
     Analyzes workflow execution patterns, identifies bottlenecks, and generates
     optimized versions while preserving functionality.
@@ -603,7 +620,9 @@ async def km_optimize_workflow_performance(
 
         # Analyze current workflow
         analysis_result = await workflow_analyzer.analyze_workflow(
-            simulated_workflow, IntelligenceLevel.AI_POWERED, optimization_goals
+            simulated_workflow,
+            IntelligenceLevel.AI_POWERED,
+            optimization_goals,
         )
 
         if analysis_result.is_left():
@@ -638,23 +657,28 @@ async def km_optimize_workflow_performance(
         # Simulate optimized performance (would be calculated based on applied optimizations)
         optimized_performance = {
             "estimated_execution_time_seconds": current_performance.get(
-                "estimated_execution_time_seconds", 5
+                "estimated_execution_time_seconds",
+                5,
             )
             * 0.7,  # 30% improvement
             "estimated_throughput_per_hour": current_performance.get(
-                "estimated_throughput_per_hour", 720
+                "estimated_throughput_per_hour",
+                720,
             )
             * 1.4,
             "estimated_cpu_usage_percent": current_performance.get(
-                "estimated_cpu_usage_percent", 20
+                "estimated_cpu_usage_percent",
+                20,
             )
             * 0.8,
             "estimated_memory_usage_mb": current_performance.get(
-                "estimated_memory_usage_mb", 50
+                "estimated_memory_usage_mb",
+                50,
             )
             * 0.9,
             "predicted_success_rate": min(
-                1.0, current_performance.get("predicted_success_rate", 0.9) * 1.1
+                1.0,
+                current_performance.get("predicted_success_rate", 0.9) * 1.1,
             ),
         }
 
@@ -715,7 +739,7 @@ async def km_optimize_workflow_performance(
         logger.error(f"Workflow optimization failed: {e}")
         return {
             "success": False,
-            "error": f"Optimization failed: {str(e)}",
+            "error": f"Optimization failed: {e!s}",
             "error_type": "system_error",
         }
 
@@ -725,31 +749,34 @@ async def km_generate_workflow_recommendations(
     context: Annotated[
         str,
         Field(
-            description="Context for recommendations (user_goals|usage_patterns|performance_data)"
+            description="Context for recommendations (user_goals|usage_patterns|performance_data)",
         ),
     ],
     user_preferences: Annotated[
-        dict[str, Any], Field(description="User preferences and constraints")
+        dict[str, Any],
+        Field(description="User preferences and constraints"),
     ] = None,
     analysis_scope: Annotated[
         str,
         Field(
-            description="Recommendation scope (single_workflow|workflow_library|ecosystem)"
+            description="Recommendation scope (single_workflow|workflow_library|ecosystem)",
         ),
     ] = "workflow_library",
     intelligence_level: Annotated[
-        str, Field(description="Intelligence level (basic|smart|ai_powered)")
+        str,
+        Field(description="Intelligence level (basic|smart|ai_powered)"),
     ] = "ai_powered",
     include_templates: Annotated[
-        bool, Field(description="Include workflow templates in recommendations")
+        bool,
+        Field(description="Include workflow templates in recommendations"),
     ] = True,
     personalization: Annotated[
-        bool, Field(description="Enable personalized recommendations")
+        bool,
+        Field(description="Enable personalized recommendations"),
     ] = True,
     ctx: ExecutionContext = None,
 ) -> dict[str, Any]:
-    """
-    Generate intelligent workflow recommendations based on context and AI analysis.
+    """Generate intelligent workflow recommendations based on context and AI analysis.
 
     Provides personalized workflow suggestions, optimization opportunities, and
     intelligent automation recommendations based on usage patterns and goals.
@@ -792,7 +819,7 @@ async def km_generate_workflow_recommendations(
                                 "km_action_sequence_builder",
                             ],
                             "template_available": True,
-                        }
+                        },
                     )
 
                 elif goal == "automation":
@@ -811,7 +838,7 @@ async def km_generate_workflow_recommendations(
                                 "km_control_flow",
                             ],
                             "template_available": True,
-                        }
+                        },
                     )
 
         elif context == "usage_patterns":
@@ -819,7 +846,8 @@ async def km_generate_workflow_recommendations(
             usage_data = user_preferences.get("usage_patterns", {})
 
             most_used_tools = usage_data.get(
-                "frequent_tools", ["km_file_operations", "km_app_control"]
+                "frequent_tools",
+                ["km_file_operations", "km_app_control"],
             )
 
             if "km_file_operations" in most_used_tools:
@@ -837,7 +865,7 @@ async def km_generate_workflow_recommendations(
                             "km_dictionary_manager",
                         ],
                         "template_available": True,
-                    }
+                    },
                 )
 
         elif context == "performance_data":
@@ -859,7 +887,7 @@ async def km_generate_workflow_recommendations(
                             "km_analytics_engine",
                         ],
                         "template_available": False,
-                    }
+                    },
                 )
 
         # Add general recommendations if none generated
@@ -878,7 +906,7 @@ async def km_generate_workflow_recommendations(
                         "km_analytics_engine",
                     ],
                     "template_available": True,
-                }
+                },
             )
 
         # Generate workflow templates if requested
@@ -921,7 +949,8 @@ async def km_generate_workflow_recommendations(
         personalized_insights = {}
         if personalization:
             preferred_complexity = user_preferences.get(
-                "preferred_complexity", "intermediate"
+                "preferred_complexity",
+                "intermediate",
             )
             preferred_tools = user_preferences.get("preferred_tools", [])
 
@@ -939,7 +968,8 @@ async def km_generate_workflow_recommendations(
                     "preferred_complexity": preferred_complexity,
                     "preferred_tools": preferred_tools,
                     "experience_level": user_preferences.get(
-                        "experience_level", "intermediate"
+                        "experience_level",
+                        "intermediate",
                     ),
                 },
                 "tailored_suggestions": [
@@ -991,21 +1021,21 @@ async def km_generate_workflow_recommendations(
                 else 0,
                 "complexity_distribution": {
                     "simple": len(
-                        [r for r in recommendations if r.get("complexity") == "simple"]
+                        [r for r in recommendations if r.get("complexity") == "simple"],
                     ),
                     "intermediate": len(
                         [
                             r
                             for r in recommendations
                             if r.get("complexity") == "intermediate"
-                        ]
+                        ],
                     ),
                     "advanced": len(
                         [
                             r
                             for r in recommendations
                             if r.get("complexity") == "advanced"
-                        ]
+                        ],
                     ),
                 },
             },
@@ -1028,7 +1058,7 @@ async def km_generate_workflow_recommendations(
         logger.error(f"Workflow recommendations generation failed: {e}")
         return {
             "success": False,
-            "error": f"Recommendations generation failed: {str(e)}",
+            "error": f"Recommendations generation failed: {e!s}",
             "error_type": "system_error",
         }
 

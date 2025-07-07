@@ -1,5 +1,4 @@
-"""
-Plugin marketplace system for discovery, installation, and management.
+"""Plugin marketplace system for discovery, installation, and management.
 
 This module provides a comprehensive marketplace for plugins with search,
 ratings, updates, and secure distribution capabilities.
@@ -107,10 +106,9 @@ class MarketplaceEntry:
         """Get security level based on verification and review."""
         if self.verified_developer and self.status == PluginStatus.APPROVED:
             return SecurityProfile.STANDARD
-        elif self.status == PluginStatus.APPROVED:
+        if self.status == PluginStatus.APPROVED:
             return SecurityProfile.STRICT
-        else:
-            return SecurityProfile.SANDBOX
+        return SecurityProfile.SANDBOX
 
 
 @dataclass
@@ -146,7 +144,9 @@ class PluginMarketplace:
     """Comprehensive plugin marketplace with discovery and management."""
 
     def __init__(
-        self, marketplace_url: str | None = None, cache_dir: Path | None = None
+        self,
+        marketplace_url: str | None = None,
+        cache_dir: Path | None = None,
     ):
         self.marketplace_url = marketplace_url or "https://api.km-mcp-plugins.com"
         self.cache_dir = cache_dir or Path.home() / ".km-mcp" / "marketplace_cache"
@@ -176,11 +176,12 @@ class PluginMarketplace:
 
         except Exception as e:
             return Either.left(
-                PluginError.initialization_failed(f"Marketplace init failed: {str(e)}")
+                PluginError.initialization_failed(f"Marketplace init failed: {e!s}"),
             )
 
     async def search_plugins(
-        self, query: SearchQuery
+        self,
+        query: SearchQuery,
     ) -> Either[PluginError, list[MarketplaceEntry]]:
         """Search for plugins in the marketplace."""
         try:
@@ -202,10 +203,11 @@ class PluginMarketplace:
             return Either.right(results)
 
         except Exception as e:
-            return Either.left(PluginError(f"Search failed: {str(e)}", "SEARCH_ERROR"))
+            return Either.left(PluginError(f"Search failed: {e!s}", "SEARCH_ERROR"))
 
     async def get_plugin_details(
-        self, plugin_id: PluginId
+        self,
+        plugin_id: PluginId,
     ) -> Either[PluginError, MarketplaceEntry]:
         """Get detailed information about a specific plugin."""
         try:
@@ -227,11 +229,13 @@ class PluginMarketplace:
 
         except Exception as e:
             return Either.left(
-                PluginError(f"Failed to get plugin details: {str(e)}", "DETAILS_ERROR")
+                PluginError(f"Failed to get plugin details: {e!s}", "DETAILS_ERROR"),
             )
 
     async def install_plugin(
-        self, plugin_id: PluginId, target_dir: Path
+        self,
+        plugin_id: PluginId,
+        target_dir: Path,
     ) -> Either[PluginError, Path]:
         """Install plugin from marketplace with progress tracking."""
         try:
@@ -296,7 +300,9 @@ class PluginMarketplace:
             progress.progress_percent = 80.0
 
             install_result = await self._install_plugin_files(
-                entry, download_path, target_dir
+                entry,
+                download_path,
+                target_dir,
             )
             if install_result.is_left():
                 progress.error = install_result.get_left().message
@@ -316,13 +322,14 @@ class PluginMarketplace:
             return Either.right(plugin_path)
 
         except Exception as e:
-            error_msg = f"Installation failed: {str(e)}"
+            error_msg = f"Installation failed: {e!s}"
             if plugin_id in self.installation_progress:
                 self.installation_progress[plugin_id].error = error_msg
             return Either.left(PluginError.installation_failed(error_msg))
 
     async def get_installation_progress(
-        self, plugin_id: PluginId
+        self,
+        plugin_id: PluginId,
     ) -> InstallationProgress | None:
         """Get installation progress for a plugin."""
         return self.installation_progress.get(plugin_id)
@@ -339,7 +346,8 @@ class PluginMarketplace:
         return Either.right(featured)
 
     async def get_plugin_updates(
-        self, installed_plugins: dict[PluginId, str]
+        self,
+        installed_plugins: dict[PluginId, str],
     ) -> Either[PluginError, list[MarketplaceEntry]]:
         """Check for updates to installed plugins."""
         try:
@@ -358,7 +366,7 @@ class PluginMarketplace:
 
         except Exception as e:
             return Either.left(
-                PluginError(f"Update check failed: {str(e)}", "UPDATE_CHECK_ERROR")
+                PluginError(f"Update check failed: {e!s}", "UPDATE_CHECK_ERROR"),
             )
 
     async def _search_cache(self, query: SearchQuery) -> list[MarketplaceEntry] | None:
@@ -376,7 +384,8 @@ class PluginMarketplace:
         return results[query.offset : query.offset + query.limit]
 
     async def _search_remote(
-        self, query: SearchQuery
+        self,
+        query: SearchQuery,
     ) -> Either[PluginError, list[MarketplaceEntry]]:
         """Search remote marketplace (mock implementation)."""
         # In a real implementation, this would make HTTP requests to the marketplace API
@@ -385,7 +394,9 @@ class PluginMarketplace:
         mock_plugins = [
             MarketplaceEntry(
                 metadata=self._create_mock_metadata(
-                    "text-processor", "Text Processor", "1.0.0"
+                    "text-processor",
+                    "Text Processor",
+                    "1.0.0",
                 ),
                 category=PluginCategory.TEXT_PROCESSING,
                 status=PluginStatus.APPROVED,
@@ -401,7 +412,9 @@ class PluginMarketplace:
             ),
             MarketplaceEntry(
                 metadata=self._create_mock_metadata(
-                    "email-integration", "Email Integration", "2.1.0"
+                    "email-integration",
+                    "Email Integration",
+                    "2.1.0",
                 ),
                 category=PluginCategory.COMMUNICATION,
                 status=PluginStatus.APPROVED,
@@ -428,7 +441,10 @@ class PluginMarketplace:
         return Either.right(paginated)
 
     def _create_mock_metadata(
-        self, identifier: str, name: str, version: str
+        self,
+        identifier: str,
+        name: str,
+        version: str,
     ) -> PluginMetadata:
         """Create mock plugin metadata for testing."""
         from ..core.plugin_architecture import ApiVersion, PluginPermissions, PluginType
@@ -482,20 +498,23 @@ class PluginMarketplace:
         return not (query.verified_only and not entry.verified_developer)
 
     def _sort_results(
-        self, results: list[MarketplaceEntry], sort_by: str
+        self,
+        results: list[MarketplaceEntry],
+        sort_by: str,
     ) -> list[MarketplaceEntry]:
         """Sort search results by specified criteria."""
         if sort_by == "rating":
             return sorted(results, key=lambda x: x.get_average_rating(), reverse=True)
-        elif sort_by == "name":
+        if sort_by == "name":
             return sorted(results, key=lambda x: x.metadata.name)
-        elif sort_by == "date":
+        if sort_by == "date":
             return sorted(results, key=lambda x: x.metadata.created_at, reverse=True)
-        else:  # relevance (default)
-            return results
+        # relevance (default)
+        return results
 
     async def _fetch_plugin_details(
-        self, plugin_id: PluginId
+        self,
+        plugin_id: PluginId,
     ) -> Either[PluginError, MarketplaceEntry]:
         """Fetch plugin details from remote marketplace."""
         # Mock implementation - would make HTTP request in real version
@@ -503,7 +522,9 @@ class PluginMarketplace:
             return Either.right(
                 MarketplaceEntry(
                     metadata=self._create_mock_metadata(
-                        "text-processor", "Text Processor", "1.0.0"
+                        "text-processor",
+                        "Text Processor",
+                        "1.0.0",
                     ),
                     category=PluginCategory.TEXT_PROCESSING,
                     status=PluginStatus.APPROVED,
@@ -512,21 +533,22 @@ class PluginMarketplace:
                         file_size=1024 * 100,
                         checksum="sha256:abcd1234...",
                     ),
-                )
+                ),
             )
 
         return Either.left(PluginError.plugin_not_found(plugin_id))
 
     async def _validate_installation_security(
-        self, entry: MarketplaceEntry
+        self,
+        entry: MarketplaceEntry,
     ) -> Either[PluginError, None]:
         """Validate security requirements for installation."""
         # Check plugin status
         if entry.status != PluginStatus.APPROVED:
             return Either.left(
                 PluginError.security_violation(
-                    f"Plugin not approved: {entry.status.value}"
-                )
+                    f"Plugin not approved: {entry.status.value}",
+                ),
             )
 
         # Check file size limits
@@ -534,22 +556,23 @@ class PluginMarketplace:
         if entry.download_info.file_size > max_size:
             return Either.left(
                 PluginError.security_violation(
-                    f"Plugin too large: {entry.download_info.file_size} bytes"
-                )
+                    f"Plugin too large: {entry.download_info.file_size} bytes",
+                ),
             )
 
         # Check signature requirement
         if self.config["require_signature"] and not entry.download_info.signature:
             return Either.left(
                 PluginError.security_violation(
-                    "Plugin signature required but not provided"
-                )
+                    "Plugin signature required but not provided",
+                ),
             )
 
         return Either.right(None)
 
     async def _download_plugin(
-        self, entry: MarketplaceEntry
+        self,
+        entry: MarketplaceEntry,
     ) -> Either[PluginError, Path]:
         """Download plugin file from marketplace."""
         try:
@@ -580,11 +603,13 @@ class PluginMarketplace:
 
         except Exception as e:
             return Either.left(
-                PluginError(f"Download failed: {str(e)}", "DOWNLOAD_ERROR")
+                PluginError(f"Download failed: {e!s}", "DOWNLOAD_ERROR"),
             )
 
     async def _verify_plugin_integrity(
-        self, entry: MarketplaceEntry, file_path: Path
+        self,
+        entry: MarketplaceEntry,
+        file_path: Path,
     ) -> Either[PluginError, None]:
         """Verify plugin file integrity."""
         try:
@@ -600,8 +625,8 @@ class PluginMarketplace:
             if calculated_checksum != entry.download_info.checksum:
                 return Either.left(
                     PluginError.security_violation(
-                        f"Checksum mismatch: expected {entry.download_info.checksum}, got {calculated_checksum}"
-                    )
+                        f"Checksum mismatch: expected {entry.download_info.checksum}, got {calculated_checksum}",
+                    ),
                 )
 
             return Either.right(None)
@@ -609,8 +634,9 @@ class PluginMarketplace:
         except Exception as e:
             return Either.left(
                 PluginError(
-                    f"Integrity verification failed: {str(e)}", "INTEGRITY_ERROR"
-                )
+                    f"Integrity verification failed: {e!s}",
+                    "INTEGRITY_ERROR",
+                ),
             )
 
     async def _security_scan_plugin(self, file_path: Path) -> Either[PluginError, None]:
@@ -634,19 +660,22 @@ class PluginMarketplace:
                 if scan_data["security_rating"] == "DANGEROUS":
                     return Either.left(
                         PluginError.security_violation(
-                            f"Plugin failed security scan: {', '.join(scan_data['recommendations'])}"
-                        )
+                            f"Plugin failed security scan: {', '.join(scan_data['recommendations'])}",
+                        ),
                     )
 
             return Either.right(None)
 
         except Exception as e:
             return Either.left(
-                PluginError(f"Security scan failed: {str(e)}", "SECURITY_SCAN_ERROR")
+                PluginError(f"Security scan failed: {e!s}", "SECURITY_SCAN_ERROR"),
             )
 
     async def _install_plugin_files(
-        self, entry: MarketplaceEntry, source_path: Path, target_dir: Path
+        self,
+        entry: MarketplaceEntry,
+        source_path: Path,
+        target_dir: Path,
     ) -> Either[PluginError, Path]:
         """Install plugin files to target directory."""
         try:
@@ -661,7 +690,7 @@ class PluginMarketplace:
 
         except Exception as e:
             return Either.left(
-                PluginError(f"File installation failed: {str(e)}", "INSTALL_ERROR")
+                PluginError(f"File installation failed: {e!s}", "INSTALL_ERROR"),
             )
 
     async def _record_installation(self, entry: MarketplaceEntry, plugin_path: Path):
@@ -699,14 +728,15 @@ class PluginMarketplace:
                 logger.debug(f"Loaded {len(cache_data)} cached entries")
 
             except Exception as e:
-                logger.warning(f"Failed to load cache: {str(e)}")
+                logger.warning(f"Failed to load cache: {e!s}")
 
     async def _cache_search_results(
-        self, query: SearchQuery, results: list[MarketplaceEntry]
+        self,
+        query: SearchQuery,
+        results: list[MarketplaceEntry],
     ):
         """Cache search results for faster subsequent searches."""
         # Implementation would cache results with TTL
-        pass
 
     def _is_cache_valid(self, entry: MarketplaceEntry) -> bool:
         """Check if cached entry is still valid."""

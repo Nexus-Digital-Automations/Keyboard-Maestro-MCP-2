@@ -1,5 +1,4 @@
-"""
-LDAP and Active Directory integration with enterprise security.
+"""LDAP and Active Directory integration with enterprise security.
 
 This module provides secure LDAP/Active Directory connectivity with user and group
 synchronization, enterprise authentication, and comprehensive audit logging for
@@ -44,27 +43,29 @@ class LDAPConnector:
         self.security_validator = EnterpriseSecurityValidator()
         self.connection_stats: dict[str, dict[str, Any]] = {}
 
-    @require(lambda self, connection: isinstance(connection, EnterpriseConnection))
-    @require(lambda self, credentials: isinstance(credentials, EnterpriseCredentials))
+    @require(lambda __self, connection: isinstance(connection, EnterpriseConnection))
+    @require(lambda __self, credentials: isinstance(credentials, EnterpriseCredentials))
     async def connect(
-        self, connection: EnterpriseConnection, credentials: EnterpriseCredentials
+        self,
+        connection: EnterpriseConnection,
+        credentials: EnterpriseCredentials,
     ) -> Either[EnterpriseError, str]:
         """Establish secure LDAP/AD connection with enterprise validation."""
         try:
             logger.info(
-                f"Establishing LDAP connection to {connection.host}:{connection.port}"
+                f"Establishing LDAP connection to {connection.host}:{connection.port}",
             )
 
             # Validate connection security
             security_check = self.security_validator.validate_connection_security(
-                connection
+                connection,
             )
             if security_check.is_left():
                 return security_check
 
             # Validate credentials security
             creds_check = self.security_validator.validate_credentials_security(
-                credentials
+                credentials,
             )
             if creds_check.is_left():
                 return creds_check
@@ -72,10 +73,9 @@ class LDAPConnector:
             # Import LDAP library
             try:
                 import ldap3
-                from ldap3 import ALL, NTLM, SIMPLE, SYNC, Connection, Server
             except ImportError:
                 return Either.left(
-                    EnterpriseError.connection_failed("ldap3 library not available")
+                    EnterpriseError.connection_failed("ldap3 library not available"),
                 )
 
             # Create secure server configuration
@@ -100,7 +100,9 @@ class LDAPConnector:
             conn = None
             if credentials.auth_method == AuthenticationMethod.SIMPLE_BIND:
                 user_dn = self._build_user_dn(
-                    credentials.username, credentials.domain, connection.base_dn
+                    credentials.username,
+                    credentials.domain,
+                    connection.base_dn,
                 )
 
                 conn = ldap3.Connection(
@@ -118,8 +120,9 @@ class LDAPConnector:
                 if not credentials.domain:
                     return Either.left(
                         EnterpriseError(
-                            "DOMAIN_REQUIRED", "Domain required for NTLM authentication"
-                        )
+                            "DOMAIN_REQUIRED",
+                            "Domain required for NTLM authentication",
+                        ),
                     )
 
                 conn = ldap3.Connection(
@@ -134,7 +137,7 @@ class LDAPConnector:
 
             else:
                 return Either.left(
-                    EnterpriseError.unsupported_auth_method(credentials.auth_method)
+                    EnterpriseError.unsupported_auth_method(credentials.auth_method),
                 )
 
             # Test connection with bind
@@ -161,20 +164,20 @@ class LDAPConnector:
             }
 
             logger.info(
-                f"LDAP connection established successfully: {connection.connection_id} ({connection_time:.2f}s)"
+                f"LDAP connection established successfully: {connection.connection_id} ({connection_time:.2f}s)",
             )
             return Either.right(connection.connection_id)
 
         except Exception as e:
-            logger.error(f"LDAP connection failed: {str(e)}")
+            logger.error(f"LDAP connection failed: {e!s}")
             return Either.left(EnterpriseError.connection_failed(str(e)))
 
     @require(
-        lambda self, connection_id: isinstance(connection_id, str)
-        and len(connection_id) > 0
+        lambda _self, connection_id: isinstance(connection_id, str)
+        and len(connection_id) > 0,
     )
     @require(
-        lambda self, search_base: isinstance(search_base, str) and len(search_base) > 0
+        lambda _self, search_base: isinstance(search_base, str) and len(search_base) > 0,
     )
     async def search_users(
         self,
@@ -195,8 +198,7 @@ class LDAPConnector:
                 return filter_check
 
             # Validate size limit
-            if size_limit > 10000:
-                size_limit = 10000  # Enterprise security limit
+            size_limit = min(size_limit, 10000)  # Enterprise security limit
 
             conn = self.connections[connection_id]
 
@@ -222,7 +224,7 @@ class LDAPConnector:
                 ]
 
             logger.info(
-                f"Searching LDAP users: base={search_base}, filter={search_filter}"
+                f"Searching LDAP users: base={search_base}, filter={search_filter}",
             )
             start_time = datetime.now(UTC)
 
@@ -261,7 +263,7 @@ class LDAPConnector:
                 stats["last_activity"] = datetime.now(UTC)
 
             logger.info(
-                f"LDAP search completed: {len(users)} users found in {search_time:.2f}s"
+                f"LDAP search completed: {len(users)} users found in {search_time:.2f}s",
             )
             if errors:
                 logger.warning(f"LDAP search had {len(errors)} conversion errors")
@@ -269,12 +271,12 @@ class LDAPConnector:
             return Either.right(users)
 
         except Exception as e:
-            logger.error(f"LDAP search failed: {str(e)}")
+            logger.error(f"LDAP search failed: {e!s}")
             return Either.left(EnterpriseError.search_failed(str(e)))
 
     @require(
-        lambda self, connection_id: isinstance(connection_id, str)
-        and len(connection_id) > 0
+        lambda _self, connection_id: isinstance(connection_id, str)
+        and len(connection_id) > 0,
     )
     async def search_groups(
         self,
@@ -310,7 +312,7 @@ class LDAPConnector:
                 ]
 
             logger.info(
-                f"Searching LDAP groups: base={search_base}, filter={search_filter}"
+                f"Searching LDAP groups: base={search_base}, filter={search_filter}",
             )
 
             success = conn.search(
@@ -354,15 +356,17 @@ class LDAPConnector:
             return Either.right(groups)
 
         except Exception as e:
-            logger.error(f"LDAP group search failed: {str(e)}")
+            logger.error(f"LDAP group search failed: {e!s}")
             return Either.left(EnterpriseError.search_failed(str(e)))
 
     @require(
-        lambda self, connection_id: isinstance(connection_id, str)
-        and len(connection_id) > 0
+        lambda _self, connection_id: isinstance(connection_id, str)
+        and len(connection_id) > 0,
     )
     async def sync_users(
-        self, connection_id: str, sync_options: dict[str, Any]
+        self,
+        connection_id: str,
+        sync_options: dict[str, Any],
     ) -> Either[EnterpriseError, SyncResult]:
         """Synchronize users from LDAP/AD with comprehensive tracking."""
         try:
@@ -373,7 +377,8 @@ class LDAPConnector:
             search_base = sync_options.get("search_base", "")
             search_filter = sync_options.get("search_filter", "(objectClass=user)")
             batch_size = min(
-                sync_options.get("batch_size", 100), 500
+                sync_options.get("batch_size", 100),
+                500,
             )  # Max 500 for safety
             include_inactive = sync_options.get("include_inactive", False)
 
@@ -389,7 +394,9 @@ class LDAPConnector:
 
             # Search for users
             users_result = await self.search_users(
-                connection_id, search_base, search_filter
+                connection_id,
+                search_base,
+                search_filter,
             )
             if users_result.is_left():
                 return users_result
@@ -415,16 +422,16 @@ class LDAPConnector:
                         # Check for potential issues
                         if not user.email:
                             warnings.append(
-                                f"User {user.username} has no email address"
+                                f"User {user.username} has no email address",
                             )
                         if not user.groups:
                             warnings.append(
-                                f"User {user.username} belongs to no groups"
+                                f"User {user.username} belongs to no groups",
                             )
 
                     except Exception as e:
                         failed += 1
-                        error_msg = f"Failed to sync user {user.username}: {str(e)}"
+                        error_msg = f"Failed to sync user {user.username}: {e!s}"
                         errors.append(error_msg)
                         logger.warning(error_msg)
 
@@ -451,12 +458,12 @@ class LDAPConnector:
             )
 
             logger.info(
-                f"LDAP user sync completed: {successful}/{processed} successful in {sync_duration:.2f}s"
+                f"LDAP user sync completed: {successful}/{processed} successful in {sync_duration:.2f}s",
             )
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"LDAP user sync failed: {str(e)}")
+            logger.error(f"LDAP user sync failed: {e!s}")
             return Either.left(EnterpriseError.sync_failed(str(e)))
 
     def get_connection_status(self, connection_id: str) -> dict[str, Any]:
@@ -503,11 +510,14 @@ class LDAPConnector:
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"LDAP disconnect failed: {str(e)}")
+            logger.error(f"LDAP disconnect failed: {e!s}")
             return Either.left(EnterpriseError.connection_failed(str(e)))
 
     def _build_user_dn(
-        self, username: str, domain: str | None, base_dn: str | None
+        self,
+        username: str,
+        domain: str | None,
+        base_dn: str | None,
     ) -> str:
         """Build user distinguished name for authentication."""
         if "@" in username:
@@ -603,8 +613,9 @@ class LDAPConnector:
                             attributes[attr_name] = [str(val) for val in attr_value]
                         else:
                             attributes[attr_name] = [str(attr_value)]
-                except Exception:
-                    # Skip problematic attributes
+                except Exception as e:
+                    # Skip problematic attributes but log for debugging
+                    logger.debug(f"Failed to process attribute {attr_name}: {e}")
                     continue
 
             user = LDAPUser(
@@ -625,7 +636,7 @@ class LDAPConnector:
             return Either.right(user)
 
         except Exception as e:
-            logger.error(f"LDAP entry conversion failed: {str(e)}")
+            logger.error(f"LDAP entry conversion failed: {e!s}")
             return Either.left(EnterpriseError.ldap_conversion_failed(str(e)))
 
     def _extract_group_name(self, group_dn: str) -> str | None:
@@ -642,7 +653,9 @@ class LDAPConnector:
             return None
 
     async def _process_user_sync(
-        self, user: LDAPUser, sync_options: dict[str, Any]
+        self,
+        user: LDAPUser,
+        sync_options: dict[str, Any],
     ) -> None:
         """Process individual user during synchronization."""
         # This would integrate with the local user management system
@@ -654,7 +667,7 @@ class LDAPConnector:
         sync_options.get("sync_groups", True)
 
         logger.debug(
-            f"Processing user sync: {user.username} (active: {user.is_active})"
+            f"Processing user sync: {user.username} (active: {user.is_active})",
         )
 
         # In a real implementation, this would:

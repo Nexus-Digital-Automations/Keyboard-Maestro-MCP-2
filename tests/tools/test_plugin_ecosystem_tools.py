@@ -1,11 +1,13 @@
-"""
-Comprehensive test suite for plugin ecosystem tools using systematic MCP tool test pattern.
+"""Comprehensive test suite for plugin ecosystem tools using systematic MCP tool test pattern.
 
 Tests the complete plugin ecosystem functionality including plugin installation,
 lifecycle management, custom action execution, and security validation.
 Tests follow the proven systematic pattern that achieved 100% success across 25+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import Mock
 
@@ -18,7 +20,10 @@ import pytest
 
 
 async def mock_km_plugin_ecosystem(
-    operation, plugin_id=None, configuration=None, ctx=None
+    operation,
+    plugin_id=None,
+    configuration=None,
+    ctx=None,
 ):
     """Mock implementation for plugin ecosystem operations."""
     valid_operations = [
@@ -129,7 +134,10 @@ async def mock_km_plugin_manager(action, plugin_id=None, configuration=None, ctx
 
 
 async def mock_km_execute_plugin_action(
-    plugin_id, action_name, parameters=None, ctx=None
+    plugin_id,
+    action_name,
+    parameters=None,
+    ctx=None,
 ):
     """Mock implementation for plugin action execution."""
     if action_name == "invalid_action":
@@ -165,7 +173,9 @@ async def mock_km_execute_plugin_action(
 
 
 async def mock_km_validate_plugin_security(
-    plugin_id, security_profile="standard", ctx=None
+    plugin_id,
+    security_profile="standard",
+    ctx=None,
 ):
     """Mock implementation for plugin security validation."""
     # Simulate security violation
@@ -179,7 +189,7 @@ async def mock_km_validate_plugin_security(
                     "type": "code_injection",
                     "severity": "critical",
                     "description": "Plugin contains potentially malicious code",
-                }
+                },
             ],
             "security_profile": security_profile,
             "action_required": True,
@@ -217,16 +227,16 @@ class TestKMPluginEcosystem:
     """Test suite for km_plugin_ecosystem MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-plugin-ecosystem-001"
+            "request_id": "test-request-plugin-ecosystem-001",
         }
         return context
 
     @pytest.fixture
-    def sample_plugin_data(self):
+    def sample_plugin_data(self) -> Any:
         """Sample plugin data for testing."""
         return {
             "basic_plugin": {
@@ -246,8 +256,10 @@ class TestKMPluginEcosystem:
 
     @pytest.mark.asyncio
     async def test_plugin_ecosystem_installation(
-        self, mock_context, sample_plugin_data
-    ):
+        self,
+        mock_context,
+        sample_plugin_data,
+    ) -> None:
         """Test successful plugin installation."""
         test_data = sample_plugin_data["basic_plugin"]
         result = await km_plugin_ecosystem(
@@ -264,10 +276,12 @@ class TestKMPluginEcosystem:
         assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_plugin_ecosystem_validation_error(self, mock_context):
+    async def test_plugin_ecosystem_validation_error(self, mock_context) -> None:
         """Test plugin ecosystem with invalid operation."""
         result = await km_plugin_ecosystem(
-            operation="invalid_operation", plugin_id="test-plugin", ctx=mock_context
+            operation="invalid_operation",
+            plugin_id="test-plugin",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -275,10 +289,12 @@ class TestKMPluginEcosystem:
         assert "invalid_operation" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_plugin_ecosystem_security_failure(self, mock_context):
+    async def test_plugin_ecosystem_security_failure(self, mock_context) -> None:
         """Test plugin ecosystem with security violation."""
         result = await km_plugin_ecosystem(
-            operation="install", plugin_id="malicious-plugin", ctx=mock_context
+            operation="install",
+            plugin_id="malicious-plugin",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -290,16 +306,16 @@ class TestKMPluginManager:
     """Test suite for km_plugin_manager MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-plugin-manager-001"
+            "request_id": "test-request-plugin-manager-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_plugin_manager_success(self, mock_context):
+    async def test_plugin_manager_success(self, mock_context) -> None:
         """Test successful plugin management operation."""
         result = await km_plugin_manager(
             action="activate",
@@ -315,10 +331,12 @@ class TestKMPluginManager:
         assert result["plugin_status"]["health"] == "healthy"
 
     @pytest.mark.asyncio
-    async def test_plugin_manager_validation_error(self, mock_context):
+    async def test_plugin_manager_validation_error(self, mock_context) -> None:
         """Test plugin manager with empty plugin ID."""
         result = await km_plugin_manager(
-            action="activate", plugin_id="", ctx=mock_context
+            action="activate",
+            plugin_id="",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -330,14 +348,14 @@ class TestKMExecutePluginAction:
     """Test suite for km_execute_plugin_action MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-plugin-action-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_plugin_action_execution_success(self, mock_context):
+    async def test_plugin_action_execution_success(self, mock_context) -> None:
         """Test successful plugin action execution."""
         result = await km_execute_plugin_action(
             plugin_id="test-plugin-001",
@@ -353,10 +371,12 @@ class TestKMExecutePluginAction:
         assert result["plugin_info"]["actions_available"] == 5
 
     @pytest.mark.asyncio
-    async def test_plugin_action_not_found(self, mock_context):
+    async def test_plugin_action_not_found(self, mock_context) -> None:
         """Test plugin action execution with invalid action."""
         result = await km_execute_plugin_action(
-            plugin_id="test-plugin-001", action_name="invalid_action", ctx=mock_context
+            plugin_id="test-plugin-001",
+            action_name="invalid_action",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -368,16 +388,16 @@ class TestKMValidatePluginSecurity:
     """Test suite for km_validate_plugin_security MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-plugin-security-001"
+            "request_id": "test-request-plugin-security-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_plugin_security_validation_success(self, mock_context):
+    async def test_plugin_security_validation_success(self, mock_context) -> None:
         """Test successful plugin security validation."""
         result = await km_validate_plugin_security(
             plugin_id="trusted-plugin-001",
@@ -393,10 +413,12 @@ class TestKMValidatePluginSecurity:
         assert result["security_profile"] == "enterprise"
 
     @pytest.mark.asyncio
-    async def test_plugin_security_validation_failure(self, mock_context):
+    async def test_plugin_security_validation_failure(self, mock_context) -> None:
         """Test plugin security validation with security violations."""
         result = await km_validate_plugin_security(
-            plugin_id="insecure-plugin", security_profile="standard", ctx=mock_context
+            plugin_id="insecure-plugin",
+            security_profile="standard",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -411,18 +433,20 @@ class TestPluginEcosystemIntegration:
     """Integration tests for plugin ecosystem tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-integration-plugin-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_plugin_lifecycle(self, mock_context):
+    async def test_complete_plugin_lifecycle(self, mock_context) -> None:
         """Test complete plugin lifecycle integration."""
         # Execute lifecycle sequence
         install_result = await km_plugin_ecosystem(
-            operation="install", plugin_id="lifecycle-plugin-001", ctx=mock_context
+            operation="install",
+            plugin_id="lifecycle-plugin-001",
+            ctx=mock_context,
         )
 
         security_result = await km_validate_plugin_security(
@@ -432,7 +456,9 @@ class TestPluginEcosystemIntegration:
         )
 
         activate_result = await km_plugin_manager(
-            action="activate", plugin_id="lifecycle-plugin-001", ctx=mock_context
+            action="activate",
+            plugin_id="lifecycle-plugin-001",
+            ctx=mock_context,
         )
 
         execute_result = await km_execute_plugin_action(

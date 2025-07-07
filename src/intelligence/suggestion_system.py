@@ -1,5 +1,4 @@
-"""
-Intelligent Suggestion System for Adaptive Automation Enhancement.
+"""Intelligent Suggestion System for Adaptive Automation Enhancement.
 
 This module provides sophisticated automation suggestion generation based on
 behavioral patterns, performance analysis, and machine learning insights while
@@ -77,7 +76,8 @@ class AutomationSuggestion:
         # Add minimum viable thresholds to prevent zero ROI from valid suggestions
         effective_confidence = max(0.1, self.confidence)  # Minimum 10% confidence
         effective_success_rate = max(
-            0.1, self.estimated_success_rate
+            0.1,
+            self.estimated_success_rate,
         )  # Minimum 10% success rate
 
         roi = (
@@ -103,7 +103,8 @@ class SuggestionRanker:
         }
 
     def rank_suggestions(
-        self, suggestions: list[AutomationSuggestion]
+        self,
+        suggestions: list[AutomationSuggestion],
     ) -> list[AutomationSuggestion]:
         """Rank suggestions by priority and potential impact."""
         # Calculate priority scores
@@ -190,12 +191,12 @@ class IntelligentSuggestionSystem:
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Suggestion system initialization failed: {str(e)}")
+            logger.error(f"Suggestion system initialization failed: {e!s}")
             return Either.left(IntelligenceError.initialization_failed(str(e)))
 
-    @require(lambda self, patterns: len(patterns) >= 1)
-    @require(lambda self, suggestion_count: 1 <= suggestion_count <= 20)
-    @require(lambda self, confidence_threshold: 0.0 <= confidence_threshold <= 1.0)
+    @require(lambda __self, patterns: len(patterns) >= 1)
+    @require(lambda __self, suggestion_count: 1 <= suggestion_count <= 20)
+    @require(lambda __self, confidence_threshold: 0.0 <= confidence_threshold <= 1.0)
     async def generate_suggestions(
         self,
         patterns: list[UserBehaviorPattern],
@@ -203,8 +204,7 @@ class IntelligentSuggestionSystem:
         confidence_threshold: float = 0.7,
         optimization_target: str = "efficiency",
     ) -> Either[IntelligenceError, list[AutomationSuggestion]]:
-        """
-        Generate intelligent automation suggestions based on behavioral patterns.
+        """Generate intelligent automation suggestions based on behavioral patterns.
 
         Analyzes behavioral patterns to identify automation opportunities,
         workflow optimizations, and process improvements while maintaining
@@ -223,6 +223,7 @@ class IntelligentSuggestionSystem:
             - Privacy-preserving pattern analysis
             - Secure suggestion generation with no sensitive data exposure
             - Validated suggestions with confidence scoring
+
         """
         try:
             # Check cache for recent suggestions
@@ -230,7 +231,7 @@ class IntelligentSuggestionSystem:
             if cache_key in self.suggestion_cache:
                 cached_suggestions = self.suggestion_cache[cache_key]
                 logger.debug(
-                    f"Retrieved {len(cached_suggestions)} suggestions from cache"
+                    f"Retrieved {len(cached_suggestions)} suggestions from cache",
                 )
                 return Either.right(cached_suggestions[:suggestion_count])
 
@@ -239,13 +240,14 @@ class IntelligentSuggestionSystem:
 
             # Pattern-based automation suggestions
             automation_suggestions = await self._generate_automation_suggestions(
-                patterns
+                patterns,
             )
             all_suggestions.extend(automation_suggestions)
 
             # Efficiency optimization suggestions
             efficiency_suggestions = await self._generate_efficiency_suggestions(
-                patterns, optimization_target
+                patterns,
+                optimization_target,
             )
             all_suggestions.extend(efficiency_suggestions)
 
@@ -272,7 +274,7 @@ class IntelligentSuggestionSystem:
 
             # Rank suggestions by priority and impact
             ranked_suggestions = self.suggestion_ranker.rank_suggestions(
-                qualified_suggestions
+                qualified_suggestions,
             )
 
             # Select top suggestions
@@ -283,20 +285,23 @@ class IntelligentSuggestionSystem:
 
             # Track suggestion generation
             self._track_suggestion_generation(
-                patterns, final_suggestions, optimization_target
+                patterns,
+                final_suggestions,
+                optimization_target,
             )
 
             logger.info(
-                f"Generated {len(final_suggestions)} intelligent suggestions from {len(patterns)} patterns"
+                f"Generated {len(final_suggestions)} intelligent suggestions from {len(patterns)} patterns",
             )
             return Either.right(final_suggestions)
 
         except Exception as e:
-            logger.error(f"Suggestion generation failed: {str(e)}")
+            logger.error(f"Suggestion generation failed: {e!s}")
             return Either.left(IntelligenceError.suggestion_generation_failed(str(e)))
 
     async def _generate_automation_suggestions(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[AutomationSuggestion]:
         """Generate suggestions for new automation opportunities."""
         suggestions = []
@@ -330,7 +335,7 @@ class IntelligentSuggestionSystem:
                     confidence=min(0.95, pattern.confidence_score + 0.1),
                     potential_time_saved=total_potential_savings,
                     implementation_complexity=self._assess_automation_complexity(
-                        pattern
+                        pattern,
                     ),
                     tools_involved=self._extract_tools_from_pattern(pattern),
                     trigger_conditions=self._suggest_trigger_conditions(pattern),
@@ -344,7 +349,9 @@ class IntelligentSuggestionSystem:
         return suggestions
 
     async def _generate_efficiency_suggestions(
-        self, patterns: list[UserBehaviorPattern], target: str
+        self,
+        patterns: list[UserBehaviorPattern],
+        target: str,
     ) -> list[AutomationSuggestion]:
         """Generate suggestions for efficiency improvements."""
         suggestions = []
@@ -389,7 +396,8 @@ class IntelligentSuggestionSystem:
         return suggestions
 
     async def _generate_tool_recommendations(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[AutomationSuggestion]:
         """Generate tool usage recommendations."""
         suggestions = []
@@ -439,7 +447,8 @@ class IntelligentSuggestionSystem:
         return suggestions[: self.max_suggestions_per_category]
 
     async def _generate_workflow_improvements(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[AutomationSuggestion]:
         """Generate workflow improvement suggestions."""
         suggestions = []
@@ -459,7 +468,8 @@ class IntelligentSuggestionSystem:
             # Estimate workflow simplification potential
             sequence_length = len(pattern.action_sequence)
             potential_reduction = min(
-                sequence_length * 0.3, 5
+                sequence_length * 0.3,
+                5,
             )  # Up to 30% reduction, max 5 steps
             time_savings_per_use = pattern.average_completion_time * (
                 potential_reduction / sequence_length
@@ -487,7 +497,8 @@ class IntelligentSuggestionSystem:
         return suggestions
 
     async def _generate_error_prevention_suggestions(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[AutomationSuggestion]:
         """Generate error prevention suggestions."""
         suggestions = []
@@ -537,10 +548,9 @@ class IntelligentSuggestionSystem:
 
         if sequence_length <= 3 and unique_tools <= 2:
             return "low"
-        elif sequence_length <= 6 and unique_tools <= 4:
+        if sequence_length <= 6 and unique_tools <= 4:
             return "medium"
-        else:
-            return "high"
+        return "high"
 
     def _extract_tools_from_pattern(self, pattern: UserBehaviorPattern) -> list[str]:
         """Extract tool names from pattern context tags."""
@@ -551,7 +561,8 @@ class IntelligentSuggestionSystem:
         return tools
 
     def _suggest_trigger_conditions(
-        self, pattern: UserBehaviorPattern
+        self,
+        pattern: UserBehaviorPattern,
     ) -> dict[str, Any]:
         """Suggest trigger conditions for automation."""
         return {
@@ -561,7 +572,9 @@ class IntelligentSuggestionSystem:
         }
 
     def _generate_cache_key(
-        self, patterns: list[UserBehaviorPattern], target: str
+        self,
+        patterns: list[UserBehaviorPattern],
+        target: str,
     ) -> str:
         """Generate cache key for suggestion results."""
         pattern_ids = sorted([p.pattern_id for p in patterns])
@@ -581,14 +594,14 @@ class IntelligentSuggestionSystem:
                 "suggestions_generated": len(suggestions),
                 "optimization_target": target,
                 "average_confidence": statistics.mean(
-                    [s.confidence for s in suggestions]
+                    [s.confidence for s in suggestions],
                 )
                 if suggestions
                 else 0.0,
                 "total_potential_savings": sum(
                     s.potential_time_saved for s in suggestions
                 ),
-            }
+            },
         )
 
         # Limit history size
@@ -608,4 +621,3 @@ class IntelligentSuggestionSystem:
     def _configure_suggestion_algorithms(self) -> None:
         """Configure suggestion generation algorithms."""
         # Configuration for different suggestion types
-        pass

@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for AI Intelligence Tools module using systematic MCP tool test pattern.
+"""Comprehensive tests for AI Intelligence Tools module using systematic MCP tool test pattern.
 
 Tests cover advanced AI intelligence operations including context analysis, smart triggers,
 adaptive workflows, decision engines, pattern detection, and batch processing with
@@ -7,6 +6,9 @@ property-based testing and comprehensive enterprise-grade validation using the p
 pattern that achieved 100% success across 22+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import pytest
 
 # Import FastMCP tool objects and extract underlying functions (systematic MCP pattern)
@@ -21,7 +23,7 @@ km_ai_batch = ai_intel_tools.km_ai_batch
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def intelligence_operation_strategy(draw):
+def intelligence_operation_strategy(draw) -> Any:
     """Generate valid intelligence operations."""
     operations = [
         "analyze_context",
@@ -34,14 +36,14 @@ def intelligence_operation_strategy(draw):
 
 
 @st.composite
-def intelligence_type_strategy(draw):
+def intelligence_type_strategy(draw) -> Any:
     """Generate valid intelligence types."""
     types = ["adaptive", "predictive", "reactive", "proactive"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def context_dimensions_strategy(draw):
+def context_dimensions_strategy(draw) -> Any:
     """Generate valid context dimensions."""
     dimensions = [
         "temporal",
@@ -58,39 +60,39 @@ def context_dimensions_strategy(draw):
             min_size=selected_count,
             max_size=selected_count,
             unique=True,
-        )
+        ),
     )
 
 
 @st.composite
-def confidence_threshold_strategy(draw):
+def confidence_threshold_strategy(draw) -> Any:
     """Generate valid confidence thresholds."""
     return draw(st.floats(min_value=0.1, max_value=1.0))
 
 
 @st.composite
-def adaptation_mode_strategy(draw):
+def adaptation_mode_strategy(draw) -> Any:
     """Generate valid adaptation modes."""
     modes = ["conservative", "moderate", "aggressive"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def privacy_level_strategy(draw):
+def privacy_level_strategy(draw) -> Any:
     """Generate valid privacy levels."""
     levels = ["minimal", "standard", "strict", "paranoid"]
     return draw(st.sampled_from(levels))
 
 
 @st.composite
-def batch_operation_strategy(draw):
+def batch_operation_strategy(draw) -> Any:
     """Generate valid batch operations."""
     operations = ["submit", "status", "cancel", "list"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def processing_mode_strategy(draw):
+def processing_mode_strategy(draw) -> None:
     """Generate valid processing modes."""
     modes = ["sequential", "parallel", "adaptive", "priority_based"]
     return draw(st.sampled_from(modes))
@@ -99,7 +101,7 @@ def processing_mode_strategy(draw):
 class TestAIIntelligenceDependencies:
     """Test AI intelligence module dependencies and imports."""
 
-    def test_ai_intelligence_imports(self):
+    def test_ai_intelligence_imports(self) -> None:
         """Test that AI intelligence tools can be imported."""
         assert km_ai_intelligence is not None
         assert callable(km_ai_intelligence)
@@ -111,7 +113,7 @@ class TestAIIntelligenceParameterValidation:
     """Test parameter validation for AI intelligence operations."""
 
     @given(intelligence_operation_strategy())
-    def test_valid_intelligence_operations(self, operation):
+    def test_valid_intelligence_operations(self, operation) -> None:
         """Test that intelligence operations are properly validated."""
         valid_operations = [
             "analyze_context",
@@ -123,13 +125,13 @@ class TestAIIntelligenceParameterValidation:
         assert operation in valid_operations
 
     @given(intelligence_type_strategy())
-    def test_valid_intelligence_types(self, intelligence_type):
+    def test_valid_intelligence_types(self, intelligence_type) -> None:
         """Test that intelligence types are properly validated."""
         valid_types = ["adaptive", "predictive", "reactive", "proactive"]
         assert intelligence_type in valid_types
 
     @given(context_dimensions_strategy())
-    def test_valid_context_dimensions(self, dimensions):
+    def test_valid_context_dimensions(self, dimensions) -> None:
         """Test that context dimensions are properly validated."""
         valid_dimensions = [
             "temporal",
@@ -144,18 +146,18 @@ class TestAIIntelligenceParameterValidation:
         assert len(set(dimensions)) == len(dimensions)  # No duplicates
 
     @given(confidence_threshold_strategy())
-    def test_valid_confidence_thresholds(self, threshold):
+    def test_valid_confidence_thresholds(self, threshold) -> None:
         """Test that confidence thresholds are properly validated."""
         assert 0.1 <= threshold <= 1.0
 
     @given(adaptation_mode_strategy())
-    def test_valid_adaptation_modes(self, mode):
+    def test_valid_adaptation_modes(self, mode) -> None:
         """Test that adaptation modes are properly validated."""
         valid_modes = ["conservative", "moderate", "aggressive"]
         assert mode in valid_modes
 
     @given(privacy_level_strategy())
-    def test_valid_privacy_levels(self, level):
+    def test_valid_privacy_levels(self, level) -> None:
         """Test that privacy levels are properly validated."""
         valid_levels = ["minimal", "standard", "strict", "paranoid"]
         assert level in valid_levels
@@ -165,7 +167,7 @@ class TestKMAIIntelligenceMocked:
     """Test km_ai_intelligence function with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_ai_intelligence_context_analysis_success(self):
+    async def test_km_ai_intelligence_context_analysis_success(self) -> None:
         """Test successful context analysis operation."""
         # Test data
         test_context = {
@@ -201,7 +203,7 @@ class TestKMAIIntelligenceMocked:
         assert 0.0 <= context_summary["confidence"] <= 1.0
 
     @pytest.mark.asyncio
-    async def test_km_ai_intelligence_smart_trigger_success(self):
+    async def test_km_ai_intelligence_smart_trigger_success(self) -> None:
         """Test successful smart trigger evaluation."""
         # Test data (matching expected format from source code)
         trigger_data = {
@@ -241,7 +243,7 @@ class TestKMAIIntelligenceMocked:
         assert "learning_applied" in recommendations
 
     @pytest.mark.asyncio
-    async def test_km_ai_intelligence_adaptive_workflow_success(self):
+    async def test_km_ai_intelligence_adaptive_workflow_success(self) -> None:
         """Test successful adaptive workflow optimization."""
         # Test data (matching expected format from source code)
         workflow_data = {
@@ -280,7 +282,7 @@ class TestKMAIIntelligenceMocked:
         assert 0.0 <= performance["confidence"] <= 1.0
 
     @pytest.mark.asyncio
-    async def test_km_ai_intelligence_decision_engine_success(self):
+    async def test_km_ai_intelligence_decision_engine_success(self) -> None:
         """Test successful decision engine operation."""
         # Test data
         decision_data = {
@@ -315,7 +317,7 @@ class TestKMAIIntelligenceMocked:
         assert 0.0 <= result["decision"]["confidence"] <= 1.0
 
     @pytest.mark.asyncio
-    async def test_km_ai_intelligence_pattern_detection_success(self):
+    async def test_km_ai_intelligence_pattern_detection_success(self) -> None:
         """Test successful pattern detection operation."""
         # Test data
         pattern_data = {
@@ -366,10 +368,11 @@ class TestKMAIIntelligenceMocked:
         assert 0.0 <= analysis["detection_confidence"] <= 1.0
 
     @pytest.mark.asyncio
-    async def test_km_ai_intelligence_invalid_operation(self):
+    async def test_km_ai_intelligence_invalid_operation(self) -> None:
         """Test handling of invalid operation."""
         result = await km_ai_intelligence(
-            operation="invalid_operation", input_data={"test": "data"}
+            operation="invalid_operation",
+            input_data={"test": "data"},
         )
 
         assert result["success"] is False
@@ -378,7 +381,7 @@ class TestKMAIIntelligenceMocked:
         assert "valid_operations" in result
 
     @pytest.mark.asyncio
-    async def test_km_ai_intelligence_confidence_filtering(self):
+    async def test_km_ai_intelligence_confidence_filtering(self) -> None:
         """Test confidence threshold filtering."""
         result = await km_ai_intelligence(
             operation="analyze_context",
@@ -397,7 +400,7 @@ class TestKMAIBatchMocked:
     """Test km_ai_batch function with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_ai_batch_process_success(self):
+    async def test_km_ai_batch_process_success(self) -> None:
         """Test successful batch processing operation."""
         # Test data
         batch_data = {
@@ -444,11 +447,12 @@ class TestKMAIBatchMocked:
         assert batch_job["priority"] == 5
 
     @pytest.mark.asyncio
-    async def test_km_ai_batch_queue_management(self):
+    async def test_km_ai_batch_queue_management(self) -> None:
         """Test batch status management operations."""
         # Test status operation
         status_result = await km_ai_batch(
-            operation="status", batch_data={"job_id": "test_job_123"}
+            operation="status",
+            batch_data={"job_id": "test_job_123"},
         )
 
         assert status_result["success"] is True
@@ -466,7 +470,7 @@ class TestKMAIBatchMocked:
         assert "total_tasks" in status_info
 
     @pytest.mark.asyncio
-    async def test_km_ai_batch_scheduling(self):
+    async def test_km_ai_batch_scheduling(self) -> None:
         """Test batch list operations."""
         # Execute list operation (no batch_data required)
         result = await km_ai_batch(operation="list", processing_mode="sequential")
@@ -492,7 +496,7 @@ class TestAIIntelligenceErrorHandling:
     """Test error handling and edge cases for AI intelligence operations."""
 
     @pytest.mark.asyncio
-    async def test_ai_intelligence_processing_error(self):
+    async def test_ai_intelligence_processing_error(self) -> None:
         """Test handling of processing errors."""
         # Test with invalid input structure
         result = await km_ai_intelligence(
@@ -506,10 +510,11 @@ class TestAIIntelligenceErrorHandling:
         assert "failed" in result["error"] or "Invalid" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_ai_batch_invalid_operation(self):
+    async def test_ai_batch_invalid_operation(self) -> None:
         """Test batch processing with invalid operation."""
         result = await km_ai_batch(
-            operation="invalid_batch_op", batch_data={"test": "data"}
+            operation="invalid_batch_op",
+            batch_data={"test": "data"},
         )
 
         assert result["success"] is False
@@ -517,7 +522,7 @@ class TestAIIntelligenceErrorHandling:
         assert "not implemented" in result["error"] or "invalid" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_ai_intelligence_timeout_handling(self):
+    async def test_ai_intelligence_timeout_handling(self) -> None:
         """Test timeout handling for intelligence operations."""
         result = await km_ai_intelligence(
             operation="analyze_context",
@@ -536,7 +541,7 @@ class TestAIIntelligenceIntegration:
     """Test integration scenarios for AI intelligence operations."""
 
     @pytest.mark.asyncio
-    async def test_complete_ai_intelligence_workflow(self):
+    async def test_complete_ai_intelligence_workflow(self) -> None:
         """Test complete AI intelligence workflow integration."""
         # Step 1: Context Analysis
         context_result = await km_ai_intelligence(
@@ -563,14 +568,15 @@ class TestAIIntelligenceIntegration:
 
         # Step 3: Adaptive workflow if trigger activates
         if trigger_result.get("success") and trigger_result.get(
-            "trigger_evaluation", {}
+            "trigger_evaluation",
+            {},
         ).get("should_fire", False):
             workflow_result = await km_ai_intelligence(
                 operation="adaptive_workflow",
                 input_data={
                     "workflow_steps": ["analyze", "optimize", "execute"],
                     "context": {
-                        "performance_history": [{"duration": 120, "success": True}]
+                        "performance_history": [{"duration": 120, "success": True}],
                     },
                 },
                 intelligence_type="adaptive",
@@ -629,8 +635,11 @@ class TestAIIntelligenceProperties:
     )
     @pytest.mark.asyncio
     async def test_ai_intelligence_properties(
-        self, operation, confidence, adaptation_mode
-    ):
+        self,
+        operation,
+        confidence,
+        adaptation_mode,
+    ) -> None:
         """Test properties of AI intelligence operations."""
         assume(confidence >= 0.1)  # Ensure valid confidence
 
@@ -644,7 +653,7 @@ class TestAIIntelligenceProperties:
             input_data = {
                 "workflow_steps": ["step1", "step2", "step3"],
                 "context": {
-                    "performance_history": [{"duration": 100, "success": True}]
+                    "performance_history": [{"duration": 100, "success": True}],
                 },
             }
         elif operation == "decision_engine":
@@ -656,7 +665,7 @@ class TestAIIntelligenceProperties:
         elif operation == "pattern_detection":
             input_data = {
                 "data_stream": [
-                    {"timestamp": "2024-01-01T10:00:00Z", "action": "test"}
+                    {"timestamp": "2024-01-01T10:00:00Z", "action": "test"},
                 ],
                 "pattern_types": ["temporal"],
             }
@@ -713,7 +722,7 @@ class TestAIIntelligenceProperties:
 
     @given(batch_operation_strategy(), processing_mode_strategy())
     @pytest.mark.asyncio
-    async def test_ai_batch_properties(self, operation, processing_mode):
+    async def test_ai_batch_properties(self, operation, processing_mode) -> None:
         """Test properties of AI batch operations."""
         # Prepare batch_data based on operation
         if operation == "submit":
@@ -727,7 +736,7 @@ class TestAIIntelligenceProperties:
                         "operation": "pattern_detection",
                         "input": {
                             "data_stream": [
-                                {"timestamp": "2024-01-01T10:00:00Z", "action": "test"}
+                                {"timestamp": "2024-01-01T10:00:00Z", "action": "test"},
                             ],
                             "pattern_types": ["temporal"],
                         },
@@ -741,7 +750,9 @@ class TestAIIntelligenceProperties:
             batch_data = {}
 
         result = await km_ai_batch(
-            operation=operation, batch_data=batch_data, processing_mode=processing_mode
+            operation=operation,
+            batch_data=batch_data,
+            processing_mode=processing_mode,
         )
 
         # Property: All batch operations should return structured results

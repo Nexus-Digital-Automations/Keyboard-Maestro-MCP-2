@@ -1,5 +1,4 @@
-"""
-Visual design type definitions for workflow designer.
+"""Visual design type definitions for workflow designer.
 
 Comprehensive branded types for drag-and-drop visual workflow creation
 with FastMCP integration and security validation.
@@ -94,7 +93,6 @@ class CanvasPosition:
     @require(lambda self: self.x >= 0 and self.y >= 0)
     def __post_init__(self) -> None:
         """Validate position coordinates."""
-        pass
 
     def distance_to(self, other: CanvasPosition) -> float:
         """Calculate distance to another position."""
@@ -113,14 +111,13 @@ class CanvasDimensions:
     max_height: int = 4000
 
     @require(
-        lambda self: self.width >= self.min_width and self.height >= self.min_height
+        lambda self: self.width >= self.min_width and self.height >= self.min_height,
     )
     @require(
-        lambda self: self.width <= self.max_width and self.height <= self.max_height
+        lambda self: self.width <= self.max_width and self.height <= self.max_height,
     )
     def __post_init__(self) -> None:
         """Validate canvas dimensions."""
-        pass
 
 
 @dataclass
@@ -137,7 +134,6 @@ class ComponentProperties:
     @require(lambda self: len(self.description) <= 500)
     def __post_init__(self) -> None:
         """Validate component properties."""
-        pass
 
 
 @dataclass
@@ -182,7 +178,6 @@ class ConnectionProperties:
     @require(lambda self: self.style in ["solid", "dashed", "dotted"])
     def __post_init__(self) -> None:
         """Validate connection properties."""
-        pass
 
 
 @dataclass
@@ -197,7 +192,9 @@ class VisualConnection:
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def is_valid_connection(
-        self, source_type: ComponentType, target_type: ComponentType
+        self,
+        source_type: ComponentType,
+        target_type: ComponentType,
     ) -> bool:
         """Validate connection compatibility."""
         # Define valid connection rules
@@ -229,7 +226,6 @@ class WorkflowCanvas:
     @require(lambda self: self.grid_size > 0 and self.grid_size <= 50)
     def __post_init__(self) -> None:
         """Validate canvas configuration."""
-        pass
 
 
 @dataclass
@@ -252,7 +248,6 @@ class VisualWorkflow:
     @require(lambda self: len(self.description) <= 1000)
     def __post_init__(self) -> None:
         """Validate workflow configuration."""
-        pass
 
     def add_component(self, component: VisualComponent) -> VisualWorkflow:
         """Add component to workflow."""
@@ -274,7 +269,8 @@ class VisualWorkflow:
         )
 
     def add_connection(
-        self, connection: VisualConnection
+        self,
+        connection: VisualConnection,
     ) -> Either[Exception, VisualWorkflow]:
         """Add connection between components with validation."""
         # Validate components exist
@@ -286,12 +282,13 @@ class VisualWorkflow:
 
         # Validate connection type compatibility
         if not connection.is_valid_connection(
-            source_component.component_type, target_component.component_type
+            source_component.component_type,
+            target_component.component_type,
         ):
             return Either.left(
                 ValueError(
-                    f"Invalid connection type {connection.connection_type} between {source_component.component_type} and {target_component.component_type}"
-                )
+                    f"Invalid connection type {connection.connection_type} between {source_component.component_type} and {target_component.component_type}",
+                ),
             )
 
         new_connections = self.connections.copy()
@@ -324,7 +321,7 @@ class VisualWorkflow:
                 created_at=self.created_at,
                 modified_at=datetime.now(UTC),
                 version=self.version + 1,
-            )
+            ),
         )
 
     def validate_workflow(self) -> list[str]:
@@ -343,11 +340,11 @@ class VisualWorkflow:
         for connection_id, connection in self.connections.items():
             if connection.source_component not in self.components:
                 errors.append(
-                    f"Connection {connection_id} references invalid source component"
+                    f"Connection {connection_id} references invalid source component",
                 )
             if connection.target_component not in self.components:
                 errors.append(
-                    f"Connection {connection_id} references invalid target component"
+                    f"Connection {connection_id} references invalid target component",
                 )
 
         # Check for cycles in sequential connections
@@ -364,14 +361,17 @@ class VisualWorkflow:
 
             for connection_id in component.connections:
                 connection = self.connections.get(connection_id)
-                if connection and connection.connection_type == ConnectionType.SEQUENCE:
-                    if connection.source_component == component_id:
-                        target = connection.target_component
-                        if target not in visited:
-                            if has_cycle(target):
-                                return True
-                        elif target in rec_stack:
+                if (
+                    connection
+                    and connection.connection_type == ConnectionType.SEQUENCE
+                    and connection.source_component == component_id
+                ):
+                    target = connection.target_component
+                    if target not in visited:
+                        if has_cycle(target):
                             return True
+                    elif target in rec_stack:
+                        return True
 
             rec_stack.remove(component_id)
             return False
@@ -447,7 +447,8 @@ class BasicWorkflowTemplate:
                 component_id=component_id,
                 component_type=ComponentType(comp_def.get("type", "action")),
                 position=CanvasPosition(
-                    x=comp_def.get("x", 100 + i * 200), y=comp_def.get("y", 100)
+                    x=comp_def.get("x", 100 + i * 200),
+                    y=comp_def.get("y", 100),
                 ),
                 properties=ComponentProperties(
                     title=comp_def.get("title", f"Component {i + 1}"),

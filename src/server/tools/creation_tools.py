@@ -1,5 +1,4 @@
-"""
-Macro Creation MCP Tools
+"""Macro Creation MCP Tools.
 
 Provides comprehensive macro creation capabilities through MCP interface
 with template support, security validation, and error handling.
@@ -43,7 +42,8 @@ async def km_create_macro(
         Field(default=None, description="Target macro group name", max_length=255),
     ] = None,
     enabled: Annotated[
-        bool, Field(default=True, description="Initial enabled state")
+        bool,
+        Field(default=True, description="Initial enabled state"),
     ] = True,
     parameters: Annotated[
         dict[str, Any],
@@ -51,8 +51,7 @@ async def km_create_macro(
     ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Create a new Keyboard Maestro macro with comprehensive validation and security.
+    """Create a new Keyboard Maestro macro with comprehensive validation and security.
 
     Architecture:
         - Pattern: Factory Pattern with Template Method and Builder
@@ -115,6 +114,7 @@ async def km_create_macro(
     Raises:
         SecurityViolationError: Security validation failed
         ValidationError: Input validation failed
+
     """
     if parameters is None:
         parameters = {}
@@ -235,10 +235,12 @@ async def km_create_macro(
             # Success case
             if ctx:
                 await ctx.report_progress(
-                    100, 100, f"Macro created successfully: {creation_result}"
+                    100,
+                    100,
+                    f"Macro created successfully: {creation_result}",
                 )
                 await ctx.info(
-                    f"Successfully created macro '{name}' with ID {creation_result}"
+                    f"Successfully created macro '{name}' with ID {creation_result}",
                 )
 
             return {
@@ -263,27 +265,26 @@ async def km_create_macro(
                     },
                 },
             }
-        else:
-            # Error case
-            error = creation_result
-            if ctx:
-                await ctx.error(f"Macro creation failed: {error.message}")
+        # Error case
+        error = creation_result
+        if ctx:
+            await ctx.error(f"Macro creation failed: {error.message}")
 
-            return {
-                "success": False,
-                "error": {
-                    "code": error.code,
-                    "message": error.message,
-                    "details": error.details,
-                    "recovery_suggestion": error.recovery_suggestion,
-                },
-                "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat(),
-                    "creation_method": "template_builder",
-                    "template_type": template,
-                    "validation_passed": False,
-                },
-            }
+        return {
+            "success": False,
+            "error": {
+                "code": error.code,
+                "message": error.message,
+                "details": error.details,
+                "recovery_suggestion": error.recovery_suggestion,
+            },
+            "metadata": {
+                "timestamp": datetime.now(UTC).isoformat(),
+                "creation_method": "template_builder",
+                "template_type": template,
+                "validation_passed": False,
+            },
+        }
 
     except Exception as e:
         logger.exception(f"Unexpected error creating macro {name}")
@@ -307,8 +308,7 @@ async def km_create_macro(
 
 
 async def km_list_templates(ctx: Context = None) -> dict[str, Any]:
-    """
-    List available macro templates with descriptions and parameter requirements.
+    """List available macro templates with descriptions and parameter requirements.
 
     Provides comprehensive information about each template including:
     - Template description and use cases

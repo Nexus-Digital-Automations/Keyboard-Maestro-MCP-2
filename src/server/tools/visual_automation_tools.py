@@ -1,5 +1,4 @@
-"""
-Advanced visual automation MCP tools for OCR, image recognition, and screen analysis.
+"""Advanced visual automation MCP tools for OCR, image recognition, and screen analysis.
 
 This module implements the km_visual_automation MCP tool, providing AI agents with
 sophisticated visual automation capabilities including OCR text extraction, image
@@ -70,7 +69,8 @@ class VisualAutomationSecurityManager:
         self.sanitizer = InputSanitizer()
 
     def validate_region(
-        self, region_data: dict[str, Any]
+        self,
+        region_data: dict[str, Any],
     ) -> Either[VisualError, ScreenRegion]:
         """Validate and sanitize screen region parameters."""
         try:
@@ -83,26 +83,26 @@ class VisualAutomationSecurityManager:
             # Validate coordinate bounds
             if x < 0 or y < 0:
                 return Either.left(
-                    ProcessingError("Region coordinates must be non-negative")
+                    ProcessingError("Region coordinates must be non-negative"),
                 )
 
             if width <= 0 or height <= 0:
                 return Either.left(
-                    ProcessingError("Region dimensions must be positive")
+                    ProcessingError("Region dimensions must be positive"),
                 )
 
             if width > self.MAX_REGION_WIDTH or height > self.MAX_REGION_HEIGHT:
                 return Either.left(
                     ProcessingError(
-                        f"Region too large. Max dimensions: {self.MAX_REGION_WIDTH}x{self.MAX_REGION_HEIGHT}"
-                    )
+                        f"Region too large. Max dimensions: {self.MAX_REGION_WIDTH}x{self.MAX_REGION_HEIGHT}",
+                    ),
                 )
 
             if width * height > self.MAX_REGION_AREA:
                 return Either.left(
                     ProcessingError(
-                        f"Region area too large. Max area: {self.MAX_REGION_AREA} pixels"
-                    )
+                        f"Region area too large. Max area: {self.MAX_REGION_AREA} pixels",
+                    ),
                 )
 
             display_id = region_data.get("display_id")
@@ -114,10 +114,11 @@ class VisualAutomationSecurityManager:
             return Either.right(ScreenRegion(x, y, width, height, display_id))
 
         except (ValueError, TypeError) as e:
-            return Either.left(ProcessingError(f"Invalid region parameters: {str(e)}"))
+            return Either.left(ProcessingError(f"Invalid region parameters: {e!s}"))
 
     def validate_image_data(
-        self, image_input: str | bytes
+        self,
+        image_input: str | bytes,
     ) -> Either[VisualError, ImageData]:
         """Validate and process image data input."""
         try:
@@ -138,18 +139,20 @@ class VisualAutomationSecurityManager:
             if size_mb > self.MAX_IMAGE_SIZE_MB:
                 return Either.left(
                     ProcessingError(
-                        f"Image too large: {size_mb:.1f}MB. Max allowed: {self.MAX_IMAGE_SIZE_MB}MB"
-                    )
+                        f"Image too large: {size_mb:.1f}MB. Max allowed: {self.MAX_IMAGE_SIZE_MB}MB",
+                    ),
                 )
 
             # Validate image format
             return validate_image_data(image_bytes)
 
         except Exception as e:
-            return Either.left(ProcessingError(f"Invalid image data: {str(e)}"))
+            return Either.left(ProcessingError(f"Invalid image data: {e!s}"))
 
     def check_rate_limit(
-        self, operation: str, client_id: str = "default"
+        self,
+        operation: str,
+        client_id: str = "default",
     ) -> Either[VisualError, None]:
         """Check if operation is within rate limits."""
         now = datetime.now()
@@ -171,8 +174,8 @@ class VisualAutomationSecurityManager:
         if len(self.operation_history[key]) >= self.MAX_OPERATIONS_PER_MINUTE:
             return Either.left(
                 ProcessingError(
-                    f"Rate limit exceeded. Max {self.MAX_OPERATIONS_PER_MINUTE} operations per minute"
-                )
+                    f"Rate limit exceeded. Max {self.MAX_OPERATIONS_PER_MINUTE} operations per minute",
+                ),
             )
 
         # Record this operation
@@ -180,7 +183,9 @@ class VisualAutomationSecurityManager:
         return Either.right(None)
 
     def validate_operation_config(
-        self, operation: str, config: dict[str, Any]
+        self,
+        operation: str,
+        config: dict[str, Any],
     ) -> Either[VisualError, None]:
         """Validate operation-specific configuration parameters."""
         try:
@@ -193,8 +198,8 @@ class VisualAutomationSecurityManager:
                 if not (0.0 <= confidence <= 1.0):
                     return Either.left(
                         ProcessingError(
-                            "Confidence threshold must be between 0.0 and 1.0"
-                        )
+                            "Confidence threshold must be between 0.0 and 1.0",
+                        ),
                     )
 
             elif operation == "find_image":
@@ -202,14 +207,14 @@ class VisualAutomationSecurityManager:
                 if not (0.0 <= confidence <= 1.0):
                     return Either.left(
                         ProcessingError(
-                            "Confidence threshold must be between 0.0 and 1.0"
-                        )
+                            "Confidence threshold must be between 0.0 and 1.0",
+                        ),
                     )
 
                 max_matches = int(config.get("max_matches", 10))
                 if not (1 <= max_matches <= 100):
                     return Either.left(
-                        ProcessingError("Max matches must be between 1 and 100")
+                        ProcessingError("Max matches must be between 1 and 100"),
                     )
 
             elif operation == "capture_screen":
@@ -224,14 +229,14 @@ class VisualAutomationSecurityManager:
                 if mode not in valid_modes:
                     return Either.left(
                         ProcessingError(
-                            f"Invalid capture mode. Valid modes: {valid_modes}"
-                        )
+                            f"Invalid capture mode. Valid modes: {valid_modes}",
+                        ),
                     )
 
             return Either.right(None)
 
         except (ValueError, TypeError) as e:
-            return Either.left(ProcessingError(f"Invalid configuration: {str(e)}"))
+            return Either.left(ProcessingError(f"Invalid configuration: {e!s}"))
 
 
 class VisualAutomationProcessor:
@@ -265,34 +270,37 @@ class VisualAutomationProcessor:
             # Dispatch to appropriate handler
             if operation == VisualOperation.OCR_TEXT:
                 return await self._handle_ocr_operation(config, image_data)
-            elif operation == VisualOperation.FIND_IMAGE:
+            if operation == VisualOperation.FIND_IMAGE:
                 return await self._handle_image_matching(
-                    config, image_data, template_data
+                    config,
+                    image_data,
+                    template_data,
                 )
-            elif operation == VisualOperation.CAPTURE_SCREEN:
+            if operation == VisualOperation.CAPTURE_SCREEN:
                 return await self._handle_screen_capture(config)
-            elif operation == VisualOperation.ANALYZE_WINDOW:
+            if operation == VisualOperation.ANALYZE_WINDOW:
                 return await self._handle_window_analysis(config)
-            elif operation == VisualOperation.UI_ELEMENT_DETECTION:
+            if operation == VisualOperation.UI_ELEMENT_DETECTION:
                 return await self._handle_ui_detection(config, image_data)
-            elif operation == VisualOperation.COLOR_ANALYSIS:
+            if operation == VisualOperation.COLOR_ANALYSIS:
                 return await self._handle_color_analysis(config)
-            elif operation == VisualOperation.MOTION_DETECTION:
+            if operation == VisualOperation.MOTION_DETECTION:
                 return await self._handle_motion_detection(config)
-            else:
-                return Either.left(
-                    ProcessingError(f"Unsupported operation: {operation.value}")
-                )
+            return Either.left(
+                ProcessingError(f"Unsupported operation: {operation.value}"),
+            )
 
         except Exception as e:
             self.processing_stats["errors_encountered"] += 1
-            logger.error(f"Visual operation processing failed: {str(e)}")
+            logger.error(f"Visual operation processing failed: {e!s}")
             return Either.left(
-                ProcessingError(f"Operation processing failed: {str(e)}")
+                ProcessingError(f"Operation processing failed: {e!s}"),
             )
 
     async def _handle_ocr_operation(
-        self, config: VisualProcessingConfig, image_data: ImageData | None
+        self,
+        config: VisualProcessingConfig,
+        image_data: ImageData | None,
     ) -> Either[VisualError, dict[str, Any]]:
         """Handle OCR text extraction operation."""
         try:
@@ -300,11 +308,13 @@ class VisualAutomationProcessor:
                 # Capture screen region for OCR
                 if not config.region:
                     return Either.left(
-                        ProcessingError("Region required for screen OCR")
+                        ProcessingError("Region required for screen OCR"),
                     )
 
                 capture_result = await self.screen_analysis.capture_screen_region(
-                    config.region, CaptureMode.BALANCED, config.privacy_mode
+                    config.region,
+                    CaptureMode.BALANCED,
+                    config.privacy_mode,
                 )
                 if capture_result.is_left():
                     return Either.left(capture_result.get_left())
@@ -363,7 +373,7 @@ class VisualAutomationProcessor:
             return Either.right(response)
 
         except Exception as e:
-            return Either.left(ProcessingError(f"OCR operation failed: {str(e)}"))
+            return Either.left(ProcessingError(f"OCR operation failed: {e!s}"))
 
     async def _handle_image_matching(
         self,
@@ -375,14 +385,16 @@ class VisualAutomationProcessor:
         try:
             if not template_data:
                 return Either.left(
-                    ProcessingError("Template image required for matching")
+                    ProcessingError("Template image required for matching"),
                 )
 
             if not screen_data:
                 # Capture screen for matching
                 search_region = config.region or ScreenRegion(0, 0, 1920, 1080)
                 capture_result = await self.screen_analysis.capture_screen_region(
-                    search_region, CaptureMode.BALANCED, config.privacy_mode
+                    search_region,
+                    CaptureMode.BALANCED,
+                    config.privacy_mode,
                 )
                 if capture_result.is_left():
                     return Either.left(capture_result.get_left())
@@ -402,7 +414,10 @@ class VisualAutomationProcessor:
 
             # Perform template matching
             matches_result = await self.image_recognition.find_template_matches(
-                screen_data, template_data, config.region, matching_config
+                screen_data,
+                template_data,
+                config.region,
+                matching_config,
             )
 
             if matches_result.is_left():
@@ -421,7 +436,8 @@ class VisualAutomationProcessor:
                     "method": match_result.method_used.value,
                     "processing_time_ms": match_result.processing_time_ms,
                     "quality_score": match_result.quality_metrics.get(
-                        "edge_alignment", 0.0
+                        "edge_alignment",
+                        0.0,
                     ),
                 }
 
@@ -431,7 +447,7 @@ class VisualAutomationProcessor:
 
                 if match_result.feature_points:
                     match_data["feature_points_count"] = len(
-                        match_result.feature_points
+                        match_result.feature_points,
                     )
 
                 matches.append(match_data)
@@ -445,23 +461,25 @@ class VisualAutomationProcessor:
                     m.processing_time_ms for m in match_results
                 ),
                 "best_confidence": max(
-                    (float(m.match.confidence) for m in match_results), default=0.0
+                    (float(m.match.confidence) for m in match_results),
+                    default=0.0,
                 ),
             }
 
             return Either.right(response)
 
         except Exception as e:
-            return Either.left(ProcessingError(f"Image matching failed: {str(e)}"))
+            return Either.left(ProcessingError(f"Image matching failed: {e!s}"))
 
     async def _handle_screen_capture(
-        self, config: VisualProcessingConfig
+        self,
+        config: VisualProcessingConfig,
     ) -> Either[VisualError, dict[str, Any]]:
         """Handle screen capture operation."""
         try:
             if not config.region:
                 return Either.left(
-                    ProcessingError("Region required for screen capture")
+                    ProcessingError("Region required for screen capture"),
                 )
 
             # Determine capture mode from config
@@ -480,7 +498,9 @@ class VisualAutomationProcessor:
 
             # Perform screen capture
             capture_result = await self.screen_analysis.capture_screen_region(
-                config.region, capture_mode, config.privacy_mode
+                config.region,
+                capture_mode,
+                config.privacy_mode,
             )
 
             if capture_result.is_left():
@@ -508,16 +528,17 @@ class VisualAutomationProcessor:
             return Either.right(response)
 
         except Exception as e:
-            return Either.left(ProcessingError(f"Screen capture failed: {str(e)}"))
+            return Either.left(ProcessingError(f"Screen capture failed: {e!s}"))
 
     async def _handle_window_analysis(
-        self, config: VisualProcessingConfig
+        self,
+        config: VisualProcessingConfig,
     ) -> Either[VisualError, dict[str, Any]]:
         """Handle window analysis operation."""
         try:
             # Get window list
             windows_result = await self.screen_analysis.get_window_list(
-                include_hidden=False
+                include_hidden=False,
             )
             if windows_result.is_left():
                 return Either.left(windows_result.get_left())
@@ -555,17 +576,20 @@ class VisualAutomationProcessor:
                 "windows_found": len(window_data),
                 "windows": window_data,
                 "active_window": next(
-                    (w for w in window_data if w["state"] == "active"), None
+                    (w for w in window_data if w["state"] == "active"),
+                    None,
                 ),
             }
 
             return Either.right(response)
 
         except Exception as e:
-            return Either.left(ProcessingError(f"Window analysis failed: {str(e)}"))
+            return Either.left(ProcessingError(f"Window analysis failed: {e!s}"))
 
     async def _handle_ui_detection(
-        self, config: VisualProcessingConfig, image_data: ImageData | None
+        self,
+        config: VisualProcessingConfig,
+        image_data: ImageData | None,
     ) -> Either[VisualError, dict[str, Any]]:
         """Handle UI element detection operation."""
         try:
@@ -575,7 +599,9 @@ class VisualAutomationProcessor:
             if not image_data:
                 # Capture screen region
                 capture_result = await self.screen_analysis.capture_screen_region(
-                    config.region, CaptureMode.BALANCED, config.privacy_mode
+                    config.region,
+                    CaptureMode.BALANCED,
+                    config.privacy_mode,
                 )
                 if capture_result.is_left():
                     return Either.left(capture_result.get_left())
@@ -584,7 +610,8 @@ class VisualAutomationProcessor:
 
             # Perform UI element detection
             elements_result = await self.image_recognition.detect_ui_elements(
-                image_data, config.region
+                image_data,
+                config.region,
             )
 
             if elements_result.is_left():
@@ -624,21 +651,22 @@ class VisualAutomationProcessor:
             return Either.right(response)
 
         except Exception as e:
-            return Either.left(ProcessingError(f"UI detection failed: {str(e)}"))
+            return Either.left(ProcessingError(f"UI detection failed: {e!s}"))
 
     async def _handle_color_analysis(
-        self, config: VisualProcessingConfig
+        self,
+        config: VisualProcessingConfig,
     ) -> Either[VisualError, dict[str, Any]]:
         """Handle color analysis operation."""
         try:
             if not config.region:
                 return Either.left(
-                    ProcessingError("Region required for color analysis")
+                    ProcessingError("Region required for color analysis"),
                 )
 
             # Perform color analysis
             color_result = await self.screen_analysis.analyze_color_distribution(
-                config.region
+                config.region,
             )
             if color_result.is_left():
                 return Either.left(color_result.get_left())
@@ -675,16 +703,17 @@ class VisualAutomationProcessor:
             return Either.right(response)
 
         except Exception as e:
-            return Either.left(ProcessingError(f"Color analysis failed: {str(e)}"))
+            return Either.left(ProcessingError(f"Color analysis failed: {e!s}"))
 
     async def _handle_motion_detection(
-        self, config: VisualProcessingConfig
+        self,
+        config: VisualProcessingConfig,
     ) -> Either[VisualError, dict[str, Any]]:
         """Handle motion/change detection operation."""
         try:
             if not config.region:
                 return Either.left(
-                    ProcessingError("Region required for motion detection")
+                    ProcessingError("Region required for motion detection"),
                 )
 
             sensitivity = config.processing_options.get("sensitivity", 0.2)
@@ -702,7 +731,9 @@ class VisualAutomationProcessor:
 
             # Perform change detection
             change_result = await self.screen_analysis.detect_screen_changes(
-                config.region, detection_mode, sensitivity
+                config.region,
+                detection_mode,
+                sensitivity,
             )
 
             if change_result.is_left():
@@ -731,7 +762,7 @@ class VisualAutomationProcessor:
             return Either.right(response)
 
         except Exception as e:
-            return Either.left(ProcessingError(f"Motion detection failed: {str(e)}"))
+            return Either.left(ProcessingError(f"Motion detection failed: {e!s}"))
 
     def get_processing_stats(self) -> dict[str, Any]:
         """Get comprehensive processing statistics."""
@@ -741,7 +772,7 @@ class VisualAutomationProcessor:
                 "ocr_stats": self.ocr_engine.get_cache_stats(),
                 "recognition_stats": self.image_recognition.get_processing_stats(),
                 "screen_analysis_stats": self.screen_analysis.get_analysis_stats(),
-            }
+            },
         )
         return stats
 
@@ -762,8 +793,7 @@ async def km_visual_automation(
     processing_options: dict[str, Any] | None = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """
-    Advanced visual automation with OCR, image recognition, and screen analysis.
+    """Advanced visual automation with OCR, image recognition, and screen analysis.
 
     Provides sophisticated visual automation capabilities for AI agents including
     text extraction, image template matching, screen capture, UI element detection,
@@ -789,10 +819,11 @@ async def km_visual_automation(
 
     Raises:
         ToolError: If validation fails or processing encounters errors
+
     """
     try:
         logger.info(
-            f"km_visual_automation called: operation={operation}, privacy_mode={privacy_mode}"
+            f"km_visual_automation called: operation={operation}, privacy_mode={privacy_mode}",
         )
 
         # Initialize processor and security manager
@@ -808,11 +839,11 @@ async def km_visual_automation(
         # Validate operation type
         try:
             visual_operation = VisualOperation(operation.lower())
-        except ValueError:
+        except ValueError as e:
             valid_ops = [op.value for op in VisualOperation]
             raise ToolError(
-                f"Invalid operation '{operation}'. Valid operations: {valid_ops}"
-            )
+                f"Invalid operation '{operation}'. Valid operations: {valid_ops}",
+            ) from e
 
         # Validate and parse region
         screen_region = None
@@ -834,7 +865,7 @@ async def km_visual_automation(
             image_result = security.validate_image_data(image_data)
             if image_result.is_left():
                 raise ToolError(
-                    f"Invalid image data: {image_result.get_left().message}"
+                    f"Invalid image data: {image_result.get_left().message}",
                 )
             processed_image_data = image_result.get_right()
 
@@ -843,7 +874,7 @@ async def km_visual_automation(
             template_result = security.validate_image_data(image_template)
             if template_result.is_left():
                 raise ToolError(
-                    f"Invalid template data: {template_result.get_left().message}"
+                    f"Invalid template data: {template_result.get_left().message}",
                 )
             processed_template_data = template_result.get_right()
 
@@ -863,17 +894,19 @@ async def km_visual_automation(
 
         # Process the operation
         result = await processor.process_operation(
-            visual_operation, config, processed_image_data, processed_template_data
+            visual_operation,
+            config,
+            processed_image_data,
+            processed_template_data,
         )
 
         if result.is_left():
             error = result.get_left()
             if isinstance(error, PermissionError):
                 raise ToolError(f"Permission denied: {error.message}")
-            elif isinstance(error, PrivacyError):
+            if isinstance(error, PrivacyError):
                 raise ToolError(f"Privacy violation: {error.message}")
-            else:
-                raise ToolError(f"Processing failed: {error.message}")
+            raise ToolError(f"Processing failed: {error.message}")
 
         # Update processing statistics
         processor.processing_stats["operations_completed"] += 1
@@ -886,7 +919,7 @@ async def km_visual_automation(
                 "privacy_mode_enabled": privacy_mode,
                 "processing_stats": processor.get_processing_stats(),
                 "cache_enabled": cache_results,
-            }
+            },
         )
 
         logger.info(f"Visual automation completed successfully: {operation}")
@@ -895,8 +928,8 @@ async def km_visual_automation(
     except ToolError:
         raise
     except Exception as e:
-        logger.error(f"km_visual_automation failed: {str(e)}")
-        raise ToolError(f"Visual automation failed: {str(e)}")
+        logger.error(f"km_visual_automation failed: {e!s}")
+        raise ToolError(f"Visual automation failed: {e!s}") from e
 
 
 # Export the tool for MCP server registration

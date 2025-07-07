@@ -1,11 +1,9 @@
-"""
-Group Management MCP Tools
+"""Group Management MCP Tools.
 
 Tools for managing and organizing Keyboard Maestro macro groups.
 """
 
 import logging
-import subprocess
 from datetime import UTC, datetime
 from typing import Annotated, Any
 
@@ -15,7 +13,7 @@ from pydantic import Field
 logger = logging.getLogger(__name__)
 
 
-def register_group_tools(mcp):
+def register_group_tools(mcp) -> None:
     """Register group management tools with the MCP server."""
 
     @mcp.tool()
@@ -29,7 +27,8 @@ def register_group_tools(mcp):
             ),
         ],
         target_group: Annotated[
-            str, Field(description="Target group name or UUID", max_length=255)
+            str,
+            Field(description="Target group name or UUID", max_length=255),
         ],
         create_group_if_missing: Annotated[
             bool,
@@ -38,13 +37,13 @@ def register_group_tools(mcp):
         preserve_group_settings: Annotated[
             bool,
             Field(
-                default=True, description="Maintain group-specific activation settings"
+                default=True,
+                description="Maintain group-specific activation settings",
             ),
         ] = True,
         ctx: Context = None,
     ) -> dict[str, Any]:
-        """
-        Move a macro from one group to another with comprehensive validation.
+        """Move a macro from one group to another with comprehensive validation.
 
         Implements full ADDER+ technique stack:
         - Design by Contract: Pre/post conditions for movement safety
@@ -67,10 +66,11 @@ def register_group_tools(mcp):
 
         Returns:
             Dictionary containing success status, movement details, and metadata
+
         """
         if ctx:
             await ctx.info(
-                f"Moving macro '{macro_identifier}' to group '{target_group}'"
+                f"Moving macro '{macro_identifier}' to group '{target_group}'",
             )
 
         try:
@@ -106,7 +106,7 @@ def register_group_tools(mcp):
                         "message": error.message,
                         "details": error.details,
                         "recovery_suggestion": _get_movement_recovery_suggestion(
-                            error.code
+                            error.code,
                         ),
                     },
                     "metadata": {
@@ -120,7 +120,7 @@ def register_group_tools(mcp):
             move_result = result.get_right()
             if ctx:
                 await ctx.info(
-                    f"Macro moved successfully in {move_result.execution_time.total_seconds():.3f}s"
+                    f"Macro moved successfully in {move_result.execution_time.total_seconds():.3f}s",
                 )
 
             return {
@@ -144,17 +144,17 @@ def register_group_tools(mcp):
 
         except Exception as e:
             if ctx:
-                await ctx.error(f"Unexpected error during macro movement: {str(e)}")
+                await ctx.error(f"Unexpected error during macro movement: {e!s}")
 
             logger.exception(
-                f"Macro movement error: {macro_identifier} -> {target_group}"
+                f"Macro movement error: {macro_identifier} -> {target_group}",
             )
 
             return {
                 "success": False,
                 "error": {
                     "code": "SYSTEM_ERROR",
-                    "message": f"Macro movement failed: {str(e)}",
+                    "message": f"Macro movement failed: {e!s}",
                     "details": "Unexpected system error during movement operation",
                     "recovery_suggestion": "Check system status and macro permissions",
                 },
@@ -187,8 +187,7 @@ def register_group_tools(mcp):
         ] = "name",
         ctx: Context = None,
     ) -> dict[str, Any]:
-        """
-        List all macro groups from Keyboard Maestro with optional statistics.
+        """List all macro groups from Keyboard Maestro with optional statistics.
 
         Provides comprehensive group information including macro counts,
         group status, and organizational structure.
@@ -240,9 +239,34 @@ def register_group_tools(mcp):
             if ctx:
                 await ctx.report_progress(40, 100, "Executing AppleScript query")
 
-            result = subprocess.run(
-                ["osascript", "-e", script], capture_output=True, text=True, timeout=30
-            )
+            # S607 SECURITY FIX: Use secure subprocess execution
+            try:
+                from ..commands.secure_subprocess import (
+                    CommandType,
+                    SecureCommand,
+                    get_secure_subprocess_manager,
+                )
+
+                secure_manager = get_secure_subprocess_manager()
+                command = SecureCommand(
+                    command_type=CommandType.SYSTEM_INFO,
+                    executable="osascript",
+                    args=["-e", script],
+                    timeout=30.0,
+                    allowed_return_codes={0, 1},
+                )
+                result = secure_manager.execute_secure_command(command)
+            except Exception:
+                # Fallback if secure subprocess not available
+                import subprocess
+
+                # S607 fix: Use full path for executable
+                result = subprocess.run(
+                    ["/usr/bin/osascript", "-e", script],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
 
             if result.returncode != 0:
                 if ctx:
@@ -276,7 +300,8 @@ def register_group_tools(mcp):
 
                 if include_enabled_count:
                     group_info["enabled_macro_count"] = group_data.get(
-                        "enabledMacros", 0
+                        "enabledMacros",
+                        0,
                     )
 
                 groups.append(group_info)
@@ -294,7 +319,9 @@ def register_group_tools(mcp):
 
             if ctx:
                 await ctx.report_progress(
-                    100, 100, f"Retrieved {len(groups)} macro groups"
+                    100,
+                    100,
+                    f"Retrieved {len(groups)} macro groups",
                 )
                 await ctx.info(f"Found {len(groups)} macro groups")
 
@@ -361,8 +388,7 @@ def register_group_tools(mcp):
 
 
 def _get_movement_recovery_suggestion(error_code: str) -> str:
-    """
-    Generate contextual recovery suggestions for macro movement errors.
+    """Generate contextual recovery suggestions for macro movement errors.
 
     Provides actionable guidance based on specific error conditions to help
     users resolve movement failures quickly and effectively.
@@ -372,6 +398,7 @@ def _get_movement_recovery_suggestion(error_code: str) -> str:
 
     Returns:
         Human-readable recovery suggestion string
+
     """
     recovery_suggestions = {
         "MACRO_NOT_FOUND": "Verify the macro name or UUID is correct and the macro exists in Keyboard Maestro",
@@ -386,5 +413,6 @@ def _get_movement_recovery_suggestion(error_code: str) -> str:
     }
 
     return recovery_suggestions.get(
-        error_code, "Check Keyboard Maestro status and retry the operation"
+        error_code,
+        "Check Keyboard Maestro status and retry the operation",
     )

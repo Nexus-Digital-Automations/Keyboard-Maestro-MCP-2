@@ -1,5 +1,4 @@
-"""
-Predictive Analytics MCP Tools - TASK_59 Phase 3 Implementation
+"""Predictive Analytics MCP Tools - TASK_59 Phase 3 Implementation.
 
 Comprehensive predictive analytics tools for automation patterns, usage forecasting, and intelligent insights.
 Provides advanced ML-powered predictions, capacity planning, and optimization recommendations through FastMCP.
@@ -76,19 +75,19 @@ async def initialize_predictive_analytics():
         return True
 
     except Exception as e:
-        logging.error(f"Failed to initialize predictive analytics: {str(e)}")
+        logging.error(f"Failed to initialize predictive analytics: {e!s}")
         return False
 
 
-def _validate_components():
+def _validate_components() -> None:
     """Validate that all components are initialized."""
     if not all([pattern_predictor, usage_forecaster, insight_generator, model_manager]):
         raise RuntimeError(
-            "Predictive analytics components not initialized. Call initialize_predictive_analytics() first."
+            "Predictive analytics components not initialized. Call initialize_predictive_analytics() first.",
         )
 
 
-def _update_performance_metrics(operation: str, response_time: float):
+def _update_performance_metrics(operation: str, response_time: float) -> None:
     """Update performance tracking metrics."""
     global tool_performance_metrics
 
@@ -116,35 +115,43 @@ def _update_performance_metrics(operation: str, response_time: float):
 @mcp.tool()
 async def km_predict_automation_patterns(
     prediction_scope: Annotated[
-        str, Field(description="Prediction scope (user|macro|system|workflow)")
+        str,
+        Field(description="Prediction scope (user|macro|system|workflow)"),
     ],
     target_id: Annotated[
-        str | None, Field(description="Specific target UUID for focused prediction")
+        str | None,
+        Field(description="Specific target UUID for focused prediction"),
     ] = None,
     prediction_horizon: Annotated[
-        int, Field(description="Prediction horizon in days", ge=1, le=365)
+        int,
+        Field(description="Prediction horizon in days", ge=1, le=365),
     ] = 30,
     pattern_types: Annotated[
-        list[str], Field(description="Pattern types to predict")
+        list[str],
+        Field(description="Pattern types to predict"),
     ] = None,
     include_confidence_intervals: Annotated[
-        bool, Field(description="Include prediction confidence intervals")
+        bool,
+        Field(description="Include prediction confidence intervals"),
     ] = True,
     model_type: Annotated[
-        str, Field(description="Model type (linear|arima|lstm|ensemble)")
+        str,
+        Field(description="Model type (linear|arima|lstm|ensemble)"),
     ] = "ensemble",
     include_external_factors: Annotated[
-        bool, Field(description="Include external factor analysis")
+        bool,
+        Field(description="Include external factor analysis"),
     ] = True,
     generate_visualizations: Annotated[
-        bool, Field(description="Generate prediction visualizations")
+        bool,
+        Field(description="Generate prediction visualizations"),
     ] = True,
     export_predictions: Annotated[
-        bool, Field(description="Export predictions for analysis")
+        bool,
+        Field(description="Export predictions for analysis"),
     ] = False,
 ) -> dict[str, Any]:
-    """
-    Predict automation usage patterns and trends using advanced machine learning models.
+    """Predict automation usage patterns and trends using advanced machine learning models.
 
     FastMCP Tool for pattern prediction through Claude Desktop.
     Uses historical data to predict future automation usage, performance, and behavior patterns.
@@ -212,18 +219,21 @@ async def km_predict_automation_patterns(
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Pattern type mapping failed: {str(e)}",
+                "error": f"Pattern type mapping failed: {e!s}",
                 "timestamp": start_time.isoformat(),
             }
 
         # Generate sample pattern features (in real implementation, this would come from data sources)
         sample_features = await _generate_sample_pattern_features(
-            prediction_scope, target_id
+            prediction_scope,
+            target_id,
         )
 
         # Detect patterns
         pattern_result = await pattern_predictor.detect_patterns(
-            features=sample_features, pattern_types=pattern_enums, min_confidence=0.6
+            features=sample_features,
+            pattern_types=pattern_enums,
+            min_confidence=0.6,
         )
 
         if pattern_result.is_left():
@@ -264,7 +274,7 @@ async def km_predict_automation_patterns(
                         "accuracy_estimate": prediction.accuracy_estimate,
                         "factors_considered": prediction.factors_considered,
                         "assumptions": prediction.assumptions,
-                    }
+                    },
                 )
 
         # Generate summary statistics
@@ -283,10 +293,11 @@ async def km_predict_automation_patterns(
             "predictions": predictions,
             "pattern_summary": {
                 "total_patterns_detected": pattern_summary.get(
-                    "total_patterns_detected", 0
+                    "total_patterns_detected",
+                    0,
                 ),
                 "high_confidence_patterns": len(
-                    [p for p in predictions if p["pattern_confidence"] > 0.8]
+                    [p for p in predictions if p["pattern_confidence"] > 0.8],
                 ),
                 "patterns_by_type": pattern_summary.get("patterns_by_type", {}),
                 "detection_timestamp": pattern_summary.get("detection_timestamp"),
@@ -318,7 +329,7 @@ async def km_predict_automation_patterns(
 
         return {
             "success": False,
-            "error": f"Pattern prediction failed: {str(e)}",
+            "error": f"Pattern prediction failed: {e!s}",
             "response_time_seconds": response_time,
             "timestamp": start_time.isoformat(),
         }
@@ -327,33 +338,40 @@ async def km_predict_automation_patterns(
 @mcp.tool()
 async def km_forecast_resource_usage(
     resource_types: Annotated[
-        list[str], Field(description="Resource types to forecast")
+        list[str],
+        Field(description="Resource types to forecast"),
     ] = None,
     forecast_period: Annotated[
-        int, Field(description="Forecast period in days", ge=1, le=365)
+        int,
+        Field(description="Forecast period in days", ge=1, le=365),
     ] = 90,
     granularity: Annotated[
-        str, Field(description="Forecast granularity (hourly|daily|weekly)")
+        str,
+        Field(description="Forecast granularity (hourly|daily|weekly)"),
     ] = "daily",
     include_seasonality: Annotated[
-        bool, Field(description="Include seasonal patterns in forecast")
+        bool,
+        Field(description="Include seasonal patterns in forecast"),
     ] = True,
     include_growth_trends: Annotated[
-        bool, Field(description="Include growth trend analysis")
+        bool,
+        Field(description="Include growth trend analysis"),
     ] = True,
     capacity_planning: Annotated[
-        bool, Field(description="Include capacity planning recommendations")
+        bool,
+        Field(description="Include capacity planning recommendations"),
     ] = True,
     alert_thresholds: Annotated[
-        dict[str, float] | None, Field(description="Resource threshold alerts")
+        dict[str, float] | None,
+        Field(description="Resource threshold alerts"),
     ] = None,
     scenario_analysis: Annotated[
-        bool, Field(description="Include scenario-based forecasting")
+        bool,
+        Field(description="Include scenario-based forecasting"),
     ] = False,
     export_forecast: Annotated[bool, Field(description="Export forecast data")] = False,
 ) -> dict[str, Any]:
-    """
-    Forecast resource usage and capacity requirements for automation workflows.
+    """Forecast resource usage and capacity requirements for automation workflows.
 
     FastMCP Tool for resource forecasting through Claude Desktop.
     Predicts CPU, memory, storage, and network usage with capacity planning insights.
@@ -421,7 +439,8 @@ async def km_forecast_resource_usage(
             # Add sample usage data (in real implementation, this would come from monitoring systems)
             sample_data = await _generate_sample_usage_data(resource_type)
             usage_result = await usage_forecaster.add_usage_data(
-                resource_type, sample_data
+                resource_type,
+                sample_data,
             )
 
             if usage_result.is_left():
@@ -464,7 +483,7 @@ async def km_forecast_resource_usage(
                         "seasonality_detected": bool(forecast.seasonality_patterns),
                         "capacity_thresholds": forecast.capacity_thresholds,
                         "capacity_recommendations": forecast.capacity_recommendations,
-                    }
+                    },
                 )
 
                 # Add capacity analysis if requested
@@ -497,7 +516,7 @@ async def km_forecast_resource_usage(
                             "utilization_percentage": utilization,
                             "capacity_status": capacity_status.value,
                             "recommendations": forecast.capacity_recommendations,
-                        }
+                        },
                     )
 
         # Generate summary
@@ -521,14 +540,14 @@ async def km_forecast_resource_usage(
                         ca
                         for ca in capacity_analyses
                         if ca["capacity_status"] in ["at_capacity", "over_capacity"]
-                    ]
+                    ],
                 ),
                 "average_growth_rate": sum([f.get("growth_rate", 0) for f in forecasts])
                 / len(forecasts)
                 if forecasts
                 else 0,
                 "seasonality_detected": sum(
-                    [1 for f in forecasts if f["seasonality_detected"]]
+                    [1 for f in forecasts if f["seasonality_detected"]],
                 ),
             },
             "configuration": {
@@ -543,7 +562,8 @@ async def km_forecast_resource_usage(
                 "forecasts_per_second": len(forecasts) / max(response_time, 0.001),
             },
             "recommendations": _generate_capacity_recommendations(
-                forecasts, capacity_analyses
+                forecasts,
+                capacity_analyses,
             ),
             "timestamp": start_time.isoformat(),
             "completed_at": datetime.now(UTC).isoformat(),
@@ -560,7 +580,7 @@ async def km_forecast_resource_usage(
 
         return {
             "success": False,
-            "error": f"Resource forecasting failed: {str(e)}",
+            "error": f"Resource forecasting failed: {e!s}",
             "response_time_seconds": response_time,
             "timestamp": start_time.isoformat(),
         }
@@ -573,32 +593,39 @@ async def km_generate_insights(
         Field(description="Analysis scope (automation|performance|usage|efficiency)"),
     ],
     data_timeframe: Annotated[
-        str, Field(description="Data timeframe (week|month|quarter|year)")
+        str,
+        Field(description="Data timeframe (week|month|quarter|year)"),
     ] = "month",
     insight_types: Annotated[
-        list[str], Field(description="Insight types to generate")
+        list[str],
+        Field(description="Insight types to generate"),
     ] = None,
     include_actionable_recommendations: Annotated[
-        bool, Field(description="Include actionable recommendations")
+        bool,
+        Field(description="Include actionable recommendations"),
     ] = True,
     prioritize_insights: Annotated[
-        bool, Field(description="Prioritize insights by impact")
+        bool,
+        Field(description="Prioritize insights by impact"),
     ] = True,
     include_roi_analysis: Annotated[
-        bool, Field(description="Include ROI analysis for recommendations")
+        bool,
+        Field(description="Include ROI analysis for recommendations"),
     ] = True,
     generate_executive_summary: Annotated[
-        bool, Field(description="Generate executive summary")
+        bool,
+        Field(description="Generate executive summary"),
     ] = True,
     export_insights: Annotated[
-        bool, Field(description="Export insights for sharing")
+        bool,
+        Field(description="Export insights for sharing"),
     ] = False,
     schedule_updates: Annotated[
-        str | None, Field(description="Schedule regular insight updates")
+        str | None,
+        Field(description="Schedule regular insight updates"),
     ] = None,
 ) -> dict[str, Any]:
-    """
-    Generate intelligent insights and actionable recommendations from automation data.
+    """Generate intelligent insights and actionable recommendations from automation data.
 
     FastMCP Tool for insight generation through Claude Desktop.
     Analyzes automation data to generate actionable insights and optimization recommendations.
@@ -663,7 +690,8 @@ async def km_generate_insights(
 
         # Generate sample insight data (in real implementation, this would come from analytics systems)
         insight_data_list = await _generate_sample_insight_data(
-            analysis_scope, data_timeframe
+            analysis_scope,
+            data_timeframe,
         )
 
         # Generate insights
@@ -709,7 +737,8 @@ async def km_generate_insights(
         executive_summary = None
         if generate_executive_summary:
             summary_result = await insight_generator.generate_executive_summary(
-                insights, data_timeframe
+                insights,
+                data_timeframe,
             )
             if summary_result.is_right():
                 summary = summary_result.get_right()
@@ -744,20 +773,20 @@ async def km_generate_insights(
             "insight_summary": {
                 "total_insights_generated": len(insights),
                 "high_impact_insights": len(
-                    [i for i in insights_data if i["impact_score"] > 0.7]
+                    [i for i in insights_data if i["impact_score"] > 0.7],
                 ),
                 "critical_priority_insights": len(
-                    [i for i in insights_data if i["priority_level"] == "critical"]
+                    [i for i in insights_data if i["priority_level"] == "critical"],
                 ),
                 "total_estimated_roi": sum(
                     [
                         i.get("roi_estimate", 0)
                         for i in insights_data
                         if i.get("roi_estimate")
-                    ]
+                    ],
                 ),
                 "average_confidence": sum(
-                    [i["confidence_score"] for i in insights_data]
+                    [i["confidence_score"] for i in insights_data],
                 )
                 / len(insights_data)
                 if insights_data
@@ -797,7 +826,7 @@ async def km_generate_insights(
 
         return {
             "success": False,
-            "error": f"Insight generation failed: {str(e)}",
+            "error": f"Insight generation failed: {e!s}",
             "response_time_seconds": response_time,
             "timestamp": start_time.isoformat(),
         }
@@ -806,35 +835,43 @@ async def km_generate_insights(
 @mcp.tool()
 async def km_analyze_trends(
     trend_analysis_scope: Annotated[
-        str, Field(description="Analysis scope (usage|performance|errors|efficiency)")
+        str,
+        Field(description="Analysis scope (usage|performance|errors|efficiency)"),
     ],
     analysis_period: Annotated[
-        str, Field(description="Analysis period (month|quarter|year|custom)")
+        str,
+        Field(description="Analysis period (month|quarter|year|custom)"),
     ] = "quarter",
     trend_detection_sensitivity: Annotated[
-        str, Field(description="Trend detection sensitivity (low|medium|high)")
+        str,
+        Field(description="Trend detection sensitivity (low|medium|high)"),
     ] = "medium",
     include_statistical_significance: Annotated[
-        bool, Field(description="Include statistical significance testing")
+        bool,
+        Field(description="Include statistical significance testing"),
     ] = True,
     decompose_trends: Annotated[
-        bool, Field(description="Decompose trends into components")
+        bool,
+        Field(description="Decompose trends into components"),
     ] = True,
     predict_trend_continuation: Annotated[
-        bool, Field(description="Predict trend continuation")
+        bool,
+        Field(description="Predict trend continuation"),
     ] = True,
     identify_inflection_points: Annotated[
-        bool, Field(description="Identify trend inflection points")
+        bool,
+        Field(description="Identify trend inflection points"),
     ] = True,
     generate_trend_report: Annotated[
-        bool, Field(description="Generate comprehensive trend report")
+        bool,
+        Field(description="Generate comprehensive trend report"),
     ] = True,
     export_analysis: Annotated[
-        bool, Field(description="Export trend analysis data")
+        bool,
+        Field(description="Export trend analysis data"),
     ] = False,
 ) -> dict[str, Any]:
-    """
-    Analyze automation trends with statistical significance testing and prediction.
+    """Analyze automation trends with statistical significance testing and prediction.
 
     FastMCP Tool for trend analysis through Claude Desktop.
     Performs comprehensive trend analysis with statistical validation and predictions.
@@ -870,19 +907,22 @@ async def km_analyze_trends(
 
         # Generate sample trend data based on scope
         trend_data = await _generate_sample_trend_data(
-            trend_analysis_scope, analysis_period
+            trend_analysis_scope,
+            analysis_period,
         )
 
         # Perform trend analysis using pattern predictor
         sample_features = await _convert_trend_data_to_features(
-            trend_data, trend_analysis_scope
+            trend_data,
+            trend_analysis_scope,
         )
 
         # Detect patterns that represent trends (defensive enum access)
         try:
             # Try to use enum values if available, fallback to strings for testing
             if hasattr(PatternType, "PERFORMANCE_PATTERNS") and hasattr(
-                PatternType, "USAGE_PATTERNS"
+                PatternType,
+                "USAGE_PATTERNS",
             ):
                 pattern_types = [
                     PatternType.PERFORMANCE_PATTERNS,
@@ -904,7 +944,7 @@ async def km_analyze_trends(
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Pattern type mapping failed in trend analysis: {str(e)}",
+                "error": f"Pattern type mapping failed in trend analysis: {e!s}",
                 "timestamp": start_time.isoformat(),
             }
 
@@ -983,16 +1023,16 @@ async def km_analyze_trends(
         statistical_summary = {
             "total_trends_analyzed": len(trends),
             "significant_trends": len(
-                [t for t in trends if t.get("statistical_significance", 0) > 0.7]
+                [t for t in trends if t.get("statistical_significance", 0) > 0.7],
             ),
             "positive_trends": len(
-                [t for t in trends if t.get("trend_direction") == "increasing"]
+                [t for t in trends if t.get("trend_direction") == "increasing"],
             ),
             "negative_trends": len(
-                [t for t in trends if t.get("trend_direction") == "decreasing"]
+                [t for t in trends if t.get("trend_direction") == "decreasing"],
             ),
             "stable_trends": len(
-                [t for t in trends if t.get("trend_direction") == "stable"]
+                [t for t in trends if t.get("trend_direction") == "stable"],
             ),
             "average_trend_strength": sum([t.get("trend_strength", 0) for t in trends])
             / len(trends)
@@ -1064,7 +1104,7 @@ async def km_analyze_trends(
 
         return {
             "success": False,
-            "error": f"Trend analysis failed: {str(e)}",
+            "error": f"Trend analysis failed: {e!s}",
             "response_time_seconds": response_time,
             "timestamp": start_time.isoformat(),
         }
@@ -1072,8 +1112,7 @@ async def km_analyze_trends(
 
 @mcp.tool()
 async def km_get_analytics_status() -> dict[str, Any]:
-    """
-    Get comprehensive status of predictive analytics system.
+    """Get comprehensive status of predictive analytics system.
 
     Returns system health, performance metrics, and component status.
     """
@@ -1093,24 +1132,28 @@ async def km_get_analytics_status() -> dict[str, Any]:
                 "pattern_predictor": {
                     "status": "active",
                     "patterns_detected": pattern_summary.get(
-                        "total_patterns_detected", 0
+                        "total_patterns_detected",
+                        0,
                     ),
                     "pattern_types": pattern_summary.get("patterns_by_type", {}),
                 },
                 "usage_forecaster": {
                     "status": "active",
                     "resources_tracked": forecasting_summary.get(
-                        "resources_tracked", 0
+                        "resources_tracked",
+                        0,
                     ),
                     "total_forecasts": forecasting_summary.get("total_data_points", 0),
                 },
                 "insight_generator": {
                     "status": "active",
                     "insights_generated": insight_summary.get(
-                        "total_insights_generated", 0
+                        "total_insights_generated",
+                        0,
                     ),
                     "high_impact_insights": insight_summary.get(
-                        "high_impact_insights_count", 0
+                        "high_impact_insights_count",
+                        0,
                     ),
                 },
                 "model_manager": {
@@ -1133,7 +1176,7 @@ async def km_get_analytics_status() -> dict[str, Any]:
     except Exception as e:
         return {
             "success": False,
-            "error": f"Status check failed: {str(e)}",
+            "error": f"Status check failed: {e!s}",
             "system_status": "error",
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -1143,7 +1186,8 @@ async def km_get_analytics_status() -> dict[str, Any]:
 
 
 async def _generate_sample_pattern_features(
-    scope: str, target_id: str | None
+    scope: str,
+    target_id: str | None,
 ) -> list[PatternFeature]:
     """Generate sample pattern features for demonstration."""
     import random
@@ -1152,7 +1196,7 @@ async def _generate_sample_pattern_features(
 
     # Generate usage pattern feature
     timestamps = [datetime.now(UTC) - timedelta(hours=i) for i in range(24, 0, -1)]
-    usage_values = [random.uniform(10, 100) for _ in range(24)]
+    usage_values = [random.uniform(10, 100) for _ in range(24)]  # noqa: S311 # Simulation data generation
 
     features.append(
         PatternFeature(
@@ -1161,11 +1205,11 @@ async def _generate_sample_pattern_features(
             values=usage_values,
             timestamps=timestamps,
             confidence_score=0.85,
-        )
+        ),
     )
 
     # Generate performance pattern feature
-    performance_values = [random.uniform(1.0, 5.0) for _ in range(24)]
+    performance_values = [random.uniform(1.0, 5.0) for _ in range(24)]  # noqa: S311 # Simulation data generation
 
     features.append(
         PatternFeature(
@@ -1174,7 +1218,7 @@ async def _generate_sample_pattern_features(
             values=performance_values,
             timestamps=timestamps,
             confidence_score=0.78,
-        )
+        ),
     )
 
     return features
@@ -1189,13 +1233,13 @@ async def _generate_sample_usage_data(resource_type: ResourceType) -> TimeSeries
 
     # Generate realistic usage values based on resource type
     if resource_type == ResourceType.CPU_USAGE:
-        values = [random.uniform(20, 80) for _ in range(720)]
+        values = [random.uniform(20, 80) for _ in range(720)]  # noqa: S311 # Simulation data generation
     elif resource_type == ResourceType.MEMORY_USAGE:
-        values = [random.uniform(30, 90) for _ in range(720)]
+        values = [random.uniform(30, 90) for _ in range(720)]  # noqa: S311 # Simulation data generation
     elif resource_type == ResourceType.STORAGE_USAGE:
-        values = [random.uniform(40, 95) for _ in range(720)]
+        values = [random.uniform(40, 95) for _ in range(720)]  # noqa: S311 # Simulation data generation
     else:
-        values = [random.uniform(10, 60) for _ in range(720)]
+        values = [random.uniform(10, 60) for _ in range(720)]  # noqa: S311 # Simulation data generation
 
     return TimeSeriesData(
         timestamps=timestamps,
@@ -1205,7 +1249,8 @@ async def _generate_sample_usage_data(resource_type: ResourceType) -> TimeSeries
 
 
 async def _generate_sample_insight_data(
-    scope: str, timeframe: str
+    scope: str,
+    timeframe: str,
 ) -> list[InsightData]:
     """Generate sample insight data for analysis."""
     import random
@@ -1219,14 +1264,14 @@ async def _generate_sample_insight_data(
             data_type="performance",
             time_period=timeframe,
             metrics={
-                "response_time": random.uniform(1.5, 4.0),
-                "cpu_usage": random.uniform(40, 85),
-                "memory_usage": random.uniform(50, 90),
-                "error_rate": random.uniform(1, 8),
+                "response_time": random.uniform(1.5, 4.0),  # noqa: S311 # Simulation data generation
+                "cpu_usage": random.uniform(40, 85),  # noqa: S311 # Simulation data generation
+                "memory_usage": random.uniform(50, 90),  # noqa: S311 # Simulation data generation
+                "error_rate": random.uniform(1, 8),  # noqa: S311 # Simulation data generation
             },
             trends={"response_time_trend": "increasing", "cpu_trend": "stable"},
             context={"analysis_scope": scope},
-        )
+        ),
     )
 
     # Usage data
@@ -1236,14 +1281,14 @@ async def _generate_sample_insight_data(
             data_type="usage",
             time_period=timeframe,
             metrics={
-                "execution_count": random.uniform(1000, 5000),
-                "automation_executions": random.uniform(500, 2000),
-                "manual_tasks": random.uniform(50, 200),
-                "cost_per_execution": random.uniform(0.05, 0.25),
+                "execution_count": random.uniform(1000, 5000),  # noqa: S311 # Simulation data generation
+                "automation_executions": random.uniform(500, 2000),  # noqa: S311 # Simulation data generation
+                "manual_tasks": random.uniform(50, 200),  # noqa: S311 # Simulation data generation
+                "cost_per_execution": random.uniform(0.05, 0.25),  # noqa: S311 # Simulation data generation
             },
             trends={"usage_trend": "increasing", "efficiency_trend": "improving"},
             context={"analysis_scope": scope},
-        )
+        ),
     )
 
     return data_list
@@ -1268,16 +1313,16 @@ async def _generate_sample_trend_data(scope: str, period: str) -> dict[str, Any]
     ]
 
     if scope == "usage":
-        values = [random.uniform(100, 500) + i * 2 for i in range(data_points)]
+        values = [random.uniform(100, 500) + i * 2 for i in range(data_points)]  # noqa: S311 # Simulation data generation
     elif scope == "performance":
         values = [
-            random.uniform(1.0, 3.0) + random.uniform(-0.1, 0.1)
+            random.uniform(1.0, 3.0) + random.uniform(-0.1, 0.1)  # noqa: S311 # Simulation data generation
             for _ in range(data_points)
         ]
     elif scope == "errors":
-        values = [random.uniform(1, 10) for _ in range(data_points)]
+        values = [random.uniform(1, 10) for _ in range(data_points)]  # noqa: S311 # Simulation data generation
     else:  # efficiency
-        values = [random.uniform(70, 95) + i * 0.1 for i in range(data_points)]
+        values = [random.uniform(70, 95) + i * 0.1 for i in range(data_points)]  # noqa: S311 # Simulation data generation
 
     return {
         "timestamps": timestamps,
@@ -1288,7 +1333,8 @@ async def _generate_sample_trend_data(scope: str, period: str) -> dict[str, Any]
 
 
 async def _convert_trend_data_to_features(
-    trend_data: dict[str, Any], scope: str
+    trend_data: dict[str, Any],
+    scope: str,
 ) -> list[PatternFeature]:
     """Convert trend data to pattern features."""
     return [
@@ -1298,7 +1344,7 @@ async def _convert_trend_data_to_features(
             values=trend_data["values"],
             timestamps=trend_data["timestamps"],
             confidence_score=0.8,
-        )
+        ),
     ]
 
 
@@ -1308,7 +1354,7 @@ def _generate_pattern_recommendations(patterns: list) -> list[str]:
 
     if len(patterns) > 0:
         recommendations.append(
-            "Monitor detected patterns for automation optimization opportunities"
+            "Monitor detected patterns for automation optimization opportunities",
         )
 
     high_confidence_patterns = [
@@ -1318,7 +1364,7 @@ def _generate_pattern_recommendations(patterns: list) -> list[str]:
     ]
     if high_confidence_patterns:
         recommendations.append(
-            f"Focus on {len(high_confidence_patterns)} high-confidence patterns for immediate action"
+            f"Focus on {len(high_confidence_patterns)} high-confidence patterns for immediate action",
         )
 
     recommendations.append("Implement automated alerting for pattern changes")
@@ -1328,7 +1374,8 @@ def _generate_pattern_recommendations(patterns: list) -> list[str]:
 
 
 def _generate_capacity_recommendations(
-    forecasts: list, capacity_analyses: list
+    forecasts: list,
+    capacity_analyses: list,
 ) -> list[str]:
     """Generate capacity planning recommendations."""
     recommendations = []
@@ -1340,7 +1387,7 @@ def _generate_capacity_recommendations(
     ]
     if at_capacity:
         recommendations.append(
-            f"Immediate capacity expansion needed for {len(at_capacity)} resources"
+            f"Immediate capacity expansion needed for {len(at_capacity)} resources",
         )
 
     approaching_capacity = [
@@ -1350,20 +1397,21 @@ def _generate_capacity_recommendations(
     ]
     if approaching_capacity:
         recommendations.append(
-            f"Plan capacity increases for {len(approaching_capacity)} resources within 30 days"
+            f"Plan capacity increases for {len(approaching_capacity)} resources within 30 days",
         )
 
     high_growth = [f for f in forecasts if f.get("growth_rate", 0) > 0.2]
     if high_growth:
         recommendations.append(
-            f"Monitor high-growth resources: {[f['resource_type'] for f in high_growth]}"
+            f"Monitor high-growth resources: {[f['resource_type'] for f in high_growth]}",
         )
 
     return recommendations
 
 
 def _generate_capacity_alerts(
-    capacity_analyses: list, alert_thresholds: dict[str, float] | None
+    capacity_analyses: list,
+    alert_thresholds: dict[str, float] | None,
 ) -> list[dict[str, Any]]:
     """Generate capacity alerts based on thresholds."""
     alerts = []
@@ -1385,7 +1433,7 @@ def _generate_capacity_alerts(
                     "threshold": threshold,
                     "severity": "high" if utilization > threshold * 1.1 else "medium",
                     "message": f"{resource_type} utilization at {utilization:.1f}% exceeds threshold of {threshold:.1f}%",
-                }
+                },
             )
 
     return alerts
@@ -1398,19 +1446,19 @@ def _generate_insight_next_steps(insights: list[dict[str, Any]]) -> list[str]:
     critical_insights = [i for i in insights if i["priority_level"] == "critical"]
     if critical_insights:
         next_steps.append(
-            f"Address {len(critical_insights)} critical insights immediately"
+            f"Address {len(critical_insights)} critical insights immediately",
         )
 
     high_impact = [i for i in insights if i["impact_score"] > 0.7]
     if high_impact:
         next_steps.append(
-            f"Prioritize {len(high_impact)} high-impact optimization opportunities"
+            f"Prioritize {len(high_impact)} high-impact optimization opportunities",
         )
 
     roi_insights = [i for i in insights if i.get("roi_estimate", 0) > 10000]
     if roi_insights:
         next_steps.append(
-            f"Focus on insights with ROI > $10,000: {len(roi_insights)} opportunities"
+            f"Focus on insights with ROI > $10,000: {len(roi_insights)} opportunities",
         )
 
     next_steps.append("Schedule regular insight reviews with stakeholders")
@@ -1419,7 +1467,8 @@ def _generate_insight_next_steps(insights: list[dict[str, Any]]) -> list[str]:
 
 
 def _generate_trend_insights(
-    trends: list[dict[str, Any]], inflection_points: list[dict[str, Any]]
+    trends: list[dict[str, Any]],
+    inflection_points: list[dict[str, Any]],
 ) -> list[str]:
     """Generate insights from trend analysis."""
     insights = []
@@ -1431,7 +1480,7 @@ def _generate_trend_insights(
     ]
     if positive_trends:
         insights.append(
-            f"Strong positive trends detected in {len(positive_trends)} areas"
+            f"Strong positive trends detected in {len(positive_trends)} areas",
         )
 
     negative_trends = [
@@ -1441,12 +1490,12 @@ def _generate_trend_insights(
     ]
     if negative_trends:
         insights.append(
-            f"Concerning negative trends identified in {len(negative_trends)} areas - investigate immediately"
+            f"Concerning negative trends identified in {len(negative_trends)} areas - investigate immediately",
         )
 
     if inflection_points:
         insights.append(
-            f"Detected {len(inflection_points)} potential trend changes requiring attention"
+            f"Detected {len(inflection_points)} potential trend changes requiring attention",
         )
 
     high_confidence = [t for t in trends if t.get("statistical_significance", 0) > 0.8]
@@ -1487,4 +1536,4 @@ async def _export_predictions(data: dict[str, Any], export_type: str) -> str:
         return str(filepath)
 
     except Exception as e:
-        return f"Export failed: {str(e)}"
+        return f"Export failed: {e!s}"

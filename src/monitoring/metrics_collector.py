@@ -1,5 +1,4 @@
-"""
-Real-Time Metrics Collector - TASK_54 Phase 2 Implementation
+"""Real-Time Metrics Collector - TASK_54 Phase 2 Implementation.
 
 High-performance metrics collection engine for system and automation performance monitoring.
 Implements Design by Contract patterns with <5% monitoring overhead.
@@ -60,13 +59,13 @@ class MetricCollectionSession:
 
     def __post_init__(self):
         self.metrics = PerformanceMetrics(
-            session_id=self.session_id, start_time=datetime.now(UTC)
+            session_id=self.session_id,
+            start_time=datetime.now(UTC),
         )
 
 
 class MetricsCollector:
-    """
-    High-performance real-time metrics collection engine.
+    """High-performance real-time metrics collection engine.
 
     Collects system and automation performance metrics with minimal overhead.
     Supports threshold monitoring, alert generation, and historical tracking.
@@ -86,7 +85,7 @@ class MetricsCollector:
         self._initialize_collectors()
 
         logger.info(
-            f"MetricsCollector initialized with {max_concurrent_sessions} max sessions"
+            f"MetricsCollector initialized with {max_concurrent_sessions} max sessions",
         )
 
     def _initialize_collectors(self) -> None:
@@ -105,7 +104,7 @@ class MetricsCollector:
         }
 
     @require(
-        lambda self, configuration: configuration.sampling_interval > 0,
+        lambda _self, configuration: configuration.sampling_interval > 0,
         "Sampling interval must be positive",
     )
     @ensure(
@@ -113,14 +112,15 @@ class MetricsCollector:
         "Returns session or error",
     )
     async def start_collection_session(
-        self, configuration: MonitoringConfiguration
+        self,
+        configuration: MonitoringConfiguration,
     ) -> Either[str, MetricCollectionSession]:
         """Start a new metrics collection session with the given configuration."""
         try:
             # Check session limits
             if len(self.active_sessions) >= self.max_concurrent_sessions:
                 return Either.left(
-                    f"Maximum {self.max_concurrent_sessions} concurrent sessions exceeded"
+                    f"Maximum {self.max_concurrent_sessions} concurrent sessions exceeded",
                 )
 
             # Validate configuration
@@ -129,29 +129,31 @@ class MetricsCollector:
 
             # Create session
             session = MetricCollectionSession(
-                session_id=configuration.session_id, configuration=configuration
+                session_id=configuration.session_id,
+                configuration=configuration,
             )
 
             # Start collection task
             session.collection_task = asyncio.create_task(
-                self._collection_loop(session)
+                self._collection_loop(session),
             )
 
             self.active_sessions[configuration.session_id] = session
 
             logger.info(
-                f"Started metrics collection session {configuration.session_id}"
+                f"Started metrics collection session {configuration.session_id}",
             )
             return Either.right(session)
 
         except Exception as e:
-            error_msg = f"Failed to start collection session: {str(e)}"
+            error_msg = f"Failed to start collection session: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
     @require(lambda session_id: session_id is not None, "Session ID required")
     async def stop_collection_session(
-        self, session_id: MonitoringSessionID
+        self,
+        session_id: MonitoringSessionID,
     ) -> Either[str, PerformanceMetrics]:
         """Stop a metrics collection session and return collected metrics."""
         try:
@@ -177,7 +179,7 @@ class MetricsCollector:
             return Either.right(session.metrics)
 
         except Exception as e:
-            error_msg = f"Failed to stop collection session: {str(e)}"
+            error_msg = f"Failed to stop collection session: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -208,7 +210,7 @@ class MetricsCollector:
                     except Exception as e:
                         session.error_count += 1
                         logger.warning(
-                            f"Metric collection failed for {metric_type}: {e}"
+                            f"Metric collection failed for {metric_type}: {e}",
                         )
 
                 session.collection_count += 1
@@ -217,7 +219,8 @@ class MetricsCollector:
                 # Calculate next collection time
                 collection_time = time.time() - start_time
                 sleep_time = max(
-                    0, session.configuration.sampling_interval - collection_time
+                    0,
+                    session.configuration.sampling_interval - collection_time,
                 )
 
                 if sleep_time > 0:
@@ -247,7 +250,8 @@ class MetricsCollector:
         try:
             # Get CPU usage with short interval for accuracy
             cpu_percent = await asyncio.get_event_loop().run_in_executor(
-                self.executor, lambda: psutil.cpu_percent(interval=0.1)
+                self.executor,
+                lambda: psutil.cpu_percent(interval=0.1),
             )
 
             metrics = [
@@ -256,7 +260,7 @@ class MetricsCollector:
                     value=CPUPercentage(cpu_percent),
                     unit="percent",
                     source="system",
-                )
+                ),
             ]
 
             # Per-CPU metrics if available
@@ -269,15 +273,18 @@ class MetricsCollector:
                             value=CPUPercentage(cpu_usage),
                             unit="percent",
                             source=f"cpu_{i}",
-                        )
+                        ),
                     )
-            except Exception:
-                pass  # Per-CPU not available on all systems
+            except Exception as e:
+                # S110 fix: Add proper logging instead of silent pass
+                logger.debug(f"Per-CPU metrics not available on this system: {e}")
+                # Continue collection - per-CPU metrics are optional
 
             return metrics
 
         except Exception as e:
-            raise MetricCollectionError(f"CPU metrics collection failed: {e}")
+            # B904 fix: Add exception chaining
+            raise MetricCollectionError(f"CPU metrics collection failed: {e}") from e
 
     async def _collect_memory_metrics(self) -> list[MetricValue]:
         """Collect memory usage metrics."""
@@ -313,7 +320,8 @@ class MetricsCollector:
             ]
 
         except Exception as e:
-            raise MetricCollectionError(f"Memory metrics collection failed: {e}")
+            # B904 fix: Add exception chaining
+            raise MetricCollectionError(f"Memory metrics collection failed: {e}") from e
 
     async def _collect_disk_metrics(self) -> list[MetricValue]:
         """Collect disk I/O metrics."""
@@ -350,7 +358,8 @@ class MetricsCollector:
             ]
 
         except Exception as e:
-            raise MetricCollectionError(f"Disk metrics collection failed: {e}")
+            # B904 fix: Add exception chaining
+            raise MetricCollectionError(f"Disk metrics collection failed: {e}") from e
 
     async def _collect_network_metrics(self) -> list[MetricValue]:
         """Collect network I/O metrics."""
@@ -387,7 +396,10 @@ class MetricsCollector:
             ]
 
         except Exception as e:
-            raise MetricCollectionError(f"Network metrics collection failed: {e}")
+            # B904 fix: Add exception chaining
+            raise MetricCollectionError(
+                f"Network metrics collection failed: {e}",
+            ) from e
 
     async def _collect_execution_time_metrics(self) -> list[MetricValue]:
         """Collect execution time metrics (placeholder for macro/automation timing)."""
@@ -424,7 +436,7 @@ class MetricsCollector:
         try:
             connections = psutil.net_connections()
             active_connections = len(
-                [c for c in connections if c.status == "ESTABLISHED"]
+                [c for c in connections if c.status == "ESTABLISHED"],
             )
 
             return [
@@ -443,35 +455,43 @@ class MetricsCollector:
             ]
 
         except Exception as e:
-            raise MetricCollectionError(f"Connection metrics collection failed: {e}")
+            # B904 fix: Add exception chaining
+            raise MetricCollectionError(
+                f"Connection metrics collection failed: {e}",
+            ) from e
 
     async def _check_thresholds(
-        self, session: MetricCollectionSession, metric: MetricValue
+        self,
+        session: MetricCollectionSession,
+        metric: MetricValue,
     ) -> None:
         """Check if metric value violates any configured thresholds."""
         try:
             for threshold in session.configuration.thresholds:
-                if threshold.metric_type == metric.metric_type:
-                    if threshold.evaluate(metric.value):
-                        # Create alert
-                        alert = PerformanceAlert(
-                            alert_id=generate_alert_id(),
-                            metric_type=metric.metric_type,
-                            current_value=metric.value,
-                            threshold=threshold,
-                            triggered_at=metric.timestamp,
-                            source=metric.source,
-                            message=f"{metric.metric_type.value} threshold violated: {metric.value} {threshold.operator.value} {threshold.threshold_value}",
-                        )
+                # SIM102 fix: Combine nested if statements
+                if threshold.metric_type == metric.metric_type and threshold.evaluate(
+                    metric.value,
+                ):
+                    # Create alert
+                    alert = PerformanceAlert(
+                        alert_id=generate_alert_id(),
+                        metric_type=metric.metric_type,
+                        current_value=metric.value,
+                        threshold=threshold,
+                        triggered_at=metric.timestamp,
+                        source=metric.source,
+                        message=f"{metric.metric_type.value} threshold violated: {metric.value} {threshold.operator.value} {threshold.threshold_value}",
+                    )
 
-                        session.metrics.add_alert(alert)
-                        logger.warning(f"Threshold violation: {alert.message}")
+                    session.metrics.add_alert(alert)
+                    logger.warning(f"Threshold violation: {alert.message}")
 
         except Exception as e:
             logger.error(f"Threshold checking failed: {e}")
 
     def get_session_status(
-        self, session_id: MonitoringSessionID
+        self,
+        session_id: MonitoringSessionID,
     ) -> dict[str, Any] | None:
         """Get current status of a monitoring session."""
         if session_id not in self.active_sessions:
@@ -521,7 +541,8 @@ class MetricsCollector:
 
     # Aliases for compatibility with performance monitor tools
     async def start_monitoring_session(
-        self, configuration: MonitoringConfiguration
+        self,
+        configuration: MonitoringConfiguration,
     ) -> Either[str, MetricCollectionSession]:
         """Alias for start_collection_session."""
         return await self.start_collection_session(configuration)
@@ -537,7 +558,8 @@ class MetricsCollector:
         return self.active_sessions.copy()
 
     async def get_session_metrics(
-        self, session_id: MonitoringSessionID
+        self,
+        session_id: MonitoringSessionID,
     ) -> Either[str, PerformanceMetrics]:
         """Get performance metrics for a session."""
         try:
@@ -551,10 +573,12 @@ class MetricsCollector:
 
         except Exception as e:
             logger.error(f"Failed to get session metrics: {e}")
-            return Either.left(f"Failed to get session metrics: {str(e)}")
+            return Either.left(f"Failed to get session metrics: {e!s}")
 
     async def get_recent_metrics(
-        self, session_id: MonitoringSessionID, count: int = 10
+        self,
+        session_id: MonitoringSessionID,
+        count: int = 10,
     ) -> Either[str, list[MetricValue]]:
         """Get recent metrics from an active session."""
         try:
@@ -574,7 +598,7 @@ class MetricsCollector:
             return Either.right(recent_metrics[:count])
 
         except Exception as e:
-            return Either.left(f"Failed to get recent metrics: {str(e)}")
+            return Either.left(f"Failed to get recent metrics: {e!s}")
 
 
 # Global instance

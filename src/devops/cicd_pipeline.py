@@ -1,5 +1,4 @@
-"""
-CI/CD pipeline automation and management for developer toolkit.
+"""CI/CD pipeline automation and management for developer toolkit.
 
 This module provides comprehensive CI/CD capabilities including:
 - Pipeline configuration and definition
@@ -178,10 +177,11 @@ class CICDPipeline:
         self.cache_enabled = True
 
     async def create_pipeline(
-        self, config: dict[str, Any], validate_steps: bool = True
+        self,
+        config: dict[str, Any],
+        validate_steps: bool = True,
     ) -> Either[OrchestrationError, PipelineConfig]:
         """Create a new CI/CD pipeline from configuration."""
-
         try:
             # Validate configuration structure
             validation_result = await self._validate_pipeline_config(config)
@@ -229,7 +229,7 @@ class CICDPipeline:
             # Store pipeline
             self.active_pipelines[pipeline.pipeline_id] = pipeline
             self.logger.info(
-                f"Created pipeline {pipeline.pipeline_id} with {len(steps)} steps"
+                f"Created pipeline {pipeline.pipeline_id} with {len(steps)} steps",
             )
 
             return Either.right(pipeline)
@@ -240,17 +240,17 @@ class CICDPipeline:
             return Either.left(OrchestrationError.workflow_execution_failed(error_msg))
 
     async def _validate_pipeline_config(
-        self, config: dict[str, Any]
+        self,
+        config: dict[str, Any],
     ) -> Either[OrchestrationError, None]:
         """Validate pipeline configuration structure."""
-
         required_fields = ["id", "name", "steps"]
-        for field in required_fields:
-            if field not in config:
+        for field_name in required_fields:
+            if field_name not in config:
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        f"Missing required field: {field}"
-                    )
+                        f"Missing required field: {field_name}",
+                    ),
                 )
 
         # Validate steps structure
@@ -258,8 +258,8 @@ class CICDPipeline:
         if not isinstance(steps, list) or len(steps) == 0:
             return Either.left(
                 OrchestrationError.workflow_execution_failed(
-                    "Pipeline must have at least one step"
-                )
+                    "Pipeline must have at least one step",
+                ),
             )
 
         # Validate each step
@@ -267,17 +267,17 @@ class CICDPipeline:
             if not isinstance(step, dict):
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        f"Step {i} must be a dictionary"
-                    )
+                        f"Step {i} must be a dictionary",
+                    ),
                 )
 
             step_required = ["id", "name", "stage", "command"]
-            for field in step_required:
-                if field not in step:
+            for field_name in step_required:
+                if field_name not in step:
                     return Either.left(
                         OrchestrationError.workflow_execution_failed(
-                            f"Step {i} missing required field: {field}"
-                        )
+                            f"Step {i} missing required field: {field_name}",
+                        ),
                     )
 
             # Validate stage
@@ -286,17 +286,17 @@ class CICDPipeline:
             except ValueError:
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        f"Step {i} has invalid stage: {step['stage']}"
-                    )
+                        f"Step {i} has invalid stage: {step['stage']}",
+                    ),
                 )
 
         return Either.right(None)
 
     def _validate_step_dependencies(
-        self, steps: list[PipelineStep]
+        self,
+        steps: list[PipelineStep],
     ) -> Either[OrchestrationError, None]:
         """Validate step dependencies to prevent cycles."""
-
         step_ids = {step.step_id for step in steps}
 
         # Check that all dependencies exist
@@ -305,8 +305,8 @@ class CICDPipeline:
                 if dep not in step_ids:
                     return Either.left(
                         OrchestrationError.workflow_execution_failed(
-                            f"Step {step.step_id} depends on non-existent step: {dep}"
-                        )
+                            f"Step {step.step_id} depends on non-existent step: {dep}",
+                        ),
                     )
 
         # Check for circular dependencies using DFS
@@ -336,8 +336,8 @@ class CICDPipeline:
             if step.step_id not in visited and has_cycle(step.step_id):
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        "Circular dependency detected in pipeline steps"
-                    )
+                        "Circular dependency detected in pipeline steps",
+                    ),
                 )
 
         return Either.right(None)
@@ -350,7 +350,6 @@ class CICDPipeline:
         override_environment: dict[str, str] | None = None,
     ) -> Either[OrchestrationError, BuildResult]:
         """Execute a CI/CD pipeline."""
-
         try:
             pipeline = self.active_pipelines[pipeline_id]
             build_id = f"build_{datetime.now(UTC).timestamp()}"
@@ -359,8 +358,8 @@ class CICDPipeline:
             if len(self.running_builds) >= self.max_concurrent_builds:
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        "Maximum concurrent builds reached"
-                    )
+                        "Maximum concurrent builds reached",
+                    ),
                 )
 
             # Initialize build result
@@ -390,7 +389,9 @@ class CICDPipeline:
 
                 for step in execution_order:
                     step_result = await self._execute_step(
-                        step, environment, build_result
+                        step,
+                        environment,
+                        build_result,
                     )
 
                     if not step_result and not step.continue_on_error:
@@ -423,7 +424,7 @@ class CICDPipeline:
                 del self.running_builds[build_id]
 
                 self.logger.info(
-                    f"Pipeline {pipeline_id} completed with status: {build_result.status.value}"
+                    f"Pipeline {pipeline_id} completed with status: {build_result.status.value}",
                 )
 
             return Either.right(build_result)
@@ -434,10 +435,10 @@ class CICDPipeline:
             return Either.left(OrchestrationError.workflow_execution_failed(error_msg))
 
     def _calculate_execution_order(
-        self, steps: list[PipelineStep]
+        self,
+        steps: list[PipelineStep],
     ) -> list[PipelineStep]:
         """Calculate optimal execution order based on dependencies."""
-
         # Topological sort for dependency resolution
         in_degree = {step.step_id: 0 for step in steps}
         adjacency = {step.step_id: [] for step in steps}
@@ -466,10 +467,12 @@ class CICDPipeline:
         return result
 
     async def _execute_step(
-        self, step: PipelineStep, environment: dict[str, str], build_result: BuildResult
+        self,
+        step: PipelineStep,
+        environment: dict[str, str],
+        build_result: BuildResult,
     ) -> bool:
         """Execute a single pipeline step."""
-
         try:
             self.logger.info(f"Executing step: {step.name}")
 
@@ -491,7 +494,8 @@ class CICDPipeline:
 
             try:
                 stdout, _ = await asyncio.wait_for(
-                    process.communicate(), timeout=step.timeout
+                    process.communicate(),
+                    timeout=step.timeout,
                 )
 
                 # Capture output
@@ -506,7 +510,7 @@ class CICDPipeline:
                     await self._collect_artifacts(step, build_result)
 
                 self.logger.info(
-                    f"Step {step.name} {'succeeded' if success else 'failed'}"
+                    f"Step {step.name} {'succeeded' if success else 'failed'}",
                 )
                 return success
 
@@ -514,7 +518,7 @@ class CICDPipeline:
                 process.kill()
                 await process.wait()
                 build_result.logs.append(
-                    f"Step {step.step_id}: Timeout after {step.timeout}s"
+                    f"Step {step.step_id}: Timeout after {step.timeout}s",
                 )
                 self.logger.error(f"Step {step.name} timed out")
                 return False
@@ -525,10 +529,11 @@ class CICDPipeline:
             return False
 
     async def _collect_artifacts(
-        self, step: PipelineStep, build_result: BuildResult
+        self,
+        step: PipelineStep,
+        build_result: BuildResult,
     ) -> None:
         """Collect artifacts generated by a step."""
-
         for artifact_pattern in step.artifacts:
             try:
                 # Simple glob pattern matching
@@ -538,20 +543,20 @@ class CICDPipeline:
                     self.logger.info(f"Collected artifact: {artifact_path}")
             except Exception as e:
                 self.logger.warning(
-                    f"Failed to collect artifact {artifact_pattern}: {e}"
+                    f"Failed to collect artifact {artifact_pattern}: {e}",
                 )
 
     async def get_pipeline_status(
-        self, pipeline_id: str
+        self,
+        pipeline_id: str,
     ) -> Either[OrchestrationError, dict[str, Any]]:
         """Get status of a pipeline and its recent builds."""
-
         try:
             if pipeline_id not in self.active_pipelines:
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        f"Pipeline not found: {pipeline_id}"
-                    )
+                        f"Pipeline not found: {pipeline_id}",
+                    ),
                 )
 
             pipeline = self.active_pipelines[pipeline_id]
@@ -604,13 +609,12 @@ class CICDPipeline:
 
     async def cancel_build(self, build_id: str) -> Either[OrchestrationError, bool]:
         """Cancel a running build."""
-
         try:
             if build_id not in self.running_builds:
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        f"Build not found: {build_id}"
-                    )
+                        f"Build not found: {build_id}",
+                    ),
                 )
 
             build = self.running_builds[build_id]

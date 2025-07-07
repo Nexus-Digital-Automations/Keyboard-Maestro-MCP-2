@@ -1,5 +1,4 @@
-"""
-MCP tools for visual workflow designer operations.
+"""MCP tools for visual workflow designer operations.
 
 Comprehensive FastMCP tools for visual workflow creation, editing,
 and manipulation through Claude Desktop interface.
@@ -48,32 +47,39 @@ class WorkflowDesignerTools:
         @mcp.tool()
         async def km_create_visual_workflow(
             name: Annotated[
-                str, Field(description="Workflow name", min_length=1, max_length=100)
+                str,
+                Field(description="Workflow name", min_length=1, max_length=100),
             ],
             description: Annotated[
-                str, Field(description="Workflow description", max_length=500)
+                str,
+                Field(description="Workflow description", max_length=500),
             ] = "",
             template_id: Annotated[
-                str | None, Field(description="Optional template to start from")
+                str | None,
+                Field(description="Optional template to start from"),
             ] = None,
             canvas_width: Annotated[
-                int, Field(description="Canvas width in pixels", ge=800, le=4000)
+                int,
+                Field(description="Canvas width in pixels", ge=800, le=4000),
             ] = 1200,
             canvas_height: Annotated[
-                int, Field(description="Canvas height in pixels", ge=600, le=4000)
+                int,
+                Field(description="Canvas height in pixels", ge=600, le=4000),
             ] = 800,
             theme: Annotated[
-                str, Field(description="Canvas theme (light|dark|high_contrast|system)")
+                str,
+                Field(description="Canvas theme (light|dark|high_contrast|system)"),
             ] = "light",
             auto_layout: Annotated[
-                bool, Field(description="Enable automatic component layout")
+                bool,
+                Field(description="Enable automatic component layout"),
             ] = True,
             enable_grid: Annotated[
-                bool, Field(description="Enable grid snapping")
+                bool,
+                Field(description="Enable grid snapping"),
             ] = True,
         ) -> str:
-            """
-            Create a new visual workflow with interactive canvas for drag-and-drop macro building.
+            """Create a new visual workflow with interactive canvas for drag-and-drop macro building.
 
             FastMCP Tool for Claude Desktop integration with JSON-RPC protocol.
             Creates visual workflow interface that can be manipulated through subsequent MCP calls.
@@ -97,7 +103,9 @@ class WorkflowDesignerTools:
 
                 # Create workflow
                 workflow_result = await self.visual_composer.create_workflow(
-                    name=name, description=description, canvas_config=canvas_config
+                    name=name,
+                    description=description,
+                    canvas_config=canvas_config,
                 )
 
                 if workflow_result.is_left():
@@ -153,7 +161,7 @@ class WorkflowDesignerTools:
 
             except Exception as e:
                 self.logger.error(f"Visual workflow creation failed: {e}")
-                return f"Error: Visual workflow creation failed - {str(e)}"
+                return f"Error: Visual workflow creation failed - {e!s}"
 
         @mcp.tool()
         async def km_add_workflow_component(
@@ -161,36 +169,43 @@ class WorkflowDesignerTools:
             component_type: Annotated[
                 str,
                 Field(
-                    description="Component type (action|condition|trigger|group|delay|comment)"
+                    description="Component type (action|condition|trigger|group|delay|comment)",
                 ),
             ],
             x_position: Annotated[
-                int, Field(description="X coordinate on canvas", ge=0)
+                int,
+                Field(description="X coordinate on canvas", ge=0),
             ],
             y_position: Annotated[
-                int, Field(description="Y coordinate on canvas", ge=0)
+                int,
+                Field(description="Y coordinate on canvas", ge=0),
             ],
             title: Annotated[
-                str, Field(description="Component title", min_length=1, max_length=100)
+                str,
+                Field(description="Component title", min_length=1, max_length=100),
             ],
             description: Annotated[
-                str, Field(description="Component description", max_length=500)
+                str,
+                Field(description="Component description", max_length=500),
             ] = "",
             properties: Annotated[
-                str, Field(description="JSON string with component properties")
+                str,
+                Field(description="JSON string with component properties"),
             ] = "{}",
             component_template: Annotated[
-                str | None, Field(description="Component template key from library")
+                str | None,
+                Field(description="Component template key from library"),
             ] = None,
             auto_connect: Annotated[
-                bool, Field(description="Auto-connect to previous component")
+                bool,
+                Field(description="Auto-connect to previous component"),
             ] = False,
             layer_name: Annotated[
-                str, Field(description="Layer name for organization")
+                str,
+                Field(description="Layer name for organization"),
             ] = "default",
         ) -> str:
-            """
-            Add a new component to visual workflow at specified position.
+            """Add a new component to visual workflow at specified position.
 
             FastMCP Tool for adding visual components that Claude Desktop can manipulate.
             Supports actions, conditions, triggers, and grouped components.
@@ -253,7 +268,9 @@ class WorkflowDesignerTools:
 
                     position = CanvasPosition(x=x_position, y=y_position)
                     component_properties = ComponentProperties(
-                        title=title, description=description, properties=properties_dict
+                        title=title,
+                        description=description,
+                        properties=properties_dict,
                     )
                     layer_id = LayerId(f"layer_{layer_name}")
 
@@ -298,38 +315,43 @@ class WorkflowDesignerTools:
 
             except Exception as e:
                 self.logger.error(f"Component addition failed: {e}")
-                return f"Error: Component addition failed - {str(e)}"
+                return f"Error: Component addition failed - {e!s}"
 
         @mcp.tool()
         async def km_connect_workflow_nodes(
             workflow_id: Annotated[str, Field(description="Target workflow UUID")],
             source_component: Annotated[
-                str, Field(description="Source component UUID")
+                str,
+                Field(description="Source component UUID"),
             ],
             target_component: Annotated[
-                str, Field(description="Target component UUID")
+                str,
+                Field(description="Target component UUID"),
             ],
             connection_type: Annotated[
                 str,
                 Field(
-                    description="Connection type (sequence|condition|data|trigger|parallel|loop)"
+                    description="Connection type (sequence|condition|data|trigger|parallel|loop)",
                 ),
             ] = "sequence",
             connection_label: Annotated[
-                str, Field(description="Connection label", max_length=100)
+                str,
+                Field(description="Connection label", max_length=100),
             ] = "",
             connection_color: Annotated[
-                str, Field(description="Connection color (hex format)")
+                str,
+                Field(description="Connection color (hex format)"),
             ] = "#007AFF",
             animated: Annotated[
-                bool, Field(description="Enable connection animation")
+                bool,
+                Field(description="Enable connection animation"),
             ] = False,
             validate_flow: Annotated[
-                bool, Field(description="Validate workflow logic after connection")
+                bool,
+                Field(description="Validate workflow logic after connection"),
             ] = True,
         ) -> str:
-            """
-            Connect workflow components to define execution flow and data dependencies.
+            """Connect workflow components to define execution flow and data dependencies.
 
             FastMCP Tool for creating logical connections between workflow components.
             Validates connection compatibility and workflow logic.
@@ -369,7 +391,7 @@ class WorkflowDesignerTools:
                 validation_results = []
                 if validate_flow:
                     validation_result = await self.visual_composer.validate_workflow(
-                        WorkflowId(workflow_id)
+                        WorkflowId(workflow_id),
                     )
                     if validation_result.is_right():
                         validation_results = validation_result.right()
@@ -405,34 +427,38 @@ class WorkflowDesignerTools:
 
             except Exception as e:
                 self.logger.error(f"Component connection failed: {e}")
-                return f"Error: Component connection failed - {str(e)}"
+                return f"Error: Component connection failed - {e!s}"
 
         @mcp.tool()
         async def km_edit_workflow_component(
             workflow_id: Annotated[str, Field(description="Target workflow UUID")],
             component_id: Annotated[str, Field(description="Component UUID to edit")],
             title: Annotated[
-                str | None, Field(description="New component title", max_length=100)
+                str | None,
+                Field(description="New component title", max_length=100),
             ] = None,
             description: Annotated[
                 str | None,
                 Field(description="New component description", max_length=500),
             ] = None,
             properties: Annotated[
-                str, Field(description="JSON string with updated properties")
+                str,
+                Field(description="JSON string with updated properties"),
             ] = "{}",
             x_position: Annotated[
-                int | None, Field(description="New X coordinate", ge=0)
+                int | None,
+                Field(description="New X coordinate", ge=0),
             ] = None,
             y_position: Annotated[
-                int | None, Field(description="New Y coordinate", ge=0)
+                int | None,
+                Field(description="New Y coordinate", ge=0),
             ] = None,
             validate_changes: Annotated[
-                bool, Field(description="Validate component after changes")
+                bool,
+                Field(description="Validate component after changes"),
             ] = True,
         ) -> str:
-            """
-            Edit workflow component properties and configuration.
+            """Edit workflow component properties and configuration.
 
             FastMCP Tool for modifying visual workflow components through Claude Desktop.
             Validates changes and updates visual representation.
@@ -442,7 +468,7 @@ class WorkflowDesignerTools:
             try:
                 # Get current workflow to access component
                 workflow_result = await self.visual_composer.get_workflow(
-                    WorkflowId(workflow_id)
+                    WorkflowId(workflow_id),
                 )
                 if workflow_result.is_left():
                     return f"Error: Workflow not found - {workflow_result.left()}"
@@ -501,7 +527,7 @@ class WorkflowDesignerTools:
                 validation_results = []
                 if validate_changes:
                     validation_result = await self.visual_composer.validate_workflow(
-                        WorkflowId(workflow_id)
+                        WorkflowId(workflow_id),
                     )
                     if validation_result.is_right():
                         validation_results = validation_result.right()
@@ -536,32 +562,37 @@ class WorkflowDesignerTools:
 
             except Exception as e:
                 self.logger.error(f"Component editing failed: {e}")
-                return f"Error: Component editing failed - {str(e)}"
+                return f"Error: Component editing failed - {e!s}"
 
         @mcp.tool()
         async def km_export_visual_workflow(
             workflow_id: Annotated[str, Field(description="Workflow UUID to export")],
             export_format: Annotated[
-                str, Field(description="Export format (macro|template|json|xml)")
+                str,
+                Field(description="Export format (macro|template|json|xml)"),
             ] = "macro",
             target_group: Annotated[
-                str | None, Field(description="Target macro group for export")
+                str | None,
+                Field(description="Target macro group for export"),
             ] = None,
             include_metadata: Annotated[
-                bool, Field(description="Include workflow design metadata")
+                bool,
+                Field(description="Include workflow design metadata"),
             ] = True,
             validate_before_export: Annotated[
-                bool, Field(description="Validate workflow before export")
+                bool,
+                Field(description="Validate workflow before export"),
             ] = True,
             enable_on_creation: Annotated[
-                bool, Field(description="Enable macro immediately after creation")
+                bool,
+                Field(description="Enable macro immediately after creation"),
             ] = False,
             optimization_level: Annotated[
-                str, Field(description="Optimization level (none|basic|advanced)")
+                str,
+                Field(description="Optimization level (none|basic|advanced)"),
             ] = "basic",
         ) -> str:
-            """
-            Export visual workflow to executable macro or template format.
+            """Export visual workflow to executable macro or template format.
 
             FastMCP Tool for converting visual workflows to Keyboard Maestro macros.
             Validates workflow logic and generates optimized macro structures.
@@ -576,7 +607,7 @@ class WorkflowDesignerTools:
 
                 # Get workflow
                 workflow_result = await self.visual_composer.get_workflow(
-                    WorkflowId(workflow_id)
+                    WorkflowId(workflow_id),
                 )
                 if workflow_result.is_left():
                     return f"Error: Workflow not found - {workflow_result.left()}"
@@ -587,7 +618,7 @@ class WorkflowDesignerTools:
                 validation_errors = []
                 if validate_before_export:
                     validation_result = await self.visual_composer.validate_workflow(
-                        WorkflowId(workflow_id)
+                        WorkflowId(workflow_id),
                     )
                     if validation_result.is_right():
                         validation_errors = validation_result.right()
@@ -662,12 +693,11 @@ class WorkflowDesignerTools:
 
             except Exception as e:
                 self.logger.error(f"Workflow export failed: {e}")
-                return f"Error: Workflow export failed - {str(e)}"
+                return f"Error: Workflow export failed - {e!s}"
 
         @mcp.tool()
         async def km_get_workflow_templates() -> str:
-            """
-            Get available visual workflow templates for quick workflow creation.
+            """Get available visual workflow templates for quick workflow creation.
 
             FastMCP Tool for retrieving workflow templates that Claude Desktop can use.
             Provides categorized templates with preview and complexity information.
@@ -709,10 +739,10 @@ class WorkflowDesignerTools:
                     "success": True,
                     "templates": templates_info,
                     "template_categories": list(
-                        {t["category"] for t in templates_info}
+                        {t["category"] for t in templates_info},
                     ),
                     "complexity_levels": list(
-                        {t["complexity"] for t in templates_info}
+                        {t["complexity"] for t in templates_info},
                     ),
                     "component_library": {
                         "total_components": library_stats["total_components"],
@@ -730,23 +760,25 @@ class WorkflowDesignerTools:
 
             except Exception as e:
                 self.logger.error(f"Template retrieval failed: {e}")
-                return f"Error: Template retrieval failed - {str(e)}"
+                return f"Error: Template retrieval failed - {e!s}"
 
         @mcp.tool()
         async def km_validate_workflow(
             workflow_id: Annotated[str, Field(description="Workflow UUID to validate")],
             validation_level: Annotated[
-                str, Field(description="Validation depth (basic|full|strict)")
+                str,
+                Field(description="Validation depth (basic|full|strict)"),
             ] = "full",
             check_performance: Annotated[
-                bool, Field(description="Include performance analysis")
+                bool,
+                Field(description="Include performance analysis"),
             ] = True,
             suggest_optimizations: Annotated[
-                bool, Field(description="Provide optimization suggestions")
+                bool,
+                Field(description="Provide optimization suggestions"),
             ] = True,
         ) -> str:
-            """
-            Validate visual workflow logic, connections, and performance characteristics.
+            """Validate visual workflow logic, connections, and performance characteristics.
 
             FastMCP Tool for comprehensive workflow validation through Claude Desktop.
             Checks logic flow, component compatibility, and potential issues.
@@ -761,7 +793,7 @@ class WorkflowDesignerTools:
 
                 # Get workflow
                 workflow_result = await self.visual_composer.get_workflow(
-                    WorkflowId(workflow_id)
+                    WorkflowId(workflow_id),
                 )
                 if workflow_result.is_left():
                     return f"Error: Workflow not found - {workflow_result.left()}"
@@ -770,7 +802,7 @@ class WorkflowDesignerTools:
 
                 # Perform validation
                 validation_result = await self.visual_composer.validate_workflow(
-                    WorkflowId(workflow_id)
+                    WorkflowId(workflow_id),
                 )
                 if validation_result.is_left():
                     return f"Error: Validation failed - {validation_result.left()}"
@@ -783,7 +815,7 @@ class WorkflowDesignerTools:
                     # Check for complex workflows
                     if len(workflow.components) > 20:
                         warnings.append(
-                            "Workflow has many components, consider breaking into smaller workflows"
+                            "Workflow has many components, consider breaking into smaller workflows",
                         )
 
                     # Check for disconnected components
@@ -793,7 +825,7 @@ class WorkflowDesignerTools:
                             and component.component_type != ComponentType.TRIGGER
                         ):
                             warnings.append(
-                                f"Component '{component.properties.title}' is not connected to any other components"
+                                f"Component '{component.properties.title}' is not connected to any other components",
                             )
 
                 # Performance analysis
@@ -815,15 +847,15 @@ class WorkflowDesignerTools:
                 if suggest_optimizations:
                     if len(workflow.components) > 15:
                         optimization_suggestions.append(
-                            "Consider grouping related components to improve readability"
+                            "Consider grouping related components to improve readability",
                         )
                     if len(workflow.connections) < len(workflow.components) - 1:
                         optimization_suggestions.append(
-                            "Some components may be orphaned - check all connections"
+                            "Some components may be orphaned - check all connections",
                         )
                     if performance_metrics.get("complexity_score", 0) > 50:
                         optimization_suggestions.append(
-                            "Workflow complexity is high - consider splitting into multiple workflows"
+                            "Workflow complexity is high - consider splitting into multiple workflows",
                         )
 
                 response = {
@@ -871,7 +903,7 @@ class WorkflowDesignerTools:
 
             except Exception as e:
                 self.logger.error(f"Workflow validation failed: {e}")
-                return f"Error: Workflow validation failed - {str(e)}"
+                return f"Error: Workflow validation failed - {e!s}"
 
         self.logger.info("Registered visual workflow designer MCP tools successfully")
 

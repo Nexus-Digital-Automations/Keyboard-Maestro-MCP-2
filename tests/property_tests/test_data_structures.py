@@ -1,10 +1,13 @@
-"""
-Property-based tests for data structures and dictionary management.
+"""Property-based tests for data structures and dictionary management.
 
 This module uses Hypothesis to test dictionary management behavior across input ranges,
 ensuring data validation, security boundaries, and operation correctness.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import asyncio
 import json
 import re
 
@@ -37,9 +40,9 @@ class TestDictionaryPathProperties:
             ),
             min_size=1,
             max_size=10,
-        )
+        ),
     )
-    def test_path_segments_properties(self, segments):
+    def test_path_segments_properties(self, segments) -> None:
         """Property: Path segments should be preserved correctly."""
         path_str = ".".join(segments)
 
@@ -73,10 +76,12 @@ class TestDictionaryPathProperties:
 
     @given(
         st.text(
-            min_size=1, max_size=100, alphabet="abcdefghijklmnopqrstuvwxyz0123456789_."
-        )
+            min_size=1,
+            max_size=100,
+            alphabet="abcdefghijklmnopqrstuvwxyz0123456789_.",
+        ),
     )
-    def test_path_validation_properties(self, path_str):
+    def test_path_validation_properties(self, path_str) -> None:
         """Property: Path validation should be consistent."""
         try:
             path = DictionaryPath(path_str)
@@ -108,11 +113,24 @@ class TestDataSchemaProperties:
             st.text(min_size=1, max_size=20, alphabet="abcdefghijklmnopqrstuvwxyz"),
             st.dictionaries(
                 st.sampled_from(
-                    ["type", "minLength", "maxLength", "minimum", "maximum"]
+                    [
+                        "type",
+                        "minLength",
+                        "maxLength",
+                        "minimum",
+                        "maximum",
+                    ],
                 ),
                 st.one_of(
                     st.sampled_from(
-                        ["string", "number", "integer", "boolean", "array", "object"]
+                        [
+                            "string",
+                            "number",
+                            "integer",
+                            "boolean",
+                            "array",
+                            "object",
+                        ],
                     ),
                     st.integers(min_value=0, max_value=1000),
                     st.floats(min_value=0.0, max_value=1000.0),
@@ -120,9 +138,9 @@ class TestDataSchemaProperties:
             ),
             min_size=1,
             max_size=5,
-        )
+        ),
     )
-    def test_object_schema_properties(self, properties):
+    def test_object_schema_properties(self, properties) -> None:
         """Property: Object schemas should handle all valid property definitions."""
         try:
             schema = DataSchema.create_object_schema(properties)
@@ -141,9 +159,9 @@ class TestDataSchemaProperties:
                 prop_schema = schema.get_property_schema(path)
                 assert prop_schema == properties[prop_name]
 
-        except Exception:
+        except Exception as e:
             # Should only fail for invalid property definitions
-            pass
+            pytest.skip(f"Invalid property definition in test data: {e}")
 
     @given(
         st.dictionaries(
@@ -156,9 +174,9 @@ class TestDataSchemaProperties:
                 st.lists(st.text(max_size=20), max_size=5),
             ),
             max_size=10,
-        )
+        ),
     )
-    def test_schema_validation_properties(self, test_data):
+    def test_schema_validation_properties(self, test_data) -> None:
         """Property: Schema validation should handle all JSON-serializable data."""
         # Create a permissive schema
         schema_dict = {"type": "object", "additionalProperties": True}
@@ -185,10 +203,12 @@ class TestSecurityValidationProperties:
 
     @given(
         st.text(
-            min_size=1, max_size=100, alphabet="abcdefghijklmnopqrstuvwxyz0123456789_-."
-        )
+            min_size=1,
+            max_size=100,
+            alphabet="abcdefghijklmnopqrstuvwxyz0123456789_-.",
+        ),
     )
-    def test_dictionary_name_validation_properties(self, name):
+    def test_dictionary_name_validation_properties(self, name) -> None:
         """Property: Dictionary name validation should be consistent."""
         result = DataSecurityManager.validate_dictionary_name(name)
 
@@ -222,9 +242,9 @@ class TestSecurityValidationProperties:
                 st.dictionaries(st.text(max_size=10), children, max_size=5),
             ),
             max_leaves=20,
-        )
+        ),
     )
-    def test_content_validation_properties(self, test_data):
+    def test_content_validation_properties(self, test_data) -> None:
         """Property: Content validation should handle all JSON structures."""
         result = DataSecurityManager.validate_value_content(test_data)
 
@@ -259,9 +279,9 @@ class TestSecurityValidationProperties:
                     assert result.is_right() or result.is_left()  # Either way is valid
 
     @given(
-        st.integers(min_value=0, max_value=20)
+        st.integers(min_value=0, max_value=20),
     )  # Limit to DEFAULT_SECURITY_LIMITS.max_nesting_depth
-    def test_depth_calculation_properties(self, depth_target):
+    def test_depth_calculation_properties(self, depth_target) -> None:
         """Property: Depth calculation should be accurate for nested structures."""
         # Create nested structure of specified depth
         if depth_target == 0:
@@ -275,7 +295,7 @@ class TestSecurityValidationProperties:
         assert calculated_depth == depth_target
 
     @given(st.lists(st.integers(min_value=1, max_value=1000), min_size=1, max_size=10))
-    def test_size_validation_properties(self, sizes):
+    def test_size_validation_properties(self, sizes) -> None:
         """Property: Size validation should respect limits."""
         limits = SecurityLimits(
             max_dictionary_size=max(sizes) + 100,
@@ -319,9 +339,9 @@ class TestJSONProcessorProperties:
                 st.booleans(),
             ),
             max_size=10,
-        )
+        ),
     )
-    def test_json_round_trip_properties(self, test_data):
+    def test_json_round_trip_properties(self, test_data) -> None:
         """Property: JSON serialization/deserialization should be round-trip safe."""
         processor = JSONProcessor()
 
@@ -341,12 +361,12 @@ class TestJSONProcessorProperties:
                     # Should be equal to original
                     assert parsed_data == test_data
 
-        except Exception:
+        except Exception as e:
             # Some data might not be serializable or might exceed limits
-            pass
+            pytest.skip(f"Data not serializable or exceeds limits: {e}")
 
     @given(st.text(max_size=1000))
-    def test_json_security_validation_properties(self, json_content):
+    def test_json_security_validation_properties(self, json_content) -> None:
         """Property: JSON security validation should catch dangerous patterns."""
         processor = JSONProcessor()
 
@@ -372,18 +392,17 @@ class TestJSONProcessorProperties:
             assert result.is_right()
 
 
-import asyncio
-
-
 class TestDictionaryEngineProperties:
     """Property-based tests for dictionary engine operations."""
 
     @given(
         st.text(
-            min_size=1, max_size=20, alphabet="abcdefghijklmnopqrstuvwxyz0123456789_"
-        )
+            min_size=1,
+            max_size=20,
+            alphabet="abcdefghijklmnopqrstuvwxyz0123456789_",
+        ),
     )
-    def test_dictionary_lifecycle_properties(self, dict_name):
+    def test_dictionary_lifecycle_properties(self, dict_name) -> None:
         """Property: Dictionary creation and basic operations should work."""
         engine = DictionaryEngine()
 
@@ -417,7 +436,7 @@ class TestDictionaryEngineProperties:
             max_size=5,
         ),
     )
-    def test_dictionary_data_operations_properties(self, dict_name, test_data):
+    def test_dictionary_data_operations_properties(self, dict_name, test_data) -> None:
         """Property: Dictionary data operations should preserve data integrity."""
         engine = DictionaryEngine()
 
@@ -448,7 +467,7 @@ settings.load_profile("fast")
 
 # Additional focused property tests
 @given(st.sampled_from([op.value for op in DataOperation]))
-def test_data_operation_enum_consistency(operation_value):
+def test_data_operation_enum_consistency(operation_value) -> None:
     """Property: All data operation values should be valid enum values."""
     try:
         operation = DataOperation(operation_value)
@@ -458,7 +477,7 @@ def test_data_operation_enum_consistency(operation_value):
 
 
 @given(st.sampled_from([strategy.value for strategy in MergeStrategy]))
-def test_merge_strategy_enum_consistency(strategy_value):
+def test_merge_strategy_enum_consistency(strategy_value) -> None:
     """Property: All merge strategy values should be valid enum values."""
     try:
         strategy = MergeStrategy(strategy_value)
@@ -468,7 +487,7 @@ def test_merge_strategy_enum_consistency(strategy_value):
 
 
 @given(st.text(min_size=1, max_size=50))
-def test_schema_id_creation_properties(schema_name):
+def test_schema_id_creation_properties(schema_name) -> None:
     """Property: Schema IDs should be unique and reproducible."""
     schema_id1 = SchemaId(f"schema_{schema_name}")
     schema_id2 = SchemaId(f"schema_{schema_name}")

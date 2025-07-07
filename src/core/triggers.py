@@ -1,5 +1,4 @@
-"""
-Advanced trigger system for event-driven automation.
+"""Advanced trigger system for event-driven automation.
 
 This module implements sophisticated trigger types that enable Keyboard Maestro macros
 to respond automatically to environmental changes including time events, file system
@@ -153,13 +152,13 @@ class SystemTriggerConfig:
 
     def __post_init__(self):
         """Validate system trigger configuration."""
-        if self.battery_threshold is not None:
-            if not (0 <= self.battery_threshold <= 100):
-                raise ValueError("Battery threshold must be between 0 and 100")
+        if self.battery_threshold is not None and not (
+            0 <= self.battery_threshold <= 100
+        ):
+            raise ValueError("Battery threshold must be between 0 and 100")
 
-        if self.idle_threshold_seconds is not None:
-            if self.idle_threshold_seconds <= 0:
-                raise ValueError("Idle threshold must be positive")
+        if self.idle_threshold_seconds is not None and self.idle_threshold_seconds <= 0:
+            raise ValueError("Idle threshold must be positive")
 
 
 class TriggerValidator:
@@ -195,16 +194,15 @@ class TriggerValidator:
                             SecurityError(
                                 "PATH_ACCESS_DENIED",
                                 f"Access denied to protected path matching pattern: {forbidden}",
-                            )
+                            ),
                         )
-                else:
-                    if abs_path.startswith(forbidden):
-                        return Either.left(
-                            SecurityError(
-                                "PATH_ACCESS_DENIED",
-                                f"Access denied to protected path: {forbidden}",
-                            )
-                        )
+                elif abs_path.startswith(forbidden):
+                    return Either.left(
+                        SecurityError(
+                            "PATH_ACCESS_DENIED",
+                            f"Access denied to protected path: {forbidden}",
+                        ),
+                    )
 
             # Check for directory traversal attempts
             if ".." in path or path.startswith("~/../"):
@@ -212,7 +210,7 @@ class TriggerValidator:
                     SecurityError(
                         "DIRECTORY_TRAVERSAL",
                         "Directory traversal attempts are not allowed",
-                    )
+                    ),
                 )
 
             return Either.right(abs_path)
@@ -220,8 +218,9 @@ class TriggerValidator:
         except Exception as e:
             return Either.left(
                 SecurityError(
-                    "PATH_VALIDATION_ERROR", f"Failed to validate path: {str(e)}"
-                )
+                    "PATH_VALIDATION_ERROR",
+                    f"Failed to validate path: {e!s}",
+                ),
             )
 
     @staticmethod
@@ -229,7 +228,7 @@ class TriggerValidator:
         """Validate application bundle identifier."""
         if not app_id or len(app_id.strip()) == 0:
             return Either.left(
-                SecurityError("EMPTY_APP_ID", "Application identifier cannot be empty")
+                SecurityError("EMPTY_APP_ID", "Application identifier cannot be empty"),
             )
 
         clean_id = app_id.strip()
@@ -242,7 +241,7 @@ class TriggerValidator:
                     SecurityError(
                         "DANGEROUS_APP_ID",
                         f"Application identifier contains dangerous pattern: {pattern}",
-                    )
+                    ),
                 )
 
         # Validate format (standard bundle identifier pattern)
@@ -251,7 +250,7 @@ class TriggerValidator:
                 SecurityError(
                     "INVALID_APP_ID_FORMAT",
                     "Application identifier contains invalid characters",
-                )
+                ),
             )
 
         # Check length limits
@@ -260,7 +259,7 @@ class TriggerValidator:
                 SecurityError(
                     "APP_ID_TOO_LONG",
                     "Application identifier too long (max 255 characters)",
-                )
+                ),
             )
 
         return Either.right(clean_id)
@@ -270,7 +269,7 @@ class TriggerValidator:
         """Validate cron pattern for security and correctness."""
         if not pattern or len(pattern.strip()) == 0:
             return Either.left(
-                SecurityError("EMPTY_CRON_PATTERN", "Cron pattern cannot be empty")
+                SecurityError("EMPTY_CRON_PATTERN", "Cron pattern cannot be empty"),
             )
 
         clean_pattern = pattern.strip()
@@ -281,8 +280,9 @@ class TriggerValidator:
         if len(parts) != 5:
             return Either.left(
                 SecurityError(
-                    "INVALID_CRON_FORMAT", "Cron pattern must have exactly 5 fields"
-                )
+                    "INVALID_CRON_FORMAT",
+                    "Cron pattern must have exactly 5 fields",
+                ),
             )
 
         # Check for dangerous characters
@@ -293,7 +293,7 @@ class TriggerValidator:
                     SecurityError(
                         "INVALID_CRON_CHARACTERS",
                         "Cron pattern contains invalid characters",
-                    )
+                    ),
                 )
 
         return Either.right(clean_pattern)
@@ -307,8 +307,9 @@ class TriggerValidator:
         if trigger_spec.timeout_seconds > 300:
             return Either.left(
                 SecurityError(
-                    "TIMEOUT_TOO_LONG", "Timeout exceeds maximum allowed (300 seconds)"
-                )
+                    "TIMEOUT_TOO_LONG",
+                    "Timeout exceeds maximum allowed (300 seconds)",
+                ),
             )
 
         # Check execution limits
@@ -320,7 +321,7 @@ class TriggerValidator:
                 SecurityError(
                     "MAX_EXECUTIONS_TOO_HIGH",
                     "Maximum executions exceeds limit (10000)",
-                )
+                ),
             )
 
         # Check file monitoring limits
@@ -347,13 +348,13 @@ class TriggerValidator:
                 for sensitive in sensitive_paths:
                     # Exact match or starts with path + "/"
                     if watch_path == sensitive or watch_path.startswith(
-                        sensitive + "/"
+                        sensitive + "/",
                     ):
                         return Either.left(
                             SecurityError(
                                 "RECURSIVE_MONITORING_DENIED",
                                 f"Recursive monitoring of {sensitive} is not allowed",
-                            )
+                            ),
                         )
 
         return Either.right(None)
@@ -390,7 +391,7 @@ class TriggerBuilder:
         validation_result = TriggerValidator.validate_cron_pattern(pattern)
         if validation_result.is_left():
             raise ValueError(
-                f"Invalid cron pattern: {validation_result.get_left().message}"
+                f"Invalid cron pattern: {validation_result.get_left().message}",
             )
 
         self._trigger_type = TriggerType.TIME_RECURRING
@@ -411,7 +412,9 @@ class TriggerBuilder:
         return self
 
     def when_file_modified(
-        self, path: str, pattern: str | None = None
+        self,
+        path: str,
+        pattern: str | None = None,
     ) -> TriggerBuilder:
         """Create a file modification trigger."""
         path_validation = TriggerValidator.validate_file_path(path)
@@ -430,7 +433,7 @@ class TriggerBuilder:
         app_validation = TriggerValidator.validate_app_identifier(app_identifier)
         if app_validation.is_left():
             raise ValueError(
-                f"Invalid app identifier: {app_validation.get_left().message}"
+                f"Invalid app identifier: {app_validation.get_left().message}",
             )
 
         self._trigger_type = TriggerType.APP_LAUNCHED
@@ -442,7 +445,7 @@ class TriggerBuilder:
         app_validation = TriggerValidator.validate_app_identifier(app_identifier)
         if app_validation.is_left():
             raise ValueError(
-                f"Invalid app identifier: {app_validation.get_left().message}"
+                f"Invalid app identifier: {app_validation.get_left().message}",
             )
 
         self._trigger_type = TriggerType.APP_QUIT
@@ -493,7 +496,7 @@ class TriggerBuilder:
         app_validation = TriggerValidator.validate_app_identifier(app_identifier)
         if app_validation.is_left():
             raise ValueError(
-                f"Invalid app identifier: {app_validation.get_left().message}"
+                f"Invalid app identifier: {app_validation.get_left().message}",
             )
 
         self._trigger_type = TriggerType.APP_ACTIVATED
@@ -590,13 +593,16 @@ class TriggerBuilder:
                     field_name="trigger_type",
                     value="None",
                     constraint="Trigger type must be specified",
-                )
+                ),
             )
 
         try:
             # Add creation metadata
             self._metadata.update(
-                {"created_at": datetime.now().isoformat(), "builder_version": "1.0"}
+                {
+                    "created_at": datetime.now().isoformat(),
+                    "builder_version": "1.0",
+                },
             )
 
             trigger_spec = TriggerSpec(
@@ -619,7 +625,7 @@ class TriggerBuilder:
                         field_name="resource_limits",
                         value=str(trigger_spec),
                         constraint=security_result.get_left().message,
-                    )
+                    ),
                 )
 
             return Either.right(trigger_spec)
@@ -627,8 +633,10 @@ class TriggerBuilder:
         except ValueError as e:
             return Either.left(
                 ValidationError(
-                    field_name="trigger_spec", value="invalid", constraint=str(e)
-                )
+                    field_name="trigger_spec",
+                    value="invalid",
+                    constraint=str(e),
+                ),
             )
 
 
@@ -639,7 +647,8 @@ def create_daily_trigger(hour: int, minute: int = 0) -> TriggerBuilder:
 
 
 def create_file_watcher(
-    directory: str, file_pattern: str | None = None
+    directory: str,
+    file_pattern: str | None = None,
 ) -> TriggerBuilder:
     """Create a file monitoring trigger."""
     builder = TriggerBuilder().when_file_modified(directory, file_pattern)
@@ -650,5 +659,4 @@ def create_app_lifecycle_trigger(app_id: str, on_launch: bool = True) -> Trigger
     """Create an application lifecycle trigger."""
     if on_launch:
         return TriggerBuilder().when_app_launches(app_id)
-    else:
-        return TriggerBuilder().when_app_quits(app_id)
+    return TriggerBuilder().when_app_quits(app_id)

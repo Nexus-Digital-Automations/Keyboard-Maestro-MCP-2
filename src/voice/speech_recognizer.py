@@ -1,5 +1,4 @@
-"""
-Speech Recognition Engine - TASK_66 Phase 2 Core Voice Engine
+"""Speech Recognition Engine - TASK_66 Phase 2 Core Voice Engine.
 
 Real-time speech recognition, voice command processing, and multi-engine support
 with comprehensive error handling and performance optimization.
@@ -60,8 +59,7 @@ class RecognitionEngine:
 
 
 class SpeechRecognizer:
-    """
-    Comprehensive speech recognition system with multi-engine support.
+    """Comprehensive speech recognition system with multi-engine support.
 
     Contracts:
         Preconditions:
@@ -101,7 +99,7 @@ class SpeechRecognizer:
         # Initialize available engines
         self._initialize_engines()
 
-    def _initialize_engines(self):
+    def _initialize_engines(self) -> bool:
         """Initialize available speech recognition engines."""
         # System native engine (macOS)
         self.available_engines[SpeechRecognitionEngine.SYSTEM_NATIVE] = (
@@ -166,18 +164,17 @@ class SpeechRecognizer:
         )
 
     @require(
-        lambda self, audio_input: audio_input.audio_data is not None
-        or audio_input.audio_file_path is not None
+        lambda _self, audio_input: audio_input.audio_data is not None
+        or audio_input.audio_file_path is not None,
     )
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def recognize_speech(
         self,
         audio_input: AudioInput,
         settings: RecognitionSettings,
         voice_profile: VoiceProfile | None = None,
     ) -> Either[SpeechRecognitionError, VoiceRecognitionResult]:
-        """
-        Recognize speech from audio input using specified settings.
+        """Recognize speech from audio input using specified settings.
 
         Performance:
             - <200ms recognition initialization
@@ -192,8 +189,8 @@ class SpeechRecognizer:
             if security_result.is_error():
                 return Either.error(
                     SpeechRecognitionError.audio_input_invalid(
-                        str(security_result.error_value)
-                    )
+                        str(security_result.error_value),
+                    ),
                 )
 
             # Select recognition engine
@@ -208,8 +205,8 @@ class SpeechRecognizer:
             if cost_estimate > 1.0:  # $1 limit per recognition
                 return Either.error(
                     SpeechRecognitionError.recognition_failed(
-                        f"Recognition cost too high: ${cost_estimate:.3f}"
-                    )
+                        f"Recognition cost too high: ${cost_estimate:.3f}",
+                    ),
                 )
 
             # Check cache for identical audio
@@ -217,7 +214,7 @@ class SpeechRecognizer:
             if cache_key in self.recognition_cache:
                 cached_result = self.recognition_cache[cache_key]
                 logger.info(
-                    f"Using cached recognition result: {cached_result.recognized_text[:50]}..."
+                    f"Using cached recognition result: {cached_result.recognized_text[:50]}...",
                 )
                 return Either.success(cached_result)
 
@@ -226,21 +223,27 @@ class SpeechRecognizer:
                 result = await self._recognize_with_system_native(audio_input, settings)
             elif engine.engine_type == SpeechRecognitionEngine.OPENAI_WHISPER:
                 result = await self._recognize_with_openai_whisper(
-                    audio_input, settings, engine
+                    audio_input,
+                    settings,
+                    engine,
                 )
             elif engine.engine_type == SpeechRecognitionEngine.GOOGLE_SPEECH:
                 result = await self._recognize_with_google_speech(
-                    audio_input, settings, engine
+                    audio_input,
+                    settings,
+                    engine,
                 )
             elif engine.engine_type == SpeechRecognitionEngine.AZURE_SPEECH:
                 result = await self._recognize_with_azure_speech(
-                    audio_input, settings, engine
+                    audio_input,
+                    settings,
+                    engine,
                 )
             elif engine.engine_type == SpeechRecognitionEngine.LOCAL_WHISPER:
                 result = await self._recognize_with_local_whisper(audio_input, settings)
             else:
                 return Either.error(
-                    SpeechRecognitionError.engine_unavailable(engine.engine_type)
+                    SpeechRecognitionError.engine_unavailable(engine.engine_type),
                 )
 
             if result.is_error():
@@ -252,8 +255,9 @@ class SpeechRecognizer:
             if recognition_result.confidence < settings.confidence_threshold:
                 return Either.error(
                     SpeechRecognitionError.confidence_too_low(
-                        recognition_result.confidence, settings.confidence_threshold
-                    )
+                        recognition_result.confidence,
+                        settings.confidence_threshold,
+                    ),
                 )
 
             # Apply speaker identification if enabled
@@ -275,19 +279,21 @@ class SpeechRecognizer:
 
             logger.info(
                 f"Speech recognition successful: '{recognition_result.recognized_text}' "
-                f"(confidence: {recognition_result.confidence:.2f}, time: {processing_time:.0f}ms)"
+                f"(confidence: {recognition_result.confidence:.2f}, time: {processing_time:.0f}ms)",
             )
 
             return Either.success(recognition_result)
 
         except Exception as e:
             self._update_recognition_stats(None, False)
-            error_msg = f"Speech recognition failed: {str(e)}"
+            error_msg = f"Speech recognition failed: {e!s}"
             logger.error(error_msg)
             return Either.error(SpeechRecognitionError.recognition_failed(str(e)))
 
     def _select_recognition_engine(
-        self, settings: RecognitionSettings, audio_input: AudioInput
+        self,
+        settings: RecognitionSettings,
+        audio_input: AudioInput,
     ) -> Either[SpeechRecognitionError, RecognitionEngine]:
         """Select best available recognition engine for settings."""
         try:
@@ -301,31 +307,30 @@ class SpeechRecognizer:
             engine = self.available_engines.get(target_engine)
             if not engine:
                 return Either.error(
-                    SpeechRecognitionError.engine_unavailable(target_engine)
+                    SpeechRecognitionError.engine_unavailable(target_engine),
                 )
 
             # Check if engine is available
             if not engine.is_available:
                 # Try fallback to system native
                 fallback_engine = self.available_engines.get(
-                    SpeechRecognitionEngine.SYSTEM_NATIVE
+                    SpeechRecognitionEngine.SYSTEM_NATIVE,
                 )
                 if fallback_engine and fallback_engine.is_available:
                     logger.warning(
-                        f"Engine {target_engine.value} unavailable, falling back to system native"
+                        f"Engine {target_engine.value} unavailable, falling back to system native",
                     )
                     return Either.success(fallback_engine)
-                else:
-                    return Either.error(
-                        SpeechRecognitionError.engine_unavailable(target_engine)
-                    )
+                return Either.error(
+                    SpeechRecognitionError.engine_unavailable(target_engine),
+                )
 
             # Check language support
             if not engine.supports_language(settings.language):
                 return Either.error(
                     SpeechRecognitionError.recognition_failed(
-                        f"Engine {target_engine.value} does not support language {settings.language.value}"
-                    )
+                        f"Engine {target_engine.value} does not support language {settings.language.value}",
+                    ),
                 )
 
             # Check duration limits
@@ -333,8 +338,8 @@ class SpeechRecognizer:
             if duration > engine.max_duration_seconds:
                 return Either.error(
                     SpeechRecognitionError.recognition_failed(
-                        f"Audio duration {duration}s exceeds engine limit {engine.max_duration_seconds}s"
-                    )
+                        f"Audio duration {duration}s exceeds engine limit {engine.max_duration_seconds}s",
+                    ),
                 )
 
             return Either.success(engine)
@@ -342,12 +347,14 @@ class SpeechRecognizer:
         except Exception as e:
             return Either.error(
                 SpeechRecognitionError.recognition_failed(
-                    f"Engine selection failed: {str(e)}"
-                )
+                    f"Engine selection failed: {e!s}",
+                ),
             )
 
     def _auto_select_engine(
-        self, settings: RecognitionSettings, audio_input: AudioInput
+        self,
+        settings: RecognitionSettings,
+        audio_input: AudioInput,
     ) -> SpeechRecognitionEngine:
         """Automatically select best engine based on context."""
         # Prefer system native for short, simple commands
@@ -355,7 +362,7 @@ class SpeechRecognizer:
 
         if duration < 10.0 and settings.language == VoiceLanguage.ENGLISH_US:
             system_engine = self.available_engines.get(
-                SpeechRecognitionEngine.SYSTEM_NATIVE
+                SpeechRecognitionEngine.SYSTEM_NATIVE,
             )
             if system_engine and system_engine.is_available:
                 return SpeechRecognitionEngine.SYSTEM_NATIVE
@@ -383,7 +390,9 @@ class SpeechRecognizer:
         return SpeechRecognitionEngine.SYSTEM_NATIVE
 
     async def _recognize_with_system_native(
-        self, audio_input: AudioInput, settings: RecognitionSettings
+        self,
+        audio_input: AudioInput,
+        settings: RecognitionSettings,
     ) -> Either[SpeechRecognitionError, VoiceRecognitionResult]:
         """Recognize speech using macOS native speech recognition."""
         try:
@@ -417,8 +426,8 @@ class SpeechRecognizer:
         except Exception as e:
             return Either.error(
                 SpeechRecognitionError.recognition_failed(
-                    f"System native recognition failed: {str(e)}"
-                )
+                    f"System native recognition failed: {e!s}",
+                ),
             )
 
     async def _recognize_with_openai_whisper(
@@ -459,8 +468,8 @@ class SpeechRecognizer:
         except Exception as e:
             return Either.error(
                 SpeechRecognitionError.recognition_failed(
-                    f"OpenAI Whisper recognition failed: {str(e)}"
-                )
+                    f"OpenAI Whisper recognition failed: {e!s}",
+                ),
             )
 
     async def _recognize_with_google_speech(
@@ -479,10 +488,10 @@ class SpeechRecognizer:
                             {
                                 "transcript": "Mock Google Speech recognition result",
                                 "confidence": 0.89,
-                            }
-                        ]
-                    }
-                ]
+                            },
+                        ],
+                    },
+                ],
             }
 
             transcript = mock_response["results"][0]["alternatives"][0]["transcript"]
@@ -502,8 +511,8 @@ class SpeechRecognizer:
         except Exception as e:
             return Either.error(
                 SpeechRecognitionError.recognition_failed(
-                    f"Google Speech recognition failed: {str(e)}"
-                )
+                    f"Google Speech recognition failed: {e!s}",
+                ),
             )
 
     async def _recognize_with_azure_speech(
@@ -534,12 +543,14 @@ class SpeechRecognizer:
         except Exception as e:
             return Either.error(
                 SpeechRecognitionError.recognition_failed(
-                    f"Azure Speech recognition failed: {str(e)}"
-                )
+                    f"Azure Speech recognition failed: {e!s}",
+                ),
             )
 
     async def _recognize_with_local_whisper(
-        self, audio_input: AudioInput, settings: RecognitionSettings
+        self,
+        audio_input: AudioInput,
+        settings: RecognitionSettings,
     ) -> Either[SpeechRecognitionError, VoiceRecognitionResult]:
         """Recognize speech using local Whisper model."""
         try:
@@ -566,8 +577,8 @@ class SpeechRecognizer:
         except Exception as e:
             return Either.error(
                 SpeechRecognitionError.recognition_failed(
-                    f"Local Whisper recognition failed: {str(e)}"
-                )
+                    f"Local Whisper recognition failed: {e!s}",
+                ),
             )
 
     async def _create_temp_audio_file(self, audio_input: AudioInput) -> str:
@@ -577,16 +588,20 @@ class SpeechRecognizer:
                 temp_file.write(audio_input.audio_data)
                 return temp_file.name
         except Exception as e:
-            raise VoiceControlError(f"Failed to create temporary audio file: {str(e)}")
+            raise VoiceControlError(
+                f"Failed to create temporary audio file: {e!s}",
+            ) from e
 
     def _generate_cache_key(
-        self, audio_input: AudioInput, settings: RecognitionSettings
+        self,
+        audio_input: AudioInput,
+        settings: RecognitionSettings,
     ) -> str:
         """Generate cache key for audio input and settings."""
         import hashlib
 
         # Create hash from audio data and settings
-        hasher = hashlib.md5()
+        hasher = hashlib.sha256()
 
         if audio_input.audio_data:
             hasher.update(audio_input.audio_data[:1024])  # First 1KB for uniqueness
@@ -594,14 +609,16 @@ class SpeechRecognizer:
             hasher.update(audio_input.audio_file_path.encode())
 
         hasher.update(
-            f"{settings.engine.value}_{settings.language.value}_{settings.confidence_threshold}".encode()
+            f"{settings.engine.value}_{settings.language.value}_{settings.confidence_threshold}".encode(),
         )
 
         return hasher.hexdigest()
 
     def _update_recognition_stats(
-        self, result: VoiceRecognitionResult | None, success: bool
-    ):
+        self,
+        result: VoiceRecognitionResult | None,
+        success: bool,
+    ) -> bool:
         """Update recognition statistics."""
         self.recognition_stats["total_requests"] += 1
 
@@ -636,7 +653,7 @@ class SpeechRecognizer:
         try:
             if engine_type not in self.available_engines:
                 return Either.error(
-                    SpeechRecognitionError.engine_unavailable(engine_type)
+                    SpeechRecognitionError.engine_unavailable(engine_type),
                 )
 
             engine = self.available_engines[engine_type]
@@ -658,8 +675,8 @@ class SpeechRecognizer:
         except Exception as e:
             return Either.error(
                 SpeechRecognitionError.recognition_failed(
-                    f"Engine configuration failed: {str(e)}"
-                )
+                    f"Engine configuration failed: {e!s}",
+                ),
             )
 
     async def get_available_engines(self) -> list[dict[str, Any]]:
@@ -677,7 +694,7 @@ class SpeechRecognizer:
                         lang.value for lang in engine.supported_languages
                     ],
                     "model_name": engine.model_name,
-                }
+                },
             )
 
         return engines_info
@@ -690,7 +707,7 @@ class SpeechRecognizer:
 
         return stats
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """Clear recognition result cache."""
         self.recognition_cache.clear()
         logger.info("Recognition cache cleared")
@@ -698,7 +715,8 @@ class SpeechRecognizer:
     # PHASE 4: ADVANCED FEATURES IMPLEMENTATION
 
     async def enable_multi_language_support(
-        self, languages: list[VoiceLanguage]
+        self,
+        languages: list[VoiceLanguage],
     ) -> Either[SpeechRecognitionError, dict[str, Any]]:
         """Enable multi-language support with automatic language detection."""
         try:
@@ -724,19 +742,20 @@ class SpeechRecognizer:
             }
 
             logger.info(
-                f"Multi-language support enabled for {len(supported_languages)} languages"
+                f"Multi-language support enabled for {len(supported_languages)} languages",
             )
             return Either.success(result)
 
         except Exception as e:
             return Either.error(
                 SpeechRecognitionError.recognition_failed(
-                    f"Multi-language setup failed: {str(e)}"
-                )
+                    f"Multi-language setup failed: {e!s}",
+                ),
             )
 
     async def enable_speaker_identification(
-        self, voice_profiles: list[VoiceProfile]
+        self,
+        voice_profiles: list[VoiceProfile],
     ) -> Either[SpeechRecognitionError, dict[str, Any]]:
         """Enable speaker identification with voice profiles."""
         try:
@@ -748,7 +767,7 @@ class SpeechRecognizer:
                 "speaker_identification_enabled": True,
                 "registered_speakers": len(voice_profiles),
                 "authentication_levels": list(
-                    {profile.authentication_level.value for profile in voice_profiles}
+                    {profile.authentication_level.value for profile in voice_profiles},
                 ),
                 "advanced_auth_ready": any(
                     profile.authentication_level == SpeakerAuthLevel.ENTERPRISE
@@ -757,15 +776,15 @@ class SpeechRecognizer:
             }
 
             logger.info(
-                f"Speaker identification enabled with {len(voice_profiles)} profiles"
+                f"Speaker identification enabled with {len(voice_profiles)} profiles",
             )
             return Either.success(result)
 
         except Exception as e:
             return Either.error(
                 SpeechRecognitionError.recognition_failed(
-                    f"Speaker identification setup failed: {str(e)}"
-                )
+                    f"Speaker identification setup failed: {e!s}",
+                ),
             )
 
     async def configure_noise_filtering(
@@ -799,8 +818,8 @@ class SpeechRecognizer:
         except Exception as e:
             return Either.error(
                 SpeechRecognitionError.recognition_failed(
-                    f"Noise filtering configuration failed: {str(e)}"
-                )
+                    f"Noise filtering configuration failed: {e!s}",
+                ),
             )
 
     async def enable_continuous_listening(
@@ -836,12 +855,13 @@ class SpeechRecognizer:
         except Exception as e:
             return Either.error(
                 SpeechRecognitionError.recognition_failed(
-                    f"Continuous listening setup failed: {str(e)}"
-                )
+                    f"Continuous listening setup failed: {e!s}",
+                ),
             )
 
     async def configure_recognition(
-        self, configuration
+        self,
+        configuration,
     ) -> Either[SpeechRecognitionError, dict[str, Any]]:
         """Configure speech recognition settings."""
         try:
@@ -854,12 +874,13 @@ class SpeechRecognizer:
         except Exception as e:
             return Either.error(
                 SpeechRecognitionError.recognition_failed(
-                    f"Configuration failed: {str(e)}"
-                )
+                    f"Configuration failed: {e!s}",
+                ),
             )
 
     async def train_recognition(
-        self, training_session
+        self,
+        training_session,
     ) -> Either[SpeechRecognitionError, Any]:
         """Train voice recognition model."""
         try:
@@ -894,7 +915,7 @@ class SpeechRecognizer:
             return Either.success(result)
         except Exception as e:
             return Either.error(
-                SpeechRecognitionError.recognition_failed(f"Training failed: {str(e)}")
+                SpeechRecognitionError.recognition_failed(f"Training failed: {e!s}"),
             )
 
 

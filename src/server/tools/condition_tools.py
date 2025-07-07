@@ -1,5 +1,4 @@
-"""
-Condition tools for adding conditional logic to Keyboard Maestro macros.
+"""Condition tools for adding conditional logic to Keyboard Maestro macros.
 
 This module implements the km_add_condition MCP tool that enables intelligent automation
 through comprehensive conditional logic, supporting text, application, system, and variable
@@ -44,8 +43,7 @@ async def km_add_condition(
     timeout_seconds: int = 10,  # Condition evaluation timeout
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Add conditional logic to a Keyboard Maestro macro for intelligent automation.
+    """Add conditional logic to a Keyboard Maestro macro for intelligent automation.
 
     This tool creates sophisticated conditional statements that enable macros to make
     intelligent decisions based on text content, application state, system properties,
@@ -69,6 +67,7 @@ async def km_add_condition(
         ValidationError: If condition parameters are invalid
         SecurityError: If condition contains security risks
         PermissionDeniedError: If insufficient permissions for condition type
+
     """
     try:
         logger.info(f"Adding condition to macro: {macro_identifier}")
@@ -189,7 +188,7 @@ async def km_add_condition(
         integration_details = integration_result.get_right()
 
         logger.info(
-            f"Successfully added condition {condition_spec.condition_id} to macro {macro_id}"
+            f"Successfully added condition {condition_spec.condition_id} to macro {macro_id}",
         )
 
         return {
@@ -208,17 +207,18 @@ async def km_add_condition(
             "performance_metrics": {
                 "validation_time_ms": integration_details.get("validation_time_ms", 0),
                 "integration_time_ms": integration_details.get(
-                    "integration_time_ms", 0
+                    "integration_time_ms",
+                    0,
                 ),
             },
         }
 
     except Exception as e:
-        logger.error(f"Error adding condition to macro {macro_identifier}: {str(e)}")
+        logger.error(f"Error adding condition to macro {macro_identifier}: {e!s}")
         return {
             "success": False,
             "error": "INTERNAL_ERROR",
-            "message": f"Failed to add condition: {str(e)}",
+            "message": f"Failed to add condition: {e!s}",
         }
 
 
@@ -232,8 +232,10 @@ def _validate_condition_type(
         valid_types = [t.value for t in ConditionType]
         return Either.left(
             ValidationError(
-                "condition_type", condition_type, f"must be one of: {valid_types}"
-            )
+                "condition_type",
+                condition_type,
+                f"must be one of: {valid_types}",
+            ),
         )
 
 
@@ -244,29 +246,31 @@ def _validate_operator(operator: str) -> Either[ValidationError, ComparisonOpera
     except ValueError:
         valid_operators = [op.value for op in ComparisonOperator]
         return Either.left(
-            ValidationError("operator", operator, f"must be one of: {valid_operators}")
+            ValidationError("operator", operator, f"must be one of: {valid_operators}"),
         )
 
 
 def _apply_operator(
-    builder: ConditionBuilder, operator: ComparisonOperator, operand: str
+    builder: ConditionBuilder,
+    operator: ComparisonOperator,
+    operand: str,
 ) -> ConditionBuilder:
     """Apply the specified operator to the condition builder."""
     if operator == ComparisonOperator.EQUALS:
         return builder.equals(operand)
-    elif operator == ComparisonOperator.CONTAINS:
+    if operator == ComparisonOperator.CONTAINS:
         return builder.contains(operand)
-    elif operator == ComparisonOperator.MATCHES_REGEX:
+    if operator == ComparisonOperator.MATCHES_REGEX:
         return builder.matches_regex(operand)
-    elif operator == ComparisonOperator.GREATER_THAN:
+    if operator == ComparisonOperator.GREATER_THAN:
         return builder.greater_than(operand)
-    else:
-        # Default to equals for other operators
-        return builder.equals(operand)
+    # Default to equals for other operators
+    return builder.equals(operand)
 
 
 def _perform_security_validation(
-    condition_spec, operand: str
+    condition_spec,
+    operand: str,
 ) -> Either[SecurityError, None]:
     """Perform additional security validation on the condition."""
     # Validate regex patterns for ReDoS attacks
@@ -277,7 +281,7 @@ def _perform_security_validation(
                 SecurityError(
                     "DANGEROUS_REGEX",
                     f"Regex pattern validation failed: {regex_result.get_left().message}",
-                )
+                ),
             )
 
     # Check for injection patterns in operand
@@ -298,7 +302,7 @@ def _perform_security_validation(
                 SecurityError(
                     "INJECTION_DETECTED",
                     f"Potential code injection detected in operand: {pattern}",
-                )
+                ),
             )
 
     # Validate file paths for system conditions
@@ -313,6 +317,6 @@ def _perform_security_validation(
 
 
 # Register the tool with the MCP server
-def register_condition_tools(server: Server):
+def register_condition_tools(server: Server) -> None:
     """Register condition-related tools with the MCP server."""
     server.add_tool(km_add_condition)

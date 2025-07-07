@@ -1,11 +1,14 @@
-"""
-Property-based tests for web request functionality.
+"""Property-based tests for web request functionality.
 
 Tests core properties of HTTP client, authentication, and web request tools
 using Hypothesis for comprehensive input validation and security verification.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
+
 import pytest
 from hypothesis import assume, given, settings
 from hypothesis import strategies as st
@@ -27,7 +30,7 @@ from src.web.authentication import (
 
 # Custom strategies for generating test data
 @composite
-def safe_urls(draw):
+def safe_urls(draw) -> Any:
     """Generate safe HTTPS URLs for testing."""
     domains = st.sampled_from(
         [
@@ -37,21 +40,23 @@ def safe_urls(draw):
             "api.stripe.com",
             "api.twitter.com",
             "graph.microsoft.com",
-        ]
+        ],
     )
 
     domain = draw(domains)
     path = draw(
         st.text(
-            alphabet="abcdefghijklmnopqrstuvwxyz0123456789/-_", min_size=0, max_size=50
-        )
+            alphabet="abcdefghijklmnopqrstuvwxyz0123456789/-_",
+            min_size=0,
+            max_size=50,
+        ),
     )
 
     return f"https://{domain}/{path.strip('/')}"
 
 
 @composite
-def unsafe_urls(draw):
+def unsafe_urls(draw) -> Any:
     """Generate URLs that should be rejected by security validation."""
     schemes = st.sampled_from(["file", "ftp", "javascript", "data"])
     hosts = st.sampled_from(
@@ -61,7 +66,7 @@ def unsafe_urls(draw):
             "169.254.169.254",
             "metadata.google.internal",
             "10.0.0.1",
-        ]
+        ],
     )
 
     scheme = draw(schemes)
@@ -71,7 +76,7 @@ def unsafe_urls(draw):
 
 
 @composite
-def http_headers(draw):
+def http_headers(draw) -> Any:
     """Generate valid HTTP headers."""
     header_names = st.text(
         alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_",
@@ -97,7 +102,7 @@ def http_headers(draw):
 
 
 @composite
-def api_keys(draw):
+def api_keys(draw) -> Any:
     """Generate realistic API keys for testing."""
     length = draw(st.integers(min_value=16, max_value=128))
     alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
@@ -105,7 +110,7 @@ def api_keys(draw):
 
 
 @composite
-def bearer_tokens(draw):
+def bearer_tokens(draw) -> str:
     """Generate realistic Bearer tokens for testing."""
     # JWT-like structure: header.payload.signature
     segments = []
@@ -116,7 +121,7 @@ def bearer_tokens(draw):
                 alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_",
                 min_size=length,
                 max_size=length,
-            )
+            ),
         )
         segments.append(segment)
 
@@ -127,21 +132,21 @@ class TestHTTPSecurityValidatorProperties:
     """Property-based tests for HTTP security validation."""
 
     @given(safe_urls())
-    def test_safe_urls_are_accepted(self, url):
+    def test_safe_urls_are_accepted(self, url) -> None:
         """Property: Safe HTTPS URLs should pass validation."""
         result = HTTPSecurityValidator.validate_url_security(url, allow_localhost=False)
         assert result.is_right(), f"Safe URL rejected: {url}"
         assert result.get_right() == url
 
     @given(unsafe_urls())
-    def test_unsafe_urls_are_rejected(self, url):
+    def test_unsafe_urls_are_rejected(self, url) -> None:
         """Property: Unsafe URLs should be rejected by security validation."""
         result = HTTPSecurityValidator.validate_url_security(url, allow_localhost=False)
         assert result.is_left(), f"Unsafe URL accepted: {url}"
         assert isinstance(result.get_left(), SecurityError)
 
     @given(http_headers())
-    def test_valid_headers_are_accepted(self, headers):
+    def test_valid_headers_are_accepted(self, headers) -> None:
         """Property: Valid headers should pass security validation."""
         # Filter out potentially forbidden headers
         safe_headers = {
@@ -156,14 +161,14 @@ class TestHTTPSecurityValidatorProperties:
         assert result.is_right(), f"Valid headers rejected: {safe_headers}"
 
     @given(st.text(min_size=1, max_size=1000))
-    def test_response_data_sanitization_preserves_structure(self, data):
+    def test_response_data_sanitization_preserves_structure(self, data) -> None:
         """Property: Response data sanitization should preserve basic structure."""
         sanitized = HTTPSecurityValidator.sanitize_response_data(data)
         assert isinstance(sanitized, str)
         assert len(sanitized) <= len(data)  # Should not grow
 
     @given(st.lists(st.text(max_size=100), max_size=100))
-    def test_response_list_sanitization(self, data_list):
+    def test_response_list_sanitization(self, data_list) -> None:
         """Property: List sanitization should preserve list structure."""
         sanitized = HTTPSecurityValidator.sanitize_response_data(data_list)
         assert isinstance(sanitized, list)
@@ -174,7 +179,7 @@ class TestAuthenticationProperties:
     """Property-based tests for authentication functionality."""
 
     @given(api_keys())
-    def test_api_key_auth_creation_success(self, api_key):
+    def test_api_key_auth_creation_success(self, api_key) -> None:
         """Property: Valid API keys should create successful authentication."""
         result = create_api_key_auth(api_key)
 
@@ -184,7 +189,7 @@ class TestAuthenticationProperties:
         assert auth.credentials["api_key"] == api_key
 
     @given(bearer_tokens())
-    def test_bearer_token_auth_creation_success(self, token):
+    def test_bearer_token_auth_creation_success(self, token) -> None:
         """Property: Valid Bearer tokens should create successful authentication."""
         result = create_bearer_token_auth(token)
 
@@ -194,7 +199,7 @@ class TestAuthenticationProperties:
         assert auth.credentials["token"] == token
 
     @given(st.text(min_size=1, max_size=7))
-    def test_short_credentials_are_rejected(self, short_credential):
+    def test_short_credentials_are_rejected(self, short_credential) -> None:
         """Property: Credentials shorter than 8 characters should be rejected."""
         assume(len(short_credential) < 8)
 
@@ -207,13 +212,13 @@ class TestAuthenticationProperties:
         )
 
     @given(st.text(min_size=513))  # Longer than 512 char limit
-    def test_long_api_keys_are_rejected(self, long_api_key):
+    def test_long_api_keys_are_rejected(self, long_api_key) -> None:
         """Property: API keys longer than 512 characters should be rejected."""
         result = create_api_key_auth(long_api_key)
         assert result.is_left(), f"Long API key accepted: {len(long_api_key)} chars"
 
     @given(st.text(min_size=2049))  # Longer than 2048 char limit
-    def test_long_bearer_tokens_are_rejected(self, long_token):
+    def test_long_bearer_tokens_are_rejected(self, long_token) -> None:
         """Property: Bearer tokens longer than 2048 characters should be rejected."""
         result = create_bearer_token_auth(long_token)
         assert result.is_left(), f"Long Bearer token accepted: {len(long_token)} chars"
@@ -229,7 +234,7 @@ class TestHTTPRequestProperties:
         st.integers(min_value=1, max_value=300),
         st.integers(min_value=1024, max_value=104857600),
     )
-    def test_valid_http_request_creation(self, url, method, headers, timeout, max_size):
+    def test_valid_http_request_creation(self, url, method, headers, timeout, max_size) -> None:
         """Property: Valid parameters should create successful HTTP requests."""
         try:
             request = HTTPRequest(
@@ -250,13 +255,13 @@ class TestHTTPRequestProperties:
             assert "forbidden" in str(e).lower() or "unsafe" in str(e).lower()
 
     @given(st.text().filter(lambda x: not x.startswith(("http://", "https://"))))
-    def test_invalid_url_schemes_rejected(self, invalid_url):
+    def test_invalid_url_schemes_rejected(self, invalid_url) -> None:
         """Property: URLs without http/https schemes should be rejected."""
         with pytest.raises(ValueError, match="URL must start with http"):
             HTTPRequest(url=invalid_url)
 
     @given(st.integers().filter(lambda x: x < 1 or x > 300))
-    def test_invalid_timeouts_rejected(self, invalid_timeout):
+    def test_invalid_timeouts_rejected(self, invalid_timeout) -> None:
         """Property: Timeouts outside 1-300 second range should be rejected."""
         with pytest.raises(ValueError, match="Timeout must be between"):
             HTTPRequest(url="https://example.com", timeout_seconds=invalid_timeout)
@@ -266,13 +271,13 @@ class TestWebRequestProcessorProperties:
     """Property-based tests for web request processing."""
 
     @pytest.fixture
-    def processor(self):
+    def processor(self) -> None:
         """Provide a web request processor for testing."""
         return WebRequestProcessor(allow_localhost=True)  # Allow localhost for testing
 
     @given(safe_urls())
     @settings(max_examples=20, deadline=5000)  # Limit examples for async tests
-    async def test_url_processing_preserves_safety(self, processor, url):
+    async def test_url_processing_preserves_safety(self, processor, url) -> None:
         """Property: URL processing should preserve security validation."""
         result = await processor._process_url_with_tokens(url, None)
 
@@ -281,14 +286,15 @@ class TestWebRequestProcessorProperties:
 
         # Processed URL should still be safe
         validation_result = HTTPSecurityValidator.validate_url_security(
-            processed_url, allow_localhost=True
+            processed_url,
+            allow_localhost=True,
         )
         assert validation_result.is_right(), (
             f"Processed URL became unsafe: {processed_url}"
         )
 
     @given(http_headers())
-    async def test_header_processing_maintains_security(self, processor, headers):
+    async def test_header_processing_maintains_security(self, processor, headers) -> None:
         """Property: Header processing should maintain security constraints."""
         # Filter to safe headers first
         safe_headers = {
@@ -313,9 +319,9 @@ class TestWebRequestProcessorProperties:
             st.none(),
             st.text(max_size=1000),
             st.dictionaries(st.text(max_size=50), st.text(max_size=200), max_size=10),
-        )
+        ),
     )
-    async def test_data_processing_handles_all_types(self, processor, data):
+    async def test_data_processing_handles_all_types(self, processor, data) -> None:
         """Property: Data processing should handle all supported data types."""
         result = await processor._process_request_data(data, None)
 
@@ -330,8 +336,10 @@ class TestWebRequestProcessorProperties:
 
     @given(st.sampled_from(["api_key", "bearer_token", "basic_auth", "none"]))
     async def test_authentication_processing_handles_all_types(
-        self, processor, auth_type
-    ):
+        self,
+        processor,
+        auth_type,
+    ) -> None:
         """Property: Authentication processing should handle all supported types."""
         # Generate appropriate credentials for each type
         credentials = {}
@@ -347,21 +355,20 @@ class TestWebRequestProcessorProperties:
         if auth_type == "none":
             assert result.is_right()
             assert result.get_right() is None
+        # Should either succeed or fail with proper error
+        elif result.is_left():
+            error = result.get_left()
+            assert isinstance(error, MCPError)
         else:
-            # Should either succeed or fail with proper error
-            if result.is_left():
-                error = result.get_left()
-                assert isinstance(error, MCPError)
-            else:
-                auth_headers = result.get_right()
-                assert auth_headers is None or isinstance(auth_headers, dict)
+            auth_headers = result.get_right()
+            assert auth_headers is None or isinstance(auth_headers, dict)
 
 
 class TestRateLimiterProperties:
     """Property-based tests for rate limiting functionality."""
 
     @given(st.integers(min_value=1, max_value=1000))
-    def test_rate_limiter_respects_limits(self, max_requests):
+    def test_rate_limiter_respects_limits(self, max_requests) -> None:
         """Property: Rate limiter should enforce configured limits."""
         rate_limiter = HTTPRateLimiter(max_requests_per_minute=max_requests)
 
@@ -373,7 +380,7 @@ class TestRateLimiterProperties:
         assert result.is_right(), "First request should be allowed"
 
     @given(safe_urls())
-    async def test_rate_limiter_handles_all_urls(self, url):
+    async def test_rate_limiter_handles_all_urls(self, url) -> None:
         """Property: Rate limiter should handle any valid URL."""
         rate_limiter = HTTPRateLimiter(max_requests_per_minute=60)
 
@@ -396,7 +403,7 @@ class TestIntegrationProperties:
         st.sampled_from([None, {"test": "data"}]),
     )
     @settings(max_examples=10, deadline=10000)
-    async def test_complete_request_processing_pipeline(self, url, method, data):
+    async def test_complete_request_processing_pipeline(self, url, method, data) -> None:
         """Property: Complete request processing should be consistent."""
         processor = WebRequestProcessor(allow_localhost=True)
 
@@ -428,7 +435,8 @@ class TestIntegrationProperties:
         except Exception as e:
             # If exception occurs, it should be a known type
             assert isinstance(
-                e, ValidationError | SecurityError | MCPError | ValueError
+                e,
+                ValidationError | SecurityError | MCPError | ValueError,
             )
 
 

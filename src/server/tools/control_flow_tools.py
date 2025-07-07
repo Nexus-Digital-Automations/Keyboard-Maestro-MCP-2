@@ -1,5 +1,4 @@
-"""
-Control flow tools for Keyboard Maestro MCP server.
+"""Control flow tools for Keyboard Maestro MCP server.
 
 Provides sophisticated control flow constructs (if/then/else, loops, switch/case)
 for creating intelligent, adaptive automation workflows.
@@ -48,8 +47,7 @@ async def km_control_flow(
     negate: bool = False,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """
-    Add control flow structures to Keyboard Maestro macros.
+    """Add control flow structures to Keyboard Maestro macros.
 
     Creates sophisticated control flow constructs including if/then/else statements,
     for loops, while loops, and switch/case statements with comprehensive security
@@ -111,12 +109,13 @@ async def km_control_flow(
         ValidationError: Invalid parameters or macro not found
         SecurityError: Security validation failed (dangerous content detected)
         ExecutionError: Failed to add control flow to macro
+
     """
     start_time = datetime.now()
 
     if ctx:
         await ctx.info(
-            f"Adding {control_type} control flow to macro: {macro_identifier}"
+            f"Adding {control_type} control flow to macro: {macro_identifier}",
         )
 
     try:
@@ -164,7 +163,9 @@ async def km_control_flow(
 
         # Generate safe AppleScript/XML for Keyboard Maestro
         km_integration = await _generate_km_control_flow(
-            control_flow_node, macro_identifier, ctx
+            control_flow_node,
+            macro_identifier,
+            ctx,
         )
 
         # Apply to target macro
@@ -258,21 +259,24 @@ async def _validate_control_flow_inputs(
     ctx: Context | None,
 ) -> None:
     """Validate all control flow inputs for security and correctness."""
-
     # Validate macro identifier
     if not macro_identifier or len(macro_identifier.strip()) == 0:
         raise ValidationError("macro_identifier", macro_identifier, "cannot be empty")
 
     if len(macro_identifier) > 255:
         raise ValidationError(
-            "macro_identifier", macro_identifier, "must be 255 characters or less"
+            "macro_identifier",
+            macro_identifier,
+            "must be 255 characters or less",
         )
 
     # Validate control type
     valid_types = {"if_then_else", "for_loop", "while_loop", "switch_case", "try_catch"}
     if control_type not in valid_types:
         raise ValidationError(
-            "control_type", control_type, f"must be one of: {', '.join(valid_types)}"
+            "control_type",
+            control_type,
+            f"must be one of: {', '.join(valid_types)}",
         )
 
     # Validate operator
@@ -290,7 +294,9 @@ async def _validate_control_flow_inputs(
     }
     if operator not in valid_operators:
         raise ValidationError(
-            "operator", operator, f"must be one of: {', '.join(valid_operators)}"
+            "operator",
+            operator,
+            f"must be one of: {', '.join(valid_operators)}",
         )
 
     # Validate condition for conditional types
@@ -304,7 +310,9 @@ async def _validate_control_flow_inputs(
 
         if len(condition) > 500:
             raise ValidationError(
-                "condition", condition, "must be 500 characters or less"
+                "condition",
+                condition,
+                "must be 500 characters or less",
             )
 
         # Check for dangerous patterns
@@ -338,29 +346,39 @@ async def _validate_control_flow_inputs(
     if control_type == "for_loop":
         if not iterator:
             raise ValidationError(
-                "iterator", iterator, "For loop requires an iterator variable"
+                "iterator",
+                iterator,
+                "For loop requires an iterator variable",
             )
         if not collection:
             raise ValidationError(
-                "collection", collection, "For loop requires a collection expression"
+                "collection",
+                collection,
+                "For loop requires a collection expression",
             )
 
         if len(iterator) > 50:
             raise ValidationError("iterator", iterator, "must be 50 characters or less")
         if len(collection) > 500:
             raise ValidationError(
-                "collection", collection, "must be 500 characters or less"
+                "collection",
+                collection,
+                "must be 500 characters or less",
             )
 
     # Validate security bounds
     if max_iterations < 1 or max_iterations > 10000:
         raise ValidationError(
-            "max_iterations", max_iterations, "must be between 1 and 10000"
+            "max_iterations",
+            max_iterations,
+            "must be between 1 and 10000",
         )
 
     if timeout_seconds < 1 or timeout_seconds > 300:
         raise ValidationError(
-            "timeout_seconds", timeout_seconds, "must be between 1 and 300"
+            "timeout_seconds",
+            timeout_seconds,
+            "must be between 1 and 300",
         )
 
     if ctx:
@@ -386,7 +404,6 @@ async def _build_control_flow_structure(
     ctx: Context | None,
 ) -> ControlFlowNodeType:
     """Build the appropriate control flow structure based on type."""
-
     try:
         # Convert string operator to enum
         op_map = {
@@ -419,7 +436,7 @@ async def _build_control_flow_structure(
                 else_actions=actions_false,
             )
 
-        elif control_type == "for_loop":
+        if control_type == "for_loop":
             if not iterator or not collection or not loop_actions:
                 raise ValidationError(
                     "for_loop",
@@ -434,7 +451,7 @@ async def _build_control_flow_structure(
                 max_iterations=max_iterations,
             )
 
-        elif control_type == "while_loop":
+        if control_type == "while_loop":
             if not condition or not loop_actions:
                 raise ValidationError(
                     "while_loop",
@@ -450,7 +467,7 @@ async def _build_control_flow_structure(
                 max_iterations=max_iterations,
             )
 
-        elif control_type == "switch_case":
+        if control_type == "switch_case":
             if not cases:
                 raise ValidationError("cases", cases, "Switch statement requires cases")
 
@@ -459,7 +476,9 @@ async def _build_control_flow_structure(
             for case in cases:
                 if "value" not in case or "actions" not in case:
                     raise ValidationError(
-                        "case", case, "Each case must have 'value' and 'actions'"
+                        "case",
+                        case,
+                        "Each case must have 'value' and 'actions'",
                     )
                 case_tuples.append((case["value"], case["actions"]))
 
@@ -473,10 +492,11 @@ async def _build_control_flow_structure(
             nodes = builder.build()
             return nodes[0]
 
-        else:
-            raise ValidationError(
-                "control_type", control_type, "Unsupported control type"
-            )
+        raise ValidationError(
+            "control_type",
+            control_type,
+            "Unsupported control type",
+        )
 
     except Exception as e:
         if ctx:
@@ -485,10 +505,11 @@ async def _build_control_flow_structure(
 
 
 async def _generate_km_control_flow(
-    node: ControlFlowNodeType, macro_identifier: str, ctx: Context | None
+    node: ControlFlowNodeType,
+    macro_identifier: str,
+    ctx: Context | None,
 ) -> dict[str, Any]:
     """Generate Keyboard Maestro compatible control flow structures."""
-
     if ctx:
         await ctx.info("Generating Keyboard Maestro integration")
 
@@ -512,16 +533,15 @@ def _get_km_action_type(node: ControlFlowNodeType) -> str:
     """Get the corresponding Keyboard Maestro action type."""
     if isinstance(node, IfThenElseNode):
         return "If Then Else"
-    elif isinstance(node, ForLoopNode):
+    if isinstance(node, ForLoopNode):
         return "For Each"
-    elif isinstance(node, WhileLoopNode):
+    if isinstance(node, WhileLoopNode):
         return "While"
-    elif isinstance(node, SwitchCaseNode):
+    if isinstance(node, SwitchCaseNode):
         return "Switch"
-    elif isinstance(node, TryCatchNode):
+    if isinstance(node, TryCatchNode):
         return "Try Catch"
-    else:
-        return "Unknown"
+    return "Unknown"
 
 
 def _generate_km_xml(node: ControlFlowNodeType) -> str:
@@ -532,10 +552,11 @@ def _generate_km_xml(node: ControlFlowNodeType) -> str:
 
 
 async def _apply_control_flow_to_macro(
-    macro_identifier: str, km_integration: dict[str, Any], ctx: Context | None
+    macro_identifier: str,
+    km_integration: dict[str, Any],
+    ctx: Context | None,
 ) -> dict[str, Any]:
     """Apply the control flow structure to the target macro."""
-
     if ctx:
         await ctx.info("Applying control flow to macro")
 
@@ -566,7 +587,7 @@ def _get_structure_info(node: ControlFlowNodeType) -> dict[str, Any]:
                 "else_action_count": len(node.else_actions.actions)
                 if node.else_actions
                 else 0,
-            }
+            },
         )
     elif isinstance(node, ForLoopNode | WhileLoopNode):
         if isinstance(node, ForLoopNode):
@@ -576,7 +597,7 @@ def _get_structure_info(node: ControlFlowNodeType) -> dict[str, Any]:
                     "collection_expression": node.loop_config.collection_expression,
                     "max_iterations": node.loop_config.max_iterations,
                     "action_count": len(node.loop_actions.actions),
-                }
+                },
             )
         else:
             info.update(
@@ -584,7 +605,7 @@ def _get_structure_info(node: ControlFlowNodeType) -> dict[str, Any]:
                     "condition_operator": node.condition.operator.value,
                     "max_iterations": node.max_iterations,
                     "action_count": len(node.loop_actions.actions),
-                }
+                },
             )
     elif isinstance(node, SwitchCaseNode):
         info.update(
@@ -593,7 +614,7 @@ def _get_structure_info(node: ControlFlowNodeType) -> dict[str, Any]:
                 "case_count": len(node.cases),
                 "has_default": node.has_default_case(),
                 "total_actions": sum(len(case.actions.actions) for case in node.cases),
-            }
+            },
         )
     elif isinstance(node, TryCatchNode):
         info.update(
@@ -604,7 +625,7 @@ def _get_structure_info(node: ControlFlowNodeType) -> dict[str, Any]:
                 "finally_action_count": len(node.finally_actions.actions)
                 if node.finally_actions
                 else 0,
-            }
+            },
         )
 
     return info

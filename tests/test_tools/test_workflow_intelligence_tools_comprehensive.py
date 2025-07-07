@@ -1,11 +1,13 @@
-"""
-Comprehensive tests for workflow intelligence tools module using systematic MCP tool test pattern.
+"""Comprehensive tests for workflow intelligence tools module using systematic MCP tool test pattern.
 
 Tests cover AI-powered workflow analysis, natural language workflow creation, performance optimization,
 and intelligent recommendations with property-based testing and comprehensive enterprise-grade validation
 using the proven pattern that achieved 100% success across 18+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -28,21 +30,21 @@ km_generate_workflow_recommendations = (
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def workflow_source_strategy(draw):
+def workflow_source_strategy(draw) -> Any:
     """Generate valid workflow sources."""
     sources = ["description", "existing", "template"]
     return draw(st.sampled_from(sources))
 
 
 @st.composite
-def analysis_depth_strategy(draw):
+def analysis_depth_strategy(draw) -> Any:
     """Generate valid analysis depths."""
     depths = ["basic", "comprehensive", "ai_enhanced"]
     return draw(st.sampled_from(depths))
 
 
 @st.composite
-def optimization_focus_strategy(draw):
+def optimization_focus_strategy(draw) -> Any:
     """Generate valid optimization focus areas."""
     focuses = [
         "performance",
@@ -56,7 +58,7 @@ def optimization_focus_strategy(draw):
 
 
 @st.composite
-def workflow_description_strategy(draw):
+def workflow_description_strategy(draw) -> Any:
     """Generate valid workflow descriptions."""
     descriptions = [
         "Create a macro that opens Safari and navigates to Google",
@@ -69,23 +71,23 @@ def workflow_description_strategy(draw):
 
 
 @st.composite
-def complexity_level_strategy(draw):
+def complexity_level_strategy(draw) -> Any:
     """Generate valid complexity levels."""
     levels = ["simple", "moderate", "complex", "advanced"]
     return draw(st.sampled_from(levels))
 
 
 @st.composite
-def performance_criteria_strategy(draw):
+def performance_criteria_strategy(draw) -> None:
     """Generate valid performance criteria."""
     criteria = ["speed", "reliability", "resource_usage", "accuracy", "scalability"]
     return draw(
-        st.lists(st.sampled_from(criteria), min_size=1, max_size=3, unique=True)
+        st.lists(st.sampled_from(criteria), min_size=1, max_size=3, unique=True),
     )
 
 
 @st.composite
-def recommendation_type_strategy(draw):
+def recommendation_type_strategy(draw) -> Any:
     """Generate valid recommendation types."""
     types = ["optimization", "alternative", "enhancement", "integration", "security"]
     return draw(st.sampled_from(types))
@@ -94,7 +96,7 @@ def recommendation_type_strategy(draw):
 class TestWorkflowIntelligenceDependencies:
     """Test workflow intelligence module dependencies and imports."""
 
-    def test_workflow_intelligence_imports(self):
+    def test_workflow_intelligence_imports(self) -> None:
         """Test that workflow intelligence tools can be imported."""
         assert km_analyze_workflow_intelligence is not None
         assert km_create_workflow_from_description is not None
@@ -110,17 +112,17 @@ class TestWorkflowIntelligenceParameterValidation:
     """Test parameter validation for workflow intelligence functions."""
 
     @given(workflow_source_strategy())
-    def test_valid_workflow_sources(self, workflow_source):
+    def test_valid_workflow_sources(self, workflow_source) -> None:
         """Test that valid workflow sources are accepted."""
         assert workflow_source in ["description", "existing", "template"]
 
     @given(analysis_depth_strategy())
-    def test_valid_analysis_depths(self, analysis_depth):
+    def test_valid_analysis_depths(self, analysis_depth) -> None:
         """Test that valid analysis depths are accepted."""
         assert analysis_depth in ["basic", "comprehensive", "ai_enhanced"]
 
     @given(optimization_focus_strategy())
-    def test_valid_optimization_focuses(self, optimization_focus):
+    def test_valid_optimization_focuses(self, optimization_focus) -> None:
         """Test that valid optimization focuses are accepted."""
         valid_focuses = [
             "performance",
@@ -133,12 +135,12 @@ class TestWorkflowIntelligenceParameterValidation:
         assert all(focus in valid_focuses for focus in optimization_focus)
 
     @given(complexity_level_strategy())
-    def test_valid_complexity_levels(self, complexity_level):
+    def test_valid_complexity_levels(self, complexity_level) -> None:
         """Test that valid complexity levels are accepted."""
         assert complexity_level in ["simple", "moderate", "complex", "advanced"]
 
     @given(performance_criteria_strategy())
-    def test_valid_performance_criteria(self, performance_criteria):
+    def test_valid_performance_criteria(self, performance_criteria) -> None:
         """Test that valid performance criteria are accepted."""
         valid_criteria = [
             "speed",
@@ -154,14 +156,14 @@ class TestWorkflowAnalysisMocked:
     """Test workflow analysis with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_analyze_workflow_intelligence_success(self):
+    async def test_km_analyze_workflow_intelligence_success(self) -> None:
         """Test successful workflow intelligence analysis."""
         with (
             patch(
-                "src.server.tools.workflow_intelligence_tools.nlp_processor"
+                "src.server.tools.workflow_intelligence_tools.nlp_processor",
             ) as mock_nlp,
             patch(
-                "src.server.tools.workflow_intelligence_tools.workflow_analyzer"
+                "src.server.tools.workflow_intelligence_tools.workflow_analyzer",
             ) as mock_analyzer,
         ):
             # Setup mocks for NLP processing
@@ -219,7 +221,7 @@ class TestWorkflowAnalysisMocked:
             mock_analysis.optimization_opportunities = []
             mock_analysis.improvement_suggestions = ["Use faster APIs", "Cache results"]
             mock_analysis.cross_tool_dependencies = {
-                "km_app_control": ["Safari", "Chrome"]
+                "km_app_control": ["Safari", "Chrome"],
             }
             mock_analysis.alternative_designs = []
             mock_analysis.anti_patterns_detected = []
@@ -235,7 +237,7 @@ class TestWorkflowAnalysisMocked:
             mock_analysis_result.right.return_value = mock_analysis
 
             mock_analyzer.analyze_workflow = AsyncMock(
-                return_value=mock_analysis_result
+                return_value=mock_analysis_result,
             )
 
             # Execute workflow analysis
@@ -261,11 +263,13 @@ class TestWorkflowAnalysisMocked:
             assert "cross_tool_analysis" in result
 
     @pytest.mark.asyncio
-    async def test_km_analyze_workflow_intelligence_empty_data(self):
+    async def test_km_analyze_workflow_intelligence_empty_data(self) -> None:
         """Test workflow analysis with empty data."""
         # Execute with empty workflow data
         result = await km_analyze_workflow_intelligence(
-            workflow_source="description", workflow_data="", analysis_depth="basic"
+            workflow_source="description",
+            workflow_data="",
+            analysis_depth="basic",
         )
 
         # Verify validation error
@@ -274,10 +278,10 @@ class TestWorkflowAnalysisMocked:
         assert result["error_type"] == "validation_error"
 
     @pytest.mark.asyncio
-    async def test_km_analyze_workflow_intelligence_nlp_error(self):
+    async def test_km_analyze_workflow_intelligence_nlp_error(self) -> None:
         """Test workflow analysis with NLP processing error."""
         with patch(
-            "src.server.tools.workflow_intelligence_tools.nlp_processor"
+            "src.server.tools.workflow_intelligence_tools.nlp_processor",
         ) as mock_nlp:
             mock_nlp_result = Mock()
             mock_nlp_result.is_left.return_value = True
@@ -302,10 +306,10 @@ class TestWorkflowCreationMocked:
     """Test workflow creation with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_create_workflow_from_description_success(self):
+    async def test_km_create_workflow_from_description_success(self) -> None:
         """Test successful workflow creation from description."""
         with patch(
-            "src.server.tools.workflow_intelligence_tools.nlp_processor"
+            "src.server.tools.workflow_intelligence_tools.nlp_processor",
         ) as mock_nlp:
             # Setup NLP mock
             mock_nlp_data = Mock()
@@ -362,7 +366,7 @@ class TestWorkflowCreationMocked:
             assert "quality_metrics" in result
 
     @pytest.mark.asyncio
-    async def test_km_create_workflow_from_description_short_description(self):
+    async def test_km_create_workflow_from_description_short_description(self) -> None:
         """Test workflow creation with too short description."""
         # Execute with too short description
         result = await km_create_workflow_from_description(
@@ -380,10 +384,10 @@ class TestWorkflowOptimizationMocked:
     """Test workflow optimization with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_optimize_workflow_performance_success(self):
+    async def test_km_optimize_workflow_performance_success(self) -> None:
         """Test successful workflow performance optimization."""
         with patch(
-            "src.server.tools.workflow_intelligence_tools.workflow_analyzer"
+            "src.server.tools.workflow_intelligence_tools.workflow_analyzer",
         ) as mock_analyzer:
             # Setup optimization mock - using analysis structure
             mock_optimization = Mock()
@@ -435,7 +439,7 @@ class TestWorkflowOptimizationMocked:
             assert "optimization_recommendations" in result
 
     @pytest.mark.asyncio
-    async def test_km_optimize_workflow_performance_missing_workflow(self):
+    async def test_km_optimize_workflow_performance_missing_workflow(self) -> None:
         """Test workflow optimization with missing workflow ID."""
         # Execute with empty workflow ID
         result = await km_optimize_workflow_performance(
@@ -454,7 +458,7 @@ class TestWorkflowRecommendationsMocked:
     """Test workflow recommendations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_generate_workflow_recommendations_success(self):
+    async def test_km_generate_workflow_recommendations_success(self) -> None:
         """Test successful workflow recommendations generation."""
         # This function doesn't use external dependencies, so no mocking needed
 
@@ -486,7 +490,7 @@ class TestWorkflowRecommendationsMocked:
         )  # Should have efficiency and automation recommendations
 
     @pytest.mark.asyncio
-    async def test_km_generate_workflow_recommendations_empty_context(self):
+    async def test_km_generate_workflow_recommendations_empty_context(self) -> None:
         """Test workflow recommendations with empty context."""
         # Execute with empty context - this should still succeed since the function generates default recommendations
         result = await km_generate_workflow_recommendations(
@@ -508,14 +512,14 @@ class TestWorkflowIntelligenceErrorHandling:
     """Test error handling for workflow intelligence operations."""
 
     @pytest.mark.asyncio
-    async def test_analysis_system_error(self):
+    async def test_analysis_system_error(self) -> None:
         """Test handling of system errors during analysis."""
         with patch(
-            "src.server.tools.workflow_intelligence_tools.nlp_processor"
+            "src.server.tools.workflow_intelligence_tools.nlp_processor",
         ) as mock_nlp:
             # Mock system error
             mock_nlp.process_natural_language = AsyncMock(
-                side_effect=Exception("System error")
+                side_effect=Exception("System error"),
             )
 
             result = await km_analyze_workflow_intelligence(
@@ -529,14 +533,14 @@ class TestWorkflowIntelligenceErrorHandling:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_creation_system_error(self):
+    async def test_creation_system_error(self) -> None:
         """Test handling of system errors during creation."""
         with patch(
-            "src.server.tools.workflow_intelligence_tools.nlp_processor"
+            "src.server.tools.workflow_intelligence_tools.nlp_processor",
         ) as mock_nlp:
             # Mock system error
             mock_nlp.process_natural_language = AsyncMock(
-                side_effect=Exception("Creation error")
+                side_effect=Exception("Creation error"),
             )
 
             result = await km_create_workflow_from_description(
@@ -554,14 +558,14 @@ class TestWorkflowIntelligenceIntegration:
     """Test complete workflow intelligence workflow integration."""
 
     @pytest.mark.asyncio
-    async def test_complete_workflow_intelligence_workflow(self):
+    async def test_complete_workflow_intelligence_workflow(self) -> None:
         """Test complete workflow intelligence workflow integration."""
         with (
             patch(
-                "src.server.tools.workflow_intelligence_tools.nlp_processor"
+                "src.server.tools.workflow_intelligence_tools.nlp_processor",
             ) as mock_nlp,
             patch(
-                "src.server.tools.workflow_intelligence_tools.workflow_analyzer"
+                "src.server.tools.workflow_intelligence_tools.workflow_analyzer",
             ) as mock_analyzer,
         ):
             # Setup comprehensive mocks for full workflow
@@ -657,14 +661,14 @@ class TestWorkflowIntelligenceIntegration:
             # Configure mocks
             mock_nlp.process_natural_language = AsyncMock(return_value=mock_nlp_result)
             mock_analyzer.analyze_workflow = AsyncMock(
-                return_value=mock_analysis_result
+                return_value=mock_analysis_result,
             )
             mock_analyzer.generate_workflow = AsyncMock(
-                return_value=mock_workflow_result
+                return_value=mock_workflow_result,
             )
             mock_analyzer.optimize_workflow = AsyncMock(return_value=mock_opt_result)
             mock_analyzer.generate_recommendations = AsyncMock(
-                return_value=mock_rec_result
+                return_value=mock_rec_result,
             )
 
             # Execute complete workflow
@@ -681,11 +685,13 @@ class TestWorkflowIntelligenceIntegration:
             )
 
             optimization_result = await km_optimize_workflow_performance(
-                workflow_id="test_workflow", optimization_criteria=["execution_time"]
+                workflow_id="test_workflow",
+                optimization_criteria=["execution_time"],
             )
 
             recommendation_result = await km_generate_workflow_recommendations(
-                context="user_goals", user_preferences={"goals": ["automation"]}
+                context="user_goals",
+                user_preferences={"goals": ["automation"]},
             )
 
             # Verify integration workflow
@@ -705,14 +711,14 @@ class TestWorkflowIntelligenceProperties:
 
     @given(workflow_description_strategy(), analysis_depth_strategy())
     @pytest.mark.asyncio
-    async def test_analysis_properties(self, description, depth):
+    async def test_analysis_properties(self, description, depth) -> None:
         """Test properties of workflow analysis operations."""
         with (
             patch(
-                "src.server.tools.workflow_intelligence_tools.nlp_processor"
+                "src.server.tools.workflow_intelligence_tools.nlp_processor",
             ) as mock_nlp,
             patch(
-                "src.server.tools.workflow_intelligence_tools.workflow_analyzer"
+                "src.server.tools.workflow_intelligence_tools.workflow_analyzer",
             ) as mock_analyzer,
         ):
             # Setup property-based mocks
@@ -779,7 +785,7 @@ class TestWorkflowIntelligenceProperties:
 
             mock_nlp.process_natural_language = AsyncMock(return_value=mock_nlp_result)
             mock_analyzer.analyze_workflow = AsyncMock(
-                return_value=mock_analysis_result
+                return_value=mock_analysis_result,
             )
 
             result = await km_analyze_workflow_intelligence(
@@ -796,14 +802,14 @@ class TestWorkflowIntelligenceProperties:
 
     @given(workflow_description_strategy(), complexity_level_strategy())
     @pytest.mark.asyncio
-    async def test_creation_properties(self, description, complexity):
+    async def test_creation_properties(self, description, complexity) -> None:
         """Test properties of workflow creation operations."""
         with (
             patch(
-                "src.server.tools.workflow_intelligence_tools.nlp_processor"
+                "src.server.tools.workflow_intelligence_tools.nlp_processor",
             ) as mock_nlp,
             patch(
-                "src.server.tools.workflow_intelligence_tools.workflow_analyzer"
+                "src.server.tools.workflow_intelligence_tools.workflow_analyzer",
             ) as mock_analyzer,
         ):
             # Setup property-based mocks
@@ -850,7 +856,7 @@ class TestWorkflowIntelligenceProperties:
 
             mock_nlp.process_natural_language = AsyncMock(return_value=mock_nlp_result)
             mock_analyzer.generate_workflow = AsyncMock(
-                return_value=mock_workflow_result
+                return_value=mock_workflow_result,
             )
 
             result = await km_create_workflow_from_description(

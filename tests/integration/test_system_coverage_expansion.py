@@ -1,17 +1,19 @@
-"""
-System-wide coverage expansion for high-impact modules.
+"""System-wide coverage expansion for high-impact modules.
 
 This test file focuses on system integration and high-impact modules
 to push coverage toward 25%+ through comprehensive testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import pytest
 
 
 class TestSystemIntegrationCoverage:
     """Test system integration components."""
 
-    def test_main_module_import(self):
+    def test_main_module_import(self) -> None:
         """Test main module import."""
         try:
             import src.main
@@ -20,7 +22,7 @@ class TestSystemIntegrationCoverage:
         except ImportError:
             pytest.skip("Main module not available")
 
-    def test_server_backup_import(self):
+    def test_server_backup_import(self) -> None:
         """Test server backup import."""
         try:
             import src.server_backup
@@ -29,7 +31,7 @@ class TestSystemIntegrationCoverage:
         except ImportError:
             pytest.skip("Server backup not available")
 
-    def test_server_modular_import(self):
+    def test_server_modular_import(self) -> None:
         """Test server modular import."""
         try:
             import src.server_modular
@@ -38,7 +40,7 @@ class TestSystemIntegrationCoverage:
         except ImportError:
             pytest.skip("Server modular not available")
 
-    def test_server_utils_import(self):
+    def test_server_utils_import(self) -> None:
         """Test server utils import."""
         try:
             import src.server_utils
@@ -51,7 +53,7 @@ class TestSystemIntegrationCoverage:
 class TestOrchestrationSystemCoverage:
     """Test orchestration system components."""
 
-    def test_ecosystem_orchestrator_import(self):
+    def test_ecosystem_orchestrator_import(self) -> None:
         """Test ecosystem orchestrator import."""
         try:
             from src.orchestration import ecosystem_orchestrator
@@ -60,7 +62,7 @@ class TestOrchestrationSystemCoverage:
         except ImportError:
             pytest.skip("Ecosystem orchestrator not available")
 
-    def test_performance_monitor_import(self):
+    def test_performance_monitor_import(self) -> None:
         """Test performance monitor import."""
         try:
             from src.orchestration import performance_monitor
@@ -69,7 +71,7 @@ class TestOrchestrationSystemCoverage:
         except ImportError:
             pytest.skip("Performance monitor not available")
 
-    def test_resource_manager_import(self):
+    def test_resource_manager_import(self) -> None:
         """Test resource manager import."""
         try:
             from src.orchestration import resource_manager
@@ -78,7 +80,7 @@ class TestOrchestrationSystemCoverage:
         except ImportError:
             pytest.skip("Resource manager not available")
 
-    def test_strategic_planner_import(self):
+    def test_strategic_planner_import(self) -> None:
         """Test strategic planner import."""
         try:
             from src.orchestration import strategic_planner
@@ -87,7 +89,7 @@ class TestOrchestrationSystemCoverage:
         except ImportError:
             pytest.skip("Strategic planner not available")
 
-    def test_tool_registry_import(self):
+    def test_tool_registry_import(self) -> None:
         """Test tool registry import."""
         try:
             from src.orchestration import tool_registry
@@ -96,7 +98,7 @@ class TestOrchestrationSystemCoverage:
         except ImportError:
             pytest.skip("Tool registry not available")
 
-    def test_workflow_engine_import(self):
+    def test_workflow_engine_import(self) -> None:
         """Test workflow engine import."""
         try:
             from src.orchestration import workflow_engine
@@ -109,7 +111,7 @@ class TestOrchestrationSystemCoverage:
 class TestDevOpsSystemCoverage:
     """Test DevOps system components."""
 
-    def test_api_manager_import(self):
+    def test_api_manager_import(self) -> None:
         """Test API manager import."""
         try:
             from src.devops import api_manager
@@ -118,7 +120,7 @@ class TestDevOpsSystemCoverage:
         except ImportError:
             pytest.skip("API manager not available")
 
-    def test_cicd_pipeline_import(self):
+    def test_cicd_pipeline_import(self) -> None:
         """Test CI/CD pipeline import."""
         try:
             from src.devops import cicd_pipeline
@@ -127,7 +129,7 @@ class TestDevOpsSystemCoverage:
         except ImportError:
             pytest.skip("CI/CD pipeline not available")
 
-    def test_git_connector_import(self):
+    def test_git_connector_import(self) -> None:
         """Test Git connector import."""
         try:
             from src.devops import git_connector
@@ -140,7 +142,7 @@ class TestDevOpsSystemCoverage:
 class TestPredictionSystemCoverage:
     """Test prediction system components."""
 
-    def test_anomaly_predictor_import(self):
+    def test_anomaly_predictor_import(self) -> None:
         """Test anomaly predictor import."""
         try:
             from src.prediction import anomaly_predictor
@@ -149,7 +151,7 @@ class TestPredictionSystemCoverage:
         except ImportError:
             pytest.skip("Anomaly predictor not available")
 
-    def test_capacity_planner_import(self):
+    def test_capacity_planner_import(self) -> None:
         """Test capacity planner import."""
         try:
             from src.prediction import capacity_planner
@@ -158,7 +160,7 @@ class TestPredictionSystemCoverage:
         except ImportError:
             pytest.skip("Capacity planner not available")
 
-    def test_model_manager_import(self):
+    def test_model_manager_import(self) -> None:
         """Test model manager import."""
         try:
             from src.prediction import model_manager
@@ -167,7 +169,7 @@ class TestPredictionSystemCoverage:
         except ImportError:
             pytest.skip("Model manager not available")
 
-    def test_optimization_engine_import(self):
+    def test_optimization_engine_import(self) -> None:
         """Test optimization engine import."""
         try:
             from src.prediction import optimization_engine
@@ -176,7 +178,7 @@ class TestPredictionSystemCoverage:
         except ImportError:
             pytest.skip("Optimization engine not available")
 
-    def test_pattern_recognition_import(self):
+    def test_pattern_recognition_import(self) -> None:
         """Test pattern recognition import."""
         try:
             from src.prediction import pattern_recognition
@@ -185,7 +187,7 @@ class TestPredictionSystemCoverage:
         except ImportError:
             pytest.skip("Pattern recognition not available")
 
-    def test_performance_predictor_import(self):
+    def test_performance_predictor_import(self) -> None:
         """Test performance predictor import."""
         try:
             from src.prediction import performance_predictor
@@ -194,7 +196,7 @@ class TestPredictionSystemCoverage:
         except ImportError:
             pytest.skip("Performance predictor not available")
 
-    def test_predictive_alerts_import(self):
+    def test_predictive_alerts_import(self) -> None:
         """Test predictive alerts import."""
         try:
             from src.prediction import predictive_alerts
@@ -203,7 +205,7 @@ class TestPredictionSystemCoverage:
         except ImportError:
             pytest.skip("Predictive alerts not available")
 
-    def test_predictive_types_import(self):
+    def test_predictive_types_import(self) -> None:
         """Test predictive types import."""
         try:
             from src.prediction import predictive_types
@@ -212,7 +214,7 @@ class TestPredictionSystemCoverage:
         except ImportError:
             pytest.skip("Predictive types not available")
 
-    def test_resource_predictor_import(self):
+    def test_resource_predictor_import(self) -> None:
         """Test resource predictor import."""
         try:
             from src.prediction import resource_predictor
@@ -221,7 +223,7 @@ class TestPredictionSystemCoverage:
         except ImportError:
             pytest.skip("Resource predictor not available")
 
-    def test_workflow_optimizer_import(self):
+    def test_workflow_optimizer_import(self) -> None:
         """Test workflow optimizer import."""
         try:
             from src.prediction import workflow_optimizer
@@ -234,7 +236,7 @@ class TestPredictionSystemCoverage:
 class TestCreationSystemCoverage:
     """Test creation system components."""
 
-    def test_macro_builder_import(self):
+    def test_macro_builder_import(self) -> None:
         """Test macro builder import."""
         try:
             from src.creation import macro_builder
@@ -243,7 +245,7 @@ class TestCreationSystemCoverage:
         except ImportError:
             pytest.skip("Macro builder not available")
 
-    def test_templates_import(self):
+    def test_templates_import(self) -> None:
         """Test templates import."""
         try:
             from src.creation import templates
@@ -256,7 +258,7 @@ class TestCreationSystemCoverage:
 class TestIntegrationSystemCoverage:
     """Test integration system components."""
 
-    def test_km_conditions_import(self):
+    def test_km_conditions_import(self) -> None:
         """Test KM conditions import."""
         try:
             from src.integration import km_conditions
@@ -265,7 +267,7 @@ class TestIntegrationSystemCoverage:
         except ImportError:
             pytest.skip("KM conditions not available")
 
-    def test_km_control_flow_import(self):
+    def test_km_control_flow_import(self) -> None:
         """Test KM control flow import."""
         try:
             from src.integration import km_control_flow
@@ -274,7 +276,7 @@ class TestIntegrationSystemCoverage:
         except ImportError:
             pytest.skip("KM control flow not available")
 
-    def test_km_triggers_import(self):
+    def test_km_triggers_import(self) -> None:
         """Test KM triggers import."""
         try:
             from src.integration import km_triggers
@@ -287,7 +289,7 @@ class TestIntegrationSystemCoverage:
 class TestToolsSystemCoverage:
     """Test tools system components."""
 
-    def test_advanced_ai_tools_import(self):
+    def test_advanced_ai_tools_import(self) -> None:
         """Test advanced AI tools import."""
         try:
             from src.tools import advanced_ai_tools
@@ -296,7 +298,7 @@ class TestToolsSystemCoverage:
         except ImportError:
             pytest.skip("Advanced AI tools not available")
 
-    def test_base_tools_import(self):
+    def test_base_tools_import(self) -> None:
         """Test base tools import."""
         try:
             from src.tools import base
@@ -305,7 +307,7 @@ class TestToolsSystemCoverage:
         except ImportError:
             pytest.skip("Base tools not available")
 
-    def test_core_tools_import(self):
+    def test_core_tools_import(self) -> None:
         """Test core tools import."""
         try:
             from src.tools import core_tools
@@ -314,7 +316,7 @@ class TestToolsSystemCoverage:
         except ImportError:
             pytest.skip("Core tools not available")
 
-    def test_extended_tools_import(self):
+    def test_extended_tools_import(self) -> None:
         """Test extended tools import."""
         try:
             from src.tools import extended_tools
@@ -323,7 +325,7 @@ class TestToolsSystemCoverage:
         except ImportError:
             pytest.skip("Extended tools not available")
 
-    def test_group_tools_import(self):
+    def test_group_tools_import(self) -> None:
         """Test group tools import."""
         try:
             from src.tools import group_tools
@@ -332,7 +334,7 @@ class TestToolsSystemCoverage:
         except ImportError:
             pytest.skip("Group tools not available")
 
-    def test_metadata_tools_import(self):
+    def test_metadata_tools_import(self) -> None:
         """Test metadata tools import."""
         try:
             from src.tools import metadata_tools
@@ -341,7 +343,7 @@ class TestToolsSystemCoverage:
         except ImportError:
             pytest.skip("Metadata tools not available")
 
-    def test_plugin_management_import(self):
+    def test_plugin_management_import(self) -> None:
         """Test plugin management import."""
         try:
             from src.tools import plugin_management
@@ -350,7 +352,7 @@ class TestToolsSystemCoverage:
         except ImportError:
             pytest.skip("Plugin management not available")
 
-    def test_sync_tools_import(self):
+    def test_sync_tools_import(self) -> None:
         """Test sync tools import."""
         try:
             from src.tools import sync_tools
@@ -363,16 +365,21 @@ class TestToolsSystemCoverage:
 class TestSystemBasicFunctionality:
     """Test basic functionality of system components."""
 
-    def test_core_import_chain_functionality(self):
+    def test_core_import_chain_functionality(self) -> None:
         """Test core module import chain functionality."""
         try:
-            # Test core module chain
-            from src.core import (
-                ai_integration,
-                audit_framework,
-                either,
-                performance_monitoring,
+            # Test core module chain - import availability tests
+            import importlib.util
+
+            # Test that core modules are available
+            assert importlib.util.find_spec("src.core.ai_integration") is not None
+            assert importlib.util.find_spec("src.core.audit_framework") is not None
+            assert (
+                importlib.util.find_spec("src.core.performance_monitoring") is not None
             )
+
+            # Test actual functionality with either module
+            from src.core import either
 
             # Test basic Either functionality
             right_result = either.Either.right("success")
@@ -386,7 +393,7 @@ class TestSystemBasicFunctionality:
         except ImportError as e:
             pytest.skip(f"Core functionality test failed: {e}")
 
-    def test_monitoring_import_chain_functionality(self):
+    def test_monitoring_import_chain_functionality(self) -> None:
         """Test monitoring module import chain functionality."""
         try:
             from src.monitoring import metrics_collector, performance_analyzer
@@ -398,12 +405,19 @@ class TestSystemBasicFunctionality:
         except ImportError as e:
             pytest.skip(f"Monitoring functionality test failed: {e}")
 
-    def test_server_import_chain_functionality(self):
+    def test_server_import_chain_functionality(self) -> None:
         """Test server module import chain functionality."""
         try:
+            # Test import availability for calculator_tools
+            import importlib.util
+
+            assert (
+                importlib.util.find_spec("src.server.tools.calculator_tools")
+                is not None
+            )
+
             from src.server.tools import (
                 ai_processing_tools,
-                calculator_tools,
                 performance_monitor_tools,
             )
 
@@ -424,7 +438,7 @@ class TestSystemBasicFunctionality:
 class TestHighImpactSystemComponents:
     """Test high-impact system components for maximum coverage gain."""
 
-    def test_analytics_system_coverage(self):
+    def test_analytics_system_coverage(self) -> None:
         """Test analytics system components."""
         try:
             from src.analytics import metrics_collector
@@ -436,7 +450,7 @@ class TestHighImpactSystemComponents:
         except Exception:
             pytest.skip("Analytics system instantiation failed")
 
-    def test_ai_system_coverage(self):
+    def test_ai_system_coverage(self) -> None:
         """Test AI system components."""
         try:
             from src.ai import model_manager, security_validator, text_processor
@@ -449,7 +463,7 @@ class TestHighImpactSystemComponents:
         except ImportError:
             pytest.skip("AI system not available")
 
-    def test_enterprise_system_coverage(self):
+    def test_enterprise_system_coverage(self) -> None:
         """Test enterprise system components."""
         try:
             from src.enterprise import ldap_integration, sso_manager
@@ -461,7 +475,7 @@ class TestHighImpactSystemComponents:
         except ImportError:
             pytest.skip("Enterprise system not available")
 
-    def test_communication_system_coverage(self):
+    def test_communication_system_coverage(self) -> None:
         """Test communication system components."""
         try:
             from src.communication import (
@@ -478,7 +492,7 @@ class TestHighImpactSystemComponents:
         except ImportError:
             pytest.skip("Communication system not available")
 
-    def test_workflow_system_coverage(self):
+    def test_workflow_system_coverage(self) -> None:
         """Test workflow system components."""
         try:
             from src.workflow import component_library, visual_composer
@@ -490,7 +504,7 @@ class TestHighImpactSystemComponents:
         except ImportError:
             pytest.skip("Workflow system not available")
 
-    def test_vision_system_coverage(self):
+    def test_vision_system_coverage(self) -> None:
         """Test vision system components."""
         try:
             from src.vision import image_recognition, ocr_engine, screen_analysis
@@ -503,7 +517,7 @@ class TestHighImpactSystemComponents:
         except ImportError:
             pytest.skip("Vision system not available")
 
-    def test_audio_system_coverage(self):
+    def test_audio_system_coverage(self) -> None:
         """Test audio system components."""
         try:
             from src.audio import audio_manager, speech_synthesis, voice_recognition
@@ -516,7 +530,7 @@ class TestHighImpactSystemComponents:
         except ImportError:
             pytest.skip("Audio system not available")
 
-    def test_suggestions_system_coverage(self):
+    def test_suggestions_system_coverage(self) -> None:
         """Test suggestions system components."""
         try:
             from src.suggestions import behavior_tracker, recommendation_engine
@@ -528,7 +542,7 @@ class TestHighImpactSystemComponents:
         except ImportError:
             pytest.skip("Suggestions system not available")
 
-    def test_web_system_coverage(self):
+    def test_web_system_coverage(self) -> None:
         """Test web system components."""
         try:
             from src.web import authentication
@@ -539,7 +553,7 @@ class TestHighImpactSystemComponents:
         except ImportError:
             pytest.skip("Web system not available")
 
-    def test_window_system_coverage(self):
+    def test_window_system_coverage(self) -> None:
         """Test window system components."""
         try:
             from src.window import advanced_positioning, grid_manager

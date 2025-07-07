@@ -1,23 +1,29 @@
-"""
-Comprehensive tests for Engine Tools module with systematic coverage.
+"""Comprehensive tests for Engine Tools module with systematic coverage.
 
 Tests cover engine control operations including reload, calculate, process_tokens,
 search_replace, and status operations with comprehensive validation.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-
-# Import the actual engine tools module
-import src.server.tools.engine_tools as engine_tools
 from hypothesis import assume, given
 from hypothesis import strategies as st
+
+# Import the actual engine tools module
+from src.server.tools import engine_tools
+
+# Test constants - Keyboard Maestro token expressions for testing
+KM_TIME_TOKEN_EXPRESSION = "Current time: %Time%"  # noqa: S105 - Test data, not a password
+KM_USER_TOKEN_EXPRESSION = "Current user: %UserName%"  # noqa: S105 - Test data, not a password
 
 
 # Test data generators
 @st.composite
-def expression_strategy(draw):
+def expression_strategy(draw) -> Any:
     """Generate valid calculation expressions."""
     operations = ["+", "-", "*", "/"]
     number1 = draw(st.integers(min_value=1, max_value=100))
@@ -27,19 +33,19 @@ def expression_strategy(draw):
 
 
 @st.composite
-def search_text_strategy(draw):
+def search_text_strategy(draw) -> list[Any]:
     """Generate text for search/replace operations."""
     return draw(
         st.text(
             min_size=10,
             max_size=200,
             alphabet=st.characters(whitelist_categories=["Lu", "Ll", "Nd", "Pc", "Zs"]),
-        )
+        ),
     )
 
 
 @st.composite
-def token_string_strategy(draw):
+def token_string_strategy(draw) -> Any:
     """Generate valid token strings."""
     tokens = ["%CurrentDirectory%", "%FrontmostApplication%", "%Time%", "%Date%"]
     token = draw(st.sampled_from(tokens))
@@ -47,7 +53,7 @@ def token_string_strategy(draw):
 
 
 @st.composite
-def search_pattern_strategy(draw):
+def search_pattern_strategy(draw) -> list[Any]:
     """Generate search patterns."""
     patterns = ["hello", "world", r"\d+", "[a-z]+", "test.*pattern"]
     return draw(st.sampled_from(patterns))
@@ -57,7 +63,7 @@ class TestEngineControlOperations:
     """Test main engine control operations."""
 
     @pytest.fixture
-    def mock_km_client(self):
+    def mock_km_client(self) -> Any:
         """Create mock KM client for testing."""
         client = Mock()
         client.reload_engine = AsyncMock()
@@ -68,7 +74,7 @@ class TestEngineControlOperations:
         return client
 
     @pytest.mark.asyncio
-    async def test_engine_control_reload_operation(self, mock_km_client):
+    async def test_engine_control_reload_operation(self, mock_km_client) -> None:
         """Test engine reload operation."""
         # Mock successful reload
         mock_km_client.reload_engine.return_value = {
@@ -77,7 +83,8 @@ class TestEngineControlOperations:
         }
 
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             result = await engine_tools.km_engine_control(operation="reload")
 
@@ -89,7 +96,7 @@ class TestEngineControlOperations:
         mock_km_client.reload_engine.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_engine_control_status_operation(self, mock_km_client):
+    async def test_engine_control_status_operation(self, mock_km_client) -> None:
         """Test engine status operation."""
         # Mock status response
         status_data = {
@@ -102,7 +109,8 @@ class TestEngineControlOperations:
         mock_km_client.get_engine_status.return_value = status_data
 
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             result = await engine_tools.km_engine_control(operation="status")
 
@@ -115,7 +123,7 @@ class TestEngineControlOperations:
         mock_km_client.get_engine_status.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_engine_control_calculate_operation(self, mock_km_client):
+    async def test_engine_control_calculate_operation(self, mock_km_client) -> None:
         """Test engine calculate operation."""
         # Mock calculation response
         mock_km_client.calculate.return_value = {
@@ -125,10 +133,12 @@ class TestEngineControlOperations:
         }
 
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             result = await engine_tools.km_engine_control(
-                operation="calculate", expression="21 * 2"
+                operation="calculate",
+                expression="21 * 2",
             )
 
         assert result["success"] is True
@@ -140,7 +150,7 @@ class TestEngineControlOperations:
         mock_km_client.calculate.assert_called_once_with("21 * 2")
 
     @pytest.mark.asyncio
-    async def test_engine_control_process_tokens_operation(self, mock_km_client):
+    async def test_engine_control_process_tokens_operation(self, mock_km_client) -> None:
         """Test engine process tokens operation."""
         # Mock token processing response
         mock_km_client.process_tokens.return_value = {
@@ -150,13 +160,16 @@ class TestEngineControlOperations:
             "success": True,
         }
 
-        token_string = "Current time: %Time%"
+        # Use constant to avoid security scanner false positive
+        token_expression = KM_TIME_TOKEN_EXPRESSION
 
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             result = await engine_tools.km_engine_control(
-                operation="process_tokens", expression=token_string
+                operation="process_tokens",
+                expression=token_expression,
             )
 
         assert result["success"] is True
@@ -165,10 +178,10 @@ class TestEngineControlOperations:
         assert result["token_processing"]["tokens_found"] == 1
 
         # Verify client was called correctly
-        mock_km_client.process_tokens.assert_called_once_with(token_string)
+        mock_km_client.process_tokens.assert_called_once_with(token_expression)
 
     @pytest.mark.asyncio
-    async def test_engine_control_search_replace_operation(self, mock_km_client):
+    async def test_engine_control_search_replace_operation(self, mock_km_client) -> None:
         """Test engine search/replace operation."""
         # Mock search/replace response
         mock_km_client.search_replace.return_value = {
@@ -185,7 +198,8 @@ class TestEngineControlOperations:
         replace_pattern = "World"
 
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             result = await engine_tools.km_engine_control(
                 operation="search_replace",
@@ -204,27 +218,33 @@ class TestEngineControlOperations:
 
         # Verify client was called correctly
         mock_km_client.search_replace.assert_called_once_with(
-            text, search_pattern, replace_pattern, False
+            text,
+            search_pattern,
+            replace_pattern,
+            False,
         )
 
     @pytest.mark.asyncio
-    async def test_engine_control_invalid_operation(self, mock_km_client):
+    async def test_engine_control_invalid_operation(self, mock_km_client) -> None:
         """Test engine control with invalid operation."""
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # This should be caught by pydantic validation, but test error handling
-            with pytest.raises(Exception):  # Pydantic validation error
+            # B017 fix: Use specific exception for validation errors
+            with pytest.raises((ValueError, TypeError)):  # Pydantic validation error
                 await engine_tools.km_engine_control(operation="invalid_operation")
 
     @pytest.mark.asyncio
-    async def test_engine_control_missing_required_params(self, mock_km_client):
+    async def test_engine_control_missing_required_params(self, mock_km_client) -> None:
         """Test engine control with missing required parameters."""
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             result = await engine_tools.km_engine_control(
-                operation="calculate"
+                operation="calculate",
                 # Missing expression parameter
             )
 
@@ -232,13 +252,14 @@ class TestEngineControlOperations:
         assert "expression required" in result["error"].lower()
 
     @pytest.mark.asyncio
-    async def test_engine_control_client_error(self, mock_km_client):
+    async def test_engine_control_client_error(self, mock_km_client) -> None:
         """Test engine control with client error."""
         # Mock client error
         mock_km_client.reload_engine.side_effect = Exception("Client connection failed")
 
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             result = await engine_tools.km_engine_control(operation="reload")
 
@@ -249,8 +270,10 @@ class TestEngineControlOperations:
     @given(expression_strategy())
     @pytest.mark.asyncio
     async def test_engine_control_calculate_property_based(
-        self, expression, mock_km_client
-    ):
+        self,
+        expression,
+        mock_km_client,
+    ) -> None:
         """Property-based test for calculate operation."""
         # Mock calculation response
         mock_km_client.calculate.return_value = {
@@ -260,10 +283,12 @@ class TestEngineControlOperations:
         }
 
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             result = await engine_tools.km_engine_control(
-                operation="calculate", expression=expression
+                operation="calculate",
+                expression=expression,
             )
 
         assert result["success"] is True
@@ -276,8 +301,10 @@ class TestEngineControlOperations:
     @given(token_string_strategy())
     @pytest.mark.asyncio
     async def test_engine_control_tokens_property_based(
-        self, token_string, mock_km_client
-    ):
+        self,
+        token_string,
+        mock_km_client,
+    ) -> None:
         """Property-based test for token processing operation."""
         # Mock token processing response
         mock_km_client.process_tokens.return_value = {
@@ -288,10 +315,12 @@ class TestEngineControlOperations:
         }
 
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             result = await engine_tools.km_engine_control(
-                operation="process_tokens", expression=token_string
+                operation="process_tokens",
+                expression=token_string,
             )
 
         assert result["success"] is True
@@ -306,7 +335,7 @@ class TestEngineHelperFunctions:
     """Test helper functions in engine tools."""
 
     @pytest.fixture
-    def mock_km_client(self):
+    def mock_km_client(self) -> Any:
         """Create mock KM client for testing."""
         client = Mock()
         client.reload_engine = AsyncMock()
@@ -317,7 +346,7 @@ class TestEngineHelperFunctions:
         return client
 
     @pytest.mark.asyncio
-    async def test_reload_engine_function(self, mock_km_client):
+    async def test_reload_engine_function(self, mock_km_client) -> None:
         """Test _reload_engine helper function."""
         # Mock successful reload
         mock_km_client.reload_engine.return_value = True
@@ -331,7 +360,7 @@ class TestEngineHelperFunctions:
         mock_km_client.reload_engine.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_reload_engine_function_error(self, mock_km_client):
+    async def test_reload_engine_function_error(self, mock_km_client) -> None:
         """Test _reload_engine helper function with error."""
         # Mock reload error
         mock_km_client.reload_engine.side_effect = Exception("Reload failed")
@@ -342,7 +371,7 @@ class TestEngineHelperFunctions:
         assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_get_engine_status_function(self, mock_km_client):
+    async def test_get_engine_status_function(self, mock_km_client) -> None:
         """Test _get_engine_status helper function."""
         # Mock status response
         status_data = {"state": "running", "version": "10.2", "active_macros": 3}
@@ -358,7 +387,7 @@ class TestEngineHelperFunctions:
         mock_km_client.get_engine_status.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_calculate_expression_function(self, mock_km_client):
+    async def test_calculate_expression_function(self, mock_km_client) -> None:
         """Test _calculate_expression helper function."""
         # Mock calculation response
         mock_km_client.calculate.return_value = {
@@ -377,20 +406,21 @@ class TestEngineHelperFunctions:
         mock_km_client.calculate.assert_called_once_with("3 * 5")
 
     @pytest.mark.asyncio
-    async def test_calculate_expression_function_error(self, mock_km_client):
+    async def test_calculate_expression_function_error(self, mock_km_client) -> None:
         """Test _calculate_expression helper function with error."""
         # Mock calculation error
         mock_km_client.calculate.side_effect = Exception("Calculation failed")
 
         result = await engine_tools._calculate_expression(
-            mock_km_client, "invalid / expression"
+            mock_km_client,
+            "invalid / expression",
         )
 
         assert result["success"] is False
         assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_process_tokens_function(self, mock_km_client):
+    async def test_process_tokens_function(self, mock_km_client) -> None:
         """Test _process_tokens helper function."""
         # Mock token processing response
         mock_km_client.process_tokens.return_value = {
@@ -400,18 +430,19 @@ class TestEngineHelperFunctions:
             "success": True,
         }
 
-        token_string = "Current user: %UserName%"
-        result = await engine_tools._process_tokens(mock_km_client, token_string)
+        # Use constant to avoid security scanner false positive
+        token_expression = KM_USER_TOKEN_EXPRESSION
+        result = await engine_tools._process_tokens(mock_km_client, token_expression)
 
         assert result["success"] is True
         assert result["token_processing"]["processed_text"] == "Current user: John"
         assert result["token_processing"]["tokens_found"] == 1
 
         # Verify client was called correctly
-        mock_km_client.process_tokens.assert_called_once_with(token_string)
+        mock_km_client.process_tokens.assert_called_once_with(token_expression)
 
     @pytest.mark.asyncio
-    async def test_search_replace_function(self, mock_km_client):
+    async def test_search_replace_function(self, mock_km_client) -> None:
         """Test _search_replace helper function."""
         # Mock search/replace response
         mock_km_client.search_replace.return_value = {
@@ -428,7 +459,11 @@ class TestEngineHelperFunctions:
         replace_pattern = "Python"
 
         result = await engine_tools._search_replace(
-            mock_km_client, text, search_pattern, replace_pattern, False
+            mock_km_client,
+            text,
+            search_pattern,
+            replace_pattern,
+            False,
         )
 
         assert result["success"] is True
@@ -440,11 +475,14 @@ class TestEngineHelperFunctions:
 
         # Verify client was called correctly
         mock_km_client.search_replace.assert_called_once_with(
-            text, search_pattern, replace_pattern, False
+            text,
+            search_pattern,
+            replace_pattern,
+            False,
         )
 
     @pytest.mark.asyncio
-    async def test_search_replace_function_with_regex(self, mock_km_client):
+    async def test_search_replace_function_with_regex(self, mock_km_client) -> None:
         """Test _search_replace helper function with regex."""
         # Mock regex search/replace response
         mock_km_client.search_replace.return_value = {
@@ -461,7 +499,11 @@ class TestEngineHelperFunctions:
         replace_pattern = "XXX"
 
         result = await engine_tools._search_replace(
-            mock_km_client, text, search_pattern, replace_pattern, True
+            mock_km_client,
+            text,
+            search_pattern,
+            replace_pattern,
+            True,
         )
 
         assert result["success"] is True
@@ -470,7 +512,10 @@ class TestEngineHelperFunctions:
 
         # Verify client was called with regex enabled
         mock_km_client.search_replace.assert_called_once_with(
-            text, search_pattern, replace_pattern, True
+            text,
+            search_pattern,
+            replace_pattern,
+            True,
         )
 
 
@@ -478,17 +523,18 @@ class TestEngineToolsIntegration:
     """Integration tests for engine tools functionality."""
 
     @pytest.mark.asyncio
-    async def test_multiple_operations_sequence(self):
+    async def test_multiple_operations_sequence(self) -> None:
         """Test sequence of multiple engine operations."""
         mock_km_client = Mock()
         mock_km_client.reload_engine = AsyncMock(return_value=True)
         mock_km_client.get_engine_status = AsyncMock(return_value={"state": "running"})
         mock_km_client.calculate = AsyncMock(
-            return_value={"result": 10, "success": True}
+            return_value={"result": 10, "success": True},
         )
 
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Step 1: Reload engine
             reload_result = await engine_tools.km_engine_control(operation="reload")
@@ -501,7 +547,8 @@ class TestEngineToolsIntegration:
 
             # Step 3: Perform calculation
             calc_result = await engine_tools.km_engine_control(
-                operation="calculate", expression="5 + 5"
+                operation="calculate",
+                expression="5 + 5",
             )
             assert calc_result["success"] is True
             assert calc_result["calculation"]["result"] == 10
@@ -512,7 +559,7 @@ class TestEngineToolsIntegration:
         mock_km_client.calculate.assert_called_once_with("5 + 5")
 
     @pytest.mark.asyncio
-    async def test_error_recovery_patterns(self):
+    async def test_error_recovery_patterns(self) -> None:
         """Test error recovery patterns across operations."""
         mock_km_client = Mock()
 
@@ -520,11 +567,12 @@ class TestEngineToolsIntegration:
         mock_km_client.reload_engine = AsyncMock(side_effect=Exception("Reload error"))
         mock_km_client.get_engine_status = AsyncMock(return_value={"state": "error"})
         mock_km_client.calculate = AsyncMock(
-            return_value={"result": 0, "success": True}
+            return_value={"result": 0, "success": True},
         )
 
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             # Operation 1: Fails
             reload_result = await engine_tools.km_engine_control(operation="reload")
@@ -537,15 +585,18 @@ class TestEngineToolsIntegration:
 
             # Operation 3: Still works despite engine error state
             calc_result = await engine_tools.km_engine_control(
-                operation="calculate", expression="0 + 0"
+                operation="calculate",
+                expression="0 + 0",
             )
             assert calc_result["success"] is True
 
     @given(search_text_strategy(), search_pattern_strategy())
     @pytest.mark.asyncio
     async def test_search_replace_integration_property_based(
-        self, text, search_pattern
-    ):
+        self,
+        text,
+        search_pattern,
+    ) -> None:
         """Property-based integration test for search/replace."""
         assume(search_pattern in text or len(search_pattern) > 0)
 
@@ -564,11 +615,12 @@ class TestEngineToolsIntegration:
                 "search_pattern": search_pattern,
                 "replace_pattern": "REPLACED",
                 "success": True,
-            }
+            },
         )
 
         with patch(
-            "src.server.tools.engine_tools.get_km_client", return_value=mock_km_client
+            "src.server.tools.engine_tools.get_km_client",
+            return_value=mock_km_client,
         ):
             result = await engine_tools.km_engine_control(
                 operation="search_replace",
@@ -585,5 +637,8 @@ class TestEngineToolsIntegration:
 
         # Verify client was called correctly
         mock_km_client.search_replace.assert_called_once_with(
-            text, search_pattern, "REPLACED", False
+            text,
+            search_pattern,
+            "REPLACED",
+            False,
         )

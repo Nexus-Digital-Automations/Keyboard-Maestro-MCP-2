@@ -1,5 +1,4 @@
-"""
-Action Building MCP Tools
+"""Action Building MCP Tools.
 
 Provides comprehensive action building functionality for programmatic
 macro construction with security validation and XML generation.
@@ -99,8 +98,7 @@ async def km_add_action(
     ] = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Add action to existing Keyboard Maestro macro with comprehensive validation.
+    """Add action to existing Keyboard Maestro macro with comprehensive validation.
 
     This tool enables programmatic construction of complex macros by adding individual
     actions with proper XML generation, security validation, and parameter checking.
@@ -134,7 +132,7 @@ async def km_add_action(
 
     if ctx:
         await ctx.info(
-            f"Adding action '{action_type}' to macro '{macro_id}' [ID: {correlation_id}]"
+            f"Adding action '{action_type}' to macro '{macro_id}' [ID: {correlation_id}]",
         )
 
     try:
@@ -161,17 +159,18 @@ async def km_add_action(
 
         # Validate action parameters
         param_validation = action_registry.validate_action_parameters(
-            action_type, action_config
+            action_type,
+            action_config,
         )
         if not param_validation["valid"]:
             error_details = []
             if param_validation["missing_required"]:
                 error_details.append(
-                    f"Missing required parameters: {param_validation['missing_required']}"
+                    f"Missing required parameters: {param_validation['missing_required']}",
                 )
             if param_validation["unknown_params"]:
                 error_details.append(
-                    f"Unknown parameters: {param_validation['unknown_params']}"
+                    f"Unknown parameters: {param_validation['unknown_params']}",
                 )
 
             raise ValidationError(
@@ -200,8 +199,8 @@ async def km_add_action(
             raise ValidationError(
                 field_name="action_configuration",
                 value=action_config,
-                constraint=f"Action builder configuration must be valid: {str(e)}",
-            )
+                constraint=f"Action builder configuration must be valid: {e!s}",
+            ) from e
 
         if ctx:
             await ctx.report_progress(50, 100, "Generating and validating XML")
@@ -225,7 +224,12 @@ async def km_add_action(
 
         # Execute the action addition (simulated for now - would integrate with real KM client)
         await asyncio.get_event_loop().run_in_executor(
-            None, _add_action_to_km_macro, km_client, macro_id, action_xml, position
+            None,
+            _add_action_to_km_macro,
+            km_client,
+            macro_id,
+            action_xml,
+            position,
         )
 
         if ctx:
@@ -275,7 +279,7 @@ async def km_add_action(
 
     except ValidationError as e:
         logger.warning(
-            f"Validation error in km_add_action: {str(e)} [ID: {correlation_id}]"
+            f"Validation error in km_add_action: {e!s} [ID: {correlation_id}]",
         )
         return {
             "success": False,
@@ -299,7 +303,7 @@ async def km_add_action(
 
     except PermissionDeniedError as e:
         logger.error(
-            f"Permission denied in km_add_action: {str(e)} [ID: {correlation_id}]"
+            f"Permission denied in km_add_action: {e!s} [ID: {correlation_id}]",
         )
         return {
             "success": False,
@@ -322,13 +326,13 @@ async def km_add_action(
 
     except Exception as e:
         logger.error(
-            f"Unexpected error in km_add_action: {str(e)} [ID: {correlation_id}]"
+            f"Unexpected error in km_add_action: {e!s} [ID: {correlation_id}]",
         )
         return {
             "success": False,
             "error": {
                 "code": "ACTION_ADDITION_ERROR",
-                "message": f"Failed to add action to macro: {str(e)}",
+                "message": f"Failed to add action to macro: {e!s}",
                 "details": {
                     "action_type": action_type,
                     "macro_id": macro_id,
@@ -376,8 +380,7 @@ async def km_list_action_types(
     ] = 50,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    List available Keyboard Maestro action types with filtering and search.
+    """List available Keyboard Maestro action types with filtering and search.
 
     Returns comprehensive information about supported action types including
     categories, required/optional parameters, and descriptions. Useful for
@@ -390,7 +393,7 @@ async def km_list_action_types(
 
     if ctx:
         await ctx.info(
-            f"Listing action types [category: {category}, search: {search}] [ID: {correlation_id}]"
+            f"Listing action types [category: {category}, search: {search}] [ID: {correlation_id}]",
         )
 
     try:
@@ -401,13 +404,13 @@ async def km_list_action_types(
             try:
                 category_enum = ActionCategory(category.lower())
                 actions = action_registry.get_actions_by_category(category_enum)
-            except ValueError:
+            except ValueError as e:
                 valid_categories = [cat.value for cat in ActionCategory]
                 raise ValidationError(
                     field_name="category",
                     value=category,
                     constraint=f"Must be one of: {valid_categories}",
-                )
+                ) from e
         else:
             actions = action_registry.list_all_actions()
 
@@ -467,12 +470,12 @@ async def km_list_action_types(
         }
 
     except Exception as e:
-        logger.error(f"Error listing action types: {str(e)} [ID: {correlation_id}]")
+        logger.error(f"Error listing action types: {e!s} [ID: {correlation_id}]")
         return {
             "success": False,
             "error": {
                 "code": "ACTION_LIST_ERROR",
-                "message": f"Failed to list action types: {str(e)}",
+                "message": f"Failed to list action types: {e!s}",
                 "details": {"category": category, "search": search, "limit": limit},
                 "error_id": str(uuid.uuid4()),
             },
@@ -484,10 +487,12 @@ async def km_list_action_types(
 
 
 def _add_action_to_km_macro(
-    km_client, macro_id: str, action_xml: str, position: int | None
+    km_client,
+    macro_id: str,
+    action_xml: str,
+    position: int | None,
 ) -> bool:
-    """
-    Add action to Keyboard Maestro macro via client integration.
+    """Add action to Keyboard Maestro macro via client integration.
 
     This is a placeholder for the actual KM client integration.
     In a real implementation, this would use AppleScript or KM API.

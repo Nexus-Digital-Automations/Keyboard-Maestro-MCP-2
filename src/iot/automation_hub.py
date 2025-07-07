@@ -1,5 +1,4 @@
-"""
-Automation Hub - TASK_65 Phase 2 Core IoT Engine
+"""Automation Hub - TASK_65 Phase 2 Core IoT Engine.
 
 Central hub for IoT-based automation workflows with intelligent orchestration.
 Provides comprehensive workflow management and real-time automation coordination.
@@ -13,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import logging
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -39,6 +39,8 @@ if TYPE_CHECKING:
 
     from src.iot.device_controller import DeviceController
     from src.iot.sensor_manager import SensorManager
+
+logger = logging.getLogger(__name__)
 
 
 class AutomationState(Enum):
@@ -169,7 +171,8 @@ class AutomationRule:
         return True
 
     async def execute_actions(
-        self, context: dict[str, Any] = None
+        self,
+        context: dict[str, Any] = None,
     ) -> Either[str, list[dict[str, Any]]]:
         """Execute all rule actions."""
         try:
@@ -202,7 +205,7 @@ class AutomationRule:
 
         except Exception as e:
             self.error_count += 1
-            return Either.error(f"Rule execution failed: {str(e)}")
+            return Either.error(f"Rule execution failed: {e!s}")
 
 
 @dataclass
@@ -320,25 +323,25 @@ class AutomationHub:
             if self.device_controller:
                 # Add event handlers for device events
                 self.device_controller.add_device_connected_handler(
-                    self._handle_device_connected
+                    self._handle_device_connected,
                 )
                 self.device_controller.add_device_disconnected_handler(
-                    self._handle_device_disconnected
+                    self._handle_device_disconnected,
                 )
                 self.device_controller.add_command_executed_handler(
-                    self._handle_device_command
+                    self._handle_device_command,
                 )
 
             if self.sensor_manager:
                 # Add event handlers for sensor events
                 self.sensor_manager.add_reading_received_handler(
-                    self._handle_sensor_reading
+                    self._handle_sensor_reading,
                 )
                 self.sensor_manager.add_trigger_activated_handler(
-                    self._handle_trigger_activated
+                    self._handle_trigger_activated,
                 )
                 self.sensor_manager.add_alert_generated_handler(
-                    self._handle_sensor_alert
+                    self._handle_sensor_alert,
                 )
 
             self.state = AutomationState.RUNNING
@@ -359,7 +362,7 @@ class AutomationHub:
         except Exception as e:
             self.state = AutomationState.ERROR
             return Either.error(
-                IoTIntegrationError(f"Failed to start automation hub: {str(e)}")
+                IoTIntegrationError(f"Failed to start automation hub: {e!s}"),
             )
 
     async def stop(self) -> Either[IoTIntegrationError, bool]:
@@ -405,24 +408,25 @@ class AutomationHub:
         except Exception as e:
             self.state = AutomationState.ERROR
             return Either.error(
-                IoTIntegrationError(f"Failed to stop automation hub: {str(e)}")
+                IoTIntegrationError(f"Failed to stop automation hub: {e!s}"),
             )
 
     @require(lambda rule: isinstance(rule, AutomationRule))
     async def add_automation_rule(
-        self, rule: AutomationRule
+        self,
+        rule: AutomationRule,
     ) -> Either[IoTIntegrationError, bool]:
         """Add automation rule to the hub."""
         try:
             if rule.rule_id in self.automation_rules:
                 return Either.error(
-                    IoTIntegrationError(f"Rule already exists: {rule.rule_id}")
+                    IoTIntegrationError(f"Rule already exists: {rule.rule_id}"),
                 )
 
             # Validate rule
             if not rule.conditions and not rule.schedule_cron:
                 return Either.error(
-                    IoTIntegrationError("Rule must have conditions or schedule")
+                    IoTIntegrationError("Rule must have conditions or schedule"),
                 )
 
             if not rule.actions:
@@ -449,26 +453,27 @@ class AutomationHub:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Failed to add automation rule: {str(e)}")
+                IoTIntegrationError(f"Failed to add automation rule: {e!s}"),
             )
 
     @require(lambda workflow: isinstance(workflow, IoTWorkflow))
     async def add_workflow(
-        self, workflow: IoTWorkflow
+        self,
+        workflow: IoTWorkflow,
     ) -> Either[IoTIntegrationError, bool]:
         """Add IoT workflow to the hub."""
         try:
             if workflow.workflow_id in self.workflows:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Workflow already exists: {workflow.workflow_id}"
-                    )
+                        f"Workflow already exists: {workflow.workflow_id}",
+                    ),
                 )
 
             # Validate workflow
             if not workflow.triggers and not workflow.actions:
                 return Either.error(
-                    IoTIntegrationError("Workflow must have triggers or actions")
+                    IoTIntegrationError("Workflow must have triggers or actions"),
                 )
 
             # Add workflow
@@ -488,24 +493,25 @@ class AutomationHub:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Failed to add workflow: {str(e)}")
+                IoTIntegrationError(f"Failed to add workflow: {e!s}"),
             )
 
     @require(lambda scene: isinstance(scene, SmartHomeScene))
     async def add_scene(
-        self, scene: SmartHomeScene
+        self,
+        scene: SmartHomeScene,
     ) -> Either[IoTIntegrationError, bool]:
         """Add smart home scene to the hub."""
         try:
             if scene.scene_id in self.scenes:
                 return Either.error(
-                    IoTIntegrationError(f"Scene already exists: {scene.scene_id}")
+                    IoTIntegrationError(f"Scene already exists: {scene.scene_id}"),
                 )
 
             # Validate scene
             if not scene.device_settings and not scene.actions:
                 return Either.error(
-                    IoTIntegrationError("Scene must have device settings or actions")
+                    IoTIntegrationError("Scene must have device settings or actions"),
                 )
 
             # Add scene
@@ -524,10 +530,12 @@ class AutomationHub:
             return Either.success(True)
 
         except Exception as e:
-            return Either.error(IoTIntegrationError(f"Failed to add scene: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"Failed to add scene: {e!s}"))
 
     async def activate_scene(
-        self, scene_id: SceneId, context: dict[str, Any] = None
+        self,
+        scene_id: SceneId,
+        context: dict[str, Any] = None,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Activate a smart home scene."""
         try:
@@ -555,24 +563,26 @@ class AutomationHub:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Scene activation failed: {str(e)}")
+                IoTIntegrationError(f"Scene activation failed: {e!s}"),
             )
 
     async def execute_workflow(
-        self, workflow_id: WorkflowId, context: dict[str, Any] = None
+        self,
+        workflow_id: WorkflowId,
+        context: dict[str, Any] = None,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Execute an IoT workflow."""
         try:
             if workflow_id not in self.workflows:
                 return Either.error(
-                    IoTIntegrationError(f"Workflow not found: {workflow_id}")
+                    IoTIntegrationError(f"Workflow not found: {workflow_id}"),
                 )
 
             workflow = self.workflows[workflow_id]
 
             if not workflow.enabled:
                 return Either.error(
-                    IoTIntegrationError(f"Workflow is disabled: {workflow_id}")
+                    IoTIntegrationError(f"Workflow is disabled: {workflow_id}"),
                 )
 
             # Track execution
@@ -615,11 +625,12 @@ class AutomationHub:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Workflow execution failed: {str(e)}")
+                IoTIntegrationError(f"Workflow execution failed: {e!s}"),
             )
 
     async def trigger_automation(
-        self, trigger_data: dict[str, Any]
+        self,
+        trigger_data: dict[str, Any],
     ) -> Either[IoTIntegrationError, list[dict[str, Any]]]:
         """Trigger automation based on external event."""
         try:
@@ -633,7 +644,8 @@ class AutomationHub:
             for rule in self.automation_rules.values():
                 if rule.is_applicable():
                     conditions_met = await rule.evaluate_conditions(
-                        sensor_data, device_states
+                        sensor_data,
+                        device_states,
                     )
 
                     if conditions_met:
@@ -647,7 +659,7 @@ class AutomationHub:
                                     "rule_name": rule.rule_name,
                                     "actions_executed": len(execution_result.value),
                                     "execution_time": rule.average_execution_time,
-                                }
+                                },
                             )
 
                             self.hub_metrics["rules_executed"] += 1
@@ -658,7 +670,8 @@ class AutomationHub:
             for workflow in self.workflows.values():
                 if workflow.is_triggered(list(sensor_data.values()), device_states):
                     execution_result = await self.execute_workflow(
-                        workflow.workflow_id, trigger_data
+                        workflow.workflow_id,
+                        trigger_data,
                     )
 
                     if execution_result.is_success():
@@ -667,7 +680,7 @@ class AutomationHub:
                                 "workflow_id": workflow.workflow_id,
                                 "workflow_name": workflow.workflow_name,
                                 "execution_result": execution_result.value,
-                            }
+                            },
                         )
 
             return Either.success(triggered_results)
@@ -675,7 +688,7 @@ class AutomationHub:
         except Exception as e:
             self.hub_metrics["execution_errors"] += 1
             return Either.error(
-                IoTIntegrationError(f"Automation trigger failed: {str(e)}")
+                IoTIntegrationError(f"Automation trigger failed: {e!s}"),
             )
 
     # Event handling methods
@@ -695,7 +708,10 @@ class AutomationHub:
         )
 
     async def _handle_device_command(
-        self, device_id: DeviceId, action: Any, result: dict[str, Any]
+        self,
+        device_id: DeviceId,
+        action: Any,
+        result: dict[str, Any],
     ):
         """Handle device command executed event."""
         await self._emit_event(
@@ -728,7 +744,9 @@ class AutomationHub:
         await self.trigger_automation(trigger_data)
 
     async def _handle_trigger_activated(
-        self, condition: AutomationCondition, reading: SensorReading
+        self,
+        condition: AutomationCondition,
+        reading: SensorReading,
     ):
         """Handle automation trigger activated event."""
         await self._emit_event(
@@ -769,10 +787,14 @@ class AutomationHub:
         # Trigger event handlers
         if event_type in self.event_handlers:
             for handler in self.event_handlers[event_type]:
+                # SIM105/S110 fix: Use contextlib.suppress and add logging for exceptions
                 try:
                     await handler(event)
-                except Exception:
-                    pass  # Don't let handler errors affect event processing
+                except Exception as e:
+                    logger.warning(
+                        f"Event handler {handler.__name__} failed for {event_type}: {e}",
+                    )
+                    # Don't let handler errors affect event processing
 
     # Background services
 
@@ -880,7 +902,9 @@ class AutomationHub:
                 await asyncio.sleep(60)  # Error recovery
 
     def _should_execute_scheduled_rule(
-        self, rule: AutomationRule, current_time: datetime
+        self,
+        rule: AutomationRule,
+        current_time: datetime,
     ) -> bool:
         """Check if scheduled rule should execute."""
         # This would implement cron-style scheduling logic
@@ -890,18 +914,18 @@ class AutomationHub:
     async def _schedule_rule(self, rule: AutomationRule):
         """Schedule rule for execution."""
         # This would implement rule scheduling based on cron expressions
-        pass
 
     async def _optimize_automation_rules(self):
         """Optimize automation rules based on execution patterns."""
         # This would implement ML-based rule optimization
-        pass
 
     # Utility methods
 
     def add_event_handler(
-        self, event_type: str, handler: Callable[[AutomationEvent], None]
-    ):
+        self,
+        event_type: str,
+        handler: Callable[[AutomationEvent], None],
+    ) -> bool:
         """Add event handler for specific event type."""
         self.event_handlers[event_type].append(handler)
 
@@ -917,7 +941,7 @@ class AutomationHub:
             "event_queue_size": self.event_queue.qsize(),
             "metrics": self.hub_metrics,
             "enabled_rules": len(
-                [r for r in self.automation_rules.values() if r.enabled]
+                [r for r in self.automation_rules.values() if r.enabled],
             ),
             "enabled_workflows": len([w for w in self.workflows.values() if w.enabled]),
         }
@@ -932,7 +956,8 @@ class AutomationHub:
         return [event.to_dict() for event in events]
 
     async def create_scene(
-        self, scene: SmartHomeScene
+        self,
+        scene: SmartHomeScene,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Create a new smart home scene."""
         result = await self.add_scene(scene)
@@ -943,12 +968,13 @@ class AutomationHub:
                     "scene_name": scene.scene_name,
                     "created": True,
                     "timestamp": datetime.now(UTC).isoformat(),
-                }
+                },
             )
         return result
 
     async def create_schedule(
-        self, schedule_config: dict[str, Any]
+        self,
+        schedule_config: dict[str, Any],
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Create automation schedule."""
         try:
@@ -965,7 +991,7 @@ class AutomationHub:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Failed to create schedule: {str(e)}")
+                IoTIntegrationError(f"Failed to create schedule: {e!s}"),
             )
 
     async def list_scenes(self) -> Either[IoTIntegrationError, list[dict[str, Any]]]:
@@ -991,7 +1017,7 @@ class AutomationHub:
             return Either.success(scenes_list)
 
         except Exception as e:
-            return Either.error(IoTIntegrationError(f"Failed to list scenes: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"Failed to list scenes: {e!s}"))
 
     async def get_system_status(self) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Get comprehensive system status."""
@@ -1015,14 +1041,14 @@ class AutomationHub:
                         "optimizer": self._optimizer_task is not None
                         and not self._optimizer_task.done(),
                     },
-                }
+                },
             )
 
             return Either.success(status)
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Failed to get system status: {str(e)}")
+                IoTIntegrationError(f"Failed to get system status: {e!s}"),
             )
 
     # Additional utility methods for IoT integration
@@ -1034,10 +1060,10 @@ class AutomationHub:
 
 # Export the automation hub
 __all__ = [
+    "AutomationEvent",
     "AutomationHub",
     "AutomationRule",
-    "AutomationEvent",
     "AutomationState",
-    "RulePriority",
     "ExecutionStrategy",
+    "RulePriority",
 ]

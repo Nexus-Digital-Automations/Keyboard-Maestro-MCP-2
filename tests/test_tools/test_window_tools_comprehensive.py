@@ -1,10 +1,12 @@
-"""
-Comprehensive tests for window management tools module.
+"""Comprehensive tests for window management tools module.
 
 Tests cover window operations, multi-monitor support, coordinate validation,
 arrangement management, and integration with property-based testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -16,7 +18,7 @@ from src.server.tools.window_tools import km_window_manager
 
 # Test data generators
 @st.composite
-def window_operation_strategy(draw):
+def window_operation_strategy(draw) -> Any:
     """Generate valid window operations."""
     operations = [
         "move",
@@ -32,7 +34,7 @@ def window_operation_strategy(draw):
 
 
 @st.composite
-def window_identifier_strategy(draw):
+def window_identifier_strategy(draw) -> Any:
     """Generate valid window identifiers."""
     # Mix of bundle IDs and app names (systematic pattern alignment)
     identifiers = [
@@ -51,15 +53,15 @@ def window_identifier_strategy(draw):
         # Generated valid names
         draw(
             st.text(min_size=1, max_size=30).filter(
-                lambda x: x.isalnum() and len(x.strip()) > 0
-            )
+                lambda x: x.isalnum() and len(x.strip()) > 0,
+            ),
         ),
     ]
     return draw(st.sampled_from(identifiers))
 
 
 @st.composite
-def position_strategy(draw):
+def position_strategy(draw) -> Any:
     """Generate valid window positions."""
     return {
         "x": draw(st.integers(min_value=0, max_value=3840)),  # 4K width
@@ -68,27 +70,27 @@ def position_strategy(draw):
 
 
 @st.composite
-def size_strategy(draw):
+def size_strategy(draw) -> Any:
     """Generate valid window sizes."""
     return {
         "width": draw(
-            st.integers(min_value=100, max_value=2560)
+            st.integers(min_value=100, max_value=2560),
         ),  # Reasonable window widths
         "height": draw(
-            st.integers(min_value=100, max_value=1440)
+            st.integers(min_value=100, max_value=1440),
         ),  # Reasonable window heights
     }
 
 
 @st.composite
-def screen_strategy(draw):
+def screen_strategy(draw) -> Any:
     """Generate valid screen identifiers."""
     screens = ["main", "external", "0", "1", "2"]
     return draw(st.sampled_from(screens))
 
 
 @st.composite
-def arrangement_strategy(draw):
+def arrangement_strategy(draw) -> Any:
     """Generate valid window arrangements."""
     arrangements = [
         "left_half",
@@ -106,20 +108,20 @@ def arrangement_strategy(draw):
 
 
 @st.composite
-def window_state_strategy(draw):
+def window_state_strategy(draw) -> Any:
     """Generate valid window states."""
     states = ["normal", "minimized", "maximized", "fullscreen"]
     return draw(st.sampled_from(states))
 
 
 @st.composite
-def window_index_strategy(draw):
+def window_index_strategy(draw) -> Any:
     """Generate valid window indices."""
     return draw(st.integers(min_value=0, max_value=20))
 
 
 @st.composite
-def invalid_window_identifier_strategy(draw):
+def invalid_window_identifier_strategy(draw) -> Any:
     """Generate invalid window identifiers."""
     invalid_identifiers = [
         "",  # Empty
@@ -137,7 +139,7 @@ def invalid_window_identifier_strategy(draw):
 class TestWindowToolsDependencies:
     """Test window tools dependencies and imports."""
 
-    def test_window_manager_import(self):
+    def test_window_manager_import(self) -> None:
         """Test importing window management dependencies."""
         try:
             from src.applications.app_controller import AppIdentifier
@@ -170,7 +172,7 @@ class TestWindowParameterValidation:
     """Test window management parameter validation."""
 
     @given(window_operation_strategy())
-    def test_valid_operations(self, operation: str):
+    def test_valid_operations(self, operation: str) -> None:
         """Test that valid operations are accepted."""
         valid_operations = [
             "move",
@@ -185,14 +187,14 @@ class TestWindowParameterValidation:
         assert operation in valid_operations
 
     @given(window_identifier_strategy())
-    def test_window_identifier_validation(self, window_id: str):
+    def test_window_identifier_validation(self, window_id: str) -> None:
         """Test window identifier validation."""
         assume(len(window_id) <= 255 and len(window_id.strip()) > 0)
         # Valid window identifiers should be non-empty and within length limits
         assert 0 < len(window_id) <= 255
 
     @given(position_strategy())
-    def test_position_validation(self, position: dict[str, int]):
+    def test_position_validation(self, position: dict[str, int]) -> None:
         """Test position parameter validation."""
         # Positions should have x and y coordinates
         assert "x" in position
@@ -203,7 +205,7 @@ class TestWindowParameterValidation:
         assert position["y"] >= 0
 
     @given(size_strategy())
-    def test_size_validation(self, size: dict[str, int]):
+    def test_size_validation(self, size: dict[str, int]) -> None:
         """Test size parameter validation."""
         # Sizes should have width and height
         assert "width" in size
@@ -214,13 +216,13 @@ class TestWindowParameterValidation:
         assert size["height"] >= 100  # Minimum window size
 
     @given(screen_strategy())
-    def test_screen_validation(self, screen: str):
+    def test_screen_validation(self, screen: str) -> None:
         """Test screen parameter validation."""
         valid_screens = ["main", "external", "0", "1", "2"]
         assert screen in valid_screens
 
     @given(arrangement_strategy())
-    def test_arrangement_validation(self, arrangement: str):
+    def test_arrangement_validation(self, arrangement: str) -> None:
         """Test arrangement parameter validation."""
         valid_arrangements = [
             "left_half",
@@ -237,17 +239,17 @@ class TestWindowParameterValidation:
         assert arrangement in valid_arrangements
 
     @given(window_state_strategy())
-    def test_window_state_validation(self, state: str):
+    def test_window_state_validation(self, state: str) -> None:
         """Test window state parameter validation."""
         valid_states = ["normal", "minimized", "maximized", "fullscreen"]
         assert state in valid_states
 
     @given(window_index_strategy())
-    def test_window_index_validation(self, index: int):
+    def test_window_index_validation(self, index: int) -> None:
         """Test window index parameter validation."""
         assert 0 <= index <= 20
 
-    def test_invalid_window_identifiers(self):
+    def test_invalid_window_identifiers(self) -> None:
         """Test that invalid window identifiers are rejected."""
         invalid_identifiers = ["", "   ", "a" * 256, "app<>name", "app|name"]
         # These should be detected as invalid by _is_valid_app_identifier
@@ -263,17 +265,17 @@ class TestWindowMoveOperationMocked:
     """Test window move operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_move_window_success(self):
+    async def test_move_window_success(self) -> None:
         """Test successful window move operation."""
         with (
             patch(
-                "src.server.tools.window_tools._window_manager"
+                "src.server.tools.window_tools._window_manager",
             ) as mock_window_manager,
             patch(
-                "src.server.tools.window_tools._create_app_identifier"
+                "src.server.tools.window_tools._create_app_identifier",
             ) as mock_create_app_id,
             patch(
-                "src.server.tools.window_tools._is_valid_app_identifier"
+                "src.server.tools.window_tools._is_valid_app_identifier",
             ) as mock_validate_id,
         ):
             # Setup validation and identifier creation
@@ -317,10 +319,10 @@ class TestWindowMoveOperationMocked:
             assert "timestamp" in result
 
     @pytest.mark.asyncio
-    async def test_move_window_missing_position(self):
+    async def test_move_window_missing_position(self) -> None:
         """Test move operation with missing position."""
         with patch(
-            "src.server.tools.window_tools._is_valid_app_identifier"
+            "src.server.tools.window_tools._is_valid_app_identifier",
         ) as mock_validate_id:
             mock_validate_id.return_value = True
 
@@ -337,14 +339,14 @@ class TestWindowMoveOperationMocked:
             assert "Position coordinates" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_move_window_invalid_position(self):
+    async def test_move_window_invalid_position(self) -> None:
         """Test move operation with invalid position format."""
         with (
             patch(
-                "src.server.tools.window_tools._is_valid_app_identifier"
+                "src.server.tools.window_tools._is_valid_app_identifier",
             ) as mock_validate_id,
             patch(
-                "src.server.tools.window_tools._create_app_identifier"
+                "src.server.tools.window_tools._create_app_identifier",
             ) as mock_create_app_id,
         ):
             mock_validate_id.return_value = True
@@ -367,17 +369,17 @@ class TestWindowResizeOperationMocked:
     """Test window resize operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_resize_window_success(self):
+    async def test_resize_window_success(self) -> None:
         """Test successful window resize operation."""
         with (
             patch(
-                "src.server.tools.window_tools._window_manager"
+                "src.server.tools.window_tools._window_manager",
             ) as mock_window_manager,
             patch(
-                "src.server.tools.window_tools._create_app_identifier"
+                "src.server.tools.window_tools._create_app_identifier",
             ) as mock_create_app_id,
             patch(
-                "src.server.tools.window_tools._is_valid_app_identifier"
+                "src.server.tools.window_tools._is_valid_app_identifier",
             ) as mock_validate_id,
         ):
             # Setup validation and identifier creation
@@ -420,10 +422,10 @@ class TestWindowResizeOperationMocked:
             assert result["execution_time_ms"] == 300
 
     @pytest.mark.asyncio
-    async def test_resize_window_missing_size(self):
+    async def test_resize_window_missing_size(self) -> None:
         """Test resize operation with missing size."""
         with patch(
-            "src.server.tools.window_tools._is_valid_app_identifier"
+            "src.server.tools.window_tools._is_valid_app_identifier",
         ) as mock_validate_id:
             mock_validate_id.return_value = True
 
@@ -444,17 +446,17 @@ class TestWindowStateOperationMocked:
     """Test window state change operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_minimize_window_success(self):
+    async def test_minimize_window_success(self) -> None:
         """Test successful window minimize operation."""
         with (
             patch(
-                "src.server.tools.window_tools._window_manager"
+                "src.server.tools.window_tools._window_manager",
             ) as mock_window_manager,
             patch(
-                "src.server.tools.window_tools._create_app_identifier"
+                "src.server.tools.window_tools._create_app_identifier",
             ) as mock_create_app_id,
             patch(
-                "src.server.tools.window_tools._is_valid_app_identifier"
+                "src.server.tools.window_tools._is_valid_app_identifier",
             ) as mock_validate_id,
         ):
             # Setup validation and identifier creation
@@ -484,7 +486,8 @@ class TestWindowStateOperationMocked:
 
             # Execute minimize operation
             result = await km_window_manager(
-                operation="minimize", window_identifier="com.apple.finder"
+                operation="minimize",
+                window_identifier="com.apple.finder",
             )
 
             # Verify successful minimize
@@ -494,17 +497,17 @@ class TestWindowStateOperationMocked:
             assert result["execution_time_ms"] == 200
 
     @pytest.mark.asyncio
-    async def test_maximize_window_success(self):
+    async def test_maximize_window_success(self) -> None:
         """Test successful window maximize operation."""
         with (
             patch(
-                "src.server.tools.window_tools._window_manager"
+                "src.server.tools.window_tools._window_manager",
             ) as mock_window_manager,
             patch(
-                "src.server.tools.window_tools._create_app_identifier"
+                "src.server.tools.window_tools._create_app_identifier",
             ) as mock_create_app_id,
             patch(
-                "src.server.tools.window_tools._is_valid_app_identifier"
+                "src.server.tools.window_tools._is_valid_app_identifier",
             ) as mock_validate_id,
         ):
             # Setup validation and identifier creation
@@ -534,7 +537,8 @@ class TestWindowStateOperationMocked:
 
             # Execute maximize operation
             result = await km_window_manager(
-                operation="maximize", window_identifier="com.apple.finder"
+                operation="maximize",
+                window_identifier="com.apple.finder",
             )
 
             # Verify successful maximize
@@ -549,17 +553,17 @@ class TestWindowArrangementOperationMocked:
     """Test window arrangement operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_arrange_window_left_half_success(self):
+    async def test_arrange_window_left_half_success(self) -> None:
         """Test successful window arrangement to left half."""
         with (
             patch(
-                "src.server.tools.window_tools._window_manager"
+                "src.server.tools.window_tools._window_manager",
             ) as mock_window_manager,
             patch(
-                "src.server.tools.window_tools._create_app_identifier"
+                "src.server.tools.window_tools._create_app_identifier",
             ) as mock_create_app_id,
             patch(
-                "src.server.tools.window_tools._is_valid_app_identifier"
+                "src.server.tools.window_tools._is_valid_app_identifier",
             ) as mock_validate_id,
         ):
             # Setup validation and identifier creation
@@ -575,7 +579,8 @@ class TestWindowArrangementOperationMocked:
             mock_operation_result.window_info.window_index = 0
             mock_operation_result.window_info.position = Mock(x=0, y=0)
             mock_operation_result.window_info.size = Mock(
-                width=960, height=1080
+                width=960,
+                height=1080,
             )  # Half screen width
             mock_operation_result.window_info.state = Mock(value="normal")
             mock_operation_result.window_info.title = "Test Window"
@@ -606,10 +611,10 @@ class TestWindowArrangementOperationMocked:
             assert result["execution_time_ms"] == 600
 
     @pytest.mark.asyncio
-    async def test_arrange_window_missing_arrangement(self):
+    async def test_arrange_window_missing_arrangement(self) -> None:
         """Test arrangement operation with missing arrangement type."""
         with patch(
-            "src.server.tools.window_tools._is_valid_app_identifier"
+            "src.server.tools.window_tools._is_valid_app_identifier",
         ) as mock_validate_id:
             mock_validate_id.return_value = True
 
@@ -630,17 +635,17 @@ class TestWindowInfoOperationMocked:
     """Test window info retrieval operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_get_window_info_success(self):
+    async def test_get_window_info_success(self) -> None:
         """Test successful window info retrieval."""
         with (
             patch(
-                "src.server.tools.window_tools._window_manager"
+                "src.server.tools.window_tools._window_manager",
             ) as mock_window_manager,
             patch(
-                "src.server.tools.window_tools._create_app_identifier"
+                "src.server.tools.window_tools._create_app_identifier",
             ) as mock_create_app_id,
             patch(
-                "src.server.tools.window_tools._is_valid_app_identifier"
+                "src.server.tools.window_tools._is_valid_app_identifier",
             ) as mock_validate_id,
         ):
             # Setup validation and identifier creation
@@ -666,7 +671,8 @@ class TestWindowInfoOperationMocked:
 
             # Execute get info operation
             result = await km_window_manager(
-                operation="get_info", window_identifier="com.apple.finder"
+                operation="get_info",
+                window_identifier="com.apple.finder",
             )
 
             # Verify successful info retrieval
@@ -681,10 +687,10 @@ class TestWindowInfoOperationMocked:
             assert result["window"]["title"] == "Finder Window"
 
     @pytest.mark.asyncio
-    async def test_get_screens_info_success(self):
+    async def test_get_screens_info_success(self) -> None:
         """Test successful screen info retrieval."""
         with patch(
-            "src.server.tools.window_tools._window_manager"
+            "src.server.tools.window_tools._window_manager",
         ) as mock_window_manager:
             # Setup screen info
             mock_screen1 = Mock()
@@ -739,10 +745,10 @@ class TestWindowErrorHandling:
     """Test window management error handling."""
 
     @pytest.mark.asyncio
-    async def test_invalid_window_identifier_error(self):
+    async def test_invalid_window_identifier_error(self) -> None:
         """Test handling of invalid window identifier."""
         with patch(
-            "src.server.tools.window_tools._is_valid_app_identifier"
+            "src.server.tools.window_tools._is_valid_app_identifier",
         ) as mock_validate_id:
             # Setup identifier validation failure
             mock_validate_id.return_value = False
@@ -760,16 +766,17 @@ class TestWindowErrorHandling:
             assert "Invalid application identifier" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_unsupported_operation_error(self):
+    async def test_unsupported_operation_error(self) -> None:
         """Test handling of unsupported operations."""
         with patch(
-            "src.server.tools.window_tools._is_valid_app_identifier"
+            "src.server.tools.window_tools._is_valid_app_identifier",
         ) as mock_validate_id:
             mock_validate_id.return_value = True
 
             # Execute unsupported operation
             result = await km_window_manager(
-                operation="invalid_operation", window_identifier="com.apple.finder"
+                operation="invalid_operation",
+                window_identifier="com.apple.finder",
             )
 
             # Verify unsupported operation error
@@ -778,17 +785,17 @@ class TestWindowErrorHandling:
             assert "Unsupported operation" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_window_manager_execution_error(self):
+    async def test_window_manager_execution_error(self) -> None:
         """Test handling of window manager execution errors."""
         with (
             patch(
-                "src.server.tools.window_tools._window_manager"
+                "src.server.tools.window_tools._window_manager",
             ) as mock_window_manager,
             patch(
-                "src.server.tools.window_tools._create_app_identifier"
+                "src.server.tools.window_tools._create_app_identifier",
             ) as mock_create_app_id,
             patch(
-                "src.server.tools.window_tools._is_valid_app_identifier"
+                "src.server.tools.window_tools._is_valid_app_identifier",
             ) as mock_validate_id,
         ):
             # Setup validation and identifier creation
@@ -821,10 +828,10 @@ class TestWindowErrorHandling:
             assert result["message"] == "Window not found for application"
 
     @pytest.mark.asyncio
-    async def test_unexpected_error_handling(self):
+    async def test_unexpected_error_handling(self) -> None:
         """Test handling of unexpected errors."""
         with patch(
-            "src.server.tools.window_tools._is_valid_app_identifier"
+            "src.server.tools.window_tools._is_valid_app_identifier",
         ) as mock_validate_id:
             # Setup unexpected error during validation
             mock_validate_id.side_effect = RuntimeError("Unexpected system error")
@@ -846,17 +853,17 @@ class TestWindowIntegration:
     """Integration tests for window management operations."""
 
     @pytest.mark.asyncio
-    async def test_complete_window_workflow(self):
+    async def test_complete_window_workflow(self) -> None:
         """Test complete window management workflow."""
         with (
             patch(
-                "src.server.tools.window_tools._window_manager"
+                "src.server.tools.window_tools._window_manager",
             ) as mock_window_manager,
             patch(
-                "src.server.tools.window_tools._create_app_identifier"
+                "src.server.tools.window_tools._create_app_identifier",
             ) as mock_create_app_id,
             patch(
-                "src.server.tools.window_tools._is_valid_app_identifier"
+                "src.server.tools.window_tools._is_valid_app_identifier",
             ) as mock_validate_id,
         ):
             # Setup validation and identifier creation
@@ -866,19 +873,21 @@ class TestWindowIntegration:
             mock_create_app_id.return_value = mock_app_id
 
             # Setup different operation results
-            def create_mock_operation_result(operation_details):
+            def create_mock_operation_result(operation_details) -> None:
                 mock_operation_result = Mock()
                 mock_operation_result.window_info = Mock()
                 mock_operation_result.window_info.app_identifier = "com.apple.finder"
                 mock_operation_result.window_info.window_index = 0
                 mock_operation_result.window_info.position = Mock(
-                    x=operation_details["x"], y=operation_details["y"]
+                    x=operation_details["x"],
+                    y=operation_details["y"],
                 )
                 mock_operation_result.window_info.size = Mock(
-                    width=operation_details["width"], height=operation_details["height"]
+                    width=operation_details["width"],
+                    height=operation_details["height"],
                 )
                 mock_operation_result.window_info.state = Mock(
-                    value=operation_details["state"]
+                    value=operation_details["state"],
                 )
                 mock_operation_result.window_info.title = "Test Window"
                 mock_operation_result.operation_time = Mock()
@@ -902,7 +911,7 @@ class TestWindowIntegration:
                     "state": "normal",
                     "time": 0.5,
                     "details": "Window moved",
-                }
+                },
             )
 
             # Setup resize result
@@ -915,7 +924,7 @@ class TestWindowIntegration:
                     "state": "normal",
                     "time": 0.3,
                     "details": "Window resized",
-                }
+                },
             )
 
             # Setup maximize result
@@ -928,13 +937,13 @@ class TestWindowIntegration:
                     "state": "maximized",
                     "time": 0.4,
                     "details": "Window maximized",
-                }
+                },
             )
 
             mock_window_manager.move_window = AsyncMock(return_value=move_result)
             mock_window_manager.resize_window = AsyncMock(return_value=resize_result)
             mock_window_manager.set_window_state = AsyncMock(
-                return_value=maximize_result
+                return_value=maximize_result,
             )
 
             # Execute complete workflow: move -> resize -> maximize
@@ -955,7 +964,8 @@ class TestWindowIntegration:
             assert resize_result_data["window"]["size"]["width"] == 1200
 
             maximize_result_data = await km_window_manager(
-                operation="maximize", window_identifier="com.apple.finder"
+                operation="maximize",
+                window_identifier="com.apple.finder",
             )
             assert maximize_result_data["success"] is True
             assert maximize_result_data["window"]["state"] == "maximized"
@@ -966,7 +976,7 @@ class TestWindowIntegration:
             mock_window_manager.set_window_state.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_window_management_with_context(self):
+    async def test_window_management_with_context(self) -> None:
         """Test window management with FastMCP context integration."""
         mock_context = Mock()
         mock_context.info = AsyncMock()
@@ -975,13 +985,13 @@ class TestWindowIntegration:
 
         with (
             patch(
-                "src.server.tools.window_tools._window_manager"
+                "src.server.tools.window_tools._window_manager",
             ) as mock_window_manager,
             patch(
-                "src.server.tools.window_tools._create_app_identifier"
+                "src.server.tools.window_tools._create_app_identifier",
             ) as mock_create_app_id,
             patch(
-                "src.server.tools.window_tools._is_valid_app_identifier"
+                "src.server.tools.window_tools._is_valid_app_identifier",
             ) as mock_validate_id,
         ):
             # Setup validation and identifier creation
@@ -1037,7 +1047,7 @@ class TestWindowProperties:
         window_identifier: str,
         position: dict[str, int],
         size: dict[str, int],
-    ):
+    ) -> None:
         """Property test for window parameter validation."""
         assume(len(window_identifier.strip()) > 0 and len(window_identifier) <= 255)
 
@@ -1067,7 +1077,7 @@ class TestWindowProperties:
         assert size["width"] >= 100 and size["height"] >= 100
 
     @given(arrangement_strategy(), screen_strategy())
-    def test_arrangement_and_screen_properties(self, arrangement: str, screen: str):
+    def test_arrangement_and_screen_properties(self, arrangement: str, screen: str) -> None:
         """Property test for arrangement and screen parameters."""
         valid_arrangements = [
             "left_half",
@@ -1087,7 +1097,7 @@ class TestWindowProperties:
         assert screen in valid_screens
 
     @given(window_index_strategy(), window_state_strategy())
-    def test_window_index_and_state_properties(self, window_index: int, state: str):
+    def test_window_index_and_state_properties(self, window_index: int, state: str) -> None:
         """Property test for window index and state parameters."""
         assert 0 <= window_index <= 20
 
@@ -1095,7 +1105,7 @@ class TestWindowProperties:
         assert state in valid_states
 
     @given(st.text(min_size=1, max_size=50))
-    def test_operation_result_structure_properties(self, operation_id: str):
+    def test_operation_result_structure_properties(self, operation_id: str) -> None:
         """Property test for operation result structure."""
         assume(operation_id.strip() != "")
 
@@ -1128,7 +1138,7 @@ class TestWindowProperties:
         assert "height" in result_structure["window"]["size"]
 
     @given(invalid_window_identifier_strategy())
-    def test_security_validation_properties(self, invalid_identifier: str):
+    def test_security_validation_properties(self, invalid_identifier: str) -> None:
         """Property test for security validation behavior."""
         # Security risks that should trigger validation failures
         security_risks = ["<>", "|", ";", "&", "`", "$", "../", "\x00"]

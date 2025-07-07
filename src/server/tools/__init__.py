@@ -1,5 +1,4 @@
-"""
-MCP Tools for Keyboard Maestro server.
+"""MCP Tools for Keyboard Maestro server.
 
 This package contains all the modularized MCP tools organized by functionality:
 - core_tools: Basic macro operations (execute, list, variables)
@@ -35,41 +34,41 @@ from .sync_tools import (
 )
 
 __all__ = [
-    # Core tools
-    "km_execute_macro",
-    "km_list_macros",
-    "km_variable_manager",
-    "km_clipboard_manager",
-    # Advanced tools
-    "km_search_macros_advanced",
-    "km_analyze_macro_metadata",
-    # Sync tools
-    "km_start_realtime_sync",
-    "km_stop_realtime_sync",
-    "km_sync_status",
-    "km_force_sync",
-    # Group tools
-    "km_list_macro_groups",
-    # File operation tools
-    "km_file_operations",
-    # Hotkey tools
-    "km_create_hotkey_trigger",
-    "km_list_hotkey_triggers",
     # Action tools
     "km_add_action",
-    "km_list_action_types",
-    # Search tools
-    "km_search_actions",
-    # Property tools
-    "km_manage_macro_properties",
+    "km_analyze_macro_metadata",
+    # Autonomous agent tools
+    "km_autonomous_agent",
+    "km_clipboard_manager",
+    # Hotkey tools
+    "km_create_hotkey_trigger",
     # Dictionary tools
     "km_dictionary_manager",
     # Engine tools
     "km_engine_control",
+    # Core tools
+    "km_execute_macro",
+    # File operation tools
+    "km_file_operations",
+    "km_force_sync",
     # Interface tools
     "km_interface_automation",
+    "km_list_action_types",
+    "km_list_hotkey_triggers",
+    # Group tools
+    "km_list_macro_groups",
+    "km_list_macros",
+    # Property tools
+    "km_manage_macro_properties",
     # Notification tools
     "km_notifications",
-    # Autonomous agent tools
-    "km_autonomous_agent",
+    # Search tools
+    "km_search_actions",
+    # Advanced tools
+    "km_search_macros_advanced",
+    # Sync tools
+    "km_start_realtime_sync",
+    "km_stop_realtime_sync",
+    "km_sync_status",
+    "km_variable_manager",
 ]

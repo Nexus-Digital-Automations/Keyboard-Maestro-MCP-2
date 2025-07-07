@@ -1,5 +1,4 @@
-"""
-Phase 9 Analytics Validation & Core Control Flow Test Coverage Expansion for Keyboard Maestro MCP.
+"""Phase 9 Analytics Validation & Core Control Flow Test Coverage Expansion for Keyboard Maestro MCP.
 
 This module targets analytics validation and core control flow with the highest impact
 for coverage expansion, focusing on model validator (905 lines), core control flow
@@ -7,17 +6,23 @@ for coverage expansion, focusing on model validator (905 lines), core control fl
 and other strategic analytics/control modules for maximum coverage gain toward the 95% target.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_analytics_model_validator_systematic_import():
+def test_analytics_model_validator_systematic_import() -> None:
     """Test import of analytics model validator (905 lines - critical analytics validation module)."""
     try:
         from src.analytics import model_validator
@@ -29,40 +34,37 @@ def test_analytics_model_validator_systematic_import():
             try:
                 validator = model_validator.ModelValidator()
                 assert validator is not None
-            except Exception:
-                pass  # Skip if instantiation requires ML dependencies
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test validation functionality if available
         if hasattr(model_validator, "validate_model"):
             try:
                 result = model_validator.validate_model("test_model", {})
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require model data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test model analysis if available
         if hasattr(model_validator, "analyze_model_performance"):
             try:
                 analysis = model_validator.analyze_model_performance("model_id")
                 assert analysis is not None or analysis == {}
-            except Exception:
-                pass  # Method may require performance data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test validation metrics if available
         if hasattr(model_validator, "calculate_validation_metrics"):
             try:
                 metrics = model_validator.calculate_validation_metrics(
-                    [1, 2, 3], [1, 2, 3]
+                    [1, 2, 3],
+                    [1, 2, 3],
                 )
                 assert metrics is not None or metrics == {}
-            except Exception:
-                pass  # Method may require specific data format
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics model validator import failed: {e}")
 
 
-def test_core_control_flow_systematic_import():
+def test_core_control_flow_systematic_import() -> None:
     """Test import of core control flow (845 lines - critical core control module)."""
     try:
         from src.core import control_flow
@@ -74,40 +76,37 @@ def test_core_control_flow_systematic_import():
             try:
                 flow = control_flow.ControlFlow()
                 assert flow is not None
-            except Exception:
-                pass  # Skip if instantiation requires configuration
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test flow control functionality if available
         if hasattr(control_flow, "execute_flow"):
             try:
                 result = control_flow.execute_flow("test_flow", {})
                 assert result is not None
-            except Exception:
-                pass  # Method may require flow definition
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test conditional flow if available
         if hasattr(control_flow, "evaluate_condition"):
             try:
                 result = control_flow.evaluate_condition(
-                    "test_condition", {"value": True}
+                    "test_condition",
+                    {"value": True},
                 )
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require condition context
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test flow branching if available
         if hasattr(control_flow, "branch_execution"):
             try:
                 result = control_flow.branch_execution("branch_id", {})
                 assert result is not None
-            except Exception:
-                pass  # Method may require branch configuration
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Core control flow import failed: {e}")
 
 
-def test_accessibility_engine_tools_systematic_import():
+def test_accessibility_engine_tools_systematic_import() -> None:
     """Test import of accessibility engine tools (780 lines - accessibility infrastructure)."""
     try:
         from src.server.tools import accessibility_engine_tools
@@ -138,7 +137,7 @@ def test_accessibility_engine_tools_systematic_import():
         pytest.skip(f"Accessibility engine tools import failed: {e}")
 
 
-def test_plugin_management_systematic_import():
+def test_plugin_management_systematic_import() -> None:
     """Test import of plugin management (777 lines - plugin infrastructure)."""
     try:
         from src.tools import plugin_management
@@ -150,38 +149,34 @@ def test_plugin_management_systematic_import():
             try:
                 manager = plugin_management.PluginManager()
                 assert manager is not None
-            except Exception:
-                pass  # Skip if instantiation requires plugin system
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test plugin loading functionality if available
         if hasattr(plugin_management, "load_plugin"):
             try:
                 result = plugin_management.load_plugin("test_plugin")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require plugin files
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test plugin validation if available
         if hasattr(plugin_management, "validate_plugin"):
             try:
                 result = plugin_management.validate_plugin("plugin_id")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require plugin data
-
+            except (OSError, FileNotFoundError, PermissionError) as e:
+                logger.debug(f"File operation failed during operation: {e}")
         # Test plugin registry if available
         if hasattr(plugin_management, "register_plugin"):
             try:
                 result = plugin_management.register_plugin("test_plugin", {})
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require plugin metadata
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Plugin management import failed: {e}")
 
 
-def test_developer_toolkit_tools_systematic_import():
+def test_developer_toolkit_tools_systematic_import() -> None:
     """Test import of developer toolkit tools (748 lines - developer infrastructure)."""
     try:
         from src.server.tools import developer_toolkit_tools
@@ -212,7 +207,7 @@ def test_developer_toolkit_tools_systematic_import():
         pytest.skip(f"Developer toolkit tools import failed: {e}")
 
 
-def test_accessibility_report_generator_systematic_import():
+def test_accessibility_report_generator_systematic_import() -> None:
     """Test import of accessibility report generator (849 lines - accessibility reporting)."""
     try:
         from src.accessibility import report_generator
@@ -224,38 +219,34 @@ def test_accessibility_report_generator_systematic_import():
             try:
                 generator = report_generator.ReportGenerator()
                 assert generator is not None
-            except Exception:
-                pass  # Skip if instantiation requires configuration
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test report generation functionality if available
         if hasattr(report_generator, "generate_report"):
             try:
                 report = report_generator.generate_report("accessibility", {})
                 assert report is not None
-            except Exception:
-                pass  # Method may require accessibility data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test compliance checking if available
         if hasattr(report_generator, "check_compliance"):
             try:
                 result = report_generator.check_compliance("wcag_2_1")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require compliance standards
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test report formatting if available
         if hasattr(report_generator, "format_report"):
             try:
                 formatted = report_generator.format_report({}, "html")
                 assert formatted is not None or isinstance(formatted, str)
-            except Exception:
-                pass  # Method may require report data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Accessibility report generator import failed: {e}")
 
 
-def test_analytics_insight_generator_comprehensive_systematic_import():
+def test_analytics_insight_generator_comprehensive_systematic_import() -> None:
     """Test import of analytics insight generator (901 lines - analytics insights)."""
     try:
         from src.analytics import insight_generator
@@ -267,41 +258,39 @@ def test_analytics_insight_generator_comprehensive_systematic_import():
             try:
                 # Try with mocked dependencies
                 with patch(
-                    "src.analytics.insight_generator.PatternPredictor"
+                    "src.analytics.insight_generator.PatternPredictor",
                 ) as mock_predictor:
                     with patch(
-                        "src.analytics.insight_generator.UsageForecaster"
+                        "src.analytics.insight_generator.UsageForecaster",
                     ) as mock_forecaster:
                         mock_predictor.return_value = Mock()
                         mock_forecaster.return_value = Mock()
                         generator = insight_generator.InsightGenerator(
-                            mock_predictor(), mock_forecaster()
+                            mock_predictor(),
+                            mock_forecaster(),
                         )
                         assert generator is not None
-            except Exception:
-                pass  # Skip if instantiation requires complex dependencies
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test insight generation functionality if available
         if hasattr(insight_generator, "generate_insights"):
             try:
                 insights = insight_generator.generate_insights({})
                 assert insights is not None or insights == []
-            except Exception:
-                pass  # Method may require data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test pattern analysis if available
         if hasattr(insight_generator, "analyze_patterns"):
             try:
                 analysis = insight_generator.analyze_patterns([1, 2, 3, 4, 5])
                 assert analysis is not None or analysis == {}
-            except Exception:
-                pass  # Method may require pattern data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics insight generator import failed: {e}")
 
 
-def test_suggestions_recommendation_engine_systematic_import():
+def test_suggestions_recommendation_engine_systematic_import() -> None:
     """Test import of suggestions recommendation engine (728 lines - recommendation system)."""
     try:
         from src.suggestions import recommendation_engine
@@ -313,40 +302,37 @@ def test_suggestions_recommendation_engine_systematic_import():
             try:
                 engine = recommendation_engine.RecommendationEngine()
                 assert engine is not None
-            except Exception:
-                pass  # Skip if instantiation requires configuration
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test recommendation functionality if available
         if hasattr(recommendation_engine, "generate_recommendations"):
             try:
                 recommendations = recommendation_engine.generate_recommendations(
-                    "user_id", {}
+                    "user_id",
+                    {},
                 )
                 assert recommendations is not None or recommendations == []
-            except Exception:
-                pass  # Method may require user data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test recommendation scoring if available
         if hasattr(recommendation_engine, "score_recommendation"):
             try:
                 score = recommendation_engine.score_recommendation("rec_id", "user_id")
                 assert score is not None or isinstance(score, int | float)
-            except Exception:
-                pass  # Method may require recommendation data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test recommendation filtering if available
         if hasattr(recommendation_engine, "filter_recommendations"):
             try:
                 filtered = recommendation_engine.filter_recommendations([], {})
                 assert filtered is not None or filtered == []
-            except Exception:
-                pass  # Method may require filter criteria
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Suggestions recommendation engine import failed: {e}")
 
 
-def test_iot_security_manager_comprehensive_systematic_import():
+def test_iot_security_manager_comprehensive_systematic_import() -> None:
     """Test import of IoT security manager (701 lines - IoT security)."""
     try:
         from src.iot import security_manager
@@ -358,40 +344,37 @@ def test_iot_security_manager_comprehensive_systematic_import():
             try:
                 manager = security_manager.IoTSecurityManager()
                 assert manager is not None
-            except Exception:
-                pass  # Skip if instantiation requires IoT configuration
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test IoT security functionality if available
         if hasattr(security_manager, "secure_device"):
             try:
                 result = security_manager.secure_device("device_id")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require device connection
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test threat detection if available
         if hasattr(security_manager, "detect_threats"):
             try:
                 threats = security_manager.detect_threats()
                 assert threats is not None or threats == []
-            except Exception:
-                pass  # Method may require monitoring data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test security policy enforcement if available
         if hasattr(security_manager, "enforce_security_policy"):
             try:
                 result = security_manager.enforce_security_policy(
-                    "device_id", "policy_id"
+                    "device_id",
+                    "policy_id",
                 )
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require policy data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"IoT security manager import failed: {e}")
 
 
-def test_workflow_intelligence_tools_comprehensive_systematic_import():
+def test_workflow_intelligence_tools_comprehensive_systematic_import() -> None:
     """Test import of workflow intelligence tools (693 lines - workflow intelligence)."""
     try:
         from src.server.tools import workflow_intelligence_tools
@@ -422,7 +405,7 @@ def test_workflow_intelligence_tools_comprehensive_systematic_import():
         pytest.skip(f"Workflow intelligence tools import failed: {e}")
 
 
-def test_devops_api_manager_systematic_import():
+def test_devops_api_manager_systematic_import() -> None:
     """Test import of DevOps API manager (664 lines - DevOps infrastructure)."""
     try:
         from src.devops import api_manager
@@ -434,40 +417,35 @@ def test_devops_api_manager_systematic_import():
             try:
                 manager = api_manager.APIManager()
                 assert manager is not None
-            except Exception:
-                pass  # Skip if instantiation requires API configuration
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test API management functionality if available
         if hasattr(api_manager, "register_api"):
             try:
                 result = api_manager.register_api("test_api", {})
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require API specification
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test API deployment if available
         if hasattr(api_manager, "deploy_api"):
             try:
                 result = api_manager.deploy_api("api_id", "environment")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require deployment configuration
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test API monitoring if available
         if hasattr(api_manager, "monitor_api"):
             try:
                 metrics = api_manager.monitor_api("api_id")
                 assert metrics is not None or metrics == {}
-            except Exception:
-                pass  # Method may require monitoring setup
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"DevOps API manager import failed: {e}")
 
 
-def test_analytics_validation_integration():
+def test_analytics_validation_integration() -> None:
     """Test comprehensive integration across analytics validation systems."""
-
     # Test analytics validation modules integration
     analytics_modules = [
         ("analytics", "model_validator"),
@@ -511,9 +489,9 @@ def test_analytics_validation_integration():
                                 if hasattr(instance, method):
                                     assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -523,9 +501,8 @@ def test_analytics_validation_integration():
     )
 
 
-def test_control_flow_integration():
+def test_control_flow_integration() -> None:
     """Test control flow and workflow systems integration."""
-
     # Test control flow modules integration
     control_modules = [
         ("core", "control_flow"),
@@ -555,9 +532,9 @@ def test_control_flow_integration():
                             instance = getattr(module, potential_class)()
                             assert instance is not None
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -565,9 +542,8 @@ def test_control_flow_integration():
     assert control_imports >= 1, f"Only {control_imports} control modules imported"
 
 
-def test_advanced_analytics_validation_patterns():
+def test_advanced_analytics_validation_patterns() -> None:
     """Test advanced analytics validation patterns for coverage."""
-
     # Test analytics validation scenarios
     validation_data = {
         "model_validation": {
@@ -678,7 +654,7 @@ def test_advanced_analytics_validation_patterns():
     assert avg_duration < 150
 
 
-def test_analytics_validation_async_functionality():
+def test_analytics_validation_async_functionality() -> bool:
     """Test async functionality patterns for analytics validation systems."""
 
     @pytest.mark.asyncio
@@ -781,9 +757,8 @@ def test_analytics_validation_async_functionality():
     assert result is True
 
 
-def test_analytics_validation_configuration_patterns():
+def test_analytics_validation_configuration_patterns() -> None:
     """Test configuration patterns for analytics validation systems."""
-
     # Test analytics validation configuration scenarios
     validation_config = {
         "model_validation": {

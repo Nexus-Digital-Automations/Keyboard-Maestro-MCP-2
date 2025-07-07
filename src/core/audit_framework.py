@@ -1,5 +1,4 @@
-"""
-Comprehensive audit framework types and core architecture for enterprise compliance.
+"""Comprehensive audit framework types and core architecture for enterprise compliance.
 
 This module provides enterprise-grade audit logging, compliance monitoring, and
 regulatory reporting capabilities with comprehensive security validation and
@@ -141,7 +140,8 @@ class AuditError(Exception):
     @classmethod
     def rule_registration_failed(cls, reason: str) -> AuditError:
         return cls(
-            "RULE_REGISTRATION_FAILURE", f"Failed to register compliance rule: {reason}"
+            "RULE_REGISTRATION_FAILURE",
+            f"Failed to register compliance rule: {reason}",
         )
 
     @classmethod
@@ -154,7 +154,8 @@ class AuditError(Exception):
     @classmethod
     def initialization_failed(cls, reason: str) -> AuditError:
         return cls(
-            "INITIALIZATION_FAILURE", f"Failed to initialize audit system: {reason}"
+            "INITIALIZATION_FAILURE",
+            f"Failed to initialize audit system: {reason}",
         )
 
 
@@ -300,13 +301,13 @@ class AuditEvent:
             "diagnosis",
         }
 
-        for field, value in self.details.items():
-            if any(pattern in field.lower() for pattern in sensitive_patterns):
-                sensitive_fields.add(field)
+        for field_name, value in self.details.items():
+            if any(pattern in field_name.lower() for pattern in sensitive_patterns):
+                sensitive_fields.add(field_name)
             if isinstance(value, str) and any(
                 pattern in value.lower() for pattern in sensitive_patterns
             ):
-                sensitive_fields.add(field)
+                sensitive_fields.add(field_name)
 
         return sensitive_fields
 
@@ -420,27 +421,25 @@ class ComplianceReport:
         """Get risk category based on score."""
         if self.risk_score < 25:
             return "Low Risk"
-        elif self.risk_score < 50:
+        if self.risk_score < 50:
             return "Medium Risk"
-        elif self.risk_score < 75:
+        if self.risk_score < 75:
             return "High Risk"
-        else:
-            return "Critical Risk"
+        return "Critical Risk"
 
     def get_compliance_grade(self) -> str:
         """Get compliance grade based on percentage."""
         if self.compliance_percentage >= 98:
             return "A+"
-        elif self.compliance_percentage >= 95:
+        if self.compliance_percentage >= 95:
             return "A"
-        elif self.compliance_percentage >= 90:
+        if self.compliance_percentage >= 90:
             return "B"
-        elif self.compliance_percentage >= 80:
+        if self.compliance_percentage >= 80:
             return "C"
-        elif self.compliance_percentage >= 70:
+        if self.compliance_percentage >= 70:
             return "D"
-        else:
-            return "F"
+        return "F"
 
 
 @dataclass(frozen=True)
@@ -452,7 +451,7 @@ class AuditConfiguration:
     encrypt_logs: bool = True
     enable_real_time_monitoring: bool = True
     compliance_standards: set[ComplianceStandard] = field(
-        default_factory=lambda: {ComplianceStandard.GENERAL}
+        default_factory=lambda: {ComplianceStandard.GENERAL},
     )
     security_limits: SecurityLimits = field(default_factory=SecurityLimits)
     log_file_path: str | None = None
@@ -515,26 +514,26 @@ class AuditEventValidator:
         try:
             # Basic field validation
             if len(event.user_id) > 255:
-                return Either.left(ValidationError("user_id", "User ID too long"))
+                return Either.left(ValidationError("user_id", event.user_id, "User ID must be less than 256 characters"))
 
             if len(event.action) > 1000:
                 return Either.left(
-                    ValidationError("action", "Action description too long")
+                    ValidationError("action", event.action, "Action description must be less than 1000 characters"),
                 )
 
             if len(event.result) > 1000:
                 return Either.left(
-                    ValidationError("result", "Result description too long")
+                    ValidationError("result", event.result, "Result description must be less than 1000 characters"),
                 )
 
             # Details validation
             if len(event.details) > AuditEventValidator.MAX_DETAILS_KEYS:
-                return Either.left(ValidationError("details", "Too many detail keys"))
+                return Either.left(ValidationError("details", len(event.details), "Details must have less than 50 keys"))
 
             # Compliance tags validation
             if len(event.compliance_tags) > AuditEventValidator.MAX_COMPLIANCE_TAGS:
                 return Either.left(
-                    ValidationError("compliance_tags", "Too many compliance tags")
+                    ValidationError("compliance_tags", len(event.compliance_tags), "Compliance tags must be less than 20"),
                 )
 
             # Security validation
@@ -544,21 +543,21 @@ class AuditEventValidator:
 
             # Size validation
             serialized_size = len(
-                json.dumps(event.details, ensure_ascii=False).encode("utf-8")
+                json.dumps(event.details, ensure_ascii=False).encode("utf-8"),
             )
             if serialized_size > AuditEventValidator.MAX_EVENT_SIZE:
-                return Either.left(ValidationError("event_size", "Event too large"))
+                return Either.left(ValidationError("event_size", serialized_size, "Event must be less than 1MB"))
 
             # Integrity validation
             if not event.verify_integrity():
                 return Either.left(
-                    ValidationError("integrity", "Event integrity check failed")
+                    ValidationError("integrity", event.checksum, "Event integrity check failed"),
                 )
 
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError("validation_error", str(e)))
+            return Either.left(ValidationError("validation_error", str(e), "Event validation failed"))
 
     @staticmethod
     def _validate_security(event: AuditEvent) -> Either[ValidationError, None]:
@@ -576,45 +575,48 @@ class AuditEventValidator:
 
         for field_value in string_fields:
             if field_value and len(field_value) > AuditEventValidator.MAX_STRING_LENGTH:
-                return Either.left(ValidationError("security", "String field too long"))
+                return Either.left(ValidationError("security", len(field_value), "String field must be less than 10000 characters"))
 
             for pattern in AuditEventValidator.DANGEROUS_PATTERNS:
                 if re.search(pattern, field_value, re.IGNORECASE):
                     return Either.left(
-                        ValidationError("security", "Dangerous pattern detected")
+                        ValidationError("security", field_value, "Dangerous pattern detected in field"),
                     )
 
         # Check details for dangerous content
         details_str = json.dumps(event.details)
         if len(details_str) > AuditEventValidator.MAX_STRING_LENGTH:
-            return Either.left(ValidationError("security", "Details too large"))
+            return Either.left(ValidationError("security", len(details_str), "Details must be less than 10000 characters"))
 
         for pattern in AuditEventValidator.DANGEROUS_PATTERNS:
             if re.search(pattern, details_str, re.IGNORECASE):
                 return Either.left(
-                    ValidationError("security", "Dangerous pattern in details")
+                    ValidationError("security", details_str, "Dangerous pattern detected in details"),
                 )
 
         # Validate compliance tags
         for tag in event.compliance_tags:
             if len(tag) > 100:
                 return Either.left(
-                    ValidationError("security", "Compliance tag too long")
+                    ValidationError("security", tag, "Compliance tag must be less than 100 characters"),
                 )
 
             if not re.match(r"^[a-zA-Z0-9_\-\.]+$", tag):
                 return Either.left(
-                    ValidationError("security", "Invalid compliance tag format")
+                    ValidationError("security", tag, "Invalid compliance tag format"),
                 )
 
         return Either.right(None)
 
 
 def create_audit_event(
-    event_type: AuditEventType, user_id: str, action: str, result: str, **kwargs
+    event_type: AuditEventType,
+    user_id: str,
+    action: str,
+    result: str,
+    **kwargs,
 ) -> AuditEvent:
-    """
-    Factory function to create audit events with proper validation.
+    """Factory function to create audit events with proper validation.
 
     Args:
         event_type: Type of audit event
@@ -625,6 +627,7 @@ def create_audit_event(
 
     Returns:
         Validated AuditEvent instance
+
     """
     return AuditEvent(
         event_id=str(uuid.uuid4()),
@@ -652,8 +655,7 @@ def create_compliance_rule(
     action: str,
     severity: RiskLevel = RiskLevel.MEDIUM,
 ) -> ComplianceRule:
-    """
-    Factory function to create compliance rules with validation.
+    """Factory function to create compliance rules with validation.
 
     Args:
         rule_id: Unique rule identifier
@@ -666,6 +668,7 @@ def create_compliance_rule(
 
     Returns:
         Validated ComplianceRule instance
+
     """
     return ComplianceRule(
         rule_id=rule_id,

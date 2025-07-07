@@ -1,5 +1,4 @@
-"""
-MCP Resources and prompts for the Keyboard Maestro server.
+"""MCP Resources and prompts for the Keyboard Maestro server.
 
 Contains server status resource, help documentation, and prompt definitions.
 """
@@ -25,7 +24,7 @@ def get_server_status() -> dict[str, Any]:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         connection_test = loop.run_until_complete(
-            km_client.list_macros_async(enabled_only=True)
+            km_client.list_macros_async(enabled_only=True),
         )
         loop.close()
 
@@ -71,8 +70,8 @@ def get_server_status() -> dict[str, Any]:
     }
 
 
-def get_tool_help() -> str:
-    """Get comprehensive help for all available tools."""
+def _get_basic_tool_help() -> str:
+    """Get basic help for all available tools (unused - F811 fix)."""
     return """
 # Keyboard Maestro MCP Tools Help
 
@@ -188,7 +187,6 @@ def create_macro_prompt(
     ] = None,
 ) -> list[Message]:
     """Generate a structured prompt for creating Keyboard Maestro macros."""
-
     system_prompt = """You are an expert Keyboard Maestro macro developer. Help create efficient, reliable macros for macOS automation tasks."""
 
     user_prompt = f"""
@@ -224,11 +222,11 @@ def get_tool_help(tool_name: str = None) -> str:
             "km_variable_manager": "Manage Keyboard Maestro variables across all scopes.",
         }
         return tool_helps.get(
-            tool_name, f"Tool '{tool_name}' not found or unknown tool."
+            tool_name,
+            f"Tool '{tool_name}' not found or unknown tool.",
         )
-    else:
-        # Return general help - call the original function
-        return """Keyboard Maestro MCP Tools - Comprehensive automation platform with 51+ production-ready tools."""
+    # Return general help - call the original function
+    return """Keyboard Maestro MCP Tools - Comprehensive automation platform with 51+ production-ready tools."""
 
 
 def get_system_info() -> dict:

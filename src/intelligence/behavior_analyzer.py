@@ -1,5 +1,4 @@
-"""
-Advanced Behavioral Pattern Analysis with Privacy Protection.
+"""Advanced Behavioral Pattern Analysis with Privacy Protection.
 
 This module implements sophisticated behavioral pattern analysis, user workflow recognition,
 and intelligent pattern extraction while maintaining strict privacy protection and
@@ -55,23 +54,22 @@ class BehaviorAnalyzer:
             self._configure_privacy_settings()
 
             logger.info(
-                f"Behavior analyzer initialized with privacy level: {self.privacy_level.value}"
+                f"Behavior analyzer initialized with privacy level: {self.privacy_level.value}",
             )
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Behavior analyzer initialization failed: {str(e)}")
+            logger.error(f"Behavior analyzer initialization failed: {e!s}")
             return Either.left(IntelligenceError.initialization_failed(str(e)))
 
-    @require(lambda self, time_period: time_period in ["1d", "7d", "30d", "90d", "all"])
+    @require(lambda __self, time_period: time_period in ["1d", "7d", "30d", "90d", "all"])
     async def analyze_user_behavior(
         self,
         time_period: str = "30d",
         analysis_scope: AnalysisScope = AnalysisScope.USER_BEHAVIOR,
         privacy_level: PrivacyLevel | None = None,
     ) -> Either[IntelligenceError, list[UserBehaviorPattern]]:
-        """
-        Analyze user behavior patterns with comprehensive privacy protection.
+        """Analyze user behavior patterns with comprehensive privacy protection.
 
         Performs sophisticated pattern recognition on user behavioral data while
         maintaining strict privacy compliance and security validation throughout
@@ -89,13 +87,15 @@ class BehaviorAnalyzer:
             - Complete data anonymization based on privacy level
             - Secure pattern extraction with no sensitive data retention
             - Privacy-compliant behavioral data processing
+
         """
         try:
             effective_privacy_level = privacy_level or self.privacy_level
 
             # Collect behavioral data with privacy filtering
             raw_data_result = await self._collect_behavioral_data(
-                time_period, analysis_scope
+                time_period,
+                analysis_scope,
             )
             if raw_data_result.is_left():
                 return raw_data_result
@@ -104,19 +104,22 @@ class BehaviorAnalyzer:
 
             # Apply privacy protection and anonymization
             anonymized_data = await self.anonymizer.anonymize_behavior_data(
-                raw_data, effective_privacy_level
+                raw_data,
+                effective_privacy_level,
             )
 
             # Extract behavioral patterns using advanced algorithms
             patterns = await self._extract_behavior_patterns(
-                anonymized_data, analysis_scope
+                anonymized_data,
+                analysis_scope,
             )
 
             # Validate patterns for security and privacy compliance
             validated_patterns = []
             for pattern in patterns:
                 if self.pattern_validator.is_valid_for_analysis(
-                    pattern, effective_privacy_level
+                    pattern,
+                    effective_privacy_level,
                 ):
                     validated_patterns.append(pattern)
 
@@ -127,16 +130,18 @@ class BehaviorAnalyzer:
             self._cache_analysis_results(filtered_patterns, time_period, analysis_scope)
 
             logger.info(
-                f"Analyzed {len(filtered_patterns)} behavioral patterns for scope: {analysis_scope.value}"
+                f"Analyzed {len(filtered_patterns)} behavioral patterns for scope: {analysis_scope.value}",
             )
             return Either.right(filtered_patterns)
 
         except Exception as e:
-            logger.error(f"Behavioral analysis failed: {str(e)}")
+            logger.error(f"Behavioral analysis failed: {e!s}")
             return Either.left(IntelligenceError.behavior_analysis_failed(str(e)))
 
     async def _collect_behavioral_data(
-        self, time_period: str, analysis_scope: AnalysisScope
+        self,
+        time_period: str,
+        analysis_scope: AnalysisScope,
     ) -> Either[IntelligenceError, list[dict[str, Any]]]:
         """Collect behavioral data from system logs with privacy protection."""
         try:
@@ -151,8 +156,8 @@ class BehaviorAnalyzer:
             if time_period != "all" and time_period not in time_deltas:
                 return Either.left(
                     IntelligenceError.behavior_analysis_failed(
-                        f"Invalid time period: {time_period}"
-                    )
+                        f"Invalid time period: {time_period}",
+                    ),
                 )
 
             cutoff_time = (
@@ -177,7 +182,7 @@ class BehaviorAnalyzer:
 
             if analysis_scope == AnalysisScope.PERFORMANCE:
                 performance_data = await self._get_performance_behavioral_data(
-                    cutoff_time
+                    cutoff_time,
                 )
                 behavioral_data.extend(performance_data)
 
@@ -188,11 +193,13 @@ class BehaviorAnalyzer:
             return Either.right(behavioral_data)
 
         except Exception as e:
-            logger.error(f"Behavioral data collection failed: {str(e)}")
+            logger.error(f"Behavioral data collection failed: {e!s}")
             return Either.left(IntelligenceError.behavior_analysis_failed(str(e)))
 
     async def _extract_behavior_patterns(
-        self, data: list[dict[str, Any]], scope: AnalysisScope
+        self,
+        data: list[dict[str, Any]],
+        scope: AnalysisScope,
     ) -> list[UserBehaviorPattern]:
         """Extract meaningful behavior patterns from anonymized data."""
         try:
@@ -203,23 +210,26 @@ class BehaviorAnalyzer:
 
             for user_id, sequences in user_sequences.items():
                 user_patterns = await self._analyze_user_sequences(
-                    user_id, sequences, scope
+                    user_id,
+                    sequences,
+                    scope,
                 )
                 patterns.extend(user_patterns)
 
             # Apply pattern recognition algorithms
             refined_patterns = await self._apply_pattern_recognition_algorithms(
-                patterns
+                patterns,
             )
 
             return refined_patterns
 
         except Exception as e:
-            logger.error(f"Pattern extraction failed: {str(e)}")
+            logger.error(f"Pattern extraction failed: {e!s}")
             return []
 
     def _group_data_by_user_sequences(
-        self, data: list[dict[str, Any]]
+        self,
+        data: list[dict[str, Any]],
     ) -> dict[str, list[list[dict[str, Any]]]]:
         """Group behavioral data by user and sequential action patterns."""
         user_data = defaultdict(list)
@@ -234,7 +244,8 @@ class BehaviorAnalyzer:
         for user_id, user_items in user_data.items():
             # Sort by timestamp
             sorted_items = sorted(
-                user_items, key=lambda x: x.get("timestamp", datetime.min)
+                user_items,
+                key=lambda x: x.get("timestamp", datetime.min),
             )
 
             # Group into sequences based on time gaps
@@ -266,7 +277,10 @@ class BehaviorAnalyzer:
         return user_sequences
 
     async def _analyze_user_sequences(
-        self, user_id: str, sequences: list[list[dict[str, Any]]], scope: AnalysisScope
+        self,
+        user_id: str,
+        sequences: list[list[dict[str, Any]]],
+        scope: AnalysisScope,
     ) -> list[UserBehaviorPattern]:
         """Analyze user action sequences to identify behavioral patterns."""
         patterns = []
@@ -278,18 +292,21 @@ class BehaviorAnalyzer:
             # Create behavior pattern with privacy protection
             try:
                 pattern = await self._create_behavior_pattern(
-                    user_id, pattern_data, scope
+                    user_id,
+                    pattern_data,
+                    scope,
                 )
                 if pattern:
                     patterns.append(pattern)
             except Exception as e:
-                logger.warning(f"Failed to create pattern for user {user_id}: {str(e)}")
+                logger.warning(f"Failed to create pattern for user {user_id}: {e!s}")
                 continue
 
         return patterns
 
     def _identify_sequence_patterns(
-        self, sequences: list[list[dict[str, Any]]]
+        self,
+        sequences: list[list[dict[str, Any]]],
     ) -> list[dict[str, Any]]:
         """Identify repeating patterns within action sequences."""
         pattern_candidates = []
@@ -313,21 +330,24 @@ class BehaviorAnalyzer:
                         {
                             "sequence_data": sequence_data[i : i + length],
                             "full_sequence": sequence_data,
-                        }
+                        },
                     )
 
         # Convert frequent subsequences to patterns
         for subseq, occurrences in subsequence_counts.items():
             if len(occurrences) >= self.min_pattern_frequency:
                 pattern_data = self._create_pattern_data_from_subsequence(
-                    subseq, occurrences
+                    subseq,
+                    occurrences,
                 )
                 pattern_candidates.append(pattern_data)
 
         return pattern_candidates
 
     def _create_pattern_data_from_subsequence(
-        self, subsequence: tuple[str, ...], occurrences: list[dict[str, Any]]
+        self,
+        subsequence: tuple[str, ...],
+        occurrences: list[dict[str, Any]],
     ) -> dict[str, Any]:
         """Create pattern data structure from identified subsequence."""
         # Calculate pattern metrics
@@ -386,7 +406,10 @@ class BehaviorAnalyzer:
         }
 
     async def _create_behavior_pattern(
-        self, user_id: str, pattern_data: dict[str, Any], scope: AnalysisScope
+        self,
+        user_id: str,
+        pattern_data: dict[str, Any],
+        scope: AnalysisScope,
     ) -> UserBehaviorPattern | None:
         """Create validated behavior pattern from pattern data."""
         try:
@@ -420,11 +443,12 @@ class BehaviorAnalyzer:
             return pattern
 
         except Exception as e:
-            logger.warning(f"Failed to create behavior pattern: {str(e)}")
+            logger.warning(f"Failed to create behavior pattern: {e!s}")
             return None
 
     def _filter_patterns_by_relevance(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[UserBehaviorPattern]:
         """Filter patterns by relevance, confidence, and utility."""
         filtered = []
@@ -465,7 +489,7 @@ class BehaviorAnalyzer:
     def _generate_secure_pattern_id(self, user_id: str, pattern_content: str) -> str:
         """Generate secure, anonymized pattern ID."""
         content_hash = hashlib.sha256(
-            f"{user_id}_{pattern_content}".encode()
+            f"{user_id}_{pattern_content}".encode(),
         ).hexdigest()
         return f"pattern_{content_hash[:16]}"
 
@@ -473,10 +497,9 @@ class BehaviorAnalyzer:
         """Anonymize user ID based on privacy level."""
         if self.privacy_level == PrivacyLevel.MAXIMUM:
             return hashlib.sha256(user_id.encode()).hexdigest()[:16]
-        elif self.privacy_level == PrivacyLevel.BALANCED:
+        if self.privacy_level == PrivacyLevel.BALANCED:
             return f"user_{hashlib.sha256(user_id.encode()).hexdigest()[:8]}"
-        else:
-            return user_id  # Keep original for permissive level
+        return user_id  # Keep original for permissive level
 
     def _cache_analysis_results(
         self,
@@ -502,32 +525,37 @@ class BehaviorAnalyzer:
 
     # Placeholder methods for data collection
     async def _get_tool_usage_data(
-        self, cutoff_time: datetime | None
+        self,
+        cutoff_time: datetime | None,
     ) -> list[dict[str, Any]]:
         """Get tool usage data for behavioral analysis."""
         # This would interface with actual system logs
         return []
 
     async def _get_automation_sequence_data(
-        self, cutoff_time: datetime | None
+        self,
+        cutoff_time: datetime | None,
     ) -> list[dict[str, Any]]:
         """Get automation sequence data for pattern analysis."""
         return []
 
     async def _get_performance_behavioral_data(
-        self, cutoff_time: datetime | None
+        self,
+        cutoff_time: datetime | None,
     ) -> list[dict[str, Any]]:
         """Get performance-related behavioral data."""
         return []
 
     async def _get_error_pattern_data(
-        self, cutoff_time: datetime | None
+        self,
+        cutoff_time: datetime | None,
     ) -> list[dict[str, Any]]:
         """Get error pattern data for analysis."""
         return []
 
     async def _apply_pattern_recognition_algorithms(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[UserBehaviorPattern]:
         """Apply advanced pattern recognition algorithms."""
         # Placeholder for advanced pattern recognition

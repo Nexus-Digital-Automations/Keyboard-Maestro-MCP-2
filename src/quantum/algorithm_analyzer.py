@@ -1,5 +1,4 @@
-"""
-Algorithm Analyzer - TASK_68 Phase 2 Core Quantum Engine
+"""Algorithm Analyzer - TASK_68 Phase 2 Core Quantum Engine.
 
 Cryptographic vulnerability assessment and quantum algorithm analysis with comprehensive
 security evaluation, threat modeling, and migration recommendations.
@@ -11,6 +10,7 @@ Security: Comprehensive threat modeling, quantum vulnerability assessment, secur
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import re
 import secrets
@@ -96,8 +96,8 @@ class AlgorithmAnalyzer:
         self._initialize_algorithm_patterns()
         self._initialize_threat_intelligence()
 
-    @require(lambda self, algorithm_name: len(algorithm_name) > 0)
-    @require(lambda self, key_size: key_size > 0)
+    @require(lambda __self, algorithm_name: len(algorithm_name) > 0)
+    @require(lambda __self, key_size: key_size > 0)
     @ensure(lambda result: result.is_success() or result.is_error())
     async def analyze_algorithm(
         self,
@@ -117,32 +117,42 @@ class AlgorithmAnalyzer:
             # Perform algorithm analysis
             algorithm_type = self._classify_algorithm_type(algorithm_name)
             is_vulnerable, threat_level = assess_algorithm_quantum_vulnerability(
-                algorithm_name, key_size
+                algorithm_name,
+                key_size,
             )
 
             # Determine cryptographic strength
             strength_category = self._assess_cryptographic_strength(
-                algorithm_name, is_vulnerable
+                algorithm_name,
+                is_vulnerable,
             )
 
             # Calculate vulnerability details
             vulnerability_details = await self._analyze_vulnerability_details(
-                algorithm_name, key_size, algorithm_type, detailed_analysis
+                algorithm_name,
+                key_size,
+                algorithm_type,
+                detailed_analysis,
             )
 
             # Estimate security margin
             security_margin = self._estimate_security_margin(
-                algorithm_name, key_size, threat_level
+                algorithm_name,
+                key_size,
+                threat_level,
             )
 
             # Get replacement recommendations
             replacement_recommendations = self._get_replacement_recommendations(
-                algorithm_name, usage_context, threat_level
+                algorithm_name,
+                usage_context,
+                threat_level,
             )
 
             # Calculate analysis confidence
             confidence = self._calculate_analysis_confidence(
-                algorithm_name, algorithm_type
+                algorithm_name,
+                algorithm_type,
             )
 
             # Create analysis result
@@ -170,16 +180,16 @@ class AlgorithmAnalyzer:
                 self.analysis_metrics["secure_algorithms"] += 1
 
             logger.info(
-                f"Algorithm analysis completed: {algorithm_name} ({key_size} bits) - Vulnerable: {is_vulnerable}"
+                f"Algorithm analysis completed: {algorithm_name} ({key_size} bits) - Vulnerable: {is_vulnerable}",
             )
 
             return Either.success(analysis)
 
         except Exception as e:
             logger.error(f"Algorithm analysis failed: {e}")
-            return Either.error(QuantumError(f"Analysis failed: {str(e)}"))
+            return Either.error(QuantumError(f"Analysis failed: {e!s}"))
 
-    @require(lambda self, algorithms: len(algorithms) > 0)
+    @require(lambda __self, algorithms: len(algorithms) > 0)
     @ensure(lambda result: result.is_success() or result.is_error())
     async def assess_system_vulnerabilities(
         self,
@@ -205,7 +215,9 @@ class AlgorithmAnalyzer:
                 usage_context = alg_info.get("usage_context", "general")
 
                 analysis_result = await self.analyze_algorithm(
-                    algorithm_name, key_size, usage_context
+                    algorithm_name,
+                    key_size,
+                    usage_context,
                 )
 
                 if analysis_result.is_success():
@@ -222,7 +234,7 @@ class AlgorithmAnalyzer:
 
                         # Add to risk score
                         risk_weight = self._get_threat_level_weight(
-                            analysis.threat_level
+                            analysis.threat_level,
                         )
                         total_risk_score += risk_weight
                     else:
@@ -238,7 +250,9 @@ class AlgorithmAnalyzer:
 
             # Determine migration urgency
             migration_urgency = self._determine_migration_urgency(
-                critical_count, high_risk_count, overall_risk_score
+                critical_count,
+                high_risk_count,
+                overall_risk_score,
             )
 
             # Generate threat timeline
@@ -246,7 +260,9 @@ class AlgorithmAnalyzer:
 
             # Generate recommendations
             recommendations = await self._generate_assessment_recommendations(
-                vulnerable_algorithms, secure_algorithms, overall_risk_score
+                vulnerable_algorithms,
+                secure_algorithms,
+                overall_risk_score,
             )
 
             # Create vulnerability assessment
@@ -271,18 +287,20 @@ class AlgorithmAnalyzer:
 
             logger.info(
                 f"Vulnerability assessment completed: {assessment_id} - "
-                f"{len(vulnerable_algorithms)}/{total_algorithms} vulnerable algorithms"
+                f"{len(vulnerable_algorithms)}/{total_algorithms} vulnerable algorithms",
             )
 
             return Either.success(assessment)
 
         except Exception as e:
             logger.error(f"Vulnerability assessment failed: {e}")
-            return Either.error(QuantumError(f"Assessment failed: {str(e)}"))
+            return Either.error(QuantumError(f"Assessment failed: {e!s}"))
 
-    @require(lambda self, algorithm_patterns: len(algorithm_patterns) > 0)
+    @require(lambda __self, algorithm_patterns: len(algorithm_patterns) > 0)
     async def discover_algorithms_in_code(
-        self, code_content: str, file_path: str = "unknown"
+        self,
+        code_content: str,
+        file_path: str = "unknown",
     ) -> Either[QuantumError, list[dict[str, Any]]]:
         """Discover cryptographic algorithms in source code."""
         try:
@@ -296,18 +314,19 @@ class AlgorithmAnalyzer:
 
                 for regex_pattern in regex_patterns:
                     matches = re.finditer(
-                        regex_pattern, code_content, re.IGNORECASE | re.MULTILINE
+                        regex_pattern,
+                        code_content,
+                        re.IGNORECASE | re.MULTILINE,
                     )
 
                     for match in matches:
                         # Extract key size if present in match groups
                         key_size = default_key_size
                         if match.groups():
-                            try:
+                            # SIM105 fix: Use contextlib.suppress instead of try-except-pass
+                            with contextlib.suppress(ValueError, IndexError):
                                 # Try to extract key size from first group
                                 key_size = int(match.group(1))
-                            except (ValueError, IndexError):
-                                pass
 
                         discovered_algorithms.append(
                             {
@@ -321,29 +340,31 @@ class AlgorithmAnalyzer:
                                     "context": match.group(0),
                                 },
                                 "usage_context": self._infer_usage_context(
-                                    match.group(0), code_content
+                                    match.group(0),
+                                    code_content,
                                 ),
-                            }
+                            },
                         )
 
             logger.info(
-                f"Algorithm discovery completed: {len(discovered_algorithms)} algorithms found in {file_path}"
+                f"Algorithm discovery completed: {len(discovered_algorithms)} algorithms found in {file_path}",
             )
 
             return Either.success(discovered_algorithms)
 
         except Exception as e:
             logger.error(f"Algorithm discovery failed: {e}")
-            return Either.error(QuantumError(f"Discovery failed: {str(e)}"))
+            return Either.error(QuantumError(f"Discovery failed: {e!s}"))
 
     async def generate_migration_roadmap(
-        self, assessment_id: str
+        self,
+        assessment_id: str,
     ) -> Either[QuantumError, dict[str, Any]]:
         """Generate quantum migration roadmap based on vulnerability assessment."""
         try:
             if assessment_id not in self.vulnerability_assessments:
                 return Either.error(
-                    QuantumError(f"Assessment not found: {assessment_id}")
+                    QuantumError(f"Assessment not found: {assessment_id}"),
                 )
 
             assessment = self.vulnerability_assessments[assessment_id]
@@ -351,10 +372,10 @@ class AlgorithmAnalyzer:
             # Prioritize vulnerable algorithms by threat level and usage
             prioritized_algorithms = sorted(
                 assessment.vulnerable_algorithms,
-                key=lambda a: (
-                    self._get_threat_level_weight(a.threat_level),
-                    -a.security_margin,
-                    a.key_size,  # Smaller keys = higher priority
+                key=lambda _a: (
+                    self._get_threat_level_weight(_a.threat_level),
+                    -_a.security_margin,
+                    _a.key_size,  # Smaller keys = higher priority
                 ),
                 reverse=True,
             )
@@ -381,7 +402,7 @@ class AlgorithmAnalyzer:
                         "priority": "critical",
                         "estimated_effort": "high",
                         "success_criteria": "All critical vulnerabilities mitigated",
-                    }
+                    },
                 )
 
             # Phase 2: High-risk algorithms
@@ -403,7 +424,7 @@ class AlgorithmAnalyzer:
                         "priority": "high",
                         "estimated_effort": "medium",
                         "success_criteria": "Major quantum vulnerabilities addressed",
-                    }
+                    },
                 )
 
             # Phase 3: Medium-risk algorithms
@@ -423,7 +444,7 @@ class AlgorithmAnalyzer:
                         "priority": "medium",
                         "estimated_effort": "low",
                         "success_criteria": "All identified vulnerabilities resolved",
-                    }
+                    },
                 )
 
             # Generate migration recommendations
@@ -451,7 +472,7 @@ class AlgorithmAnalyzer:
 
         except Exception as e:
             logger.error(f"Migration roadmap generation failed: {e}")
-            return Either.error(QuantumError(f"Roadmap generation failed: {str(e)}"))
+            return Either.error(QuantumError(f"Roadmap generation failed: {e!s}"))
 
     async def get_analysis_status(self) -> Either[QuantumError, dict[str, Any]]:
         """Get algorithm analysis status and metrics."""
@@ -470,7 +491,7 @@ class AlgorithmAnalyzer:
                         "critical_vulnerabilities": assessment.critical_vulnerabilities,
                     }
                     for assessment_id, assessment in list(
-                        self.vulnerability_assessments.items()
+                        self.vulnerability_assessments.items(),
                     )[-5:]
                 ],
             }
@@ -479,11 +500,11 @@ class AlgorithmAnalyzer:
 
         except Exception as e:
             logger.error(f"Failed to get analysis status: {e}")
-            return Either.error(QuantumError(f"Status retrieval failed: {str(e)}"))
+            return Either.error(QuantumError(f"Status retrieval failed: {e!s}"))
 
     # Private helper methods
 
-    def _initialize_algorithm_patterns(self):
+    def _initialize_algorithm_patterns(self) -> str:
         """Initialize cryptographic algorithm detection patterns."""
         self.algorithm_patterns = {
             "rsa": {
@@ -536,7 +557,7 @@ class AlgorithmAnalyzer:
             },
         }
 
-    def _initialize_threat_intelligence(self):
+    def _initialize_threat_intelligence(self) -> str:
         """Initialize quantum threat intelligence data."""
         self.threat_intelligence = {
             "quantum_computer_progress": {
@@ -565,22 +586,23 @@ class AlgorithmAnalyzer:
             asym in algorithm_lower for asym in ["rsa", "ecc", "dh", "ecdh", "ecdsa"]
         ):
             return "asymmetric"
-        elif any(sym in algorithm_lower for sym in ["aes", "des", "chacha", "salsa"]):
+        if any(sym in algorithm_lower for sym in ["aes", "des", "chacha", "salsa"]):
             return "symmetric"
-        elif any(
+        if any(
             hash_name in algorithm_lower
             for hash_name in ["sha", "md5", "blake", "keccak"]
         ):
             return "hash"
-        elif any(sig in algorithm_lower for sig in ["dsa", "ecdsa", "rsa-pss"]):
+        if any(sig in algorithm_lower for sig in ["dsa", "ecdsa", "rsa-pss"]):
             return "signature"
-        elif any(kem in algorithm_lower for kem in ["kyber", "ntru", "saber"]):
+        if any(kem in algorithm_lower for kem in ["kyber", "ntru", "saber"]):
             return "kem"
-        else:
-            return "unknown"
+        return "unknown"
 
     def _assess_cryptographic_strength(
-        self, algorithm_name: str, is_vulnerable: bool
+        self,
+        algorithm_name: str,
+        is_vulnerable: bool,
     ) -> CryptographicStrength:
         """Assess cryptographic strength category."""
         algorithm_lower = algorithm_name.lower()
@@ -593,12 +615,15 @@ class AlgorithmAnalyzer:
         # Classical algorithms
         if is_vulnerable:
             return CryptographicStrength.CLASSICAL_ONLY
-        else:
-            # Non-vulnerable classical algorithms (like AES with sufficient key size)
-            return CryptographicStrength.CLASSICAL_ONLY
+        # Non-vulnerable classical algorithms (like AES with sufficient key size)
+        return CryptographicStrength.CLASSICAL_ONLY
 
     async def _analyze_vulnerability_details(
-        self, algorithm_name: str, key_size: int, algorithm_type: str, detailed: bool
+        self,
+        algorithm_name: str,
+        key_size: int,
+        algorithm_type: str,
+        detailed: bool,
     ) -> dict[str, Any]:
         """Analyze detailed vulnerability information."""
         details = {
@@ -652,7 +677,10 @@ class AlgorithmAnalyzer:
         return details
 
     def _estimate_security_margin(
-        self, algorithm_name: str, key_size: int, threat_level: QuantumThreatLevel
+        self,
+        algorithm_name: str,
+        key_size: int,
+        threat_level: QuantumThreatLevel,
     ) -> float:
         """Estimate security margin in years."""
         # Base estimates for quantum computer development
@@ -678,7 +706,10 @@ class AlgorithmAnalyzer:
         return max(0.0, base_margin)
 
     def _get_replacement_recommendations(
-        self, algorithm_name: str, usage_context: str, threat_level: QuantumThreatLevel
+        self,
+        algorithm_name: str,
+        usage_context: str,
+        threat_level: QuantumThreatLevel,
     ) -> list[PostQuantumAlgorithm]:
         """Get post-quantum replacement recommendations."""
         recommendations = []
@@ -700,7 +731,7 @@ class AlgorithmAnalyzer:
                     [
                         PostQuantumAlgorithm.DILITHIUM_5,
                         PostQuantumAlgorithm.SPHINCS_PLUS,
-                    ]
+                    ],
                 )
 
         # Remove duplicates while preserving order
@@ -714,7 +745,9 @@ class AlgorithmAnalyzer:
         return unique_recommendations
 
     def _calculate_analysis_confidence(
-        self, algorithm_name: str, algorithm_type: str
+        self,
+        algorithm_name: str,
+        algorithm_type: str,
     ) -> float:
         """Calculate confidence level for analysis."""
         confidence = 0.8  # Base confidence
@@ -742,17 +775,19 @@ class AlgorithmAnalyzer:
         return weights.get(threat_level, 0.5)
 
     def _determine_migration_urgency(
-        self, critical_count: int, high_risk_count: int, overall_risk: float
+        self,
+        critical_count: int,
+        high_risk_count: int,
+        overall_risk: float,
     ) -> str:
         """Determine migration urgency level."""
         if critical_count > 0 or overall_risk > 0.8:
             return "immediate"
-        elif high_risk_count > 0 or overall_risk > 0.6:
+        if high_risk_count > 0 or overall_risk > 0.6:
             return "high"
-        elif overall_risk > 0.4:
+        if overall_risk > 0.4:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def _generate_threat_timeline(self) -> dict[str, datetime]:
         """Generate quantum threat timeline."""
@@ -778,14 +813,14 @@ class AlgorithmAnalyzer:
         if not vulnerable_algs:
             recommendations.append("No quantum-vulnerable algorithms detected")
             recommendations.append(
-                "System appears quantum-ready with current cryptography"
+                "System appears quantum-ready with current cryptography",
             )
             return recommendations
 
         # Risk-based recommendations
         if risk_score > 0.8:
             recommendations.append(
-                "URGENT: Immediate migration required for critical vulnerabilities"
+                "URGENT: Immediate migration required for critical vulnerabilities",
             )
             recommendations.append("Consider emergency security protocols")
         elif risk_score > 0.6:
@@ -798,12 +833,12 @@ class AlgorithmAnalyzer:
         ]
         if critical_algs:
             recommendations.append(
-                f"Replace {len(critical_algs)} critical algorithms immediately"
+                f"Replace {len(critical_algs)} critical algorithms immediately",
             )
 
         # General recommendations
         recommendations.append(
-            "Implement post-quantum cryptography testing environment"
+            "Implement post-quantum cryptography testing environment",
         )
         recommendations.append("Establish quantum security monitoring")
         recommendations.append("Plan for hybrid transition period")
@@ -811,7 +846,8 @@ class AlgorithmAnalyzer:
         return recommendations
 
     def _generate_migration_strategies(
-        self, assessment: VulnerabilityAssessment
+        self,
+        assessment: VulnerabilityAssessment,
     ) -> list[str]:
         """Generate migration strategies."""
         strategies = []
@@ -821,7 +857,7 @@ class AlgorithmAnalyzer:
 
         if len(assessment.vulnerable_algorithms) > 10:
             strategies.append(
-                "Phased migration approach for large number of algorithms"
+                "Phased migration approach for large number of algorithms",
             )
         else:
             strategies.append("Comprehensive migration approach")
@@ -831,13 +867,14 @@ class AlgorithmAnalyzer:
                 "Hybrid classical-quantum security during transition",
                 "Backward compatibility maintenance",
                 "Performance testing and optimization",
-            ]
+            ],
         )
 
         return strategies
 
     def _create_risk_mitigation_plan(
-        self, assessment: VulnerabilityAssessment
+        self,
+        assessment: VulnerabilityAssessment,
     ) -> dict[str, Any]:
         """Create risk mitigation plan."""
         return {

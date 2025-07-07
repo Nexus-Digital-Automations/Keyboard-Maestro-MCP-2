@@ -1,5 +1,4 @@
-"""
-Comprehensive test coverage for Platform Expansion Tools (TASK_32-39) - TASK_69 Coverage Expansion.
+"""Comprehensive test coverage for Platform Expansion Tools (TASK_32-39) - TASK_69 Coverage Expansion.
 
 This module systematically tests the Platform Expansion tools including visual automation,
 interface automation, plugin ecosystem, and communication tools to achieve systematic coverage
@@ -10,6 +9,7 @@ Following ADDER+ protocols for systematic coverage expansion with all advanced t
 
 import pytest
 from src.core.errors import ExecutionError, SecurityError, ValidationError
+from typing import Any
 
 # Core types and utilities
 from src.server.tools.interface_automation_tools import km_interface_automation
@@ -23,7 +23,7 @@ class TestVisualAutomationTools:
     """Test Visual Automation Tools (TASK_35) - OCR, image recognition, screen analysis."""
 
     @pytest.mark.asyncio
-    async def test_km_visual_automation_ocr_functionality(self):
+    async def test_km_visual_automation_ocr_functionality(self) -> None:
         """Test OCR text extraction functionality."""
         ocr_config = {
             "operation": "extract_text",
@@ -40,7 +40,7 @@ class TestVisualAutomationTools:
             assert isinstance(e, ValidationError | ExecutionError | Exception)
 
     @pytest.mark.asyncio
-    async def test_km_visual_automation_image_recognition(self):
+    async def test_km_visual_automation_image_recognition(self) -> None:
         """Test image matching and recognition functionality."""
         image_match_config = {
             "operation": "find_image",
@@ -58,7 +58,7 @@ class TestVisualAutomationTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_visual_automation_screen_analysis(self):
+    async def test_km_visual_automation_screen_analysis(self) -> None:
         """Test comprehensive screen analysis functionality."""
         analysis_config = {
             "operation": "analyze_screen",
@@ -76,7 +76,7 @@ class TestVisualAutomationTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_visual_automation_security_validation(self):
+    async def test_km_visual_automation_security_validation(self) -> None:
         """Test visual automation security and input validation."""
         # Test potentially dangerous operations
         malicious_configs = [
@@ -99,7 +99,7 @@ class TestInterfaceAutomationTools:
     """Test Interface Automation Tools (TASK_37) - Mouse/keyboard simulation, UI interaction."""
 
     @pytest.mark.asyncio
-    async def test_km_interface_automation_mouse_control(self):
+    async def test_km_interface_automation_mouse_control(self) -> None:
         """Test mouse control and simulation functionality."""
         mouse_config = {
             "operation": "mouse_click",
@@ -118,7 +118,7 @@ class TestInterfaceAutomationTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_interface_automation_keyboard_control(self):
+    async def test_km_interface_automation_keyboard_control(self) -> None:
         """Test keyboard input simulation functionality."""
         keyboard_config = {
             "operation": "type_text",
@@ -136,7 +136,7 @@ class TestInterfaceAutomationTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_interface_automation_ui_interaction(self):
+    async def test_km_interface_automation_ui_interaction(self) -> None:
         """Test UI element interaction functionality."""
         ui_interaction_config = {
             "operation": "interact_with_element",
@@ -154,7 +154,7 @@ class TestInterfaceAutomationTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_interface_automation_accessibility_features(self):
+    async def test_km_interface_automation_accessibility_features(self) -> None:
         """Test accessibility-aware interface automation."""
         accessibility_config = {
             "operation": "accessible_click",
@@ -176,7 +176,7 @@ class TestPluginEcosystemTools:
     """Test Plugin Ecosystem Tools (TASK_39) - Custom actions, plugin management."""
 
     @pytest.mark.asyncio
-    async def test_km_plugin_ecosystem_management_operations(self):
+    async def test_km_plugin_ecosystem_management_operations(self) -> None:
         """Test plugin management functionality."""
         management_operations = [
             {"operation": "list_plugins", "category": "all"},
@@ -199,7 +199,7 @@ class TestPluginEcosystemTools:
                 assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_plugin_ecosystem_custom_action_creation(self):
+    async def test_km_plugin_ecosystem_custom_action_creation(self) -> None:
         """Test custom action creation functionality."""
         action_definition = {
             "operation": "create_custom_action",
@@ -225,7 +225,7 @@ class TestPluginEcosystemTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_plugin_ecosystem_marketplace_functionality(self):
+    async def test_km_plugin_ecosystem_marketplace_functionality(self) -> None:
         """Test plugin marketplace functionality."""
         marketplace_operations = [
             {"operation": "browse_marketplace", "category": "productivity"},
@@ -243,7 +243,7 @@ class TestPluginEcosystemTools:
                 assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_plugin_ecosystem_security_validation(self):
+    async def test_km_plugin_ecosystem_security_validation(self) -> None:
         """Test plugin security validation functionality."""
         security_validations = [
             {
@@ -275,7 +275,7 @@ class TestPlatformExpansionIntegration:
     """Test integration between Platform Expansion tools."""
 
     @pytest.mark.asyncio
-    async def test_visual_and_interface_integration(self):
+    async def test_visual_and_interface_integration(self) -> None:
         """Test integration between visual automation and interface automation."""
         integration_results = []
 
@@ -286,7 +286,7 @@ class TestPlatformExpansionIntegration:
                     "operation": "find_image",
                     "template_image": "button_template.png",
                     "search_area": "full_screen",
-                }
+                },
             )
             integration_results.append(("visual_search", visual_result))
 
@@ -298,7 +298,7 @@ class TestPlatformExpansionIntegration:
                         "x": 500,  # Would use coordinates from visual_result
                         "y": 300,
                         "button": "left",
-                    }
+                    },
                 )
                 integration_results.append(("interface_action", interface_result))
 
@@ -309,7 +309,7 @@ class TestPlatformExpansionIntegration:
         assert len(integration_results) >= 1
 
     @pytest.mark.asyncio
-    async def test_plugin_and_automation_integration(self):
+    async def test_plugin_and_automation_integration(self) -> None:
         """Test integration between plugin system and automation tools."""
         integration_results = []
 
@@ -322,7 +322,7 @@ class TestPlatformExpansionIntegration:
                     "description": "Combines visual search with interface automation",
                     "parameters": [{"name": "image_template", "type": "string"}],
                     "implementation": {"type": "automation_combo"},
-                }
+                },
             )
             integration_results.append(("plugin_creation", plugin_result))
 
@@ -333,7 +333,7 @@ class TestPlatformExpansionIntegration:
                         "operation": "validate_plugin_security",
                         "plugin_id": "visual-click-helper",
                         "validation_level": "strict",
-                    }
+                    },
                 )
                 integration_results.append(("security_validation", security_result))
 
@@ -344,20 +344,26 @@ class TestPlatformExpansionIntegration:
         assert len(integration_results) >= 1
 
     @pytest.mark.asyncio
-    async def test_comprehensive_automation_workflow(self):
+    async def test_comprehensive_automation_workflow(self) -> None:
         """Test comprehensive automation workflow using all Platform Expansion tools."""
         workflow_results = []
 
         try:
             # Step 1: Visual automation for screen analysis
             screen_analysis = await km_visual_automation(
-                {"operation": "analyze_screen", "analysis_type": "ui_elements"}
+                {
+                    "operation": "analyze_screen",
+                    "analysis_type": "ui_elements",
+                },
             )
             workflow_results.append(("screen_analysis", screen_analysis))
 
             # Step 2: Interface automation for interaction
             interaction_result = await km_interface_automation(
-                {"operation": "type_text", "text": "Workflow test"}
+                {
+                    "operation": "type_text",
+                    "text": "Workflow test",
+                },
             )
             workflow_results.append(("interaction", interaction_result))
 
@@ -367,7 +373,7 @@ class TestPlatformExpansionIntegration:
                     "operation": "validate_plugin_security",
                     "plugin_id": "workflow-plugin",
                     "validation_level": "standard",
-                }
+                },
             )
             workflow_results.append(("security", security_check))
 
@@ -382,7 +388,7 @@ class TestPlatformExpansionPerformance:
     """Test performance characteristics of Platform Expansion tools."""
 
     @pytest.mark.asyncio
-    async def test_visual_automation_performance(self):
+    async def test_visual_automation_performance(self) -> None:
         """Test visual automation performance characteristics."""
         import time
 
@@ -393,19 +399,28 @@ class TestPlatformExpansionPerformance:
             (
                 "screenshot",
                 lambda: km_visual_automation(
-                    {"operation": "screenshot", "region": "active_window"}
+                    {
+                        "operation": "screenshot",
+                        "region": "active_window",
+                    },
                 ),
             ),
             (
                 "ocr_extract",
                 lambda: km_visual_automation(
-                    {"operation": "extract_text", "image_source": "clipboard"}
+                    {
+                        "operation": "extract_text",
+                        "image_source": "clipboard",
+                    },
                 ),
             ),
             (
                 "find_image",
                 lambda: km_visual_automation(
-                    {"operation": "find_image", "template_image": "test.png"}
+                    {
+                        "operation": "find_image",
+                        "template_image": "test.png",
+                    },
                 ),
             ),
         ]
@@ -428,7 +443,7 @@ class TestPlatformExpansionPerformance:
         assert len(performance_results) == len(operations)
 
     @pytest.mark.asyncio
-    async def test_interface_automation_responsiveness(self):
+    async def test_interface_automation_responsiveness(self) -> None:
         """Test interface automation responsiveness."""
         import time
 
@@ -436,7 +451,12 @@ class TestPlatformExpansionPerformance:
         start_time = time.time()
         try:
             await km_interface_automation(
-                {"operation": "mouse_move", "x": 100, "y": 100, "duration": 0.1}
+                {
+                    "operation": "mouse_move",
+                    "x": 100,
+                    "y": 100,
+                    "duration": 0.1,
+                },
             )
             elapsed_time = time.time() - start_time
             # Interface operations should be very fast (< 5 seconds)
@@ -446,7 +466,7 @@ class TestPlatformExpansionPerformance:
             assert elapsed_time < 5.0
 
     @pytest.mark.asyncio
-    async def test_plugin_operations_efficiency(self):
+    async def test_plugin_operations_efficiency(self) -> None:
         """Test plugin operations efficiency."""
         import time
 
@@ -462,7 +482,7 @@ class TestPlatformExpansionPerformance:
             assert elapsed_time < 3.0
 
     @pytest.mark.asyncio
-    async def test_concurrent_platform_operations(self):
+    async def test_concurrent_platform_operations(self) -> None:
         """Test concurrent execution of Platform Expansion tools."""
         import asyncio
 
@@ -483,7 +503,8 @@ class TestPlatformExpansionPerformance:
             # Results should be valid or handled exceptions
             for result in results:
                 assert isinstance(
-                    result, dict | str | list | bool | type(None) | Exception
+                    result,
+                    dict | str | list | bool | type(None) | Exception,
                 )
 
         except Exception as e:

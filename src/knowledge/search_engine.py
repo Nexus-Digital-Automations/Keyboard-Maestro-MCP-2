@@ -1,5 +1,4 @@
-"""
-Search Engine - TASK_56 Phase 2 Implementation
+"""Search Engine - TASK_56 Phase 2 Implementation.
 
 Advanced knowledge search functionality with semantic understanding and intelligent ranking.
 Provides full-text search, semantic similarity, fuzzy matching, and relevance scoring.
@@ -72,7 +71,7 @@ class SearchResult:
     category: KnowledgeCategory
     tags: set[str] = field(default_factory=set)
     match_highlights: list[tuple[int, int]] = field(
-        default_factory=list
+        default_factory=list,
     )  # (start, end) positions
     explanation: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -140,7 +139,8 @@ class DocumentIndex:
 
             # Create document vector for semantic search
             self.document_vectors[doc_id] = self._create_document_vector(
-                terms, document.content
+                terms,
+                document.content,
             )
 
             # Index metadata
@@ -155,7 +155,7 @@ class DocumentIndex:
             return Either.right(None)
 
         except Exception as e:
-            error_msg = f"Failed to index document: {str(e)}"
+            error_msg = f"Failed to index document: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -189,7 +189,7 @@ class DocumentIndex:
             return Either.right(None)
 
         except Exception as e:
-            error_msg = f"Failed to remove document from index: {str(e)}"
+            error_msg = f"Failed to remove document from index: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -254,7 +254,9 @@ class DocumentIndex:
             return set()
 
     def _create_document_vector(
-        self, terms: set[str], content: str
+        self,
+        terms: set[str],
+        content: str,
     ) -> dict[str, float]:
         """Create TF-IDF vector for document."""
         try:
@@ -280,8 +282,7 @@ class DocumentIndex:
 
 
 class SearchEngine:
-    """
-    Advanced knowledge search engine with semantic understanding.
+    """Advanced knowledge search engine with semantic understanding.
 
     Provides comprehensive search capabilities including full-text search,
     semantic similarity, fuzzy matching, and intelligent relevance ranking.
@@ -295,7 +296,8 @@ class SearchEngine:
         logger.info("SearchEngine initialized")
 
     async def add_documents(
-        self, documents: list[KnowledgeDocument]
+        self,
+        documents: list[KnowledgeDocument],
     ) -> Either[str, int]:
         """Add multiple documents to search index."""
         try:
@@ -306,16 +308,16 @@ class SearchEngine:
                     added_count += 1
                 else:
                     logger.warning(
-                        f"Failed to index document {document.document_id}: {result.left()}"
+                        f"Failed to index document {document.document_id}: {result.left()}",
                     )
 
             logger.info(
-                f"Added {added_count}/{len(documents)} documents to search index"
+                f"Added {added_count}/{len(documents)} documents to search index",
             )
             return Either.right(added_count)
 
         except Exception as e:
-            error_msg = f"Failed to add documents to index: {str(e)}"
+            error_msg = f"Failed to add documents to index: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -374,12 +376,12 @@ class SearchEngine:
             )
 
             logger.info(
-                f"Search completed: '{query.query_text}' -> {len(ranked_results)} results in {search_time:.1f}ms"
+                f"Search completed: '{query.query_text}' -> {len(ranked_results)} results in {search_time:.1f}ms",
             )
             return Either.right(final_results)
 
         except Exception as e:
-            error_msg = f"Search execution failed: {str(e)}"
+            error_msg = f"Search execution failed: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -408,10 +410,13 @@ class SearchEngine:
 
                 if score >= query.min_score:
                     snippet = self._generate_snippet(
-                        document.content, query.query_text, query.snippet_length
+                        document.content,
+                        query.query_text,
+                        query.snippet_length,
                     )
                     highlights = self._find_highlights(
-                        document.content, query.query_text
+                        document.content,
+                        query.query_text,
                     )
 
                     result = SearchResult(
@@ -430,10 +435,11 @@ class SearchEngine:
             return Either.right(results)
 
         except Exception as e:
-            return Either.left(f"Text search failed: {str(e)}")
+            return Either.left(f"Text search failed: {e!s}")
 
     async def _semantic_search(
-        self, query: SearchQuery
+        self,
+        query: SearchQuery,
     ) -> Either[str, list[SearchResult]]:
         """Execute semantic similarity search."""
         try:
@@ -455,7 +461,9 @@ class SearchEngine:
 
                 if similarity >= query.min_score:
                     snippet = self._generate_snippet(
-                        document.content, query.query_text, query.snippet_length
+                        document.content,
+                        query.query_text,
+                        query.snippet_length,
                     )
 
                     result = SearchResult(
@@ -473,10 +481,11 @@ class SearchEngine:
             return Either.right(results)
 
         except Exception as e:
-            return Either.left(f"Semantic search failed: {str(e)}")
+            return Either.left(f"Semantic search failed: {e!s}")
 
     async def _fuzzy_search(
-        self, query: SearchQuery
+        self,
+        query: SearchQuery,
     ) -> Either[str, list[SearchResult]]:
         """Execute fuzzy matching search."""
         try:
@@ -496,7 +505,9 @@ class SearchEngine:
 
                 if combined_score >= query.min_score:
                     snippet = self._generate_snippet(
-                        document.content, query.query_text, query.snippet_length
+                        document.content,
+                        query.query_text,
+                        query.snippet_length,
                     )
 
                     result = SearchResult(
@@ -514,10 +525,11 @@ class SearchEngine:
             return Either.right(results)
 
         except Exception as e:
-            return Either.left(f"Fuzzy search failed: {str(e)}")
+            return Either.left(f"Fuzzy search failed: {e!s}")
 
     async def _exact_search(
-        self, query: SearchQuery
+        self,
+        query: SearchQuery,
     ) -> Either[str, list[SearchResult]]:
         """Execute exact phrase matching search."""
         try:
@@ -538,7 +550,9 @@ class SearchEngine:
 
                     if score >= query.min_score:
                         snippet = self._generate_snippet(
-                            content, query_text, query.snippet_length
+                            content,
+                            query_text,
+                            query.snippet_length,
                         )
                         highlights = self._find_highlights(content, query_text)
 
@@ -558,7 +572,7 @@ class SearchEngine:
             return Either.right(results)
 
         except Exception as e:
-            return Either.left(f"Exact search failed: {str(e)}")
+            return Either.left(f"Exact search failed: {e!s}")
 
     def _calculate_text_score(
         self,
@@ -590,7 +604,9 @@ class SearchEngine:
             return 0.0
 
     def _calculate_cosine_similarity(
-        self, vec1: dict[str, float], vec2: dict[str, float]
+        self,
+        vec1: dict[str, float],
+        vec2: dict[str, float],
     ) -> float:
         """Calculate cosine similarity between two vectors."""
         try:
@@ -635,7 +651,9 @@ class SearchEngine:
             return 0.0
 
     def _apply_filters(
-        self, results: list[SearchResult], query: SearchQuery
+        self,
+        results: list[SearchResult],
+        query: SearchQuery,
     ) -> list[SearchResult]:
         """Apply query filters to search results."""
         try:
@@ -661,7 +679,9 @@ class SearchEngine:
             return results
 
     def _rank_results(
-        self, results: list[SearchResult], query: SearchQuery
+        self,
+        results: list[SearchResult],
+        query: SearchQuery,
     ) -> list[SearchResult]:
         """Apply intelligent ranking to search results."""
         try:
@@ -688,7 +708,8 @@ class SearchEngine:
 
                     # Apply boost
                     result.relevance_score = min(
-                        1.0, result.relevance_score * boost_factor
+                        1.0,
+                        result.relevance_score * boost_factor,
                     )
 
             # Sort by relevance score
@@ -793,7 +814,8 @@ class SearchEngine:
             return []
 
     def _generate_facets(
-        self, results: list[SearchResult]
+        self,
+        results: list[SearchResult],
     ) -> dict[str, dict[str, int]]:
         """Generate search facets for result filtering."""
         try:
@@ -811,13 +833,15 @@ class SearchEngine:
             return {
                 "categories": dict(
                     sorted(
-                        facets["categories"].items(), key=lambda x: x[1], reverse=True
-                    )
+                        facets["categories"].items(),
+                        key=lambda x: x[1],
+                        reverse=True,
+                    ),
                 ),
                 "tags": dict(
                     sorted(facets["tags"].items(), key=lambda x: x[1], reverse=True)[
                         :20
-                    ]
+                    ],
                 ),
             }
 

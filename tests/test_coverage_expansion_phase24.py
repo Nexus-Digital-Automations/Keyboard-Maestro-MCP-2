@@ -1,5 +1,4 @@
-"""
-Phase 24 Enterprise Architecture & Advanced System Orchestration Testing for Keyboard Maestro MCP.
+"""Phase 24 Enterprise Architecture & Advanced System Orchestration Testing for Keyboard Maestro MCP.
 
 This module targets enterprise architecture patterns and advanced system orchestration testing,
 focusing on enterprise architecture patterns, distributed system components, microservices architectures,
@@ -7,18 +6,23 @@ event-driven systems, and advanced orchestration patterns for continued systemat
 12%+ coverage milestone through comprehensive enterprise architecture testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_enterprise_architecture_patterns():
+def test_enterprise_architecture_patterns() -> None:
     """Test comprehensive coverage of enterprise architecture patterns."""
-
     # Target enterprise architecture pattern modules
     enterprise_architecture_modules = [
         ("architecture", "microservices"),  # Microservices architecture patterns
@@ -76,9 +80,9 @@ def test_enterprise_architecture_patterns():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -88,9 +92,8 @@ def test_enterprise_architecture_patterns():
     )
 
 
-def test_advanced_system_orchestration():
+def test_advanced_system_orchestration() -> None:
     """Test comprehensive coverage of advanced system orchestration."""
-
     # Target advanced system orchestration modules
     system_orchestration_modules = [
         ("orchestration", "workflow_orchestrator"),  # Workflow orchestration engines
@@ -154,9 +157,9 @@ def test_advanced_system_orchestration():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -166,9 +169,8 @@ def test_advanced_system_orchestration():
     )
 
 
-def test_distributed_system_components():
+def test_distributed_system_components() -> None:
     """Test comprehensive coverage of distributed system components."""
-
     # Target distributed system component modules
     distributed_system_modules = [
         ("distributed", "caching"),  # Distributed caching systems
@@ -226,9 +228,9 @@ def test_distributed_system_components():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -238,9 +240,8 @@ def test_distributed_system_components():
     )
 
 
-def test_event_driven_architectures():
+def test_event_driven_architectures() -> None:
     """Test comprehensive coverage of event-driven architectures."""
-
     # Target event-driven architecture modules
     event_driven_modules = [
         ("events", "sourcing"),  # Event sourcing systems
@@ -306,9 +307,9 @@ def test_event_driven_architectures():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -318,9 +319,8 @@ def test_event_driven_architectures():
     )
 
 
-def test_scalability_performance_systems():
+def test_scalability_performance_systems() -> None:
     """Test comprehensive coverage of scalability and performance systems."""
-
     # Target scalability and performance system modules
     scalability_modules = [
         ("scaling", "load_balancer"),  # Load balancing systems
@@ -386,9 +386,9 @@ def test_scalability_performance_systems():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -398,9 +398,8 @@ def test_scalability_performance_systems():
     )
 
 
-def test_comprehensive_enterprise_functionality_patterns():
+def test_comprehensive_enterprise_functionality_patterns() -> None:
     """Test comprehensive functionality patterns across enterprise architecture domains."""
-
     # Test enterprise architecture functionality patterns
     enterprise_functionality_data = {
         "enterprise_architecture": {
@@ -528,7 +527,8 @@ def test_comprehensive_enterprise_functionality_patterns():
         if op.get(
             "success_rate",
             op.get(
-                "completion_rate", op.get("availability", op.get("delivery_rate", 0))
+                "completion_rate",
+                op.get("availability", op.get("delivery_rate", 0)),
             ),
         )
         > 0.995
@@ -543,7 +543,8 @@ def test_comprehensive_enterprise_functionality_patterns():
         if op.get(
             "hit_rate",
             op.get(
-                "delivery_accuracy", op.get("completion_rate", op.get("consistency", 0))
+                "delivery_accuracy",
+                op.get("completion_rate", op.get("consistency", 0)),
             ),
         )
         > 0.985
@@ -564,7 +565,7 @@ def test_comprehensive_enterprise_functionality_patterns():
     assert dist_metrics["system_consistency"] > 0.995
 
 
-def test_advanced_enterprise_async_functionality():
+def test_advanced_enterprise_async_functionality() -> bool:
     """Test advanced async functionality for Phase 24 enterprise architecture modules."""
 
     @pytest.mark.asyncio
@@ -696,9 +697,8 @@ def test_advanced_enterprise_async_functionality():
     assert result is True
 
 
-def test_strategic_enterprise_coverage_optimization():
+def test_strategic_enterprise_coverage_optimization() -> None:
     """Test strategic patterns for enterprise coverage optimization in Phase 24."""
-
     # Test strategic enterprise coverage optimization scenarios
     enterprise_coverage_optimization = {
         "enterprise_domain_targeting": {
@@ -847,9 +847,8 @@ def test_strategic_enterprise_coverage_optimization():
     assert remaining_to_target < 0.89  # Should be making progress toward 95%
 
 
-def test_phase_24_completion_validation():
+def test_phase_24_completion_validation() -> None:
     """Test Phase 24 completion validation for enterprise architecture coverage optimization."""
-
     # Test Phase 24 completion validation scenarios
     phase_24_validation = {
         "completion_criteria": {

@@ -1,5 +1,4 @@
-"""
-Core ecosystem architecture types and patterns for master orchestration.
+"""Core ecosystem architecture types and patterns for master orchestration.
 
 This module provides comprehensive type definitions, data structures, and patterns
 for orchestrating all 48 tools in the enterprise automation ecosystem.
@@ -26,25 +25,17 @@ from ..core.errors import ValidationError
 class WorkflowId(str):
     """Unique identifier for ecosystem workflows."""
 
-    pass
-
 
 class StepId(str):
     """Unique identifier for workflow steps."""
-
-    pass
 
 
 class OrchestrationId(str):
     """Unique identifier for orchestration sessions."""
 
-    pass
-
 
 class CapabilityId(str):
     """Unique identifier for tool capabilities."""
-
-    pass
 
 
 class ToolCategory(Enum):
@@ -103,7 +94,7 @@ class SecurityLevel(Enum):
 def create_workflow_id() -> WorkflowId:
     """Create unique workflow identifier."""
     return WorkflowId(
-        f"workflow_{datetime.now(UTC).timestamp()}_{uuid.uuid4().hex[:8]}"
+        f"workflow_{datetime.now(UTC).timestamp()}_{uuid.uuid4().hex[:8]}",
     )
 
 
@@ -115,7 +106,7 @@ def create_step_id() -> StepId:
 def create_orchestration_id() -> OrchestrationId:
     """Create unique orchestration identifier."""
     return OrchestrationId(
-        f"orch_{datetime.now(UTC).timestamp()}_{uuid.uuid4().hex[:8]}"
+        f"orch_{datetime.now(UTC).timestamp()}_{uuid.uuid4().hex[:8]}",
     )
 
 
@@ -170,7 +161,7 @@ class ToolDescriptor:
 
         # Integration point synergy
         shared_integrations = set(self.integration_points) & set(
-            other.integration_points
+            other.integration_points,
         )
         synergy_score += len(shared_integrations) * 0.2
 
@@ -185,7 +176,8 @@ class ToolDescriptor:
         category_pair = (self.category, other.category)
         reverse_pair = (other.category, self.category)
         synergy_score += category_synergies.get(
-            category_pair, category_synergies.get(reverse_pair, 0.1)
+            category_pair,
+            category_synergies.get(reverse_pair, 0.1),
         )
 
         return min(1.0, synergy_score)
@@ -389,13 +381,17 @@ class OrchestrationError(ValidationError):
     @classmethod
     def step_execution_failed(cls, step_id: str, reason: str) -> OrchestrationError:
         return cls(
-            "step_execution", step_id, f"Step {step_id} execution failed: {reason}"
+            "step_execution",
+            step_id,
+            f"Step {step_id} execution failed: {reason}",
         )
 
     @classmethod
     def unsupported_execution_mode(cls, mode: ExecutionMode) -> OrchestrationError:
         return cls(
-            "execution_mode", mode.value, f"Execution mode {mode.value} not supported"
+            "execution_mode",
+            mode.value,
+            f"Execution mode {mode.value} not supported",
         )
 
     @classmethod
@@ -460,7 +456,8 @@ class WorkflowEngineProtocol(Protocol):
     """Protocol for workflow execution engines."""
 
     async def execute_workflow(
-        self, workflow: EcosystemWorkflow
+        self,
+        workflow: EcosystemWorkflow,
     ) -> Either[OrchestrationError, dict[str, Any]]:
         """Execute ecosystem workflow."""
         ...
@@ -470,7 +467,8 @@ class ResourceManagerProtocol(Protocol):
     """Protocol for resource management systems."""
 
     async def allocate_resources(
-        self, requirements: dict[str, float]
+        self,
+        requirements: dict[str, float],
     ) -> Either[OrchestrationError, dict[str, float]]:
         """Allocate system resources."""
         ...
@@ -505,7 +503,8 @@ def calculate_workflow_complexity(workflow: EcosystemWorkflow) -> float:
 
 
 def estimate_workflow_duration(
-    workflow: EcosystemWorkflow, tool_registry: ToolRegistry
+    workflow: EcosystemWorkflow,
+    tool_registry: ToolRegistry,
 ) -> float:
     """Estimate workflow execution duration based on tools and complexity."""
     estimated_duration = 0.0
@@ -534,7 +533,8 @@ def estimate_workflow_duration(
                     tool = tool_registry.tools.get(step.tool_id)
                     if tool:
                         tool_time = tool.performance_characteristics.get(
-                            "response_time", 1.0
+                            "response_time",
+                            1.0,
                         )
                         group_time = max(group_time, tool_time)
             max_group_time += group_time
@@ -553,7 +553,8 @@ def estimate_workflow_duration(
 
 
 def validate_workflow_security(
-    workflow: EcosystemWorkflow, tool_registry: ToolRegistry
+    workflow: EcosystemWorkflow,
+    tool_registry: ToolRegistry,
 ) -> Either[OrchestrationError, None]:
     """Validate workflow security across all tools."""
     # Check for security escalation paths

@@ -1,11 +1,11 @@
-"""
-Core macro operation tools.
+"""Core macro operation tools.
 
 Contains the fundamental MCP tools for macro execution, listing, and variable management.
 """
 
 import asyncio
 import logging
+import subprocess
 import uuid
 from datetime import UTC, datetime
 from typing import Annotated, Any
@@ -54,13 +54,15 @@ async def km_execute_macro(
     timeout: Annotated[
         int,
         Field(
-            default=30, ge=1, le=300, description="Maximum execution time in seconds"
+            default=30,
+            ge=1,
+            le=300,
+            description="Maximum execution time in seconds",
         ),
     ] = 30,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Execute a Keyboard Maestro macro with comprehensive error handling and validation.
+    """Execute a Keyboard Maestro macro with comprehensive error handling and validation.
 
     Supports multiple execution methods:
     - applescript: Direct AppleScript communication (recommended)
@@ -82,7 +84,9 @@ async def km_execute_macro(
         clean_identifier = identifier.strip()
         if len(clean_identifier) == 0:
             raise ValidationError(
-                "identifier", clean_identifier, "cannot be empty after trimming"
+                "identifier",
+                clean_identifier,
+                "cannot be empty after trimming",
             )
 
         macro_id = MacroId(clean_identifier)
@@ -105,7 +109,8 @@ async def km_execute_macro(
 
         # First test connection to KM
         connection_test = await asyncio.get_event_loop().run_in_executor(
-            None, km_client.check_connection
+            None,
+            km_client.check_connection,
         )
 
         if connection_test.is_left() or not connection_test.get_right():
@@ -123,15 +128,18 @@ async def km_execute_macro(
 
         if ctx:
             await ctx.info(
-                f"Connection to KM Engine confirmed. Executing macro: {identifier}"
+                f"Connection to KM Engine confirmed. Executing macro: {identifier}",
             )
             await ctx.info(
-                f"Debug: macro_id={repr(macro_id)}, type={type(macro_id)}, bool={bool(macro_id)}"
+                f"Debug: macro_id={macro_id!r}, type={type(macro_id)}, bool={bool(macro_id)}",
             )
 
         # Execute macro via KM client using async wrapper
         execution_result = await asyncio.get_event_loop().run_in_executor(
-            None, km_client.execute_macro, macro_id, sanitized_trigger
+            None,
+            km_client.execute_macro,
+            macro_id,
+            sanitized_trigger,
         )
 
         # Handle execution result
@@ -263,7 +271,8 @@ async def km_list_macros(
         ),
     ] = None,
     enabled_only: Annotated[
-        bool, Field(default=True, description="Only return enabled macros")
+        bool,
+        Field(default=True, description="Only return enabled macros"),
     ] = True,
     sort_by: Annotated[
         str,
@@ -273,12 +282,12 @@ async def km_list_macros(
         ),
     ] = "name",
     limit: Annotated[
-        int, Field(default=20, ge=1, le=100, description="Maximum number of results")
+        int,
+        Field(default=20, ge=1, le=100, description="Maximum number of results"),
     ] = 20,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    List and filter Keyboard Maestro macros with comprehensive search capabilities.
+    """List and filter Keyboard Maestro macros with comprehensive search capabilities.
 
     NOW RETURNS REAL USER MACROS from Keyboard Maestro instead of mock data.
     Supports filtering by multiple groups, enabled status, and custom sorting.
@@ -288,6 +297,7 @@ async def km_list_macros(
     - group_filters=["Email", "Text"] - macros from Email OR Text groups
     - group_filters=["Utilities"] - macros from Utilities group only
     - group_filters=None - macros from all groups
+
     """
     # Handle backward compatibility: convert single group_filter to group_filters list
     if group_filter is not None and group_filters is None:
@@ -309,7 +319,8 @@ async def km_list_macros(
 
         # Query real macros using multiple API methods
         macros_result = await km_client.list_macros_async(
-            group_filters=group_filters, enabled_only=enabled_only
+            group_filters=group_filters,
+            enabled_only=enabled_only,
         )
 
         if macros_result.is_left():
@@ -350,7 +361,7 @@ async def km_list_macros(
         if ctx:
             await ctx.report_progress(100, 100, "Macro listing complete")
             await ctx.info(
-                f"Found {len(limited_macros)} macros (total: {len(all_macros)})"
+                f"Found {len(limited_macros)} macros (total: {len(all_macros)})",
             )
 
         return {
@@ -398,12 +409,14 @@ async def km_list_macros(
 
 async def km_variable_manager(
     operation: Annotated[
-        str, Field(description="Operation: get, set, delete, or list")
+        str,
+        Field(description="Operation: get, set, delete, or list"),
     ],
     name: Annotated[
         str | None,
         Field(
-            default=None, description="Variable name (required for get, set, delete)"
+            default=None,
+            description="Variable name (required for get, set, delete)",
         ),
     ] = None,
     value: Annotated[
@@ -423,8 +436,7 @@ async def km_variable_manager(
     ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Comprehensive Keyboard Maestro variable management with type safety.
+    """Comprehensive Keyboard Maestro variable management with type safety.
 
     Supports all variable scopes:
     - global: Persistent across sessions, accessible to all macros
@@ -447,16 +459,21 @@ async def km_variable_manager(
 
         if operation == "set" and value is None:
             raise ValidationError(
-                "value", value, "Variable value is required for set operation"
+                "value",
+                value,
+                "Variable value is required for set operation",
             )
 
-        # Validate variable name format
-        if name and not name.replace("_", "").replace(" ", "").isalnum():
-            if not (
+        # SIM102 fix: Combine nested if statements
+        if (
+            name
+            and not name.replace("_", "").replace(" ", "").isalnum()
+            and not (
                 scope == "password"
                 and ("password" in name.lower() or "pw" in name.lower())
-            ):
-                raise ValidationError("name", name, "Invalid variable name format")
+            )
+        ):
+            raise ValidationError("name", name, "Invalid variable name format")
 
         # Mock implementation - would integrate with actual KM variable system
         if operation == "get":
@@ -478,7 +495,7 @@ async def km_variable_manager(
                 },
             }
 
-        elif operation == "set":
+        if operation == "set":
             if ctx:
                 await ctx.info(f"Setting variable '{name}' in {scope} scope")
 
@@ -493,7 +510,7 @@ async def km_variable_manager(
                 },
             }
 
-        elif operation == "delete":
+        if operation == "delete":
             if ctx:
                 await ctx.info(f"Deleting variable '{name}' from {scope} scope")
 
@@ -507,10 +524,10 @@ async def km_variable_manager(
                 },
             }
 
-        elif operation == "list":
+        if operation == "list":
             if ctx:
                 await ctx.info(
-                    f"Listing variables in {scope} scope from Keyboard Maestro"
+                    f"Listing variables in {scope} scope from Keyboard Maestro",
                 )
 
             # Get real variables from Keyboard Maestro
@@ -556,14 +573,22 @@ async def km_variable_manager(
                 await ctx.report_progress(50, 100, "Executing variable query")
 
             try:
-                import subprocess
-
-                result = subprocess.run(
-                    ["osascript", "-e", script],
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
+                # S607 SECURITY FIX: Use secure subprocess execution
+                from ...commands.secure_subprocess import (
+                    CommandType,
+                    SecureCommand,
+                    get_secure_subprocess_manager,
                 )
+
+                secure_manager = get_secure_subprocess_manager()
+                command = SecureCommand(
+                    command_type=CommandType.SYSTEM_INFO,
+                    executable="osascript",
+                    args=["-e", script],
+                    timeout=30.0,
+                    allowed_return_codes={0, 1},
+                )
+                result = secure_manager.execute_secure_command(command)
 
                 if result.returncode != 0:
                     if ctx:
@@ -604,12 +629,14 @@ async def km_variable_manager(
                             "name": f"Limited_{scope}_access",
                             "scope": scope,
                             "type": "string",
-                        }
+                        },
                     ]
 
                 if ctx:
                     await ctx.report_progress(
-                        100, 100, f"Retrieved {len(variables)} variables"
+                        100,
+                        100,
+                        f"Retrieved {len(variables)} variables",
                     )
                     await ctx.info(f"Found {len(variables)} variables in {scope} scope")
 
@@ -648,7 +675,9 @@ async def km_variable_manager(
 
         else:
             raise ValidationError(
-                "operation", operation, f"Unknown operation: {operation}"
+                "operation",
+                operation,
+                f"Unknown operation: {operation}",
             )
 
     except ValidationError as e:

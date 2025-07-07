@@ -1,5 +1,4 @@
-"""
-Privacy Manager for Automation Intelligence with Comprehensive Data Protection.
+"""Privacy Manager for Automation Intelligence with Comprehensive Data Protection.
 
 This module provides advanced privacy protection capabilities including data anonymization,
 privacy policy compliance, secure data handling, and configurable privacy levels for
@@ -79,19 +78,19 @@ class PrivacyManager:
                 return validation_result
 
             logger.info(
-                "Privacy manager initialized with comprehensive data protection"
+                "Privacy manager initialized with comprehensive data protection",
             )
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Privacy manager initialization failed: {str(e)}")
+            logger.error(f"Privacy manager initialization failed: {e!s}")
             return Either.left(IntelligenceError.initialization_failed(str(e)))
 
     async def validate_privacy_compliance(
-        self, request: Any
+        self,
+        request: Any,
     ) -> Either[IntelligenceError, None]:
-        """
-        Validate intelligence request for comprehensive privacy compliance.
+        """Validate intelligence request for comprehensive privacy compliance.
 
         Performs multi-level privacy validation including operation authorization,
         data classification compliance, retention policy validation, and
@@ -107,6 +106,7 @@ class PrivacyManager:
             - Multi-level privacy policy enforcement
             - Regulatory compliance validation
             - Data classification and retention policy checks
+
         """
         try:
             # Check operation authorization for privacy level
@@ -136,23 +136,22 @@ class PrivacyManager:
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Privacy compliance validation failed: {str(e)}")
+            logger.error(f"Privacy compliance validation failed: {e!s}")
             self._log_privacy_validation(request, "failed", str(e))
             return Either.left(
                 IntelligenceError.privacy_violation(
-                    f"Privacy validation failed: {str(e)}"
-                )
+                    f"Privacy validation failed: {e!s}",
+                ),
             )
 
-    @require(lambda self, results: isinstance(results, dict))
+    @require(lambda __self, results: isinstance(results, dict))
     async def filter_results(
         self,
         results: dict[str, Any],
         privacy_level: PrivacyLevel,
         anonymize_data: bool = True,
     ) -> dict[str, Any]:
-        """
-        Filter and anonymize results based on privacy protection requirements.
+        """Filter and anonymize results based on privacy protection requirements.
 
         Applies comprehensive privacy filtering including sensitive data removal,
         field anonymization, data aggregation, and privacy-compliant result
@@ -170,6 +169,7 @@ class PrivacyManager:
             - Sensitive data detection and removal
             - Field-level anonymization and aggregation
             - Privacy-compliant result formatting
+
         """
         try:
             # Deep copy results to avoid modifying original
@@ -178,21 +178,22 @@ class PrivacyManager:
             # Apply privacy level specific filtering
             if privacy_level == PrivacyLevel.MAXIMUM:
                 filtered_results = await self._apply_strict_result_filtering(
-                    filtered_results
+                    filtered_results,
                 )
             elif privacy_level == PrivacyLevel.BALANCED:
                 filtered_results = await self._apply_balanced_result_filtering(
-                    filtered_results
+                    filtered_results,
                 )
             else:  # PERMISSIVE
                 filtered_results = await self._apply_permissive_result_filtering(
-                    filtered_results
+                    filtered_results,
                 )
 
             # Apply data anonymization if requested
             if anonymize_data:
                 filtered_results = await self._anonymize_result_data(
-                    filtered_results, privacy_level
+                    filtered_results,
+                    privacy_level,
                 )
 
             # Remove any remaining sensitive patterns
@@ -204,7 +205,7 @@ class PrivacyManager:
             return filtered_results
 
         except Exception as e:
-            logger.error(f"Result filtering failed: {str(e)}")
+            logger.error(f"Result filtering failed: {e!s}")
             # Return minimal safe results on filtering failure
             return {
                 "error": "Privacy filtering failed",
@@ -212,7 +213,8 @@ class PrivacyManager:
             }
 
     def _validate_operation_authorization(
-        self, request: Any
+        self,
+        request: Any,
     ) -> Either[IntelligenceError, None]:
         """Validate if operation is authorized for privacy level."""
         policy = self.privacy_policies.get(request.privacy_level, {})
@@ -221,14 +223,15 @@ class PrivacyManager:
         if request.operation.value not in authorized_operations:
             return Either.left(
                 IntelligenceError.privacy_violation(
-                    f"Operation {request.operation.value} not authorized for privacy level {request.privacy_level.value}"
-                )
+                    f"Operation {request.operation.value} not authorized for privacy level {request.privacy_level.value}",
+                ),
             )
 
         return Either.right(None)
 
     def _validate_data_scope_compliance(
-        self, request: Any
+        self,
+        request: Any,
     ) -> Either[IntelligenceError, None]:
         """Validate data scope compliance with privacy level."""
         policy = self.privacy_policies.get(request.privacy_level, {})
@@ -237,14 +240,15 @@ class PrivacyManager:
         if request.analysis_scope.value not in authorized_scopes:
             return Either.left(
                 IntelligenceError.privacy_violation(
-                    f"Analysis scope {request.analysis_scope.value} not authorized for privacy level {request.privacy_level.value}"
-                )
+                    f"Analysis scope {request.analysis_scope.value} not authorized for privacy level {request.privacy_level.value}",
+                ),
             )
 
         return Either.right(None)
 
     def _validate_retention_policy_compliance(
-        self, request: Any
+        self,
+        request: Any,
     ) -> Either[IntelligenceError, None]:
         """Validate request compliance with data retention policies."""
         policy = self.privacy_policies.get(request.privacy_level, {})
@@ -256,14 +260,15 @@ class PrivacyManager:
         if time_period_days > max_retention:
             return Either.left(
                 IntelligenceError.privacy_violation(
-                    f"Requested time period {request.time_period} exceeds maximum retention {max_retention} days"
-                )
+                    f"Requested time period {request.time_period} exceeds maximum retention {max_retention} days",
+                ),
             )
 
         return Either.right(None)
 
     def _validate_regulatory_compliance(
-        self, request: Any
+        self,
+        request: Any,
     ) -> Either[IntelligenceError, None]:
         """Validate regulatory compliance requirements."""
         # This would implement specific regulatory compliance checks
@@ -271,7 +276,8 @@ class PrivacyManager:
         return Either.right(None)
 
     async def _apply_strict_result_filtering(
-        self, results: dict[str, Any]
+        self,
+        results: dict[str, Any],
     ) -> dict[str, Any]:
         """Apply strict privacy filtering to results."""
         # Remove all potentially identifying information
@@ -292,7 +298,8 @@ class PrivacyManager:
                 if isinstance(value, dict):
                     # Recursively filter nested dictionaries
                     filtered[key] = await self._filter_nested_dict(
-                        value, privacy_level=PrivacyLevel.MAXIMUM
+                        value,
+                        privacy_level=PrivacyLevel.MAXIMUM,
                     )
                 elif isinstance(value, list):
                     # Filter lists and limit size
@@ -311,7 +318,8 @@ class PrivacyManager:
         return filtered
 
     async def _apply_balanced_result_filtering(
-        self, results: dict[str, Any]
+        self,
+        results: dict[str, Any],
     ) -> dict[str, Any]:
         """Apply balanced privacy filtering to results."""
         filtered = results.copy()
@@ -339,7 +347,8 @@ class PrivacyManager:
         return filtered
 
     async def _apply_permissive_result_filtering(
-        self, results: dict[str, Any]
+        self,
+        results: dict[str, Any],
     ) -> dict[str, Any]:
         """Apply permissive privacy filtering to results."""
         filtered = results.copy()
@@ -360,7 +369,9 @@ class PrivacyManager:
         return filtered
 
     async def _anonymize_result_data(
-        self, results: dict[str, Any], privacy_level: PrivacyLevel
+        self,
+        results: dict[str, Any],
+        privacy_level: PrivacyLevel,
     ) -> dict[str, Any]:
         """Apply anonymization to result data."""
         anonymized = {}
@@ -370,7 +381,8 @@ class PrivacyManager:
                 anonymized[key] = self._anonymize_string_value(value, privacy_level)
             elif isinstance(value, dict):
                 anonymized[key] = await self._anonymize_result_data(
-                    value, privacy_level
+                    value,
+                    privacy_level,
                 )
             elif isinstance(value, list):
                 anonymized[key] = [
@@ -396,18 +408,17 @@ class PrivacyManager:
             # Replace with generic placeholders
             if len(value) > 20:
                 return "[LONG_STRING]"
-            elif any(char.isdigit() for char in value):
+            if any(char.isdigit() for char in value):
                 return "[ID_STRING]"
-            else:
-                return value
+            return value
 
-        elif privacy_level == PrivacyLevel.BALANCED:
+        if privacy_level == PrivacyLevel.BALANCED:
             # Selective anonymization
             return self._selective_anonymization(value)
 
-        else:  # PERMISSIVE
-            # Minimal anonymization
-            return self._minimal_anonymization(value)
+        # PERMISSIVE
+        # Minimal anonymization
+        return self._minimal_anonymization(value)
 
     def _filter_sensitive_patterns(self, results: dict[str, Any]) -> dict[str, Any]:
         """Filter out sensitive patterns from results."""
@@ -419,17 +430,16 @@ class PrivacyManager:
             r"\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\b",  # Email
         ]
 
-        def clean_value(value):
+        def clean_value(value) -> bool:
             if isinstance(value, str):
                 for pattern in sensitive_patterns:
                     value = re.sub(pattern, "[REDACTED]", value, flags=re.IGNORECASE)
                 return value
-            elif isinstance(value, dict):
+            if isinstance(value, dict):
                 return {k: clean_value(v) for k, v in value.items()}
-            elif isinstance(value, list):
+            if isinstance(value, list):
                 return [clean_value(item) for item in value]
-            else:
-                return value
+            return value
 
         return clean_value(results)
 
@@ -460,7 +470,9 @@ class PrivacyManager:
         """Apply selective anonymization for balanced privacy."""
         # Replace emails
         value = re.sub(
-            r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", "[EMAIL]", value
+            r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
+            "[EMAIL]",
+            value,
         )
 
         # Replace phone numbers
@@ -475,30 +487,32 @@ class PrivacyManager:
         """Apply minimal anonymization for permissive privacy."""
         # Only replace explicit secrets
         value = re.sub(
-            r"(?i)(password|secret|token)[\\s:=]+[^\\s]+", "[REDACTED]", value
+            r"(?i)(password|secret|token)[\\s:=]+[^\\s]+",
+            "[REDACTED]",
+            value,
         )
         return value
 
     def _parse_time_period_to_days(self, time_period: str) -> int:
         """Parse time period string to number of days."""
-        if time_period == "1d":
-            return 1
-        elif time_period == "7d":
-            return 7
-        elif time_period == "30d":
-            return 30
-        elif time_period == "90d":
-            return 90
-        elif time_period == "all":
-            return 365  # Default max for "all"
-        else:
-            return 30  # Default
+        # SIM116 fix: Use dictionary instead of consecutive if statements
+        time_period_mapping = {
+            "1d": 1,
+            "7d": 7,
+            "30d": 30,
+            "90d": 90,
+            "all": 365,  # Default max for "all"
+        }
+
+        if time_period in time_period_mapping:
+            return time_period_mapping[time_period]
+        return 30  # Default
 
     def _generate_anonymization_keys(self) -> None:
         """Generate session-specific anonymization keys."""
         self.anonymization_keys = {
             "session": hashlib.sha256(
-                f"{datetime.now(UTC)}_{uuid.uuid4()}".encode()
+                f"{datetime.now(UTC)}_{uuid.uuid4()}".encode(),
             ).hexdigest()[:16],
             "user": hashlib.sha256(f"user_{uuid.uuid4()}".encode()).hexdigest()[:16],
             "pattern": hashlib.sha256(f"pattern_{uuid.uuid4()}".encode()).hexdigest()[
@@ -519,14 +533,17 @@ class PrivacyManager:
             if level not in self.privacy_policies:
                 return Either.left(
                     IntelligenceError.initialization_failed(
-                        f"Privacy policy not configured for level: {level.value}"
-                    )
+                        f"Privacy policy not configured for level: {level.value}",
+                    ),
                 )
 
         return Either.right(None)
 
     def _log_privacy_validation(
-        self, request: Any, status: str, error: str = None
+        self,
+        request: Any,
+        status: str,
+        error: str = None,
     ) -> None:
         """Log privacy validation for audit trail."""
         log_entry = {
@@ -648,7 +665,9 @@ class PrivacyManager:
 
     # Placeholder methods for advanced filtering
     async def _filter_nested_dict(
-        self, data: dict[str, Any], privacy_level: PrivacyLevel
+        self,
+        data: dict[str, Any],
+        privacy_level: PrivacyLevel,
     ) -> dict[str, Any]:
         """Filter nested dictionary data."""
         return data

@@ -1,5 +1,4 @@
-"""
-Autonomous agent management system for intelligent automation.
+"""Autonomous agent management system for intelligent automation.
 
 This package provides comprehensive agent lifecycle management, decision-making,
 learning systems, and resource optimization for self-managing automation agents.
@@ -17,29 +16,29 @@ from .resource_optimizer import (
 )
 
 __all__ = [
+    "ActionPlan",
     # Agent Management
     "AgentManager",
-    "AutonomousAgent",
-    "AgentState",
     "AgentMetrics",
-    # Decision Making
-    "DecisionEngine",
-    "DecisionContext",
-    "ActionPlan",
-    # Learning System
-    "LearningSystem",
-    "Pattern",
-    "LearningModel",
-    # Goal Management
-    "GoalManager",
-    "GoalDecomposition",
-    "GoalMetrics",
-    # Resource Optimization
-    "ResourceOptimizer",
-    "ResourceAllocation",
-    "ResourcePrediction",
+    "AgentState",
+    "AutonomousAgent",
     # Communication
     "CommunicationHub",
+    "DecisionContext",
+    # Decision Making
+    "DecisionEngine",
+    "GoalDecomposition",
+    # Goal Management
+    "GoalManager",
+    "GoalMetrics",
+    "LearningModel",
+    # Learning System
+    "LearningSystem",
     "Message",
     "MessageType",
+    "Pattern",
+    "ResourceAllocation",
+    # Resource Optimization
+    "ResourceOptimizer",
+    "ResourcePrediction",
 ]

@@ -1,5 +1,4 @@
-"""
-Cloud integration type definitions for multi-platform cloud automation.
+"""Cloud integration type definitions for multi-platform cloud automation.
 
 This module provides comprehensive type definitions for cloud providers, services,
 authentication methods, and resource management with enterprise-grade security
@@ -56,7 +55,7 @@ class CloudAuthMethod(Enum):
     MANAGED_IDENTITY = "managed_identity"
     ROLE_BASED = "role_based"
     OAUTH2 = "oauth2"
-    ACCESS_TOKEN = "access_token"
+    ACCESS_TOKEN = "access_token"  # noqa: S105 - Type identifier, not a secret
     CLIENT_CERTIFICATE = "client_certificate"
 
 
@@ -94,7 +93,10 @@ class CloudError:
     """Cloud operation error types with detailed context."""
 
     def __init__(
-        self, error_type: str, message: str, details: dict[str, Any] | None = None
+        self,
+        error_type: str,
+        message: str,
+        details: dict[str, Any] | None = None,
     ):
         self.error_type = error_type
         self.message = message
@@ -112,13 +114,15 @@ class CloudError:
     @classmethod
     def unsupported_provider(cls, provider: CloudProvider) -> CloudError:
         return cls(
-            "UNSUPPORTED_PROVIDER", f"Cloud provider {provider.value} not supported"
+            "UNSUPPORTED_PROVIDER",
+            f"Cloud provider {provider.value} not supported",
         )
 
     @classmethod
     def resource_creation_failed(cls, details: str) -> CloudError:
         return cls(
-            "RESOURCE_CREATION_FAILED", f"Cloud resource creation failed: {details}"
+            "RESOURCE_CREATION_FAILED",
+            f"Cloud resource creation failed: {details}",
         )
 
     @classmethod
@@ -150,7 +154,8 @@ class CloudError:
     @classmethod
     def orchestration_failed(cls, details: str) -> CloudError:
         return cls(
-            "ORCHESTRATION_FAILED", f"Multi-cloud orchestration failed: {details}"
+            "ORCHESTRATION_FAILED",
+            f"Multi-cloud orchestration failed: {details}",
         )
 
     @classmethod
@@ -174,7 +179,8 @@ class CloudError:
     @classmethod
     def operation_not_implemented(cls, operation: str) -> CloudError:
         return cls(
-            "OPERATION_NOT_IMPLEMENTED", f"Operation {operation} not yet implemented"
+            "OPERATION_NOT_IMPLEMENTED",
+            f"Operation {operation} not yet implemented",
         )
 
     @classmethod
@@ -244,7 +250,9 @@ class CloudCredentials:
         if self.expires_at is None and self.token:
             # Default 1 hour expiry for tokens
             object.__setattr__(
-                self, "expires_at", datetime.now(UTC) + timedelta(hours=1)
+                self,
+                "expires_at",
+                datetime.now(UTC) + timedelta(hours=1),
             )
 
     def _validate_credentials(self) -> bool:
@@ -252,16 +260,18 @@ class CloudCredentials:
         if self.provider == CloudProvider.AWS:
             if self.auth_method == CloudAuthMethod.API_KEY:
                 return bool(self.access_key and self.secret_key)
-            elif self.auth_method == CloudAuthMethod.ROLE_BASED:
+            if self.auth_method == CloudAuthMethod.ROLE_BASED:
                 return True  # Role-based auth uses IAM roles
         elif self.provider == CloudProvider.AZURE:
             if self.auth_method == CloudAuthMethod.SERVICE_ACCOUNT:
                 return bool(self.tenant_id and self.client_id and self.client_secret)
-            elif self.auth_method == CloudAuthMethod.MANAGED_IDENTITY:
+            if self.auth_method == CloudAuthMethod.MANAGED_IDENTITY:
                 return True  # Managed identity doesn't need explicit credentials
-        elif self.provider == CloudProvider.GOOGLE_CLOUD:
-            if self.auth_method == CloudAuthMethod.SERVICE_ACCOUNT:
-                return bool(self.service_account_file)
+        elif (
+            self.provider == CloudProvider.GOOGLE_CLOUD
+            and self.auth_method == CloudAuthMethod.SERVICE_ACCOUNT
+        ):
+            return bool(self.service_account_file)
 
         return True
 
@@ -381,7 +391,9 @@ class CloudOperation:
 
 
 def create_cloud_credentials(
-    provider: CloudProvider, auth_method: CloudAuthMethod, **kwargs
+    provider: CloudProvider,
+    auth_method: CloudAuthMethod,
+    **kwargs,
 ) -> CloudCredentials:
     """Factory function to create cloud credentials with validation."""
     return CloudCredentials(provider=provider, auth_method=auth_method, **kwargs)

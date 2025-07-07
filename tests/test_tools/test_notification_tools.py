@@ -1,5 +1,4 @@
-"""
-Test suite for notification system implementation (TASK_17).
+"""Test suite for notification system implementation (TASK_17).
 
 Comprehensive property-based testing for notification display, user interaction,
 and multi-channel notification management with security validation.
@@ -15,6 +14,9 @@ Testing Categories:
 - Error handling and graceful degradation scenarios
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import time
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -40,7 +42,7 @@ class TestNotificationManager:
     """Test core notification manager functionality."""
 
     @pytest.fixture
-    def mock_km_client(self):
+    def mock_km_client(self) -> Any:
         """Create mock KM client for testing."""
         client = Mock()
         client.execute_applescript = AsyncMock()
@@ -49,17 +51,17 @@ class TestNotificationManager:
         return client
 
     @pytest.fixture
-    def notification_manager(self, mock_km_client):
+    def notification_manager(self, mock_km_client) -> Any:
         """Create notification manager with mocked client."""
         return NotificationManager(mock_km_client)
 
-    def test_notification_type_enum_completeness(self):
+    def test_notification_type_enum_completeness(self) -> None:
         """Test that all notification types are properly defined."""
         expected_types = {"notification", "alert", "hud", "sound"}
         actual_types = {nt.value for nt in NotificationType}
         assert actual_types == expected_types
 
-    def test_notification_position_enum_completeness(self):
+    def test_notification_position_enum_completeness(self) -> None:
         """Test that all HUD positions are properly defined."""
         expected_positions = {
             "center",
@@ -75,13 +77,13 @@ class TestNotificationManager:
         actual_positions = {np.value for np in NotificationPosition}
         assert actual_positions == expected_positions
 
-    def test_notification_priority_enum_completeness(self):
+    def test_notification_priority_enum_completeness(self) -> None:
         """Test that all priority levels are properly defined."""
         expected_priorities = {"low", "normal", "high", "urgent"}
         actual_priorities = {np.value for np in NotificationPriority}
         assert actual_priorities == expected_priorities
 
-    def test_notification_spec_validation_title_length(self):
+    def test_notification_spec_validation_title_length(self) -> None:
         """Test title length validation in notification spec."""
         # Valid title
         spec = NotificationSpec(
@@ -107,7 +109,7 @@ class TestNotificationManager:
                 message="Valid message",
             )
 
-    def test_notification_spec_validation_message_length(self):
+    def test_notification_spec_validation_message_length(self) -> None:
         """Test message length validation in notification spec."""
         # Empty message should fail
         with pytest.raises(ValueError, match="Message must be 1-500 characters"):
@@ -125,7 +127,7 @@ class TestNotificationManager:
                 message="x" * 501,
             )
 
-    def test_notification_spec_validation_duration(self):
+    def test_notification_spec_validation_duration(self) -> None:
         """Test duration validation in notification spec."""
         # Too short duration
         with pytest.raises(ValueError, match="Duration must be 0.1-60.0 seconds"):
@@ -145,7 +147,7 @@ class TestNotificationManager:
                 duration=61.0,
             )
 
-    def test_notification_spec_validation_buttons(self):
+    def test_notification_spec_validation_buttons(self) -> None:
         """Test button validation in notification spec."""
         # Too many buttons
         with pytest.raises(ValueError, match="Maximum 3 buttons allowed"):
@@ -156,7 +158,7 @@ class TestNotificationManager:
                 buttons=["Button1", "Button2", "Button3", "Button4"],
             )
 
-    def test_notification_spec_sound_validation(self):
+    def test_notification_spec_sound_validation(self) -> None:
         """Test sound file validation."""
         # Valid system sound
         spec = NotificationSpec(
@@ -178,8 +180,10 @@ class TestNotificationManager:
 
     @pytest.mark.asyncio
     async def test_display_system_notification_success(
-        self, notification_manager, mock_km_client
-    ):
+        self,
+        notification_manager,
+        mock_km_client,
+    ) -> None:
         """Test successful system notification display."""
         mock_km_client.execute_applescript.return_value = Mock()
         mock_km_client.execute_applescript.return_value.is_left.return_value = False
@@ -203,8 +207,10 @@ class TestNotificationManager:
 
     @pytest.mark.asyncio
     async def test_display_alert_dialog_success(
-        self, notification_manager, mock_km_client
-    ):
+        self,
+        notification_manager,
+        mock_km_client,
+    ) -> None:
         """Test successful alert dialog display."""
         mock_km_client.execute_applescript.return_value = Mock()
         mock_km_client.execute_applescript.return_value.is_left.return_value = False
@@ -228,7 +234,7 @@ class TestNotificationManager:
         assert notification_result.get_button_clicked() == "OK"
 
     @pytest.mark.asyncio
-    async def test_display_hud_success(self, notification_manager, mock_km_client):
+    async def test_display_hud_success(self, notification_manager, mock_km_client) -> None:
         """Test successful HUD display."""
         mock_km_client.display_hud_text.return_value = Mock()
         mock_km_client.display_hud_text.return_value.is_left.return_value = False
@@ -253,8 +259,10 @@ class TestNotificationManager:
 
     @pytest.mark.asyncio
     async def test_display_sound_notification_success(
-        self, notification_manager, mock_km_client
-    ):
+        self,
+        notification_manager,
+        mock_km_client,
+    ) -> None:
         """Test successful sound notification."""
         mock_km_client.play_sound.return_value = Mock()
         mock_km_client.play_sound.return_value.is_left.return_value = False
@@ -274,16 +282,16 @@ class TestNotificationManager:
         assert notification_result.success
         assert "sound_file" in notification_result.interaction_data
 
-    def test_content_validation_security(self, notification_manager):
+    def test_content_validation_security(self, notification_manager) -> None:
         """Test content validation for security threats."""
         # Script injection attempt
         assert not notification_manager._validate_notification_content(
-            '<script>alert("hack")</script>'
+            '<script>alert("hack")</script>',
         )
 
         # JavaScript protocol
         assert not notification_manager._validate_notification_content(
-            'javascript:alert("hack")'
+            'javascript:alert("hack")',
         )
 
         # Command substitution
@@ -291,15 +299,15 @@ class TestNotificationManager:
 
         # Eval attempt
         assert not notification_manager._validate_notification_content(
-            "eval(malicious_code)"
+            "eval(malicious_code)",
         )
 
         # Valid content
         assert notification_manager._validate_notification_content(
-            "This is a safe notification message"
+            "This is a safe notification message",
         )
 
-    def test_applescript_string_escaping(self, notification_manager):
+    def test_applescript_string_escaping(self, notification_manager) -> None:
         """Test AppleScript string escaping for safety."""
         # Test quote escaping
         escaped = notification_manager._escape_applescript_string('Test "quoted" text')
@@ -311,11 +319,11 @@ class TestNotificationManager:
 
         # Test combined escaping
         escaped = notification_manager._escape_applescript_string(
-            'Test "path\\file" text'
+            'Test "path\\file" text',
         )
         assert escaped == 'Test \\"path\\\\file\\" text'
 
-    def test_hud_position_mapping(self, notification_manager):
+    def test_hud_position_mapping(self, notification_manager) -> None:
         """Test HUD position enum to KM value mapping."""
         position_tests = [
             (NotificationPosition.CENTER, "Center"),
@@ -327,7 +335,7 @@ class TestNotificationManager:
             actual_value = notification_manager._get_hud_position_value(position_enum)
             assert actual_value == expected_value
 
-    def test_active_notification_tracking(self, notification_manager):
+    def test_active_notification_tracking(self, notification_manager) -> None:
         """Test active notification state management."""
         # Initially empty
         assert len(notification_manager.get_active_notifications()) == 0
@@ -358,7 +366,7 @@ class TestNotificationManager:
         success = notification_manager.clear_notification("non_existent")
         assert not success
 
-    def test_clear_all_notifications(self, notification_manager):
+    def test_clear_all_notifications(self, notification_manager) -> None:
         """Test clearing all active notifications."""
         # Add multiple mock notifications
         for i in range(3):
@@ -385,10 +393,10 @@ class TestNotificationMCPTools:
     """Test MCP tool implementations for notifications."""
 
     @pytest.mark.asyncio
-    async def test_km_notifications_system_notification_success(self):
+    async def test_km_notifications_system_notification_success(self) -> None:
         """Test km_notifications tool with system notification."""
         with patch(
-            "src.server.tools.notification_tools.get_notification_manager"
+            "src.server.tools.notification_tools.get_notification_manager",
         ) as mock_get_manager:
             mock_manager = Mock()
             mock_result = Mock()
@@ -419,10 +427,10 @@ class TestNotificationMCPTools:
             assert result["data"]["sound_played"] is True
 
     @pytest.mark.asyncio
-    async def test_km_notifications_alert_with_buttons(self):
+    async def test_km_notifications_alert_with_buttons(self) -> None:
         """Test km_notifications tool with alert dialog and buttons."""
         with patch(
-            "src.server.tools.notification_tools.get_notification_manager"
+            "src.server.tools.notification_tools.get_notification_manager",
         ) as mock_get_manager:
             mock_manager = Mock()
             mock_result = Mock()
@@ -454,10 +462,10 @@ class TestNotificationMCPTools:
             assert result["data"]["dismissed_by_user"] is True
 
     @pytest.mark.asyncio
-    async def test_km_notifications_hud_with_position(self):
+    async def test_km_notifications_hud_with_position(self) -> None:
         """Test km_notifications tool with HUD display and custom position."""
         with patch(
-            "src.server.tools.notification_tools.get_notification_manager"
+            "src.server.tools.notification_tools.get_notification_manager",
         ) as mock_get_manager:
             mock_manager = Mock()
             mock_result = Mock()
@@ -488,11 +496,13 @@ class TestNotificationMCPTools:
             assert result["data"]["position"] == "top_right"
 
     @pytest.mark.asyncio
-    async def test_km_notifications_validation_errors(self):
+    async def test_km_notifications_validation_errors(self) -> None:
         """Test km_notifications tool input validation."""
         # Invalid notification type
         result = await km_notifications(
-            notification_type="invalid_type", title="Test", message="Test message"
+            notification_type="invalid_type",
+            title="Test",
+            message="Test message",
         )
 
         assert result["success"] is False
@@ -521,10 +531,10 @@ class TestNotificationMCPTools:
         assert "VALIDATION_ERROR" in result["error"]["code"]
 
     @pytest.mark.asyncio
-    async def test_km_notification_status_specific_notification(self):
+    async def test_km_notification_status_specific_notification(self) -> None:
         """Test km_notification_status tool for specific notification."""
         with patch(
-            "src.server.tools.notification_tools.get_notification_manager"
+            "src.server.tools.notification_tools.get_notification_manager",
         ) as mock_get_manager:
             mock_manager = Mock()
             test_spec = NotificationSpec(
@@ -538,7 +548,7 @@ class TestNotificationMCPTools:
                     "spec": test_spec,
                     "start_time": time.time(),
                     "type": NotificationType.NOTIFICATION,
-                }
+                },
             }
             mock_get_manager.return_value = mock_manager
 
@@ -552,10 +562,10 @@ class TestNotificationMCPTools:
             assert result["data"]["active"] is True
 
     @pytest.mark.asyncio
-    async def test_km_notification_status_all_notifications(self):
+    async def test_km_notification_status_all_notifications(self) -> None:
         """Test km_notification_status tool for all active notifications."""
         with patch(
-            "src.server.tools.notification_tools.get_notification_manager"
+            "src.server.tools.notification_tools.get_notification_manager",
         ) as mock_get_manager:
             mock_manager = Mock()
             test_specs = [
@@ -584,10 +594,10 @@ class TestNotificationMCPTools:
             assert len(result["data"]["notifications"]) == 3
 
     @pytest.mark.asyncio
-    async def test_km_notification_status_not_found(self):
+    async def test_km_notification_status_not_found(self) -> None:
         """Test km_notification_status tool with non-existent notification."""
         with patch(
-            "src.server.tools.notification_tools.get_notification_manager"
+            "src.server.tools.notification_tools.get_notification_manager",
         ) as mock_get_manager:
             mock_manager = Mock()
             mock_manager.get_active_notifications.return_value = {}
@@ -602,10 +612,10 @@ class TestNotificationMCPTools:
             )
 
     @pytest.mark.asyncio
-    async def test_km_dismiss_notifications_specific(self):
+    async def test_km_dismiss_notifications_specific(self) -> None:
         """Test km_dismiss_notifications tool for specific notification."""
         with patch(
-            "src.server.tools.notification_tools.get_notification_manager"
+            "src.server.tools.notification_tools.get_notification_manager",
         ) as mock_get_manager:
             mock_manager = Mock()
             mock_manager.clear_notification.return_value = True
@@ -618,10 +628,10 @@ class TestNotificationMCPTools:
             assert result["data"]["dismissed"] is True
 
     @pytest.mark.asyncio
-    async def test_km_dismiss_notifications_all(self):
+    async def test_km_dismiss_notifications_all(self) -> None:
         """Test km_dismiss_notifications tool for all notifications."""
         with patch(
-            "src.server.tools.notification_tools.get_notification_manager"
+            "src.server.tools.notification_tools.get_notification_manager",
         ) as mock_get_manager:
             mock_manager = Mock()
             mock_manager.clear_all_notifications.return_value = 5
@@ -638,21 +648,21 @@ class TestNotificationPropertyBasedTesting:
     """Property-based testing for notification system."""
 
     @composite
-    def notification_spec_strategy(draw):
+    def notification_spec_strategy(draw) -> Any:
         """Generate valid notification specifications."""
         notification_type = draw(st.sampled_from(list(NotificationType)))
         title = draw(st.text(min_size=1, max_size=100).filter(lambda x: x.strip()))
         message = draw(st.text(min_size=1, max_size=500).filter(lambda x: x.strip()))
         duration = draw(st.one_of(st.none(), st.floats(min_value=0.1, max_value=60.0)))
         sound = draw(
-            st.one_of(st.none(), st.sampled_from(["default", "glass", "hero", "ping"]))
+            st.one_of(st.none(), st.sampled_from(["default", "glass", "hero", "ping"])),
         )
         buttons = draw(
             st.lists(
                 st.text(min_size=1, max_size=20).filter(lambda x: x.strip()),
                 min_size=0,
                 max_size=3,
-            )
+            ),
         )
         position = draw(st.sampled_from(list(NotificationPosition)))
         priority = draw(st.sampled_from(list(NotificationPriority)))
@@ -672,7 +682,7 @@ class TestNotificationPropertyBasedTesting:
 
     @given(notification_spec_strategy())
     @settings(max_examples=50)
-    def test_notification_spec_creation_properties(self, spec):
+    def test_notification_spec_creation_properties(self, spec) -> None:
         """Property: Valid specifications should always be createable."""
         # If we get here, the spec was created successfully
         assert spec.title is not None
@@ -691,7 +701,7 @@ class TestNotificationPropertyBasedTesting:
 
     @given(st.text(min_size=1, max_size=1000))
     @settings(max_examples=100)
-    def test_content_validation_properties(self, content):
+    def test_content_validation_properties(self, content) -> None:
         """Property: Content validation should be consistent and safe."""
         from src.notifications.notification_manager import NotificationManager
 
@@ -719,7 +729,7 @@ class TestNotificationPropertyBasedTesting:
 
     @given(st.text(max_size=200))
     @settings(max_examples=50)
-    def test_applescript_escaping_properties(self, text):
+    def test_applescript_escaping_properties(self, text) -> None:
         """Property: AppleScript escaping should be safe and reversible."""
         from src.notifications.notification_manager import NotificationManager
 

@@ -1,5 +1,4 @@
-"""
-Creation module types and enums.
+"""Creation module types and enums.
 
 Type definitions for macro creation system to avoid circular imports.
 """

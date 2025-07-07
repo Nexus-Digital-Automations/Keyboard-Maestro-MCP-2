@@ -1,5 +1,4 @@
-"""
-Comprehensive enterprise synchronization manager.
+"""Comprehensive enterprise synchronization manager.
 
 This module provides the main enterprise sync coordination including LDAP, SSO,
 database, and API connectors with audit logging, security validation, and
@@ -42,12 +41,14 @@ class EnterpriseDatabaseConnector:
         self.connection_pools: dict[str, Any] = {}
 
     async def connect(
-        self, connection: EnterpriseConnection, credentials: EnterpriseCredentials
+        self,
+        connection: EnterpriseConnection,
+        credentials: EnterpriseCredentials,
     ) -> Either[EnterpriseError, str]:
         """Connect to enterprise database with security validation."""
         try:
             logger.info(
-                f"Connecting to enterprise database: {connection.host}:{connection.port}"
+                f"Connecting to enterprise database: {connection.host}:{connection.port}",
             )
 
             # Validate SSL requirement for database connections
@@ -70,11 +71,13 @@ class EnterpriseDatabaseConnector:
             return Either.right(connection.connection_id)
 
         except Exception as e:
-            logger.error(f"Database connection failed: {str(e)}")
+            logger.error(f"Database connection failed: {e!s}")
             return Either.left(EnterpriseError.connection_failed(str(e)))
 
     async def sync_data(
-        self, connection_id: str, sync_options: dict[str, Any]
+        self,
+        connection_id: str,
+        sync_options: dict[str, Any],
     ) -> Either[EnterpriseError, SyncResult]:
         """Sync data from enterprise database."""
         try:
@@ -107,11 +110,14 @@ class EnterpriseDatabaseConnector:
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Database sync failed: {str(e)}")
+            logger.error(f"Database sync failed: {e!s}")
             return Either.left(EnterpriseError.sync_failed(str(e)))
 
     async def execute_query(
-        self, connection_id: str, query: str, parameters: dict[str, Any] = None
+        self,
+        connection_id: str,
+        query: str,
+        parameters: dict[str, Any] = None,
     ) -> Either[EnterpriseError, list[dict[str, Any]]]:
         """Execute query on enterprise database with parameter validation."""
         try:
@@ -122,8 +128,9 @@ class EnterpriseDatabaseConnector:
             if not self._validate_query_security(query):
                 return Either.left(
                     EnterpriseError(
-                        "SQL_INJECTION_DETECTED", "Dangerous SQL pattern detected"
-                    )
+                        "SQL_INJECTION_DETECTED",
+                        "Dangerous SQL pattern detected",
+                    ),
                 )
 
             # Simulate query execution
@@ -139,7 +146,7 @@ class EnterpriseDatabaseConnector:
             return Either.right(results)
 
         except Exception as e:
-            logger.error(f"Database query failed: {str(e)}")
+            logger.error(f"Database query failed: {e!s}")
             return Either.left(EnterpriseError("QUERY_FAILED", str(e)))
 
     def _validate_query_security(self, query: str) -> bool:
@@ -174,12 +181,14 @@ class EnterpriseAPIConnector:
         self.http_clients: dict[str, Any] = {}
 
     async def connect(
-        self, connection: EnterpriseConnection, credentials: EnterpriseCredentials
+        self,
+        connection: EnterpriseConnection,
+        credentials: EnterpriseCredentials,
     ) -> Either[EnterpriseError, str]:
         """Connect to enterprise API with authentication."""
         try:
             logger.info(
-                f"Connecting to enterprise API: {connection.host}:{connection.port}"
+                f"Connecting to enterprise API: {connection.host}:{connection.port}",
             )
 
             # Validate HTTPS requirement for API connections
@@ -214,11 +223,13 @@ class EnterpriseAPIConnector:
             return Either.right(connection.connection_id)
 
         except Exception as e:
-            logger.error(f"API connection failed: {str(e)}")
+            logger.error(f"API connection failed: {e!s}")
             return Either.left(EnterpriseError.connection_failed(str(e)))
 
     async def sync_data(
-        self, connection_id: str, sync_options: dict[str, Any]
+        self,
+        connection_id: str,
+        sync_options: dict[str, Any],
     ) -> Either[EnterpriseError, SyncResult]:
         """Sync data from enterprise API."""
         try:
@@ -256,7 +267,7 @@ class EnterpriseAPIConnector:
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"API sync failed: {str(e)}")
+            logger.error(f"API sync failed: {e!s}")
             return Either.left(EnterpriseError.sync_failed(str(e)))
 
     async def make_request(
@@ -292,7 +303,7 @@ class EnterpriseAPIConnector:
             return Either.right(response)
 
         except Exception as e:
-            logger.error(f"API request failed: {str(e)}")
+            logger.error(f"API request failed: {e!s}")
             return Either.left(EnterpriseError("API_REQUEST_FAILED", str(e)))
 
 
@@ -325,13 +336,15 @@ class EnterpriseSyncManager:
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Enterprise sync initialization failed: {str(e)}")
+            logger.error(f"Enterprise sync initialization failed: {e!s}")
             return Either.left(EnterpriseError.initialization_failed(str(e)))
 
-    @require(lambda self, connection: isinstance(connection, EnterpriseConnection))
-    @require(lambda self, credentials: isinstance(credentials, EnterpriseCredentials))
+    @require(lambda __self, connection: isinstance(connection, EnterpriseConnection))
+    @require(lambda __self, credentials: isinstance(credentials, EnterpriseCredentials))
     async def establish_connection(
-        self, connection: EnterpriseConnection, credentials: EnterpriseCredentials
+        self,
+        connection: EnterpriseConnection,
+        credentials: EnterpriseCredentials,
     ) -> Either[EnterpriseError, str]:
         """Establish enterprise connection with comprehensive validation and audit logging."""
         try:
@@ -339,14 +352,14 @@ class EnterpriseSyncManager:
 
             # Validate connection security
             security_check = self.security_validator.validate_connection_security(
-                connection
+                connection,
             )
             if security_check.is_left():
                 return security_check
 
             # Validate credentials security
             creds_check = self.security_validator.validate_credentials_security(
-                credentials
+                credentials,
             )
             if creds_check.is_left():
                 return creds_check
@@ -385,8 +398,8 @@ class EnterpriseSyncManager:
             else:
                 return Either.left(
                     EnterpriseError.unsupported_integration_type(
-                        connection.integration_type
-                    )
+                        connection.integration_type,
+                    ),
                 )
 
             connection_time = (datetime.now(UTC) - start_time).total_seconds()
@@ -413,21 +426,23 @@ class EnterpriseSyncManager:
 
             if result.is_right():
                 logger.info(
-                    f"Enterprise connection established: {connection.connection_id} ({connection_time:.2f}s)"
+                    f"Enterprise connection established: {connection.connection_id} ({connection_time:.2f}s)",
                 )
 
             return result
 
         except Exception as e:
-            logger.error(f"Enterprise connection establishment failed: {str(e)}")
+            logger.error(f"Enterprise connection establishment failed: {e!s}")
             return Either.left(EnterpriseError.connection_establishment_failed(str(e)))
 
     @require(
-        lambda self, connection_id: isinstance(connection_id, str)
-        and len(connection_id) > 0
+        lambda _self, connection_id: isinstance(connection_id, str)
+        and len(connection_id) > 0,
     )
     async def sync_enterprise_data(
-        self, connection_id: str, sync_options: dict[str, Any]
+        self,
+        connection_id: str,
+        sync_options: dict[str, Any],
     ) -> Either[EnterpriseError, SyncResult]:
         """Synchronize data from enterprise system with comprehensive tracking."""
         try:
@@ -445,7 +460,7 @@ class EnterpriseSyncManager:
                     EnterpriseError(
                         "INVALID_INTEGRATION_TYPE",
                         f"Unknown integration type: {integration_type_str}",
-                    )
+                    ),
                 )
 
             # Audit sync start
@@ -466,11 +481,13 @@ class EnterpriseSyncManager:
                 IntegrationType.ACTIVE_DIRECTORY,
             ]:
                 result = await self.ldap_connector.sync_users(
-                    connection_id, sync_options
+                    connection_id,
+                    sync_options,
                 )
             elif integration_type == IntegrationType.ENTERPRISE_DATABASE:
                 result = await self.database_connector.sync_data(
-                    connection_id, sync_options
+                    connection_id,
+                    sync_options,
                 )
             elif integration_type in [
                 IntegrationType.REST_API,
@@ -479,7 +496,7 @@ class EnterpriseSyncManager:
                 result = await self.api_connector.sync_data(connection_id, sync_options)
             else:
                 return Either.left(
-                    EnterpriseError.unsupported_sync_type(integration_type)
+                    EnterpriseError.unsupported_sync_type(integration_type),
                 )
 
             # Update statistics
@@ -507,11 +524,13 @@ class EnterpriseSyncManager:
             return result
 
         except Exception as e:
-            logger.error(f"Enterprise sync operation failed: {str(e)}")
+            logger.error(f"Enterprise sync operation failed: {e!s}")
             return Either.left(EnterpriseError.sync_operation_failed(str(e)))
 
     async def query_enterprise_data(
-        self, connection_id: str, query_options: dict[str, Any]
+        self,
+        connection_id: str,
+        query_options: dict[str, Any],
     ) -> Either[EnterpriseError, list[dict[str, Any]]]:
         """Query data from enterprise systems."""
         try:
@@ -532,11 +551,15 @@ class EnterpriseSyncManager:
 
                 if query_options.get("query_type") == "groups":
                     result = await self.ldap_connector.search_groups(
-                        connection_id, search_base, search_filter
+                        connection_id,
+                        search_base,
+                        search_filter,
                     )
                 else:
                     users_result = await self.ldap_connector.search_users(
-                        connection_id, search_base, search_filter
+                        connection_id,
+                        search_base,
+                        search_filter,
                     )
                     if users_result.is_left():
                         return users_result
@@ -553,14 +576,16 @@ class EnterpriseSyncManager:
                                 "is_active": user.is_active,
                             }
                             for user in users
-                        ]
+                        ],
                     )
 
             elif integration_type == IntegrationType.ENTERPRISE_DATABASE:
                 query = query_options.get("query", "SELECT * FROM users LIMIT 100")
                 parameters = query_options.get("parameters", {})
                 result = await self.database_connector.execute_query(
-                    connection_id, query, parameters
+                    connection_id,
+                    query,
+                    parameters,
                 )
 
             elif integration_type in [
@@ -570,7 +595,9 @@ class EnterpriseSyncManager:
                 endpoint = query_options.get("endpoint", "/api/data")
                 method = query_options.get("method", "GET")
                 api_result = await self.api_connector.make_request(
-                    connection_id, endpoint, method
+                    connection_id,
+                    endpoint,
+                    method,
                 )
                 if api_result.is_left():
                     return api_result
@@ -581,13 +608,13 @@ class EnterpriseSyncManager:
 
             else:
                 return Either.left(
-                    EnterpriseError.unsupported_integration_type(integration_type)
+                    EnterpriseError.unsupported_integration_type(integration_type),
                 )
 
             return result
 
         except Exception as e:
-            logger.error(f"Enterprise query failed: {str(e)}")
+            logger.error(f"Enterprise query failed: {e!s}")
             return Either.left(EnterpriseError("QUERY_FAILED", str(e)))
 
     def get_system_status(self) -> dict[str, Any]:
@@ -631,5 +658,5 @@ class EnterpriseSyncManager:
             }
 
         except Exception as e:
-            logger.error(f"Error getting system status: {str(e)}")
+            logger.error(f"Error getting system status: {e!s}")
             return {"status": "error", "error": str(e)}

@@ -1,5 +1,4 @@
-"""
-Enhanced Macro Metadata Extraction and Analysis
+"""Enhanced Macro Metadata Extraction and Analysis.
 
 Provides comprehensive macro analysis including trigger categorization,
 action complexity scoring, usage patterns, and relationship mapping.
@@ -134,13 +133,13 @@ class MacroMetadataExtractor:
         self._metadata_cache: dict[MacroId, EnhancedMacroMetadata] = {}
         self._cache_ttl = timedelta(minutes=30)
 
-    @require(lambda self, macro_id: macro_id and len(str(macro_id)) > 0)
+    @require(lambda __self, macro_id: macro_id and len(str(macro_id)) > 0)
     @ensure(lambda result: result.is_right() or isinstance(result.get_left(), KMError))
     async def extract_enhanced_metadata(
-        self, macro_id: MacroId
+        self,
+        macro_id: MacroId,
     ) -> Either[KMError, EnhancedMacroMetadata]:
         """Extract comprehensive metadata for a single macro."""
-
         # Check cache first
         cached_metadata = self._get_cached_metadata(macro_id)
         if cached_metadata:
@@ -195,7 +194,8 @@ class MacroMetadataExtractor:
         return Either.right(enhanced_metadata)
 
     def _analyze_triggers(
-        self, trigger_data: list[dict[str, Any]]
+        self,
+        trigger_data: list[dict[str, Any]],
     ) -> list[TriggerInfo]:
         """Analyze and categorize macro triggers."""
         triggers = []
@@ -281,7 +281,8 @@ class MacroMetadataExtractor:
 
             # Estimate execution duration
             estimated_duration = self._estimate_action_duration(
-                action_type, action.get("parameters", {})
+                action_type,
+                action.get("parameters", {}),
             )
 
             action_info = ActionInfo(
@@ -296,7 +297,9 @@ class MacroMetadataExtractor:
         return actions
 
     def _assess_complexity(
-        self, triggers: list[TriggerInfo], actions: list[ActionInfo]
+        self,
+        triggers: list[TriggerInfo],
+        actions: list[ActionInfo],
     ) -> ComplexityLevel:
         """Assess overall macro complexity."""
         action_count = len(actions)
@@ -320,12 +323,11 @@ class MacroMetadataExtractor:
 
         if complexity_score <= 5:
             return ComplexityLevel.SIMPLE
-        elif complexity_score <= 15:
+        if complexity_score <= 15:
             return ComplexityLevel.MODERATE
-        elif complexity_score <= 35:
+        if complexity_score <= 35:
             return ComplexityLevel.COMPLEX
-        else:
-            return ComplexityLevel.ADVANCED
+        return ComplexityLevel.ADVANCED
 
     def _determine_primary_function(self, actions: list[ActionInfo]) -> ActionCategory:
         """Determine the primary function of the macro."""
@@ -364,13 +366,13 @@ class MacroMetadataExtractor:
         # Check for complex macros
         if complexity == ComplexityLevel.ADVANCED:
             suggestions.append(
-                "High complexity - consider breaking into smaller macros"
+                "High complexity - consider breaking into smaller macros",
             )
 
         # Check for performance issues
         if usage_stats.success_rate < 0.8:
             suggestions.append(
-                "Low success rate - review error handling and conditions"
+                "Low success rate - review error handling and conditions",
             )
 
         # Check for script-heavy macros
@@ -379,7 +381,7 @@ class MacroMetadataExtractor:
         )
         if script_count > len(actions) * 0.5:
             suggestions.append(
-                "Script-heavy - consider native KM actions for better reliability"
+                "Script-heavy - consider native KM actions for better reliability",
             )
 
         # Check for trigger conflicts
@@ -390,7 +392,8 @@ class MacroMetadataExtractor:
         return suggestions
 
     async def _get_detailed_macro_info(
-        self, macro_id: MacroId
+        self,
+        macro_id: MacroId,
     ) -> Either[KMError, dict[str, Any]]:
         """Get detailed macro information from Keyboard Maestro."""
         # Try to get actual macro data from KM client first
@@ -418,30 +421,31 @@ class MacroMetadataExtractor:
                                     "hotkey": {"key": "Unknown", "modifiers": []},
                                     "enabled": True,
                                     "conditions": [],
-                                }
+                                },
                             ],
                             "actions": [
                                 {
                                     "type": "unknown",
                                     "description": f"Actions for {macro.get('name', 'macro')}",
                                     "parameters": {},
-                                }
+                                },
                             ],
-                        }
+                        },
                     )
 
             # Macro not found
             return Either.left(
-                KMError.not_found(f"Macro with ID '{macro_id}' not found")
+                KMError.not_found(f"Macro with ID '{macro_id}' not found"),
             )
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to get macro details: {str(e)}")
+                KMError.execution_error(f"Failed to get macro details: {e!s}"),
             )
 
     async def _extract_usage_statistics(
-        self, macro_id: MacroId
+        self,
+        macro_id: MacroId,
     ) -> Either[KMError, UsageStatistics]:
         """Extract usage statistics for a macro."""
         # Mock implementation - would integrate with KM usage data
@@ -454,11 +458,13 @@ class MacroMetadataExtractor:
                 average_execution_time=Duration.from_seconds(1.2),
                 last_30_days_executions=5,
                 success_rate=0.9,
-            )
+            ),
         )
 
     async def _analyze_relationships(
-        self, macro_id: MacroId, macro_details: dict[str, Any]
+        self,
+        macro_id: MacroId,
+        macro_details: dict[str, Any],
     ) -> Either[KMError, MacroRelationships]:
         """Analyze macro relationships and dependencies."""
         # Mock implementation - would analyze macro actions for calls to other macros
@@ -482,7 +488,9 @@ class MacroMetadataExtractor:
         return f"{modifier_str}{key}"
 
     def _estimate_action_duration(
-        self, action_type: str, parameters: dict[str, Any]
+        self,
+        action_type: str,
+        parameters: dict[str, Any],
     ) -> Duration | None:
         """Estimate action execution duration."""
         # Basic duration estimates based on action type
@@ -513,6 +521,6 @@ class MacroMetadataExtractor:
 
         return cached_metadata
 
-    def _cache_metadata(self, macro_id: MacroId, metadata: EnhancedMacroMetadata):
+    def _cache_metadata(self, macro_id: MacroId, metadata: EnhancedMacroMetadata) -> None:
         """Cache metadata for future use."""
         self._metadata_cache[macro_id] = metadata

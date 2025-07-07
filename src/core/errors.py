@@ -1,5 +1,4 @@
-"""
-Comprehensive error hierarchy for the Keyboard Maestro MCP macro engine.
+"""Comprehensive error hierarchy for the Keyboard Maestro MCP macro engine.
 
 This module defines a structured error system with clear categorization,
 detailed error information, and security-conscious error handling.
@@ -123,7 +122,10 @@ class SecurityViolationError(MacroEngineError):
     """Raised when security boundaries are violated."""
 
     def __init__(
-        self, violation_type: str, details: str, context: ErrorContext | None = None
+        self,
+        violation_type: str,
+        details: str,
+        context: ErrorContext | None = None,
     ):
         message = f"Security violation: {violation_type} - {details}"
         recovery = "Review security permissions and input validation"
@@ -205,7 +207,10 @@ class ResourceNotFoundError(MacroEngineError):
     """Raised when required resources are not available."""
 
     def __init__(
-        self, resource_type: str, resource_id: str, context: ErrorContext | None = None
+        self,
+        resource_type: str,
+        resource_id: str,
+        context: ErrorContext | None = None,
     ):
         message = f"{resource_type} not found: {resource_id}"
         recovery = (
@@ -226,7 +231,10 @@ class ContractViolationError(MacroEngineError):
     """Raised when design-by-contract assertions fail."""
 
     def __init__(
-        self, contract_type: str, condition: str, context: ErrorContext | None = None
+        self,
+        contract_type: str,
+        condition: str,
+        context: ErrorContext | None = None,
     ):
         message = f"{contract_type} violated: {condition}"
         recovery = f"Ensure {contract_type.lower()} condition is met: {condition}"
@@ -266,7 +274,10 @@ class SecurityError(MacroEngineError):
     """Raised for security-related errors and violations."""
 
     def __init__(
-        self, security_code: str, message: str, context: ErrorContext | None = None
+        self,
+        security_code: str,
+        message: str,
+        context: ErrorContext | None = None,
     ):
         recovery = "Review security policies and input validation"
         super().__init__(
@@ -284,7 +295,10 @@ class IntegrationError(MacroEngineError):
     """Raised for integration-related errors with external systems."""
 
     def __init__(
-        self, integration_code: str, message: str, context: ErrorContext | None = None
+        self,
+        integration_code: str,
+        message: str,
+        context: ErrorContext | None = None,
     ):
         recovery = "Check external system connectivity and configuration"
         super().__init__(
@@ -301,7 +315,10 @@ class DataError(MacroEngineError):
     """Raised for data processing and management errors."""
 
     def __init__(
-        self, data_operation: str, message: str, context: ErrorContext | None = None
+        self,
+        data_operation: str,
+        message: str,
+        context: ErrorContext | None = None,
     ):
         recovery = "Verify data format, schema, and operation parameters"
         super().__init__(
@@ -322,7 +339,10 @@ class CommunicationError(MacroEngineError):
     """Raised for communication errors with external systems."""
 
     def __init__(
-        self, endpoint: str, message: str, context: ErrorContext | None = None
+        self,
+        endpoint: str,
+        message: str,
+        context: ErrorContext | None = None,
     ):
         recovery = "Check network connectivity and endpoint availability"
         super().__init__(
@@ -336,16 +356,22 @@ class CommunicationError(MacroEngineError):
 
     @classmethod
     def email_send_failed(
-        cls, reason: str, context: ErrorContext | None = None
+        cls,
+        reason: str,
+        context: ErrorContext | None = None,
     ) -> CommunicationError:
         """Create an email send failure error."""
         return cls(
-            endpoint="email", message=f"Email send failed: {reason}", context=context
+            endpoint="email",
+            message=f"Email send failed: {reason}",
+            context=context,
         )
 
     @classmethod
     def execution_error(
-        cls, reason: str, context: ErrorContext | None = None
+        cls,
+        reason: str,
+        context: ErrorContext | None = None,
     ) -> CommunicationError:
         """Create a communication execution error."""
         return cls(
@@ -359,7 +385,10 @@ class ConfigurationError(MacroEngineError):
     """Raised for configuration-related errors."""
 
     def __init__(
-        self, config_item: str, message: str, context: ErrorContext | None = None
+        self,
+        config_item: str,
+        message: str,
+        context: ErrorContext | None = None,
     ):
         recovery = f"Review configuration for {config_item}"
         super().__init__(
@@ -376,7 +405,10 @@ class WindowError(MacroEngineError):
     """Raised for window management and visual automation errors."""
 
     def __init__(
-        self, window_operation: str, message: str, context: ErrorContext | None = None
+        self,
+        window_operation: str,
+        message: str,
+        context: ErrorContext | None = None,
     ):
         recovery = "Verify window availability and system permissions"
         super().__init__(
@@ -393,7 +425,10 @@ class MCPError(MacroEngineError):
     """Base error for MCP-specific errors."""
 
     def __init__(
-        self, mcp_operation: str, message: str, context: ErrorContext | None = None
+        self,
+        mcp_operation: str,
+        message: str,
+        context: ErrorContext | None = None,
     ):
         recovery = "Check MCP server configuration and operation parameters"
         super().__init__(
@@ -459,7 +494,10 @@ class AnalyticsError(MacroEngineError):
     """Analytics and reporting system errors."""
 
     def __init__(
-        self, operation: str, error_details: str, context: ErrorContext | None = None
+        self,
+        operation: str,
+        error_details: str,
+        context: ErrorContext | None = None,
     ):
         self.operation = operation
         self.error_details = error_details
@@ -479,7 +517,8 @@ def create_error_context(operation: str, component: str, **metadata) -> ErrorCon
 
 
 def handle_error_safely(
-    error: Exception, mask_details: bool = True
+    error: Exception,
+    mask_details: bool = True,
 ) -> MacroEngineError:
     """Convert generic exceptions to MacroEngineError with optional detail masking."""
     if isinstance(error, MacroEngineError):
@@ -491,7 +530,7 @@ def handle_error_safely(
             str(error)[:100] if len(str(error)) < 100 else str(error)[:100] + "..."
         )
     else:
-        message = f"Unexpected error: {str(error)}"
+        message = f"Unexpected error: {error!s}"
         details = str(error)
 
     context = create_error_context(
@@ -502,5 +541,7 @@ def handle_error_safely(
     )
 
     return SystemError(
-        system_component="error_handler", error_details=message, context=context
+        system_component="error_handler",
+        error_details=message,
+        context=context,
     )

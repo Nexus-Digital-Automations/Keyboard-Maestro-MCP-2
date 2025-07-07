@@ -1,5 +1,4 @@
-"""
-Property-Based Testing for Automation Intelligence Learning Algorithms.
+"""Property-Based Testing for Automation Intelligence Learning Algorithms.
 
 This module provides comprehensive property-based testing for behavioral analysis,
 adaptive learning, suggestion generation, and privacy protection to ensure
@@ -13,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC, datetime
+from typing import Any
 
 import pytest
 from hypothesis import HealthCheck, assume, given, settings
@@ -42,21 +42,21 @@ from src.intelligence.suggestion_system import (
 
 # Hypothesis strategies for test data generation
 @st.composite
-def user_behavior_pattern_strategy(draw):
+def user_behavior_pattern_strategy(draw) -> bool:
     """Generate valid UserBehaviorPattern instances for testing."""
     pattern_id = draw(
         st.text(
             min_size=5,
             max_size=50,
             alphabet=st.characters(min_codepoint=65, max_codepoint=90),
-        )
+        ),
     )
     user_id = draw(
         st.text(
             min_size=3,
             max_size=20,
             alphabet=st.characters(min_codepoint=97, max_codepoint=122),
-        )
+        ),
     )
 
     # Generate action sequence (exclude sensitive keywords)
@@ -81,11 +81,11 @@ def user_behavior_pattern_strategy(draw):
                 max_size=15,
                 alphabet=st.characters(min_codepoint=97, max_codepoint=122),
             ).filter(
-                lambda x: x.lower() not in sensitive_keywords and len(x.strip()) > 0
+                lambda x: x.lower() not in sensitive_keywords and len(x.strip()) > 0,
             ),
             min_size=1,
             max_size=10,
-        )
+        ),
     )
 
     frequency = draw(st.integers(min_value=1, max_value=100))
@@ -102,7 +102,7 @@ def user_behavior_pattern_strategy(draw):
                 alphabet=st.characters(min_codepoint=97, max_codepoint=122),
             ),
             max_size=5,
-        )
+        ),
     )
 
     return UserBehaviorPattern(
@@ -119,17 +119,21 @@ def user_behavior_pattern_strategy(draw):
 
 
 @st.composite
-def privacy_level_strategy(draw):
+def privacy_level_strategy(draw) -> Any:
     """Generate PrivacyLevel instances for testing."""
     return draw(
         st.sampled_from(
-            [PrivacyLevel.STRICT, PrivacyLevel.BALANCED, PrivacyLevel.PERMISSIVE]
-        )
+            [
+                PrivacyLevel.STRICT,
+                PrivacyLevel.BALANCED,
+                PrivacyLevel.PERMISSIVE,
+            ],
+        ),
     )
 
 
 @st.composite
-def learning_mode_strategy(draw):
+def learning_mode_strategy(draw) -> Any:
     """Generate LearningMode instances for testing."""
     return draw(
         st.sampled_from(
@@ -138,8 +142,8 @@ def learning_mode_strategy(draw):
                 LearningMode.SUPERVISED,
                 LearningMode.UNSUPERVISED,
                 LearningMode.REINFORCEMENT,
-            ]
-        )
+            ],
+        ),
     )
 
 
@@ -151,7 +155,7 @@ class TestBehaviorAnalyzerProperties:
         privacy_level=privacy_level_strategy(),
     )
     @settings(max_examples=50, deadline=5000)
-    def test_pattern_analysis_privacy_preservation(self, patterns, privacy_level):
+    def test_pattern_analysis_privacy_preservation(self, patterns, privacy_level) -> None:
         """Property: Pattern analysis must preserve privacy at specified levels."""
         BehaviorAnalyzer(privacy_level)
 
@@ -170,7 +174,7 @@ class TestBehaviorAnalyzerProperties:
                     or len(pattern.user_id) >= 16
                 )
                 assert not validator._contains_sensitive_actions(
-                    pattern.action_sequence
+                    pattern.action_sequence,
                 )
 
     @given(
@@ -178,7 +182,7 @@ class TestBehaviorAnalyzerProperties:
         privacy_level=privacy_level_strategy(),
     )
     @settings(max_examples=30, deadline=10000)
-    def test_pattern_extraction_consistency(self, patterns, privacy_level):
+    def test_pattern_extraction_consistency(self, patterns, privacy_level) -> None:
         """Property: Pattern extraction should be deterministic and consistent."""
         analyzer = BehaviorAnalyzer(privacy_level)
 
@@ -206,7 +210,7 @@ class TestBehaviorAnalyzerProperties:
 
     @given(patterns=st.lists(user_behavior_pattern_strategy(), min_size=1, max_size=30))
     @settings(max_examples=50, deadline=5000)
-    def test_pattern_frequency_constraints(self, patterns):
+    def test_pattern_frequency_constraints(self, patterns) -> None:
         """Property: Pattern frequency analysis should respect constraints."""
         analyzer = BehaviorAnalyzer()
 
@@ -227,7 +231,7 @@ class TestLearningEngineProperties:
         learning_mode=learning_mode_strategy(),
     )
     @settings(max_examples=30, deadline=10000)
-    def test_feature_extraction_completeness(self, patterns, learning_mode):
+    def test_feature_extraction_completeness(self, patterns, learning_mode) -> None:
         """Property: Feature extraction should be complete and valid."""
         engine = LearningEngine(learning_mode)
 
@@ -257,7 +261,7 @@ class TestLearningEngineProperties:
         confidence_threshold=st.floats(min_value=0.0, max_value=1.0),
     )
     @settings(max_examples=40, deadline=8000)
-    def test_learning_confidence_bounds(self, patterns, confidence_threshold):
+    def test_learning_confidence_bounds(self, patterns, confidence_threshold) -> None:
         """Property: Learning confidence should be bounded and monotonic."""
         engine = LearningEngine()
 
@@ -273,7 +277,9 @@ class TestLearningEngineProperties:
         insights = []
         optimizations = []
         confidence = engine._calculate_learning_confidence(
-            features, insights, optimizations
+            features,
+            insights,
+            optimizations,
         )
 
         # Confidence must be bounded
@@ -285,7 +291,7 @@ class TestLearningEngineProperties:
 
     @given(patterns=st.lists(user_behavior_pattern_strategy(), min_size=1, max_size=20))
     @settings(max_examples=50, deadline=5000)
-    def test_feature_vector_properties(self, patterns):
+    def test_feature_vector_properties(self, patterns) -> None:
         """Property: Feature vectors should have consistent structure and bounds."""
         engine = LearningEngine()
 
@@ -326,8 +332,11 @@ class TestSuggestionSystemProperties:
         suppress_health_check=[HealthCheck.filter_too_much],
     )
     def test_suggestion_generation_bounds(
-        self, patterns, suggestion_count, confidence_threshold
-    ):
+        self,
+        patterns,
+        suggestion_count,
+        confidence_threshold,
+    ) -> None:
         """Property: Suggestion generation should respect count and confidence bounds."""
         system = IntelligentSuggestionSystem()
 
@@ -347,7 +356,7 @@ class TestSuggestionSystemProperties:
 
         # Test automation suggestion generation
         suggestions = asyncio.run(
-            system._generate_automation_suggestions(automation_candidates)
+            system._generate_automation_suggestions(automation_candidates),
         )
 
         # Property: Should not exceed max suggestions per category
@@ -382,7 +391,10 @@ class TestSuggestionSystemProperties:
                     alphabet=st.characters(min_codepoint=65, max_codepoint=90),
                 ),
                 confidence=st.floats(
-                    min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False
+                    min_value=0.0,
+                    max_value=1.0,
+                    allow_nan=False,
+                    allow_infinity=False,
                 ),
                 potential_time_saved=st.floats(
                     min_value=0.0,
@@ -401,7 +413,10 @@ class TestSuggestionSystemProperties:
                 ),
                 trigger_conditions=st.fixed_dictionaries({}),
                 estimated_success_rate=st.floats(
-                    min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False
+                    min_value=0.0,
+                    max_value=1.0,
+                    allow_nan=False,
+                    allow_infinity=False,
                 ),
                 rationale=st.text(
                     min_size=10,
@@ -419,12 +434,11 @@ class TestSuggestionSystemProperties:
             ),
             min_size=1,
             max_size=10,
-        )
+        ),
     )
     @settings(max_examples=50, deadline=5000)
-    def test_roi_calculation_properties(self, automation_suggestions):
+    def test_roi_calculation_properties(self, automation_suggestions) -> None:
         """Property: ROI calculation should be consistent and bounded."""
-
         for suggestion in automation_suggestions:
             roi = suggestion.get_roi_estimate()
 
@@ -469,7 +483,10 @@ class TestSuggestionSystemProperties:
                     alphabet=st.characters(min_codepoint=65, max_codepoint=90),
                 ),
                 confidence=st.floats(
-                    min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False
+                    min_value=0.0,
+                    max_value=1.0,
+                    allow_nan=False,
+                    allow_infinity=False,
                 ),
                 potential_time_saved=st.floats(
                     min_value=0.0,
@@ -488,7 +505,10 @@ class TestSuggestionSystemProperties:
                 ),
                 trigger_conditions=st.fixed_dictionaries({}),
                 estimated_success_rate=st.floats(
-                    min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False
+                    min_value=0.0,
+                    max_value=1.0,
+                    allow_nan=False,
+                    allow_infinity=False,
                 ),
                 rationale=st.text(
                     min_size=10,
@@ -506,10 +526,10 @@ class TestSuggestionSystemProperties:
             ),
             min_size=2,
             max_size=15,
-        )
+        ),
     )
     @settings(max_examples=40, deadline=8000)
-    def test_suggestion_ranking_consistency(self, suggestions):
+    def test_suggestion_ranking_consistency(self, suggestions) -> None:
         """Property: Suggestion ranking should be consistent and properly ordered."""
         from src.intelligence.suggestion_system import SuggestionRanker
 
@@ -542,7 +562,7 @@ class TestPrivacyManagerProperties:
                     "timestamp": st.just(datetime.now(UTC)),
                     "success": st.booleans(),
                     "tool_name": st.text(min_size=3, max_size=15),
-                }
+                },
             ),
             min_size=1,
             max_size=20,
@@ -550,13 +570,13 @@ class TestPrivacyManagerProperties:
         privacy_level=privacy_level_strategy(),
     )
     @settings(max_examples=30, deadline=10000)
-    def test_data_anonymization_properties(self, data, privacy_level):
+    def test_data_anonymization_properties(self, data, privacy_level) -> None:
         """Property: Data anonymization should preserve utility while protecting privacy."""
         anonymizer = DataAnonymizer()
         asyncio.run(anonymizer.initialize(privacy_level))
 
         anonymized_data = asyncio.run(
-            anonymizer.anonymize_behavior_data(data, privacy_level)
+            anonymizer.anonymize_behavior_data(data, privacy_level),
         )
 
         # Property: Anonymization should not increase data size inappropriately
@@ -604,18 +624,18 @@ class TestPrivacyManagerProperties:
                     st.text(min_size=5, max_size=20),
                     st.floats(min_value=0.0, max_value=1000.0),
                 ),
-            }
+            },
         ),
         privacy_level=privacy_level_strategy(),
     )
     @settings(max_examples=30, deadline=8000)
-    def test_result_filtering_properties(self, results, privacy_level):
+    def test_result_filtering_properties(self, results, privacy_level) -> None:
         """Property: Result filtering should maintain data integrity while protecting privacy."""
         privacy_manager = PrivacyManager()
         asyncio.run(privacy_manager.initialize())
 
         filtered_results = asyncio.run(
-            privacy_manager.filter_results(results, privacy_level, anonymize_data=True)
+            privacy_manager.filter_results(results, privacy_level, anonymize_data=True),
         )
 
         # Property: Filtered results should be valid dictionary
@@ -640,10 +660,11 @@ class TestDataAnonymizerProperties:
     """Property-based tests for DataAnonymizer with anonymization validation."""
 
     @given(
-        value=st.text(min_size=1, max_size=100), privacy_level=privacy_level_strategy()
+        value=st.text(min_size=1, max_size=100),
+        privacy_level=privacy_level_strategy(),
     )
     @settings(max_examples=100, deadline=5000)
-    def test_string_anonymization_consistency(self, value, privacy_level):
+    def test_string_anonymization_consistency(self, value, privacy_level) -> None:
         """Property: String anonymization should be consistent and privacy-preserving."""
         anonymizer = DataAnonymizer()
 
@@ -668,7 +689,7 @@ class TestDataAnonymizerProperties:
 
     @given(text=st.text(min_size=10, max_size=200))
     @settings(max_examples=100, deadline=5000)
-    def test_sensitive_pattern_detection(self, text):
+    def test_sensitive_pattern_detection(self, text) -> None:
         """Property: Sensitive pattern detection should be comprehensive."""
         anonymizer = DataAnonymizer()
 
@@ -702,22 +723,26 @@ class AutomationIntelligenceStateMachine(RuleBasedStateMachine):
         self.analysis_results = []
 
     @initialize()
-    def init_intelligence_system(self):
+    def init_intelligence_system(self) -> None:
         """Initialize the intelligence system for testing."""
         self.intelligence_manager = AutomationIntelligenceManager()
         asyncio.run(self.intelligence_manager.initialize())
 
     @rule(pattern=user_behavior_pattern_strategy())
-    def add_behavior_pattern(self, pattern):
+    def add_behavior_pattern(self, pattern) -> None:
         """Add a behavior pattern to the system."""
         # Validate pattern before adding
         validator = PatternValidator()
         if validator.is_valid_for_analysis(pattern, PrivacyLevel.BALANCED):
             self.patterns.append(pattern)
 
+    def patterns_available(self) -> Any:
+        """Check if patterns are available for analysis."""
+        return len(self.patterns) >= 3
+
     @rule()
-    @precondition(lambda self: len(self.patterns) >= 3)
-    def analyze_patterns(self):
+    @precondition(patterns_available)
+    def analyze_patterns(self) -> Any:
         """Analyze accumulated patterns for insights."""
         if self.intelligence_manager and len(self.patterns) >= 3:
             # Test analysis operation
@@ -727,7 +752,7 @@ class AutomationIntelligenceStateMachine(RuleBasedStateMachine):
                     analysis_scope=AnalysisScope.USER_BEHAVIOR,
                     time_period="30d",
                     privacy_level=PrivacyLevel.BALANCED,
-                )
+                ),
             )
 
             if result.is_right():
@@ -738,9 +763,13 @@ class AutomationIntelligenceStateMachine(RuleBasedStateMachine):
                 assert isinstance(analysis_data, dict)
                 assert "total_patterns" in analysis_data or "error" in analysis_data
 
+    def analysis_results_available(self) -> Any:
+        """Check if analysis results are available for validation."""
+        return len(self.analysis_results) >= 1
+
     @rule()
-    @precondition(lambda self: len(self.analysis_results) >= 1)
-    def validate_analysis_consistency(self):
+    @precondition(analysis_results_available)
+    def validate_analysis_consistency(self) -> None:
         """Validate that analysis results are consistent across operations."""
         if len(self.analysis_results) >= 2:
             # Compare recent analysis results for consistency
@@ -748,7 +777,7 @@ class AutomationIntelligenceStateMachine(RuleBasedStateMachine):
             result2 = self.analysis_results[-2]
 
             # Should have similar structure
-            assert type(result1) == type(result2)
+            assert type(result1) is type(result2)
 
             # If both successful, should have required fields
             if "total_patterns" in result1 and "total_patterns" in result2:

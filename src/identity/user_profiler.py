@@ -1,5 +1,4 @@
-"""
-User Profiler - TASK_67 Phase 2 Core Identity Engine
+"""User Profiler - TASK_67 Phase 2 Core Identity Engine.
 
 User identification and profile management with preferences, behavioral tracking,
 and personalization data for adaptive automation workflows.
@@ -133,10 +132,12 @@ class UserProfiler:
 
             # Create personalization settings
             await self._create_default_personalization_settings(
-                admin_profile.profile_id, "comprehensive"
+                admin_profile.profile_id,
+                "comprehensive",
             )
             await self._create_default_personalization_settings(
-                test_profile.profile_id, "moderate"
+                test_profile.profile_id,
+                "moderate",
             )
 
             logger.info("Created default user profiles")
@@ -145,7 +146,9 @@ class UserProfiler:
             logger.warning(f"Failed to create default profiles: {e}")
 
     async def _create_default_personalization_settings(
-        self, user_profile_id: UserProfileId, adaptation_level: str
+        self,
+        user_profile_id: UserProfileId,
+        adaptation_level: str,
     ) -> None:
         """Create default personalization settings for user."""
         settings = PersonalizationSettings(
@@ -189,7 +192,9 @@ class UserProfiler:
 
     @require(lambda user_identity: len(user_identity) > 0)
     async def identify_user(
-        self, user_identity: str, context: dict[str, Any] | None = None
+        self,
+        user_identity: str,
+        context: dict[str, Any] | None = None,
     ) -> Either[IdentityError, UserProfile]:
         """Identify user and return profile."""
         try:
@@ -252,13 +257,15 @@ class UserProfiler:
             logger.error(f"User identification failed: {e}")
             return Either.error(
                 IdentityError(
-                    f"User identification error: {str(e)}", "IDENTIFICATION_ERROR"
-                )
+                    f"User identification error: {e!s}",
+                    "IDENTIFICATION_ERROR",
+                ),
             )
 
     @require(lambda user_profile_id: user_profile_id is not None)
     async def get_user_analytics(
-        self, user_profile_id: UserProfileId
+        self,
+        user_profile_id: UserProfileId,
     ) -> Either[IdentityError, dict[str, Any]]:
         """Get user analytics and behavioral data."""
         try:
@@ -277,18 +284,19 @@ class UserProfiler:
                             i
                             for i in interaction_history
                             if datetime.fromisoformat(
-                                i["timestamp"].replace("Z", "+00:00")
+                                i["timestamp"].replace("Z", "+00:00"),
                             )
                             > datetime.now(UTC) - timedelta(days=7)
-                        ]
+                        ],
                     ),
                     "success_rate": behavioral_data["interaction_analysis"].get(
-                        "success_rate", 0.0
+                        "success_rate",
+                        0.0,
                     ),
                 },
                 "behavioral_patterns": behavioral_data,
                 "personalization_opportunities": await self._identify_personalization_opportunities(
-                    user_profile_id
+                    user_profile_id,
                 ),
                 "analytics_generated_at": datetime.now(UTC).isoformat(),
             }
@@ -299,12 +307,14 @@ class UserProfiler:
             logger.error(f"Failed to get user analytics: {e}")
             return Either.error(
                 IdentityError(
-                    f"Analytics generation failed: {str(e)}", "ANALYTICS_ERROR"
-                )
+                    f"Analytics generation failed: {e!s}",
+                    "ANALYTICS_ERROR",
+                ),
             )
 
     async def _identify_personalization_opportunities(
-        self, user_profile_id: UserProfileId
+        self,
+        user_profile_id: UserProfileId,
     ) -> list[str]:
         """Identify personalization opportunities for user."""
         opportunities = []
@@ -318,13 +328,13 @@ class UserProfiler:
         # Check for incomplete personalization
         if len(profile.personalization_preferences) < 5:
             opportunities.append(
-                "Expand personalization preferences for better automation"
+                "Expand personalization preferences for better automation",
             )
 
         # Check for unused accessibility features
         if not profile.accessibility_settings:
             opportunities.append(
-                "Configure accessibility settings for improved usability"
+                "Configure accessibility settings for improved usability",
             )
 
         # Check behavioral learning opportunities
@@ -337,7 +347,7 @@ class UserProfiler:
             total_interactions = interaction_analysis.get("total_interactions", 0)
             if total_interactions > 50:
                 opportunities.append(
-                    "Enable advanced automation features based on usage level"
+                    "Enable advanced automation features based on usage level",
                 )
 
         return opportunities
@@ -382,7 +392,8 @@ class UserProfiler:
                 profile_id=current_profile.profile_id,
                 username=current_profile.username,
                 display_name=preferences.get(
-                    "display_name", current_profile.display_name
+                    "display_name",
+                    current_profile.display_name,
                 ),
                 email=preferences.get("email", current_profile.email),
                 authentication_methods=current_profile.authentication_methods,
@@ -410,7 +421,8 @@ class UserProfiler:
                         current_settings.automation_preferences,
                     ),
                     interface_preferences=preferences.get(
-                        "interface_preferences", current_settings.interface_preferences
+                        "interface_preferences",
+                        current_settings.interface_preferences,
                     ),
                     accessibility_requirements=updated_accessibility,
                     behavioral_adaptations=preferences.get(
@@ -419,13 +431,16 @@ class UserProfiler:
                     ),
                     privacy_preferences=updated_privacy,
                     learning_enabled=preferences.get(
-                        "learning_enabled", current_settings.learning_enabled
+                        "learning_enabled",
+                        current_settings.learning_enabled,
                     ),
                     adaptation_level=preferences.get(
-                        "adaptation_level", current_settings.adaptation_level
+                        "adaptation_level",
+                        current_settings.adaptation_level,
                     ),
                     cross_session_sync=preferences.get(
-                        "cross_session_sync", current_settings.cross_session_sync
+                        "cross_session_sync",
+                        current_settings.cross_session_sync,
                     ),
                     created_at=current_settings.created_at,
                     last_updated=datetime.now(UTC),
@@ -440,8 +455,9 @@ class UserProfiler:
             logger.error(f"Failed to update user preferences: {e}")
             return Either.error(
                 IdentityError(
-                    f"Preference update failed: {str(e)}", "PREFERENCE_UPDATE_ERROR"
-                )
+                    f"Preference update failed: {e!s}",
+                    "PREFERENCE_UPDATE_ERROR",
+                ),
             )
 
     @require(lambda user_profile_id: user_profile_id is not None)
@@ -493,7 +509,7 @@ class UserProfiler:
             ]  # Last 100
             recent_successes = sum(1 for i in recent_interactions if i["success"])
             interaction_analysis["success_rate"] = recent_successes / len(
-                recent_interactions
+                recent_interactions,
             )
 
             # Update most common interaction type
@@ -504,7 +520,8 @@ class UserProfiler:
 
             if type_counts:
                 interaction_analysis["most_common_interaction_type"] = max(
-                    type_counts, key=type_counts.get
+                    type_counts,
+                    key=type_counts.get,
                 )
 
             # Update activity hour
@@ -522,7 +539,7 @@ class UserProfiler:
             # Add insights based on patterns
             if interaction_analysis["success_rate"] < 0.7:
                 learning_result["insights"].append(
-                    "Consider simplifying frequent workflows"
+                    "Consider simplifying frequent workflows",
                 )
 
             if (
@@ -530,7 +547,7 @@ class UserProfiler:
                 and interaction_analysis["success_rate"] > 0.9
             ):
                 learning_result["insights"].append(
-                    "User shows high proficiency - enable advanced features"
+                    "User shows high proficiency - enable advanced features",
                 )
 
             logger.debug(f"Recorded interaction learning for user {user_profile_id}")
@@ -539,12 +556,14 @@ class UserProfiler:
         except Exception as e:
             logger.error(f"Failed to learn from interaction: {e}")
             return Either.error(
-                IdentityError(f"Learning failed: {str(e)}", "LEARNING_ERROR")
+                IdentityError(f"Learning failed: {e!s}", "LEARNING_ERROR"),
             )
 
     @require(lambda user_profile_id: user_profile_id is not None)
     async def analyze_user_behavior(
-        self, user_profile_id: UserProfileId, analysis_period_days: int = 7
+        self,
+        user_profile_id: UserProfileId,
+        analysis_period_days: int = 7,
     ) -> Either[IdentityError, dict[str, Any]]:
         """Analyze user behavior patterns for personalization insights."""
         try:
@@ -571,18 +590,18 @@ class UserProfiler:
                 "pattern_analysis": {
                     "peak_hours": self._analyze_peak_hours(recent_interactions),
                     "interaction_types": self._analyze_interaction_types(
-                        recent_interactions
+                        recent_interactions,
                     ),
                     "success_patterns": self._analyze_success_patterns(
-                        recent_interactions
+                        recent_interactions,
                     ),
                 },
                 "personalization_insights": {
                     "recommended_adaptations": self._generate_adaptation_recommendations(
-                        recent_interactions
+                        recent_interactions,
                     ),
                     "automation_opportunities": self._identify_automation_opportunities(
-                        recent_interactions
+                        recent_interactions,
                     ),
                 },
             }
@@ -590,7 +609,7 @@ class UserProfiler:
             # Update behavioral patterns with analysis
             behavioral_data["pattern_analysis"].update(analysis["pattern_analysis"])
             behavioral_data["personalization_insights"].update(
-                analysis["personalization_insights"]
+                analysis["personalization_insights"],
             )
 
             return Either.success(analysis)
@@ -598,7 +617,7 @@ class UserProfiler:
         except Exception as e:
             logger.error(f"Behavior analysis failed: {e}")
             return Either.error(
-                IdentityError(f"Behavior analysis error: {str(e)}", "ANALYSIS_ERROR")
+                IdentityError(f"Behavior analysis error: {e!s}", "ANALYSIS_ERROR"),
             )
 
     def _analyze_peak_hours(self, interactions: list[dict[str, Any]]) -> list[int]:
@@ -608,7 +627,7 @@ class UserProfiler:
         for interaction in interactions:
             try:
                 timestamp = datetime.fromisoformat(
-                    interaction["timestamp"].replace("Z", "+00:00")
+                    interaction["timestamp"].replace("Z", "+00:00"),
                 )
                 hour = timestamp.hour
                 hour_counts[hour] = hour_counts.get(hour, 0) + 1
@@ -621,7 +640,8 @@ class UserProfiler:
         return [hour for hour, count in sorted_hours[:3]]
 
     def _analyze_interaction_types(
-        self, interactions: list[dict[str, Any]]
+        self,
+        interactions: list[dict[str, Any]],
     ) -> dict[str, int]:
         """Analyze interaction type frequencies."""
         type_counts = {}
@@ -633,7 +653,8 @@ class UserProfiler:
         return type_counts
 
     def _analyze_success_patterns(
-        self, interactions: list[dict[str, Any]]
+        self,
+        interactions: list[dict[str, Any]],
     ) -> dict[str, float]:
         """Analyze success patterns by interaction type."""
         success_patterns = {}
@@ -656,14 +677,15 @@ class UserProfiler:
         }
 
     def _generate_adaptation_recommendations(
-        self, interactions: list[dict[str, Any]]
+        self,
+        interactions: list[dict[str, Any]],
     ) -> list[str]:
         """Generate adaptation recommendations based on interaction patterns."""
         recommendations = []
 
         if len(interactions) < 10:
             recommendations.append(
-                "Continue using the system to generate personalized recommendations"
+                "Continue using the system to generate personalized recommendations",
             )
             return recommendations
 
@@ -684,7 +706,8 @@ class UserProfiler:
         return recommendations
 
     def _identify_automation_opportunities(
-        self, interactions: list[dict[str, Any]]
+        self,
+        interactions: list[dict[str, Any]],
     ) -> list[str]:
         """Identify automation opportunities based on patterns."""
         opportunities = []
@@ -700,7 +723,9 @@ class UserProfiler:
 
     @require(lambda user_profile_id: user_profile_id is not None)
     async def detect_behavioral_anomalies(
-        self, user_profile_id: UserProfileId, current_interaction: dict[str, Any]
+        self,
+        user_profile_id: UserProfileId,
+        current_interaction: dict[str, Any],
     ) -> Either[IdentityError, list[str]]:
         """Detect behavioral anomalies for security monitoring."""
         try:
@@ -717,7 +742,7 @@ class UserProfiler:
 
             if abs(current_hour - typical_hour) > 6:  # More than 6 hours difference
                 anomalies.append(
-                    f"Unusual activity time: {current_hour}:00 (typical: {typical_hour}:00)"
+                    f"Unusual activity time: {current_hour}:00 (typical: {typical_hour}:00)",
                 )
 
             # Check interaction type anomalies
@@ -732,7 +757,7 @@ class UserProfiler:
             interaction_history = self.interaction_history.get(user_profile_id, [])
             if len(interaction_history) > 0:
                 last_interaction_time = datetime.fromisoformat(
-                    interaction_history[-1]["timestamp"].replace("Z", "+00:00")
+                    interaction_history[-1]["timestamp"].replace("Z", "+00:00"),
                 )
                 time_diff = datetime.now(UTC) - last_interaction_time
 
@@ -747,6 +772,7 @@ class UserProfiler:
             logger.error(f"Anomaly detection failed: {e}")
             return Either.error(
                 IdentityError(
-                    f"Anomaly detection error: {str(e)}", "ANOMALY_DETECTION_ERROR"
-                )
+                    f"Anomaly detection error: {e!s}",
+                    "ANOMALY_DETECTION_ERROR",
+                ),
             )

@@ -1,5 +1,4 @@
-"""
-Secure Mathematical Calculator with Expression Evaluation
+"""Secure Mathematical Calculator with Expression Evaluation.
 
 Provides comprehensive mathematical operations with security validation,
 format conversion, and integration with Keyboard Maestro's calculation engine.
@@ -40,7 +39,6 @@ class CalculationExpression:
     @require(lambda self: self._is_safe_expression(self.expression))
     def __post_init__(self):
         """Post-initialization validation for expression safety."""
-        pass
 
     def _is_safe_expression(self, expr: str) -> bool:
         """Validate expression contains only safe mathematical operations."""
@@ -96,7 +94,7 @@ class CalculationResult:
         """Convert result to specified format."""
         if target_format == NumberFormat.DECIMAL:
             return str(self.result)
-        elif target_format == NumberFormat.HEXADECIMAL:
+        if target_format == NumberFormat.HEXADECIMAL:
             try:
                 return hex(int(self.result))
             except (ValueError, OverflowError):
@@ -176,24 +174,23 @@ class SafeExpressionEvaluator:
             tree = ast.parse(expression, mode="eval")
             return self._eval_node(tree.body, variables)
         except Exception as e:
-            raise ValueError(f"Expression evaluation failed: {str(e)}")
+            raise ValueError(f"Expression evaluation failed: {e!s}") from e
 
     def _eval_node(self, node: ast.AST, variables: dict[str, float]) -> float:
         """Recursively evaluate AST nodes."""
         if isinstance(node, ast.Constant):  # Python 3.8+
             return float(node.value)
-        elif isinstance(node, ast.Num):  # Python < 3.8
+        if isinstance(node, ast.Num):  # Python < 3.8
             return float(node.n)
-        elif isinstance(node, ast.Name):
+        if isinstance(node, ast.Name):
             # Variable or constant lookup
             name = node.id
             if name in variables:
                 return float(variables[name])
-            elif name in self._constants:
+            if name in self._constants:
                 return self._constants[name]
-            else:
-                raise ValueError(f"Unknown variable or constant: {name}")
-        elif isinstance(node, ast.BinOp):
+            raise ValueError(f"Unknown variable or constant: {name}")
+        if isinstance(node, ast.BinOp):
             # Binary operation
             left = self._eval_node(node.left, variables)
             right = self._eval_node(node.right, variables)
@@ -202,10 +199,10 @@ class SafeExpressionEvaluator:
                 raise ValueError(f"Unsupported operation: {type(node.op)}")
             try:
                 return op(left, right)
-            except ZeroDivisionError:
-                raise ValueError("Division by zero")
+            except ZeroDivisionError as e:
+                raise ValueError("Division by zero") from e
             except (OverflowError, ValueError) as e:
-                raise ValueError(f"Mathematical error: {str(e)}")
+                raise ValueError(f"Mathematical error: {e!s}") from e
         elif isinstance(node, ast.UnaryOp):
             # Unary operation
             operand = self._eval_node(node.operand, variables)
@@ -223,7 +220,7 @@ class SafeExpressionEvaluator:
             try:
                 return self._functions[func_name](*args)
             except Exception as e:
-                raise ValueError(f"Function {func_name} error: {str(e)}")
+                raise ValueError(f"Function {func_name} error: {e!s}") from e
         else:
             raise ValueError(f"Unsupported AST node type: {type(node)}")
 
@@ -237,10 +234,11 @@ class Calculator:
     @require(lambda expression: expression.expression != "")
     @ensure(
         lambda result: result.is_right()
-        or result.get_left().code in ["CALCULATION_ERROR", "SECURITY_ERROR"]
+        or result.get_left().code in ["CALCULATION_ERROR", "SECURITY_ERROR"],
     )
     async def calculate(
-        self, expression: CalculationExpression
+        self,
+        expression: CalculationExpression,
     ) -> Either[KMError, CalculationResult]:
         """Evaluate mathematical expression with security validation."""
         start_time = time.time()
@@ -249,7 +247,7 @@ class Calculator:
             # Additional security validation
             if not self._validate_expression_security(expression.expression):
                 return Either.left(
-                    KMError.security_error("Expression contains dangerous patterns")
+                    KMError.security_error("Expression contains dangerous patterns"),
                 )
 
             # Preprocess expression for common mathematical notation
@@ -261,7 +259,7 @@ class Calculator:
             # Validate result is within safe bounds
             if not self._validate_result(result):
                 return Either.left(
-                    KMError.validation_error("Result exceeds safe numerical bounds")
+                    KMError.validation_error("Result exceeds safe numerical bounds"),
                 )
 
             execution_time = time.time() - start_time
@@ -281,10 +279,10 @@ class Calculator:
             return Either.right(calculation_result)
 
         except ValueError as e:
-            return Either.left(KMError.validation_error(f"Calculation error: {str(e)}"))
+            return Either.left(KMError.validation_error(f"Calculation error: {e!s}"))
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Unexpected calculation error: {str(e)}")
+                KMError.execution_error(f"Unexpected calculation error: {e!s}"),
             )
 
     def _validate_expression_security(self, expr: str) -> bool:
@@ -334,10 +332,7 @@ class Calculator:
             return False
 
         # Check for extremely large numbers that could cause issues
-        if abs(result) > 1e308:  # Near float64 limit
-            return False
-
-        return True
+        return abs(result) <= 1e308  # Near float64 limit
 
     def _format_result(self, result: float, format_type: NumberFormat) -> str:
         """Format calculation result in specified format."""
@@ -345,11 +340,9 @@ class Calculator:
             # Use appropriate precision for display
             if abs(result) < 1e-10:
                 return "0"
-            elif abs(result) > 1e10 or abs(result) < 1e-3:
+            if abs(result) > 1e10 or abs(result) < 1e-3:
                 return f"{result:.6e}"
-            else:
-                return f"{result:.10g}"
-        elif format_type == NumberFormat.SCIENTIFIC:
+            return f"{result:.10g}"
+        if format_type == NumberFormat.SCIENTIFIC:
             return f"{result:.6e}"
-        else:
-            return str(result)
+        return str(result)

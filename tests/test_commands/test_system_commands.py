@@ -1,10 +1,12 @@
-"""
-Tests for system control commands.
+"""Tests for system control commands.
 
 Tests pause, sound, and volume control commands with security validation
 and proper contract enforcement.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import time
 from unittest.mock import patch
 
@@ -22,7 +24,7 @@ from src.core.types import (
 class TestPauseCommand:
     """Test pause command functionality."""
 
-    def test_pause_command_creation(self):
+    def test_pause_command_creation(self) -> None:
         """Test basic pause command creation."""
         params = CommandParameters({"duration": 0.1})
         cmd = PauseCommand(CommandId("test"), params)
@@ -30,14 +32,14 @@ class TestPauseCommand:
         assert cmd.get_duration().seconds == 0.1
         assert cmd.get_allow_interruption() is True
 
-    def test_pause_validation_valid(self):
+    def test_pause_validation_valid(self) -> None:
         """Test pause command validation with valid parameters."""
         params = CommandParameters({"duration": 1.0, "allow_interruption": True})
         cmd = PauseCommand(CommandId("test"), params)
 
         assert cmd.validate() is True
 
-    def test_pause_validation_invalid_duration(self):
+    def test_pause_validation_invalid_duration(self) -> None:
         """Test pause command validation with invalid duration."""
         # Too long duration
         params = CommandParameters({"duration": 70.0})
@@ -52,13 +54,14 @@ class TestPauseCommand:
 
         assert cmd.validate() is False
 
-    def test_pause_execution(self):
+    def test_pause_execution(self) -> None:
         """Test pause command execution."""
         params = CommandParameters({"duration": 0.1, "allow_interruption": True})
         cmd = PauseCommand(CommandId("test"), params)
 
         context = ExecutionContext.create_test_context(
-            permissions=frozenset(), timeout=Duration.from_seconds(10)
+            permissions=frozenset(),
+            timeout=Duration.from_seconds(10),
         )
 
         start = time.time()
@@ -69,7 +72,7 @@ class TestPauseCommand:
         assert elapsed >= 0.08  # Allow some tolerance
         assert "Paused for" in result.output
 
-    def test_pause_permissions(self):
+    def test_pause_permissions(self) -> None:
         """Test pause command permission requirements."""
         params = CommandParameters({"duration": 1.0})
         cmd = PauseCommand(CommandId("test"), params)
@@ -77,7 +80,7 @@ class TestPauseCommand:
         permissions = cmd.get_required_permissions()
         assert len(permissions) == 0  # Pause requires no special permissions
 
-    def test_pause_security_risk(self):
+    def test_pause_security_risk(self) -> None:
         """Test pause command security risk level."""
         params = CommandParameters({"duration": 1.0})
         cmd = PauseCommand(CommandId("test"), params)
@@ -88,10 +91,14 @@ class TestPauseCommand:
 class TestPlaySoundCommand:
     """Test sound playback command functionality."""
 
-    def test_sound_command_creation(self):
+    def test_sound_command_creation(self) -> None:
         """Test basic sound command creation."""
         params = CommandParameters(
-            {"sound_type": "beep", "volume": 0.5, "repeat_count": 1}
+            {
+                "sound_type": "beep",
+                "volume": 0.5,
+                "repeat_count": 1,
+            },
         )
         cmd = PlaySoundCommand(CommandId("test"), params)
 
@@ -99,22 +106,26 @@ class TestPlaySoundCommand:
         assert cmd.get_volume() == 0.5
         assert cmd.get_repeat_count() == 1
 
-    def test_sound_validation_valid(self):
+    def test_sound_validation_valid(self) -> None:
         """Test sound command validation with valid parameters."""
         params = CommandParameters(
-            {"sound_type": "alert", "volume": 0.7, "repeat_count": 2}
+            {
+                "sound_type": "alert",
+                "volume": 0.7,
+                "repeat_count": 2,
+            },
         )
         cmd = PlaySoundCommand(CommandId("test"), params)
 
         assert cmd.validate() is True
 
-    def test_sound_validation_invalid_volume(self):
+    def test_sound_validation_invalid_volume(self) -> None:
         """Test sound command validation with invalid volume."""
         params = CommandParameters(
             {
                 "sound_type": "beep",
                 "volume": 1.5,  # Invalid volume > 1.0
-            }
+            },
         )
         cmd = PlaySoundCommand(CommandId("test"), params)
 
@@ -122,13 +133,13 @@ class TestPlaySoundCommand:
         assert cmd.get_volume() == 1.0
         assert cmd.validate() is True
 
-    def test_sound_validation_invalid_repeat_count(self):
+    def test_sound_validation_invalid_repeat_count(self) -> None:
         """Test sound command validation with invalid repeat count."""
         params = CommandParameters(
             {
                 "sound_type": "beep",
                 "repeat_count": 10,  # Too many repeats
-            }
+            },
         )
         cmd = PlaySoundCommand(CommandId("test"), params)
 
@@ -137,12 +148,16 @@ class TestPlaySoundCommand:
         assert cmd.validate() is True
 
     @patch("subprocess.run")
-    def test_sound_execution_system_sound(self, mock_subprocess):
+    def test_sound_execution_system_sound(self, mock_subprocess) -> None:
         """Test sound command execution with system sound."""
         mock_subprocess.return_value.returncode = 0
 
         params = CommandParameters(
-            {"sound_type": "beep", "volume": 0.5, "repeat_count": 1}
+            {
+                "sound_type": "beep",
+                "volume": 0.5,
+                "repeat_count": 1,
+            },
         )
         cmd = PlaySoundCommand(CommandId("test"), params)
 
@@ -156,7 +171,7 @@ class TestPlaySoundCommand:
         assert result.success is True
         assert "Played 1 beep sound" in result.output
 
-    def test_sound_permissions(self):
+    def test_sound_permissions(self) -> None:
         """Test sound command permission requirements."""
         params = CommandParameters({"sound_type": "beep"})
         cmd = PlaySoundCommand(CommandId("test"), params)
@@ -164,25 +179,31 @@ class TestPlaySoundCommand:
         permissions = cmd.get_required_permissions()
         assert Permission.AUDIO_OUTPUT in permissions
 
-    def test_sound_security_risk(self):
+    def test_sound_security_risk(self) -> None:
         """Test sound command security risk level."""
         # System sound
         params = CommandParameters({"sound_type": "beep"})
         cmd = PlaySoundCommand(CommandId("test"), params)
         assert cmd.get_security_risk_level() == "low"
 
-        # Custom sound file
-        params = CommandParameters(
-            {"sound_type": "beep", "custom_sound_path": "/tmp/test.wav"}
-        )
-        cmd = PlaySoundCommand(CommandId("test"), params)
-        assert cmd.get_security_risk_level() == "medium"
+        # Custom sound file - S108 fix: Use secure temporary file
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(suffix=".wav") as temp_file:
+            params = CommandParameters(
+                {
+                    "sound_type": "beep",
+                    "custom_sound_path": temp_file.name,
+                },
+            )
+            cmd = PlaySoundCommand(CommandId("test"), params)
+            assert cmd.get_security_risk_level() == "medium"
 
 
 class TestSetVolumeCommand:
     """Test volume control command functionality."""
 
-    def test_volume_command_creation(self):
+    def test_volume_command_creation(self) -> None:
         """Test basic volume command creation."""
         params = CommandParameters({"volume_level": 0.7, "volume_unit": "percentage"})
         cmd = SetVolumeCommand(CommandId("test"), params)
@@ -190,14 +211,14 @@ class TestSetVolumeCommand:
         assert cmd.get_volume_level() == 0.7
         assert cmd.get_volume_unit().value == "percentage"
 
-    def test_volume_validation_valid(self):
+    def test_volume_validation_valid(self) -> None:
         """Test volume command validation with valid parameters."""
         params = CommandParameters({"volume_level": 0.8, "fade_duration": 2.0})
         cmd = SetVolumeCommand(CommandId("test"), params)
 
         assert cmd.validate() is True
 
-    def test_volume_validation_invalid_level(self):
+    def test_volume_validation_invalid_level(self) -> None:
         """Test volume command validation with invalid level."""
         params = CommandParameters({"volume_level": 1.5})
         cmd = SetVolumeCommand(CommandId("test"), params)
@@ -206,13 +227,13 @@ class TestSetVolumeCommand:
         assert cmd.get_volume_level() == 1.0
         assert cmd.validate() is True
 
-    def test_volume_validation_invalid_fade_duration(self):
+    def test_volume_validation_invalid_fade_duration(self) -> None:
         """Test volume command validation with invalid fade duration."""
         params = CommandParameters(
             {
                 "volume_level": 0.5,
                 "fade_duration": 15.0,  # Too long
-            }
+            },
         )
         cmd = SetVolumeCommand(CommandId("test"), params)
 
@@ -222,7 +243,7 @@ class TestSetVolumeCommand:
         assert fade_duration.seconds == 10.0
 
     @patch("subprocess.run")
-    def test_volume_execution(self, mock_subprocess):
+    def test_volume_execution(self, mock_subprocess) -> None:
         """Test volume command execution."""
         mock_subprocess.return_value.returncode = 0
         mock_subprocess.return_value.stdout = "50"
@@ -240,7 +261,7 @@ class TestSetVolumeCommand:
         assert result.success is True
         assert "Volume set to 80%" in result.output
 
-    def test_volume_permissions(self):
+    def test_volume_permissions(self) -> None:
         """Test volume command permission requirements."""
         params = CommandParameters({"volume_level": 0.5})
         cmd = SetVolumeCommand(CommandId("test"), params)
@@ -248,7 +269,7 @@ class TestSetVolumeCommand:
         permissions = cmd.get_required_permissions()
         assert Permission.AUDIO_OUTPUT in permissions
 
-    def test_volume_security_risk(self):
+    def test_volume_security_risk(self) -> None:
         """Test volume command security risk level."""
         params = CommandParameters({"volume_level": 0.5})
         cmd = SetVolumeCommand(CommandId("test"), params)

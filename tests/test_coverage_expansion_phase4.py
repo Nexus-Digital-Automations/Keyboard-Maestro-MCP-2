@@ -1,5 +1,4 @@
-"""
-Phase 4 Strategic Test Coverage Expansion for Keyboard Maestro MCP.
+"""Phase 4 Strategic Test Coverage Expansion for Keyboard Maestro MCP.
 
 This module targets the largest remaining modules with 0% coverage,
 focusing on testing automation, plugin ecosystem, performance monitoring,
@@ -7,17 +6,23 @@ macro editing, workflow design, and voice control to achieve maximum
 coverage gain toward the 95% target.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_testing_automation_tools_systematic_import():
+def test_testing_automation_tools_systematic_import() -> None:
     """Test import of testing automation tools (425 lines - highest impact)."""
     try:
         from src.server.tools import testing_automation_tools
@@ -48,7 +53,7 @@ def test_testing_automation_tools_systematic_import():
         pytest.skip(f"Testing automation tools import failed: {e}")
 
 
-def test_plugin_ecosystem_tools_systematic_import():
+def test_plugin_ecosystem_tools_systematic_import() -> None:
     """Test import of plugin ecosystem tools (273 lines)."""
     try:
         from src.server.tools import plugin_ecosystem_tools
@@ -79,7 +84,7 @@ def test_plugin_ecosystem_tools_systematic_import():
         pytest.skip(f"Plugin ecosystem tools import failed: {e}")
 
 
-def test_performance_monitor_tools_systematic_import():
+def test_performance_monitor_tools_systematic_import() -> None:
     """Test import of performance monitor tools (271 lines)."""
     try:
         from src.server.tools import performance_monitor_tools
@@ -110,7 +115,7 @@ def test_performance_monitor_tools_systematic_import():
         pytest.skip(f"Performance monitor tools import failed: {e}")
 
 
-def test_macro_editor_tools_systematic_import():
+def test_macro_editor_tools_systematic_import() -> None:
     """Test import of macro editor tools (232 lines)."""
     try:
         from src.server.tools import macro_editor_tools
@@ -141,7 +146,7 @@ def test_macro_editor_tools_systematic_import():
         pytest.skip(f"Macro editor tools import failed: {e}")
 
 
-def test_workflow_designer_tools_systematic_import():
+def test_workflow_designer_tools_systematic_import() -> None:
     """Test import of workflow designer tools (219 lines)."""
     try:
         from src.server.tools import workflow_designer_tools
@@ -172,7 +177,7 @@ def test_workflow_designer_tools_systematic_import():
         pytest.skip(f"Workflow designer tools import failed: {e}")
 
 
-def test_voice_control_tools_systematic_import():
+def test_voice_control_tools_systematic_import() -> None:
     """Test import of voice control tools (213 lines)."""
     try:
         from src.server.tools import voice_control_tools
@@ -203,7 +208,7 @@ def test_voice_control_tools_systematic_import():
         pytest.skip(f"Voice control tools import failed: {e}")
 
 
-def test_visual_automation_tools_systematic_import():
+def test_visual_automation_tools_systematic_import() -> None:
     """Test import of visual automation tools (331 lines)."""
     try:
         from src.server.tools import visual_automation_tools
@@ -234,7 +239,7 @@ def test_visual_automation_tools_systematic_import():
         pytest.skip(f"Visual automation tools import failed: {e}")
 
 
-def test_iot_integration_tools_systematic_import():
+def test_iot_integration_tools_systematic_import() -> None:
     """Test import of IoT integration tools (252 lines)."""
     try:
         from src.server.tools import iot_integration_tools
@@ -265,7 +270,7 @@ def test_iot_integration_tools_systematic_import():
         pytest.skip(f"IoT integration tools import failed: {e}")
 
 
-def test_zero_trust_security_tools_systematic_import():
+def test_zero_trust_security_tools_systematic_import() -> None:
     """Test import of zero trust security tools (209 lines)."""
     try:
         from src.server.tools import zero_trust_security_tools
@@ -296,7 +301,7 @@ def test_zero_trust_security_tools_systematic_import():
         pytest.skip(f"Zero trust security tools import failed: {e}")
 
 
-def test_web_request_tools_systematic_import():
+def test_web_request_tools_systematic_import() -> None:
     """Test import of web request tools (208 lines)."""
     try:
         from src.server.tools import web_request_tools
@@ -327,9 +332,8 @@ def test_web_request_tools_systematic_import():
         pytest.skip(f"Web request tools import failed: {e}")
 
 
-def test_comprehensive_tool_functionality_testing():
+def test_comprehensive_tool_functionality_testing() -> None:
     """Test comprehensive functionality across multiple tool modules."""
-
     # Test basic functionality patterns that should work across modules
     test_patterns = ["create", "configure", "monitor", "analyze", "process", "manage"]
 
@@ -348,7 +352,8 @@ def test_comprehensive_tool_functionality_testing():
     for module_name in tool_modules:
         try:
             module = __import__(
-                f"src.server.tools.{module_name}", fromlist=[module_name]
+                f"src.server.tools.{module_name}",
+                fromlist=[module_name],
             )
             if module is not None:
                 success_count += 1
@@ -371,9 +376,8 @@ def test_comprehensive_tool_functionality_testing():
     )
 
 
-def test_fastmcp_pattern_extraction():
+def test_fastmcp_pattern_extraction() -> None:
     """Test FastMCP pattern extraction across tool modules."""
-
     # Test FastMCP tool extraction pattern
     tool_modules = [
         "testing_automation_tools",
@@ -391,7 +395,8 @@ def test_fastmcp_pattern_extraction():
     for module_name in tool_modules:
         try:
             module = __import__(
-                f"src.server.tools.{module_name}", fromlist=[module_name]
+                f"src.server.tools.{module_name}",
+                fromlist=[module_name],
             )
 
             # Look for FastMCP tools (attributes with .fn)
@@ -413,9 +418,8 @@ def test_fastmcp_pattern_extraction():
     )
 
 
-def test_module_attribute_exploration():
+def test_module_attribute_exploration() -> None:
     """Test comprehensive module attribute exploration for coverage."""
-
     # Explore module attributes for coverage
     module_names = [
         "testing_automation_tools",
@@ -436,7 +440,8 @@ def test_module_attribute_exploration():
     for module_name in module_names:
         try:
             module = __import__(
-                f"src.server.tools.{module_name}", fromlist=[module_name]
+                f"src.server.tools.{module_name}",
+                fromlist=[module_name],
             )
 
             # Explore all public attributes
@@ -457,9 +462,9 @@ def test_module_attribute_exploration():
                         # Documentation exists
                         assert attr.__doc__ is None or isinstance(attr.__doc__, str)
 
-                except Exception:
-                    continue  # Skip problematic attributes
-
+                except Exception as e:
+                    logger.debug(f"Operation failed during operation: {e}")
+                    continue
         except ImportError:
             continue
 
@@ -470,9 +475,8 @@ def test_module_attribute_exploration():
     )
 
 
-def test_error_handling_and_exception_patterns():
+def test_error_handling_and_exception_patterns() -> None:
     """Test error handling and exception patterns across modules."""
-
     # Test exception handling patterns
     exception_types = [ImportError, AttributeError, ValueError, TypeError, RuntimeError]
 
@@ -489,11 +493,12 @@ def test_error_handling_and_exception_patterns():
             except exc_type as caught:
                 assert str(caught) == "Test error message"
 
-        except Exception:
-            continue  # Skip if exception type not available
+        except (ValueError, TypeError) as e:
+            logger.debug(f"Type conversion failed during operation: {e}")
+            continue
 
 
-def test_async_functionality_comprehensive():
+def test_async_functionality_comprehensive() -> bool:
     """Test async functionality patterns for comprehensive coverage."""
 
     @pytest.mark.asyncio
@@ -525,9 +530,8 @@ def test_async_functionality_comprehensive():
     assert result is True
 
 
-def test_data_processing_patterns():
+def test_data_processing_patterns() -> None:
     """Test data processing patterns for coverage."""
-
     # Test various data processing scenarios
     test_data = {
         "automation": {
@@ -543,7 +547,7 @@ def test_data_processing_patterns():
                 "cpu_usage": [45.2, 52.1, 38.9, 61.3],
                 "memory_usage": [2.1, 2.3, 2.0, 2.5],
                 "response_times": [120, 95, 140, 88],
-            }
+            },
         },
         "plugins": {
             "installed": ["plugin1", "plugin2", "plugin3"],
@@ -562,7 +566,7 @@ def test_data_processing_patterns():
 
     # Test data processing
     cpu_avg = sum(test_data["performance"]["metrics"]["cpu_usage"]) / len(
-        test_data["performance"]["metrics"]["cpu_usage"]
+        test_data["performance"]["metrics"]["cpu_usage"],
     )
     assert 40 < cpu_avg < 60
 
@@ -578,9 +582,8 @@ def test_data_processing_patterns():
     assert len(plugin_names) == 3
 
 
-def test_configuration_patterns():
+def test_configuration_patterns() -> None:
     """Test configuration patterns for tool modules."""
-
     # Test configuration scenarios
     config_patterns = {
         "testing": {

@@ -1,10 +1,12 @@
-"""
-Comprehensive tests for Scenario Modeler with systematic coverage.
+"""Comprehensive tests for Scenario Modeler with systematic coverage.
 
 Tests cover ScenarioParameter, ScenarioConfiguration, scenario modeling,
 Monte Carlo simulation, statistical analysis, and comprehensive enterprise-grade validation.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from collections import deque
 from datetime import UTC, datetime, timedelta
 
@@ -22,20 +24,19 @@ from src.analytics.scenario_modeler import (
     SimulationMethod,
 )
 from src.core.predictive_modeling import (
-    ScenarioModelingError,
     create_scenario_id,
 )
 
 
 # Test data generators
 @st.composite
-def scenario_type_strategy(draw):
+def scenario_type_strategy(draw) -> Any:
     """Generate valid scenario types."""
     return draw(st.sampled_from(list(ScenarioType)))
 
 
 @st.composite
-def simulation_method_strategy(draw):
+def simulation_method_strategy(draw) -> Any:
     """Generate valid simulation methods."""
     return draw(
         st.sampled_from(
@@ -45,13 +46,13 @@ def simulation_method_strategy(draw):
                 SimulationMethod.STATISTICAL_MODELING,
                 SimulationMethod.DISCRETE_EVENT,
                 SimulationMethod.QUEUE_THEORY,
-            ]
-        )
+            ],
+        ),
     )
 
 
 @st.composite
-def scenario_parameter_strategy(draw):
+def scenario_parameter_strategy(draw) -> Any:
     """Generate valid scenario parameters."""
     param_type = draw(st.sampled_from(["numeric", "boolean", "categorical"]))
 
@@ -70,7 +71,7 @@ def scenario_parameter_strategy(draw):
                 min_size=1,
                 max_size=20,
                 alphabet=st.characters(whitelist_categories=["Lu", "Ll"]),
-            )
+            ),
         ),
         parameter_name=draw(st.text(min_size=1, max_size=30)),
         parameter_type=param_type,
@@ -78,14 +79,14 @@ def scenario_parameter_strategy(draw):
         min_value=min_value,
         max_value=max_value,
         distribution_type=draw(
-            st.sampled_from(["normal", "uniform", "exponential", "beta"])
+            st.sampled_from(["normal", "uniform", "exponential", "beta"]),
         ),
         uncertainty_level=draw(st.floats(min_value=0.0, max_value=1.0)),
     )
 
 
 @st.composite
-def time_horizon_strategy(draw):
+def time_horizon_strategy(draw) -> Any:
     """Generate valid time horizons."""
     hours = draw(st.integers(min_value=1, max_value=72))
     return timedelta(hours=hours)
@@ -94,7 +95,7 @@ def time_horizon_strategy(draw):
 class TestScenarioParameter:
     """Test ScenarioParameter with comprehensive validation."""
 
-    def test_scenario_parameter_creation_valid(self):
+    def test_scenario_parameter_creation_valid(self) -> None:
         """Test creating valid ScenarioParameter instances."""
         param = ScenarioParameter(
             parameter_id="load_factor",
@@ -116,7 +117,7 @@ class TestScenarioParameter:
         assert param.distribution_type == "normal"
         assert param.uncertainty_level == 0.2
 
-    def test_scenario_parameter_uncertainty_level_validation(self):
+    def test_scenario_parameter_uncertainty_level_validation(self) -> None:
         """Test ScenarioParameter uncertainty level validation."""
         # Valid uncertainty levels
         for level in [0.0, 0.5, 1.0]:
@@ -132,7 +133,8 @@ class TestScenarioParameter:
         # Invalid uncertainty levels
         for invalid_level in [-0.1, 1.1, 2.0]:
             with pytest.raises(
-                ValueError, match="Uncertainty level must be between 0.0 and 1.0"
+                ValueError,
+                match="Uncertainty level must be between 0.0 and 1.0",
             ):
                 ScenarioParameter(
                     parameter_id="test",
@@ -142,7 +144,7 @@ class TestScenarioParameter:
                     uncertainty_level=invalid_level,
                 )
 
-    def test_scenario_parameter_correlation_factors(self):
+    def test_scenario_parameter_correlation_factors(self) -> None:
         """Test ScenarioParameter with correlation factors."""
         param = ScenarioParameter(
             parameter_id="param1",
@@ -156,7 +158,7 @@ class TestScenarioParameter:
         assert param.correlation_factors["param3"] == -0.3
 
     @given(scenario_parameter_strategy())
-    def test_scenario_parameter_property_based_creation(self, param):
+    def test_scenario_parameter_property_based_creation(self, param) -> None:
         """Property-based test for ScenarioParameter creation."""
         assert param.parameter_id is not None
         assert param.parameter_name is not None
@@ -167,7 +169,7 @@ class TestScenarioParameter:
 class TestScenarioConfiguration:
     """Test ScenarioConfiguration with comprehensive validation."""
 
-    def test_scenario_configuration_creation_valid(self):
+    def test_scenario_configuration_creation_valid(self) -> None:
         """Test creating valid ScenarioConfiguration instances."""
         scenario_id = create_scenario_id()
         parameters = [
@@ -176,7 +178,7 @@ class TestScenarioConfiguration:
                 parameter_name="Load Factor",
                 parameter_type="numeric",
                 base_value=1.0,
-            )
+            ),
         ]
 
         config = ScenarioConfiguration(
@@ -199,7 +201,7 @@ class TestScenarioConfiguration:
         assert config.simulation_iterations == 1000
         assert config.confidence_level == 0.95
 
-    def test_scenario_configuration_simulation_iterations_validation(self):
+    def test_scenario_configuration_simulation_iterations_validation(self) -> None:
         """Test simulation iterations validation."""
         scenario_id = create_scenario_id()
         parameters = []
@@ -218,7 +220,8 @@ class TestScenarioConfiguration:
 
         # Invalid iterations
         with pytest.raises(
-            ValueError, match="Simulation iterations must be at least 100"
+            ValueError,
+            match="Simulation iterations must be at least 100",
         ):
             ScenarioConfiguration(
                 scenario_id=scenario_id,
@@ -230,7 +233,7 @@ class TestScenarioConfiguration:
                 simulation_iterations=50,
             )
 
-    def test_scenario_configuration_confidence_level_validation(self):
+    def test_scenario_configuration_confidence_level_validation(self) -> None:
         """Test confidence level validation."""
         scenario_id = create_scenario_id()
         parameters = []
@@ -251,7 +254,8 @@ class TestScenarioConfiguration:
         # Invalid confidence levels
         for invalid_level in [0.4, 1.0, 1.1]:
             with pytest.raises(
-                ValueError, match="Confidence level must be between 0.5 and 0.99"
+                ValueError,
+                match="Confidence level must be between 0.5 and 0.99",
             ):
                 ScenarioConfiguration(
                     scenario_id=scenario_id,
@@ -264,11 +268,16 @@ class TestScenarioConfiguration:
                 )
 
     @given(
-        scenario_type_strategy(), simulation_method_strategy(), time_horizon_strategy()
+        scenario_type_strategy(),
+        simulation_method_strategy(),
+        time_horizon_strategy(),
     )
     def test_scenario_configuration_property_based_creation(
-        self, scenario_type, simulation_method, time_horizon
-    ):
+        self,
+        scenario_type,
+        simulation_method,
+        time_horizon,
+    ) -> None:
         """Property-based test for ScenarioConfiguration creation."""
         scenario_id = create_scenario_id()
         parameters = []
@@ -294,7 +303,7 @@ class TestScenarioConfiguration:
 class TestScenarioOutcome:
     """Test ScenarioOutcome creation and validation."""
 
-    def test_scenario_outcome_creation_valid(self):
+    def test_scenario_outcome_creation_valid(self) -> None:
         """Test creating valid ScenarioOutcome instances."""
         scenario_id = create_scenario_id()
 
@@ -318,7 +327,7 @@ class TestScenarioOutcome:
         assert outcome.resource_utilization["cpu"] == 0.7
         assert outcome.cost_metrics["total_cost"] == 100.0
 
-    def test_scenario_outcome_iteration_validation(self):
+    def test_scenario_outcome_iteration_validation(self) -> None:
         """Test iteration number validation."""
         scenario_id = create_scenario_id()
 
@@ -347,7 +356,7 @@ class TestScenarioOutcome:
 class TestScenarioResults:
     """Test ScenarioResults creation and validation."""
 
-    def test_scenario_results_creation_valid(self):
+    def test_scenario_results_creation_valid(self) -> None:
         """Test creating valid ScenarioResults instances."""
         scenario_id = create_scenario_id()
         config = ScenarioConfiguration(
@@ -387,7 +396,7 @@ class TestScenarioResults:
         assert len(results.individual_outcomes) == 100
         assert results.statistical_summary["throughput"]["mean"] == 149.5
 
-    def test_scenario_results_outcome_count_validation(self):
+    def test_scenario_results_outcome_count_validation(self) -> None:
         """Test that outcome count matches simulation iterations."""
         scenario_id = create_scenario_id()
         config = ScenarioConfiguration(
@@ -425,7 +434,8 @@ class TestScenarioResults:
 
         # Incorrect number of outcomes
         with pytest.raises(
-            ValueError, match="Number of outcomes must match simulation iterations"
+            ValueError,
+            match="Number of outcomes must match simulation iterations",
         ):
             ScenarioResults(
                 results_id="test",
@@ -441,11 +451,11 @@ class TestScenarioResults:
 class TestScenarioModeler:
     """Test ScenarioModeler functionality."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.modeler = ScenarioModeler()
 
-    def test_scenario_modeler_initialization(self):
+    def test_scenario_modeler_initialization(self) -> None:
         """Test ScenarioModeler initialization."""
         modeler = ScenarioModeler()
 
@@ -464,7 +474,7 @@ class TestScenarioModeler:
         assert SimulationMethod.MONTE_CARLO in modeler.simulation_engines
         assert SimulationMethod.DETERMINISTIC in modeler.simulation_engines
 
-    def test_parameter_templates_initialization(self):
+    def test_parameter_templates_initialization(self) -> None:
         """Test parameter templates are properly initialized."""
         modeler = ScenarioModeler()
 
@@ -473,7 +483,8 @@ class TestScenarioModeler:
         assert len(stress_params) >= 2
 
         load_param = next(
-            (p for p in stress_params if p.parameter_id == "load_multiplier"), None
+            (p for p in stress_params if p.parameter_id == "load_multiplier"),
+            None,
         )
         assert load_param is not None
         assert load_param.parameter_type == "numeric"
@@ -484,13 +495,14 @@ class TestScenarioModeler:
         assert len(capacity_params) >= 2
 
         growth_param = next(
-            (p for p in capacity_params if p.parameter_id == "growth_rate"), None
+            (p for p in capacity_params if p.parameter_id == "growth_rate"),
+            None,
         )
         assert growth_param is not None
         assert growth_param.parameter_type == "numeric"
 
     @pytest.mark.asyncio
-    async def test_model_scenario_monte_carlo_success(self):
+    async def test_model_scenario_monte_carlo_success(self) -> None:
         """Test successful Monte Carlo scenario modeling."""
         scenario_id = create_scenario_id()
         config = ScenarioConfiguration(
@@ -506,7 +518,7 @@ class TestScenarioModeler:
                     base_value=1.0,
                     min_value=0.5,
                     max_value=2.0,
-                )
+                ),
             ],
             time_horizon=timedelta(hours=1),
             simulation_iterations=100,
@@ -518,25 +530,27 @@ class TestScenarioModeler:
         assert config.scenario_id == scenario_id
         assert config.simulation_method == SimulationMethod.MONTE_CARLO
         assert len(config.parameters) == 1
-        
+
         # Test simulation engine setup and validation
         assert SimulationMethod.MONTE_CARLO in self.modeler.simulation_engines
-        simulation_engine = self.modeler.simulation_engines[SimulationMethod.MONTE_CARLO]
+        simulation_engine = self.modeler.simulation_engines[
+            SimulationMethod.MONTE_CARLO
+        ]
         assert simulation_engine is not None
-        
+
         # Test parameter validation
         load_param = config.parameters[0]
         assert load_param.parameter_id == "load_factor"
         assert load_param.base_value == 1.0
         assert load_param.min_value == 0.5
         assert load_param.max_value == 2.0
-        
+
         # Validate core analytics functionality is working
         assert config.simulation_iterations == 100
         assert config.time_horizon == timedelta(hours=1)
 
     @pytest.mark.asyncio
-    async def test_model_scenario_deterministic_success(self):
+    async def test_model_scenario_deterministic_success(self) -> None:
         """Test successful deterministic scenario modeling."""
         scenario_id = create_scenario_id()
         config = ScenarioConfiguration(
@@ -552,7 +566,7 @@ class TestScenarioModeler:
                     base_value=0.2,
                     min_value=0.1,
                     max_value=0.3,
-                )
+                ),
             ],
             time_horizon=timedelta(hours=1),
             simulation_iterations=100,
@@ -567,12 +581,14 @@ class TestScenarioModeler:
         assert config.parameters[0].parameter_id == "growth_rate"
         assert config.parameters[0].parameter_type == "numeric"
         assert config.parameters[0].base_value == 0.2
-        
+
         # Test simulation engine setup and validation
         assert SimulationMethod.DETERMINISTIC in self.modeler.simulation_engines
-        simulation_engine = self.modeler.simulation_engines[SimulationMethod.DETERMINISTIC]
+        simulation_engine = self.modeler.simulation_engines[
+            SimulationMethod.DETERMINISTIC
+        ]
         assert simulation_engine is not None
-        
+
         # Test parameter validation
         param = config.parameters[0]
         assert param.min_value == 0.1
@@ -581,7 +597,7 @@ class TestScenarioModeler:
         assert param.base_value <= param.max_value
 
     @pytest.mark.asyncio
-    async def test_model_scenario_unsupported_method(self):
+    async def test_model_scenario_unsupported_method(self) -> None:
         """Test scenario modeling with unsupported simulation method."""
         scenario_id = create_scenario_id()
         config = ScenarioConfiguration(
@@ -596,24 +612,26 @@ class TestScenarioModeler:
         # Test error handling by verifying the unsupported simulation method logic
         # Validate that AGENT_BASED is not in supported simulation engines
         assert SimulationMethod.AGENT_BASED not in self.modeler.simulation_engines
-        
+
         # Verify the supported engines include expected methods
         supported_methods = list(self.modeler.simulation_engines.keys())
         assert SimulationMethod.MONTE_CARLO in supported_methods
         assert SimulationMethod.DETERMINISTIC in supported_methods
         assert SimulationMethod.STATISTICAL_MODELING in supported_methods
-        
+
         # Test configuration validation
         assert isinstance(config, ScenarioConfiguration)
         assert config.simulation_method == SimulationMethod.AGENT_BASED
         assert config.scenario_type == ScenarioType.WHAT_IF
-        
+
         # Test that the simulation engine lookup will fail for unsupported method
-        simulation_engine = self.modeler.simulation_engines.get(config.simulation_method)
+        simulation_engine = self.modeler.simulation_engines.get(
+            config.simulation_method,
+        )
         assert simulation_engine is None
 
     @pytest.mark.asyncio
-    async def test_model_scenario_caching(self):
+    async def test_model_scenario_caching(self) -> None:
         """Test scenario result caching."""
         scenario_id = create_scenario_id()
         config = ScenarioConfiguration(
@@ -628,28 +646,28 @@ class TestScenarioModeler:
 
         # Test caching functionality by validating cache mechanism
         # Validate initial cache state
-        initial_cache_size = len(self.modeler.scenario_cache)
+        len(self.modeler.scenario_cache)
         assert isinstance(self.modeler.scenario_cache, dict)
-        
+
         # Test cache key generation logic
         cache_key = f"{config.scenario_id}_{hash(str(config))}"
         assert isinstance(cache_key, str)
         assert config.scenario_id in cache_key
-        
+
         # Validate configuration setup for caching
         assert isinstance(config, ScenarioConfiguration)
         assert config.simulation_method == SimulationMethod.MONTE_CARLO
         assert config.scenario_type == ScenarioType.WHAT_IF
         assert config.simulation_iterations == 100
-        
+
         # Test that scenario_cache is accessible and operational
-        assert hasattr(self.modeler, 'scenario_cache')
+        assert hasattr(self.modeler, "scenario_cache")
         test_key = "test_cache_key"
         self.modeler.scenario_cache[test_key] = "test_value"
         assert self.modeler.scenario_cache[test_key] == "test_value"
         del self.modeler.scenario_cache[test_key]
 
-    def test_generate_random_parameter_value_numeric(self):
+    def test_generate_random_parameter_value_numeric(self) -> None:
         """Test random value generation for numeric parameters."""
         param = ScenarioParameter(
             parameter_id="test",
@@ -672,7 +690,7 @@ class TestScenarioModeler:
         # Should have some variation
         assert len(set(values)) > 1
 
-    def test_generate_random_parameter_value_boolean(self):
+    def test_generate_random_parameter_value_boolean(self) -> None:
         """Test random value generation for boolean parameters."""
         param = ScenarioParameter(
             parameter_id="test",
@@ -692,7 +710,7 @@ class TestScenarioModeler:
         unique_values = set(values)
         assert len(unique_values) >= 1  # At least one value
 
-    def test_generate_random_parameter_value_distributions(self):
+    def test_generate_random_parameter_value_distributions(self) -> None:
         """Test different distribution types for numeric parameters."""
         distributions = ["uniform", "normal", "exponential", "beta"]
 
@@ -717,7 +735,7 @@ class TestScenarioModeler:
             # Should have variation
             assert len(set(values)) > 1
 
-    def test_generate_parameter_combinations(self):
+    def test_generate_parameter_combinations(self) -> None:
         """Test parameter combination generation for deterministic simulation."""
         parameters = [
             ScenarioParameter(
@@ -749,7 +767,7 @@ class TestScenarioModeler:
             assert 1.0 <= combo["Param 1"] <= 10.0
             assert 10.0 <= combo["Param 2"] <= 30.0
 
-    def test_calculate_statistical_summary(self):
+    def test_calculate_statistical_summary(self) -> None:
         """Test statistical summary calculation."""
         scenario_id = create_scenario_id()
         outcomes = [
@@ -785,7 +803,7 @@ class TestScenarioModeler:
         assert latency_stats["min"] == 155.0
         assert latency_stats["max"] == 200.0
 
-    def test_calculate_confidence_intervals(self):
+    def test_calculate_confidence_intervals(self) -> None:
         """Test confidence interval calculation."""
         scenario_id = create_scenario_id()
         outcomes = [
@@ -800,7 +818,8 @@ class TestScenarioModeler:
         ]
 
         confidence_intervals = self.modeler._calculate_confidence_intervals(
-            outcomes, 0.95
+            outcomes,
+            0.95,
         )
 
         assert "metric" in confidence_intervals
@@ -811,7 +830,7 @@ class TestScenarioModeler:
         assert upper < 99
         assert lower < upper
 
-    def test_estimate_probability_distributions(self):
+    def test_estimate_probability_distributions(self) -> None:
         """Test probability distribution estimation."""
         scenario_id = create_scenario_id()
         outcomes = [
@@ -840,7 +859,7 @@ class TestScenarioModeler:
         avg_prob = 1.0 / len(distribution)
         assert all(abs(prob - avg_prob) < 0.2 for prob in distribution)
 
-    def test_calculate_correlation(self):
+    def test_calculate_correlation(self) -> None:
         """Test correlation calculation."""
         # Perfect positive correlation
         x_values = [1.0, 2.0, 3.0, 4.0, 5.0]
@@ -860,7 +879,7 @@ class TestScenarioModeler:
         assert abs(correlation_none) < 0.8  # Should be close to 0
 
     @pytest.mark.asyncio
-    async def test_compare_scenarios_success(self):
+    async def test_compare_scenarios_success(self) -> None:
         """Test successful scenario comparison."""
         # Create two scenario results for comparison
         scenario_id_1 = create_scenario_id()
@@ -868,7 +887,7 @@ class TestScenarioModeler:
 
         # Test scenario comparison core functionality without calling contract-decorated compare_scenarios method
         # This tests the essential scenario comparison infrastructure and data structures
-        
+
         # Create proper scenario configurations with valid simulation iterations
         config_1 = ScenarioConfiguration(
             scenario_id=scenario_id_1,
@@ -941,7 +960,7 @@ class TestScenarioModeler:
         assert isinstance(results_1.scenario_configuration, ScenarioConfiguration)
         assert len(results_1.individual_outcomes) == 100
         assert results_1.statistical_summary["throughput"]["mean"] == 105.0
-        
+
         assert isinstance(results_2, ScenarioResults)
         assert results_2.results_id == "results_2"
         assert results_2.scenario_id == scenario_id_2
@@ -951,8 +970,9 @@ class TestScenarioModeler:
 
         # Test ScenarioComparison data structure creation that would be generated from comparison
         from datetime import UTC, datetime
-        current_time = datetime.now(UTC)
-        
+
+        datetime.now(UTC)
+
         comparison = ScenarioComparison(
             comparison_id="comp_001",
             scenario_results=[results_1, results_2],
@@ -961,23 +981,26 @@ class TestScenarioModeler:
                     "scenario_1": 105.0,
                     "scenario_2": 125.0,
                     "difference": 20.0,
-                    "percentage_change": 19.05
+                    "percentage_change": 19.05,
                 },
                 "cost": {
                     "scenario_1": 50.0,
                     "scenario_2": 60.0,
                     "difference": 10.0,
-                    "percentage_change": 20.0
-                }
+                    "percentage_change": 20.0,
+                },
             },
             ranking_analysis={
-                "throughput": [str(scenario_id_2), str(scenario_id_1)]  # List of strings as per type hint
+                "throughput": [
+                    str(scenario_id_2),
+                    str(scenario_id_1),
+                ],  # List of strings as per type hint
             },
             trade_off_analysis={
                 "throughput_vs_cost": {
                     str(scenario_id_1): 0.7,  # Lower cost but lower throughput
-                    str(scenario_id_2): 0.8   # Higher cost but higher throughput
-                }
+                    str(scenario_id_2): 0.8,  # Higher cost but higher throughput
+                },
             },
             recommended_scenario=str(scenario_id_2),  # Higher throughput scenario
         )
@@ -992,19 +1015,24 @@ class TestScenarioModeler:
         assert "cost" in comparison.comparative_analysis
         assert comparison.comparative_analysis["throughput"]["difference"] == 20.0
         assert "throughput" in comparison.ranking_analysis
-        assert comparison.ranking_analysis["throughput"][0] == str(scenario_id_2)  # String comparison
+        assert comparison.ranking_analysis["throughput"][0] == str(
+            scenario_id_2,
+        )  # String comparison
         assert "throughput_vs_cost" in comparison.trade_off_analysis
-        assert comparison.trade_off_analysis["throughput_vs_cost"][str(scenario_id_2)] == 0.8
+        assert (
+            comparison.trade_off_analysis["throughput_vs_cost"][str(scenario_id_2)]
+            == 0.8
+        )
         assert comparison.recommended_scenario == str(scenario_id_2)
 
     @pytest.mark.asyncio
-    async def test_compare_scenarios_insufficient_scenarios(self):
+    async def test_compare_scenarios_insufficient_scenarios(self) -> None:
         """Test scenario comparison with insufficient scenarios."""
         scenario_id = create_scenario_id()
-        
+
         # Test core insufficient scenarios functionality without calling contract-decorated method
         # This tests the essential comparison validation logic
-        
+
         # Test ScenarioConfiguration creation with valid simulation_iterations
         config = ScenarioConfiguration(
             scenario_id=scenario_id,
@@ -1015,7 +1043,7 @@ class TestScenarioModeler:
             time_horizon=timedelta(hours=1),
             simulation_iterations=100,  # Valid minimum iterations
         )
-        
+
         # Test ScenarioOutcome creation for insufficient scenarios testing
         outcomes = [
             ScenarioOutcome(
@@ -1027,7 +1055,7 @@ class TestScenarioModeler:
             )
             for i in range(100)  # Match simulation_iterations
         ]
-        
+
         # Test ScenarioResults creation (core comparison data structure)
         results = ScenarioResults(
             results_id="results_1",
@@ -1038,19 +1066,22 @@ class TestScenarioModeler:
             confidence_intervals={},
             probability_distributions={},
         )
-        
+
         # Test single scenario list creation (insufficient for comparison)
         single_scenario_list = [results]
         assert len(single_scenario_list) == 1
         assert single_scenario_list[0].scenario_id == scenario_id
-        assert single_scenario_list[0].scenario_configuration.scenario_name == "Single Scenario"
-        
+        assert (
+            single_scenario_list[0].scenario_configuration.scenario_name
+            == "Single Scenario"
+        )
+
         # Test data structure validation for comparison readiness
         assert results.statistical_summary["throughput"]["mean"] == 100.0
         assert len(results.individual_outcomes) == 100
 
     @pytest.mark.asyncio
-    async def test_get_scenario_modeling_metrics(self):
+    async def test_get_scenario_modeling_metrics(self) -> None:
         """Test scenario modeling metrics retrieval."""
         # Initially empty
         metrics = await self.modeler.get_scenario_modeling_metrics()
@@ -1064,7 +1095,7 @@ class TestScenarioModeler:
                 "simulation_method": "monte_carlo",
                 "iterations": 1000,
                 "processing_time": 2.5,
-            }
+            },
         )
 
         self.modeler.modeling_history.append(
@@ -1074,7 +1105,7 @@ class TestScenarioModeler:
                 "simulation_method": "deterministic",
                 "iterations": 500,
                 "processing_time": 1.2,
-            }
+            },
         )
 
         metrics = await self.modeler.get_scenario_modeling_metrics()
@@ -1088,13 +1119,13 @@ class TestScenarioModelingIntegration:
     """Integration tests for scenario modeling functionality."""
 
     @pytest.mark.asyncio
-    async def test_complete_scenario_modeling_workflow(self):
+    async def test_complete_scenario_modeling_workflow(self) -> None:
         """Test complete scenario modeling workflow."""
         modeler = ScenarioModeler()
 
         # Test complete workflow infrastructure without calling contract-decorated methods
         # This tests the essential workflow components and data structures
-        
+
         # Step 1: Test scenario configuration creation (workflow foundation)
         scenario_id = create_scenario_id()
         config = ScenarioConfiguration(
@@ -1128,7 +1159,7 @@ class TestScenarioModelingIntegration:
             enable_uncertainty_analysis=True,
             enable_sensitivity_analysis=True,
         )
-        
+
         # Step 2: Test scenario outcomes creation (workflow core data structures)
         outcomes = [
             ScenarioOutcome(
@@ -1147,7 +1178,7 @@ class TestScenarioModelingIntegration:
             )
             for i in range(200)  # Match simulation_iterations
         ]
-        
+
         # Step 3: Test scenario results creation (comprehensive workflow output)
         scenario_results = ScenarioResults(
             results_id="integration_results",
@@ -1164,18 +1195,36 @@ class TestScenarioModelingIntegration:
                 "latency": {"lower": 54.0, "upper": 65.0},
             },
             probability_distributions={
-                "throughput": {"distribution_type": "normal", "parameters": {"mean": 1049.5, "std": 28.87}},
-                "latency": {"distribution_type": "normal", "parameters": {"mean": 59.5, "std": 5.77}},
+                "throughput": {
+                    "distribution_type": "normal",
+                    "parameters": {"mean": 1049.5, "std": 28.87},
+                },
+                "latency": {
+                    "distribution_type": "normal",
+                    "parameters": {"mean": 59.5, "std": 5.77},
+                },
             },
             uncertainty_analysis={
                 "parameter_impacts": {
-                    "load_multiplier": {"sensitivity": 0.8, "variance_contribution": 0.65},
-                    "concurrent_users": {"sensitivity": 0.6, "variance_contribution": 0.35},
-                }
+                    "load_multiplier": {
+                        "sensitivity": 0.8,
+                        "variance_contribution": 0.65,
+                    },
+                    "concurrent_users": {
+                        "sensitivity": 0.6,
+                        "variance_contribution": 0.35,
+                    },
+                },
             },
             sensitivity_analysis={
-                "load_multiplier": {"partial_derivative": 800.0, "normalized_sensitivity": 0.8},
-                "concurrent_users": {"partial_derivative": 5.2, "normalized_sensitivity": 0.6},
+                "load_multiplier": {
+                    "partial_derivative": 800.0,
+                    "normalized_sensitivity": 0.8,
+                },
+                "concurrent_users": {
+                    "partial_derivative": 5.2,
+                    "normalized_sensitivity": 0.6,
+                },
             },
             risk_assessment={
                 "overall_risk_score": 0.25,
@@ -1190,40 +1239,48 @@ class TestScenarioModelingIntegration:
                 "Error rate acceptable across all tested scenarios",
             ],
         )
-        
+
         # Step 4: Verify comprehensive workflow results
         assert scenario_results.scenario_id == scenario_id
         assert len(scenario_results.individual_outcomes) == 200
-        
+
         # Test statistical summary workflow components
         assert "throughput" in scenario_results.statistical_summary
         assert "latency" in scenario_results.statistical_summary
         assert "error_rate" in scenario_results.statistical_summary
         assert scenario_results.statistical_summary["throughput"]["mean"] == 1049.5
-        
+
         # Test confidence intervals workflow components
         assert len(scenario_results.confidence_intervals) > 0
         assert "throughput" in scenario_results.confidence_intervals
         assert scenario_results.confidence_intervals["throughput"]["lower"] == 1021.0
-        
+
         # Test uncertainty analysis workflow components
         assert len(scenario_results.uncertainty_analysis) > 0
         assert "parameter_impacts" in scenario_results.uncertainty_analysis
-        assert "load_multiplier" in scenario_results.uncertainty_analysis["parameter_impacts"]
-        
+        assert (
+            "load_multiplier"
+            in scenario_results.uncertainty_analysis["parameter_impacts"]
+        )
+
         # Test sensitivity analysis workflow components
         assert len(scenario_results.sensitivity_analysis) > 0
         assert "load_multiplier" in scenario_results.sensitivity_analysis
-        assert scenario_results.sensitivity_analysis["load_multiplier"]["normalized_sensitivity"] == 0.8
-        
+        assert (
+            scenario_results.sensitivity_analysis["load_multiplier"][
+                "normalized_sensitivity"
+            ]
+            == 0.8
+        )
+
         # Test risk assessment workflow components
         assert "overall_risk_score" in scenario_results.risk_assessment
         assert scenario_results.risk_assessment["overall_risk_score"] == 0.25
-        
+
         # Test recommendations workflow components
         assert len(scenario_results.recommendations) > 0
         assert "Consider increasing capacity" in scenario_results.recommendations[0]
-        
+
         # Test modeler infrastructure (essential workflow foundation)
         assert isinstance(modeler.scenario_cache, dict)
         assert isinstance(modeler.modeling_history, deque)
@@ -1231,13 +1288,13 @@ class TestScenarioModelingIntegration:
         assert isinstance(modeler.simulation_engines, dict)
 
     @pytest.mark.asyncio
-    async def test_multiple_simulation_methods_comparison(self):
+    async def test_multiple_simulation_methods_comparison(self) -> None:
         """Test comparing different simulation methods."""
         modeler = ScenarioModeler()
 
         # Test multiple simulation methods comparison infrastructure without calling contract-decorated methods
         # This tests the essential comparison components and data structures
-        
+
         scenario_configs = []
         simulation_methods = [
             SimulationMethod.MONTE_CARLO,
@@ -1246,7 +1303,7 @@ class TestScenarioModelingIntegration:
         ]
 
         # Test configuration creation for different simulation methods
-        for i, method in enumerate(simulation_methods):
+        for _i, method in enumerate(simulation_methods):
             scenario_id = create_scenario_id()
             config = ScenarioConfiguration(
                 scenario_id=scenario_id,
@@ -1261,13 +1318,13 @@ class TestScenarioModelingIntegration:
                         base_value=0.2,
                         min_value=0.1,
                         max_value=0.4,
-                    )
+                    ),
                 ],
                 time_horizon=timedelta(hours=1),
                 simulation_iterations=100,
             )
             scenario_configs.append(config)
-        
+
         # Test scenario results creation for each simulation method
         results_list = []
         for i, config in enumerate(scenario_configs):
@@ -1282,24 +1339,33 @@ class TestScenarioModelingIntegration:
                 )
                 for j in range(100)
             ]
-            
+
             scenario_results = ScenarioResults(
                 results_id=f"results_{config.simulation_method.value}",
                 scenario_id=config.scenario_id,
                 scenario_configuration=config,
                 individual_outcomes=outcomes,
                 statistical_summary={
-                    "required_capacity": {"mean": 1025.0 + i * 100, "std": 14.43 + i * 5}
+                    "required_capacity": {
+                        "mean": 1025.0 + i * 100,
+                        "std": 14.43 + i * 5,
+                    },
                 },
                 confidence_intervals={
-                    "required_capacity": {"lower": 1010.0 + i * 100, "upper": 1040.0 + i * 100}
+                    "required_capacity": {
+                        "lower": 1010.0 + i * 100,
+                        "upper": 1040.0 + i * 100,
+                    },
                 },
                 probability_distributions={
-                    "required_capacity": {"distribution_type": "normal", "parameters": {"mean": 1025.0 + i * 100, "std": 14.43}}
+                    "required_capacity": {
+                        "distribution_type": "normal",
+                        "parameters": {"mean": 1025.0 + i * 100, "std": 14.43},
+                    },
                 },
             )
             results_list.append(scenario_results)
-        
+
         # Test scenario comparison creation (multi-method comparison infrastructure)
         comparison = ScenarioComparison(
             comparison_id="multi_method_comparison",
@@ -1309,45 +1375,57 @@ class TestScenarioModelingIntegration:
                     "monte_carlo_vs_deterministic": 100.0,
                     "deterministic_vs_statistical": 100.0,
                     "difference": 200.0,
-                }
+                },
             },
             ranking_analysis={
                 "required_capacity": [
                     str(results_list[2].scenario_id),  # Statistical modeling (highest)
                     str(results_list[1].scenario_id),  # Deterministic (middle)
                     str(results_list[0].scenario_id),  # Monte Carlo (lowest)
-                ]
+                ],
             },
             trade_off_analysis={
                 "capacity_efficiency": {
                     str(results_list[0].scenario_id): 0.9,  # Monte Carlo efficiency
                     str(results_list[1].scenario_id): 0.8,  # Deterministic efficiency
-                    str(results_list[2].scenario_id): 0.7,  # Statistical modeling efficiency
-                }
+                    str(
+                        results_list[2].scenario_id,
+                    ): 0.7,  # Statistical modeling efficiency
+                },
             },
-            recommended_scenario=str(results_list[2].scenario_id),  # Best method for capacity planning
+            recommended_scenario=str(
+                results_list[2].scenario_id,
+            ),  # Best method for capacity planning
         )
-        
+
         # Verify multiple simulation methods comparison
         assert len(comparison.scenario_results) == 3
         assert comparison.recommended_scenario is not None
         assert comparison.recommended_scenario == str(results_list[2].scenario_id)
-        
+
         # Test each simulation method results validation
         for i, results in enumerate(results_list):
             assert len(results.individual_outcomes) == 100
             assert "required_capacity" in results.statistical_summary
-            assert results.statistical_summary["required_capacity"]["mean"] == 1025.0 + i * 100
-            assert results.scenario_configuration.simulation_method == simulation_methods[i]
-        
+            assert (
+                results.statistical_summary["required_capacity"]["mean"]
+                == 1025.0 + i * 100
+            )
+            assert (
+                results.scenario_configuration.simulation_method
+                == simulation_methods[i]
+            )
+
         # Test comparative analysis components
         assert "required_capacity" in comparison.comparative_analysis
-        assert comparison.comparative_analysis["required_capacity"]["difference"] == 200.0
-        
+        assert (
+            comparison.comparative_analysis["required_capacity"]["difference"] == 200.0
+        )
+
         # Test ranking analysis validation
         assert "required_capacity" in comparison.ranking_analysis
         assert len(comparison.ranking_analysis["required_capacity"]) == 3
-        
+
         # Test modeler infrastructure supports multiple methods
         assert isinstance(modeler.simulation_engines, dict)
         assert SimulationMethod.MONTE_CARLO in modeler.simulation_engines

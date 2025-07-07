@@ -1,5 +1,4 @@
-"""
-Accessibility Architecture - TASK_57 Phase 1 Implementation
+"""Accessibility Architecture - TASK_57 Phase 1 Implementation.
 
 Core accessibility types and compliance framework for automated testing and validation.
 Provides comprehensive WCAG compliance, assistive technology integration, and accessibility testing.
@@ -276,14 +275,13 @@ class ComplianceReport:
         """Get compliance status based on score."""
         if self.overall_score >= 95.0:
             return "Excellent"
-        elif self.overall_score >= 85.0:
+        if self.overall_score >= 85.0:
             return "Good"
-        elif self.overall_score >= 70.0:
+        if self.overall_score >= 70.0:
             return "Fair"
-        elif self.overall_score >= 50.0:
+        if self.overall_score >= 50.0:
             return "Poor"
-        else:
-            return "Critical"
+        return "Critical"
 
     @property
     def has_blocking_issues(self) -> bool:
@@ -463,7 +461,8 @@ def create_test_result_id() -> TestResultId:
 
 
 def get_wcag_criteria_by_level(
-    level: ConformanceLevel, version: WCAGVersion = WCAGVersion.WCAG_2_1
+    level: ConformanceLevel,
+    version: WCAGVersion = WCAGVersion.WCAG_2_1,
 ) -> list[WCAGCriterion]:
     """Get all WCAG criteria for a specific conformance level."""
     if version != WCAGVersion.WCAG_2_1:
@@ -485,7 +484,8 @@ def get_wcag_criteria_by_level(
 
 
 def get_wcag_criteria_by_principle(
-    principle: AccessibilityPrinciple, version: WCAGVersion = WCAGVersion.WCAG_2_1
+    principle: AccessibilityPrinciple,
+    version: WCAGVersion = WCAGVersion.WCAG_2_1,
 ) -> list[WCAGCriterion]:
     """Get all WCAG criteria for a specific accessibility principle."""
     if version != WCAGVersion.WCAG_2_1:
@@ -510,28 +510,18 @@ def validate_wcag_criterion_id(criterion_id: str) -> bool:
 class AccessibilityError(Exception):
     """Base class for accessibility-related errors."""
 
-    pass
-
 
 class ComplianceValidationError(AccessibilityError):
     """Error during compliance validation."""
-
-    pass
 
 
 class AssistiveTechError(AccessibilityError):
     """Error with assistive technology integration."""
 
-    pass
-
 
 class TestExecutionError(AccessibilityError):
     """Error during accessibility test execution."""
 
-    pass
-
 
 class ReportGenerationError(AccessibilityError):
     """Error during report generation."""
-
-    pass

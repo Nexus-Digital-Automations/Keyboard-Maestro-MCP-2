@@ -1,5 +1,4 @@
-"""
-Usage Forecaster - TASK_59 Phase 2 Core Implementation
+"""Usage Forecaster - TASK_59 Phase 2 Core Implementation.
 
 Resource usage and capacity forecasting system for automation workflows.
 Provides advanced forecasting models, capacity planning, and resource optimization.
@@ -132,8 +131,7 @@ class ForecastScenario:
 
 
 class UsageForecaster:
-    """
-    Advanced resource usage and capacity forecasting system.
+    """Advanced resource usage and capacity forecasting system.
 
     Provides comprehensive forecasting capabilities including trend analysis,
     capacity planning, and optimization recommendations with multiple modeling approaches.
@@ -152,7 +150,7 @@ class UsageForecaster:
         # Initialize forecasting models
         self._initialize_forecasting_models()
 
-    def _initialize_capacity_thresholds(self):
+    def _initialize_capacity_thresholds(self) -> None:
         """Initialize default capacity thresholds for different resource types."""
         self.capacity_thresholds = {
             ResourceType.CPU_USAGE: {
@@ -182,7 +180,7 @@ class UsageForecaster:
             },
         }
 
-    def _initialize_forecasting_models(self):
+    def _initialize_forecasting_models(self) -> None:
         """Initialize forecasting models for different resource types."""
         self.forecasting_models = {
             ResourceType.CPU_USAGE: {
@@ -209,10 +207,11 @@ class UsageForecaster:
 
     @require(lambda time_series_data: len(time_series_data.timestamps) >= 10)
     async def add_usage_data(
-        self, resource_type: ResourceType, time_series_data: TimeSeriesData
+        self,
+        resource_type: ResourceType,
+        time_series_data: TimeSeriesData,
     ) -> Either[PredictiveModelingError, None]:
-        """
-        Add historical usage data for forecasting.
+        """Add historical usage data for forecasting.
 
         Validates and stores time series data for specific resource types
         to enable accurate forecasting and trend analysis.
@@ -239,8 +238,9 @@ class UsageForecaster:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Failed to add usage data: {str(e)}", "DATA_ADDITION_ERROR"
-                )
+                    f"Failed to add usage data: {e!s}",
+                    "DATA_ADDITION_ERROR",
+                ),
             )
 
     @require(lambda resource_type: isinstance(resource_type, ResourceType))
@@ -253,8 +253,7 @@ class UsageForecaster:
         confidence_level: ConfidenceLevel = ConfidenceLevel.MEDIUM,
         scenario: ForecastScenario | None = None,
     ) -> Either[ForecastingError, ResourceForecast]:
-        """
-        Generate resource usage forecast for specified period.
+        """Generate resource usage forecast for specified period.
 
         Uses appropriate forecasting models based on resource type and historical data
         to predict future usage patterns with confidence intervals.
@@ -269,7 +268,7 @@ class UsageForecaster:
                     ForecastingError(
                         f"No historical data available for {resource_type.value}",
                         "INSUFFICIENT_DATA",
-                    )
+                    ),
                 )
 
             # Get the most recent and comprehensive data
@@ -280,7 +279,7 @@ class UsageForecaster:
                     ForecastingError(
                         f"Insufficient data points for {resource_type.value}: {len(latest_data.values)}",
                         "INSUFFICIENT_DATA_POINTS",
-                    )
+                    ),
                 )
 
             # Analyze usage trends
@@ -291,7 +290,10 @@ class UsageForecaster:
 
             # Generate base forecast
             forecast_result = await self._generate_base_forecast(
-                latest_data, forecast_period_days, granularity, model_type
+                latest_data,
+                forecast_period_days,
+                granularity,
+                model_type,
             )
 
             if forecast_result.is_left():
@@ -302,12 +304,15 @@ class UsageForecaster:
             # Apply scenario adjustments if provided
             if scenario:
                 base_forecast = self._apply_scenario_adjustments(
-                    base_forecast, scenario
+                    base_forecast,
+                    scenario,
                 )
 
             # Generate capacity analysis
             capacity_analysis = await self._analyze_capacity_requirements(
-                resource_type, base_forecast, latest_data
+                resource_type,
+                base_forecast,
+                latest_data,
             )
 
             # Create final forecast
@@ -319,7 +324,8 @@ class UsageForecaster:
                 current_usage=latest_data.values[-1] if latest_data.values else 0.0,
                 predicted_usage=base_forecast,
                 forecast_timestamps=self._generate_forecast_timestamps(
-                    forecast_period_days, granularity
+                    forecast_period_days,
+                    granularity,
                 ),
                 capacity_thresholds=self.capacity_thresholds.get(resource_type, {}),
                 growth_rate=trend_analysis.growth_rate if trend_analysis else 0.0,
@@ -340,13 +346,14 @@ class UsageForecaster:
         except Exception as e:
             return Either.left(
                 ForecastingError(
-                    f"Forecast generation failed for {resource_type.value}: {str(e)}",
+                    f"Forecast generation failed for {resource_type.value}: {e!s}",
                     "FORECAST_GENERATION_ERROR",
-                )
+                ),
             )
 
     def _get_latest_consolidated_data(
-        self, resource_type: ResourceType
+        self,
+        resource_type: ResourceType,
     ) -> TimeSeriesData:
         """Consolidate and return the latest data for a resource type."""
         all_data = self.resource_data[resource_type]
@@ -477,7 +484,7 @@ class UsageForecaster:
 
             if ratio_mean > 1.1 and ratio_std < 0.2:  # Consistent growth > 10%
                 return GrowthPattern.EXPONENTIAL
-            elif ratio_mean < 0.9 and ratio_std < 0.2:  # Consistent decline
+            if ratio_mean < 0.9 and ratio_std < 0.2:  # Consistent decline
                 return GrowthPattern.LOGARITHMIC
 
         # Check for seasonal patterns
@@ -518,7 +525,7 @@ class UsageForecaster:
                 statistics.mean(values) for values in monthly_groups.values()
             ]
             if len(month_means) > 1 and statistics.stdev(
-                month_means
+                month_means,
             ) > 0.2 * statistics.mean(month_means):
                 seasonal_periods.append("monthly")
 
@@ -526,7 +533,7 @@ class UsageForecaster:
         if len(weekly_groups) >= 5:  # At least 5 different days
             day_means = [statistics.mean(values) for values in weekly_groups.values()]
             if len(day_means) > 1 and statistics.stdev(
-                day_means
+                day_means,
             ) > 0.15 * statistics.mean(day_means):
                 seasonal_periods.append("weekly")
 
@@ -534,7 +541,7 @@ class UsageForecaster:
         if len(daily_groups) >= 12:  # At least 12 different hours
             hour_means = [statistics.mean(values) for values in daily_groups.values()]
             if len(hour_means) > 1 and statistics.stdev(
-                hour_means
+                hour_means,
             ) > 0.1 * statistics.mean(hour_means):
                 seasonal_periods.append("daily")
 
@@ -598,11 +605,14 @@ class UsageForecaster:
         return (completeness_score + consistency_score) / 2
 
     def _select_forecasting_model(
-        self, resource_type: ResourceType, trend_analysis: UsageTrend | None
+        self,
+        resource_type: ResourceType,
+        trend_analysis: UsageTrend | None,
     ) -> ModelType:
         """Select the best forecasting model for the resource type and trend."""
         default_model = self.forecasting_models.get(resource_type, {}).get(
-            "primary", ModelType.LINEAR_REGRESSION
+            "primary",
+            ModelType.LINEAR_REGRESSION,
         )
 
         if not trend_analysis:
@@ -611,16 +621,16 @@ class UsageForecaster:
         # Select model based on trend characteristics
         if trend_analysis.seasonality_detected:
             return self.forecasting_models.get(resource_type, {}).get(
-                "seasonal", ModelType.SEASONAL_ARIMA
+                "seasonal",
+                ModelType.SEASONAL_ARIMA,
             )
-        elif trend_analysis.growth_pattern == GrowthPattern.EXPONENTIAL:
+        if trend_analysis.growth_pattern == GrowthPattern.EXPONENTIAL:
             return ModelType.LSTM
-        elif trend_analysis.growth_pattern == GrowthPattern.VOLATILE:
+        if trend_analysis.growth_pattern == GrowthPattern.VOLATILE:
             return ModelType.ENSEMBLE
-        elif trend_analysis.growth_pattern == GrowthPattern.LINEAR:
+        if trend_analysis.growth_pattern == GrowthPattern.LINEAR:
             return ModelType.LINEAR_REGRESSION
-        else:
-            return default_model
+        return default_model
 
     async def _generate_base_forecast(
         self,
@@ -640,7 +650,7 @@ class UsageForecaster:
                     ForecastingError(
                         "Insufficient numeric values for forecasting",
                         "INSUFFICIENT_NUMERIC_DATA",
-                    )
+                    ),
                 )
 
             # Calculate number of forecast points based on granularity
@@ -652,19 +662,21 @@ class UsageForecaster:
             }
 
             forecast_points = int(
-                forecast_period_days * points_per_day.get(granularity, 1)
+                forecast_period_days * points_per_day.get(granularity, 1),
             )
 
             # Generate forecast based on model type
             if model_type == ModelType.LINEAR_REGRESSION:
                 forecast = self._linear_regression_forecast(
-                    numeric_values, forecast_points
+                    numeric_values,
+                    forecast_points,
                 )
             elif model_type == ModelType.ARIMA:
                 forecast = self._arima_forecast(numeric_values, forecast_points)
             elif model_type == ModelType.SEASONAL_ARIMA:
                 forecast = self._seasonal_arima_forecast(
-                    numeric_values, forecast_points
+                    numeric_values,
+                    forecast_points,
                 )
             elif model_type == ModelType.LSTM:
                 forecast = self._lstm_forecast(numeric_values, forecast_points)
@@ -672,7 +684,8 @@ class UsageForecaster:
                 forecast = self._prophet_forecast(data, forecast_points)
             else:
                 forecast = self._linear_regression_forecast(
-                    numeric_values, forecast_points
+                    numeric_values,
+                    forecast_points,
                 )
 
             return Either.right(forecast)
@@ -680,12 +693,15 @@ class UsageForecaster:
         except Exception as e:
             return Either.left(
                 ForecastingError(
-                    f"Base forecast generation failed: {str(e)}", "BASE_FORECAST_ERROR"
-                )
+                    f"Base forecast generation failed: {e!s}",
+                    "BASE_FORECAST_ERROR",
+                ),
             )
 
     def _linear_regression_forecast(
-        self, values: list[float], forecast_points: int
+        self,
+        values: list[float],
+        forecast_points: int,
     ) -> list[float]:
         """Generate forecast using linear regression."""
         n = len(values)
@@ -748,7 +764,9 @@ class UsageForecaster:
         return forecast
 
     def _seasonal_arima_forecast(
-        self, values: list[float], forecast_points: int
+        self,
+        values: list[float],
+        forecast_points: int,
     ) -> list[float]:
         """Generate forecast using seasonal ARIMA (simplified implementation)."""
         if len(values) < 12:  # Need at least a seasonal cycle
@@ -820,7 +838,9 @@ class UsageForecaster:
         return forecast
 
     def _prophet_forecast(
-        self, data: TimeSeriesData, forecast_points: int
+        self,
+        data: TimeSeriesData,
+        forecast_points: int,
     ) -> list[float]:
         """Generate forecast using Prophet-like approach (simplified implementation)."""
         numeric_values = [float(v) for v in data.values if isinstance(v, int | float)]
@@ -911,7 +931,9 @@ class UsageForecaster:
         return [v - mean_seasonal for v in seasonal_component]
 
     def _apply_scenario_adjustments(
-        self, base_forecast: list[float], scenario: ForecastScenario
+        self,
+        base_forecast: list[float],
+        scenario: ForecastScenario,
     ) -> list[float]:
         """Apply scenario adjustments to base forecast."""
         adjusted_forecast = []
@@ -1024,7 +1046,9 @@ class UsageForecaster:
             return None
 
     def _generate_forecast_timestamps(
-        self, forecast_period_days: int, granularity: ForecastGranularity
+        self,
+        forecast_period_days: int,
+        granularity: ForecastGranularity,
     ) -> list[datetime]:
         """Generate forecast timestamps based on period and granularity."""
         timestamps = []
@@ -1130,6 +1154,6 @@ class UsageForecaster:
 
         except Exception as e:
             return {
-                "error": f"Failed to generate forecasting summary: {str(e)}",
+                "error": f"Failed to generate forecasting summary: {e!s}",
                 "timestamp": datetime.now(UTC).isoformat(),
             }

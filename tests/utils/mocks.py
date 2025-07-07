@@ -1,5 +1,4 @@
-"""
-Mock objects and test doubles for comprehensive testing of the macro system.
+"""Mock objects and test doubles for comprehensive testing of the macro system.
 
 This module provides sophisticated mocks for external dependencies and
 complex system components to enable isolated testing.
@@ -37,8 +36,7 @@ class MockKMResponse:
 
 
 class MockKeyboardMaestroClient:
-    """
-    Sophisticated mock for Keyboard Maestro client integration.
+    """Sophisticated mock for Keyboard Maestro client integration.
 
     Simulates realistic behavior including delays, errors, and state management.
     """
@@ -85,11 +83,14 @@ class MockKeyboardMaestroClient:
             self.registered_triggers[trigger_id] = trigger_config.copy()
 
         return MockKMResponse(
-            status="success", data={"trigger_id": trigger_id, "registered": True}
+            status="success",
+            data={"trigger_id": trigger_id, "registered": True},
         )
 
     def execute_macro(
-        self, macro_id: str, parameters: dict[str, Any] | None = None
+        self,
+        macro_id: str,
+        parameters: dict[str, Any] | None = None,
     ) -> MockKMResponse:
         """Mock macro execution with realistic timing."""
         self.call_count += 1
@@ -102,7 +103,9 @@ class MockKeyboardMaestroClient:
             self.error_count += 1
             self.last_error = f"Macro {macro_id} execution failed"
             return MockKMResponse(
-                status="error", error=self.last_error, execution_time=execution_time
+                status="error",
+                error=self.last_error,
+                execution_time=execution_time,
             )
 
         # Success case
@@ -148,14 +151,17 @@ class MockKeyboardMaestroClient:
         )
 
     async def register_trigger_async(
-        self, trigger_config: dict[str, Any]
+        self,
+        trigger_config: dict[str, Any],
     ) -> MockKMResponse:
         """Async version of trigger registration."""
         await asyncio.sleep(self.response_delay)
         return self.register_trigger(trigger_config)
 
     async def execute_macro_async(
-        self, macro_id: str, parameters: dict[str, Any] | None = None
+        self,
+        macro_id: str,
+        parameters: dict[str, Any] | None = None,
     ) -> MockKMResponse:
         """Async version of macro execution."""
         await asyncio.sleep(self.response_delay)
@@ -163,11 +169,13 @@ class MockKeyboardMaestroClient:
 
     def _should_fail(self) -> bool:
         """Determine if operation should fail based on success rate."""
-        import random
+        import secrets
 
-        return random.random() > self.success_rate
+        return (
+            secrets.randbelow(100) / 100.0 > self.success_rate
+        )  # S311 fix: Use cryptographically secure random
 
-    def reset_stats(self):
+    def reset_stats(self) -> None:
         """Reset statistics and state."""
         with self._lock:
             self.call_count = 0
@@ -176,7 +184,7 @@ class MockKeyboardMaestroClient:
             self.macro_executions.clear()
             self.last_error = None
 
-    def set_connection_status(self, status: str):
+    def set_connection_status(self, status: str) -> None:
         """Simulate connection status changes."""
         self.connection_status = status
 
@@ -211,16 +219,18 @@ class MockExecutionContext:
         # Mock methods
         self.has_permission = Mock(side_effect=lambda p: p in self.permissions)
         self.has_permissions = Mock(
-            side_effect=lambda ps: ps.issubset(self.permissions)
+            side_effect=lambda ps: ps.issubset(self.permissions),
         )
         self.get_variable = Mock(side_effect=lambda name: self.variables.get(name))
 
-    def with_variable(self, name: str, value: str):
+    def with_variable(self, name: str, value: str) -> None:
         """Add variable to mock context."""
         new_vars = self.variables.copy()
         new_vars[name] = value
         return MockExecutionContext(
-            permissions=self.permissions, timeout=self.timeout, variables=new_vars
+            permissions=self.permissions,
+            timeout=self.timeout,
+            variables=new_vars,
         )
 
 
@@ -256,11 +266,10 @@ class MockCommand:
                 output=f"Mock command {self.command_id} executed",
                 execution_time=Duration.from_seconds(self.execution_time),
             )
-        else:
-            return CommandResult.failure_result(
-                error_message=f"Mock command {self.command_id} failed",
-                execution_time=Duration.from_seconds(self.execution_time),
-            )
+        return CommandResult.failure_result(
+            error_message=f"Mock command {self.command_id} failed",
+            execution_time=Duration.from_seconds(self.execution_time),
+        )
 
     def validate(self) -> bool:
         """Mock validation always succeeds."""
@@ -342,7 +351,7 @@ class MockFileSystem:
 
     def __init__(self):
         self.files: dict[str, str] = {}
-        self.directories: set[str] = {"/", "/tmp", "/test"}
+        self.directories: set[str] = {"/", "/test", "/mock_data"}
         self.permissions: dict[str, str] = {}  # path -> permission level
 
         # Access tracking
@@ -388,16 +397,20 @@ class MockFileSystem:
         prefix = path.rstrip("/") + "/"
         return [f for f in self.files.keys() if f.startswith(prefix)]
 
-    def _log_access(self, operation: str, path: str):
+    def _log_access(self, operation: str, path: str) -> None:
         """Log file system access."""
         self.access_log.append(
-            {"operation": operation, "path": path, "timestamp": datetime.now()}
+            {
+                "operation": operation,
+                "path": path,
+                "timestamp": datetime.now(),
+            },
         )
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset file system state."""
         self.files.clear()
-        self.directories = {"/", "/tmp", "/test"}
+        self.directories = {"/", "/test", "/mock_data"}
         self.read_count = 0
         self.write_count = 0
         self.access_log.clear()
@@ -407,26 +420,34 @@ class MockFileSystem:
 def create_failing_km_client() -> MockKeyboardMaestroClient:
     """Create a KM client that frequently fails."""
     return MockKeyboardMaestroClient(
-        success_rate=0.3, response_delay=0.2, simulate_failures=True
+        success_rate=0.3,
+        response_delay=0.2,
+        simulate_failures=True,
     )
 
 
 def create_slow_km_client() -> MockKeyboardMaestroClient:
     """Create a KM client with slow responses."""
     return MockKeyboardMaestroClient(
-        success_rate=0.95, response_delay=1.0, simulate_failures=False
+        success_rate=0.95,
+        response_delay=1.0,
+        simulate_failures=False,
     )
 
 
 def create_reliable_km_client() -> MockKeyboardMaestroClient:
     """Create a highly reliable KM client."""
     return MockKeyboardMaestroClient(
-        success_rate=0.99, response_delay=0.05, simulate_failures=False
+        success_rate=0.99,
+        response_delay=0.05,
+        simulate_failures=False,
     )
 
 
 def create_mock_command_sequence(
-    count: int, execution_time: float = 0.1, failure_rate: float = 0.0
+    count: int,
+    execution_time: float = 0.1,
+    failure_rate: float = 0.0,
 ) -> list[MockCommand]:
     """Create a sequence of mock commands."""
     commands = []

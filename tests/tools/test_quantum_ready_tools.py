@@ -1,11 +1,13 @@
-"""
-Comprehensive test suite for quantum ready tools using systematic MCP tool test pattern.
+"""Comprehensive test suite for quantum ready tools using systematic MCP tool test pattern.
 
 Tests the complete quantum readiness functionality including quantum analysis, post-quantum
 cryptography upgrades, quantum interface preparation, security management, and algorithm simulation.
 Tests follow the proven systematic pattern that achieved 100% success across 28+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import Mock
 
@@ -116,14 +118,14 @@ async def mock_km_analyze_quantum_readiness(
                     "weakness": "quantum-vulnerable key exchange",
                     "severity": "high",
                     "recommendation": "implement hybrid post-quantum TLS",
-                }
+                },
             ],
             "implementation_gaps": [
                 {
                     "area": "quantum random number generation",
                     "status": "not_implemented",
                     "priority": "medium",
-                }
+                },
             ],
         }
 
@@ -1139,16 +1141,16 @@ class TestKMAnalyzeQuantumReadiness:
     """Test suite for km_analyze_quantum_readiness MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-quantum-analysis-001"
+            "request_id": "test-request-quantum-analysis-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_analyze_quantum_readiness_comprehensive(self, mock_context):
+    async def test_analyze_quantum_readiness_comprehensive(self, mock_context) -> None:
         """Test comprehensive quantum readiness analysis."""
         result = await km_analyze_quantum_readiness(
             analysis_scope="system",
@@ -1174,7 +1176,7 @@ class TestKMAnalyzeQuantumReadiness:
         assert "threat_model" in analysis
 
     @pytest.mark.asyncio
-    async def test_analyze_quantum_readiness_minimal(self, mock_context):
+    async def test_analyze_quantum_readiness_minimal(self, mock_context) -> None:
         """Test minimal quantum readiness analysis."""
         result = await km_analyze_quantum_readiness(
             analysis_scope="application",
@@ -1195,10 +1197,11 @@ class TestKMAnalyzeQuantumReadiness:
         assert "algorithm_analysis" not in analysis
 
     @pytest.mark.asyncio
-    async def test_analyze_quantum_readiness_invalid_scope(self, mock_context):
+    async def test_analyze_quantum_readiness_invalid_scope(self, mock_context) -> None:
         """Test quantum readiness analysis with invalid scope."""
         result = await km_analyze_quantum_readiness(
-            analysis_scope="invalid_scope", ctx=mock_context
+            analysis_scope="invalid_scope",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1206,10 +1209,12 @@ class TestKMAnalyzeQuantumReadiness:
         assert "Invalid analysis scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_analyze_quantum_readiness_invalid_security_level(self, mock_context):
+    async def test_analyze_quantum_readiness_invalid_security_level(self, mock_context) -> None:
         """Test quantum readiness analysis with invalid security level."""
         result = await km_analyze_quantum_readiness(
-            analysis_scope="system", security_level="invalid_level", ctx=mock_context
+            analysis_scope="system",
+            security_level="invalid_level",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1217,7 +1222,7 @@ class TestKMAnalyzeQuantumReadiness:
         assert "Invalid security level" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_analyze_quantum_readiness_empty_scope(self, mock_context):
+    async def test_analyze_quantum_readiness_empty_scope(self, mock_context) -> None:
         """Test quantum readiness analysis with empty scope."""
         result = await km_analyze_quantum_readiness(analysis_scope="", ctx=mock_context)
 
@@ -1230,14 +1235,14 @@ class TestKMUpgradeToPostQuantum:
     """Test suite for km_upgrade_to_post_quantum MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-pq-upgrade-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_upgrade_to_post_quantum_comprehensive(self, mock_context):
+    async def test_upgrade_to_post_quantum_comprehensive(self, mock_context) -> None:
         """Test comprehensive post-quantum cryptography upgrade."""
         result = await km_upgrade_to_post_quantum(
             upgrade_scope="system",
@@ -1263,7 +1268,7 @@ class TestKMUpgradeToPostQuantum:
         assert "rollback_plan" in upgrade
 
     @pytest.mark.asyncio
-    async def test_upgrade_to_post_quantum_without_optimization(self, mock_context):
+    async def test_upgrade_to_post_quantum_without_optimization(self, mock_context) -> None:
         """Test post-quantum upgrade without performance optimization."""
         result = await km_upgrade_to_post_quantum(
             upgrade_scope="application",
@@ -1281,10 +1286,11 @@ class TestKMUpgradeToPostQuantum:
         assert "rollback_plan" not in upgrade
 
     @pytest.mark.asyncio
-    async def test_upgrade_to_post_quantum_invalid_scope(self, mock_context):
+    async def test_upgrade_to_post_quantum_invalid_scope(self, mock_context) -> None:
         """Test post-quantum upgrade with invalid scope."""
         result = await km_upgrade_to_post_quantum(
-            upgrade_scope="invalid_scope", ctx=mock_context
+            upgrade_scope="invalid_scope",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1292,7 +1298,7 @@ class TestKMUpgradeToPostQuantum:
         assert "Invalid upgrade scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_upgrade_to_post_quantum_invalid_strategy(self, mock_context):
+    async def test_upgrade_to_post_quantum_invalid_strategy(self, mock_context) -> None:
         """Test post-quantum upgrade with invalid migration strategy."""
         result = await km_upgrade_to_post_quantum(
             upgrade_scope="application",
@@ -1305,7 +1311,7 @@ class TestKMUpgradeToPostQuantum:
         assert "Invalid migration strategy" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_upgrade_to_post_quantum_empty_scope(self, mock_context):
+    async def test_upgrade_to_post_quantum_empty_scope(self, mock_context) -> None:
         """Test post-quantum upgrade with empty scope."""
         result = await km_upgrade_to_post_quantum(upgrade_scope="", ctx=mock_context)
 
@@ -1318,16 +1324,16 @@ class TestKMPrepareQuantumInterface:
     """Test suite for km_prepare_quantum_interface MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-quantum-interface-001"
+            "request_id": "test-request-quantum-interface-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_prepare_quantum_interface_comprehensive(self, mock_context):
+    async def test_prepare_quantum_interface_comprehensive(self, mock_context) -> None:
         """Test comprehensive quantum interface preparation."""
         result = await km_prepare_quantum_interface(
             interface_type="hybrid",
@@ -1353,7 +1359,7 @@ class TestKMPrepareQuantumInterface:
         assert "integration_tests" in interface
 
     @pytest.mark.asyncio
-    async def test_prepare_quantum_interface_simulator(self, mock_context):
+    async def test_prepare_quantum_interface_simulator(self, mock_context) -> None:
         """Test quantum interface preparation for simulator."""
         result = await km_prepare_quantum_interface(
             interface_type="simulator",
@@ -1374,10 +1380,11 @@ class TestKMPrepareQuantumInterface:
         assert "error_correction" not in interface
 
     @pytest.mark.asyncio
-    async def test_prepare_quantum_interface_invalid_type(self, mock_context):
+    async def test_prepare_quantum_interface_invalid_type(self, mock_context) -> None:
         """Test quantum interface preparation with invalid type."""
         result = await km_prepare_quantum_interface(
-            interface_type="invalid_type", ctx=mock_context
+            interface_type="invalid_type",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1385,7 +1392,7 @@ class TestKMPrepareQuantumInterface:
         assert "Invalid interface type" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_prepare_quantum_interface_invalid_backend(self, mock_context):
+    async def test_prepare_quantum_interface_invalid_backend(self, mock_context) -> None:
         """Test quantum interface preparation with invalid backend."""
         result = await km_prepare_quantum_interface(
             interface_type="simulator",
@@ -1398,7 +1405,7 @@ class TestKMPrepareQuantumInterface:
         assert "Invalid quantum backend" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_prepare_quantum_interface_empty_type(self, mock_context):
+    async def test_prepare_quantum_interface_empty_type(self, mock_context) -> None:
         """Test quantum interface preparation with empty type."""
         result = await km_prepare_quantum_interface(interface_type="", ctx=mock_context)
 
@@ -1411,16 +1418,16 @@ class TestKMManageQuantumSecurity:
     """Test suite for km_manage_quantum_security MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-quantum-security-001"
+            "request_id": "test-request-quantum-security-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_manage_quantum_security_status(self, mock_context):
+    async def test_manage_quantum_security_status(self, mock_context) -> None:
         """Test quantum security status management."""
         result = await km_manage_quantum_security(
             security_operation="status",
@@ -1443,7 +1450,7 @@ class TestKMManageQuantumSecurity:
         assert "threat_monitoring" in security
 
     @pytest.mark.asyncio
-    async def test_manage_quantum_security_with_incident_response(self, mock_context):
+    async def test_manage_quantum_security_with_incident_response(self, mock_context) -> None:
         """Test quantum security with incident response."""
         result = await km_manage_quantum_security(
             security_operation="incident_response",
@@ -1459,7 +1466,7 @@ class TestKMManageQuantumSecurity:
         assert security["incident_response"]["response_capability"] == "quantum_ready"
 
     @pytest.mark.asyncio
-    async def test_manage_quantum_security_policy_update(self, mock_context):
+    async def test_manage_quantum_security_policy_update(self, mock_context) -> None:
         """Test quantum security policy updates."""
         policy_updates = ["post_quantum_mandatory", "quantum_safe_communications"]
         result = await km_manage_quantum_security(
@@ -1476,10 +1483,11 @@ class TestKMManageQuantumSecurity:
         assert security["policy_updates"]["updated_policies"] == policy_updates
 
     @pytest.mark.asyncio
-    async def test_manage_quantum_security_invalid_operation(self, mock_context):
+    async def test_manage_quantum_security_invalid_operation(self, mock_context) -> None:
         """Test quantum security management with invalid operation."""
         result = await km_manage_quantum_security(
-            security_operation="invalid_operation", ctx=mock_context
+            security_operation="invalid_operation",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1487,7 +1495,7 @@ class TestKMManageQuantumSecurity:
         assert "Invalid security operation" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_manage_quantum_security_invalid_level(self, mock_context):
+    async def test_manage_quantum_security_invalid_level(self, mock_context) -> None:
         """Test quantum security management with invalid security level."""
         result = await km_manage_quantum_security(
             security_operation="status",
@@ -1500,10 +1508,11 @@ class TestKMManageQuantumSecurity:
         assert "Invalid security level" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_manage_quantum_security_empty_operation(self, mock_context):
+    async def test_manage_quantum_security_empty_operation(self, mock_context) -> None:
         """Test quantum security management with empty operation."""
         result = await km_manage_quantum_security(
-            security_operation="", ctx=mock_context
+            security_operation="",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1515,14 +1524,14 @@ class TestKMSimulateQuantumAlgorithms:
     """Test suite for km_simulate_quantum_algorithms MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-quantum-sim-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_simulate_quantum_algorithms_cryptographic(self, mock_context):
+    async def test_simulate_quantum_algorithms_cryptographic(self, mock_context) -> None:
         """Test quantum cryptographic algorithm simulation."""
         parameters = {
             "qubit_count": 30,
@@ -1554,7 +1563,7 @@ class TestKMSimulateQuantumAlgorithms:
         assert "export_options" in simulation
 
     @pytest.mark.asyncio
-    async def test_simulate_quantum_algorithms_optimization(self, mock_context):
+    async def test_simulate_quantum_algorithms_optimization(self, mock_context) -> None:
         """Test quantum optimization algorithm simulation."""
         result = await km_simulate_quantum_algorithms(
             algorithm_type="optimization",
@@ -1575,7 +1584,7 @@ class TestKMSimulateQuantumAlgorithms:
         assert "export_options" not in simulation
 
     @pytest.mark.asyncio
-    async def test_simulate_quantum_algorithms_machine_learning(self, mock_context):
+    async def test_simulate_quantum_algorithms_machine_learning(self, mock_context) -> None:
         """Test quantum machine learning algorithm simulation."""
         result = await km_simulate_quantum_algorithms(
             algorithm_type="machine_learning",
@@ -1590,10 +1599,11 @@ class TestKMSimulateQuantumAlgorithms:
         assert simulation["simulation_status"] == "completed_successfully"
 
     @pytest.mark.asyncio
-    async def test_simulate_quantum_algorithms_invalid_type(self, mock_context):
+    async def test_simulate_quantum_algorithms_invalid_type(self, mock_context) -> None:
         """Test quantum algorithm simulation with invalid algorithm type."""
         result = await km_simulate_quantum_algorithms(
-            algorithm_type="invalid_type", ctx=mock_context
+            algorithm_type="invalid_type",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1601,7 +1611,7 @@ class TestKMSimulateQuantumAlgorithms:
         assert "Invalid algorithm type" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_simulate_quantum_algorithms_invalid_scope(self, mock_context):
+    async def test_simulate_quantum_algorithms_invalid_scope(self, mock_context) -> None:
         """Test quantum algorithm simulation with invalid scope."""
         result = await km_simulate_quantum_algorithms(
             algorithm_type="cryptographic",
@@ -1614,10 +1624,11 @@ class TestKMSimulateQuantumAlgorithms:
         assert "Invalid simulation scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_simulate_quantum_algorithms_empty_type(self, mock_context):
+    async def test_simulate_quantum_algorithms_empty_type(self, mock_context) -> None:
         """Test quantum algorithm simulation with empty algorithm type."""
         result = await km_simulate_quantum_algorithms(
-            algorithm_type="", ctx=mock_context
+            algorithm_type="",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1630,14 +1641,14 @@ class TestQuantumReadyToolsIntegration:
     """Integration tests for quantum ready tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-integration-quantum-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_quantum_readiness_workflow(self, mock_context):
+    async def test_complete_quantum_readiness_workflow(self, mock_context) -> None:
         """Test complete quantum readiness workflow integration."""
         # Analyze quantum readiness
         analysis_result = await km_analyze_quantum_readiness(
@@ -1708,26 +1719,27 @@ class TestQuantumReadyToolsProperties:
     """Property-based tests for quantum ready tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-property-quantum-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_quantum_readiness_with_various_scopes(self, mock_context):
+    async def test_quantum_readiness_with_various_scopes(self, mock_context) -> None:
         """Test quantum readiness analysis with various scopes."""
         test_scopes = ["system", "application", "cryptography", "protocols"]
 
         for scope in test_scopes:
             result = await km_analyze_quantum_readiness(
-                analysis_scope=scope, ctx=mock_context
+                analysis_scope=scope,
+                ctx=mock_context,
             )
             assert result["success"] is True
             assert result["quantum_readiness_analysis"]["scope"] == scope
 
     @pytest.mark.asyncio
-    async def test_post_quantum_upgrade_strategies(self, mock_context):
+    async def test_post_quantum_upgrade_strategies(self, mock_context) -> None:
         """Test post-quantum upgrade with different strategies."""
         strategies = ["hybrid", "full_replacement", "gradual", "parallel"]
 
@@ -1741,32 +1753,36 @@ class TestQuantumReadyToolsProperties:
             assert result["post_quantum_upgrade"]["strategy"] == strategy
 
     @pytest.mark.asyncio
-    async def test_quantum_interface_types_consistency(self, mock_context):
+    async def test_quantum_interface_types_consistency(self, mock_context) -> None:
         """Test quantum interface preparation consistency across types."""
         interface_types = ["simulator", "hardware", "cloud", "hybrid"]
 
         for interface_type in interface_types:
             result = await km_prepare_quantum_interface(
-                interface_type=interface_type, quantum_backend="local", ctx=mock_context
+                interface_type=interface_type,
+                quantum_backend="local",
+                ctx=mock_context,
             )
             assert result["success"] is True
             assert result["quantum_interface"]["type"] == interface_type
             assert result["quantum_interface"]["preparation_status"] == "ready"
 
     @pytest.mark.asyncio
-    async def test_security_levels_consistency(self, mock_context):
+    async def test_security_levels_consistency(self, mock_context) -> None:
         """Test quantum security management consistency across levels."""
         security_levels = ["basic", "standard", "high", "maximum"]
 
         for level in security_levels:
             result = await km_manage_quantum_security(
-                security_operation="status", security_level=level, ctx=mock_context
+                security_operation="status",
+                security_level=level,
+                ctx=mock_context,
             )
             assert result["success"] is True
             assert result["quantum_security_management"]["security_level"] == level
 
     @pytest.mark.asyncio
-    async def test_algorithm_types_consistency(self, mock_context):
+    async def test_algorithm_types_consistency(self, mock_context) -> None:
         """Test quantum algorithm simulation consistency across types."""
         algorithm_types = [
             "cryptographic",

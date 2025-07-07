@@ -1,11 +1,13 @@
-"""
-Comprehensive test suite for developer toolkit tools using systematic MCP tool test pattern.
+"""Comprehensive test suite for developer toolkit tools using systematic MCP tool test pattern.
 
 Tests the complete developer toolkit functionality including Git operations, CI/CD pipeline automation,
 API management, and code quality automation capabilities.
 Tests follow the proven systematic pattern that achieved 100% success across 32+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import Mock
 
@@ -99,7 +101,7 @@ async def mock_km_git_operations(
         "operation_id": operation_id,
         "operation": operation,
         "repository_url": repository_url,
-        "local_path": local_path or f"/tmp/repo_{uuid.uuid4().hex[:8]}",
+        "local_path": local_path or f"test_repos/repo_{uuid.uuid4().hex[:8]}",
         "branch_name": branch_name or "main",
         "timestamp": datetime.now(UTC).isoformat(),
         "operation_status": "completed",
@@ -584,15 +586,17 @@ class TestKMGitOperations:
     """Test class for Git operations functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_git_operations_status(self, mock_context):
+    async def test_git_operations_status(self, mock_context) -> None:
         """Test Git status operation."""
         result = await mock_km_git_operations(
-            operation="status", local_path="/tmp/test_repo", ctx=mock_context
+            operation="status",
+            local_path="test_repos/test_repo",
+            ctx=mock_context,
         )
 
         assert result["success"] is True
@@ -603,12 +607,12 @@ class TestKMGitOperations:
         assert result["security_audit"]["authentication_verified"] is True
 
     @pytest.mark.asyncio
-    async def test_git_operations_clone(self, mock_context):
+    async def test_git_operations_clone(self, mock_context) -> None:
         """Test Git clone operation."""
         result = await mock_km_git_operations(
             operation="clone",
             repository_url="https://github.com/example/repo.git",
-            local_path="/tmp/clone_dest",
+            local_path="test_repos/clone_dest",
             ctx=mock_context,
         )
 
@@ -620,7 +624,7 @@ class TestKMGitOperations:
         assert git_op["repository_url"] == "https://github.com/example/repo.git"
 
     @pytest.mark.asyncio
-    async def test_git_operations_invalid_operation(self, mock_context):
+    async def test_git_operations_invalid_operation(self, mock_context) -> None:
         """Test Git operations with invalid operation."""
         result = await mock_km_git_operations(operation="invalid_op", ctx=mock_context)
 
@@ -629,10 +633,12 @@ class TestKMGitOperations:
         assert "Invalid Git operation" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_git_operations_missing_repo_url(self, mock_context):
+    async def test_git_operations_missing_repo_url(self, mock_context) -> None:
         """Test Git clone without repository URL."""
         result = await mock_km_git_operations(
-            operation="clone", local_path="/tmp/test", ctx=mock_context
+            operation="clone",
+            local_path="test_repos/test",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -640,11 +646,11 @@ class TestKMGitOperations:
         assert "Repository URL is required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_git_operations_commit_with_message(self, mock_context):
+    async def test_git_operations_commit_with_message(self, mock_context) -> None:
         """Test Git commit with custom message."""
         result = await mock_km_git_operations(
             operation="commit",
-            local_path="/tmp/test_repo",
+            local_path="test_repos/test_repo",
             commit_message="feat: add new feature",
             ctx=mock_context,
         )
@@ -660,15 +666,17 @@ class TestKMCICDPipeline:
     """Test class for CI/CD pipeline automation functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_cicd_pipeline_status(self, mock_context):
+    async def test_cicd_pipeline_status(self, mock_context) -> None:
         """Test CI/CD pipeline status check."""
         result = await mock_km_cicd_pipeline(
-            pipeline_action="status", environment="production", ctx=mock_context
+            pipeline_action="status",
+            environment="production",
+            ctx=mock_context,
         )
 
         assert result["success"] is True
@@ -680,7 +688,7 @@ class TestKMCICDPipeline:
         assert result["quality_gates"]["all_gates_passed"] is True
 
     @pytest.mark.asyncio
-    async def test_cicd_pipeline_trigger(self, mock_context):
+    async def test_cicd_pipeline_trigger(self, mock_context) -> None:
         """Test CI/CD pipeline trigger."""
         build_params = {"build_type": "debug", "test_coverage": False}
         result = await mock_km_cicd_pipeline(
@@ -698,7 +706,7 @@ class TestKMCICDPipeline:
         assert pipeline["trigger_details"]["build_configuration"] == build_params
 
     @pytest.mark.asyncio
-    async def test_cicd_pipeline_deploy(self, mock_context):
+    async def test_cicd_pipeline_deploy(self, mock_context) -> None:
         """Test CI/CD deployment action."""
         result = await mock_km_cicd_pipeline(
             pipeline_action="deploy",
@@ -716,10 +724,11 @@ class TestKMCICDPipeline:
         assert pipeline["deployment_details"]["rollback_available"] is True
 
     @pytest.mark.asyncio
-    async def test_cicd_pipeline_invalid_action(self, mock_context):
+    async def test_cicd_pipeline_invalid_action(self, mock_context) -> None:
         """Test CI/CD pipeline with invalid action."""
         result = await mock_km_cicd_pipeline(
-            pipeline_action="invalid_action", ctx=mock_context
+            pipeline_action="invalid_action",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -727,10 +736,12 @@ class TestKMCICDPipeline:
         assert "Invalid pipeline action" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_cicd_pipeline_invalid_environment(self, mock_context):
+    async def test_cicd_pipeline_invalid_environment(self, mock_context) -> None:
         """Test CI/CD pipeline with invalid environment."""
         result = await mock_km_cicd_pipeline(
-            pipeline_action="deploy", environment="invalid_env", ctx=mock_context
+            pipeline_action="deploy",
+            environment="invalid_env",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -742,12 +753,12 @@ class TestKMAPIManagement:
     """Test class for API management and governance functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_api_management_list(self, mock_context):
+    async def test_api_management_list(self, mock_context) -> None:
         """Test API inventory listing."""
         result = await mock_km_api_management(api_operation="list", ctx=mock_context)
 
@@ -762,7 +773,7 @@ class TestKMAPIManagement:
         assert result["governance"]["compliance_score"] == 96.4
 
     @pytest.mark.asyncio
-    async def test_api_management_create(self, mock_context):
+    async def test_api_management_create(self, mock_context) -> None:
         """Test API creation with specifications."""
         result = await mock_km_api_management(
             api_operation="create",
@@ -779,7 +790,7 @@ class TestKMAPIManagement:
         assert api_mgmt["creation_details"]["security_policies_applied"] is True
 
     @pytest.mark.asyncio
-    async def test_api_management_monitor(self, mock_context):
+    async def test_api_management_monitor(self, mock_context) -> None:
         """Test API monitoring and analytics."""
         result = await mock_km_api_management(
             api_operation="monitor",
@@ -797,10 +808,11 @@ class TestKMAPIManagement:
         assert result["performance_insights"]["scalability_rating"] == "excellent"
 
     @pytest.mark.asyncio
-    async def test_api_management_invalid_operation(self, mock_context):
+    async def test_api_management_invalid_operation(self, mock_context) -> None:
         """Test API management with invalid operation."""
         result = await mock_km_api_management(
-            api_operation="invalid_op", ctx=mock_context
+            api_operation="invalid_op",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -812,12 +824,12 @@ class TestKMCodeQualityAutomation:
     """Test class for code quality automation and security scanning functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_code_quality_analyze(self, mock_context):
+    async def test_code_quality_analyze(self, mock_context) -> None:
         """Test comprehensive code quality analysis."""
         result = await mock_km_code_quality_automation(
             quality_action="analyze",
@@ -837,7 +849,7 @@ class TestKMCodeQualityAutomation:
         assert result["automation_status"]["continuous_monitoring"] is True
 
     @pytest.mark.asyncio
-    async def test_code_quality_with_security_scan(self, mock_context):
+    async def test_code_quality_with_security_scan(self, mock_context) -> None:
         """Test code quality analysis with security scanning."""
         result = await mock_km_code_quality_automation(
             quality_action="scan",
@@ -856,10 +868,11 @@ class TestKMCodeQualityAutomation:
         assert quality["performance_analysis"]["performance_score"] == 84.2
 
     @pytest.mark.asyncio
-    async def test_code_quality_invalid_action(self, mock_context):
+    async def test_code_quality_invalid_action(self, mock_context) -> None:
         """Test code quality automation with invalid action."""
         result = await mock_km_code_quality_automation(
-            quality_action="invalid_action", ctx=mock_context
+            quality_action="invalid_action",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -867,10 +880,12 @@ class TestKMCodeQualityAutomation:
         assert "Invalid quality action" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_code_quality_invalid_format(self, mock_context):
+    async def test_code_quality_invalid_format(self, mock_context) -> None:
         """Test code quality automation with invalid reporting format."""
         result = await mock_km_code_quality_automation(
-            quality_action="report", reporting_format="invalid_format", ctx=mock_context
+            quality_action="report",
+            reporting_format="invalid_format",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -882,31 +897,38 @@ class TestDeveloperToolkitIntegration:
     """Test class for developer toolkit integration workflows."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_complete_devops_workflow(self, mock_context):
+    async def test_complete_devops_workflow(self, mock_context) -> None:
         """Test complete DevOps workflow integration."""
         # Step 1: Git operations
         git_result = await mock_km_git_operations(
-            operation="status", local_path="/tmp/project", ctx=mock_context
+            operation="status",
+            local_path="test_repos/project",
+            ctx=mock_context,
         )
 
         # Step 2: Code quality check
         quality_result = await mock_km_code_quality_automation(
-            quality_action="analyze", code_repository="/tmp/project", ctx=mock_context
+            quality_action="analyze",
+            code_repository="test_repos/project",
+            ctx=mock_context,
         )
 
         # Step 3: CI/CD pipeline trigger
         pipeline_result = await mock_km_cicd_pipeline(
-            pipeline_action="trigger", environment="staging", ctx=mock_context
+            pipeline_action="trigger",
+            environment="staging",
+            ctx=mock_context,
         )
 
         # Step 4: API management
         api_result = await mock_km_api_management(
-            api_operation="monitor", ctx=mock_context
+            api_operation="monitor",
+            ctx=mock_context,
         )
 
         # Verify all operations succeeded
@@ -926,18 +948,20 @@ class TestDeveloperToolkitProperties:
     """Test class for developer toolkit property-based testing."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_git_operation_consistency(self, mock_context):
+    async def test_git_operation_consistency(self, mock_context) -> None:
         """Test Git operations consistency across different operations."""
         operations = ["status", "log", "diff"]
 
         for operation in operations:
             result = await mock_km_git_operations(
-                operation=operation, local_path="/tmp/test", ctx=mock_context
+                operation=operation,
+                local_path="test_repos/test",
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -946,13 +970,15 @@ class TestDeveloperToolkitProperties:
             assert "performance_metrics" in result
 
     @pytest.mark.asyncio
-    async def test_pipeline_environment_strategies(self, mock_context):
+    async def test_pipeline_environment_strategies(self, mock_context) -> None:
         """Test CI/CD pipeline deployment strategies by environment."""
         environments = ["development", "staging", "production"]
 
         for env in environments:
             result = await mock_km_cicd_pipeline(
-                pipeline_action="deploy", environment=env, ctx=mock_context
+                pipeline_action="deploy",
+                environment=env,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -964,13 +990,14 @@ class TestDeveloperToolkitProperties:
                 assert result["cicd_pipeline"]["deployment_strategy"] == "rolling"
 
     @pytest.mark.asyncio
-    async def test_api_operation_governance(self, mock_context):
+    async def test_api_operation_governance(self, mock_context) -> None:
         """Test API operations maintain governance standards."""
         operations = ["list", "create", "monitor"]
 
         for operation in operations:
             result = await mock_km_api_management(
-                api_operation=operation, ctx=mock_context
+                api_operation=operation,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -979,7 +1006,7 @@ class TestDeveloperToolkitProperties:
             assert "performance_insights" in result
 
     @pytest.mark.asyncio
-    async def test_code_quality_standards_coverage(self, mock_context):
+    async def test_code_quality_standards_coverage(self, mock_context) -> None:
         """Test code quality automation covers all standards."""
         standards_sets = [
             ["sonarqube"],
@@ -989,7 +1016,9 @@ class TestDeveloperToolkitProperties:
 
         for standards in standards_sets:
             result = await mock_km_code_quality_automation(
-                quality_action="analyze", quality_standards=standards, ctx=mock_context
+                quality_action="analyze",
+                quality_standards=standards,
+                ctx=mock_context,
             )
 
             assert result["success"] is True

@@ -1,10 +1,12 @@
-"""
-Tests for the macro parser and validation system.
+"""Tests for the macro parser and validation system.
 
 This module tests parsing of macro definitions, input validation,
 and security boundary enforcement.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import json
 
 import pytest
@@ -22,13 +24,13 @@ from src.core import (
 class TestInputSanitizer:
     """Test cases for input sanitization."""
 
-    def test_sanitize_valid_text(self):
+    def test_sanitize_valid_text(self) -> None:
         """Test sanitization of valid text input."""
         text = "Hello, World!"
         result = InputSanitizer.sanitize_text_input(text)
         assert result == "Hello, World!"
 
-    def test_sanitize_text_with_dangerous_chars(self):
+    def test_sanitize_text_with_dangerous_chars(self) -> None:
         """Test sanitization removes dangerous characters in non-strict mode."""
         text = "Hello <script>alert('xss')</script> World"
         # Non-strict mode should sanitize and return cleaned text
@@ -36,7 +38,7 @@ class TestInputSanitizer:
         assert "<script>" not in result
         assert "alert" not in result
 
-    def test_sanitize_text_length_limit(self):
+    def test_sanitize_text_length_limit(self) -> None:
         """Test that text length limits are enforced."""
         long_text = "a" * 10001  # Exceeds default limit
 
@@ -45,7 +47,7 @@ class TestInputSanitizer:
 
         assert "length" in str(exc_info.value)
 
-    def test_script_injection_detection(self):
+    def test_script_injection_detection(self) -> None:
         """Test detection of script injection attempts."""
         malicious_inputs = [
             "<script>alert('xss')</script>",
@@ -58,7 +60,7 @@ class TestInputSanitizer:
             with pytest.raises(SecurityViolationError):
                 InputSanitizer.sanitize_text_input(malicious_input, strict_mode=True)
 
-    def test_path_traversal_detection(self):
+    def test_path_traversal_detection(self) -> None:
         """Test detection of path traversal attempts."""
         malicious_paths = [
             "../../../etc/passwd",
@@ -71,7 +73,7 @@ class TestInputSanitizer:
             with pytest.raises(SecurityViolationError):
                 InputSanitizer.validate_file_path(malicious_path)
 
-    def test_identifier_validation(self):
+    def test_identifier_validation(self) -> None:
         """Test validation of identifiers."""
         # Valid identifiers
         valid_ids = ["test_macro", "My Macro 123", "macro-name", "macro.name"]
@@ -89,7 +91,7 @@ class TestInputSanitizer:
 class TestCommandValidator:
     """Test cases for command validation."""
 
-    def test_validate_command_type(self):
+    def test_validate_command_type(self) -> None:
         """Test command type validation."""
         # Valid command type
         cmd_type = CommandValidator.validate_command_type("text_input")
@@ -99,12 +101,13 @@ class TestCommandValidator:
         with pytest.raises(ValidationError):
             CommandValidator.validate_command_type("invalid_type")
 
-    def test_validate_text_input_parameters(self):
+    def test_validate_text_input_parameters(self) -> None:
         """Test validation of text input command parameters."""
         # Valid parameters
         params = {"text": "Hello World", "speed": "normal"}
         result = CommandValidator.validate_command_parameters(
-            CommandType.TEXT_INPUT, params
+            CommandType.TEXT_INPUT,
+            params,
         )
         assert result.get("text") == "Hello World"
         assert result.get("speed") == "normal"
@@ -113,17 +116,19 @@ class TestCommandValidator:
         invalid_params = {"speed": "normal"}  # Missing 'text'
         with pytest.raises(ValidationError):
             CommandValidator.validate_command_parameters(
-                CommandType.TEXT_INPUT, invalid_params
+                CommandType.TEXT_INPUT,
+                invalid_params,
             )
 
         # Invalid speed value
         invalid_speed_params = {"text": "Hello", "speed": "invalid"}
         with pytest.raises(ValidationError):
             CommandValidator.validate_command_parameters(
-                CommandType.TEXT_INPUT, invalid_speed_params
+                CommandType.TEXT_INPUT,
+                invalid_speed_params,
             )
 
-    def test_validate_pause_parameters(self):
+    def test_validate_pause_parameters(self) -> None:
         """Test validation of pause command parameters."""
         # Valid parameters
         params = {"duration": 2.5}
@@ -134,22 +139,25 @@ class TestCommandValidator:
         invalid_params = {"duration": 500}  # Exceeds max
         with pytest.raises(ValidationError):
             CommandValidator.validate_command_parameters(
-                CommandType.PAUSE, invalid_params
+                CommandType.PAUSE,
+                invalid_params,
             )
 
         # Invalid duration (non-numeric)
         invalid_params = {"duration": "invalid"}
         with pytest.raises(ValidationError):
             CommandValidator.validate_command_parameters(
-                CommandType.PAUSE, invalid_params
+                CommandType.PAUSE,
+                invalid_params,
             )
 
-    def test_validate_sound_parameters(self):
+    def test_validate_sound_parameters(self) -> None:
         """Test validation of sound command parameters."""
         # Valid parameters
         params = {"sound_name": "beep", "volume": 75}
         result = CommandValidator.validate_command_parameters(
-            CommandType.PLAY_SOUND, params
+            CommandType.PLAY_SOUND,
+            params,
         )
         assert result.get("sound_name") == "beep"
         assert result.get("volume") == 75
@@ -158,17 +166,19 @@ class TestCommandValidator:
         invalid_params = {"sound_name": "invalid_sound"}
         with pytest.raises(ValidationError):
             CommandValidator.validate_command_parameters(
-                CommandType.PLAY_SOUND, invalid_params
+                CommandType.PLAY_SOUND,
+                invalid_params,
             )
 
         # Invalid volume
         invalid_params = {"sound_name": "beep", "volume": 150}
         with pytest.raises(ValidationError):
             CommandValidator.validate_command_parameters(
-                CommandType.PLAY_SOUND, invalid_params
+                CommandType.PLAY_SOUND,
+                invalid_params,
             )
 
-    def test_get_required_permissions(self):
+    def test_get_required_permissions(self) -> None:
         """Test retrieval of required permissions for commands."""
         from src.core import Permission
 
@@ -188,7 +198,7 @@ class TestCommandValidator:
 class TestMacroParser:
     """Test cases for macro parsing."""
 
-    def test_parse_simple_macro(self):
+    def test_parse_simple_macro(self) -> None:
         """Test parsing of a simple macro."""
         macro_data = {
             "name": "Test Macro",
@@ -198,7 +208,7 @@ class TestMacroParser:
                 {
                     "type": "text_input",
                     "parameters": {"text": "Hello World", "speed": "normal"},
-                }
+                },
             ],
         }
 
@@ -210,7 +220,7 @@ class TestMacroParser:
         assert result.macro_definition.name == "Test Macro"
         assert len(result.macro_definition.commands) == 1
 
-    def test_parse_macro_with_multiple_commands(self):
+    def test_parse_macro_with_multiple_commands(self) -> None:
         """Test parsing of macro with multiple commands."""
         macro_data = {
             "name": "Multi Command Macro",
@@ -227,11 +237,11 @@ class TestMacroParser:
         assert result.success
         assert len(result.macro_definition.commands) == 3
 
-    def test_parse_macro_validation_errors(self):
+    def test_parse_macro_validation_errors(self) -> None:
         """Test parsing with validation errors."""
         # Missing name
         invalid_data = {
-            "commands": [{"type": "text_input", "parameters": {"text": "Hello"}}]
+            "commands": [{"type": "text_input", "parameters": {"text": "Hello"}}],
         }
 
         parser = MacroParser()
@@ -240,7 +250,7 @@ class TestMacroParser:
         assert not result.success
         assert len(result.errors) > 0
 
-    def test_parse_macro_empty_commands(self):
+    def test_parse_macro_empty_commands(self) -> None:
         """Test parsing macro with empty commands list."""
         macro_data = {"name": "Empty Macro", "commands": []}
 
@@ -250,7 +260,7 @@ class TestMacroParser:
         assert not result.success
         assert any("commands" in str(error) for error in result.errors)
 
-    def test_parse_macro_invalid_command(self):
+    def test_parse_macro_invalid_command(self) -> None:
         """Test parsing macro with invalid command."""
         macro_data = {
             "name": "Invalid Command Macro",
@@ -266,15 +276,15 @@ class TestMacroParser:
 class TestJSONParsing:
     """Test cases for JSON macro parsing."""
 
-    def test_parse_valid_json(self):
+    def test_parse_valid_json(self) -> None:
         """Test parsing valid JSON macro definition."""
         json_data = json.dumps(
             {
                 "name": "JSON Macro",
                 "commands": [
-                    {"type": "text_input", "parameters": {"text": "From JSON"}}
+                    {"type": "text_input", "parameters": {"text": "From JSON"}},
                 ],
-            }
+            },
         )
 
         result = parse_macro_from_json(json_data)
@@ -282,7 +292,7 @@ class TestJSONParsing:
         assert result.success
         assert result.macro_definition.name == "JSON Macro"
 
-    def test_parse_invalid_json(self):
+    def test_parse_invalid_json(self) -> None:
         """Test parsing invalid JSON."""
         invalid_json = '{"name": "Invalid", "commands": [invalid json}'
 
@@ -292,7 +302,7 @@ class TestJSONParsing:
         assert len(result.errors) > 0
         assert "json" in str(result.errors[0]).lower()
 
-    def test_parse_json_with_security_issues(self):
+    def test_parse_json_with_security_issues(self) -> None:
         """Test parsing JSON with security issues."""
         json_with_script = json.dumps(
             {
@@ -301,9 +311,9 @@ class TestJSONParsing:
                     {
                         "type": "text_input",
                         "parameters": {"text": "<script>alert('xss')</script>"},
-                    }
+                    },
                 ],
-            }
+            },
         )
 
         result = parse_macro_from_json(json_with_script)

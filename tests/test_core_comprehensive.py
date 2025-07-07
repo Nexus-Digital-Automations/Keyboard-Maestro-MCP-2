@@ -1,5 +1,4 @@
-"""
-Comprehensive test coverage for core modules - TASK_69 Coverage Expansion.
+"""Comprehensive test coverage for core modules - TASK_69 Coverage Expansion.
 
 This module provides extensive testing for core system components to achieve
 near-100% test coverage as required by the user's testing directive.
@@ -11,6 +10,9 @@ Targeting high-impact core modules with minimal dependencies:
 - src/core/contracts.py (Design by Contract decorators)
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import pytest
 from src.core.contracts import ContractViolationError, ensure, require
 from src.core.either import Either
@@ -57,7 +59,7 @@ from src.core.types import (
 class TestErrorHierarchy:
     """Comprehensive test coverage for error handling system."""
 
-    def test_error_category_enum(self):
+    def test_error_category_enum(self) -> bool:
         """Test error category enumeration."""
         assert ErrorCategory.VALIDATION.value == "validation"
         assert ErrorCategory.SECURITY.value == "security"
@@ -73,7 +75,7 @@ class TestErrorHierarchy:
             assert isinstance(category.value, str)
             assert len(category.value) > 0
 
-    def test_error_severity_enum(self):
+    def test_error_severity_enum(self) -> bool:
         """Test error severity enumeration."""
         assert ErrorSeverity.LOW.value == "low"
         assert ErrorSeverity.MEDIUM.value == "medium"
@@ -84,7 +86,7 @@ class TestErrorHierarchy:
         severities = list(ErrorSeverity)
         assert len(severities) >= 4
 
-    def test_macro_engine_error_creation(self):
+    def test_macro_engine_error_creation(self) -> bool:
         """Test MacroEngineError creation and properties."""
         context = create_error_context("test_operation", "test_component")
         error = MacroEngineError(
@@ -103,7 +105,7 @@ class TestErrorHierarchy:
         assert error.recovery_suggestion == "Check parameter format"
         assert error.context == context
 
-    def test_validation_error_creation(self):
+    def test_validation_error_creation(self) -> bool:
         """Test ValidationError creation and inheritance."""
         context = create_error_context("validation", "input_processor")
         error = ValidationError(
@@ -120,7 +122,7 @@ class TestErrorHierarchy:
         assert error.constraint == "must be valid UUID string"
         assert isinstance(error, MacroEngineError)
 
-    def test_security_error_creation(self):
+    def test_security_error_creation(self) -> bool:
         """Test SecurityError creation and properties."""
         context = create_error_context("authentication", "security_manager")
         error = SecurityError(
@@ -135,11 +137,13 @@ class TestErrorHierarchy:
         assert error.severity == ErrorSeverity.CRITICAL
         assert isinstance(error, MacroEngineError)
 
-    def test_execution_error_creation(self):
+    def test_execution_error_creation(self) -> bool:
         """Test ExecutionError creation and properties."""
         context = create_error_context("macro_execution", "execution_engine")
         error = ExecutionError(
-            operation="macro_execution", cause="Action step failed", context=context
+            operation="macro_execution",
+            cause="Action step failed",
+            context=context,
         )
 
         assert "Execution failed for operation 'macro_execution'" in error.message
@@ -149,11 +153,13 @@ class TestErrorHierarchy:
         assert error.severity == ErrorSeverity.MEDIUM
         assert isinstance(error, MacroEngineError)
 
-    def test_timeout_error_creation(self):
+    def test_timeout_error_creation(self) -> bool:
         """Test TimeoutError creation and properties."""
         context = create_error_context("operation_timeout", "timeout_manager")
         error = TimeoutError(
-            operation="macro_execution", timeout_seconds=30.0, context=context
+            operation="macro_execution",
+            timeout_seconds=30.0,
+            context=context,
         )
 
         assert (
@@ -164,10 +170,12 @@ class TestErrorHierarchy:
         assert error.timeout_seconds == 30.0
         assert isinstance(error, MacroEngineError)
 
-    def test_create_error_context(self):
+    def test_create_error_context(self) -> bool:
         """Test error context creation function."""
         context = create_error_context(
-            operation="test_operation", component="test_component", key="value"
+            operation="test_operation",
+            component="test_component",
+            key="value",
         )
 
         assert isinstance(context, ErrorContext)
@@ -175,7 +183,7 @@ class TestErrorHierarchy:
         assert context.component == "test_component"
         assert context.metadata["key"] == "value"
 
-    def test_handle_error_safely(self):
+    def test_handle_error_safely(self) -> bool:
         """Test safe error handling function."""
         test_error = ValueError("Test error")
 
@@ -185,13 +193,15 @@ class TestErrorHierarchy:
         assert isinstance(result, SystemError)
         assert "Unexpected error: Test error" in result.message
 
-    def test_additional_error_types(self):
+    def test_additional_error_types(self) -> None:
         """Test additional specialized error types."""
         context = create_error_context("test", "test_component")
 
         # Test AnalyticsError
         analytics_error = AnalyticsError(
-            "data_processing", "Processing failed", context
+            "data_processing",
+            "Processing failed",
+            context,
         )
         assert "data_processing" in analytics_error.operation
         assert "Processing failed" in analytics_error.error_details
@@ -212,7 +222,7 @@ class TestErrorHierarchy:
         assert "Data error in validation" in data_error.message
         assert isinstance(data_error, MacroEngineError)
 
-    def test_error_serialization(self):
+    def test_error_serialization(self) -> None:
         """Test error serialization for logging/transport."""
         context = create_error_context("serialization", "test_component")
         error = ValidationError(
@@ -230,7 +240,7 @@ class TestErrorHierarchy:
         assert serialized["error_type"] == "ValidationError"
         assert "error_code" in serialized
 
-    def test_error_chain_creation(self):
+    def test_error_chain_creation(self) -> None:
         """Test error chaining for nested error handling."""
         context = create_error_context("validation", "input_processor")
         ValidationError(
@@ -257,22 +267,25 @@ class TestErrorHierarchy:
 class TestCoreTypes:
     """Comprehensive test coverage for core type system."""
 
-    def test_branded_type_creation(self):
+    def test_branded_type_creation(self) -> None:
         """Test branded type creation and type safety."""
         macro_id = MacroId("test_macro_123")
         command_id = CommandId("test_command_456")
-        execution_token = ExecutionToken("exec_token_789")
+        import secrets
+
+        token_value = f"exec_token_{secrets.token_hex(8)}"
+        execution_token = ExecutionToken(token_value)
 
         assert macro_id == "test_macro_123"
         assert command_id == "test_command_456"
-        assert execution_token == "exec_token_789"
+        assert execution_token == token_value  # S105 fix: Use secure random token
 
         # Test type distinction through isinstance checks
         assert isinstance(macro_id, str)
         assert isinstance(command_id, str)
         assert isinstance(execution_token, str)
 
-    def test_all_branded_types(self):
+    def test_all_branded_types(self) -> None:
         """Test all branded type definitions."""
         types_to_test = [
             (MacroId, "macro_123"),
@@ -295,7 +308,7 @@ class TestCoreTypes:
             assert instance == value
             assert isinstance(instance, str)
 
-    def test_duration_operations(self):
+    def test_duration_operations(self) -> None:
         """Test Duration type operations."""
         # Test creation
         dur1 = Duration.from_seconds(5.0)
@@ -321,7 +334,7 @@ class TestCoreTypes:
         # Test zero constant
         assert Duration.ZERO.total_seconds() == 0.0
 
-    def test_execution_context(self):
+    def test_execution_context(self) -> None:
         """Test ExecutionContext creation and operations."""
         permissions = frozenset([Permission.TEXT_INPUT, Permission.SYSTEM_CONTROL])
         timeout = Duration.from_seconds(30)
@@ -341,7 +354,7 @@ class TestCoreTypes:
         assert new_context.get_variable(var_name) == "test_value"
         assert context.get_variable(var_name) is None  # Original unchanged
 
-    def test_command_result(self):
+    def test_command_result(self) -> None:
         """Test CommandResult creation and operations."""
         # Test success result
         success_result = CommandResult.success_result(
@@ -357,7 +370,8 @@ class TestCoreTypes:
 
         # Test failure result
         failure_result = CommandResult.failure_result(
-            error_message="Operation failed", execution_time=Duration.from_seconds(0.5)
+            error_message="Operation failed",
+            execution_time=Duration.from_seconds(0.5),
         )
 
         assert failure_result.success is False
@@ -368,7 +382,7 @@ class TestCoreTypes:
 class TestEitherMonad:
     """Comprehensive test coverage for Either monad implementation."""
 
-    def test_right_creation_and_access(self):
+    def test_right_creation_and_access(self) -> None:
         """Test Right (success) case creation and access."""
         right_value = Either.right("success_value")
 
@@ -380,7 +394,7 @@ class TestEitherMonad:
         with pytest.raises(ValueError):
             right_value.get_left()
 
-    def test_left_creation_and_access(self):
+    def test_left_creation_and_access(self) -> None:
         """Test Left (error) case creation and access."""
         left_value = Either.left("error_message")
 
@@ -392,7 +406,7 @@ class TestEitherMonad:
         with pytest.raises(ValueError):
             left_value.get_right()
 
-    def test_either_map_operations(self):
+    def test_either_map_operations(self) -> None:
         """Test Either map operations for transformations."""
         right_value = Either.right(10)
         left_value = Either.left("error")
@@ -407,10 +421,10 @@ class TestEitherMonad:
         assert mapped_left.is_left()
         assert mapped_left.get_left() == "error"
 
-    def test_either_flat_map_operations(self):
+    def test_either_flat_map_operations(self) -> None:
         """Test Either flat_map operations for chaining."""
 
-        def safe_divide(x, y):
+        def safe_divide(x, y) -> Any:
             if y == 0:
                 return Either.left("Division by zero")
             return Either.right(x / y)
@@ -431,7 +445,7 @@ class TestEitherMonad:
         assert propagated.is_left()
         assert propagated.get_left() == "initial_error"
 
-    def test_either_fold_operations(self):
+    def test_either_fold_operations(self) -> None:
         """Test Either fold operations for result extraction."""
         right_value = Either.right(42)
         left_value = Either.left("error_msg")
@@ -452,7 +466,7 @@ class TestEitherMonad:
         )
         assert left_result == "Error: error_msg"
 
-    def test_either_get_or_else(self):
+    def test_either_get_or_else(self) -> None:
         """Test Either get_or_else for default values."""
         right_value = Either.right("actual_value")
         left_value = Either.left("error")
@@ -463,19 +477,19 @@ class TestEitherMonad:
         # Left should return default value
         assert left_value.get_or_else("default") == "default"
 
-    def test_either_chaining_complex(self):
+    def test_either_chaining_complex(self) -> None:
         """Test complex Either chaining scenarios."""
 
-        def parse_int(s):
+        def parse_int(s) -> Any:
             try:
                 return Either.right(int(s))
             except ValueError:
                 return Either.left(f"Cannot parse '{s}' as integer")
 
-        def multiply_by_two(x):
+        def multiply_by_two(x) -> Any:
             return Either.right(x * 2)
 
-        def ensure_positive(x):
+        def ensure_positive(x) -> None:
             if x > 0:
                 return Either.right(x)
             return Either.left(f"Value {x} is not positive")
@@ -506,12 +520,12 @@ class TestEitherMonad:
 class TestContractSystem:
     """Comprehensive test coverage for Design by Contract decorators."""
 
-    def test_require_decorator_success(self):
+    def test_require_decorator_success(self) -> dict[str, Any]:
         """Test require decorator with valid preconditions."""
 
         @require(lambda x: x > 0, "x must be positive")
         @require(lambda x: isinstance(x, int | float), "x must be numeric")
-        def divide_ten_by(x):
+        def divide_ten_by(x) -> dict[str, Any]:
             return 10 / x
 
         # Test with valid input
@@ -521,12 +535,12 @@ class TestContractSystem:
         result = divide_ten_by(2.5)
         assert result == 4.0
 
-    def test_require_decorator_failure(self):
+    def test_require_decorator_failure(self) -> dict[str, Any]:
         """Test require decorator with invalid preconditions."""
 
         @require(lambda x: x > 0, "x must be positive")
         @require(lambda x: isinstance(x, int | float), "x must be numeric")
-        def divide_ten_by(x):
+        def divide_ten_by(x) -> dict[str, Any]:
             return 10 / x
 
         # Test with invalid input (negative)
@@ -545,25 +559,26 @@ class TestContractSystem:
             for msg in ["x must be numeric", "x must be positive"]
         )
 
-    def test_ensure_decorator_success(self):
+    def test_ensure_decorator_success(self) -> dict[str, Any]:
         """Test ensure decorator with valid postconditions."""
 
         @ensure(lambda result: result > 0, "result must be positive")
         @ensure(
-            lambda result: isinstance(result, int | float), "result must be numeric"
+            lambda result: isinstance(result, int | float),
+            "result must be numeric",
         )
-        def get_positive_number():
+        def get_positive_number() -> dict[str, Any]:
             return 42
 
         # Test with valid output
         result = get_positive_number()
         assert result == 42
 
-    def test_ensure_decorator_failure(self):
+    def test_ensure_decorator_failure(self) -> dict[str, Any]:
         """Test ensure decorator with invalid postconditions."""
 
         @ensure(lambda result: result > 0, "result must be positive")
-        def get_negative_number():
+        def get_negative_number() -> dict[str, Any]:
             return -10
 
         # Test with invalid output
@@ -571,12 +586,12 @@ class TestContractSystem:
             get_negative_number()
         assert "result must be positive" in str(exc_info.value)
 
-    def test_combined_contracts(self):
+    def test_combined_contracts(self) -> dict[str, Any]:
         """Test combining require and ensure decorators."""
 
         @require(lambda x, y: x > 0 and y > 0, "both inputs must be positive")
         @ensure(lambda result: result > 0, "result must be positive")
-        def multiply_positive(x, y):
+        def multiply_positive(x, y) -> dict[str, Any]:
             return x * y
 
         # Test valid case
@@ -588,14 +603,14 @@ class TestContractSystem:
             multiply_positive(-3, 4)
         assert "both inputs must be positive" in str(exc_info.value)
 
-    def test_contracts_with_multiple_parameters(self):
+    def test_contracts_with_multiple_parameters(self) -> dict[str, Any]:
         """Test contracts with multiple parameters."""
 
         @require(lambda a, b, c: len(a) > 0, "list must not be empty")
         @require(lambda a, b, c: isinstance(b, str), "b must be string")
         @require(lambda a, b, c: c >= 0, "c must be non-negative")
         @ensure(lambda result: isinstance(result, dict), "result must be dict")
-        def process_data(a, b, c):
+        def process_data(a, b, c) -> dict[str, Any]:
             return {"list_length": len(a), "string_value": b, "number_value": c}
 
         # Test valid case
@@ -614,7 +629,7 @@ class TestContractSystem:
         with pytest.raises(ContractViolationError):
             process_data([1, 2], "test", -1)  # Negative c
 
-    def test_contract_with_async_function(self):
+    def test_contract_with_async_function(self) -> None:
         """Test contracts with async functions."""
 
         @require(lambda x: x >= 0, "x must be non-negative")
@@ -625,7 +640,7 @@ class TestContractSystem:
         # Test async contract validation
         import asyncio
 
-        async def test_async():
+        async def test_async() -> None:
             result = await async_sqrt(16)
             assert abs(result - 4.0) < 0.001
 
@@ -634,11 +649,11 @@ class TestContractSystem:
 
         asyncio.run(test_async())
 
-    def test_contract_violation_error_details(self):
+    def test_contract_violation_error_details(self) -> None:
         """Test ContractViolationError provides detailed information."""
 
         @require(lambda x: x > 10, "x must be greater than 10")
-        def test_function(x):
+        def test_function(x) -> None:
             return x
 
         try:

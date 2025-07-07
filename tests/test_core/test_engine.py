@@ -1,30 +1,43 @@
-"""
-Tests for the core macro execution engine.
+"""Tests for the core macro execution engine.
 
 This module tests the main MacroEngine functionality including execution,
 validation, error handling, and contract enforcement.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import time
 
 import pytest
+
 # Direct imports for coverage tracking
-from src.core.engine import MacroEngine, EngineMetrics, PlaceholderCommand, create_test_macro, get_default_engine, get_engine_metrics
-from src.core.types import Duration, ExecutionContext, ExecutionStatus, MacroDefinition, Permission
-from src.core.parser import CommandType, CommandValidator
+from src.core.engine import (
+    MacroEngine,
+    create_test_macro,
+)
+from src.core.errors import ContractViolationError
+from src.core.parser import CommandType
+from src.core.types import (
+    Duration,
+    ExecutionContext,
+    ExecutionStatus,
+    MacroDefinition,
+    Permission,
+)
 
 
 class TestMacroEngine:
     """Test cases for the MacroEngine class."""
 
-    def test_engine_initialization(self):
+    def test_engine_initialization(self) -> None:
         """Test that engine initializes correctly."""
         engine = MacroEngine()
         assert engine is not None
         assert engine.max_concurrent_executions > 0
         assert engine.default_timeout.total_seconds() > 0
 
-    def test_simple_macro_execution(self):
+    def test_simple_macro_execution(self) -> None:
         """Test execution of a simple macro."""
         engine = MacroEngine()
         macro = create_test_macro("test_macro", [CommandType.TEXT_INPUT])
@@ -40,7 +53,7 @@ class TestMacroEngine:
         assert len(result.command_results) == 1
         assert result.command_results[0].success
 
-    def test_macro_with_multiple_commands(self):
+    def test_macro_with_multiple_commands(self) -> None:
         """Test execution of macro with multiple commands."""
         engine = MacroEngine()
         macro = create_test_macro(
@@ -48,7 +61,7 @@ class TestMacroEngine:
             [CommandType.TEXT_INPUT, CommandType.PAUSE, CommandType.PLAY_SOUND],
         )
         context = ExecutionContext.create_test_context(
-            permissions=frozenset([Permission.TEXT_INPUT, Permission.SYSTEM_SOUND])
+            permissions=frozenset([Permission.TEXT_INPUT, Permission.SYSTEM_SOUND]),
         )
 
         result = engine.execute_macro(macro, context)
@@ -57,14 +70,14 @@ class TestMacroEngine:
         assert len(result.command_results) == 3
         assert all(cmd_result.success for cmd_result in result.command_results)
 
-    def test_macro_execution_with_insufficient_permissions(self):
+    def test_macro_execution_with_insufficient_permissions(self) -> None:
         """Test that macro execution fails with insufficient permissions."""
         engine = MacroEngine()
         macro = create_test_macro("sound_macro", [CommandType.PLAY_SOUND])
 
         # Create context without SYSTEM_SOUND permission
         context = ExecutionContext.create_test_context(
-            permissions=frozenset([Permission.TEXT_INPUT])  # Missing SYSTEM_SOUND
+            permissions=frozenset([Permission.TEXT_INPUT]),  # Missing SYSTEM_SOUND
         )
 
         result = engine.execute_macro(macro, context)
@@ -75,7 +88,7 @@ class TestMacroEngine:
         assert result.error_details is not None
         assert "PermissionDeniedError" in result.error_details
 
-    def test_invalid_macro_rejection(self):
+    def test_invalid_macro_rejection(self) -> None:
         """Test that invalid macros are rejected."""
         engine = MacroEngine()
 
@@ -100,7 +113,7 @@ class TestMacroEngine:
             or "non-empty commands" in result.error_details.lower()
         )
 
-    def test_execution_status_tracking(self):
+    def test_execution_status_tracking(self) -> None:
         """Test that execution status is properly tracked."""
         engine = MacroEngine()
         macro = create_test_macro("status_test", [CommandType.TEXT_INPUT])
@@ -116,7 +129,7 @@ class TestMacroEngine:
         final_status = engine.get_execution_status(result.execution_token)
         assert final_status is None  # Context cleaned up after execution
 
-    def test_execution_cancellation(self):
+    def test_execution_cancellation(self) -> None:
         """Test that macro execution can be cancelled."""
         engine = MacroEngine()
         macro = create_test_macro("cancel_test", [CommandType.PAUSE])
@@ -127,7 +140,7 @@ class TestMacroEngine:
 
         result_container = []
 
-        def execute_macro():
+        def execute_macro() -> None:
             try:
                 result = engine.execute_macro(macro, context)
                 result_container.append(result)
@@ -150,7 +163,7 @@ class TestMacroEngine:
 
         thread.join(timeout=1.0)
 
-    def test_get_active_executions(self):
+    def test_get_active_executions(self) -> None:
         """Test retrieval of active executions."""
         engine = MacroEngine()
 
@@ -158,7 +171,7 @@ class TestMacroEngine:
         active = engine.get_active_executions()
         assert isinstance(active, list)
 
-    def test_cleanup_expired_executions(self):
+    def test_cleanup_expired_executions(self) -> None:
         """Test cleanup of expired executions."""
         engine = MacroEngine()
 
@@ -171,7 +184,7 @@ class TestMacroEngine:
 class TestExecutionContext:
     """Test cases for ExecutionContext functionality."""
 
-    def test_context_creation(self):
+    def test_context_creation(self) -> None:
         """Test execution context creation."""
         permissions = frozenset([Permission.TEXT_INPUT, Permission.SYSTEM_SOUND])
         timeout = Duration.from_seconds(30)
@@ -183,7 +196,7 @@ class TestExecutionContext:
         assert context.execution_id is not None
         assert context.created_at is not None
 
-    def test_permission_checking(self):
+    def test_permission_checking(self) -> None:
         """Test permission checking methods."""
         permissions = frozenset([Permission.TEXT_INPUT, Permission.SYSTEM_SOUND])
         context = ExecutionContext.create_test_context(permissions=permissions)
@@ -200,7 +213,7 @@ class TestExecutionContext:
         required_invalid = frozenset([Permission.TEXT_INPUT, Permission.FILE_ACCESS])
         assert not context.has_permissions(required_invalid)
 
-    def test_variable_management(self):
+    def test_variable_management(self) -> None:
         """Test variable management in context."""
         context = ExecutionContext.create_test_context()
 
@@ -213,7 +226,7 @@ class TestExecutionContext:
         assert new_context.get_variable(var_name) == var_value
         assert context.get_variable(var_name) is None  # Original unchanged
 
-    def test_default_context(self):
+    def test_default_context(self) -> None:
         """Test default context creation."""
         context = ExecutionContext.default()
 
@@ -225,17 +238,18 @@ class TestExecutionContext:
 class TestContractEnforcement:
     """Test cases for contract enforcement in the engine."""
 
-    def test_precondition_enforcement(self):
+    def test_precondition_enforcement(self) -> None:
         """Test that preconditions are enforced."""
         engine = MacroEngine()
 
         # Test with None macro (should violate precondition)
         context = ExecutionContext.create_test_context()
 
-        with pytest.raises(Exception):  # Contract violation
+        # B017 fix: Use specific exception instead of blind Exception
+        with pytest.raises(ContractViolationError):  # Contract violation
             engine.execute_macro(None, context)
 
-    def test_postcondition_verification(self):
+    def test_postcondition_verification(self) -> None:
         """Test that postconditions are verified."""
         engine = MacroEngine()
         macro = create_test_macro("postcondition_test", [CommandType.TEXT_INPUT])

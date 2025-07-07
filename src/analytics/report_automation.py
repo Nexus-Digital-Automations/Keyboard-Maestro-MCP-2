@@ -1,5 +1,4 @@
-"""
-Report automation system for generating comprehensive analytics reports.
+"""Report automation system for generating comprehensive analytics reports.
 
 Provides automated report generation with customizable templates,
 scheduling, and multi-format export capabilities.
@@ -22,7 +21,8 @@ class ReportAutomation:
         self.reports_generated = 0
 
     async def generate_executive_report(
-        self, analytics_data: dict[str, Any]
+        self,
+        analytics_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Generate executive summary report."""
         performance_metrics = analytics_data.get("performance", {})
@@ -32,7 +32,8 @@ class ReportAutomation:
         # Calculate summary statistics
         total_tools = len(performance_metrics)
         avg_response_time = self._calculate_average(
-            performance_metrics, "execution_time_ms"
+            performance_metrics,
+            "execution_time_ms",
         )
         avg_success_rate = self._calculate_average(performance_metrics, "success_rate")
         total_cost_savings = sum(
@@ -83,24 +84,26 @@ class ReportAutomation:
             return "Unknown"
 
         avg_response_time = self._calculate_average(
-            performance_metrics, "execution_time_ms"
+            performance_metrics,
+            "execution_time_ms",
         )
         avg_success_rate = self._calculate_average(performance_metrics, "success_rate")
 
         if avg_response_time < 200 and avg_success_rate > 0.95:
             return "Excellent"
-        elif avg_response_time < 500 and avg_success_rate > 0.90:
+        if avg_response_time < 500 and avg_success_rate > 0.90:
             return "Good"
-        else:
-            return "Needs Attention"
+        return "Needs Attention"
 
     async def export_report(
-        self, report_data: dict[str, Any], format: str = "json"
+        self,
+        report_data: dict[str, Any],
+        format: str = "json",
     ) -> str:
         """Export report in specified format."""
         if format.lower() == "json":
             return json.dumps(report_data, indent=2, default=str)
-        elif format.lower() == "csv":
+        if format.lower() == "csv":
             # Simplified CSV export
             csv_data = "Metric,Value\n"
             exec_summary = report_data.get("executive_summary", {})
@@ -110,5 +113,4 @@ class ReportAutomation:
                 csv_data += f"{metric},{value}\n"
 
             return csv_data
-        else:
-            return json.dumps(report_data, indent=2, default=str)
+        return json.dumps(report_data, indent=2, default=str)

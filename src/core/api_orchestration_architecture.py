@@ -1,5 +1,4 @@
-"""
-API Orchestration Architecture - TASK_64 Phase 1 Architecture & Design
+"""API Orchestration Architecture - TASK_64 Phase 1 Architecture & Design.
 
 Comprehensive type system for advanced API management, service orchestration, and microservices coordination.
 Provides enterprise-grade API workflow management with fault tolerance and performance monitoring.
@@ -312,37 +311,25 @@ class ServiceHealthReport:
 class APIOrchestrationError(MCPError):
     """Base exception for API orchestration errors."""
 
-    pass
-
 
 class ServiceUnavailableError(APIOrchestrationError):
     """Exception for service unavailability."""
-
-    pass
 
 
 class WorkflowExecutionError(APIOrchestrationError):
     """Exception for workflow execution failures."""
 
-    pass
-
 
 class CircuitBreakerOpenError(APIOrchestrationError):
     """Exception for circuit breaker open state."""
-
-    pass
 
 
 class LoadBalancerError(APIOrchestrationError):
     """Exception for load balancer failures."""
 
-    pass
-
 
 class ServiceMeshError(APIOrchestrationError):
     """Exception for service mesh configuration errors."""
-
-    pass
 
 
 # Utility Functions
@@ -394,7 +381,7 @@ def validate_workflow_configuration(
             }
             if not parallel_groups:
                 return Either.error(
-                    APIOrchestrationError("Parallel workflow requires parallel groups")
+                    APIOrchestrationError("Parallel workflow requires parallel groups"),
                 )
 
         # Validate conditional logic if using conditional strategy
@@ -403,21 +390,21 @@ def validate_workflow_configuration(
             if not conditional_steps:
                 return Either.error(
                     APIOrchestrationError(
-                        "Conditional workflow requires condition expressions"
-                    )
+                        "Conditional workflow requires condition expressions",
+                    ),
                 )
 
         # Validate timeout constraints
         if workflow.global_timeout_ms < 1000:  # Minimum 1 second
             return Either.error(
-                APIOrchestrationError("Global timeout must be at least 1000ms")
+                APIOrchestrationError("Global timeout must be at least 1000ms"),
             )
 
         return Either.success(True)
 
     except Exception as e:
         return Either.error(
-            APIOrchestrationError(f"Workflow validation failed: {str(e)}")
+            APIOrchestrationError(f"Workflow validation failed: {e!s}"),
         )
 
 
@@ -446,7 +433,7 @@ def calculate_workflow_complexity(workflow: OrchestrationWorkflow) -> int:
 
     # Parallel group complexity
     parallel_groups = len(
-        {step.parallel_group for step in workflow.steps if step.parallel_group}
+        {step.parallel_group for step in workflow.steps if step.parallel_group},
     )
     complexity += parallel_groups * 3
 
@@ -455,42 +442,42 @@ def calculate_workflow_complexity(workflow: OrchestrationWorkflow) -> int:
 
 # Export all public types and functions
 __all__ = [
-    # Branded Types
-    "WorkflowId",
-    "ServiceId",
-    "OrchestrationId",
-    "LoadBalancerId",
-    "CircuitBreakerId",
-    # Enums
-    "OrchestrationStrategy",
-    "ServiceMeshType",
-    "LoadBalancingStrategy",
-    "CircuitBreakerState",
-    "ServiceHealthStatus",
-    "RoutingRule",
     # Data Structures
     "APIEndpoint",
-    "ServiceDefinition",
-    "WorkflowStep",
-    "OrchestrationWorkflow",
-    "LoadBalancerConfig",
-    "CircuitBreakerConfig",
-    "ServiceMeshConfig",
-    "OrchestrationResult",
-    "ServiceHealthReport",
     # Exceptions
     "APIOrchestrationError",
+    "CircuitBreakerConfig",
+    "CircuitBreakerId",
+    "CircuitBreakerOpenError",
+    "CircuitBreakerState",
+    "LoadBalancerConfig",
+    "LoadBalancerError",
+    "LoadBalancerId",
+    "LoadBalancingStrategy",
+    "OrchestrationId",
+    "OrchestrationResult",
+    # Enums
+    "OrchestrationStrategy",
+    "OrchestrationWorkflow",
+    "RoutingRule",
+    "ServiceDefinition",
+    "ServiceHealthReport",
+    "ServiceHealthStatus",
+    "ServiceId",
+    "ServiceMeshConfig",
+    "ServiceMeshError",
+    "ServiceMeshType",
     "ServiceUnavailableError",
     "WorkflowExecutionError",
-    "CircuitBreakerOpenError",
-    "LoadBalancerError",
-    "ServiceMeshError",
+    # Branded Types
+    "WorkflowId",
+    "WorkflowStep",
+    "calculate_workflow_complexity",
+    "create_circuit_breaker_id",
+    "create_load_balancer_id",
+    "create_orchestration_id",
+    "create_service_id",
     # Utility Functions
     "create_workflow_id",
-    "create_service_id",
-    "create_orchestration_id",
-    "create_load_balancer_id",
-    "create_circuit_breaker_id",
     "validate_workflow_configuration",
-    "calculate_workflow_complexity",
 ]

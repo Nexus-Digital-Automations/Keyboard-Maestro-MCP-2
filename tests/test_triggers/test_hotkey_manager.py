@@ -1,10 +1,12 @@
-"""
-Property-based tests for hotkey trigger management.
+"""Property-based tests for hotkey trigger management.
 
 Tests hotkey validation, conflict detection, and security boundaries using
 hypothesis-driven property-based testing for comprehensive coverage.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -28,9 +30,9 @@ class TestHotkeySpecValidation:
     """Test HotkeySpec validation with property-based testing."""
 
     @given(
-        st.text(min_size=1, max_size=1).filter(lambda x: x.isalnum() and x.isascii())
+        st.text(min_size=1, max_size=1).filter(lambda x: x.isalnum() and x.isascii()),
     )
-    def test_valid_single_character_keys(self, key):
+    def test_valid_single_character_keys(self, key) -> None:
         """Property: Valid single character keys should create valid HotkeySpec."""
         spec = HotkeySpec(
             key=key.lower(),
@@ -43,7 +45,7 @@ class TestHotkeySpecValidation:
         assert spec.to_km_string() == key.lower()
 
     @given(st.sampled_from(list(VALID_SPECIAL_KEYS)))
-    def test_valid_special_keys(self, special_key):
+    def test_valid_special_keys(self, special_key) -> None:
         """Property: All valid special keys should create valid HotkeySpec."""
         spec = HotkeySpec(
             key=special_key,
@@ -56,9 +58,9 @@ class TestHotkeySpecValidation:
         assert spec.to_km_string() == special_key
 
     @given(
-        st.text().filter(lambda x: len(x) != 1 and x.lower() not in VALID_SPECIAL_KEYS)
+        st.text().filter(lambda x: len(x) != 1 and x.lower() not in VALID_SPECIAL_KEYS),
     )
-    def test_invalid_keys_raise_validation_error(self, invalid_key):
+    def test_invalid_keys_raise_validation_error(self, invalid_key) -> None:
         """Property: Invalid keys should raise ValidationError."""
         assume(invalid_key)  # Ensure not empty
 
@@ -72,7 +74,7 @@ class TestHotkeySpecValidation:
             )
 
     @given(st.integers().filter(lambda x: x < 1 or x > 4))
-    def test_invalid_tap_count_raises_error(self, invalid_tap_count):
+    def test_invalid_tap_count_raises_error(self, invalid_tap_count) -> None:
         """Property: Tap counts outside 1-4 range should raise ValidationError."""
         with pytest.raises(ValidationError):
             HotkeySpec(
@@ -84,7 +86,7 @@ class TestHotkeySpecValidation:
             )
 
     @given(st.sets(st.sampled_from(ModifierKey), min_size=0, max_size=5))
-    def test_modifier_combinations(self, modifiers):
+    def test_modifier_combinations(self, modifiers) -> None:
         """Property: Any combination of valid modifiers should be accepted."""
         spec = HotkeySpec(
             key="a",
@@ -95,7 +97,7 @@ class TestHotkeySpecValidation:
         )
         assert spec.modifiers == modifiers
 
-    def test_system_conflict_detection(self):
+    def test_system_conflict_detection(self) -> None:
         """Test detection of system-reserved hotkey conflicts."""
         # Test known system shortcuts
         with pytest.raises(SecurityViolationError):
@@ -108,7 +110,7 @@ class TestHotkeySpecValidation:
             )
 
     @given(st.text(min_size=1, max_size=5))
-    def test_display_string_formatting(self, key):
+    def test_display_string_formatting(self, key) -> None:
         """Property: Display strings should be consistently formatted."""
         assume(len(key) == 1 and key.isalnum() and key.isascii())
 
@@ -141,8 +143,13 @@ class TestCreateHotkeySpec:
         st.booleans(),
     )
     def test_factory_function_creates_valid_specs(
-        self, key, modifiers, activation_mode, tap_count, allow_repeat
-    ):
+        self,
+        key,
+        modifiers,
+        activation_mode,
+        tap_count,
+        allow_repeat,
+    ) -> None:
         """Property: Factory function should create valid HotkeySpec for valid inputs."""
         spec = create_hotkey_spec(
             key=key,
@@ -159,7 +166,7 @@ class TestCreateHotkeySpec:
         assert spec.tap_count == tap_count
         assert spec.allow_repeat == allow_repeat
 
-    def test_invalid_modifier_strings_raise_error(self):
+    def test_invalid_modifier_strings_raise_error(self) -> None:
         """Test that invalid modifier strings raise ValidationError."""
         with pytest.raises(ValidationError):
             create_hotkey_spec(
@@ -170,7 +177,7 @@ class TestCreateHotkeySpec:
                 allow_repeat=False,
             )
 
-    def test_invalid_activation_mode_raises_error(self):
+    def test_invalid_activation_mode_raises_error(self) -> None:
         """Test that invalid activation modes raise ValidationError."""
         with pytest.raises(ValidationError):
             create_hotkey_spec(
@@ -186,28 +193,30 @@ class TestHotkeyManager:
     """Test HotkeyManager functionality with mocked dependencies."""
 
     @pytest.fixture
-    def mock_km_client(self):
+    def mock_km_client(self) -> Any:
         """Mock KMClient for testing."""
         return Mock(spec=KMClient)
 
     @pytest.fixture
-    def mock_trigger_manager(self, mock_km_client):
+    def mock_trigger_manager(self, mock_km_client) -> Any:
         """Mock TriggerRegistrationManager for testing."""
         manager = Mock(spec=TriggerRegistrationManager)
         manager.register_trigger = AsyncMock(
-            return_value=Either.right(TriggerId("test-trigger-id"))
+            return_value=Either.right(TriggerId("test-trigger-id")),
         )
         return manager
 
     @pytest.fixture
-    def hotkey_manager(self, mock_km_client, mock_trigger_manager):
+    def hotkey_manager(self, mock_km_client, mock_trigger_manager) -> Any:
         """Create HotkeyManager instance with mocked dependencies."""
         return HotkeyManager(mock_km_client, mock_trigger_manager)
 
     @pytest.mark.asyncio
     async def test_create_hotkey_trigger_success(
-        self, hotkey_manager, mock_trigger_manager
-    ):
+        self,
+        hotkey_manager,
+        mock_trigger_manager,
+    ) -> None:
         """Test successful hotkey trigger creation."""
         macro_id = MacroId("test-macro")
         hotkey_spec = HotkeySpec(
@@ -232,7 +241,7 @@ class TestHotkeyManager:
         mock_trigger_manager.register_trigger.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_conflict_detection(self, hotkey_manager):
+    async def test_conflict_detection(self, hotkey_manager) -> None:
         """Test hotkey conflict detection."""
         # Create a hotkey that conflicts with system shortcuts
         hotkey_spec = HotkeySpec(
@@ -250,7 +259,7 @@ class TestHotkeyManager:
         assert any(conflict.conflict_type == "system" for conflict in conflicts)
 
     @pytest.mark.asyncio
-    async def test_suggest_alternatives(self, hotkey_manager):
+    async def test_suggest_alternatives(self, hotkey_manager) -> None:
         """Test alternative hotkey suggestions."""
         hotkey_spec = HotkeySpec(
             key="a",
@@ -261,7 +270,8 @@ class TestHotkeyManager:
         )
 
         alternatives = hotkey_manager.suggest_alternatives(
-            hotkey_spec, max_suggestions=3
+            hotkey_spec,
+            max_suggestions=3,
         )
 
         assert len(alternatives) <= 3
@@ -269,7 +279,7 @@ class TestHotkeyManager:
             assert isinstance(alt, HotkeySpec)
             assert alt != hotkey_spec  # Should be different from original
 
-    def test_hotkey_availability_check(self, hotkey_manager):
+    def test_hotkey_availability_check(self, hotkey_manager) -> None:
         """Test hotkey availability checking."""
         # Available hotkey
         available_hotkey = HotkeySpec(
@@ -305,7 +315,7 @@ class TestHotkeyManager:
 class TestHotkeySpecToKMString:
     """Test hotkey string conversion functionality."""
 
-    def test_modifier_ordering(self):
+    def test_modifier_ordering(self) -> None:
         """Test that modifiers are consistently ordered."""
         spec = HotkeySpec(
             key="a",
@@ -319,7 +329,7 @@ class TestHotkeySpecToKMString:
         # Should be in consistent order: cmd+ctrl+opt+shift+fn
         assert km_string == "cmd+opt+shift+a"
 
-    def test_single_key_no_modifiers(self):
+    def test_single_key_no_modifiers(self) -> None:
         """Test single key without modifiers."""
         spec = HotkeySpec(
             key="f",
@@ -331,7 +341,7 @@ class TestHotkeySpecToKMString:
 
         assert spec.to_km_string() == "f"
 
-    def test_special_key_with_modifiers(self):
+    def test_special_key_with_modifiers(self) -> None:
         """Test special key with modifiers."""
         spec = HotkeySpec(
             key="f1",
@@ -348,7 +358,7 @@ class TestHotkeySecurityValidation:
     """Test security aspects of hotkey validation."""
 
     @given(st.text().filter(lambda x: not x.isascii() if x else False))
-    def test_non_ascii_keys_rejected(self, non_ascii_key):
+    def test_non_ascii_keys_rejected(self, non_ascii_key) -> None:
         """Property: Non-ASCII characters should be rejected for security."""
         assume(len(non_ascii_key) == 1)  # Single character
 
@@ -361,7 +371,7 @@ class TestHotkeySecurityValidation:
                 allow_repeat=False,
             )
 
-    def test_system_shortcut_protection(self):
+    def test_system_shortcut_protection(self) -> None:
         """Test that critical system shortcuts are protected."""
         critical_shortcuts = [
             ("space", {ModifierKey.COMMAND}),  # Spotlight
@@ -379,7 +389,7 @@ class TestHotkeySecurityValidation:
                 )
 
     @given(st.text(min_size=2, max_size=10).filter(lambda x: x.isascii()))
-    def test_multi_character_keys_validation(self, multi_char_key):
+    def test_multi_character_keys_validation(self, multi_char_key) -> None:
         """Property: Multi-character keys must be in valid special keys list."""
         assume(multi_char_key.lower() not in VALID_SPECIAL_KEYS)
 

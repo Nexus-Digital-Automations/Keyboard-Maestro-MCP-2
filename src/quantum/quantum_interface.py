@@ -1,5 +1,4 @@
-"""
-Quantum Interface - TASK_68 Phase 2 Core Quantum Engine
+"""Quantum Interface - TASK_68 Phase 2 Core Quantum Engine.
 
 Quantum computing interface preparation and protocol definitions with platform integration,
 circuit simulation, and hybrid classical-quantum computing support.
@@ -98,10 +97,11 @@ class QuantumInterfaceManager:
         # Initialize default platform configurations
         self._initialize_platform_configs()
 
-    @require(lambda self, interface_config: len(interface_config) > 0)
+    @require(lambda __self, interface_config: len(interface_config) > 0)
     @ensure(lambda result: result.is_success() or result.is_error())
     async def create_quantum_interface(
-        self, interface_config: dict[str, Any]
+        self,
+        interface_config: dict[str, Any],
     ) -> Either[QuantumError, str]:
         """Create quantum computing interface with platform configuration."""
         try:
@@ -114,7 +114,7 @@ class QuantumInterfaceManager:
             ]
             if missing_fields:
                 return Either.error(
-                    QuantumError(f"Missing required fields: {missing_fields}")
+                    QuantumError(f"Missing required fields: {missing_fields}"),
                 )
 
             # Get platform-specific configuration
@@ -132,22 +132,28 @@ class QuantumInterfaceManager:
                     platform_config.get("default_operations", []),
                 ),
                 qubit_capacity=interface_config.get(
-                    "qubit_capacity", platform_config.get("max_qubits")
+                    "qubit_capacity",
+                    platform_config.get("max_qubits"),
                 ),
                 gate_fidelity=interface_config.get(
-                    "gate_fidelity", platform_config.get("typical_fidelity")
+                    "gate_fidelity",
+                    platform_config.get("typical_fidelity"),
                 ),
                 coherence_time=interface_config.get(
-                    "coherence_time", platform_config.get("coherence_time")
+                    "coherence_time",
+                    platform_config.get("coherence_time"),
                 ),
                 connectivity_map=interface_config.get(
-                    "connectivity_map", platform_config.get("connectivity", {})
+                    "connectivity_map",
+                    platform_config.get("connectivity", {}),
                 ),
                 error_correction_enabled=interface_config.get(
-                    "error_correction", platform_config.get("error_correction", False)
+                    "error_correction",
+                    platform_config.get("error_correction", False),
                 ),
                 classical_integration=interface_config.get(
-                    "classical_integration", True
+                    "classical_integration",
+                    True,
                 ),
             )
 
@@ -156,25 +162,27 @@ class QuantumInterfaceManager:
             self.interface_metrics["total_interfaces"] += 1
 
             logger.info(
-                f"Quantum interface created: {interface_id} on platform {platform}"
+                f"Quantum interface created: {interface_id} on platform {platform}",
             )
 
             return Either.success(interface_id)
 
         except Exception as e:
             logger.error(f"Failed to create quantum interface: {e}")
-            return Either.error(QuantumError(f"Interface creation failed: {str(e)}"))
+            return Either.error(QuantumError(f"Interface creation failed: {e!s}"))
 
-    @require(lambda self, interface_id: len(interface_id) > 0)
+    @require(lambda __self, interface_id: len(interface_id) > 0)
     @ensure(lambda result: result.is_success() or result.is_error())
     async def start_quantum_session(
-        self, interface_id: str, session_config: dict[str, Any] | None = None
+        self,
+        interface_id: str,
+        session_config: dict[str, Any] | None = None,
     ) -> Either[QuantumError, QuantumSessionId]:
         """Start quantum computing session."""
         try:
             if interface_id not in self.quantum_interfaces:
                 return Either.error(
-                    QuantumError(f"Quantum interface not found: {interface_id}")
+                    QuantumError(f"Quantum interface not found: {interface_id}"),
                 )
 
             session_id = generate_quantum_session_id()
@@ -195,7 +203,8 @@ class QuantumInterfaceManager:
             # Initialize session based on platform
             if quantum_interface.quantum_platform == "ibm":
                 session_data["backend"] = session_config.get(
-                    "backend", "ibm_qasm_simulator"
+                    "backend",
+                    "ibm_qasm_simulator",
                 )
             elif quantum_interface.quantum_platform == "google":
                 session_data["processor"] = session_config.get("processor", "rainbow")
@@ -206,17 +215,17 @@ class QuantumInterfaceManager:
             self.interface_metrics["active_sessions"] += 1
 
             logger.info(
-                f"Quantum session started: {session_id} on interface {interface_id}"
+                f"Quantum session started: {session_id} on interface {interface_id}",
             )
 
             return Either.success(session_id)
 
         except Exception as e:
             logger.error(f"Failed to start quantum session: {e}")
-            return Either.error(QuantumError(f"Session start failed: {str(e)}"))
+            return Either.error(QuantumError(f"Session start failed: {e!s}"))
 
-    @require(lambda self, qubit_count: qubit_count > 0)
-    @require(lambda self, operations: len(operations) > 0)
+    @require(lambda __self, qubit_count: qubit_count > 0)
+    @require(lambda __self, operations: len(operations) > 0)
     @ensure(lambda result: result.is_success() or result.is_error())
     async def create_quantum_circuit(
         self,
@@ -268,17 +277,17 @@ class QuantumInterfaceManager:
             self.interface_metrics["circuits_created"] += 1
 
             logger.info(
-                f"Quantum circuit created: {circuit_id} with {len(quantum_operations)} operations"
+                f"Quantum circuit created: {circuit_id} with {len(quantum_operations)} operations",
             )
 
             return Either.success(circuit_id)
 
         except Exception as e:
             logger.error(f"Failed to create quantum circuit: {e}")
-            return Either.error(QuantumError(f"Circuit creation failed: {str(e)}"))
+            return Either.error(QuantumError(f"Circuit creation failed: {e!s}"))
 
-    @require(lambda self, circuit_id: circuit_id is not None)
-    @require(lambda self, session_id: session_id is not None)
+    @require(lambda __self, circuit_id: circuit_id is not None)
+    @require(lambda __self, session_id: session_id is not None)
     @ensure(lambda result: result.is_success() or result.is_error())
     async def execute_quantum_circuit(
         self,
@@ -290,12 +299,12 @@ class QuantumInterfaceManager:
         try:
             if circuit_id not in self.quantum_circuits:
                 return Either.error(
-                    QuantumError(f"Quantum circuit not found: {circuit_id}")
+                    QuantumError(f"Quantum circuit not found: {circuit_id}"),
                 )
 
             if session_id not in self.active_sessions:
                 return Either.error(
-                    QuantumError(f"Quantum session not found: {session_id}")
+                    QuantumError(f"Quantum session not found: {session_id}"),
                 )
 
             circuit = self.quantum_circuits[circuit_id]
@@ -307,12 +316,14 @@ class QuantumInterfaceManager:
             if not required_ops.issubset(set(interface.supported_operations)):
                 unsupported = required_ops - set(interface.supported_operations)
                 return Either.error(
-                    QuantumError(f"Unsupported operations: {unsupported}")
+                    QuantumError(f"Unsupported operations: {unsupported}"),
                 )
 
             # Execute circuit (simulation)
             execution_result = await self._simulate_circuit_execution(
-                circuit, interface, execution_config
+                circuit,
+                interface,
+                execution_config,
             )
 
             if execution_result.is_success():
@@ -343,19 +354,18 @@ class QuantumInterfaceManager:
                 self.interface_metrics["quantum_operations"] += len(circuit.operations)
 
                 logger.info(
-                    f"Circuit executed successfully: {circuit_id} -> {result_id}"
+                    f"Circuit executed successfully: {circuit_id} -> {result_id}",
                 )
 
                 return Either.success(result_id)
-            else:
-                return execution_result
+            return execution_result
 
         except Exception as e:
             logger.error(f"Failed to execute quantum circuit: {e}")
-            return Either.error(QuantumError(f"Circuit execution failed: {str(e)}"))
+            return Either.error(QuantumError(f"Circuit execution failed: {e!s}"))
 
-    @require(lambda self, algorithm_type: len(algorithm_type) > 0)
-    @require(lambda self, qubit_count: qubit_count > 0)
+    @require(lambda __self, algorithm_type: len(algorithm_type) > 0)
+    @require(lambda __self, qubit_count: qubit_count > 0)
     async def simulate_quantum_algorithm(
         self,
         algorithm_type: str,
@@ -366,7 +376,9 @@ class QuantumInterfaceManager:
         try:
             # Generate algorithm-specific circuit
             circuit_result = await self._generate_algorithm_circuit(
-                algorithm_type, qubit_count, simulation_config
+                algorithm_type,
+                qubit_count,
+                simulation_config,
             )
 
             if circuit_result.is_error():
@@ -384,7 +396,8 @@ class QuantumInterfaceManager:
             # Use universal interface for simulation
             interface_id = await self._get_or_create_simulation_interface()
             session_result = await self.start_quantum_session(
-                interface_id, session_config
+                interface_id,
+                session_config,
             )
 
             if session_result.is_error():
@@ -394,17 +407,20 @@ class QuantumInterfaceManager:
 
             # Execute algorithm circuit
             execution_result = await self.execute_quantum_circuit(
-                circuit_id, session_id, simulation_config
+                circuit_id,
+                session_id,
+                simulation_config,
             )
 
             return execution_result
 
         except Exception as e:
             logger.error(f"Failed to simulate quantum algorithm: {e}")
-            return Either.error(QuantumError(f"Algorithm simulation failed: {str(e)}"))
+            return Either.error(QuantumError(f"Algorithm simulation failed: {e!s}"))
 
     async def get_interface_status(
-        self, interface_id: str | None = None
+        self,
+        interface_id: str | None = None,
     ) -> Either[QuantumError, dict[str, Any]]:
         """Get quantum interface status and metrics."""
         try:
@@ -430,18 +446,18 @@ class QuantumInterfaceManager:
                     }
                 else:
                     return Either.error(
-                        QuantumError(f"Interface not found: {interface_id}")
+                        QuantumError(f"Interface not found: {interface_id}"),
                     )
 
             return Either.success(status)
 
         except Exception as e:
             logger.error(f"Failed to get interface status: {e}")
-            return Either.error(QuantumError(f"Status retrieval failed: {str(e)}"))
+            return Either.error(QuantumError(f"Status retrieval failed: {e!s}"))
 
     # Private helper methods
 
-    def _initialize_platform_configs(self):
+    def _initialize_platform_configs(self) -> bool:
         """Initialize platform-specific configurations."""
         self.platform_configs = {
             "ibm": {
@@ -512,7 +528,8 @@ class QuantumInterfaceManager:
         return used_qubits
 
     async def _validate_circuit(
-        self, circuit: QuantumCircuit
+        self,
+        circuit: QuantumCircuit,
     ) -> Either[QuantumError, bool]:
         """Validate quantum circuit structure."""
         try:
@@ -521,8 +538,8 @@ class QuantumInterfaceManager:
             if used_qubits and max(used_qubits) >= circuit.qubit_count:
                 return Either.error(
                     QuantumError(
-                        f"Qubit index exceeds circuit capacity: {max(used_qubits)} >= {circuit.qubit_count}"
-                    )
+                        f"Qubit index exceeds circuit capacity: {max(used_qubits)} >= {circuit.qubit_count}",
+                    ),
                 )
 
             # Validate operations
@@ -534,13 +551,13 @@ class QuantumInterfaceManager:
                     "custom",
                 ]:
                     return Either.error(
-                        QuantumError(f"Invalid operation type: {op.operation_type}")
+                        QuantumError(f"Invalid operation type: {op.operation_type}"),
                     )
 
             return Either.success(True)
 
         except Exception as e:
-            return Either.error(QuantumError(f"Circuit validation failed: {str(e)}"))
+            return Either.error(QuantumError(f"Circuit validation failed: {e!s}"))
 
     async def _simulate_circuit_execution(
         self,
@@ -558,7 +575,7 @@ class QuantumInterfaceManager:
             # Simulate measurements (random for demonstration)
             measurements = {}
             for i in range(
-                2 ** min(circuit.qubit_count, 10)
+                2 ** min(circuit.qubit_count, 10),
             ):  # Limit to prevent explosion
                 state = format(i, f"0{circuit.qubit_count}b")
                 # Simulate measurement probabilities
@@ -585,10 +602,13 @@ class QuantumInterfaceManager:
             return Either.success(result)
 
         except Exception as e:
-            return Either.error(QuantumError(f"Circuit simulation failed: {str(e)}"))
+            return Either.error(QuantumError(f"Circuit simulation failed: {e!s}"))
 
     async def _generate_algorithm_circuit(
-        self, algorithm_type: str, qubit_count: int, config: dict[str, Any] | None
+        self,
+        algorithm_type: str,
+        qubit_count: int,
+        config: dict[str, Any] | None,
     ) -> Either[QuantumError, QuantumCircuitId]:
         """Generate quantum circuit for standard algorithms."""
         try:
@@ -603,7 +623,7 @@ class QuantumInterfaceManager:
                             "operation_type": "gate",
                             "target_qubits": [i],
                             "operation_name": "h",
-                        }
+                        },
                     )
 
                 # Oracle and diffusion iterations
@@ -615,7 +635,7 @@ class QuantumInterfaceManager:
                             "operation_type": "gate",
                             "target_qubits": [qubit_count - 1],
                             "operation_name": "z",
-                        }
+                        },
                     )
 
                     # Diffusion
@@ -625,7 +645,7 @@ class QuantumInterfaceManager:
                                 "operation_type": "gate",
                                 "target_qubits": [i],
                                 "operation_name": "h",
-                            }
+                            },
                         )
 
             elif algorithm_type == "quantum_ml":
@@ -638,7 +658,7 @@ class QuantumInterfaceManager:
                             "target_qubits": [i],
                             "operation_name": "ry",
                             "parameters": {"theta": 0.5},
-                        }
+                        },
                     )
 
                 # Entangling layer
@@ -649,7 +669,7 @@ class QuantumInterfaceManager:
                             "target_qubits": [i + 1],
                             "control_qubits": [i],
                             "operation_name": "cx",
-                        }
+                        },
                     )
 
             elif algorithm_type == "optimization":
@@ -665,7 +685,7 @@ class QuantumInterfaceManager:
                                 "target_qubits": [i],
                                 "operation_name": "rz",
                                 "parameters": {"theta": 0.3},
-                            }
+                            },
                         )
 
                     # Mixing Hamiltonian
@@ -676,7 +696,7 @@ class QuantumInterfaceManager:
                                 "target_qubits": [i],
                                 "operation_name": "rx",
                                 "parameters": {"theta": 0.4},
-                            }
+                            },
                         )
 
             else:
@@ -686,7 +706,7 @@ class QuantumInterfaceManager:
                         "operation_type": "gate",
                         "target_qubits": [0],
                         "operation_name": "h",
-                    }
+                    },
                 )
 
             # Add measurements
@@ -696,7 +716,7 @@ class QuantumInterfaceManager:
                         "operation_type": "measurement",
                         "target_qubits": [i],
                         "operation_name": "measure",
-                    }
+                    },
                 )
 
             return await self.create_quantum_circuit(
@@ -708,7 +728,7 @@ class QuantumInterfaceManager:
 
         except Exception as e:
             return Either.error(
-                QuantumError(f"Algorithm circuit generation failed: {str(e)}")
+                QuantumError(f"Algorithm circuit generation failed: {e!s}"),
             )
 
     async def _get_or_create_simulation_interface(self) -> str:

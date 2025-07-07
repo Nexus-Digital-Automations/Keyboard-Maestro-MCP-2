@@ -1,5 +1,4 @@
-"""
-Control flow types and AST representation for Keyboard Maestro MCP macro engine.
+"""Control flow types and AST representation for Keyboard Maestro MCP macro engine.
 
 This module provides type-safe control flow constructs (if/then/else, loops, switch/case)
 with comprehensive security validation and functional programming patterns.
@@ -14,7 +13,6 @@ from enum import Enum
 from typing import (
     Any,
     NewType,
-    Union,
 )
 
 from .contracts import require
@@ -81,12 +79,11 @@ class SecurityLimits:
     @require(lambda self: self.max_iterations > 0 and self.max_iterations <= 10000)
     @require(lambda self: self.max_nesting_depth > 0 and self.max_nesting_depth <= 20)
     @require(
-        lambda self: self.max_timeout_seconds > 0 and self.max_timeout_seconds <= 600
+        lambda self: self.max_timeout_seconds > 0 and self.max_timeout_seconds <= 600,
     )
     @require(lambda self: self.max_action_count > 0 and self.max_action_count <= 1000)
     def __post_init__(self):
         """Validate security limits."""
-        pass
 
 
 @dataclass(frozen=True)
@@ -106,11 +103,14 @@ class ConditionExpression:
     @require(lambda self: self.timeout_seconds > 0 and self.timeout_seconds <= 60)
     def __post_init__(self):
         """Validate condition expression."""
-        pass
 
     @classmethod
     def create_safe(
-        cls, expression: str, operator: ComparisonOperator, operand: str, **kwargs
+        cls,
+        expression: str,
+        operator: ComparisonOperator,
+        operand: str,
+        **kwargs,
     ) -> ConditionExpression:
         """Create a validated condition expression."""
         # Sanitize inputs
@@ -131,7 +131,7 @@ class ActionBlock:
 
     actions: list[dict[str, Any]]
     block_id: ActionBlockId = field(
-        default_factory=lambda: ActionBlockId(str(uuid.uuid4()))
+        default_factory=lambda: ActionBlockId(str(uuid.uuid4())),
     )
     parallel: bool = False
     error_handling: str | None = None
@@ -142,7 +142,6 @@ class ActionBlock:
     @require(lambda self: self.timeout_seconds > 0 and self.timeout_seconds <= 300)
     def __post_init__(self):
         """Validate action block."""
-        pass
 
     @classmethod
     def empty(cls) -> ActionBlock:
@@ -180,7 +179,6 @@ class LoopConfiguration:
     @require(lambda self: self.timeout_seconds > 0 and self.timeout_seconds <= 300)
     def __post_init__(self):
         """Validate loop configuration."""
-        pass
 
 
 @dataclass(frozen=True)
@@ -195,7 +193,6 @@ class SwitchCase:
     @require(lambda self: len(self.case_value.strip()) > 0 or self.is_default)
     def __post_init__(self):
         """Validate switch case."""
-        pass
 
 
 @dataclass(frozen=True)
@@ -204,7 +201,7 @@ class ControlFlowNode:
 
     flow_type: ControlFlowType
     node_id: ControlFlowId = field(
-        default_factory=lambda: ControlFlowId(str(uuid.uuid4()))
+        default_factory=lambda: ControlFlowId(str(uuid.uuid4())),
     )
     parent_id: ControlFlowId | None = None
     depth: int = 0
@@ -213,7 +210,6 @@ class ControlFlowNode:
     @require(lambda self: self.depth >= 0 and self.depth <= 20)
     def __post_init__(self):
         """Validate control flow node."""
-        pass
 
 
 @dataclass(frozen=True)
@@ -225,7 +221,7 @@ class IfThenElseNode:
     then_actions: ActionBlock
     else_actions: ActionBlock | None = None
     node_id: ControlFlowId = field(
-        default_factory=lambda: ControlFlowId(str(uuid.uuid4()))
+        default_factory=lambda: ControlFlowId(str(uuid.uuid4())),
     )
     parent_id: ControlFlowId | None = None
     depth: int = 0
@@ -244,7 +240,7 @@ class ForLoopNode:
     loop_config: LoopConfiguration
     loop_actions: ActionBlock
     node_id: ControlFlowId = field(
-        default_factory=lambda: ControlFlowId(str(uuid.uuid4()))
+        default_factory=lambda: ControlFlowId(str(uuid.uuid4())),
     )
     parent_id: ControlFlowId | None = None
     depth: int = 0
@@ -260,7 +256,7 @@ class WhileLoopNode:
     loop_actions: ActionBlock
     max_iterations: int = 1000
     node_id: ControlFlowId = field(
-        default_factory=lambda: ControlFlowId(str(uuid.uuid4()))
+        default_factory=lambda: ControlFlowId(str(uuid.uuid4())),
     )
     parent_id: ControlFlowId | None = None
     depth: int = 0
@@ -269,7 +265,6 @@ class WhileLoopNode:
     @require(lambda self: self.max_iterations > 0 and self.max_iterations <= 10000)
     def __post_init__(self):
         """Validate while loop configuration."""
-        pass
 
 
 @dataclass(frozen=True)
@@ -281,7 +276,7 @@ class SwitchCaseNode:
     cases: list[SwitchCase]
     default_case: ActionBlock | None = None
     node_id: ControlFlowId = field(
-        default_factory=lambda: ControlFlowId(str(uuid.uuid4()))
+        default_factory=lambda: ControlFlowId(str(uuid.uuid4())),
     )
     parent_id: ControlFlowId | None = None
     depth: int = 0
@@ -292,7 +287,6 @@ class SwitchCaseNode:
     @require(lambda self: len(self.cases) <= 50)  # Prevent excessive case counts
     def __post_init__(self):
         """Validate switch/case configuration."""
-        pass
 
     def has_default_case(self) -> bool:
         """Check if this switch has a default case."""
@@ -308,7 +302,7 @@ class TryCatchNode:
     catch_actions: ActionBlock
     finally_actions: ActionBlock | None = None
     node_id: ControlFlowId = field(
-        default_factory=lambda: ControlFlowId(str(uuid.uuid4()))
+        default_factory=lambda: ControlFlowId(str(uuid.uuid4())),
     )
     parent_id: ControlFlowId | None = None
     depth: int = 0
@@ -318,9 +312,9 @@ class TryCatchNode:
 class ControlFlowValidator:
     """Security-first control flow validation."""
 
-    def __init__(self, limits: SecurityLimits = SecurityLimits()):
+    def __init__(self, limits: SecurityLimits | None = None):
         """Initialize validator with security limits."""
-        self.limits = limits
+        self.limits = limits if limits is not None else SecurityLimits()
 
     def validate_nesting_depth(self, nodes: list[ControlFlowNodeType]) -> bool:
         """Validate control flow nesting depth."""
@@ -331,7 +325,7 @@ class ControlFlowValidator:
         """Validate loop iteration limits."""
         if isinstance(node, ForLoopNode):
             return node.loop_config.max_iterations <= self.limits.max_iterations
-        elif isinstance(node, WhileLoopNode):
+        if isinstance(node, WhileLoopNode):
             return node.max_iterations <= self.limits.max_iterations
         return False
 
@@ -426,11 +420,18 @@ class ControlFlowBuilder:
         self._current_depth = 0
 
     def if_condition(
-        self, expression: str, operator: ComparisonOperator, operand: str, **kwargs
+        self,
+        expression: str,
+        operator: ComparisonOperator,
+        operand: str,
+        **kwargs,
     ) -> ControlFlowBuilder:
         """Add if condition to control flow."""
         condition = ConditionExpression.create_safe(
-            expression, operator, operand, **kwargs
+            expression,
+            operator,
+            operand,
+            **kwargs,
         )
 
         if not self._validator.validate_condition_security(condition):
@@ -496,7 +497,11 @@ class ControlFlowBuilder:
         return self
 
     def for_each(
-        self, iterator: str, collection: str, actions: list[dict[str, Any]], **kwargs
+        self,
+        iterator: str,
+        collection: str,
+        actions: list[dict[str, Any]],
+        **kwargs,
     ) -> ControlFlowBuilder:
         """Add for-each loop to control flow."""
         loop_config = LoopConfiguration(
@@ -531,7 +536,10 @@ class ControlFlowBuilder:
     ) -> ControlFlowBuilder:
         """Add while loop to control flow."""
         condition = ConditionExpression.create_safe(
-            expression, operator, operand, **kwargs
+            expression,
+            operator,
+            operand,
+            **kwargs,
         )
 
         if not self._validator.validate_condition_security(condition):
@@ -701,7 +709,6 @@ class NestedControlFlow:
     @require(lambda self: len(self.child_nodes) <= 50)
     def __post_init__(self):
         """Validate nested structure."""
-        pass
 
     def get_total_depth(self) -> int:
         """Calculate total nesting depth."""
@@ -737,7 +744,7 @@ class ParallelExecutionNode:
     timeout_per_branch: int = 30
     fail_fast: bool = True
     node_id: ControlFlowId = field(
-        default_factory=lambda: ControlFlowId(str(uuid.uuid4()))
+        default_factory=lambda: ControlFlowId(str(uuid.uuid4())),
     )
     parent_id: ControlFlowId | None = None
     depth: int = 0
@@ -747,22 +754,21 @@ class ParallelExecutionNode:
     @require(lambda self: len(self.parallel_branches) <= 10)
     @require(lambda self: self.max_concurrent > 0 and self.max_concurrent <= 8)
     @require(
-        lambda self: self.timeout_per_branch > 0 and self.timeout_per_branch <= 300
+        lambda self: self.timeout_per_branch > 0 and self.timeout_per_branch <= 300,
     )
     def __post_init__(self):
         """Validate parallel execution configuration."""
-        pass
 
 
 # Type alias for all control flow nodes
-ControlFlowNodeType = Union[
-    IfThenElseNode,
-    ForLoopNode,
-    WhileLoopNode,
-    SwitchCaseNode,
-    TryCatchNode,
-    ParallelExecutionNode,
-]
+ControlFlowNodeType = (
+    IfThenElseNode
+    | ForLoopNode
+    | WhileLoopNode
+    | SwitchCaseNode
+    | TryCatchNode
+    | ParallelExecutionNode
+)
 
 
 class AdvancedControlFlowBuilder(ControlFlowBuilder):
@@ -775,7 +781,8 @@ class AdvancedControlFlowBuilder(ControlFlowBuilder):
         self._loop_controls: list[LoopControl] = []
 
     def begin_nested_block(
-        self, parent_node: ControlFlowNodeType
+        self,
+        parent_node: ControlFlowNodeType,
     ) -> AdvancedControlFlowBuilder:
         """Begin a nested control flow block."""
         if self._current_depth >= 10:
@@ -860,7 +867,8 @@ class AdvancedControlFlowBuilder(ControlFlowBuilder):
         return self
 
     def _create_nested_action_block(
-        self, nested_nodes: list[ControlFlowNodeType]
+        self,
+        nested_nodes: list[ControlFlowNodeType],
     ) -> ActionBlock:
         """Create action block that represents nested control structures."""
         # Convert nested control flow nodes to action representations
@@ -889,7 +897,7 @@ class AdvancedControlFlowBuilder(ControlFlowBuilder):
                 {
                     "condition_operator": node.condition.operator.value,
                     "has_else": node.has_else_branch(),
-                }
+                },
             )
         elif isinstance(node, ForLoopNode | WhileLoopNode):
             if isinstance(node, ForLoopNode):
@@ -897,14 +905,14 @@ class AdvancedControlFlowBuilder(ControlFlowBuilder):
                     {
                         "iterator": node.loop_config.iterator_variable,
                         "max_iterations": node.loop_config.max_iterations,
-                    }
+                    },
                 )
             else:
                 metadata.update(
                     {
                         "condition_operator": node.condition.operator.value,
                         "max_iterations": node.max_iterations,
-                    }
+                    },
                 )
         elif isinstance(node, SwitchCaseNode):
             metadata.update(
@@ -912,7 +920,7 @@ class AdvancedControlFlowBuilder(ControlFlowBuilder):
                     "switch_variable": node.switch_variable,
                     "case_count": len(node.cases),
                     "has_default": node.has_default_case(),
-                }
+                },
             )
         elif isinstance(node, ParallelExecutionNode):
             metadata.update(
@@ -920,7 +928,7 @@ class AdvancedControlFlowBuilder(ControlFlowBuilder):
                     "branch_count": len(node.parallel_branches),
                     "max_concurrent": node.max_concurrent,
                     "fail_fast": node.fail_fast,
-                }
+                },
             )
 
         return metadata
@@ -945,7 +953,8 @@ class ControlFlowOptimizer:
         }
 
     def optimize_control_flow(
-        self, nodes: list[ControlFlowNodeType]
+        self,
+        nodes: list[ControlFlowNodeType],
     ) -> list[ControlFlowNodeType]:
         """Optimize control flow structures for performance and clarity."""
         optimized_nodes = []
@@ -961,21 +970,24 @@ class ControlFlowOptimizer:
         """Optimize individual control flow node."""
         if isinstance(node, IfThenElseNode):
             return self._optimize_if_then_else(node)
-        elif isinstance(node, ForLoopNode | WhileLoopNode):
+        if isinstance(node, ForLoopNode | WhileLoopNode):
             return self._optimize_loop(node)
-        elif isinstance(node, SwitchCaseNode):
+        if isinstance(node, SwitchCaseNode):
             return self._optimize_switch_case(node)
-        else:
-            return node
+        return node
 
     def _optimize_if_then_else(self, node: IfThenElseNode) -> IfThenElseNode | None:
         """Optimize if/then/else node."""
         # Remove empty else branches
         else_actions = node.else_actions
-        if else_actions and len(else_actions.actions) == 1:
-            if else_actions.actions[0].get("type") == "noop":
-                else_actions = None
-                self.optimization_stats["empty_branches_removed"] += 1
+        # SIM102 fix: Combine nested conditions into single if statement
+        if (
+            else_actions
+            and len(else_actions.actions) == 1
+            and else_actions.actions[0].get("type") == "noop"
+        ):
+            else_actions = None
+            self.optimization_stats["empty_branches_removed"] += 1
 
         # Check for redundant conditions
         if self._is_always_true_condition(node.condition):
@@ -996,7 +1008,8 @@ class ControlFlowOptimizer:
         )
 
     def _optimize_loop(
-        self, node: ForLoopNode | WhileLoopNode
+        self,
+        node: ForLoopNode | WhileLoopNode,
     ) -> ForLoopNode | WhileLoopNode | None:
         """Optimize loop node."""
         # Check for empty loop bodies
@@ -1048,7 +1061,8 @@ class ControlFlowOptimizer:
 
 # Enhanced helper functions for advanced features
 def create_nested_if_structure(
-    conditions: list[ConditionExpression], action_chains: list[list[dict[str, Any]]]
+    conditions: list[ConditionExpression],
+    action_chains: list[list[dict[str, Any]]],
 ) -> list[IfThenElseNode]:
     """Create nested if structure from multiple conditions."""
     if len(conditions) != len(action_chains):
@@ -1057,10 +1071,12 @@ def create_nested_if_structure(
     builder = AdvancedControlFlowBuilder()
 
     for i, (condition, actions) in enumerate(
-        zip(conditions, action_chains, strict=False)
+        zip(conditions, action_chains, strict=False),
     ):
         builder.if_condition(
-            condition.expression, condition.operator, condition.operand
+            condition.expression,
+            condition.operator,
+            condition.operand,
         ).then_actions(actions)
 
         if i < len(conditions) - 1:
@@ -1082,7 +1098,9 @@ def create_parallel_execution(
     """Create parallel execution structure."""
     builder = AdvancedControlFlowBuilder()
     builder.parallel_execution(
-        branches, max_concurrent=max_concurrent, fail_fast=fail_fast
+        branches,
+        max_concurrent=max_concurrent,
+        fail_fast=fail_fast,
     )
 
     nodes, _, _ = builder.build_advanced()
@@ -1108,7 +1126,8 @@ def create_loop_with_controls(
     if continue_conditions:
         for continue_condition in continue_conditions:
             builder.add_loop_control(
-                LoopControlType.CONTINUE, condition=continue_condition
+                LoopControlType.CONTINUE,
+                condition=continue_condition,
             )
 
     # Create the appropriate loop type

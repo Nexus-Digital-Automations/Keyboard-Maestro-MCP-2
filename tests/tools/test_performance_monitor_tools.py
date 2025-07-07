@@ -1,11 +1,13 @@
-"""
-Comprehensive test suite for performance monitor tools using systematic MCP tool test pattern.
+"""Comprehensive test suite for performance monitor tools using systematic MCP tool test pattern.
 
 Tests the complete performance monitoring functionality including real-time monitoring,
 bottleneck analysis, resource optimization, alerting, and dashboard generation.
 Tests follow the proven systematic pattern that achieved 100% success across 26+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import Mock
 
@@ -587,14 +589,14 @@ class TestKMMonitorPerformance:
     """Test suite for km_monitor_performance MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-monitor-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_monitor_performance_system_scope(self, mock_context):
+    async def test_monitor_performance_system_scope(self, mock_context) -> None:
         """Test system-wide performance monitoring."""
         result = await km_monitor_performance(
             monitoring_scope="system",
@@ -616,7 +618,7 @@ class TestKMMonitorPerformance:
         assert "overall_health" in result["analysis"]
 
     @pytest.mark.asyncio
-    async def test_monitor_performance_automation_scope(self, mock_context):
+    async def test_monitor_performance_automation_scope(self, mock_context) -> None:
         """Test automation-specific performance monitoring."""
         result = await km_monitor_performance(
             monitoring_scope="automation",
@@ -633,10 +635,11 @@ class TestKMMonitorPerformance:
         assert result["monitoring_result"]["metrics"]["success_rate"] > 90
 
     @pytest.mark.asyncio
-    async def test_monitor_performance_invalid_scope(self, mock_context):
+    async def test_monitor_performance_invalid_scope(self, mock_context) -> None:
         """Test performance monitoring with invalid scope."""
         result = await km_monitor_performance(
-            monitoring_scope="invalid_scope", ctx=mock_context
+            monitoring_scope="invalid_scope",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -644,10 +647,12 @@ class TestKMMonitorPerformance:
         assert "Invalid monitoring scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_monitor_performance_invalid_duration(self, mock_context):
+    async def test_monitor_performance_invalid_duration(self, mock_context) -> None:
         """Test performance monitoring with invalid duration."""
         result = await km_monitor_performance(
-            monitoring_scope="system", monitoring_duration=0, ctx=mock_context
+            monitoring_scope="system",
+            monitoring_duration=0,
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -655,7 +660,7 @@ class TestKMMonitorPerformance:
         assert "duration must be between 1 and 3600" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_monitor_performance_empty_scope(self, mock_context):
+    async def test_monitor_performance_empty_scope(self, mock_context) -> None:
         """Test performance monitoring with empty scope."""
         result = await km_monitor_performance(monitoring_scope="", ctx=mock_context)
 
@@ -668,14 +673,14 @@ class TestKMAnalyzeBottlenecks:
     """Test suite for km_analyze_bottlenecks MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-bottleneck-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_analyze_bottlenecks_comprehensive(self, mock_context):
+    async def test_analyze_bottlenecks_comprehensive(self, mock_context) -> None:
         """Test comprehensive bottleneck analysis."""
         result = await km_analyze_bottlenecks(
             analysis_scope="comprehensive",
@@ -694,10 +699,12 @@ class TestKMAnalyzeBottlenecks:
         assert result["analysis_result"]["overall_performance_score"] > 0
 
     @pytest.mark.asyncio
-    async def test_analyze_bottlenecks_without_recommendations(self, mock_context):
+    async def test_analyze_bottlenecks_without_recommendations(self, mock_context) -> None:
         """Test bottleneck analysis without recommendations."""
         result = await km_analyze_bottlenecks(
-            analysis_scope="quick", include_recommendations=False, ctx=mock_context
+            analysis_scope="quick",
+            include_recommendations=False,
+            ctx=mock_context,
         )
 
         assert result["success"] is True
@@ -706,7 +713,7 @@ class TestKMAnalyzeBottlenecks:
         assert "performance_insights" in result
 
     @pytest.mark.asyncio
-    async def test_analyze_bottlenecks_specific_process(self, mock_context):
+    async def test_analyze_bottlenecks_specific_process(self, mock_context) -> None:
         """Test bottleneck analysis for specific process."""
         result = await km_analyze_bottlenecks(
             analysis_scope="standard",
@@ -721,10 +728,11 @@ class TestKMAnalyzeBottlenecks:
         assert "analysis_id" in result["analysis_result"]
 
     @pytest.mark.asyncio
-    async def test_analyze_bottlenecks_invalid_scope(self, mock_context):
+    async def test_analyze_bottlenecks_invalid_scope(self, mock_context) -> None:
         """Test bottleneck analysis with invalid scope."""
         result = await km_analyze_bottlenecks(
-            analysis_scope="invalid_scope", ctx=mock_context
+            analysis_scope="invalid_scope",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -732,7 +740,7 @@ class TestKMAnalyzeBottlenecks:
         assert "Invalid analysis scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_analyze_bottlenecks_empty_scope(self, mock_context):
+    async def test_analyze_bottlenecks_empty_scope(self, mock_context) -> None:
         """Test bottleneck analysis with empty scope."""
         result = await km_analyze_bottlenecks(analysis_scope="", ctx=mock_context)
 
@@ -745,14 +753,14 @@ class TestKMOptimizeResources:
     """Test suite for km_optimize_resources MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-optimize-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_optimize_resources_automatic(self, mock_context):
+    async def test_optimize_resources_automatic(self, mock_context) -> None:
         """Test automatic resource optimization."""
         result = await km_optimize_resources(
             optimization_scope="automatic",
@@ -770,7 +778,7 @@ class TestKMOptimizeResources:
         assert "implementation_plan" in result
 
     @pytest.mark.asyncio
-    async def test_optimize_resources_with_application(self, mock_context):
+    async def test_optimize_resources_with_application(self, mock_context) -> None:
         """Test resource optimization with application."""
         result = await km_optimize_resources(
             optimization_scope="aggressive",
@@ -791,7 +799,7 @@ class TestKMOptimizeResources:
         )
 
     @pytest.mark.asyncio
-    async def test_optimize_resources_conservative(self, mock_context):
+    async def test_optimize_resources_conservative(self, mock_context) -> None:
         """Test conservative resource optimization."""
         result = await km_optimize_resources(
             optimization_scope="conservative",
@@ -806,10 +814,11 @@ class TestKMOptimizeResources:
         assert result["implementation_plan"]["rollback_available"] is True
 
     @pytest.mark.asyncio
-    async def test_optimize_resources_invalid_scope(self, mock_context):
+    async def test_optimize_resources_invalid_scope(self, mock_context) -> None:
         """Test resource optimization with invalid scope."""
         result = await km_optimize_resources(
-            optimization_scope="invalid_scope", ctx=mock_context
+            optimization_scope="invalid_scope",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -817,7 +826,7 @@ class TestKMOptimizeResources:
         assert "Invalid optimization scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_optimize_resources_invalid_strategy(self, mock_context):
+    async def test_optimize_resources_invalid_strategy(self, mock_context) -> None:
         """Test resource optimization with invalid strategy."""
         result = await km_optimize_resources(
             optimization_scope="automatic",
@@ -834,14 +843,14 @@ class TestKMSetPerformanceAlerts:
     """Test suite for km_set_performance_alerts MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-alerts-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_set_performance_alerts_cpu(self, mock_context):
+    async def test_set_performance_alerts_cpu(self, mock_context) -> None:
         """Test setting CPU performance alerts."""
         result = await km_set_performance_alerts(
             alert_type="cpu_usage",
@@ -865,7 +874,7 @@ class TestKMSetPerformanceAlerts:
         assert result["alert_configuration"]["status"] == "active"
 
     @pytest.mark.asyncio
-    async def test_set_performance_alerts_memory(self, mock_context):
+    async def test_set_performance_alerts_memory(self, mock_context) -> None:
         """Test setting memory performance alerts."""
         result = await km_set_performance_alerts(
             alert_type="memory_usage",
@@ -882,7 +891,7 @@ class TestKMSetPerformanceAlerts:
         assert result["monitoring_status"]["alert_system"] == "operational"
 
     @pytest.mark.asyncio
-    async def test_set_performance_alerts_response_time(self, mock_context):
+    async def test_set_performance_alerts_response_time(self, mock_context) -> None:
         """Test setting response time alerts."""
         result = await km_set_performance_alerts(
             alert_type="response_time",
@@ -898,10 +907,12 @@ class TestKMSetPerformanceAlerts:
         assert result["metadata"]["configuration_valid"] is True
 
     @pytest.mark.asyncio
-    async def test_set_performance_alerts_invalid_type(self, mock_context):
+    async def test_set_performance_alerts_invalid_type(self, mock_context) -> None:
         """Test setting alerts with invalid type."""
         result = await km_set_performance_alerts(
-            alert_type="invalid_type", threshold_value=50.0, ctx=mock_context
+            alert_type="invalid_type",
+            threshold_value=50.0,
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -909,10 +920,12 @@ class TestKMSetPerformanceAlerts:
         assert "Invalid alert type" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_set_performance_alerts_invalid_threshold(self, mock_context):
+    async def test_set_performance_alerts_invalid_threshold(self, mock_context) -> None:
         """Test setting alerts with invalid threshold."""
         result = await km_set_performance_alerts(
-            alert_type="cpu_usage", threshold_value=-10.0, ctx=mock_context
+            alert_type="cpu_usage",
+            threshold_value=-10.0,
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -920,7 +933,7 @@ class TestKMSetPerformanceAlerts:
         assert "must be a positive number" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_set_performance_alerts_invalid_operator(self, mock_context):
+    async def test_set_performance_alerts_invalid_operator(self, mock_context) -> None:
         """Test setting alerts with invalid comparison operator."""
         result = await km_set_performance_alerts(
             alert_type="cpu_usage",
@@ -934,7 +947,7 @@ class TestKMSetPerformanceAlerts:
         assert "Invalid comparison operator" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_set_performance_alerts_invalid_severity(self, mock_context):
+    async def test_set_performance_alerts_invalid_severity(self, mock_context) -> None:
         """Test setting alerts with invalid severity."""
         result = await km_set_performance_alerts(
             alert_type="cpu_usage",
@@ -952,14 +965,14 @@ class TestKMGetPerformanceDashboard:
     """Test suite for km_get_performance_dashboard MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-dashboard-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_get_performance_dashboard_overview(self, mock_context):
+    async def test_get_performance_dashboard_overview(self, mock_context) -> None:
         """Test getting overview performance dashboard."""
         result = await km_get_performance_dashboard(
             dashboard_scope="overview",
@@ -981,7 +994,7 @@ class TestKMGetPerformanceDashboard:
         assert result["dashboard"]["system_overview"]["performance_score"] > 0
 
     @pytest.mark.asyncio
-    async def test_get_performance_dashboard_detailed(self, mock_context):
+    async def test_get_performance_dashboard_detailed(self, mock_context) -> None:
         """Test getting detailed performance dashboard."""
         result = await km_get_performance_dashboard(
             dashboard_scope="detailed",
@@ -999,10 +1012,12 @@ class TestKMGetPerformanceDashboard:
         assert result["metadata"]["data_freshness"] == "static"
 
     @pytest.mark.asyncio
-    async def test_get_performance_dashboard_system(self, mock_context):
+    async def test_get_performance_dashboard_system(self, mock_context) -> None:
         """Test getting system-specific dashboard."""
         result = await km_get_performance_dashboard(
-            dashboard_scope="system", time_range="24h", ctx=mock_context
+            dashboard_scope="system",
+            time_range="24h",
+            ctx=mock_context,
         )
 
         assert result["success"] is True
@@ -1013,10 +1028,12 @@ class TestKMGetPerformanceDashboard:
         assert "charts_available" in result["visualization_config"]
 
     @pytest.mark.asyncio
-    async def test_get_performance_dashboard_alerts(self, mock_context):
+    async def test_get_performance_dashboard_alerts(self, mock_context) -> None:
         """Test getting alerts-focused dashboard."""
         result = await km_get_performance_dashboard(
-            dashboard_scope="alerts", time_range="7d", ctx=mock_context
+            dashboard_scope="alerts",
+            time_range="7d",
+            ctx=mock_context,
         )
 
         assert result["success"] is True
@@ -1025,10 +1042,11 @@ class TestKMGetPerformanceDashboard:
         assert result["dashboard"]["system_overview"]["active_alerts"] >= 0
 
     @pytest.mark.asyncio
-    async def test_get_performance_dashboard_invalid_scope(self, mock_context):
+    async def test_get_performance_dashboard_invalid_scope(self, mock_context) -> None:
         """Test getting dashboard with invalid scope."""
         result = await km_get_performance_dashboard(
-            dashboard_scope="invalid_scope", ctx=mock_context
+            dashboard_scope="invalid_scope",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1036,10 +1054,12 @@ class TestKMGetPerformanceDashboard:
         assert "Invalid dashboard scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_get_performance_dashboard_invalid_time_range(self, mock_context):
+    async def test_get_performance_dashboard_invalid_time_range(self, mock_context) -> None:
         """Test getting dashboard with invalid time range."""
         result = await km_get_performance_dashboard(
-            dashboard_scope="overview", time_range="invalid_range", ctx=mock_context
+            dashboard_scope="overview",
+            time_range="invalid_range",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1052,16 +1072,16 @@ class TestPerformanceMonitorIntegration:
     """Integration tests for performance monitor tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-integration-performance-001"
+            "request_id": "test-integration-performance-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_performance_monitoring_workflow(self, mock_context):
+    async def test_complete_performance_monitoring_workflow(self, mock_context) -> None:
         """Test complete performance monitoring workflow integration."""
         # Start performance monitoring
         monitor_result = await km_monitor_performance(
@@ -1121,20 +1141,22 @@ class TestPerformanceMonitorProperties:
     """Property-based tests for performance monitor tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-property-performance-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_monitoring_scopes_consistency(self, mock_context):
+    async def test_monitoring_scopes_consistency(self, mock_context) -> None:
         """Test consistency across all monitoring scopes."""
         scopes = ["system", "automation", "macro", "specific"]
 
         for scope in scopes:
             result = await km_monitor_performance(
-                monitoring_scope=scope, monitoring_duration=60, ctx=mock_context
+                monitoring_scope=scope,
+                monitoring_duration=60,
+                ctx=mock_context,
             )
             assert result["success"] is True
             assert result["monitoring_result"]["monitoring_scope"] == scope
@@ -1142,7 +1164,7 @@ class TestPerformanceMonitorProperties:
             assert result["monitoring_result"]["performance_score"] > 0
 
     @pytest.mark.asyncio
-    async def test_alert_types_consistency(self, mock_context):
+    async def test_alert_types_consistency(self, mock_context) -> None:
         """Test consistency across all alert types."""
         alert_types = [
             "cpu_usage",
@@ -1166,13 +1188,15 @@ class TestPerformanceMonitorProperties:
             assert result["alert_configuration"]["status"] == "active"
 
     @pytest.mark.asyncio
-    async def test_dashboard_scopes_consistency(self, mock_context):
+    async def test_dashboard_scopes_consistency(self, mock_context) -> None:
         """Test consistency across all dashboard scopes."""
         scopes = ["overview", "detailed", "system", "automation", "alerts"]
 
         for scope in scopes:
             result = await km_get_performance_dashboard(
-                dashboard_scope=scope, time_range="1h", ctx=mock_context
+                dashboard_scope=scope,
+                time_range="1h",
+                ctx=mock_context,
             )
             assert result["success"] is True
             assert result["dashboard"]["scope"] == scope
@@ -1180,7 +1204,7 @@ class TestPerformanceMonitorProperties:
             assert result["dashboard"]["system_overview"]["performance_score"] > 0
 
     @pytest.mark.asyncio
-    async def test_optimization_strategies_consistency(self, mock_context):
+    async def test_optimization_strategies_consistency(self, mock_context) -> None:
         """Test consistency across optimization strategies."""
         strategies = ["performance", "efficiency", "balanced", "conservative"]
 

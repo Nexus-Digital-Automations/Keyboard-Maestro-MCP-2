@@ -1,5 +1,4 @@
-"""
-Rate Limiter - TASK_64 Phase 4 Advanced Features
+"""Rate Limiter - TASK_64 Phase 4 Advanced Features.
 
 Advanced rate limiting and throttling mechanisms for API orchestration.
 Provides intelligent traffic control with burst handling and adaptive limits.
@@ -40,7 +39,7 @@ class RateLimitStrategy(Enum):
 
     FIXED_WINDOW = "fixed_window"  # Fixed time window
     SLIDING_WINDOW = "sliding_window"  # Sliding time window
-    TOKEN_BUCKET = "token_bucket"  # Token bucket algorithm
+    TOKEN_BUCKET = "token_bucket"  # noqa: S105 - This is an algorithm name, not a password
     LEAKY_BUCKET = "leaky_bucket"  # Leaky bucket algorithm
     ADAPTIVE = "adaptive"  # Adaptive rate limiting
 
@@ -212,7 +211,7 @@ class AdvancedRateLimiter:
             return Either.success(True)
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Failed to add rate limit rule: {str(e)}")
+                APIOrchestrationError(f"Failed to add rate limit rule: {e!s}"),
             )
 
     def remove_rule(self, rule_id: str) -> Either[APIOrchestrationError, bool]:
@@ -227,13 +226,12 @@ class AdvancedRateLimiter:
                 for state_key in states_to_remove:
                     del self.states[state_key]
                 return Either.success(True)
-            else:
-                return Either.error(
-                    APIOrchestrationError(f"Rate limit rule {rule_id} not found")
-                )
+            return Either.error(
+                APIOrchestrationError(f"Rate limit rule {rule_id} not found"),
+            )
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Failed to remove rate limit rule: {str(e)}")
+                APIOrchestrationError(f"Failed to remove rate limit rule: {e!s}"),
             )
 
     @require(lambda quota: isinstance(quota, QuotaDefinition))
@@ -243,18 +241,19 @@ class AdvancedRateLimiter:
             self.quotas[quota.quota_id] = quota
             return Either.success(True)
         except Exception as e:
-            return Either.error(APIOrchestrationError(f"Failed to add quota: {str(e)}"))
+            return Either.error(APIOrchestrationError(f"Failed to add quota: {e!s}"))
 
     @require(lambda key: isinstance(key, str) and len(key) > 0)
     @require(
         lambda request_metadata: request_metadata is None
-        or isinstance(request_metadata, dict)
+        or isinstance(request_metadata, dict),
     )
     async def check_rate_limit(
-        self, key: str, request_metadata: dict[str, Any] | None = None
+        self,
+        key: str,
+        request_metadata: dict[str, Any] | None = None,
     ) -> Either[APIOrchestrationError, RateLimitResult]:
-        """
-        Check rate limit for request key.
+        """Check rate limit for request key.
 
         Args:
             key: Request key for rate limiting
@@ -262,6 +261,7 @@ class AdvancedRateLimiter:
 
         Returns:
             Either API orchestration error or rate limit result
+
         """
         try:
             check_start = time.time()
@@ -295,7 +295,7 @@ class AdvancedRateLimiter:
                 if not rule_result.allowed:
                     most_restrictive_result = rule_result
                     break  # First blocking rule wins
-                elif most_restrictive_result is None:
+                if most_restrictive_result is None:
                     most_restrictive_result = rule_result
 
             # Update performance metrics
@@ -309,23 +309,24 @@ class AdvancedRateLimiter:
             # Update counters
             if most_restrictive_result.allowed:
                 self.performance_metrics["total_allowed"] += 1
-            else:
-                if most_restrictive_result.action == ThrottleAction.REJECT:
-                    self.performance_metrics["total_rejected"] += 1
-                elif most_restrictive_result.action == ThrottleAction.DELAY:
-                    self.performance_metrics["total_delayed"] += 1
-                elif most_restrictive_result.action == ThrottleAction.QUEUE:
-                    self.performance_metrics["total_queued"] += 1
+            elif most_restrictive_result.action == ThrottleAction.REJECT:
+                self.performance_metrics["total_rejected"] += 1
+            elif most_restrictive_result.action == ThrottleAction.DELAY:
+                self.performance_metrics["total_delayed"] += 1
+            elif most_restrictive_result.action == ThrottleAction.QUEUE:
+                self.performance_metrics["total_queued"] += 1
 
             return Either.success(most_restrictive_result)
 
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Rate limit check failed: {str(e)}")
+                APIOrchestrationError(f"Rate limit check failed: {e!s}"),
             )
 
     def _find_applicable_rules(
-        self, key: str, request_metadata: dict[str, Any] | None
+        self,
+        key: str,
+        request_metadata: dict[str, Any] | None,
     ) -> list[RateLimitRule]:
         """Find rules applicable to the request key."""
         applicable_rules = []
@@ -343,7 +344,10 @@ class AdvancedRateLimiter:
         return applicable_rules
 
     def _get_or_create_state(
-        self, state_key: str, rule_id: str, key: str
+        self,
+        state_key: str,
+        rule_id: str,
+        key: str,
     ) -> RateLimitState:
         """Get or create rate limit state."""
         if state_key not in self.states:
@@ -376,20 +380,22 @@ class AdvancedRateLimiter:
 
         if rule.strategy == RateLimitStrategy.FIXED_WINDOW:
             return await self._check_fixed_window(rule, state, now)
-        elif rule.strategy == RateLimitStrategy.SLIDING_WINDOW:
+        if rule.strategy == RateLimitStrategy.SLIDING_WINDOW:
             return await self._check_sliding_window(rule, state, now)
-        elif rule.strategy == RateLimitStrategy.TOKEN_BUCKET:
+        if rule.strategy == RateLimitStrategy.TOKEN_BUCKET:
             return await self._check_token_bucket(rule, state, now)
-        elif rule.strategy == RateLimitStrategy.LEAKY_BUCKET:
+        if rule.strategy == RateLimitStrategy.LEAKY_BUCKET:
             return await self._check_leaky_bucket(rule, state, now)
-        elif rule.strategy == RateLimitStrategy.ADAPTIVE:
+        if rule.strategy == RateLimitStrategy.ADAPTIVE:
             return await self._check_adaptive(rule, state, now)
-        else:
-            # Default to fixed window
-            return await self._check_fixed_window(rule, state, now)
+        # Default to fixed window
+        return await self._check_fixed_window(rule, state, now)
 
     async def _check_fixed_window(
-        self, rule: RateLimitRule, state: RateLimitState, now: datetime
+        self,
+        rule: RateLimitRule,
+        state: RateLimitState,
+        now: datetime,
     ) -> RateLimitResult:
         """Check fixed time window rate limit."""
         # Calculate window duration
@@ -410,7 +416,7 @@ class AdvancedRateLimiter:
                 remaining_requests=0,
                 reset_time=state.window_start + window_duration,
                 retry_after_seconds=int(
-                    (state.window_start + window_duration - now).total_seconds()
+                    (state.window_start + window_duration - now).total_seconds(),
                 ),
             )
 
@@ -428,22 +434,24 @@ class AdvancedRateLimiter:
                 remaining_requests=rule.limit - state.current_count,
                 reset_time=state.window_start + window_duration,
             )
-        else:
-            state.rejected_requests += 1
-            return RateLimitResult(
-                allowed=False,
-                rule_id=rule.rule_id,
-                key=state.key,
-                action=rule.action,
-                remaining_requests=0,
-                reset_time=state.window_start + window_duration,
-                retry_after_seconds=int(
-                    (state.window_start + window_duration - now).total_seconds()
-                ),
-            )
+        state.rejected_requests += 1
+        return RateLimitResult(
+            allowed=False,
+            rule_id=rule.rule_id,
+            key=state.key,
+            action=rule.action,
+            remaining_requests=0,
+            reset_time=state.window_start + window_duration,
+            retry_after_seconds=int(
+                (state.window_start + window_duration - now).total_seconds(),
+            ),
+        )
 
     async def _check_sliding_window(
-        self, rule: RateLimitRule, state: RateLimitState, now: datetime
+        self,
+        rule: RateLimitRule,
+        state: RateLimitState,
+        now: datetime,
     ) -> RateLimitResult:
         """Check sliding time window rate limit."""
         window_duration = self._get_window_duration(rule.window)
@@ -467,24 +475,26 @@ class AdvancedRateLimiter:
                 remaining_requests=rule.limit - len(state.request_times),
                 reset_time=now + window_duration,
             )
-        else:
-            state.rejected_requests += 1
-            # Calculate retry after based on oldest request
-            oldest_request = state.request_times[0]
-            retry_after = int((oldest_request + window_duration - now).total_seconds())
+        state.rejected_requests += 1
+        # Calculate retry after based on oldest request
+        oldest_request = state.request_times[0]
+        retry_after = int((oldest_request + window_duration - now).total_seconds())
 
-            return RateLimitResult(
-                allowed=False,
-                rule_id=rule.rule_id,
-                key=state.key,
-                action=rule.action,
-                remaining_requests=0,
-                reset_time=oldest_request + window_duration,
-                retry_after_seconds=max(1, retry_after),
-            )
+        return RateLimitResult(
+            allowed=False,
+            rule_id=rule.rule_id,
+            key=state.key,
+            action=rule.action,
+            remaining_requests=0,
+            reset_time=oldest_request + window_duration,
+            retry_after_seconds=max(1, retry_after),
+        )
 
     async def _check_token_bucket(
-        self, rule: RateLimitRule, state: RateLimitState, now: datetime
+        self,
+        rule: RateLimitRule,
+        state: RateLimitState,
+        now: datetime,
     ) -> RateLimitResult:
         """Check token bucket rate limit."""
         # Refill tokens
@@ -512,25 +522,27 @@ class AdvancedRateLimiter:
                 remaining_requests=int(state.tokens),
                 reset_time=now + timedelta(seconds=1 / refill_rate),
             )
-        else:
-            state.rejected_requests += 1
-            # Calculate delay based on token refill time
-            delay_seconds = (1.0 - state.tokens) / refill_rate
+        state.rejected_requests += 1
+        # Calculate delay based on token refill time
+        delay_seconds = (1.0 - state.tokens) / refill_rate
 
-            return RateLimitResult(
-                allowed=False,
-                rule_id=rule.rule_id,
-                key=state.key,
-                action=rule.action,
-                remaining_requests=0,
-                reset_time=now + timedelta(seconds=delay_seconds),
-                delay_seconds=delay_seconds
-                if rule.action == ThrottleAction.DELAY
-                else None,
-            )
+        return RateLimitResult(
+            allowed=False,
+            rule_id=rule.rule_id,
+            key=state.key,
+            action=rule.action,
+            remaining_requests=0,
+            reset_time=now + timedelta(seconds=delay_seconds),
+            delay_seconds=delay_seconds
+            if rule.action == ThrottleAction.DELAY
+            else None,
+        )
 
     async def _check_leaky_bucket(
-        self, rule: RateLimitRule, state: RateLimitState, now: datetime
+        self,
+        rule: RateLimitRule,
+        state: RateLimitState,
+        now: datetime,
     ) -> RateLimitResult:
         """Check leaky bucket rate limit."""
         # Similar to token bucket but with constant leak rate
@@ -557,19 +569,21 @@ class AdvancedRateLimiter:
                 remaining_requests=rule.limit - int(state.tokens),
                 reset_time=now + timedelta(seconds=1 / leak_rate),
             )
-        else:
-            state.rejected_requests += 1
-            return RateLimitResult(
-                allowed=False,
-                rule_id=rule.rule_id,
-                key=state.key,
-                action=rule.action,
-                remaining_requests=0,
-                reset_time=now + timedelta(seconds=1 / leak_rate),
-            )
+        state.rejected_requests += 1
+        return RateLimitResult(
+            allowed=False,
+            rule_id=rule.rule_id,
+            key=state.key,
+            action=rule.action,
+            remaining_requests=0,
+            reset_time=now + timedelta(seconds=1 / leak_rate),
+        )
 
     async def _check_adaptive(
-        self, rule: RateLimitRule, state: RateLimitState, now: datetime
+        self,
+        rule: RateLimitRule,
+        state: RateLimitState,
+        now: datetime,
     ) -> RateLimitResult:
         """Check adaptive rate limit that adjusts based on performance."""
         # Use current adaptive limit or fall back to base limit
@@ -599,7 +613,10 @@ class AdvancedRateLimiter:
         return result
 
     def _check_burst_limit(
-        self, rule: RateLimitRule, state: RateLimitState, now: datetime
+        self,
+        rule: RateLimitRule,
+        state: RateLimitState,
+        now: datetime,
     ) -> bool:
         """Check burst limit allowance."""
         if not rule.burst_limit:
@@ -625,14 +642,13 @@ class AdvancedRateLimiter:
         """Get duration for rate limit window."""
         if window == RateLimitWindow.SECOND:
             return timedelta(seconds=1)
-        elif window == RateLimitWindow.MINUTE:
+        if window == RateLimitWindow.MINUTE:
             return timedelta(minutes=1)
-        elif window == RateLimitWindow.HOUR:
+        if window == RateLimitWindow.HOUR:
             return timedelta(hours=1)
-        elif window == RateLimitWindow.DAY:
+        if window == RateLimitWindow.DAY:
             return timedelta(days=1)
-        else:
-            return timedelta(minutes=1)  # Default
+        return timedelta(minutes=1)  # Default
 
     async def _process_request_queue(self):
         """Process delayed/queued requests."""
@@ -679,7 +695,7 @@ class AdvancedRateLimiter:
 
             # Calculate average success rate
             avg_success_rate = sum(state.performance_history) / len(
-                state.performance_history
+                state.performance_history,
             )
 
             # Adjust limit based on success rate
@@ -787,11 +803,11 @@ class AdvancedRateLimiter:
 # Export the rate limiter classes
 __all__ = [
     "AdvancedRateLimiter",
+    "QuotaDefinition",
+    "RateLimitResult",
     "RateLimitRule",
     "RateLimitState",
-    "RateLimitResult",
-    "QuotaDefinition",
-    "RateLimitWindow",
     "RateLimitStrategy",
+    "RateLimitWindow",
     "ThrottleAction",
 ]

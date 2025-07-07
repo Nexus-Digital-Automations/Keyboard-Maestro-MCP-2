@@ -1,5 +1,4 @@
-"""
-Quantum Ready Tools - TASK_68 Phase 3 MCP Tools Implementation
+"""Quantum Ready Tools - TASK_68 Phase 3 MCP Tools Implementation.
 
 FastMCP tools for quantum computing preparation and post-quantum cryptography through
 Claude Desktop interaction with comprehensive quantum readiness capabilities.
@@ -43,30 +42,36 @@ async def km_analyze_quantum_readiness(
         Field(description="Analysis scope (system|application|cryptography|protocols)"),
     ],
     security_level: Annotated[
-        str, Field(description="Security level (current|post_quantum|quantum_safe)")
+        str,
+        Field(description="Security level (current|post_quantum|quantum_safe)"),
     ] = "current",
     include_vulnerabilities: Annotated[
-        bool, Field(description="Include quantum vulnerability assessment")
+        bool,
+        Field(description="Include quantum vulnerability assessment"),
     ] = True,
     algorithm_assessment: Annotated[
-        bool, Field(description="Assess current cryptographic algorithms")
+        bool,
+        Field(description="Assess current cryptographic algorithms"),
     ] = True,
     migration_planning: Annotated[
-        bool, Field(description="Generate post-quantum migration plan")
+        bool,
+        Field(description="Generate post-quantum migration plan"),
     ] = True,
     compliance_check: Annotated[
-        bool, Field(description="Check quantum-readiness compliance")
+        bool,
+        Field(description="Check quantum-readiness compliance"),
     ] = True,
     risk_analysis: Annotated[
-        bool, Field(description="Perform quantum attack risk analysis")
+        bool,
+        Field(description="Perform quantum attack risk analysis"),
     ] = True,
     timeline_estimation: Annotated[
-        bool, Field(description="Estimate quantum threat timeline")
+        bool,
+        Field(description="Estimate quantum threat timeline"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Analyze current cryptographic security for quantum vulnerabilities and readiness assessment.
+    """Analyze current cryptographic security for quantum vulnerabilities and readiness assessment.
 
     FastMCP Tool for quantum readiness analysis through Claude Desktop.
     Assesses current cryptographic systems and provides quantum vulnerability evaluation.
@@ -75,7 +80,7 @@ async def km_analyze_quantum_readiness(
     """
     try:
         logger.info(
-            f"Starting quantum readiness analysis: scope={analysis_scope}, security_level={security_level}"
+            f"Starting quantum readiness analysis: scope={analysis_scope}, security_level={security_level}",
         )
 
         # Validate scope
@@ -105,7 +110,9 @@ async def km_analyze_quantum_readiness(
         # Perform quantum readiness analysis
         if include_vulnerabilities:
             readiness_result = await cryptography_migrator.analyze_quantum_readiness(
-                scope=analysis_scope, include_vulnerabilities=True, deep_analysis=True
+                scope=analysis_scope,
+                include_vulnerabilities=True,
+                deep_analysis=True,
             )
 
             if readiness_result.is_success():
@@ -114,10 +121,10 @@ async def km_analyze_quantum_readiness(
                     "overall_readiness_score": assessment.overall_readiness_score,
                     "readiness_level": assessment.get_readiness_level(),
                     "vulnerable_assets_count": len(
-                        assessment.quantum_vulnerable_assets
+                        assessment.quantum_vulnerable_assets,
                     ),
                     "critical_vulnerabilities": len(
-                        assessment.get_critical_vulnerabilities()
+                        assessment.get_critical_vulnerabilities(),
                     ),
                     "estimated_migration_cost": assessment.estimated_migration_cost,
                     "compliance_status": assessment.compliance_status,
@@ -125,7 +132,7 @@ async def km_analyze_quantum_readiness(
                 }
 
                 analysis_results["recommendations"].extend(
-                    assessment.migration_recommendations
+                    assessment.migration_recommendations,
                 )
 
         # Perform algorithm assessment
@@ -158,14 +165,15 @@ async def km_analyze_quantum_readiness(
                 }
 
                 analysis_results["recommendations"].extend(
-                    vuln_assessment.recommendations
+                    vuln_assessment.recommendations,
                 )
 
         # Generate migration plan
         if (
             migration_planning
             and analysis_results.get("vulnerability_assessment", {}).get(
-                "vulnerable_algorithms", 0
+                "vulnerable_algorithms",
+                0,
             )
             > 0
         ):
@@ -175,7 +183,7 @@ async def km_analyze_quantum_readiness(
                 for i in range(
                     analysis_results["vulnerability_assessment"][
                         "vulnerable_algorithms"
-                    ]
+                    ],
                 )
             ]
 
@@ -205,7 +213,8 @@ async def km_analyze_quantum_readiness(
                 "quantum_threat_assessment": "moderate",
                 "current_security_posture": "partially_ready"
                 if analysis_results.get("quantum_readiness_analysis", {}).get(
-                    "overall_readiness_score", 0
+                    "overall_readiness_score",
+                    0,
                 )
                 > 0.5
                 else "not_ready",
@@ -234,13 +243,15 @@ async def km_analyze_quantum_readiness(
         # Compliance check
         if compliance_check:
             readiness_score = analysis_results.get(
-                "quantum_readiness_analysis", {}
+                "quantum_readiness_analysis",
+                {},
             ).get("overall_readiness_score", 0)
             analysis_results["compliance_status"] = {
                 "nist_post_quantum_ready": readiness_score >= 0.8,
                 "quantum_safe_compliance": readiness_score >= 0.6,
                 "migration_plan_required": analysis_results.get(
-                    "vulnerability_assessment", {}
+                    "vulnerability_assessment",
+                    {},
                 ).get("vulnerable_algorithms", 0)
                 > 0,
                 "compliance_score": readiness_score,
@@ -261,7 +272,7 @@ async def km_analyze_quantum_readiness(
             ]
 
         logger.info(
-            f"Quantum readiness analysis completed: {analysis_results['analysis_id']}"
+            f"Quantum readiness analysis completed: {analysis_results['analysis_id']}",
         )
 
         return {
@@ -270,13 +281,16 @@ async def km_analyze_quantum_readiness(
             "summary": {
                 "scope": analysis_scope,
                 "readiness_score": analysis_results.get(
-                    "quantum_readiness_analysis", {}
+                    "quantum_readiness_analysis",
+                    {},
                 ).get("overall_readiness_score", 0),
                 "vulnerable_algorithms": analysis_results.get(
-                    "vulnerability_assessment", {}
+                    "vulnerability_assessment",
+                    {},
                 ).get("vulnerable_algorithms", 0),
                 "migration_required": analysis_results.get("compliance_status", {}).get(
-                    "migration_plan_required", False
+                    "migration_plan_required",
+                    False,
                 ),
                 "recommendations_count": len(analysis_results["recommendations"]),
             },
@@ -286,7 +300,7 @@ async def km_analyze_quantum_readiness(
         logger.error(f"Quantum readiness analysis failed: {e}")
         return {
             "success": False,
-            "error": f"Analysis failed: {str(e)}",
+            "error": f"Analysis failed: {e!s}",
             "scope": analysis_scope,
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -295,33 +309,40 @@ async def km_analyze_quantum_readiness(
 @mcp.tool()
 async def km_upgrade_to_post_quantum(
     upgrade_scope: Annotated[
-        str, Field(description="Upgrade scope (selective|comprehensive|critical_only)")
+        str,
+        Field(description="Upgrade scope (selective|comprehensive|critical_only)"),
     ],
     target_algorithms: Annotated[
-        list[str], Field(description="Target post-quantum algorithms")
+        list[str],
+        Field(description="Target post-quantum algorithms"),
     ] = None,
     migration_strategy: Annotated[
-        str, Field(description="Migration strategy (hybrid|full_replacement|gradual)")
+        str,
+        Field(description="Migration strategy (hybrid|full_replacement|gradual)"),
     ] = "hybrid",
     compatibility_mode: Annotated[
-        bool, Field(description="Maintain backward compatibility")
+        bool,
+        Field(description="Maintain backward compatibility"),
     ] = True,
     validation_testing: Annotated[
-        bool, Field(description="Perform post-migration validation")
+        bool,
+        Field(description="Perform post-migration validation"),
     ] = True,
     performance_optimization: Annotated[
-        bool, Field(description="Optimize post-quantum performance")
+        bool,
+        Field(description="Optimize post-quantum performance"),
     ] = True,
     key_migration: Annotated[
-        bool, Field(description="Migrate existing cryptographic keys")
+        bool,
+        Field(description="Migrate existing cryptographic keys"),
     ] = True,
     rollback_preparation: Annotated[
-        bool, Field(description="Prepare rollback mechanisms")
+        bool,
+        Field(description="Prepare rollback mechanisms"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Upgrade cryptographic systems to post-quantum algorithms with migration management.
+    """Upgrade cryptographic systems to post-quantum algorithms with migration management.
 
     FastMCP Tool for post-quantum upgrade through Claude Desktop.
     Implements quantum-resistant cryptography with backward compatibility and validation.
@@ -332,7 +353,7 @@ async def km_upgrade_to_post_quantum(
         target_algorithms = ["kyber", "dilithium", "falcon"]
     try:
         logger.info(
-            f"Starting post-quantum upgrade: scope={upgrade_scope}, strategy={migration_strategy}"
+            f"Starting post-quantum upgrade: scope={upgrade_scope}, strategy={migration_strategy}",
         )
 
         # Validate upgrade scope
@@ -458,7 +479,8 @@ async def km_upgrade_to_post_quantum(
         cryptographic_assets = []
         for asset_data in mock_assets:
             is_vulnerable, threat_level = assess_algorithm_quantum_vulnerability(
-                asset_data["algorithm"], asset_data["key_size"]
+                asset_data["algorithm"],
+                asset_data["key_size"],
             )
 
             asset = CryptographicAsset(
@@ -495,7 +517,8 @@ async def km_upgrade_to_post_quantum(
 
             if validation_testing:
                 upgrade_results["validation_results"] = upgrade_data.get(
-                    "validation_results", {}
+                    "validation_results",
+                    {},
                 )
 
         # Algorithm compatibility validation
@@ -510,7 +533,8 @@ async def km_upgrade_to_post_quantum(
             if pq_algorithms:
                 compatibility_result = (
                     await security_upgrader.validate_algorithm_compatibility(
-                        target_algorithms=pq_algorithms, use_case="enterprise"
+                        target_algorithms=pq_algorithms,
+                        use_case="enterprise",
                     )
                 )
 
@@ -576,10 +600,12 @@ async def km_upgrade_to_post_quantum(
                 "scope": upgrade_scope,
                 "strategy": migration_strategy,
                 "successful_upgrades": upgrade_results.get("upgrade_execution", {}).get(
-                    "successful_upgrades", 0
+                    "successful_upgrades",
+                    0,
                 ),
                 "total_assets": upgrade_results.get("upgrade_execution", {}).get(
-                    "total_assets", 0
+                    "total_assets",
+                    0,
                 ),
                 "validation_passed": validation_testing
                 and len(upgrade_results.get("validation_results", {})) > 0,
@@ -591,7 +617,7 @@ async def km_upgrade_to_post_quantum(
         logger.error(f"Post-quantum upgrade failed: {e}")
         return {
             "success": False,
-            "error": f"Upgrade failed: {str(e)}",
+            "error": f"Upgrade failed: {e!s}",
             "scope": upgrade_scope,
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -606,31 +632,36 @@ async def km_prepare_quantum_interface(
     quantum_platform: Annotated[
         str,
         Field(
-            description="Target quantum platform (ibm|google|amazon|microsoft|universal)"
+            description="Target quantum platform (ibm|google|amazon|microsoft|universal)",
         ),
     ] = "universal",
     protocol_version: Annotated[
-        str, Field(description="Quantum protocol version")
+        str,
+        Field(description="Quantum protocol version"),
     ] = "latest",
     classical_integration: Annotated[
-        bool, Field(description="Enable classical-quantum integration")
+        bool,
+        Field(description="Enable classical-quantum integration"),
     ] = True,
     error_correction: Annotated[
-        bool, Field(description="Implement quantum error correction")
+        bool,
+        Field(description="Implement quantum error correction"),
     ] = True,
     simulator_mode: Annotated[
-        bool, Field(description="Enable quantum simulator for testing")
+        bool,
+        Field(description="Enable quantum simulator for testing"),
     ] = True,
     resource_estimation: Annotated[
-        bool, Field(description="Estimate quantum resource requirements")
+        bool,
+        Field(description="Estimate quantum resource requirements"),
     ] = True,
     compatibility_layer: Annotated[
-        bool, Field(description="Create compatibility layer for current systems")
+        bool,
+        Field(description="Create compatibility layer for current systems"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Prepare quantum computing interface and protocol definitions for future integration.
+    """Prepare quantum computing interface and protocol definitions for future integration.
 
     FastMCP Tool for quantum interface preparation through Claude Desktop.
     Creates quantum computing interfaces with classical integration and error correction.
@@ -639,7 +670,7 @@ async def km_prepare_quantum_interface(
     """
     try:
         logger.info(
-            f"Preparing quantum interface: type={interface_type}, platform={quantum_platform}"
+            f"Preparing quantum interface: type={interface_type}, platform={quantum_platform}",
         )
 
         # Validate interface type and platform
@@ -828,7 +859,7 @@ async def km_prepare_quantum_interface(
             }
 
         logger.info(
-            f"Quantum interface preparation completed: {interface_results['interface_id']}"
+            f"Quantum interface preparation completed: {interface_results['interface_id']}",
         )
 
         return {
@@ -848,7 +879,7 @@ async def km_prepare_quantum_interface(
         logger.error(f"Quantum interface preparation failed: {e}")
         return {
             "success": False,
-            "error": f"Interface preparation failed: {str(e)}",
+            "error": f"Interface preparation failed: {e!s}",
             "interface_type": interface_type,
             "platform": quantum_platform,
             "timestamp": datetime.now(UTC).isoformat(),
@@ -858,34 +889,40 @@ async def km_prepare_quantum_interface(
 @mcp.tool()
 async def km_manage_quantum_security(
     security_operation: Annotated[
-        str, Field(description="Security operation (policy|keys|protocols|monitoring)")
+        str,
+        Field(description="Security operation (policy|keys|protocols|monitoring)"),
     ],
     quantum_policy: Annotated[
         dict[str, Any] | None,
         Field(description="Quantum security policy configuration"),
     ] = None,
     key_management: Annotated[
-        str, Field(description="Key management mode (classical|quantum|hybrid)")
+        str,
+        Field(description="Key management mode (classical|quantum|hybrid)"),
     ] = "hybrid",
     distribution_protocol: Annotated[
-        str, Field(description="Key distribution protocol (qkd|classical|hybrid)")
+        str,
+        Field(description="Key distribution protocol (qkd|classical|hybrid)"),
     ] = "hybrid",
     security_monitoring: Annotated[
-        bool, Field(description="Enable quantum security monitoring")
+        bool,
+        Field(description="Enable quantum security monitoring"),
     ] = True,
     threat_detection: Annotated[
-        bool, Field(description="Enable quantum threat detection")
+        bool,
+        Field(description="Enable quantum threat detection"),
     ] = True,
     incident_response: Annotated[
-        bool, Field(description="Configure quantum incident response")
+        bool,
+        Field(description="Configure quantum incident response"),
     ] = True,
     compliance_tracking: Annotated[
-        bool, Field(description="Track quantum security compliance")
+        bool,
+        Field(description="Track quantum security compliance"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Manage quantum-ready security policies, key management, and monitoring systems.
+    """Manage quantum-ready security policies, key management, and monitoring systems.
 
     FastMCP Tool for quantum security management through Claude Desktop.
     Implements quantum-safe security policies with advanced key management and monitoring.
@@ -894,7 +931,7 @@ async def km_manage_quantum_security(
     """
     try:
         logger.info(
-            f"Managing quantum security: operation={security_operation}, key_management={key_management}"
+            f"Managing quantum security: operation={security_operation}, key_management={key_management}",
         )
 
         # Validate security operation
@@ -931,10 +968,12 @@ async def km_manage_quantum_security(
                 policy_name=f"quantum_policy_{datetime.now(UTC).strftime('%Y%m%d')}",
                 security_level=policy_config.get("security_level", "post_quantum"),
                 algorithm_preferences=policy_config.get(
-                    "enabled_algorithms", ["kyber", "dilithium"]
+                    "enabled_algorithms",
+                    ["kyber", "dilithium"],
                 ),
                 compliance_requirements=policy_config.get(
-                    "compliance_frameworks", ["NIST"]
+                    "compliance_frameworks",
+                    ["NIST"],
                 ),
             )
 
@@ -1098,7 +1137,7 @@ async def km_manage_quantum_security(
                 "compliance_score": 0.95,
                 "compliance_gaps": [],
                 "next_audit_date": (datetime.now(UTC) + timedelta(days=90)).strftime(
-                    "%Y-%m-%d"
+                    "%Y-%m-%d",
                 ),
                 "certification_status": {
                     "quantum_ready": "certified",
@@ -1114,7 +1153,7 @@ async def km_manage_quantum_security(
             }
 
         logger.info(
-            f"Quantum security management completed: {security_results['operation_id']}"
+            f"Quantum security management completed: {security_results['operation_id']}",
         )
 
         return {
@@ -1135,7 +1174,7 @@ async def km_manage_quantum_security(
         logger.error(f"Quantum security management failed: {e}")
         return {
             "success": False,
-            "error": f"Security management failed: {str(e)}",
+            "error": f"Security management failed: {e!s}",
             "operation": security_operation,
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -1146,34 +1185,40 @@ async def km_simulate_quantum_algorithms(
     algorithm_type: Annotated[
         str,
         Field(
-            description="Algorithm type (shor|grover|quantum_ml|optimization|custom)"
+            description="Algorithm type (shor|grover|quantum_ml|optimization|custom)",
         ),
     ],
     simulation_mode: Annotated[
-        str, Field(description="Simulation mode (ideal|noisy|hardware_accurate)")
+        str,
+        Field(description="Simulation mode (ideal|noisy|hardware_accurate)"),
     ] = "ideal",
     qubit_count: Annotated[
-        int, Field(description="Number of qubits for simulation", ge=1, le=50)
+        int,
+        Field(description="Number of qubits for simulation", ge=1, le=50),
     ] = 10,
     circuit_depth: Annotated[
-        int, Field(description="Maximum circuit depth", ge=1, le=1000)
+        int,
+        Field(description="Maximum circuit depth", ge=1, le=1000),
     ] = 100,
     noise_model: Annotated[
-        str | None, Field(description="Noise model for realistic simulation")
+        str | None,
+        Field(description="Noise model for realistic simulation"),
     ] = None,
     optimization_level: Annotated[
-        int, Field(description="Circuit optimization level", ge=0, le=3)
+        int,
+        Field(description="Circuit optimization level", ge=0, le=3),
     ] = 1,
     backend_preference: Annotated[
-        str, Field(description="Simulation backend preference")
+        str,
+        Field(description="Simulation backend preference"),
     ] = "auto",
     result_analysis: Annotated[
-        bool, Field(description="Perform result analysis and visualization")
+        bool,
+        Field(description="Perform result analysis and visualization"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Simulate quantum algorithms for development, testing, and educational purposes.
+    """Simulate quantum algorithms for development, testing, and educational purposes.
 
     FastMCP Tool for quantum algorithm simulation through Claude Desktop.
     Provides quantum circuit simulation with noise modeling and result analysis.
@@ -1182,7 +1227,7 @@ async def km_simulate_quantum_algorithms(
     """
     try:
         logger.info(
-            f"Simulating quantum algorithm: type={algorithm_type}, qubits={qubit_count}, mode={simulation_mode}"
+            f"Simulating quantum algorithm: type={algorithm_type}, qubits={qubit_count}, mode={simulation_mode}",
         )
 
         # Validate algorithm type
@@ -1381,7 +1426,7 @@ async def km_simulate_quantum_algorithms(
         }
 
         logger.info(
-            f"Quantum algorithm simulation completed: {simulation_results['simulation_id']}"
+            f"Quantum algorithm simulation completed: {simulation_results['simulation_id']}",
         )
 
         return {
@@ -1393,7 +1438,8 @@ async def km_simulate_quantum_algorithms(
                 "qubit_count": qubit_count,
                 "execution_time": base_execution_time,
                 "success_probability": simulation_results.get(
-                    "execution_results", {}
+                    "execution_results",
+                    {},
                 ).get("success_probability", 0),
                 "quantum_advantage": quantum_advantage > 1.0,
                 "analysis_completed": result_analysis,
@@ -1404,7 +1450,7 @@ async def km_simulate_quantum_algorithms(
         logger.error(f"Quantum algorithm simulation failed: {e}")
         return {
             "success": False,
-            "error": f"Simulation failed: {str(e)}",
+            "error": f"Simulation failed: {e!s}",
             "algorithm_type": algorithm_type,
             "simulation_mode": simulation_mode,
             "timestamp": datetime.now(UTC).isoformat(),

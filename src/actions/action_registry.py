@@ -1,10 +1,12 @@
-"""
-Action Registry for Keyboard Maestro Action Types
+"""Action Registry for Keyboard Maestro Action Types.
 
 Comprehensive registry of supported Keyboard Maestro action types with
 validation, categorization, and parameter definitions.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import logging
 from dataclasses import dataclass
 
@@ -33,9 +35,8 @@ class ActionRegistry:
         self._parameter_defs: dict[str, list[ActionParameterDef]] = {}
         self._initialize_core_actions()
 
-    def _initialize_core_actions(self):
+    def _initialize_core_actions(self) -> bool:
         """Initialize registry with comprehensive Keyboard Maestro actions."""
-
         # TEXT ACTIONS
         self._register_text_actions()
 
@@ -72,7 +73,7 @@ class ActionRegistry:
         # CALCULATION ACTIONS
         self._register_calculation_actions()
 
-    def _register_text_actions(self):
+    def _register_text_actions(self) -> bool:
         """Register text manipulation actions."""
         actions = [
             ("Type a String", ["text"], ["by_typing", "by_pasting"]),
@@ -101,10 +102,10 @@ class ActionRegistry:
                     required_params=required,
                     optional_params=optional,
                     description=f"Text action: {action_name}",
-                )
+                ),
             )
 
-    def _register_application_actions(self):
+    def _register_application_actions(self) -> bool:
         """Register application control actions."""
         actions = [
             (
@@ -137,10 +138,10 @@ class ActionRegistry:
                     required_params=required,
                     optional_params=optional,
                     description=f"Application action: {action_name}",
-                )
+                ),
             )
 
-    def _register_system_actions(self):
+    def _register_system_actions(self) -> bool:
         """Register system control actions."""
         actions = [
             ("Pause", ["duration"], ["unit"]),
@@ -178,10 +179,10 @@ class ActionRegistry:
                     required_params=required,
                     optional_params=optional,
                     description=f"System action: {action_name}",
-                )
+                ),
             )
 
-    def _register_variable_actions(self):
+    def _register_variable_actions(self) -> bool:
         """Register variable manipulation actions."""
         actions = [
             ("Set Variable to Text", ["variable", "text"], ["append", "trim"]),
@@ -214,10 +215,10 @@ class ActionRegistry:
                     required_params=required,
                     optional_params=optional,
                     description=f"Variable action: {action_name}",
-                )
+                ),
             )
 
-    def _register_control_actions(self):
+    def _register_control_actions(self) -> bool:
         """Register control flow actions."""
         actions = [
             ("If Then Else", ["condition"], ["else_condition"]),
@@ -243,10 +244,10 @@ class ActionRegistry:
                     required_params=required,
                     optional_params=optional,
                     description=f"Control flow action: {action_name}",
-                )
+                ),
             )
 
-    def _register_interface_actions(self):
+    def _register_interface_actions(self) -> bool:
         """Register user interface actions."""
         actions = [
             ("Click at Found Image", ["image"], ["fuzziness", "timeout"]),
@@ -280,10 +281,10 @@ class ActionRegistry:
                     required_params=required,
                     optional_params=optional,
                     description=f"Interface action: {action_name}",
-                )
+                ),
             )
 
-    def _register_file_actions(self):
+    def _register_file_actions(self) -> bool:
         """Register file system actions."""
         actions = [
             ("Copy File", ["source", "destination"], ["overwrite", "create_folders"]),
@@ -323,10 +324,10 @@ class ActionRegistry:
                     required_params=required,
                     optional_params=optional,
                     description=f"File action: {action_name}",
-                )
+                ),
             )
 
-    def _register_web_actions(self):
+    def _register_web_actions(self) -> bool:
         """Register web request actions."""
         actions = [
             ("Get URL", ["url"], ["destination_variable", "headers", "timeout"]),
@@ -356,10 +357,10 @@ class ActionRegistry:
                     required_params=required,
                     optional_params=optional,
                     description=f"Web action: {action_name}",
-                )
+                ),
             )
 
-    def _register_clipboard_actions(self):
+    def _register_clipboard_actions(self) -> bool:
         """Register clipboard manipulation actions."""
         actions = [
             ("Copy to Clipboard", ["text"], ["append"]),
@@ -383,10 +384,10 @@ class ActionRegistry:
                     required_params=required,
                     optional_params=optional,
                     description=f"Clipboard action: {action_name}",
-                )
+                ),
             )
 
-    def _register_window_actions(self):
+    def _register_window_actions(self) -> bool:
         """Register window management actions."""
         actions = [
             ("Move Window", ["window", "x", "y"], ["application"]),
@@ -415,10 +416,10 @@ class ActionRegistry:
                     required_params=required,
                     optional_params=optional,
                     description=f"Window action: {action_name}",
-                )
+                ),
             )
 
-    def _register_sound_actions(self):
+    def _register_sound_actions(self) -> bool:
         """Register sound and audio actions."""
         actions = [
             ("Speak Text", ["text"], ["voice", "rate", "volume"]),
@@ -442,10 +443,10 @@ class ActionRegistry:
                     required_params=required,
                     optional_params=optional,
                     description=f"Sound action: {action_name}",
-                )
+                ),
             )
 
-    def _register_calculation_actions(self):
+    def _register_calculation_actions(self) -> bool:
         """Register calculation and math actions."""
         actions = [
             ("Calculate", ["expression"], ["destination_variable"]),
@@ -479,14 +480,14 @@ class ActionRegistry:
                     required_params=required,
                     optional_params=optional,
                     description=f"Calculation action: {action_name}",
-                )
+                ),
             )
 
-    def register_action(self, action_type: ActionType):
+    def register_action(self, action_type: ActionType) -> bool:
         """Register new action type in registry."""
         if action_type.identifier in self._actions:
             logger.warning(
-                f"Action type {action_type.identifier} already registered, replacing"
+                f"Action type {action_type.identifier} already registered, replacing",
             )
 
         self._actions[action_type.identifier] = action_type
@@ -536,7 +537,9 @@ class ActionRegistry:
         return results
 
     def validate_action_parameters(
-        self, action_type: str, parameters: dict[str, any]
+        self,
+        action_type: str,
+        parameters: dict[str, any],
     ) -> dict[str, any]:
         """Validate parameters for specific action type."""
         action = self.get_action_type(action_type)

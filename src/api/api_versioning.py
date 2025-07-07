@@ -1,5 +1,4 @@
-"""
-API Versioning - TASK_64 Phase 4 Advanced Features
+"""API Versioning - TASK_64 Phase 4 Advanced Features.
 
 API version management and backward compatibility for API orchestration.
 Provides intelligent version routing with deprecation management and compatibility layers.
@@ -111,12 +110,11 @@ class APIVersion:
         """Get compatibility level with another version."""
         if self.major != other.major:
             return CompatibilityLevel.MAJOR
-        elif self.minor != other.minor:
+        if self.minor != other.minor:
             return CompatibilityLevel.MINOR
-        elif self.patch != other.patch:
+        if self.patch != other.patch:
             return CompatibilityLevel.PATCH
-        else:
-            return CompatibilityLevel.PATCH  # Same version
+        return CompatibilityLevel.PATCH  # Same version
 
 
 @dataclass
@@ -207,10 +205,12 @@ class APIVersionManager:
     def __init__(self):
         self.versions: dict[str, APIVersion] = {}  # version_id -> APIVersion
         self.service_versions: dict[
-            ServiceId, list[str]
+            ServiceId,
+            list[str],
         ] = {}  # service_id -> [version_ids]
         self.migrations: dict[
-            str, VersionMigration
+            str,
+            VersionMigration,
         ] = {}  # migration_id -> VersionMigration
         self.routes: dict[str, VersionRoute] = {}  # route_id -> VersionRoute
         self.decision_history: list[VersioningDecision] = []
@@ -235,7 +235,8 @@ class APIVersionManager:
 
     @require(lambda version: isinstance(version, APIVersion))
     def register_version(
-        self, version: APIVersion
+        self,
+        version: APIVersion,
     ) -> Either[APIOrchestrationError, bool]:
         """Register a new API version."""
         try:
@@ -243,8 +244,8 @@ class APIVersionManager:
             if not self._validate_version_format(version.version_string):
                 return Either.error(
                     APIOrchestrationError(
-                        f"Invalid version format: {version.version_string}"
-                    )
+                        f"Invalid version format: {version.version_string}",
+                    ),
                 )
 
             # Register version
@@ -265,12 +266,13 @@ class APIVersionManager:
 
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Version registration failed: {str(e)}")
+                APIOrchestrationError(f"Version registration failed: {e!s}"),
             )
 
     @require(lambda migration: isinstance(migration, VersionMigration))
     def register_migration(
-        self, migration: VersionMigration
+        self,
+        migration: VersionMigration,
     ) -> Either[APIOrchestrationError, bool]:
         """Register a version migration."""
         try:
@@ -286,14 +288,14 @@ class APIVersionManager:
             if not from_exists:
                 return Either.error(
                     APIOrchestrationError(
-                        f"Source version not found: {migration.from_version}"
-                    )
+                        f"Source version not found: {migration.from_version}",
+                    ),
                 )
             if not to_exists:
                 return Either.error(
                     APIOrchestrationError(
-                        f"Target version not found: {migration.to_version}"
-                    )
+                        f"Target version not found: {migration.to_version}",
+                    ),
                 )
 
             self.migrations[migration.migration_id] = migration
@@ -301,12 +303,13 @@ class APIVersionManager:
 
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Migration registration failed: {str(e)}")
+                APIOrchestrationError(f"Migration registration failed: {e!s}"),
             )
 
     @require(lambda route: isinstance(route, VersionRoute))
     def register_route(
-        self, route: VersionRoute
+        self,
+        route: VersionRoute,
     ) -> Either[APIOrchestrationError, bool]:
         """Register a version route."""
         try:
@@ -314,7 +317,7 @@ class APIVersionManager:
             return Either.success(True)
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Route registration failed: {str(e)}")
+                APIOrchestrationError(f"Route registration failed: {e!s}"),
             )
 
     @require(lambda service_id: isinstance(service_id, ServiceId))
@@ -325,8 +328,7 @@ class APIVersionManager:
         requested_version: str,
         request_context: dict[str, Any] | None = None,
     ) -> Either[APIOrchestrationError, VersioningDecision]:
-        """
-        Resolve requested version to actual version with compatibility checks.
+        """Resolve requested version to actual version with compatibility checks.
 
         Args:
             service_id: Service identifier
@@ -335,6 +337,7 @@ class APIVersionManager:
 
         Returns:
             Either API orchestration error or versioning decision
+
         """
         try:
             resolution_start = time.time()
@@ -353,8 +356,8 @@ class APIVersionManager:
             if service_id not in self.service_versions:
                 return Either.error(
                     APIOrchestrationError(
-                        f"No versions found for service: {service_id}"
-                    )
+                        f"No versions found for service: {service_id}",
+                    ),
                 )
 
             available_versions = [
@@ -363,14 +366,16 @@ class APIVersionManager:
 
             # Find best matching version
             resolved_version = await self._find_best_version_match(
-                requested_version, available_versions, request_context
+                requested_version,
+                available_versions,
+                request_context,
             )
 
             if not resolved_version:
                 return Either.error(
                     APIOrchestrationError(
-                        f"No compatible version found for: {requested_version}"
-                    )
+                        f"No compatible version found for: {requested_version}",
+                    ),
                 )
 
             # Check if migration is needed
@@ -379,7 +384,9 @@ class APIVersionManager:
 
             if migration_needed:
                 migration = self._find_migration(
-                    requested_version, resolved_version.version_string, service_id
+                    requested_version,
+                    resolved_version.version_string,
+                    service_id,
                 )
                 if migration:
                     migration_id = migration.migration_id
@@ -387,7 +394,8 @@ class APIVersionManager:
 
             # Determine compatibility level
             compatibility_level = self._get_compatibility_level(
-                requested_version, resolved_version.version_string
+                requested_version,
+                resolved_version.version_string,
             )
 
             # Create decision record
@@ -425,7 +433,7 @@ class APIVersionManager:
 
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Version resolution failed: {str(e)}")
+                APIOrchestrationError(f"Version resolution failed: {e!s}"),
             )
 
     async def _find_best_version_match(
@@ -446,7 +454,8 @@ class APIVersionManager:
         # Try semantic version matching
         if self._is_semantic_version(requested_version):
             best_match = self._find_semantic_match(
-                requested_version, available_versions
+                requested_version,
+                available_versions,
             )
             if best_match:
                 return best_match
@@ -462,12 +471,15 @@ class APIVersionManager:
         return max(available_versions, key=lambda v: (v.major, v.minor, v.patch))
 
     def _find_semantic_match(
-        self, requested_version: str, available_versions: list[APIVersion]
+        self,
+        requested_version: str,
+        available_versions: list[APIVersion],
     ) -> APIVersion | None:
         """Find semantic version match using version constraints."""
         # Parse requested version constraint (e.g., ">=1.2.0", "~1.2.0", "^1.2.0")
         constraint_match = re.match(
-            r"^([~^>=<]*)(\d+)\.(\d+)\.(\d+)", requested_version
+            r"^([~^>=<]*)(\d+)\.(\d+)\.(\d+)",
+            requested_version,
         )
         if not constraint_match:
             return None
@@ -481,7 +493,11 @@ class APIVersionManager:
 
         for version in available_versions:
             if self._version_satisfies_constraint(
-                version, operator, req_major, req_minor, req_patch
+                version,
+                operator,
+                req_major,
+                req_minor,
+                req_patch,
             ):
                 compatible_versions.append(version)
 
@@ -506,37 +522,37 @@ class APIVersionManager:
                 and version.minor == req_minor
                 and version.patch == req_patch
             )
-        elif operator == ">=":
+        if operator == ">=":
             return (version.major, version.minor, version.patch) >= (
                 req_major,
                 req_minor,
                 req_patch,
             )
-        elif operator == ">":
+        if operator == ">":
             return (version.major, version.minor, version.patch) > (
                 req_major,
                 req_minor,
                 req_patch,
             )
-        elif operator == "<=":
+        if operator == "<=":
             return (version.major, version.minor, version.patch) <= (
                 req_major,
                 req_minor,
                 req_patch,
             )
-        elif operator == "<":
+        if operator == "<":
             return (version.major, version.minor, version.patch) < (
                 req_major,
                 req_minor,
                 req_patch,
             )
-        elif operator == "~":  # Compatible within minor version
+        if operator == "~":  # Compatible within minor version
             return (
                 version.major == req_major
                 and version.minor == req_minor
                 and version.patch >= req_patch
             )
-        elif operator == "^":  # Compatible within major version
+        if operator == "^":  # Compatible within major version
             return version.major == req_major and (version.minor, version.patch) >= (
                 req_minor,
                 req_patch,
@@ -545,7 +561,10 @@ class APIVersionManager:
         return False
 
     def _find_migration(
-        self, from_version: str, to_version: str, service_id: ServiceId
+        self,
+        from_version: str,
+        to_version: str,
+        service_id: ServiceId,
     ) -> VersionMigration | None:
         """Find migration path between versions."""
         for migration in self.migrations.values():
@@ -558,14 +577,16 @@ class APIVersionManager:
         return None
 
     def _get_compatibility_level(
-        self, requested_version: str, resolved_version: str
+        self,
+        requested_version: str,
+        resolved_version: str,
     ) -> CompatibilityLevel:
         """Determine compatibility level between versions."""
         if requested_version == resolved_version:
             return CompatibilityLevel.PATCH
 
         if self._is_semantic_version(requested_version) and self._is_semantic_version(
-            resolved_version
+            resolved_version,
         ):
             req_parts = self._parse_semantic_version(requested_version)
             res_parts = self._parse_semantic_version(resolved_version)
@@ -573,10 +594,10 @@ class APIVersionManager:
             if req_parts and res_parts:
                 if req_parts[0] != res_parts[0]:  # Major version difference
                     return CompatibilityLevel.MAJOR
-                elif req_parts[1] != res_parts[1]:  # Minor version difference
+                if req_parts[1] != res_parts[1]:  # Minor version difference
                     return CompatibilityLevel.MINOR
-                else:  # Patch version difference
-                    return CompatibilityLevel.PATCH
+                # Patch version difference
+                return CompatibilityLevel.PATCH
 
         return CompatibilityLevel.INCOMPATIBLE
 
@@ -602,7 +623,8 @@ class APIVersionManager:
         return bool(re.match(pattern, version_string))
 
     def _parse_semantic_version(
-        self, version_string: str
+        self,
+        version_string: str,
     ) -> tuple[int, int, int] | None:
         """Parse semantic version into major.minor.patch tuple."""
         match = re.match(r"^(\d+)\.(\d+)\.(\d+)", version_string)
@@ -610,7 +632,7 @@ class APIVersionManager:
             return (int(match.group(1)), int(match.group(2)), int(match.group(3)))
         return None
 
-    def _sort_service_versions(self, service_id: ServiceId):
+    def _sort_service_versions(self, service_id: ServiceId) -> None:
         """Sort service versions by semantic order."""
         if service_id not in self.service_versions:
             return
@@ -642,7 +664,7 @@ class APIVersionManager:
         # Return cached decision (would need to reconstruct VersioningDecision)
         return None  # Simplified for now
 
-    def _cache_resolution(self, cache_key: str, decision: VersioningDecision):
+    def _cache_resolution(self, cache_key: str, decision: VersioningDecision) -> list[Any]:
         """Cache version resolution decision."""
         self.resolution_cache[cache_key] = decision.resolved_version
         self.cache_timestamps[cache_key] = datetime.now(UTC)
@@ -657,7 +679,7 @@ class APIVersionManager:
                 self.resolution_cache.pop(key, None)
                 self.cache_timestamps.pop(key, None)
 
-    def _invalidate_cache(self, service_id: ServiceId):
+    def _invalidate_cache(self, service_id: ServiceId) -> list[Any]:
         """Invalidate cache entries for a service."""
         keys_to_remove = [
             key for key in self.resolution_cache if key.startswith(f"{service_id}:")
@@ -667,7 +689,9 @@ class APIVersionManager:
             self.cache_timestamps.pop(key, None)
 
     def get_service_versions(
-        self, service_id: ServiceId, status_filter: VersionStatus | None = None
+        self,
+        service_id: ServiceId,
+        status_filter: VersionStatus | None = None,
     ) -> list[APIVersion]:
         """Get all versions for a service, optionally filtered by status."""
         if service_id not in self.service_versions:
@@ -706,7 +730,7 @@ class APIVersionManager:
         status_counts = {}
         for status in VersionStatus:
             status_counts[status.value] = len(
-                [v for v in self.versions.values() if v.status == status]
+                [v for v in self.versions.values() if v.status == status],
             )
 
         return {
@@ -725,12 +749,12 @@ class APIVersionManager:
 
 # Export the versioning classes
 __all__ = [
-    "APIVersionManager",
     "APIVersion",
+    "APIVersionManager",
+    "CompatibilityLevel",
     "VersionMigration",
     "VersionRoute",
+    "VersionStatus",
     "VersioningDecision",
     "VersioningStrategy",
-    "VersionStatus",
-    "CompatibilityLevel",
 ]

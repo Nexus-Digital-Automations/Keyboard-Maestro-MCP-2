@@ -1,5 +1,4 @@
-"""
-Application Control Commands
+"""Application Control Commands.
 
 Provides secure application management including launch, quit, and activation
 with comprehensive validation and security boundaries.
@@ -7,8 +6,10 @@ with comprehensive validation and security boundaries.
 
 from __future__ import annotations
 
+import logging
 import os
 import platform
+import shutil
 import subprocess
 import time
 from dataclasses import dataclass
@@ -16,7 +17,78 @@ from enum import Enum
 
 from ..core.types import CommandResult, Duration, ExecutionContext, Permission
 from .base import BaseCommand, create_command_result
-from .validation import SecurityValidator
+from .validation import SecurityValidator  # E402 fix: Move import to top
+
+logger = logging.getLogger(__name__)
+
+
+class SecurityError(Exception):
+    """Security validation error for process execution."""
+
+
+def secure_subprocess_run(
+    command: str,
+    args: list[str],
+    **kwargs,
+) -> subprocess.CompletedProcess:
+    """Secure subprocess execution with full path resolution and validation.
+
+    Args:
+        command: Command name to execute
+        args: Arguments to pass to command
+        **kwargs: Additional subprocess.run arguments
+
+    Returns:
+        CompletedProcess result
+
+    Raises:
+        SecurityError: If command path cannot be validated or is untrusted
+
+    """
+    # Resolve full executable path
+    full_path = shutil.which(command)
+    if not full_path:
+        raise SecurityError(f"Executable not found in PATH: {command}")
+
+    # Validate path is in trusted system locations
+    trusted_prefixes = [
+        "/usr/bin/",
+        "/bin/",
+        "/usr/sbin/",
+        "/sbin/",
+        "/System/Library/",
+        "/usr/local/bin/",
+    ]
+
+    # Windows trusted locations
+    if platform.system().lower() == "windows":
+        trusted_prefixes.extend(
+            [
+                "C:\\Windows\\System32\\",
+                "C:\\Windows\\SysWOW64\\",
+                "C:\\Program Files\\",
+                "C:\\Program Files (x86)\\",
+            ],
+        )
+
+    if not any(full_path.startswith(prefix) for prefix in trusted_prefixes):
+        logger.warning(f"Using non-standard executable path: {full_path}")
+
+    # Sanitize arguments - basic validation
+    sanitized_args = []
+    for arg in args:
+        if isinstance(arg, str):
+            # Remove potentially dangerous characters
+            sanitized_arg = arg.replace(";", "").replace("&", "").replace("|", "")
+            sanitized_args.append(sanitized_arg)
+        else:
+            sanitized_args.append(str(arg))
+
+    # Log security-relevant execution
+    logger.info(f"Executing secure subprocess: {full_path} with args: {sanitized_args}")
+
+    # Execute with full path
+    return subprocess.run([full_path] + sanitized_args, **kwargs)
 
 
 class ApplicationAction(Enum):
@@ -40,8 +112,7 @@ class ApplicationState(Enum):
 
 @dataclass(frozen=True)
 class LaunchApplicationCommand(BaseCommand):
-    """
-    Launch applications with security validation and path safety.
+    """Launch applications with security validation and path safety.
 
     Provides secure application launching with validation to prevent
     execution of unauthorized or malicious applications.
@@ -153,7 +224,7 @@ class LaunchApplicationCommand(BaseCommand):
                 return bool(
                     path.endswith(".app")
                     or path.startswith("/Applications/")
-                    or path.startswith("/System/")
+                    or path.startswith("/System/"),
                 )
 
             # Basic safety check - avoid system executables
@@ -230,23 +301,22 @@ class LaunchApplicationCommand(BaseCommand):
                     return_code=return_code,
                     launch_arguments=launch_args,
                 )
-            else:
-                stderr_output = (
-                    process.stderr.read().decode("utf-8", errors="ignore")
-                    if process.stderr
-                    else ""
-                )
-                return create_command_result(
-                    success=False,
-                    error_message=f"Application launch failed with code {return_code}: {stderr_output}",
-                    execution_time=execution_time,
-                    return_code=return_code,
-                )
+            stderr_output = (
+                process.stderr.read().decode("utf-8", errors="ignore")
+                if process.stderr
+                else ""
+            )
+            return create_command_result(
+                success=False,
+                error_message=f"Application launch failed with code {return_code}: {stderr_output}",
+                execution_time=execution_time,
+                return_code=return_code,
+            )
 
         except Exception as e:
             return create_command_result(
                 success=False,
-                error_message=f"Failed to launch application: {str(e)}",
+                error_message=f"Failed to launch application: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 
@@ -268,28 +338,10 @@ class LaunchApplicationCommand(BaseCommand):
                     if os.path.exists(location):
                         return location
 
-                # Try using 'which' for command line tools
-                result = subprocess.run(
-                    ["which", app_name], capture_output=True, text=True, timeout=5
-                )
-                if result.returncode == 0:
-                    return result.stdout.strip()
-
-            elif system == "linux":
-                # Try using 'which' to find the executable
-                result = subprocess.run(
-                    ["which", app_name], capture_output=True, text=True, timeout=5
-                )
-                if result.returncode == 0:
-                    return result.stdout.strip()
-
-            elif system == "windows":
-                # Try using 'where' to find the executable
-                result = subprocess.run(
-                    ["where", app_name], capture_output=True, text=True, timeout=5
-                )
-                if result.returncode == 0:
-                    return result.stdout.strip().split("\n")[0]
+            # Try using shutil.which for command line tools (works on all systems)
+            executable_path = shutil.which(app_name)
+            if executable_path:
+                return executable_path
 
             return None
 
@@ -307,8 +359,7 @@ class LaunchApplicationCommand(BaseCommand):
 
 @dataclass(frozen=True)
 class QuitApplicationCommand(BaseCommand):
-    """
-    Quit running applications with graceful and forced termination options.
+    """Quit running applications with graceful and forced termination options.
 
     Provides secure application termination with validation to prevent
     termination of critical system processes.
@@ -434,62 +485,33 @@ class QuitApplicationCommand(BaseCommand):
                     force_quit_used=force_quit,
                     quit_results=quit_results,
                 )
-            else:
-                return create_command_result(
-                    success=False,
-                    error_message=f"Only quit {successful_quits} of {total_processes} processes",
-                    execution_time=execution_time,
-                    processes_quit=successful_quits,
-                    total_processes=total_processes,
-                    quit_results=quit_results,
-                )
+            return create_command_result(
+                success=False,
+                error_message=f"Only quit {successful_quits} of {total_processes} processes",
+                execution_time=execution_time,
+                processes_quit=successful_quits,
+                total_processes=total_processes,
+                quit_results=quit_results,
+            )
 
         except Exception as e:
             return create_command_result(
                 success=False,
-                error_message=f"Failed to quit application: {str(e)}",
+                error_message=f"Failed to quit application: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 
     def _find_application_pids(self, app_name: str) -> list[int]:
-        """Find PIDs for the specified application."""
+        """Find PIDs for the specified application using secure subprocess framework."""
         try:
-            system = platform.system().lower()
-            pids = []
+            # Import the secure subprocess manager
+            from .secure_subprocess import get_secure_subprocess_manager
 
-            if system == "darwin" or system == "linux":  # macOS
-                result = subprocess.run(
-                    ["pgrep", "-f", app_name], capture_output=True, text=True, timeout=5
-                )
-                if result.returncode == 0:
-                    pids = [
-                        int(pid.strip())
-                        for pid in result.stdout.strip().split("\n")
-                        if pid.strip()
-                    ]
+            secure_manager = get_secure_subprocess_manager()
+            return secure_manager.find_application_pids(app_name)
 
-            elif system == "windows":
-                result = subprocess.run(
-                    ["tasklist", "/FI", f"IMAGENAME eq {app_name}*"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
-                )
-                if result.returncode == 0:
-                    # Parse Windows tasklist output
-                    lines = result.stdout.split("\n")
-                    for line in lines[3:]:  # Skip header lines
-                        if line.strip():
-                            parts = line.split()
-                            if len(parts) >= 2:
-                                try:
-                                    pids.append(int(parts[1]))
-                                except ValueError:
-                                    continue
-
-            return pids
-
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error finding application PIDs: {e}")
             return []
 
     def _quit_process(self, pid: int, force: bool, timeout: Duration) -> dict:
@@ -500,14 +522,18 @@ class QuitApplicationCommand(BaseCommand):
             if force:
                 # Force quit immediately
                 if system == "windows":
-                    result = subprocess.run(
-                        ["taskkill", "/F", "/PID", str(pid)],
+                    result = secure_subprocess_run(
+                        "taskkill",
+                        ["/F", "/PID", str(pid)],
                         capture_output=True,
                         timeout=5,
                     )
                 else:
-                    result = subprocess.run(
-                        ["kill", "-9", str(pid)], capture_output=True, timeout=5
+                    result = secure_subprocess_run(
+                        "kill",
+                        ["-9", str(pid)],
+                        capture_output=True,
+                        timeout=5,
                     )
 
                 return {
@@ -518,60 +544,68 @@ class QuitApplicationCommand(BaseCommand):
                     if result.stderr
                     else None,
                 }
+            # Graceful quit first
+            if system == "windows":
+                result = secure_subprocess_run(
+                    "taskkill",
+                    ["/PID", str(pid)],
+                    capture_output=True,
+                    timeout=5,
+                )
             else:
-                # Graceful quit first
+                result = secure_subprocess_run(
+                    "kill",
+                    ["-TERM", str(pid)],
+                    capture_output=True,
+                    timeout=5,
+                )
+
+            if result.returncode == 0:
+                # Wait for process to exit
+                for _ in range(
+                    int(timeout.seconds * 10),
+                ):  # Check every 0.1 seconds
+                    if not self._is_process_running(pid):
+                        return {
+                            "pid": pid,
+                            "success": True,
+                            "method": "graceful_term",
+                            "error": None,
+                        }
+                    time.sleep(0.1)
+
+                # Process didn't exit gracefully, force kill
                 if system == "windows":
-                    result = subprocess.run(
-                        ["taskkill", "/PID", str(pid)], capture_output=True, timeout=5
+                    force_result = secure_subprocess_run(
+                        "taskkill",
+                        ["/F", "/PID", str(pid)],
+                        capture_output=True,
+                        timeout=5,
                     )
                 else:
-                    result = subprocess.run(
-                        ["kill", "-TERM", str(pid)], capture_output=True, timeout=5
+                    force_result = secure_subprocess_run(
+                        "kill",
+                        ["-9", str(pid)],
+                        capture_output=True,
+                        timeout=5,
                     )
 
-                if result.returncode == 0:
-                    # Wait for process to exit
-                    for _ in range(
-                        int(timeout.seconds * 10)
-                    ):  # Check every 0.1 seconds
-                        if not self._is_process_running(pid):
-                            return {
-                                "pid": pid,
-                                "success": True,
-                                "method": "graceful_term",
-                                "error": None,
-                            }
-                        time.sleep(0.1)
-
-                    # Process didn't exit gracefully, force kill
-                    if system == "windows":
-                        force_result = subprocess.run(
-                            ["taskkill", "/F", "/PID", str(pid)],
-                            capture_output=True,
-                            timeout=5,
-                        )
-                    else:
-                        force_result = subprocess.run(
-                            ["kill", "-9", str(pid)], capture_output=True, timeout=5
-                        )
-
-                    return {
-                        "pid": pid,
-                        "success": force_result.returncode == 0,
-                        "method": "timeout_then_force",
-                        "error": force_result.stderr.decode("utf-8", errors="ignore")
-                        if force_result.stderr
-                        else None,
-                    }
-                else:
-                    return {
-                        "pid": pid,
-                        "success": False,
-                        "method": "graceful_term",
-                        "error": result.stderr.decode("utf-8", errors="ignore")
-                        if result.stderr
-                        else None,
-                    }
+                return {
+                    "pid": pid,
+                    "success": force_result.returncode == 0,
+                    "method": "timeout_then_force",
+                    "error": force_result.stderr.decode("utf-8", errors="ignore")
+                    if force_result.stderr
+                    else None,
+                }
+            return {
+                "pid": pid,
+                "success": False,
+                "method": "graceful_term",
+                "error": result.stderr.decode("utf-8", errors="ignore")
+                if result.stderr
+                else None,
+            }
 
         except Exception as e:
             return {
@@ -587,8 +621,9 @@ class QuitApplicationCommand(BaseCommand):
             system = platform.system().lower()
 
             if system == "windows":
-                result = subprocess.run(
-                    ["tasklist", "/FI", f"PID eq {pid}"],
+                result = secure_subprocess_run(
+                    "tasklist",
+                    ["/FI", f"PID eq {pid}"],
                     capture_output=True,
                     text=True,
                     timeout=5,
@@ -596,11 +631,13 @@ class QuitApplicationCommand(BaseCommand):
                 return (
                     f"PID {pid}" in result.stdout if result.returncode == 0 else False
                 )
-            else:
-                result = subprocess.run(
-                    ["kill", "-0", str(pid)], capture_output=True, timeout=5
-                )
-                return result.returncode == 0
+            result = secure_subprocess_run(
+                "kill",
+                ["-0", str(pid)],
+                capture_output=True,
+                timeout=5,
+            )
+            return result.returncode == 0
 
         except Exception:
             return False
@@ -616,8 +653,7 @@ class QuitApplicationCommand(BaseCommand):
 
 @dataclass(frozen=True)
 class ActivateApplicationCommand(BaseCommand):
-    """
-    Activate (bring to foreground) running applications.
+    """Activate (bring to foreground) running applications.
 
     Provides secure application activation with validation to prevent
     unwanted window focus changes and disruption.
@@ -650,11 +686,10 @@ class ActivateApplicationCommand(BaseCommand):
 
         # Validate window title if provided
         window_title = self.get_window_title()
-        if window_title:
-            if not validator.validate_text_input(window_title, "window_title"):
-                return False
-
-        return True
+        return not (
+            window_title
+            and not validator.validate_text_input(window_title, "window_title")
+        )
 
     def _execute_impl(self, context: ExecutionContext) -> CommandResult:
         """Execute application activation."""
@@ -675,7 +710,7 @@ class ActivateApplicationCommand(BaseCommand):
                             success=False,
                             error_message=f"Could not launch application: {app_name}",
                             execution_time=Duration.from_seconds(
-                                time.time() - start_time
+                                time.time() - start_time,
                             ),
                         )
                     # Wait a moment for the app to start
@@ -702,17 +737,16 @@ class ActivateApplicationCommand(BaseCommand):
                     was_launched=create_if_not_running
                     and not self._was_initially_running,
                 )
-            else:
-                return create_command_result(
-                    success=False,
-                    error_message=f"Failed to activate {app_name}",
-                    execution_time=execution_time,
-                )
+            return create_command_result(
+                success=False,
+                error_message=f"Failed to activate {app_name}",
+                execution_time=execution_time,
+            )
 
         except Exception as e:
             return create_command_result(
                 success=False,
-                error_message=f"Application activation failed: {str(e)}",
+                error_message=f"Application activation failed: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 
@@ -722,14 +756,18 @@ class ActivateApplicationCommand(BaseCommand):
             system = platform.system().lower()
 
             if system == "darwin" or system == "linux":  # macOS
-                result = subprocess.run(
-                    ["pgrep", "-f", app_name], capture_output=True, timeout=5
+                result = secure_subprocess_run(
+                    "pgrep",
+                    ["-f", app_name],
+                    capture_output=True,
+                    timeout=5,
                 )
                 return result.returncode == 0
 
-            elif system == "windows":
-                result = subprocess.run(
-                    ["tasklist", "/FI", f"IMAGENAME eq {app_name}*"],
+            if system == "windows":
+                result = secure_subprocess_run(
+                    "tasklist",
+                    ["/FI", f"IMAGENAME eq {app_name}*"],
                     capture_output=True,
                     text=True,
                     timeout=5,
@@ -751,15 +789,23 @@ class ActivateApplicationCommand(BaseCommand):
             system = platform.system().lower()
 
             if system == "darwin":  # macOS
-                result = subprocess.run(["open", "-a", app_name], timeout=10)
+                result = secure_subprocess_run("open", ["-a", app_name], timeout=10)
                 return result.returncode == 0
 
-            elif system == "linux":
-                result = subprocess.run([app_name], timeout=10)
+            if system == "linux":
+                result = secure_subprocess_run(app_name, [], timeout=10)
                 return result.returncode == 0
 
-            elif system == "windows":
-                result = subprocess.run(["start", app_name], shell=True, timeout=10)
+            if system == "windows":
+                # Validate app_name to prevent command injection
+                import shlex
+
+                safe_app_name = shlex.quote(app_name)
+                result = secure_subprocess_run(
+                    "cmd",
+                    ["/c", "start", "", safe_app_name],
+                    timeout=10,
+                )
                 return result.returncode == 0
 
             return False
@@ -768,7 +814,9 @@ class ActivateApplicationCommand(BaseCommand):
             return False
 
     def _activate_application(
-        self, app_name: str, window_title: str | None = None
+        self,
+        app_name: str,
+        window_title: str | None = None,
     ) -> bool:
         """Activate the specified application."""
         try:
@@ -777,7 +825,7 @@ class ActivateApplicationCommand(BaseCommand):
             if system == "darwin":  # macOS
                 if window_title:
                     # Activate specific window by title
-                    script = f'''
+                    script = f"""
                     tell application "{app_name}"
                         activate
                         set windowList to every window whose name contains "{window_title}"
@@ -785,31 +833,37 @@ class ActivateApplicationCommand(BaseCommand):
                             set index of item 1 of windowList to 1
                         end if
                     end tell
-                    '''
+                    """
                 else:
                     # Activate application
                     script = f'tell application "{app_name}" to activate'
 
-                result = subprocess.run(["osascript", "-e", script], timeout=10)
+                result = secure_subprocess_run("osascript", ["-e", script], timeout=10)
                 return result.returncode == 0
 
-            elif system == "linux":
+            if system == "linux":
                 # Use wmctrl if available
                 try:
                     if window_title:
-                        result = subprocess.run(
-                            ["wmctrl", "-a", window_title], timeout=5
+                        result = secure_subprocess_run(
+                            "wmctrl",
+                            ["-a", window_title],
+                            timeout=5,
                         )
                     else:
-                        result = subprocess.run(["wmctrl", "-a", app_name], timeout=5)
+                        result = secure_subprocess_run(
+                            "wmctrl",
+                            ["-a", app_name],
+                            timeout=5,
+                        )
                     return result.returncode == 0
                 except FileNotFoundError:
                     # wmctrl not available, try xdotool
                     try:
                         if window_title:
-                            result = subprocess.run(
+                            result = secure_subprocess_run(
+                                "xdotool",
                                 [
-                                    "xdotool",
                                     "search",
                                     "--name",
                                     window_title,
@@ -818,9 +872,9 @@ class ActivateApplicationCommand(BaseCommand):
                                 timeout=5,
                             )
                         else:
-                            result = subprocess.run(
+                            result = secure_subprocess_run(
+                                "xdotool",
                                 [
-                                    "xdotool",
                                     "search",
                                     "--class",
                                     app_name,

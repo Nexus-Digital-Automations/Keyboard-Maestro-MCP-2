@@ -1,5 +1,4 @@
-"""
-Compliance Monitor - TASK_62 Phase 4 Advanced Security Features
+"""Compliance Monitor - TASK_62 Phase 4 Advanced Security Features.
 
 Automated compliance checking and reporting for zero trust security framework.
 Provides comprehensive compliance monitoring, assessment, and reporting for multiple frameworks.
@@ -129,7 +128,7 @@ class ComplianceMonitor:
         # Initialize compliance frameworks and controls
         self._initialize_compliance_frameworks()
 
-    def _initialize_compliance_frameworks(self):
+    def _initialize_compliance_frameworks(self) -> bool:
         """Initialize compliance frameworks and their controls."""
         # SOC2 Type II Controls
         soc2_controls = [
@@ -278,8 +277,7 @@ class ComplianceMonitor:
         assessor: str = "automated_system",
         include_evidence: bool = True,
     ) -> Either[ComplianceMonitoringError, ComplianceReport]:
-        """
-        Perform comprehensive compliance assessment for specified framework.
+        """Perform comprehensive compliance assessment for specified framework.
 
         Args:
             framework: Compliance framework to assess
@@ -290,6 +288,7 @@ class ComplianceMonitor:
 
         Returns:
             Either compliance monitoring error or compliance report
+
         """
         try:
             # Get controls for framework
@@ -298,8 +297,8 @@ class ComplianceMonitor:
             if not framework_controls:
                 return Either.error(
                     ComplianceMonitoringError(
-                        f"No controls defined for framework: {framework.value}"
-                    )
+                        f"No controls defined for framework: {framework.value}",
+                    ),
                 )
 
             # Perform assessment for each control
@@ -339,21 +338,21 @@ class ComplianceMonitor:
                     a
                     for a in control_assessments
                     if a.status == ComplianceStatus.COMPLIANT
-                ]
+                ],
             )
             non_compliant_controls = len(
                 [
                     a
                     for a in control_assessments
                     if a.status == ComplianceStatus.NON_COMPLIANT
-                ]
+                ],
             )
             partially_compliant_controls = len(
                 [
                     a
                     for a in control_assessments
                     if a.status == ComplianceStatus.PARTIALLY_COMPLIANT
-                ]
+                ],
             )
 
             # Calculate overall score
@@ -384,12 +383,13 @@ class ComplianceMonitor:
             # Identify key findings and priority remediations
             key_findings = self._extract_key_findings(control_assessments)
             priority_remediations = self._identify_priority_remediations(
-                control_assessments
+                control_assessments,
             )
 
             # Generate compliance trends (placeholder)
             compliance_trends = await self._calculate_compliance_trends(
-                framework, control_assessments
+                framework,
+                control_assessments,
             )
 
             # Create compliance report
@@ -414,7 +414,7 @@ class ComplianceMonitor:
 
         except Exception as e:
             return Either.error(
-                ComplianceMonitoringError(f"Compliance assessment failed: {str(e)}")
+                ComplianceMonitoringError(f"Compliance assessment failed: {e!s}"),
             )
 
     async def _assess_control(
@@ -429,14 +429,17 @@ class ComplianceMonitor:
         try:
             # Perform automated testing based on control category
             test_results = await self._perform_control_testing(
-                control, scope, assessment_level
+                control,
+                scope,
+                assessment_level,
             )
 
             # Collect evidence if requested
             evidence_collected = []
             if include_evidence:
                 evidence_collected = await self._collect_control_evidence(
-                    control, scope
+                    control,
+                    scope,
                 )
 
             # Calculate compliance score based on test results
@@ -453,7 +456,8 @@ class ComplianceMonitor:
             # Generate findings and remediation actions
             findings = self._generate_control_findings(test_results, control)
             remediation_actions = self._generate_remediation_actions(
-                test_results, control
+                test_results,
+                control,
             )
 
             # Calculate next assessment date
@@ -461,7 +465,7 @@ class ComplianceMonitor:
 
             assessment = ComplianceAssessment(
                 assessment_id=create_compliance_id(
-                    f"{control.control_id}_{datetime.now(UTC).strftime('%Y%m%d')}"
+                    f"{control.control_id}_{datetime.now(UTC).strftime('%Y%m%d')}",
                 ),
                 control_id=control.control_id,
                 framework=control.framework,
@@ -482,11 +486,14 @@ class ComplianceMonitor:
 
         except Exception as e:
             return Either.error(
-                ComplianceMonitoringError(f"Control assessment failed: {str(e)}")
+                ComplianceMonitoringError(f"Control assessment failed: {e!s}"),
             )
 
     async def _perform_control_testing(
-        self, control: ComplianceControl, scope: str, assessment_level: ComplianceLevel
+        self,
+        control: ComplianceControl,
+        scope: str,
+        assessment_level: ComplianceLevel,
     ) -> dict[str, Any]:
         """Perform automated testing for compliance control."""
         test_results = {
@@ -636,7 +643,9 @@ class ComplianceMonitor:
         return test_results
 
     async def _collect_control_evidence(
-        self, control: ComplianceControl, scope: str
+        self,
+        control: ComplianceControl,
+        scope: str,
     ) -> list[str]:
         """Collect evidence for compliance control."""
         evidence = []
@@ -645,7 +654,7 @@ class ComplianceMonitor:
         for requirement in control.evidence_requirements:
             if "documentation" in requirement.lower():
                 evidence.append(
-                    f"Policy documentation collected for {control.control_id}"
+                    f"Policy documentation collected for {control.control_id}",
                 )
             elif "logs" in requirement.lower():
                 evidence.append(f"System logs retrieved for {control.control_id}")
@@ -659,7 +668,9 @@ class ComplianceMonitor:
         return evidence
 
     def _calculate_control_score(
-        self, test_results: dict[str, Any], control: ComplianceControl
+        self,
+        test_results: dict[str, Any],
+        control: ComplianceControl,
     ) -> float:
         """Calculate compliance score for control based on test results."""
         total_tests = len(test_results["tests_performed"])
@@ -686,7 +697,9 @@ class ComplianceMonitor:
         return score
 
     def _generate_control_findings(
-        self, test_results: dict[str, Any], control: ComplianceControl
+        self,
+        test_results: dict[str, Any],
+        control: ComplianceControl,
     ) -> list[str]:
         """Generate findings based on test results."""
         findings = []
@@ -694,28 +707,30 @@ class ComplianceMonitor:
         for test_name, test_detail in test_results["test_details"].items():
             if test_detail["result"] == "fail":
                 findings.append(
-                    f"Control {control.control_id}: {test_name} failed - {test_detail['details']}"
+                    f"Control {control.control_id}: {test_name} failed - {test_detail['details']}",
                 )
             elif test_detail["result"] == "partial":
                 findings.append(
-                    f"Control {control.control_id}: {test_name} partially implemented - {test_detail['details']}"
+                    f"Control {control.control_id}: {test_name} partially implemented - {test_detail['details']}",
                 )
 
         # Add general findings
         if test_results["tests_failed"] > 0:
             findings.append(
-                f"Control {control.control_id}: {test_results['tests_failed']} test(s) failed out of {len(test_results['tests_performed'])}"
+                f"Control {control.control_id}: {test_results['tests_failed']} test(s) failed out of {len(test_results['tests_performed'])}",
             )
 
         if test_results.get("automation_coverage", 0.0) < 0.5:
             findings.append(
-                f"Control {control.control_id}: Low automation coverage ({test_results.get('automation_coverage', 0.0) * 100:.1f}%)"
+                f"Control {control.control_id}: Low automation coverage ({test_results.get('automation_coverage', 0.0) * 100:.1f}%)",
             )
 
         return findings
 
     def _generate_remediation_actions(
-        self, test_results: dict[str, Any], control: ComplianceControl
+        self,
+        test_results: dict[str, Any],
+        control: ComplianceControl,
     ) -> list[str]:
         """Generate remediation actions based on test results."""
         actions = []
@@ -740,13 +755,15 @@ class ComplianceMonitor:
         # Add control-specific remediation guidance
         if control.implementation_guidance:
             actions.append(
-                f"Follow implementation guidance: {control.implementation_guidance}"
+                f"Follow implementation guidance: {control.implementation_guidance}",
             )
 
         return actions
 
     def _calculate_next_assessment_date(
-        self, control: ComplianceControl, status: ComplianceStatus
+        self,
+        control: ComplianceControl,
+        status: ComplianceStatus,
     ) -> datetime:
         """Calculate next assessment date based on control and status."""
         # Assessment frequency based on status and criticality
@@ -754,14 +771,13 @@ class ComplianceMonitor:
             months = 1  # Monthly for non-compliant
         elif status == ComplianceStatus.PARTIALLY_COMPLIANT:
             months = 3  # Quarterly for partially compliant
+        # Frequency based on criticality for compliant controls
+        elif control.criticality == "critical":
+            months = 3  # Quarterly for critical
+        elif control.criticality == "high":
+            months = 6  # Semi-annually for high
         else:
-            # Frequency based on criticality for compliant controls
-            if control.criticality == "critical":
-                months = 3  # Quarterly for critical
-            elif control.criticality == "high":
-                months = 6  # Semi-annually for high
-            else:
-                months = 12  # Annually for medium/low
+            months = 12  # Annually for medium/low
 
         return datetime.now(UTC) + timedelta(days=months * 30)
 
@@ -802,18 +818,20 @@ class ComplianceMonitor:
         return summary.strip()
 
     def _get_status_recommendation(
-        self, status: ComplianceStatus, framework: ComplianceFramework
+        self,
+        status: ComplianceStatus,
+        framework: ComplianceFramework,
     ) -> str:
         """Get recommendation based on compliance status."""
         if status == ComplianceStatus.COMPLIANT:
             return f"The organization demonstrates strong compliance with {framework.value} requirements. Continue monitoring and maintain current controls."
-        elif status == ComplianceStatus.PARTIALLY_COMPLIANT:
+        if status == ComplianceStatus.PARTIALLY_COMPLIANT:
             return f"The organization has implemented most {framework.value} requirements but needs to address identified gaps to achieve full compliance."
-        else:
-            return f"Immediate action is required to address {framework.value} compliance gaps. Prioritize high-risk areas and implement comprehensive remediation plan."
+        return f"Immediate action is required to address {framework.value} compliance gaps. Prioritize high-risk areas and implement comprehensive remediation plan."
 
     def _extract_key_findings(
-        self, assessments: list[ComplianceAssessment]
+        self,
+        assessments: list[ComplianceAssessment],
     ) -> list[str]:
         """Extract key findings from control assessments."""
         key_findings = []
@@ -848,20 +866,21 @@ class ComplianceMonitor:
         # Generate key findings
         if critical_failures > 0:
             key_findings.append(
-                f"{critical_failures} controls are non-compliant and require immediate attention"
+                f"{critical_failures} controls are non-compliant and require immediate attention",
             )
 
         # Report common issues
         for issue_type, count in common_issues.items():
             if count > 1:
                 key_findings.append(
-                    f"Multiple controls ({count}) have {issue_type.replace('_', ' ')}"
+                    f"Multiple controls ({count}) have {issue_type.replace('_', ' ')}",
                 )
 
         return key_findings[:5]  # Limit to top 5 findings
 
     def _identify_priority_remediations(
-        self, assessments: list[ComplianceAssessment]
+        self,
+        assessments: list[ComplianceAssessment],
     ) -> list[str]:
         """Identify priority remediation actions."""
         priority_actions = []
@@ -916,8 +935,8 @@ class ComplianceMonitor:
 
 # Export the compliance monitor class
 __all__ = [
-    "ComplianceMonitor",
     "ComplianceFramework",
-    "ComplianceStatus",
+    "ComplianceMonitor",
     "ComplianceReport",
+    "ComplianceStatus",
 ]

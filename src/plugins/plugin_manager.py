@@ -1,5 +1,4 @@
-"""
-Plugin lifecycle management and orchestration system.
+"""Plugin lifecycle management and orchestration system.
 
 This module provides comprehensive plugin management including installation,
 loading, activation, and execution with security validation and resource monitoring.
@@ -49,7 +48,7 @@ class PluginRegistry:
         self.installed_plugins: dict[PluginId, Path] = {}
         self._ensure_registry_directory()
 
-    def _ensure_registry_directory(self):
+    def _ensure_registry_directory(self) -> bool:
         """Ensure registry directory exists."""
         self.registry_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -77,7 +76,7 @@ class PluginRegistry:
 
         except Exception as e:
             return Either.left(
-                PluginError.initialization_failed(f"Failed to load registry: {str(e)}")
+                PluginError.initialization_failed(f"Failed to load registry: {e!s}"),
             )
 
     async def save_registry(self) -> Either[PluginError, None]:
@@ -92,7 +91,7 @@ class PluginRegistry:
             for plugin_id, metadata in self.plugins.items():
                 plugin_data = self._serialize_metadata(metadata)
                 plugin_data["install_path"] = str(
-                    self.installed_plugins.get(plugin_id, "")
+                    self.installed_plugins.get(plugin_id, ""),
                 )
                 registry_data["plugins"].append(plugin_data)
 
@@ -103,15 +102,15 @@ class PluginRegistry:
 
         except Exception as e:
             return Either.left(
-                PluginError.initialization_failed(f"Failed to save registry: {str(e)}")
+                PluginError.initialization_failed(f"Failed to save registry: {e!s}"),
             )
 
-    def register_plugin(self, metadata: PluginMetadata, install_path: Path):
+    def register_plugin(self, metadata: PluginMetadata, install_path: Path) -> bool:
         """Register plugin in registry."""
         self.plugins[metadata.identifier] = metadata
         self.installed_plugins[metadata.identifier] = install_path
 
-    def unregister_plugin(self, plugin_id: PluginId):
+    def unregister_plugin(self, plugin_id: PluginId) -> bool:
         """Unregister plugin from registry."""
         self.plugins.pop(plugin_id, None)
         self.installed_plugins.pop(plugin_id, None)
@@ -178,7 +177,7 @@ class PluginRegistry:
                     plugin_id=PluginId(dep_data["plugin_id"]),
                     version_requirement=dep_data["version_requirement"],
                     optional=dep_data.get("optional", False),
-                )
+                ),
             )
 
         permissions_data = data.get("permissions", {})
@@ -219,29 +218,32 @@ class PluginLoader:
         self.loaded_modules: dict[PluginId, Any] = {}
 
     async def load_plugin_from_path(
-        self, plugin_path: Path, metadata: PluginMetadata
+        self,
+        plugin_path: Path,
+        metadata: PluginMetadata,
     ) -> Either[PluginError, PluginInterface]:
         """Load plugin from file system path."""
         try:
             # Determine if it's a zip file or directory
             if plugin_path.suffix == ".zip":
                 return await self._load_from_zip(plugin_path, metadata)
-            elif plugin_path.is_dir():
+            if plugin_path.is_dir():
                 return await self._load_from_directory(plugin_path, metadata)
-            else:
-                return Either.left(
-                    PluginError.invalid_plugin_format(
-                        f"Unsupported plugin format: {plugin_path}"
-                    )
-                )
+            return Either.left(
+                PluginError.invalid_plugin_format(
+                    f"Unsupported plugin format: {plugin_path}",
+                ),
+            )
 
         except Exception as e:
             return Either.left(
-                PluginError.initialization_failed(f"Failed to load plugin: {str(e)}")
+                PluginError.initialization_failed(f"Failed to load plugin: {e!s}"),
             )
 
     async def _load_from_zip(
-        self, zip_path: Path, metadata: PluginMetadata
+        self,
+        zip_path: Path,
+        metadata: PluginMetadata,
     ) -> Either[PluginError, PluginInterface]:
         """Load plugin from zip file."""
         try:
@@ -257,8 +259,8 @@ class PluginLoader:
                 if not plugin_dirs:
                     return Either.left(
                         PluginError.invalid_plugin_format(
-                            "No plugin directory found in zip"
-                        )
+                            "No plugin directory found in zip",
+                        ),
                     )
 
                 plugin_dir = plugin_dirs[0]
@@ -266,11 +268,13 @@ class PluginLoader:
 
         except Exception as e:
             return Either.left(
-                PluginError.initialization_failed(f"Failed to load from zip: {str(e)}")
+                PluginError.initialization_failed(f"Failed to load from zip: {e!s}"),
             )
 
     async def _load_from_directory(
-        self, plugin_dir: Path, metadata: PluginMetadata
+        self,
+        plugin_dir: Path,
+        metadata: PluginMetadata,
     ) -> Either[PluginError, PluginInterface]:
         """Load plugin from directory."""
         try:
@@ -279,18 +283,19 @@ class PluginLoader:
             if not entry_point_file.exists():
                 return Either.left(
                     PluginError.invalid_plugin_format(
-                        f"Entry point file not found: {metadata.entry_point}.py"
-                    )
+                        f"Entry point file not found: {metadata.entry_point}.py",
+                    ),
                 )
 
             # Load module dynamically
             spec = importlib.util.spec_from_file_location(
-                f"plugin_{metadata.identifier}", entry_point_file
+                f"plugin_{metadata.identifier}",
+                entry_point_file,
             )
 
             if not spec or not spec.loader:
                 return Either.left(
-                    PluginError.invalid_plugin_format("Invalid Python module")
+                    PluginError.invalid_plugin_format("Invalid Python module"),
                 )
 
             module = importlib.util.module_from_spec(spec)
@@ -305,7 +310,7 @@ class PluginLoader:
                 plugin_class = getattr(module, "Plugin", None)
                 if not plugin_class:
                     return Either.left(
-                        PluginError.invalid_plugin_format("Plugin class not found")
+                        PluginError.invalid_plugin_format("Plugin class not found"),
                     )
 
                 # Create plugin instance
@@ -322,10 +327,10 @@ class PluginLoader:
 
         except Exception as e:
             return Either.left(
-                PluginError.initialization_failed(f"Failed to load module: {str(e)}")
+                PluginError.initialization_failed(f"Failed to load module: {e!s}"),
             )
 
-    def unload_plugin(self, plugin_id: PluginId):
+    def unload_plugin(self, plugin_id: PluginId) -> None:
         """Unload plugin module."""
         self.loaded_modules.pop(plugin_id, None)
 
@@ -371,8 +376,8 @@ class PluginManager:
             if bridge_result.is_left():
                 return Either.left(
                     PluginError.initialization_failed(
-                        f"API bridge init failed: {bridge_result.get_left()}"
-                    )
+                        f"API bridge init failed: {bridge_result.get_left()}",
+                    ),
                 )
 
             logger.info("Plugin manager initialized successfully")
@@ -381,12 +386,14 @@ class PluginManager:
         except Exception as e:
             return Either.left(
                 PluginError.initialization_failed(
-                    f"Manager initialization failed: {str(e)}"
-                )
+                    f"Manager initialization failed: {e!s}",
+                ),
             )
 
     async def install_plugin(
-        self, plugin_source: str, configuration: PluginConfiguration | None = None
+        self,
+        plugin_source: str,
+        configuration: PluginConfiguration | None = None,
     ) -> Either[PluginError, PluginMetadata]:
         """Install plugin from source with comprehensive validation."""
         try:
@@ -394,7 +401,7 @@ class PluginManager:
             source_path = Path(plugin_source)
             if not source_path.exists():
                 return Either.left(
-                    PluginError.plugin_not_found(PluginId(plugin_source))
+                    PluginError.plugin_not_found(PluginId(plugin_source)),
                 )
 
             # Load and validate plugin metadata
@@ -406,7 +413,8 @@ class PluginManager:
 
             # Security validation
             security_result = await self.security_manager.validate_plugin(
-                source_path, metadata
+                source_path,
+                metadata,
             )
             if security_result.is_left():
                 return security_result
@@ -448,12 +456,15 @@ class PluginManager:
 
         except Exception as e:
             context = create_error_context(
-                "install_plugin", "plugin_manager", source=plugin_source
+                "install_plugin",
+                "plugin_manager",
+                source=plugin_source,
             )
             return Either.left(
                 PluginError.initialization_failed(
-                    f"Installation failed: {str(e)}", context
-                )
+                    f"Installation failed: {e!s}",
+                    context,
+                ),
             )
 
     async def load_plugin(self, plugin_id: PluginId) -> Either[PluginError, None]:
@@ -491,7 +502,7 @@ class PluginManager:
 
         except Exception as e:
             return Either.left(
-                PluginError.initialization_failed(f"Loading failed: {str(e)}")
+                PluginError.initialization_failed(f"Loading failed: {e!s}"),
             )
 
     async def activate_plugin(self, plugin_id: PluginId) -> Either[PluginError, None]:
@@ -523,23 +534,25 @@ class PluginManager:
                 self.plugin_hooks[hook.event_type].append(hook)
 
             logger.info(
-                f"Plugin activated: {plugin_id} with {len(custom_actions)} actions and {len(hooks)} hooks"
+                f"Plugin activated: {plugin_id} with {len(custom_actions)} actions and {len(hooks)} hooks",
             )
             return Either.right(None)
 
         except Exception as e:
             return Either.left(
-                PluginError.activation_failed(f"Activation failed: {str(e)}")
+                PluginError.activation_failed(f"Activation failed: {e!s}"),
             )
 
     async def execute_custom_action(
-        self, action_id: ActionId, parameters: dict[str, Any]
+        self,
+        action_id: ActionId,
+        parameters: dict[str, Any],
     ) -> Either[PluginError, Any]:
         """Execute custom action with security validation."""
         try:
             if action_id not in self.custom_actions:
                 return Either.left(
-                    PluginError(f"Action not found: {action_id}", "ACTION_NOT_FOUND")
+                    PluginError(f"Action not found: {action_id}", "ACTION_NOT_FOUND"),
                 )
 
             action = self.custom_actions[action_id]
@@ -551,7 +564,7 @@ class PluginManager:
                     PluginError(
                         f"Plugin configuration not found: {action.plugin_id}",
                         "CONFIG_NOT_FOUND",
-                    )
+                    ),
                 )
 
             # Execute in security sandbox
@@ -562,7 +575,9 @@ class PluginManager:
             return Either.left(PluginError.execution_error(str(e)))
 
     async def trigger_hooks(
-        self, event_type: str, event_data: dict[str, Any]
+        self,
+        event_type: str,
+        event_data: dict[str, Any],
     ) -> list[Either[PluginError, Any]]:
         """Trigger all hooks for specific event type."""
         results = []
@@ -629,7 +644,8 @@ class PluginManager:
         return actions
 
     async def _extract_plugin_metadata(
-        self, plugin_path: Path
+        self,
+        plugin_path: Path,
     ) -> Either[PluginError, PluginMetadata]:
         """Extract plugin metadata from plugin source."""
         try:
@@ -647,7 +663,7 @@ class PluginManager:
 
             if not manifest_path or not manifest_path.exists():
                 return Either.left(
-                    PluginError.invalid_plugin_format("manifest.json not found")
+                    PluginError.invalid_plugin_format("manifest.json not found"),
                 )
 
             # Parse manifest
@@ -659,11 +675,12 @@ class PluginManager:
 
         except Exception as e:
             return Either.left(
-                PluginError.invalid_plugin_format(f"Failed to parse manifest: {str(e)}")
+                PluginError.invalid_plugin_format(f"Failed to parse manifest: {e!s}"),
             )
 
     async def _validate_dependencies(
-        self, dependencies: list
+        self,
+        dependencies: list,
     ) -> Either[PluginError, None]:
         """Validate plugin dependencies are satisfied."""
         try:
@@ -671,14 +688,14 @@ class PluginManager:
                 if not dependency.optional:
                     # Check if required dependency is installed
                     dep_metadata = self.registry.get_plugin_metadata(
-                        dependency.plugin_id
+                        dependency.plugin_id,
                     )
                     if not dep_metadata:
                         return Either.left(
                             PluginError(
                                 f"Required dependency not found: {dependency.plugin_id}",
                                 "DEPENDENCY_NOT_FOUND",
-                            )
+                            ),
                         )
 
                     # Check version compatibility
@@ -687,7 +704,7 @@ class PluginManager:
                             PluginError(
                                 f"Dependency version mismatch: {dependency.plugin_id} requires {dependency.version_requirement}",
                                 "DEPENDENCY_VERSION_MISMATCH",
-                            )
+                            ),
                         )
 
             return Either.right(None)
@@ -695,6 +712,7 @@ class PluginManager:
         except Exception as e:
             return Either.left(
                 PluginError(
-                    f"Dependency validation failed: {str(e)}", "DEPENDENCY_ERROR"
-                )
+                    f"Dependency validation failed: {e!s}",
+                    "DEPENDENCY_ERROR",
+                ),
             )

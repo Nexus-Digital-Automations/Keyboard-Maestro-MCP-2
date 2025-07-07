@@ -1,10 +1,12 @@
-"""
-Property-based security tests for the Keyboard Maestro MCP system.
+"""Property-based security tests for the Keyboard Maestro MCP system.
 
 This module tests security properties across wide input ranges to ensure
 robust protection against various attack vectors and malicious inputs.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import re
 
 import pytest
@@ -37,7 +39,7 @@ class TestInputValidationProperties:
 
     @given(malicious_text_content())
     @settings(max_examples=50)
-    def test_script_injection_always_blocked(self, malicious_text: str):
+    def test_script_injection_always_blocked(self, malicious_text: str) -> None:
         """Property: Script injection attempts are always detected and blocked."""
         # Test various injection patterns
         script_patterns = [
@@ -65,7 +67,7 @@ class TestInputValidationProperties:
 
     @given(malicious_text_content())
     @settings(max_examples=30)
-    def test_path_traversal_always_blocked(self, malicious_path: str):
+    def test_path_traversal_always_blocked(self, malicious_path: str) -> None:
         """Property: Path traversal attempts are always detected and blocked."""
         traversal_patterns = [
             r"\.\./",
@@ -90,7 +92,7 @@ class TestInputValidationProperties:
                 message=f"Path traversal in: {malicious_path[:100]}",
             )
 
-    def test_excessive_input_blocked(self):
+    def test_excessive_input_blocked(self) -> None:
         """Property: Excessively large inputs are rejected."""
         # Create large input manually since Hypothesis can't generate > 10000 chars
         large_input = "a" * 15000
@@ -105,7 +107,7 @@ class TestInputValidationProperties:
 
     @given(invalid_identifiers())
     @settings(max_examples=30)
-    def test_invalid_identifiers_rejected(self, invalid_id: str):
+    def test_invalid_identifiers_rejected(self, invalid_id: str) -> None:
         """Property: Invalid identifiers are always rejected."""
         assert_security_violation_blocked(
             func=InputSanitizer.validate_identifier,
@@ -116,7 +118,7 @@ class TestInputValidationProperties:
 
     @given(safe_text_content(min_length=1, max_length=1000))
     @settings(max_examples=30)
-    def test_safe_content_passes_validation(self, safe_text: str):
+    def test_safe_content_passes_validation(self, safe_text: str) -> None:
         """Property: Safe content always passes validation."""
         # Safe content should not raise exceptions
         try:
@@ -152,10 +154,10 @@ class TestInputValidationProperties:
             alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-",
             min_size=1,
             max_size=100,
-        )
+        ),
     )
     @settings(max_examples=20)
-    def test_alphanumeric_identifiers_accepted(self, clean_id: str):
+    def test_alphanumeric_identifiers_accepted(self, clean_id: str) -> None:
         """Property: Clean alphanumeric identifiers are accepted."""
         assume(clean_id[0].isalpha())  # Must start with letter
 
@@ -172,19 +174,21 @@ class TestPermissionEnforcementProperties:
     """Property-based tests for permission system security."""
 
     @given(
-        permission_sets(min_size=0, max_size=4), permission_sets(min_size=1, max_size=8)
+        permission_sets(min_size=0, max_size=4),
+        permission_sets(min_size=1, max_size=8),
     )
     @settings(max_examples=30)
     def test_permission_boundaries_enforced(
         self,
         available_perms: frozenset[Permission],
         required_perms: frozenset[Permission],
-    ):
+    ) -> None:
         """Property: Permission boundaries are strictly enforced."""
         assume(len(required_perms) > 0)
 
         context = ExecutionContext.create_test_context(
-            permissions=available_perms, timeout=Duration.from_seconds(30)
+            permissions=available_perms,
+            timeout=Duration.from_seconds(30),
         )
 
         missing_perms = required_perms - available_perms
@@ -208,7 +212,7 @@ class TestPermissionEnforcementProperties:
 
     @given(execution_contexts())
     @settings(max_examples=20)
-    def test_context_immutability_security(self, context: ExecutionContext):
+    def test_context_immutability_security(self, context: ExecutionContext) -> None:
         """Property: Execution contexts maintain immutability for security."""
         original_permissions = context.permissions
         original_timeout = context.timeout
@@ -234,8 +238,9 @@ class TestPermissionEnforcementProperties:
     @given(st.lists(st.sampled_from(list(Permission)), min_size=1, max_size=8))
     @settings(max_examples=15)
     def test_minimal_permission_principle(
-        self, requested_permissions: list[Permission]
-    ):
+        self,
+        requested_permissions: list[Permission],
+    ) -> None:
         """Property: System enforces minimal permission principle."""
         # Create context with minimal permissions
         minimal_perms = frozenset([Permission.TEXT_INPUT])  # Basic permission
@@ -254,12 +259,13 @@ class TestSecurityBoundaryProperties:
 
     @given(st.text(min_size=0, max_size=2000))
     @settings(max_examples=40)
-    def test_command_parameter_sanitization(self, raw_input: str):
+    def test_command_parameter_sanitization(self, raw_input: str) -> None:
         """Property: All command parameters are properly sanitized."""
         # Test text input command parameter sanitization
         try:
             validated_params = CommandValidator.validate_command_parameters(
-                CommandType.TEXT_INPUT, {"text": raw_input, "speed": "normal"}
+                CommandType.TEXT_INPUT,
+                {"text": raw_input, "speed": "normal"},
             )
 
             sanitized_text = validated_params.get("text", "")
@@ -275,7 +281,7 @@ class TestSecurityBoundaryProperties:
             for pattern in dangerous_patterns:
                 original_matches = len(re.findall(pattern, raw_input, re.IGNORECASE))
                 sanitized_matches = len(
-                    re.findall(pattern, sanitized_text, re.IGNORECASE)
+                    re.findall(pattern, sanitized_text, re.IGNORECASE),
                 )
 
                 assert sanitized_matches <= original_matches, (
@@ -288,11 +294,14 @@ class TestSecurityBoundaryProperties:
 
     @given(
         st.floats(
-            min_value=-1000.0, max_value=1000.0, allow_nan=False, allow_infinity=False
-        )
+            min_value=-1000.0,
+            max_value=1000.0,
+            allow_nan=False,
+            allow_infinity=False,
+        ),
     )
     @settings(max_examples=30)
-    def test_numeric_parameter_bounds(self, numeric_value: float):
+    def test_numeric_parameter_bounds(self, numeric_value: float) -> None:
         """Property: Numeric parameters are bounded to prevent abuse."""
         if numeric_value < 0 or numeric_value > 300:  # Outside reasonable bounds
             # Should be rejected
@@ -306,7 +315,8 @@ class TestSecurityBoundaryProperties:
             # Should be accepted
             try:
                 validated = CommandValidator.validate_command_parameters(
-                    CommandType.PAUSE, {"duration": numeric_value}
+                    CommandType.PAUSE,
+                    {"duration": numeric_value},
                 )
                 assert validated.get("duration") == numeric_value
             except ValidationError:
@@ -314,10 +324,10 @@ class TestSecurityBoundaryProperties:
                 pass
 
     @given(
-        st.text(alphabet="!@#$%^&*()+=[]{}|\\:;\"'<>?,./`~", min_size=1, max_size=100)
+        st.text(alphabet="!@#$%^&*()+=[]{}|\\:;\"'<>?,./`~", min_size=1, max_size=100),
     )
     @settings(max_examples=20)
-    def test_special_character_handling(self, special_chars: str):
+    def test_special_character_handling(self, special_chars: str) -> None:
         """Property: Special characters are handled securely."""
         # Special characters in identifiers should be rejected
         assert_security_violation_blocked(
@@ -348,7 +358,7 @@ class TestCommandSecurityProperties:
 
     @given(st.sampled_from(list(CommandType)))
     @settings(max_examples=20)
-    def test_command_permission_requirements(self, command_type: CommandType):
+    def test_command_permission_requirements(self, command_type: CommandType) -> None:
         """Property: All command types have appropriate permission requirements."""
         required_perms = CommandValidator.get_required_permissions(command_type)
 
@@ -377,7 +387,9 @@ class TestCommandSecurityProperties:
     @given(
         st.dictionaries(
             keys=st.text(
-                alphabet="abcdefghijklmnopqrstuvwxyz_", min_size=1, max_size=20
+                alphabet="abcdefghijklmnopqrstuvwxyz_",
+                min_size=1,
+                max_size=20,
             ),
             values=st.one_of(
                 st.text(max_size=100),
@@ -387,10 +399,10 @@ class TestCommandSecurityProperties:
             ),
             min_size=0,
             max_size=10,
-        )
+        ),
     )
     @settings(max_examples=30)
-    def test_arbitrary_parameter_handling(self, arbitrary_params: dict):
+    def test_arbitrary_parameter_handling(self, arbitrary_params: dict) -> None:
         """Property: System handles arbitrary parameter combinations safely."""
         for command_type in [
             CommandType.TEXT_INPUT,
@@ -399,7 +411,8 @@ class TestCommandSecurityProperties:
         ]:
             try:
                 validated = CommandValidator.validate_command_parameters(
-                    command_type, arbitrary_params
+                    command_type,
+                    arbitrary_params,
                 )
 
                 # If validation succeeds, result should be properly structured
@@ -423,7 +436,7 @@ class TestCommandSecurityProperties:
 
     @given(safe_text_content(min_length=1, max_length=500))
     @settings(max_examples=20)
-    def test_safe_command_execution_properties(self, safe_text: str):
+    def test_safe_command_execution_properties(self, safe_text: str) -> None:
         """Property: Safe commands execute without security violations."""
         from src.core import CommandParameters
         from src.core.engine import PlaceholderCommand
@@ -446,7 +459,7 @@ class TestCommandSecurityProperties:
 
         # Should execute without security errors
         context = ExecutionContext.create_test_context(
-            permissions=frozenset([Permission.TEXT_INPUT, Permission.SYSTEM_SOUND])
+            permissions=frozenset([Permission.TEXT_INPUT, Permission.SYSTEM_SOUND]),
         )
 
         try:

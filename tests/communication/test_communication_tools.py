@@ -1,10 +1,12 @@
-"""
-Comprehensive tests for communication tools functionality.
+"""Comprehensive tests for communication tools functionality.
 
 This module provides unit tests, integration tests, and property-based tests
 for the communication automation system.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -32,19 +34,19 @@ from src.core.errors import CommunicationError, SecurityError, ValidationError
 class TestEmailAddress:
     """Test email address validation and formatting."""
 
-    def test_valid_email_creation(self):
+    def test_valid_email_creation(self) -> None:
         """Test creating valid email addresses."""
         email = EmailAddress("test@example.com")
         assert email.address == "test@example.com"
         assert email.name is None
         assert email.domain == "example.com"
 
-    def test_email_with_name(self):
+    def test_email_with_name(self) -> None:
         """Test email address with display name."""
         email = EmailAddress("test@example.com", "Test User")
         assert email.format_recipient() == '"Test User" <test@example.com>'
 
-    def test_invalid_email_format(self):
+    def test_invalid_email_format(self) -> None:
         """Test invalid email format rejection."""
         with pytest.raises(ValidationError):
             EmailAddress("invalid-email")
@@ -55,7 +57,7 @@ class TestEmailAddress:
         with pytest.raises(ValidationError):
             EmailAddress("@example.com")
 
-    def test_email_security_validation(self):
+    def test_email_security_validation(self) -> None:
         """Test email security pattern detection."""
         with pytest.raises(ValidationError):
             EmailAddress("test..double@example.com")  # Double dots
@@ -63,7 +65,7 @@ class TestEmailAddress:
         with pytest.raises(ValidationError):
             EmailAddress(".test@example.com")  # Starting with dot
 
-    def test_long_email_name(self):
+    def test_long_email_name(self) -> None:
         """Test email name length validation."""
         long_name = "x" * 101
         with pytest.raises(ValidationError):
@@ -73,22 +75,22 @@ class TestEmailAddress:
 class TestPhoneNumber:
     """Test phone number validation and formatting."""
 
-    def test_valid_phone_creation(self):
+    def test_valid_phone_creation(self) -> None:
         """Test creating valid phone numbers."""
         phone = PhoneNumber("555-123-4567")
         assert phone.format_for_sms() == "5551234567"
 
-    def test_international_phone(self):
+    def test_international_phone(self) -> None:
         """Test international phone number formatting."""
         phone = PhoneNumber("+1-555-123-4567")
         assert phone.format_for_sms() == "+15551234567"
 
-    def test_phone_with_country_code(self):
+    def test_phone_with_country_code(self) -> None:
         """Test phone with separate country code."""
         phone = PhoneNumber("5551234567", "1")
         assert phone.format_for_sms() == "+15551234567"
 
-    def test_invalid_phone_format(self):
+    def test_invalid_phone_format(self) -> None:
         """Test invalid phone number rejection."""
         with pytest.raises(ValidationError):
             PhoneNumber("123")  # Too short
@@ -99,7 +101,7 @@ class TestPhoneNumber:
         with pytest.raises(ValidationError):
             PhoneNumber("abc-def-ghij")  # Invalid characters
 
-    def test_national_format(self):
+    def test_national_format(self) -> None:
         """Test national format generation."""
         phone = PhoneNumber("+15551234567")
         assert phone.national_format == "(555) 123-4567"
@@ -108,7 +110,7 @@ class TestPhoneNumber:
 class TestMessageTemplate:
     """Test message template functionality."""
 
-    def test_template_creation(self):
+    def test_template_creation(self) -> None:
         """Test creating message templates."""
         template = MessageTemplate(
             template_id=TemplateId("test_template"),
@@ -118,7 +120,7 @@ class TestMessageTemplate:
         )
         assert template.variables == {"name", "code"}
 
-    def test_template_rendering(self):
+    def test_template_rendering(self) -> None:
         """Test template variable substitution."""
         template = MessageTemplate(
             template_id=TemplateId("test_template"),
@@ -131,7 +133,7 @@ class TestMessageTemplate:
         assert rendered["subject"] == "Hello John"
         assert rendered["body"] == "Welcome John, your code is 12345."
 
-    def test_missing_variables(self):
+    def test_missing_variables(self) -> None:
         """Test error on missing template variables."""
         template = MessageTemplate(
             template_id=TemplateId("test_template"),
@@ -142,7 +144,7 @@ class TestMessageTemplate:
         with pytest.raises(ValidationError):
             template.render({"name": "John"})  # Missing 'code'
 
-    def test_template_security_validation(self):
+    def test_template_security_validation(self) -> None:
         """Test template security validation."""
         with pytest.raises(ValidationError):
             MessageTemplate(
@@ -162,7 +164,7 @@ class TestMessageTemplate:
 class TestCommunicationRequest:
     """Test communication request validation."""
 
-    def test_email_request_creation(self):
+    def test_email_request_creation(self) -> None:
         """Test creating valid email communication request."""
         email = EmailAddress("test@example.com")
         request = CommunicationRequest(
@@ -174,7 +176,7 @@ class TestCommunicationRequest:
         assert request.communication_type == CommunicationType.EMAIL
         assert len(request.recipients) == 1
 
-    def test_sms_request_creation(self):
+    def test_sms_request_creation(self) -> None:
         """Test creating valid SMS communication request."""
         phone = PhoneNumber("555-123-4567")
         request = CommunicationRequest(
@@ -184,7 +186,7 @@ class TestCommunicationRequest:
         )
         assert request.communication_type == CommunicationType.SMS
 
-    def test_email_requires_subject(self):
+    def test_email_requires_subject(self) -> None:
         """Test that email requires subject."""
         email = EmailAddress("test@example.com")
         with pytest.raises(ValidationError):
@@ -195,7 +197,7 @@ class TestCommunicationRequest:
                 # No subject provided
             )
 
-    def test_sms_single_recipient(self):
+    def test_sms_single_recipient(self) -> None:
         """Test that SMS requires single recipient."""
         phones = [PhoneNumber("555-123-4567"), PhoneNumber("555-987-6543")]
         with pytest.raises(ValidationError):
@@ -205,7 +207,7 @@ class TestCommunicationRequest:
                 message_content="Test message",
             )
 
-    def test_too_many_recipients(self):
+    def test_too_many_recipients(self) -> None:
         """Test recipient limit validation."""
         emails = [EmailAddress(f"test{i}@example.com") for i in range(101)]
         with pytest.raises(ValidationError):
@@ -216,7 +218,7 @@ class TestCommunicationRequest:
                 subject="Test Subject",
             )
 
-    def test_empty_message_content(self):
+    def test_empty_message_content(self) -> None:
         """Test empty message content rejection."""
         email = EmailAddress("test@example.com")
         with pytest.raises(ValidationError):
@@ -232,19 +234,19 @@ class TestEmailManager:
     """Test email manager functionality."""
 
     @pytest.fixture
-    def mock_km_client(self):
+    def mock_km_client(self) -> Any:
         """Mock KM client for testing."""
         client = Mock()
         client.execute_applescript = AsyncMock(return_value=Either.right("success"))
         return client
 
     @pytest.fixture
-    def email_manager(self, mock_km_client):
+    def email_manager(self, mock_km_client) -> Any:
         """Email manager with mocked dependencies."""
         return EmailManager(km_client=mock_km_client)
 
     @pytest.mark.asyncio
-    async def test_send_email_success(self, email_manager):
+    async def test_send_email_success(self, email_manager) -> None:
         """Test successful email sending."""
         email = EmailAddress("test@example.com")
         request = CommunicationRequest(
@@ -262,7 +264,7 @@ class TestEmailManager:
         assert comm_result.status == CommunicationStatus.SENT
 
     @pytest.mark.asyncio
-    async def test_send_email_with_attachments(self, email_manager):
+    async def test_send_email_with_attachments(self, email_manager) -> None:
         """Test email sending with attachments."""
         email = EmailAddress("test@example.com")
 
@@ -283,10 +285,10 @@ class TestEmailManager:
             assert result.is_right()
 
     @pytest.mark.asyncio
-    async def test_send_email_applescript_failure(self, email_manager):
+    async def test_send_email_applescript_failure(self, email_manager) -> None:
         """Test email sending with AppleScript failure."""
         email_manager.km_client.execute_applescript = AsyncMock(
-            return_value=Either.left(Exception("AppleScript failed"))
+            return_value=Either.left(Exception("AppleScript failed")),
         )
 
         email = EmailAddress("test@example.com")
@@ -301,7 +303,7 @@ class TestEmailManager:
         assert result.is_left()
         assert isinstance(result.get_left(), CommunicationError)
 
-    def test_applescript_escaping(self, email_manager):
+    def test_applescript_escaping(self, email_manager) -> None:
         """Test AppleScript string escaping."""
         dangerous_string = 'Test "quoted" string\nwith newlines'
         escaped = email_manager._escape_applescript_string(dangerous_string)
@@ -315,19 +317,19 @@ class TestSMSManager:
     """Test SMS manager functionality."""
 
     @pytest.fixture
-    def mock_km_client(self):
+    def mock_km_client(self) -> Any:
         """Mock KM client for testing."""
         client = Mock()
         client.execute_applescript = AsyncMock(return_value=Either.right("success"))
         return client
 
     @pytest.fixture
-    def sms_manager(self, mock_km_client):
+    def sms_manager(self, mock_km_client) -> Any:
         """SMS manager with mocked dependencies."""
         return SMSManager(km_client=mock_km_client)
 
     @pytest.mark.asyncio
-    async def test_send_sms_success(self, sms_manager):
+    async def test_send_sms_success(self, sms_manager) -> None:
         """Test successful SMS sending."""
         phone = PhoneNumber("555-123-4567")
         request = CommunicationRequest(
@@ -344,7 +346,7 @@ class TestSMSManager:
         assert comm_result.status == CommunicationStatus.SENT
 
     @pytest.mark.asyncio
-    async def test_send_imessage_group(self, sms_manager):
+    async def test_send_imessage_group(self, sms_manager) -> None:
         """Test iMessage group messaging."""
         phones = [PhoneNumber("555-123-4567"), PhoneNumber("555-987-6543")]
         request = CommunicationRequest(
@@ -357,7 +359,7 @@ class TestSMSManager:
         assert result.is_right()
 
     @pytest.mark.asyncio
-    async def test_rate_limiting(self, sms_manager):
+    async def test_rate_limiting(self, sms_manager) -> None:
         """Test SMS rate limiting."""
         phone = PhoneNumber("555-123-4567")
 
@@ -381,7 +383,7 @@ class TestSMSManager:
         assert result.is_left()
         assert isinstance(result.get_left(), CommunicationError)
 
-    def test_get_rate_limit_status(self, sms_manager):
+    def test_get_rate_limit_status(self, sms_manager) -> None:
         """Test rate limit status reporting."""
         status = sms_manager.get_rate_limit_status()
 
@@ -395,17 +397,17 @@ class TestMessageTemplateManager:
     """Test message template management."""
 
     @pytest.fixture
-    def template_manager(self):
+    def template_manager(self) -> Any:
         """Template manager instance."""
         return MessageTemplateManager()
 
-    def test_default_templates_loaded(self, template_manager):
+    def test_default_templates_loaded(self, template_manager) -> None:
         """Test that default templates are loaded."""
         templates = template_manager.list_templates("default")
         assert "default" in templates
         assert len(templates["default"]) > 0
 
-    def test_add_template(self, template_manager):
+    def test_add_template(self, template_manager) -> None:
         """Test adding new template."""
         template = MessageTemplate(
             template_id=TemplateId("custom_template"),
@@ -421,7 +423,7 @@ class TestMessageTemplateManager:
         assert retrieved.is_right()
         assert retrieved.get_right().name == "Custom Template"
 
-    def test_render_template(self, template_manager):
+    def test_render_template(self, template_manager) -> None:
         """Test template rendering with validation."""
         template = MessageTemplate(
             template_id=TemplateId("test_template"),
@@ -432,7 +434,8 @@ class TestMessageTemplateManager:
         template_manager.add_template(template)
 
         rendered_result = template_manager.render_template(
-            template, {"name": "John", "order_id": "12345"}
+            template,
+            {"name": "John", "order_id": "12345"},
         )
         assert rendered_result.is_right()
 
@@ -440,7 +443,7 @@ class TestMessageTemplateManager:
         assert "Hello John" in rendered["body"]
         assert "order 12345" in rendered["body"]
 
-    def test_template_security_validation(self, template_manager):
+    def test_template_security_validation(self, template_manager) -> None:
         """Test template security validation."""
         dangerous_template = MessageTemplate(
             template_id=TemplateId("dangerous_template"),
@@ -452,7 +455,7 @@ class TestMessageTemplateManager:
         assert result.is_left()
         assert isinstance(result.get_left(), ValidationError)
 
-    def test_delete_template(self, template_manager):
+    def test_delete_template(self, template_manager) -> None:
         """Test template deletion."""
         template = MessageTemplate(
             template_id=TemplateId("delete_me"),
@@ -479,37 +482,39 @@ class TestCommunicationSecurity:
     """Test communication security validation."""
 
     @pytest.fixture
-    def security_manager(self):
+    def security_manager(self) -> Any:
         """Security manager instance."""
         return CommunicationSecurityManager()
 
-    def test_spam_detection(self, security_manager):
+    def test_spam_detection(self, security_manager) -> None:
         """Test spam content detection."""
         spam_content = "CONGRATULATIONS! You've WON $1000000! Click here NOW!"
 
         score, threats = security_manager.spam_detector.analyze_content(
-            "URGENT ACTION REQUIRED", spam_content
+            "URGENT ACTION REQUIRED",
+            spam_content,
         )
 
         assert score > 5.0  # High spam score
         assert len(threats) > 0
         assert any(t.threat_type == "spam_keywords" for t in threats)
 
-    def test_legitimate_content(self, security_manager):
+    def test_legitimate_content(self, security_manager) -> None:
         """Test that legitimate content passes validation."""
         legitimate_content = (
             "Hello John, your meeting is scheduled for tomorrow at 2 PM."
         )
 
         score, threats = security_manager.spam_detector.analyze_content(
-            "Meeting Reminder", legitimate_content
+            "Meeting Reminder",
+            legitimate_content,
         )
 
         assert score < 3.0  # Low spam score
         assert len([t for t in threats if t.severity in ["high", "critical"]]) == 0
 
     @pytest.mark.asyncio
-    async def test_security_validation_success(self, security_manager):
+    async def test_security_validation_success(self, security_manager) -> None:
         """Test successful security validation."""
         email = EmailAddress("test@example.com")
         request = CommunicationRequest(
@@ -527,7 +532,7 @@ class TestCommunicationSecurity:
         assert validation_info["spam_score"] < 7.0
 
     @pytest.mark.asyncio
-    async def test_security_validation_spam_rejection(self, security_manager):
+    async def test_security_validation_spam_rejection(self, security_manager) -> None:
         """Test spam content rejection."""
         email = EmailAddress("test@example.com")
         request = CommunicationRequest(
@@ -541,7 +546,7 @@ class TestCommunicationSecurity:
         assert result.is_left()
         assert isinstance(result.get_left(), SecurityError)
 
-    def test_security_statistics(self, security_manager):
+    def test_security_statistics(self, security_manager) -> None:
         """Test security statistics generation."""
         stats = security_manager.get_security_statistics()
 
@@ -556,7 +561,7 @@ class TestCommunicationProperties:
     """Property-based tests for communication components."""
 
     @given(st.emails())
-    def test_email_address_properties(self, email_string):
+    def test_email_address_properties(self, email_string) -> None:
         """Property: Valid email strings should create valid EmailAddress objects."""
         try:
             email = EmailAddress(email_string)
@@ -572,9 +577,9 @@ class TestCommunicationProperties:
             min_size=1,
             max_size=100,
             alphabet=st.characters(whitelist_categories=("Lu", "Ll")),
-        )
+        ),
     )
-    def test_template_variable_names(self, var_name):
+    def test_template_variable_names(self, var_name) -> None:
         """Property: Template variables should handle various valid names."""
         assume(var_name.isalpha())  # Only alphabetic characters
         assume(var_name[0].isalpha())  # Must start with letter
@@ -595,13 +600,14 @@ class TestCommunicationProperties:
             pass
 
     @given(st.text(min_size=1, max_size=1000))
-    def test_message_content_security(self, message_content):
+    def test_message_content_security(self, message_content) -> None:
         """Property: Message content should be analyzed for security threats."""
         security_manager = CommunicationSecurityManager()
 
         # Should not crash on any input
         score, threats = security_manager.spam_detector.analyze_content(
-            "Test Subject", message_content
+            "Test Subject",
+            message_content,
         )
 
         assert isinstance(score, int | float)
@@ -613,7 +619,7 @@ class TestCommunicationProperties:
             assert len(threats) > 0
 
     @given(st.lists(st.emails(), min_size=1, max_size=10))
-    def test_recipient_list_properties(self, email_list):
+    def test_recipient_list_properties(self, email_list) -> None:
         """Property: Recipient lists should handle various valid email combinations."""
         try:
             recipients = [EmailAddress(email) for email in email_list]
@@ -639,7 +645,7 @@ class TestCommunicationIntegration:
     """Integration tests for complete communication workflows."""
 
     @pytest.mark.asyncio
-    async def test_email_template_workflow(self):
+    async def test_email_template_workflow(self) -> None:
         """Test complete email workflow with templates."""
         # Setup
         template_manager = MessageTemplateManager()
@@ -657,7 +663,8 @@ class TestCommunicationIntegration:
 
         # Render template
         rendered_result = template_manager.render_template(
-            template, {"name": "John Doe", "service": "TestApp"}
+            template,
+            {"name": "John Doe", "service": "TestApp"},
         )
         assert rendered_result.is_right()
         rendered = rendered_result.get_right()
@@ -673,7 +680,8 @@ class TestCommunicationIntegration:
 
         # Security validation
         security_result = security_manager.validate_communication_security(
-            request, "system_sender"
+            request,
+            "system_sender",
         )
         assert security_result.is_right()
 
@@ -681,11 +689,11 @@ class TestCommunicationIntegration:
         assert validation_info["security_level"] == "safe"
 
     @pytest.mark.asyncio
-    async def test_sms_rate_limiting_workflow(self):
+    async def test_sms_rate_limiting_workflow(self) -> None:
         """Test SMS workflow with rate limiting."""
         mock_km_client = Mock()
         mock_km_client.execute_applescript = AsyncMock(
-            return_value=Either.right("success")
+            return_value=Either.right("success"),
         )
 
         sms_manager = SMSManager(km_client=mock_km_client)

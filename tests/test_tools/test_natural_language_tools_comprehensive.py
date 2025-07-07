@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for Natural Language Tools module using systematic MCP tool test pattern.
+"""Comprehensive tests for Natural Language Tools module using systematic MCP tool test pattern.
 
 Tests cover natural language processing capabilities including command interpretation,
 intent recognition, conversation management, and language understanding with property-based
@@ -7,6 +6,9 @@ testing and comprehensive enterprise-grade validation using the proven pattern t
 100% success across 22+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -26,7 +28,7 @@ km_nlp_performance_metrics = nl_tools.km_nlp_performance_metrics.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def command_text_strategy(draw):
+def command_text_strategy(draw) -> Any:
     """Generate valid command text inputs."""
     commands = [
         "Open the calculator application",
@@ -40,7 +42,7 @@ def command_text_strategy(draw):
 
 
 @st.composite
-def intent_text_strategy(draw):
+def intent_text_strategy(draw) -> Any:
     """Generate text inputs for intent recognition."""
     intents = [
         "I want to automate my morning routine",
@@ -53,7 +55,7 @@ def intent_text_strategy(draw):
 
 
 @st.composite
-def conversation_text_strategy(draw):
+def conversation_text_strategy(draw) -> Any:
     """Generate conversation text inputs."""
     conversations = [
         "Hello, how can I automate my workflow?",
@@ -66,20 +68,20 @@ def conversation_text_strategy(draw):
 
 
 @st.composite
-def language_code_strategy(draw):
+def language_code_strategy(draw) -> Any:
     """Generate valid language codes."""
     languages = ["en", "es", "fr", "de", "it", "pt", "ja", "ko", "zh", "auto"]
     return draw(st.sampled_from(languages))
 
 
 @st.composite
-def confidence_threshold_strategy(draw):
+def confidence_threshold_strategy(draw) -> Any:
     """Generate valid confidence thresholds."""
     return draw(st.floats(min_value=0.1, max_value=1.0))
 
 
 @st.composite
-def processing_mode_strategy(draw):
+def processing_mode_strategy(draw) -> None:
     """Generate valid processing modes."""
     modes = ["fast", "standard", "detailed", "conversational"]
     return draw(st.sampled_from(modes))
@@ -88,7 +90,7 @@ def processing_mode_strategy(draw):
 class TestNaturalLanguageDependencies:
     """Test natural language module dependencies and imports."""
 
-    def test_natural_language_imports(self):
+    def test_natural_language_imports(self) -> None:
         """Test that natural language tools can be imported."""
         assert km_process_natural_command is not None
         assert callable(km_process_natural_command)
@@ -106,25 +108,25 @@ class TestNaturalLanguageParameterValidation:
     """Test parameter validation for natural language operations."""
 
     @given(command_text_strategy())
-    def test_valid_command_text(self, command_text):
+    def test_valid_command_text(self, command_text) -> None:
         """Test that command text inputs are properly validated."""
         assert isinstance(command_text, str)
         assert len(command_text) > 0
         assert len(command_text) < 1000  # Reasonable length limit
 
     @given(language_code_strategy())
-    def test_valid_language_codes(self, language_code):
+    def test_valid_language_codes(self, language_code) -> None:
         """Test that language codes are properly validated."""
         valid_codes = ["en", "es", "fr", "de", "it", "pt", "ja", "ko", "zh", "auto"]
         assert language_code in valid_codes
 
     @given(confidence_threshold_strategy())
-    def test_valid_confidence_thresholds(self, threshold):
+    def test_valid_confidence_thresholds(self, threshold) -> None:
         """Test that confidence thresholds are properly validated."""
         assert 0.1 <= threshold <= 1.0
 
     @given(processing_mode_strategy())
-    def test_valid_processing_modes(self, mode):
+    def test_valid_processing_modes(self, mode) -> None:
         """Test that processing modes are properly validated."""
         valid_modes = ["fast", "standard", "detailed", "conversational"]
         assert mode in valid_modes
@@ -134,14 +136,14 @@ class TestKMProcessNaturalCommandMocked:
     """Test km_process_natural_command function with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_process_natural_command_success(self):
+    async def test_km_process_natural_command_success(self) -> None:
         """Test successful command interpretation."""
         with (
             patch(
-                "src.server.tools.natural_language_tools.command_processor"
+                "src.server.tools.natural_language_tools.command_processor",
             ) as mock_processor,
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
         ):
             mock_validate.return_value = None
@@ -155,7 +157,7 @@ class TestKMProcessNaturalCommandMocked:
             mock_processed_command.recognized_intent.category.value = "automation"
             mock_processed_command.recognized_intent.confidence = 0.92
             mock_processed_command.recognized_intent.parameters = {
-                "application": "calculator"
+                "application": "calculator",
             }
             mock_processed_command.extracted_entities = []
             mock_processed_command.automation_actions = ["open_application"]
@@ -174,7 +176,9 @@ class TestKMProcessNaturalCommandMocked:
 
             # Execute function (using actual source code function name)
             result = await km_process_natural_command(
-                natural_command=test_command, language="en", confidence_threshold=0.7
+                natural_command=test_command,
+                language="en",
+                confidence_threshold=0.7,
             )
 
             # Verify result structure
@@ -203,14 +207,14 @@ class TestKMProcessNaturalCommandMocked:
             assert 0.0 <= intent["confidence"] <= 1.0
 
     @pytest.mark.asyncio
-    async def test_km_interpret_command_low_confidence(self):
+    async def test_km_interpret_command_low_confidence(self) -> None:
         """Test command interpretation with low confidence results."""
         with (
             patch(
-                "src.server.tools.natural_language_tools.command_processor"
+                "src.server.tools.natural_language_tools.command_processor",
             ) as mock_processor,
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
         ):
             mock_validate.return_value = None
@@ -237,7 +241,8 @@ class TestKMProcessNaturalCommandMocked:
             mock_processor.process_command = AsyncMock(return_value=mock_result)
 
             result = await km_process_natural_command(
-                natural_command="Unclear command text", confidence_threshold=0.8
+                natural_command="Unclear command text",
+                confidence_threshold=0.8,
             )
 
             assert result["success"] is True
@@ -245,7 +250,7 @@ class TestKMProcessNaturalCommandMocked:
             assert intent["confidence"] < 0.8
 
     @pytest.mark.asyncio
-    async def test_km_interpret_command_invalid_input(self):
+    async def test_km_interpret_command_invalid_input(self) -> None:
         """Test command interpretation with invalid input."""
         result = await km_process_natural_command(
             natural_command="",  # Empty command
@@ -261,14 +266,14 @@ class TestKMRecognizeIntentMocked:
     """Test km_recognize_intent function with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_recognize_intent_success(self):
+    async def test_km_recognize_intent_success(self) -> None:
         """Test successful intent recognition."""
         with (
             patch(
-                "src.server.tools.natural_language_tools.intent_classifier"
+                "src.server.tools.natural_language_tools.intent_classifier",
             ) as mock_classifier,
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
         ):
             mock_validate.return_value = None
@@ -298,7 +303,9 @@ class TestKMRecognizeIntentMocked:
 
             # Execute function (aligned with actual source code parameters)
             result = await km_recognize_intent(
-                user_input=test_text, include_entities=True, confidence_threshold=0.6
+                user_input=test_text,
+                include_entities=True,
+                confidence_threshold=0.6,
             )
 
             # Verify result structure (aligned with actual source code response)
@@ -323,14 +330,14 @@ class TestKMRecognizeIntentMocked:
             assert 0.0 <= intent["confidence"] <= 1.0
 
     @pytest.mark.asyncio
-    async def test_km_recognize_intent_no_entities(self):
+    async def test_km_recognize_intent_no_entities(self) -> None:
         """Test intent recognition without entity extraction."""
         with (
             patch(
-                "src.server.tools.natural_language_tools.intent_classifier"
+                "src.server.tools.natural_language_tools.intent_classifier",
             ) as mock_classifier,
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
         ):
             mock_validate.return_value = None
@@ -368,14 +375,14 @@ class TestKMProcessConversationMocked:
     """Test km_process_conversation function with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_process_conversation_success(self):
+    async def test_km_process_conversation_success(self) -> None:
         """Test successful conversation processing."""
         with (
             patch(
-                "src.server.tools.natural_language_tools.conversation_manager"
+                "src.server.tools.natural_language_tools.conversation_manager",
             ) as mock_manager,
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
         ):
             mock_validate.return_value = None
@@ -427,14 +434,14 @@ class TestKMProcessConversationMocked:
             assert 0.0 <= response["confidence"] <= 1.0
 
     @pytest.mark.asyncio
-    async def test_km_process_conversation_new_conversation(self):
+    async def test_km_process_conversation_new_conversation(self) -> None:
         """Test conversation processing for new conversation."""
         with (
             patch(
-                "src.server.tools.natural_language_tools.conversation_manager"
+                "src.server.tools.natural_language_tools.conversation_manager",
             ) as mock_manager,
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
         ):
             mock_validate.return_value = None
@@ -458,7 +465,8 @@ class TestKMProcessConversationMocked:
             mock_manager.process_conversation = AsyncMock(return_value=mock_result)
 
             result = await km_conversational_interface(
-                conversation_mode="guidance", user_message="Hello"
+                conversation_mode="guidance",
+                user_message="Hello",
             )
 
             assert result["success"] is True
@@ -471,14 +479,14 @@ class TestKMNLPMetricsMocked:
     """Test km_nlp_metrics function with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_nlp_metrics_success(self):
+    async def test_km_nlp_metrics_success(self) -> None:
         """Test successful NLP metrics retrieval."""
         with (
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.natural_language_tools.intent_classifier"
+                "src.server.tools.natural_language_tools.intent_classifier",
             ) as mock_classifier,
         ):
             mock_validate.return_value = None
@@ -500,14 +508,14 @@ class TestKMNLPMetricsMocked:
             assert "component_status" in metrics
 
     @pytest.mark.asyncio
-    async def test_km_nlp_metrics_minimal(self):
+    async def test_km_nlp_metrics_minimal(self) -> None:
         """Test NLP metrics with minimal data."""
         with (
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.natural_language_tools.intent_classifier"
+                "src.server.tools.natural_language_tools.intent_classifier",
             ) as mock_classifier,
         ):
             mock_validate.return_value = None
@@ -528,42 +536,43 @@ class TestNaturalLanguageErrorHandling:
     """Test error handling and edge cases for natural language operations."""
 
     @pytest.mark.asyncio
-    async def test_command_interpretation_error(self):
+    async def test_command_interpretation_error(self) -> None:
         """Test handling of command interpretation errors."""
         with (
             patch(
-                "src.server.tools.natural_language_tools.command_processor"
+                "src.server.tools.natural_language_tools.command_processor",
             ) as mock_processor,
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
         ):
             mock_validate.return_value = None
             mock_processor.process_command = AsyncMock(
-                side_effect=Exception("Processing error")
+                side_effect=Exception("Processing error"),
             )
 
             result = await km_process_natural_command(
-                natural_command="Test command", language="en"
+                natural_command="Test command",
+                language="en",
             )
 
             assert result["success"] is False
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_intent_recognition_error(self):
+    async def test_intent_recognition_error(self) -> None:
         """Test handling of intent recognition errors."""
         with (
             patch(
-                "src.server.tools.natural_language_tools.intent_classifier"
+                "src.server.tools.natural_language_tools.intent_classifier",
             ) as mock_classifier,
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
         ):
             mock_validate.return_value = None
             mock_classifier.recognize_intent = AsyncMock(
-                side_effect=Exception("Classification error")
+                side_effect=Exception("Classification error"),
             )
 
             result = await km_recognize_intent(user_input="Test input")
@@ -572,23 +581,24 @@ class TestNaturalLanguageErrorHandling:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_conversation_processing_error(self):
+    async def test_conversation_processing_error(self) -> None:
         """Test handling of conversation processing errors."""
         with (
             patch(
-                "src.server.tools.natural_language_tools.conversation_manager"
+                "src.server.tools.natural_language_tools.conversation_manager",
             ) as mock_manager,
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
         ):
             mock_validate.return_value = None
             mock_manager.process_conversation = AsyncMock(
-                side_effect=Exception("Conversation error")
+                side_effect=Exception("Conversation error"),
             )
 
             result = await km_conversational_interface(
-                conversation_mode="troubleshooting", user_message="Test message"
+                conversation_mode="troubleshooting",
+                user_message="Test message",
             )
 
             assert result["success"] is False
@@ -599,20 +609,20 @@ class TestNaturalLanguageIntegration:
     """Test integration scenarios for natural language operations."""
 
     @pytest.mark.asyncio
-    async def test_complete_nlp_workflow(self):
+    async def test_complete_nlp_workflow(self) -> None:
         """Test complete natural language processing workflow."""
         with (
             patch(
-                "src.server.tools.natural_language_tools.command_processor"
+                "src.server.tools.natural_language_tools.command_processor",
             ) as mock_processor,
             patch(
-                "src.server.tools.natural_language_tools.intent_classifier"
+                "src.server.tools.natural_language_tools.intent_classifier",
             ) as mock_classifier,
             patch(
-                "src.server.tools.natural_language_tools.conversation_manager"
+                "src.server.tools.natural_language_tools.conversation_manager",
             ) as mock_manager,
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
         ):
             mock_validate.return_value = None
@@ -637,7 +647,7 @@ class TestNaturalLanguageIntegration:
                     is_left=Mock(return_value=False),
                     is_right=Mock(return_value=True),
                     get_right=Mock(return_value=mock_command),
-                )
+                ),
             )
 
             mock_intent = Mock()
@@ -655,7 +665,7 @@ class TestNaturalLanguageIntegration:
                     is_left=Mock(return_value=False),
                     is_right=Mock(return_value=True),
                     get_right=Mock(return_value=[mock_intent]),
-                )
+                ),
             )
 
             mock_conversation = Mock()
@@ -673,7 +683,7 @@ class TestNaturalLanguageIntegration:
                     is_left=Mock(return_value=False),
                     is_right=Mock(return_value=True),
                     get_right=Mock(return_value=mock_conversation),
-                )
+                ),
             )
 
             # Execute integrated workflow
@@ -681,12 +691,14 @@ class TestNaturalLanguageIntegration:
 
             # Step 1: Command interpretation
             command_result = await km_process_natural_command(
-                natural_command=user_input, language="en"
+                natural_command=user_input,
+                language="en",
             )
 
             # Step 2: Intent recognition
             intent_result = await km_recognize_intent(
-                user_input=user_input, include_entities=True
+                user_input=user_input,
+                include_entities=True,
             )
 
             # Step 3: Conversation processing
@@ -722,17 +734,20 @@ class TestNaturalLanguageProperties:
     )
     @pytest.mark.asyncio
     async def test_command_interpretation_properties(
-        self, command_text, processing_mode, confidence_threshold
-    ):
+        self,
+        command_text,
+        processing_mode,
+        confidence_threshold,
+    ) -> None:
         """Test properties of command interpretation operations."""
         assume(len(command_text.strip()) > 0)
 
         with (
             patch(
-                "src.server.tools.natural_language_tools.command_processor"
+                "src.server.tools.natural_language_tools.command_processor",
             ) as mock_processor,
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
         ):
             mock_validate.return_value = None
@@ -755,7 +770,7 @@ class TestNaturalLanguageProperties:
                     is_left=Mock(return_value=False),
                     is_right=Mock(return_value=True),
                     get_right=Mock(return_value=mock_command),
-                )
+                ),
             )
 
             result = await km_process_natural_command(
@@ -777,16 +792,16 @@ class TestNaturalLanguageProperties:
 
     @given(intent_text_strategy(), language_code_strategy())
     @pytest.mark.asyncio
-    async def test_intent_recognition_properties(self, intent_text, language_code):
+    async def test_intent_recognition_properties(self, intent_text, language_code) -> None:
         """Test properties of intent recognition operations."""
         assume(len(intent_text.strip()) > 0)
 
         with (
             patch(
-                "src.server.tools.natural_language_tools.intent_classifier"
+                "src.server.tools.natural_language_tools.intent_classifier",
             ) as mock_classifier,
             patch(
-                "src.server.tools.natural_language_tools._validate_components"
+                "src.server.tools.natural_language_tools._validate_components",
             ) as mock_validate,
         ):
             mock_validate.return_value = None
@@ -805,7 +820,7 @@ class TestNaturalLanguageProperties:
                     is_left=Mock(return_value=False),
                     is_right=Mock(return_value=True),
                     get_right=Mock(return_value=[mock_intent]),
-                )
+                ),
             )
 
             result = await km_recognize_intent(user_input=intent_text)

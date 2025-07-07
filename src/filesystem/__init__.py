@@ -1,5 +1,4 @@
-"""
-File System Operations Module for Keyboard Maestro MCP
+"""File System Operations Module for Keyboard Maestro MCP.
 
 Provides secure file system automation with path validation, transaction safety,
 and comprehensive security boundaries for AI-driven file management workflows.

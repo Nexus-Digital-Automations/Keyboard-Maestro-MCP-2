@@ -1,9 +1,10 @@
-"""
-Tool Discovery and Registration System for Keyboard Maestro MCP.
+"""Tool Discovery and Registration System for Keyboard Maestro MCP.
 
 This module provides automated tool discovery, metadata extraction, and dynamic
 registration capabilities to eliminate boilerplate code while maintaining type safety.
 """
+
+from __future__ import annotations
 
 import importlib
 import inspect
@@ -11,7 +12,7 @@ import logging
 import pkgutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Annotated, Any, Optional, get_args, get_type_hints
+from typing import Annotated, Any, get_args, get_type_hints
 
 from pydantic import Field
 
@@ -26,7 +27,7 @@ class ToolParameter:
     annotation: type[Any]
     default: Any = None
     description: str = ""
-    field_info: Optional[Field] = None
+    field_info: Field | None = None
     is_optional: bool = False
 
 
@@ -70,7 +71,7 @@ class ToolDiscovery:
                     self._discover_tools_in_module(full_module_name)
                 except Exception as e:
                     logger.warning(
-                        f"Failed to discover tools in {full_module_name}: {e}"
+                        f"Failed to discover tools in {full_module_name}: {e}",
                     )
 
             logger.info(f"Discovered {len(self.discovered_tools)} tools")
@@ -100,7 +101,10 @@ class ToolDiscovery:
             logger.error(f"Failed to import module {module_name}: {e}")
 
     def _extract_tool_metadata(
-        self, name: str, func: callable, module_name: str
+        self,
+        name: str,
+        func: callable,
+        module_name: str,
     ) -> ToolMetadata | None:
         """Extract comprehensive metadata from a tool function."""
         try:
@@ -115,7 +119,9 @@ class ToolDiscovery:
                     continue
 
                 param_metadata = self._extract_parameter_metadata(
-                    param_name, param, type_hints.get(param_name)
+                    param_name,
+                    param,
+                    type_hints.get(param_name),
                 )
                 if param_metadata:
                     parameters.append(param_metadata)
@@ -142,7 +148,10 @@ class ToolDiscovery:
             return None
 
     def _extract_parameter_metadata(
-        self, name: str, param: inspect.Parameter, type_hint: Any
+        self,
+        name: str,
+        param: inspect.Parameter,
+        type_hint: Any,
     ) -> ToolParameter | None:
         """Extract parameter metadata including Pydantic Field information."""
         try:
@@ -162,8 +171,11 @@ class ToolDiscovery:
                                 field_info = arg
                                 description = getattr(arg, "description", "") or ""
                                 break
-                        except Exception:
-                            # If isinstance fails, continue to next arg
+                        except Exception as e:
+                            # S112 fix: Log exception instead of silent continue
+                            logger.debug(
+                                f"Failed to check Field instance for {param.name}: {e}",
+                            )
                             continue
 
             # Determine if parameter is optional
@@ -197,46 +209,45 @@ class ToolDiscovery:
         """Determine tool category from module name."""
         if "core" in module_name:
             return "core"
-        elif "advanced" in module_name:
+        if "advanced" in module_name:
             return "advanced"
-        elif "sync" in module_name:
+        if "sync" in module_name:
             return "synchronization"
-        elif "clipboard" in module_name:
+        if "clipboard" in module_name:
             return "clipboard"
-        elif "file" in module_name:
+        if "file" in module_name:
             return "file_operations"
-        elif "window" in module_name:
+        if "window" in module_name:
             return "window_management"
-        elif "notification" in module_name:
+        if "notification" in module_name:
             return "notifications"
-        elif "calculator" in module_name:
+        if "calculator" in module_name:
             return "calculations"
-        elif "token" in module_name:
+        if "token" in module_name:
             return "token_processing"
-        elif "condition" in module_name:
+        if "condition" in module_name:
             return "conditional_logic"
-        elif "control_flow" in module_name:
+        if "control_flow" in module_name:
             return "control_flow"
-        elif "trigger" in module_name:
+        if "trigger" in module_name:
             return "triggers"
-        elif "audit" in module_name:
+        if "audit" in module_name:
             return "security_audit"
-        elif "analytics" in module_name:
+        if "analytics" in module_name:
             return "analytics"
-        elif "workflow" in module_name:
+        if "workflow" in module_name:
             return "workflow_intelligence"
-        elif "iot" in module_name:
+        if "iot" in module_name:
             return "iot_integration"
-        elif "voice" in module_name:
+        if "voice" in module_name:
             return "voice_control"
-        elif "quantum" in module_name:
+        if "quantum" in module_name:
             return "quantum_ready"
-        elif "ai" in module_name or "processing" in module_name:
+        if "ai" in module_name or "processing" in module_name:
             return "ai_intelligence"
-        elif "plugin" in module_name:
+        if "plugin" in module_name:
             return "plugin_ecosystem"
-        else:
-            return "general"
+        return "general"
 
 
 class ToolRegistry:

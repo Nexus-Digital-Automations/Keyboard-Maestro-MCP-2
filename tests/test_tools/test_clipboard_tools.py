@@ -1,5 +1,4 @@
-"""
-Comprehensive Test Suite for Clipboard Tools - Following Proven MCP Tool Test Pattern
+"""Comprehensive Test Suite for Clipboard Tools - Following Proven MCP Tool Test Pattern.
 
 This test suite validates the Clipboard Tools functionality using the systematic
 testing approach that achieved 100% success rate across 11 tool suites.
@@ -24,6 +23,9 @@ Testing Strategy:
 - Performance and memory testing with content limits
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -52,7 +54,7 @@ from src.server.tools.clipboard_tools import (
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context():
+def mock_context() -> Any:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -65,7 +67,7 @@ def mock_context():
 
 
 @pytest.fixture
-def mock_clipboard_manager():
+def mock_clipboard_manager() -> Any:
     """Create mock ClipboardManager with standard interface."""
     manager = Mock(spec=ClipboardManager)
     manager.get_clipboard = AsyncMock()
@@ -100,7 +102,7 @@ def mock_clipboard_manager():
 
 
 @pytest.fixture
-def mock_named_clipboard_manager():
+def mock_named_clipboard_manager() -> Any:
     """Create mock NamedClipboardManager with standard interface."""
     manager = Mock(spec=NamedClipboardManager)
     manager.create_clipboard = AsyncMock()
@@ -158,7 +160,7 @@ def mock_named_clipboard_manager():
 
 
 @pytest.fixture
-def sample_clipboard_data():
+def sample_clipboard_data() -> Any:
     """Sample clipboard data for testing."""
     return {
         "short_text": "Hello World",
@@ -175,7 +177,7 @@ class TestKMClipboardManager:
     """Test clipboard management functionality following proven pattern."""
 
     @pytest.mark.asyncio
-    async def test_get_operation_success(self, mock_context, mock_clipboard_manager):
+    async def test_get_operation_success(self, mock_context, mock_clipboard_manager) -> None:
         """Test successful clipboard get operation."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -183,7 +185,9 @@ class TestKMClipboardManager:
         ):
             # Execute
             result = await km_clipboard_manager(
-                operation="get", include_sensitive=False, ctx=mock_context
+                operation="get",
+                include_sensitive=False,
+                ctx=mock_context,
             )
 
             # Verify success response structure
@@ -200,8 +204,10 @@ class TestKMClipboardManager:
 
     @pytest.mark.asyncio
     async def test_get_operation_sensitive_content_filtering(
-        self, mock_context, mock_clipboard_manager
-    ):
+        self,
+        mock_context,
+        mock_clipboard_manager,
+    ) -> None:
         """Test sensitive content filtering in get operation."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -225,7 +231,9 @@ class TestKMClipboardManager:
 
             # Execute without including sensitive
             result = await km_clipboard_manager(
-                operation="get", include_sensitive=False, ctx=mock_context
+                operation="get",
+                include_sensitive=False,
+                ctx=mock_context,
             )
 
             # Verify sensitive content is filtered
@@ -236,8 +244,11 @@ class TestKMClipboardManager:
 
     @pytest.mark.asyncio
     async def test_set_operation_success(
-        self, mock_context, mock_clipboard_manager, sample_clipboard_data
-    ):
+        self,
+        mock_context,
+        mock_clipboard_manager,
+        sample_clipboard_data,
+    ) -> None:
         """Test successful clipboard set operation."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -253,7 +264,7 @@ class TestKMClipboardManager:
             # Verify
             assert result["success"] is True
             assert result["data"]["content_size"] == len(
-                sample_clipboard_data["short_text"].encode("utf-8")
+                sample_clipboard_data["short_text"].encode("utf-8"),
             )
             assert (
                 result["data"]["content_preview"] == sample_clipboard_data["short_text"]
@@ -261,11 +272,13 @@ class TestKMClipboardManager:
             assert result["metadata"]["operation"] == "set"
 
     @pytest.mark.asyncio
-    async def test_set_operation_missing_content(self, mock_context):
+    async def test_set_operation_missing_content(self, mock_context) -> None:
         """Test set operation without content."""
         # Execute
         result = await km_clipboard_manager(
-            operation="set", content=None, ctx=mock_context
+            operation="set",
+            content=None,
+            ctx=mock_context,
         )
 
         # Verify error response
@@ -275,8 +288,10 @@ class TestKMClipboardManager:
 
     @pytest.mark.asyncio
     async def test_get_history_operation_success(
-        self, mock_context, mock_clipboard_manager
-    ):
+        self,
+        mock_context,
+        mock_clipboard_manager,
+    ) -> None:
         """Test successful history get operation."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -298,11 +313,13 @@ class TestKMClipboardManager:
             assert result["metadata"]["operation"] == "get_history"
 
     @pytest.mark.asyncio
-    async def test_get_history_operation_missing_index(self, mock_context):
+    async def test_get_history_operation_missing_index(self, mock_context) -> None:
         """Test get_history operation without index."""
         # Execute
         result = await km_clipboard_manager(
-            operation="get_history", history_index=None, ctx=mock_context
+            operation="get_history",
+            history_index=None,
+            ctx=mock_context,
         )
 
         # Verify error response
@@ -312,8 +329,10 @@ class TestKMClipboardManager:
 
     @pytest.mark.asyncio
     async def test_list_history_operation_success(
-        self, mock_context, mock_clipboard_manager
-    ):
+        self,
+        mock_context,
+        mock_clipboard_manager,
+    ) -> None:
         """Test successful history listing operation."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -362,7 +381,7 @@ class TestKMClipboardManager:
         mock_clipboard_manager,
         mock_named_clipboard_manager,
         sample_clipboard_data,
-    ):
+    ) -> None:
         """Test successful named clipboard creation."""
         with (
             patch(
@@ -382,7 +401,7 @@ class TestKMClipboardManager:
                 mock_named_clipboard_manager.create_clipboard.return_value
             )
             mock_named_clipboard_manager.create_named_clipboard = AsyncMock(
-                return_value=mock_create_result
+                return_value=mock_create_result,
             )
 
             # Execute
@@ -404,7 +423,7 @@ class TestKMClipboardManager:
             assert result["metadata"]["operation"] == "create_named"
 
     @pytest.mark.asyncio
-    async def test_manage_named_operation_missing_name(self, mock_context):
+    async def test_manage_named_operation_missing_name(self, mock_context) -> None:
         """Test manage_named operation without clipboard name."""
         # Execute
         result = await km_clipboard_manager(
@@ -421,8 +440,11 @@ class TestKMClipboardManager:
 
     @pytest.mark.asyncio
     async def test_search_named_operation_success(
-        self, mock_context, mock_named_clipboard_manager, sample_clipboard_data
-    ):
+        self,
+        mock_context,
+        mock_named_clipboard_manager,
+        sample_clipboard_data,
+    ) -> None:
         """Test successful named clipboard search."""
         with patch(
             "src.server.tools.clipboard_tools.get_named_clipboard_manager",
@@ -479,8 +501,10 @@ class TestKMClipboardManager:
 
     @pytest.mark.asyncio
     async def test_stats_operation_success(
-        self, mock_context, mock_named_clipboard_manager
-    ):
+        self,
+        mock_context,
+        mock_named_clipboard_manager,
+    ) -> None:
         """Test successful statistics operation."""
         with patch(
             "src.server.tools.clipboard_tools.get_named_clipboard_manager",
@@ -499,8 +523,10 @@ class TestKMClipboardManager:
 
     @pytest.mark.asyncio
     async def test_clipboard_manager_error_handling(
-        self, mock_context, mock_clipboard_manager
-    ):
+        self,
+        mock_context,
+        mock_clipboard_manager,
+    ) -> None:
         """Test clipboard manager error handling."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -527,11 +553,12 @@ class TestKMClipboardManager:
             assert result["error"]["details"]["system"] == "permission_denied"
 
     @pytest.mark.asyncio
-    async def test_unsupported_operation(self, mock_context):
+    async def test_unsupported_operation(self, mock_context) -> None:
         """Test handling of unsupported operation."""
         # Execute with invalid operation (would be caught by pydantic in real scenario)
         result = await km_clipboard_manager(
-            operation="invalid_operation", ctx=mock_context
+            operation="invalid_operation",
+            ctx=mock_context,
         )
 
         # Should be handled by pydantic validation, but if it gets through:
@@ -546,7 +573,7 @@ class TestKMClipboardManager:
 class TestClipboardHelperFunctions:
     """Test helper functions and manager initialization."""
 
-    def test_get_clipboard_manager_singleton(self):
+    def test_get_clipboard_manager_singleton(self) -> None:
         """Test clipboard manager singleton pattern."""
         manager1 = get_clipboard_manager()
         manager2 = get_clipboard_manager()
@@ -555,7 +582,7 @@ class TestClipboardHelperFunctions:
         assert manager1 is manager2
         assert isinstance(manager1, ClipboardManager)
 
-    def test_get_named_clipboard_manager_singleton(self):
+    def test_get_named_clipboard_manager_singleton(self) -> None:
         """Test named clipboard manager singleton pattern."""
         manager1 = get_named_clipboard_manager()
         manager2 = get_named_clipboard_manager()
@@ -575,7 +602,7 @@ class TestClipboardIntegration:
         mock_clipboard_manager,
         mock_named_clipboard_manager,
         sample_clipboard_data,
-    ):
+    ) -> None:
         """Test complete clipboard workflow integration."""
         with (
             patch(
@@ -595,7 +622,7 @@ class TestClipboardIntegration:
                 mock_named_clipboard_manager.create_clipboard.return_value
             )
             mock_named_clipboard_manager.create_named_clipboard = AsyncMock(
-                return_value=mock_create_result
+                return_value=mock_create_result,
             )
 
             # 1. Set clipboard content
@@ -608,7 +635,9 @@ class TestClipboardIntegration:
 
             # 2. Get clipboard content
             get_result = await km_clipboard_manager(
-                operation="get", include_sensitive=False, ctx=mock_context
+                operation="get",
+                include_sensitive=False,
+                ctx=mock_context,
             )
             assert get_result["success"] is True
 
@@ -624,14 +653,17 @@ class TestClipboardIntegration:
 
             # 4. Get statistics
             stats_result = await km_clipboard_manager(
-                operation="stats", ctx=mock_context
+                operation="stats",
+                ctx=mock_context,
             )
             assert stats_result["success"] is True
 
     @pytest.mark.asyncio
     async def test_clipboard_content_size_limits(
-        self, mock_context, mock_clipboard_manager
-    ):
+        self,
+        mock_context,
+        mock_clipboard_manager,
+    ) -> None:
         """Test clipboard content size handling."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -641,7 +673,9 @@ class TestClipboardIntegration:
             large_content = "x" * 100000  # 100KB
 
             result = await km_clipboard_manager(
-                operation="set", content=large_content, ctx=mock_context
+                operation="set",
+                content=large_content,
+                ctx=mock_context,
             )
 
             # Should succeed within limits
@@ -654,8 +688,10 @@ class TestClipboardSecurity:
 
     @pytest.mark.asyncio
     async def test_sensitive_content_detection(
-        self, mock_context, mock_clipboard_manager
-    ):
+        self,
+        mock_context,
+        mock_clipboard_manager,
+    ) -> None:
         """Test sensitive content detection and filtering."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -688,7 +724,9 @@ class TestClipboardSecurity:
 
                 # Test without including sensitive
                 result = await km_clipboard_manager(
-                    operation="get", include_sensitive=False, ctx=mock_context
+                    operation="get",
+                    include_sensitive=False,
+                    ctx=mock_context,
                 )
 
                 # Should filter sensitive content
@@ -698,7 +736,7 @@ class TestClipboardSecurity:
                 assert result["metadata"]["security_filtered"] is True
 
     @pytest.mark.asyncio
-    async def test_clipboard_name_validation(self, mock_context):
+    async def test_clipboard_name_validation(self, mock_context) -> None:
         """Test clipboard name security validation."""
         invalid_names = [
             "../malicious",
@@ -721,7 +759,7 @@ class TestClipboardPropertyBased:
     """Property-based testing for clipboard operations."""
 
     @composite
-    def clipboard_content_strategy(draw):
+    def clipboard_content_strategy(draw) -> Any:
         """Generate valid clipboard content for testing."""
         content_type = draw(st.sampled_from(["text", "short", "long", "unicode"]))
 
@@ -735,11 +773,11 @@ class TestClipboardPropertyBased:
             content = draw(
                 st.text(
                     alphabet=st.characters(
-                        whitelist_categories=("Lu", "Ll", "Nd", "So")
+                        whitelist_categories=("Lu", "Ll", "Nd", "So"),
                     ),
                     min_size=1,
                     max_size=100,
-                )
+                ),
             )
 
         assume(len(content.strip()) > 0)
@@ -747,9 +785,10 @@ class TestClipboardPropertyBased:
 
     @given(clipboard_content_strategy())
     @settings(
-        max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture]
+        max_examples=20,
+        suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
-    def test_clipboard_content_properties(self, content):
+    def test_clipboard_content_properties(self, content) -> None:
         """Property: Valid clipboard content should meet basic requirements."""
         # Test basic content properties
         assert len(content) > 0
@@ -758,7 +797,7 @@ class TestClipboardPropertyBased:
 
     @given(st.integers(min_value=0, max_value=199))
     @settings(max_examples=10)
-    def test_history_index_properties(self, history_index):
+    def test_history_index_properties(self, history_index) -> None:
         """Property: History indices should be within valid range."""
         assert 0 <= history_index <= 199
         assert isinstance(history_index, int)
@@ -772,10 +811,10 @@ class TestClipboardPropertyBased:
             ),
             min_size=0,
             max_size=10,
-        )
+        ),
     )
     @settings(max_examples=15)
-    def test_tags_properties(self, tags):
+    def test_tags_properties(self, tags) -> None:
         """Property: Tags should be valid and manageable."""
         # All tags should be valid strings
         for tag in tags:
@@ -791,7 +830,7 @@ class TestClipboardPerformance:
     """Test performance and limits for clipboard operations."""
 
     @pytest.mark.asyncio
-    async def test_large_content_handling(self, mock_context, mock_clipboard_manager):
+    async def test_large_content_handling(self, mock_context, mock_clipboard_manager) -> None:
         """Test handling of large clipboard content."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -801,7 +840,9 @@ class TestClipboardPerformance:
             max_content = "x" * 1000000  # 1MB
 
             result = await km_clipboard_manager(
-                operation="set", content=max_content, ctx=mock_context
+                operation="set",
+                content=max_content,
+                ctx=mock_context,
             )
 
             # Should succeed with max content size
@@ -809,7 +850,7 @@ class TestClipboardPerformance:
             assert result["data"]["content_size"] == 1000000
 
     @pytest.mark.asyncio
-    async def test_history_count_limits(self, mock_context, mock_clipboard_manager):
+    async def test_history_count_limits(self, mock_context, mock_clipboard_manager) -> None:
         """Test history count parameter limits."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -849,7 +890,7 @@ class TestClipboardEdgeCases:
     """Test edge cases and boundary conditions."""
 
     @pytest.mark.asyncio
-    async def test_empty_content_handling(self, mock_context, mock_clipboard_manager):
+    async def test_empty_content_handling(self, mock_context, mock_clipboard_manager) -> None:
         """Test handling of empty clipboard content."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -881,8 +922,11 @@ class TestClipboardEdgeCases:
 
     @pytest.mark.asyncio
     async def test_unicode_content_handling(
-        self, mock_context, mock_clipboard_manager, sample_clipboard_data
-    ):
+        self,
+        mock_context,
+        mock_clipboard_manager,
+        sample_clipboard_data,
+    ) -> None:
         """Test handling of Unicode content."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -892,17 +936,19 @@ class TestClipboardEdgeCases:
             unicode_content = sample_clipboard_data["unicode_text"]
 
             result = await km_clipboard_manager(
-                operation="set", content=unicode_content, ctx=mock_context
+                operation="set",
+                content=unicode_content,
+                ctx=mock_context,
             )
 
             # Should handle Unicode properly
             assert result["success"] is True
             assert result["data"]["content_size"] == len(
-                unicode_content.encode("utf-8")
+                unicode_content.encode("utf-8"),
             )
 
     @pytest.mark.asyncio
-    async def test_none_values_handling(self, mock_context):
+    async def test_none_values_handling(self, mock_context) -> None:
         """Test handling of None values in optional parameters."""
         # Test with minimal parameters
         result = await km_clipboard_manager(operation="get", ctx=mock_context)

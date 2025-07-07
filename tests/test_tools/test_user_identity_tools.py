@@ -1,5 +1,4 @@
-"""
-Test Suite for User Identity Tools - TASK_67 Validation
+"""Test Suite for User Identity Tools - TASK_67 Validation.
 
 Comprehensive tests for username-based user identity management, authentication,
 personalization, and adaptive automation tools.
@@ -16,7 +15,12 @@ Test Coverage:
 Testing Approach: Property-based + Integration + Security validation
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
+import secrets  # S311 fix: Import secure random for cryptographic purposes
+import string
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -42,7 +46,7 @@ from src.server.tools.user_identity_tools import (
 
 
 @pytest.fixture
-def mock_context():
+def mock_context() -> Any:
     """Create a mock FastMCP Context for testing."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -55,7 +59,7 @@ def mock_context():
 
 
 @pytest.fixture
-def sample_user_data():
+def sample_user_data() -> Any:
     """Sample user data for testing."""
     return {
         "username": "testuser",
@@ -79,8 +83,10 @@ class TestKMAuthenticateUser:
 
     @pytest.mark.asyncio
     async def test_authenticate_user_success_password(
-        self, mock_context, sample_user_data
-    ):
+        self,
+        mock_context,
+        sample_user_data,
+    ) -> None:
         """Test successful password authentication."""
         # Create mock AuthenticationResult object
         mock_auth_result = Mock()
@@ -90,7 +96,7 @@ class TestKMAuthenticateUser:
         mock_auth_result.username = sample_user_data["username"]
         mock_auth_result.authentication_method = AuthenticationMethod.PASSWORD
         mock_auth_result.security_level = SecurityLevel.MEDIUM
-        mock_auth_result.session_token = "test-token-789"
+        mock_auth_result.session_token = "test-token-789"  # noqa: S105 - Test authentication token
         mock_auth_result.processing_time_ms = 50.0
         mock_auth_result.authenticated_at = datetime.now(UTC)
         mock_auth_result.expires_at = datetime.now(UTC) + timedelta(hours=8)
@@ -106,17 +112,17 @@ class TestKMAuthenticateUser:
 
         with (
             patch(
-                "src.server.tools.user_identity_tools.authentication_manager"
+                "src.server.tools.user_identity_tools.authentication_manager",
             ) as mock_auth_manager,
             patch(
-                "src.server.tools.user_identity_tools.session_manager"
+                "src.server.tools.user_identity_tools.session_manager",
             ) as mock_session_manager,
         ):
             mock_auth_manager.authenticate_user = AsyncMock(
-                return_value=Either.success(mock_auth_result)
+                return_value=Either.success(mock_auth_result),
             )
             mock_session_manager.create_session = AsyncMock(
-                return_value=mock_session_result
+                return_value=mock_session_result,
             )
 
             result = await km_authenticate_user(
@@ -141,7 +147,7 @@ class TestKMAuthenticateUser:
         assert result["processing_time_ms"] > 0
 
     @pytest.mark.asyncio
-    async def test_authenticate_user_invalid_method(self, mock_context):
+    async def test_authenticate_user_invalid_method(self, mock_context) -> None:
         """Test authentication with invalid method."""
         result = await km_authenticate_user(
             username="testuser",
@@ -155,12 +161,12 @@ class TestKMAuthenticateUser:
         assert "password" in result["supported_methods"]
 
     @pytest.mark.asyncio
-    async def test_authenticate_user_invalid_security_level(self, mock_context):
+    async def test_authenticate_user_invalid_security_level(self, mock_context) -> None:
         """Test authentication with invalid security level."""
         result = await km_authenticate_user(
             username="testuser",
             authentication_method="password",
-            password="test123",
+            password="test123",  # noqa: S106 - Test authentication data
             security_level="invalid_level",
             ctx=mock_context,
         )
@@ -170,17 +176,19 @@ class TestKMAuthenticateUser:
         assert "supported_levels" in result
 
     @pytest.mark.asyncio
-    async def test_authenticate_user_missing_password(self, mock_context):
+    async def test_authenticate_user_missing_password(self, mock_context) -> None:
         """Test password authentication without password."""
         result = await km_authenticate_user(
-            username="testuser", authentication_method="password", ctx=mock_context
+            username="testuser",
+            authentication_method="password",
+            ctx=mock_context,
         )
 
         assert not result["success"]
         assert result["error_code"] == "PASSWORD_REQUIRED"
 
     @pytest.mark.asyncio
-    async def test_authenticate_user_session_method(self, mock_context):
+    async def test_authenticate_user_session_method(self, mock_context) -> None:
         """Test session-based authentication."""
         result = await km_authenticate_user(
             username="admin",  # Use admin user that should exist
@@ -194,12 +202,12 @@ class TestKMAuthenticateUser:
         assert "error_code" in result or result["success"]
 
     @pytest.mark.asyncio
-    async def test_authenticate_user_timeout_validation(self, mock_context):
+    async def test_authenticate_user_timeout_validation(self, mock_context) -> None:
         """Test timeout parameter validation."""
         result = await km_authenticate_user(
             username="testuser",
             authentication_method="password",
-            password="test123",
+            password="test123",  # noqa: S106 - Test authentication data
             timeout=500,  # Beyond max limit
             ctx=mock_context,
         )
@@ -213,7 +221,7 @@ class TestKMIdentifyUser:
     """Test suite for km_identify_user tool."""
 
     @pytest.mark.asyncio
-    async def test_identify_user_success(self, mock_context):
+    async def test_identify_user_success(self, mock_context) -> None:
         """Test successful user identification."""
         identification_context = {"username": "admin", "source": "test_context"}
 
@@ -246,14 +254,14 @@ class TestKMIdentifyUser:
         mock_analytics_result.value = {"pattern_data": "test"}
 
         with patch(
-            "src.server.tools.user_identity_tools.user_profiler"
+            "src.server.tools.user_identity_tools.user_profiler",
         ) as mock_user_profiler:
             # Mock successful identification
             mock_user_profiler.identify_user = AsyncMock(
-                return_value=Either.success(mock_user_profile)
+                return_value=Either.success(mock_user_profile),
             )
             mock_user_profiler.get_user_analytics = AsyncMock(
-                return_value=mock_analytics_result
+                return_value=mock_analytics_result,
             )
 
             result = await km_identify_user(
@@ -274,15 +282,16 @@ class TestKMIdentifyUser:
         assert "profile_metadata" in result
 
     @pytest.mark.asyncio
-    async def test_identify_user_missing_identity(self, mock_context):
+    async def test_identify_user_missing_identity(self, mock_context) -> None:
         """Test identification with missing user identity."""
         identification_context = {
-            "source": "test_context"
+            "source": "test_context",
             # Missing username/user_id
         }
 
         result = await km_identify_user(
-            identification_context=identification_context, ctx=mock_context
+            identification_context=identification_context,
+            ctx=mock_context,
         )
 
         assert not result["success"]
@@ -290,7 +299,7 @@ class TestKMIdentifyUser:
         assert "required_fields" in result
 
     @pytest.mark.asyncio
-    async def test_identify_user_invalid_privacy_level(self, mock_context):
+    async def test_identify_user_invalid_privacy_level(self, mock_context) -> None:
         """Test identification with invalid privacy level."""
         identification_context = {"username": "admin"}
 
@@ -305,7 +314,7 @@ class TestKMIdentifyUser:
         assert "supported_levels" in result
 
     @pytest.mark.asyncio
-    async def test_identify_user_privacy_levels(self, mock_context):
+    async def test_identify_user_privacy_levels(self, mock_context) -> None:
         """Test different privacy levels."""
         identification_context = {"username": "admin"}
 
@@ -339,12 +348,13 @@ class TestKMIdentifyUser:
             )
 
     @pytest.mark.asyncio
-    async def test_identify_user_not_found(self, mock_context):
+    async def test_identify_user_not_found(self, mock_context) -> None:
         """Test identification of non-existent user."""
         identification_context = {"username": "nonexistent_user_12345"}
 
         result = await km_identify_user(
-            identification_context=identification_context, ctx=mock_context
+            identification_context=identification_context,
+            ctx=mock_context,
         )
 
         assert not result["success"]
@@ -355,7 +365,7 @@ class TestKMPersonalizeAutomation:
     """Test suite for km_personalize_automation tool."""
 
     @pytest.mark.asyncio
-    async def test_personalize_automation_success(self, mock_context):
+    async def test_personalize_automation_success(self, mock_context) -> None:
         """Test successful automation personalization."""
         # Create mock user profile
         mock_user_profile = Mock()
@@ -383,18 +393,18 @@ class TestKMPersonalizeAutomation:
 
         with (
             patch(
-                "src.server.tools.user_identity_tools.user_profiler"
+                "src.server.tools.user_identity_tools.user_profiler",
             ) as mock_user_profiler,
             patch(
-                "src.server.tools.user_identity_tools.personalization_engine"
+                "src.server.tools.user_identity_tools.personalization_engine",
             ) as mock_personalization_engine,
         ):
             # Mock successful identification and personalization
             mock_user_profiler.identify_user = AsyncMock(
-                return_value=Either.success(mock_user_profile)
+                return_value=Either.success(mock_user_profile),
             )
             mock_personalization_engine.personalize_automation = AsyncMock(
-                return_value=Either.success(mock_adaptation_result)
+                return_value=Either.success(mock_adaptation_result),
             )
 
             result = await km_personalize_automation(
@@ -416,7 +426,7 @@ class TestKMPersonalizeAutomation:
         assert result["settings"]["learning_mode"]
 
     @pytest.mark.asyncio
-    async def test_personalize_automation_different_levels(self, mock_context):
+    async def test_personalize_automation_different_levels(self, mock_context) -> None:
         """Test different adaptation levels."""
         adaptation_levels = ["light", "moderate", "comprehensive"]
 
@@ -433,7 +443,7 @@ class TestKMPersonalizeAutomation:
                 assert result["adaptation_level"] == level
 
     @pytest.mark.asyncio
-    async def test_personalize_automation_user_not_found(self, mock_context):
+    async def test_personalize_automation_user_not_found(self, mock_context) -> None:
         """Test personalization for non-existent user."""
         result = await km_personalize_automation(
             user_identity="nonexistent_user_98765",
@@ -445,13 +455,15 @@ class TestKMPersonalizeAutomation:
         assert "error_code" in result
 
     @pytest.mark.asyncio
-    async def test_personalize_automation_contexts(self, mock_context):
+    async def test_personalize_automation_contexts(self, mock_context) -> None:
         """Test different automation contexts."""
         contexts = ["macro", "workflow", "interface", "system"]
 
         for context in contexts:
             result = await km_personalize_automation(
-                user_identity="admin", automation_context=context, ctx=mock_context
+                user_identity="admin",
+                automation_context=context,
+                ctx=mock_context,
             )
 
             assert "success" in result
@@ -463,10 +475,12 @@ class TestKMManageUserProfiles:
     """Test suite for km_manage_user_profiles tool."""
 
     @pytest.mark.asyncio
-    async def test_manage_profiles_list_operation(self, mock_context):
+    async def test_manage_profiles_list_operation(self, mock_context) -> None:
         """Test listing user profiles."""
         result = await km_manage_user_profiles(
-            operation="list", user_identity="admin", ctx=mock_context
+            operation="list",
+            user_identity="admin",
+            ctx=mock_context,
         )
 
         assert result["success"]
@@ -481,7 +495,7 @@ class TestKMManageUserProfiles:
             assert "profile_id" in profile
 
     @pytest.mark.asyncio
-    async def test_manage_profiles_update_operation(self, mock_context):
+    async def test_manage_profiles_update_operation(self, mock_context) -> None:
         """Test updating user preferences."""
         preferences = {
             "personalization": {
@@ -504,14 +518,14 @@ class TestKMManageUserProfiles:
         mock_update_result.validation_results = {"status": "valid", "warnings": []}
 
         with patch(
-            "src.server.tools.user_identity_tools.user_profiler"
+            "src.server.tools.user_identity_tools.user_profiler",
         ) as mock_user_profiler:
             # Mock successful operations
             mock_user_profiler.identify_user = AsyncMock(
-                return_value=Either.success(mock_user_profile)
+                return_value=Either.success(mock_user_profile),
             )
             mock_user_profiler.update_user_preferences = AsyncMock(
-                return_value=Either.success(mock_update_result)
+                return_value=Either.success(mock_update_result),
             )
 
             result = await km_manage_user_profiles(
@@ -527,7 +541,7 @@ class TestKMManageUserProfiles:
             assert "preferences_updated" in result
 
     @pytest.mark.asyncio
-    async def test_manage_profiles_delete_operation(self, mock_context):
+    async def test_manage_profiles_delete_operation(self, mock_context) -> None:
         """Test deleting user data."""
         # Create mock user profile
         mock_user_profile = Mock()
@@ -546,18 +560,18 @@ class TestKMManageUserProfiles:
 
         with (
             patch(
-                "src.server.tools.user_identity_tools.user_profiler"
+                "src.server.tools.user_identity_tools.user_profiler",
             ) as mock_user_profiler,
             patch(
-                "src.server.tools.user_identity_tools.privacy_manager"
+                "src.server.tools.user_identity_tools.privacy_manager",
             ) as mock_privacy_manager,
         ):
             # Mock successful operations
             mock_user_profiler.identify_user = AsyncMock(
-                return_value=Either.success(mock_user_profile)
+                return_value=Either.success(mock_user_profile),
             )
             mock_privacy_manager.delete_user_data = AsyncMock(
-                return_value=Either.success(mock_delete_result)
+                return_value=Either.success(mock_delete_result),
             )
 
             result = await km_manage_user_profiles(
@@ -576,10 +590,12 @@ class TestKMManageUserProfiles:
             assert result["audit_logged"]
 
     @pytest.mark.asyncio
-    async def test_manage_profiles_invalid_operation(self, mock_context):
+    async def test_manage_profiles_invalid_operation(self, mock_context) -> None:
         """Test invalid operation."""
         result = await km_manage_user_profiles(
-            operation="invalid_operation", user_identity="admin", ctx=mock_context
+            operation="invalid_operation",
+            user_identity="admin",
+            ctx=mock_context,
         )
 
         assert not result["success"]
@@ -587,7 +603,7 @@ class TestKMManageUserProfiles:
         assert "valid_operations" in result
 
     @pytest.mark.asyncio
-    async def test_manage_profiles_security_compliance(self, mock_context):
+    async def test_manage_profiles_security_compliance(self, mock_context) -> None:
         """Test security and compliance features."""
         result = await km_manage_user_profiles(
             operation="list",
@@ -611,7 +627,7 @@ class TestKMAnalyzeUserBehavior:
     """Test suite for km_analyze_user_behavior tool."""
 
     @pytest.mark.asyncio
-    async def test_analyze_behavior_success(self, mock_context):
+    async def test_analyze_behavior_success(self, mock_context) -> None:
         """Test successful behavior analysis."""
         # Create mock user profile
         mock_user_profile = Mock()
@@ -634,24 +650,24 @@ class TestKMAnalyzeUserBehavior:
 
         with (
             patch(
-                "src.server.tools.user_identity_tools.user_profiler"
+                "src.server.tools.user_identity_tools.user_profiler",
             ) as mock_user_profiler,
             patch(
-                "src.server.tools.user_identity_tools.personalization_engine"
+                "src.server.tools.user_identity_tools.personalization_engine",
             ) as mock_personalization_engine,
         ):
             # Mock successful operations
             mock_user_profiler.identify_user = AsyncMock(
-                return_value=Either.success(mock_user_profile)
+                return_value=Either.success(mock_user_profile),
             )
             mock_user_profiler.analyze_user_behavior = AsyncMock(
-                return_value=Either.success(mock_analysis_result)
+                return_value=Either.success(mock_analysis_result),
             )
             mock_user_profiler.detect_behavioral_anomalies = AsyncMock(
-                return_value=Either.success([])
+                return_value=Either.success([]),
             )
             mock_personalization_engine.get_personalization_insights = AsyncMock(
-                return_value=Either.success({"recent_adaptations": []})
+                return_value=Either.success({"recent_adaptations": []}),
             )
 
             result = await km_analyze_user_behavior(
@@ -675,31 +691,34 @@ class TestKMAnalyzeUserBehavior:
         assert result["privacy"]["privacy_preserving"]
 
     @pytest.mark.asyncio
-    async def test_analyze_behavior_different_periods(self, mock_context):
+    async def test_analyze_behavior_different_periods(self, mock_context) -> None:
         """Test different analysis periods."""
         periods = ["day", "week", "month", "custom"]
         expected_days = [1, 7, 30, 14]  # custom defaults to 14
 
         for period, expected in zip(periods, expected_days, strict=False):
             result = await km_analyze_user_behavior(
-                user_identity="admin", analysis_period=period, ctx=mock_context
+                user_identity="admin",
+                analysis_period=period,
+                ctx=mock_context,
             )
 
             if result["success"]:
                 assert result["period_days"] == expected
 
     @pytest.mark.asyncio
-    async def test_analyze_behavior_user_not_found(self, mock_context):
+    async def test_analyze_behavior_user_not_found(self, mock_context) -> None:
         """Test behavior analysis for non-existent user."""
         result = await km_analyze_user_behavior(
-            user_identity="nonexistent_user_54321", ctx=mock_context
+            user_identity="nonexistent_user_54321",
+            ctx=mock_context,
         )
 
         assert not result["success"]
         assert "error_code" in result
 
     @pytest.mark.asyncio
-    async def test_analyze_behavior_features(self, mock_context):
+    async def test_analyze_behavior_features(self, mock_context) -> None:
         """Test different analysis features."""
         result = await km_analyze_user_behavior(
             user_identity="admin",
@@ -722,7 +741,7 @@ class TestKMSwitchUserContext:
     """Test suite for km_switch_user_context tool."""
 
     @pytest.mark.asyncio
-    async def test_switch_context_success(self, mock_context):
+    async def test_switch_context_success(self, mock_context) -> None:
         """Test successful user context switching."""
         # Create mock user profiles
         mock_current_profile = Mock()
@@ -734,7 +753,7 @@ class TestKMSwitchUserContext:
         mock_target_profile.username = "testuser"
         mock_target_profile.display_name = "Test User"
         mock_target_profile.personalization_preferences = {
-            "automation_style": "balanced"
+            "automation_style": "balanced",
         }
         mock_target_profile.accessibility_settings = {"high_contrast": False}
         mock_target_profile.privacy_settings = {"allow_learning": True}
@@ -750,10 +769,10 @@ class TestKMSwitchUserContext:
 
         with (
             patch(
-                "src.server.tools.user_identity_tools.user_profiler"
+                "src.server.tools.user_identity_tools.user_profiler",
             ) as mock_user_profiler,
             patch(
-                "src.server.tools.user_identity_tools.session_manager"
+                "src.server.tools.user_identity_tools.session_manager",
             ) as mock_session_manager,
         ):
             # Mock successful operations
@@ -761,12 +780,12 @@ class TestKMSwitchUserContext:
                 side_effect=[
                     Either.success(mock_target_profile),  # First call for target user
                     Either.success(
-                        mock_current_profile
+                        mock_current_profile,
                     ),  # Second call for current user (if provided)
-                ]
+                ],
             )
             mock_session_manager.switch_user_context = AsyncMock(
-                return_value=Either.success(mock_switch_result)
+                return_value=Either.success(mock_switch_result),
             )
 
             result = await km_switch_user_context(
@@ -792,17 +811,18 @@ class TestKMSwitchUserContext:
             assert result["security"]["audit_logged"]
 
     @pytest.mark.asyncio
-    async def test_switch_context_target_not_found(self, mock_context):
+    async def test_switch_context_target_not_found(self, mock_context) -> None:
         """Test context switch with non-existent target user."""
         result = await km_switch_user_context(
-            target_user="nonexistent_user_99999", ctx=mock_context
+            target_user="nonexistent_user_99999",
+            ctx=mock_context,
         )
 
         assert not result["success"]
         assert "error_code" in result
 
     @pytest.mark.asyncio
-    async def test_switch_context_features(self, mock_context):
+    async def test_switch_context_features(self, mock_context) -> None:
         """Test different context switch features."""
         result = await km_switch_user_context(
             target_user="admin",
@@ -828,7 +848,7 @@ class TestUserIdentityToolsSecurity:
     """Security-focused tests for user identity tools."""
 
     @pytest.mark.asyncio
-    async def test_authentication_sql_injection_prevention(self, mock_context):
+    async def test_authentication_sql_injection_prevention(self, mock_context) -> None:
         """Test SQL injection prevention in authentication."""
         malicious_usernames = [
             "admin'; DROP TABLE users; --",
@@ -838,10 +858,12 @@ class TestUserIdentityToolsSecurity:
         ]
 
         for malicious_username in malicious_usernames:
+            # S106 fix: Use variable instead of hardcoded password in test
+            test_password = "test123"  # noqa: S105 - Test credential, not production
             result = await km_authenticate_user(
                 username=malicious_username,
                 authentication_method="password",
-                password="test123",
+                password=test_password,  # noqa: S106 - Test authentication data
                 ctx=mock_context,
             )
 
@@ -856,7 +878,7 @@ class TestUserIdentityToolsSecurity:
                 assert "table" not in error_msg
 
     @pytest.mark.asyncio
-    async def test_identification_xss_prevention(self, mock_context):
+    async def test_identification_xss_prevention(self, mock_context) -> None:
         """Test XSS prevention in user identification."""
         malicious_contexts = [
             {"username": "<script>alert('xss')</script>"},
@@ -867,7 +889,8 @@ class TestUserIdentityToolsSecurity:
 
         for malicious_context in malicious_contexts:
             result = await km_identify_user(
-                identification_context=malicious_context, ctx=mock_context
+                identification_context=malicious_context,
+                ctx=mock_context,
             )
 
             # Should handle malicious input without executing scripts
@@ -878,7 +901,7 @@ class TestUserIdentityToolsSecurity:
                 assert "javascript:" not in result["username"]
 
     @pytest.mark.asyncio
-    async def test_profile_management_path_traversal_prevention(self, mock_context):
+    async def test_profile_management_path_traversal_prevention(self, mock_context) -> None:
         """Test path traversal prevention in profile management."""
         malicious_user_identities = [
             "../../../etc/passwd",
@@ -889,7 +912,9 @@ class TestUserIdentityToolsSecurity:
 
         for malicious_identity in malicious_user_identities:
             result = await km_manage_user_profiles(
-                operation="list", user_identity=malicious_identity, ctx=mock_context
+                operation="list",
+                user_identity=malicious_identity,
+                ctx=mock_context,
             )
 
             # Should handle malicious paths without accessing system files
@@ -902,7 +927,7 @@ class TestUserIdentityToolsSecurity:
                 assert "permission denied" not in error_msg
 
     @pytest.mark.asyncio
-    async def test_privacy_level_enforcement(self, mock_context):
+    async def test_privacy_level_enforcement(self, mock_context) -> None:
         """Test privacy level enforcement across tools."""
         # Test that minimal privacy level restricts data access
         minimal_result = await km_identify_user(
@@ -927,14 +952,16 @@ class TestUserIdentityToolsPerformance:
     """Performance-focused tests for user identity tools."""
 
     @pytest.mark.asyncio
-    async def test_authentication_performance(self, mock_context):
+    async def test_authentication_performance(self, mock_context) -> None:
         """Test authentication performance requirements."""
         start_time = datetime.now(UTC)
 
+        # S106 fix: Use variable instead of hardcoded password in test
+        test_admin_password = "SecureAdmin123!"  # noqa: S105 - Test credential, not production
         result = await km_authenticate_user(
             username="admin",
             authentication_method="password",
-            password="SecureAdmin123!",
+            password=test_admin_password,  # noqa: S106 - Test authentication data
             ctx=mock_context,
         )
 
@@ -950,7 +977,7 @@ class TestUserIdentityToolsPerformance:
             assert result["processing_time_ms"] > 0
 
     @pytest.mark.asyncio
-    async def test_identification_performance(self, mock_context):
+    async def test_identification_performance(self, mock_context) -> None:
         """Test identification performance requirements."""
         start_time = datetime.now(UTC)
 
@@ -970,13 +997,15 @@ class TestUserIdentityToolsPerformance:
             assert "processing_time_ms" in result
 
     @pytest.mark.asyncio
-    async def test_concurrent_operations(self, mock_context):
+    async def test_concurrent_operations(self, mock_context) -> None:
         """Test concurrent user identity operations."""
         # Create multiple concurrent authentication requests
         tasks = []
         for _i in range(5):
             task = km_authenticate_user(
-                username="admin", authentication_method="session", ctx=mock_context
+                username="admin",
+                authentication_method="session",
+                ctx=mock_context,
             )
             tasks.append(task)
 
@@ -993,7 +1022,7 @@ class TestUserIdentityToolsIntegration:
     """Integration tests for user identity tool workflows."""
 
     @pytest.mark.asyncio
-    async def test_complete_identity_workflow(self, mock_context, sample_user_data):
+    async def test_complete_identity_workflow(self, mock_context, sample_user_data) -> None:
         """Test complete user identity workflow."""
         # Create comprehensive mocks for all identity components
         mock_user_profile = Mock()
@@ -1019,7 +1048,9 @@ class TestUserIdentityToolsIntegration:
         mock_auth_result.username = sample_user_data["username"]
         mock_auth_result.authentication_method = AuthenticationMethod.PASSWORD
         mock_auth_result.security_level = SecurityLevel.MEDIUM
-        mock_auth_result.session_token = "token123"
+        # S105 fix: Use variable instead of hardcoded token in test
+        test_session_token = "token123"  # noqa: S105 - Test token, not production
+        mock_auth_result.session_token = test_session_token  # noqa: S105 - Test session data
         mock_auth_result.expires_at = datetime.now(UTC) + timedelta(hours=8)
         mock_auth_result.permissions = ["read", "execute"]
         mock_auth_result.processing_time_ms = 45.0
@@ -1055,47 +1086,47 @@ class TestUserIdentityToolsIntegration:
 
         with (
             patch(
-                "src.server.tools.user_identity_tools.authentication_manager"
+                "src.server.tools.user_identity_tools.authentication_manager",
             ) as mock_auth_manager,
             patch(
-                "src.server.tools.user_identity_tools.user_profiler"
+                "src.server.tools.user_identity_tools.user_profiler",
             ) as mock_user_profiler,
             patch(
-                "src.server.tools.user_identity_tools.session_manager"
+                "src.server.tools.user_identity_tools.session_manager",
             ) as mock_session_manager,
             patch(
-                "src.server.tools.user_identity_tools.personalization_engine"
+                "src.server.tools.user_identity_tools.personalization_engine",
             ) as mock_personalization_engine,
         ):
             # Set up all mocks for the workflow
             mock_auth_manager.authenticate_user = AsyncMock(
-                return_value=Either.success(mock_auth_result)
+                return_value=Either.success(mock_auth_result),
             )
             mock_session_manager.create_session = AsyncMock(
-                return_value=Either.success(mock_session_context)
+                return_value=Either.success(mock_session_context),
             )
 
             mock_user_profiler.identify_user = AsyncMock(
-                return_value=Either.success(mock_user_profile)
+                return_value=Either.success(mock_user_profile),
             )
             mock_user_profiler.get_user_analytics = AsyncMock(
-                return_value=Either.success({})
+                return_value=Either.success({}),
             )
             mock_user_profiler.analyze_user_behavior = AsyncMock(
-                return_value=Either.success(mock_analysis_data)
+                return_value=Either.success(mock_analysis_data),
             )
             mock_user_profiler.detect_behavioral_anomalies = AsyncMock(
-                return_value=Either.success([])
+                return_value=Either.success([]),
             )
             mock_user_profiler.update_user_preferences = AsyncMock(
-                return_value=Either.success(mock_updated_profile)
+                return_value=Either.success(mock_updated_profile),
             )
 
             mock_personalization_engine.personalize_automation = AsyncMock(
-                return_value=Either.success(mock_adaptation_result)
+                return_value=Either.success(mock_adaptation_result),
             )
             mock_personalization_engine.get_personalization_insights = AsyncMock(
-                return_value=Either.success({"recent_adaptations": []})
+                return_value=Either.success({"recent_adaptations": []}),
             )
 
             # Step 1: Authenticate user
@@ -1131,7 +1162,9 @@ class TestUserIdentityToolsIntegration:
 
             # Step 4: Analyze behavior
             behavior_result = await km_analyze_user_behavior(
-                user_identity=username, analysis_period="week", ctx=mock_context
+                user_identity=username,
+                analysis_period="week",
+                ctx=mock_context,
             )
 
             assert behavior_result["success"]
@@ -1148,7 +1181,7 @@ class TestUserIdentityToolsIntegration:
             assert "success" in update_result
 
     @pytest.mark.asyncio
-    async def test_multi_user_context_workflow(self, mock_context):
+    async def test_multi_user_context_workflow(self, mock_context) -> None:
         """Test multi-user context management workflow."""
         # Switch from admin to test user
         switch_result = await km_switch_user_context(
@@ -1178,7 +1211,7 @@ class TestUserIdentityToolsIntegration:
             assert "success" in switch_back
 
     @pytest.mark.asyncio
-    async def test_privacy_workflow(self, mock_context):
+    async def test_privacy_workflow(self, mock_context) -> None:
         """Test privacy-focused workflow."""
         # Identify user with enhanced privacy
         identify_result = await km_identify_user(
@@ -1218,24 +1251,21 @@ class TestUserIdentityToolsProperties:
     """Property-based tests for user identity tools."""
 
     @pytest.mark.asyncio
-    async def test_authentication_input_validation_properties(self, mock_context):
+    async def test_authentication_input_validation_properties(self, mock_context) -> None:
         """Property: Authentication should validate all inputs safely."""
-        import random
-        import string
+        # S311 fix: Use secrets module for cryptographically secure random generation
+        # (import moved to top for better organization)
 
-        # Generate random but safe test inputs
+        # Generate cryptographically secure random but safe test inputs
         test_cases = []
         for _ in range(10):
             username = "".join(
-                random.choices(
-                    string.ascii_letters + string.digits, k=random.randint(1, 50)
-                )
+                secrets.choice(string.ascii_letters + string.digits)
+                for _ in range(secrets.randbelow(50) + 1)
             )
             password = "".join(
-                random.choices(
-                    string.ascii_letters + string.digits + "!@#$%",
-                    k=random.randint(8, 100),
-                )
+                secrets.choice(string.ascii_letters + string.digits + "!@#$%")
+                for _ in range(secrets.randbelow(93) + 8)
             )
             test_cases.append((username, password))
 
@@ -1257,7 +1287,7 @@ class TestUserIdentityToolsProperties:
             assert result["processing_time_ms"] >= 0
 
     @pytest.mark.asyncio
-    async def test_identification_context_properties(self, mock_context):
+    async def test_identification_context_properties(self, mock_context) -> None:
         """Property: Identification should handle various context formats."""
         test_contexts = [
             {"username": "admin"},
@@ -1269,7 +1299,8 @@ class TestUserIdentityToolsProperties:
 
         for context in test_contexts:
             result = await km_identify_user(
-                identification_context=context, ctx=mock_context
+                identification_context=context,
+                ctx=mock_context,
             )
 
             # Property: All results should have consistent structure

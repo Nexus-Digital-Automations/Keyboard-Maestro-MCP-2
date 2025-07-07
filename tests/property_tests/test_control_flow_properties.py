@@ -1,10 +1,12 @@
-"""
-Property-based tests for control flow functionality.
+"""Property-based tests for control flow functionality.
 
 Uses Hypothesis to validate control flow behavior across input ranges,
 ensuring security boundaries and correctness properties hold.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 from src.core.control_flow import (
@@ -30,7 +32,7 @@ from src.core.errors import ContractViolationError, ValidationError
 
 # Hypothesis strategies for control flow testing
 @st.composite
-def safe_text_strategy(draw):
+def safe_text_strategy(draw) -> Any:
     """Generate safe text without dangerous patterns."""
     # Base text generation
     text = draw(
@@ -41,7 +43,7 @@ def safe_text_strategy(draw):
             ),
             min_size=1,
             max_size=100,
-        )
+        ),
     )
 
     # Filter out dangerous patterns
@@ -69,7 +71,7 @@ def safe_text_strategy(draw):
 
 
 @st.composite
-def safe_action_strategy(draw):
+def safe_action_strategy(draw) -> Any:
     """Generate safe action dictionaries."""
     action_type = draw(
         st.sampled_from(
@@ -82,8 +84,8 @@ def safe_action_strategy(draw):
                 "show_notification",
                 "play_sound",
                 "set_variable",
-            ]
-        )
+            ],
+        ),
     )
 
     action = {"type": action_type}
@@ -104,7 +106,7 @@ def safe_action_strategy(draw):
 
 
 @st.composite
-def safe_condition_strategy(draw):
+def safe_condition_strategy(draw) -> Any:
     """Generate safe condition expressions."""
     expression = draw(safe_text_strategy())
     operator = draw(st.sampled_from(list(ComparisonOperator)))
@@ -121,7 +123,7 @@ def safe_condition_strategy(draw):
 
 
 @st.composite
-def safe_action_block_strategy(draw):
+def safe_action_block_strategy(draw) -> Any:
     """Generate safe action blocks."""
     actions = draw(st.lists(safe_action_strategy(), min_size=1, max_size=10))
 
@@ -136,7 +138,7 @@ class TestControlFlowProperties:
     """Property-based tests for control flow structures."""
 
     @given(safe_condition_strategy(), safe_action_block_strategy())
-    def test_if_then_else_properties(self, condition, then_actions):
+    def test_if_then_else_properties(self, condition, then_actions) -> None:
         """Property: If/then/else nodes should always be valid when created with safe inputs."""
         else_actions = ActionBlock.from_actions([{"type": "noop"}])
 
@@ -162,7 +164,7 @@ class TestControlFlowProperties:
         safe_action_block_strategy(),
         st.integers(min_value=1, max_value=1000),
     )
-    def test_for_loop_properties(self, iterator, collection, actions, max_iterations):
+    def test_for_loop_properties(self, iterator, collection, actions, max_iterations) -> None:
         """Property: For loops should enforce iteration bounds and maintain structure."""
         loop_config = LoopConfiguration(
             iterator_variable=IteratorVariable(iterator),
@@ -190,7 +192,7 @@ class TestControlFlowProperties:
         safe_action_block_strategy(),
         st.integers(min_value=1, max_value=1000),
     )
-    def test_while_loop_properties(self, condition, actions, max_iterations):
+    def test_while_loop_properties(self, condition, actions, max_iterations) -> None:
         """Property: While loops should enforce iteration bounds and condition validity."""
         node = WhileLoopNode(
             flow_type=ControlFlowType.WHILE_LOOP,
@@ -219,7 +221,7 @@ class TestControlFlowProperties:
             max_size=10,
         ),
     )
-    def test_switch_case_properties(self, switch_variable, case_data):
+    def test_switch_case_properties(self, switch_variable, case_data) -> None:
         """Property: Switch/case structures should maintain case integrity and uniqueness."""
         cases = []
         for case_value, case_actions in case_data:
@@ -249,7 +251,7 @@ class TestSecurityProperties:
     """Property-based tests for security validation."""
 
     @given(safe_text_strategy())
-    def test_condition_security_properties(self, condition_text):
+    def test_condition_security_properties(self, condition_text) -> None:
         """Property: No condition should execute malicious code."""
         # Create condition with the test text
         try:
@@ -288,7 +290,7 @@ class TestSecurityProperties:
             pass
 
     @given(st.lists(safe_action_strategy(), min_size=1, max_size=200))
-    def test_action_count_security_properties(self, actions):
+    def test_action_count_security_properties(self, actions) -> None:
         """Property: Action count should be bounded for security."""
         action_block = ActionBlock.from_actions(actions)
 
@@ -302,7 +304,7 @@ class TestSecurityProperties:
             assert len(action_block.actions) == len(actions)
 
     @given(st.integers(min_value=1, max_value=50000))
-    def test_iteration_bounds_properties(self, requested_iterations):
+    def test_iteration_bounds_properties(self, requested_iterations) -> None:
         """Property: Loop iterations should be bounded for security."""
         validator = ControlFlowValidator()
 
@@ -338,7 +340,7 @@ class TestSecurityProperties:
             assert requested_iterations > 1000 or requested_iterations < 1
 
     @given(st.lists(safe_condition_strategy(), min_size=1, max_size=30))
-    def test_nesting_depth_properties(self, conditions):
+    def test_nesting_depth_properties(self, conditions) -> None:
         """Property: Nesting depth should be bounded for stack safety."""
         validator = ControlFlowValidator()
 
@@ -372,13 +374,18 @@ class TestBuilderProperties:
         st.lists(safe_action_strategy(), min_size=1, max_size=10),
     )
     def test_builder_if_then_else_properties(
-        self, condition, then_actions, else_actions
-    ):
+        self,
+        condition,
+        then_actions,
+        else_actions,
+    ) -> None:
         """Property: Builder should create valid if/then/else structures."""
         builder = ControlFlowBuilder()
 
         builder.if_condition(
-            condition.expression, condition.operator, condition.operand
+            condition.expression,
+            condition.operator,
+            condition.operand,
         ).then_actions(then_actions).else_actions(else_actions)
 
         nodes = builder.build()
@@ -400,8 +407,12 @@ class TestBuilderProperties:
         st.integers(min_value=1, max_value=1000),
     )
     def test_builder_for_loop_properties(
-        self, iterator, collection, actions, max_iterations
-    ):
+        self,
+        iterator,
+        collection,
+        actions,
+        max_iterations,
+    ) -> None:
         """Property: Builder should create valid for loop structures."""
         builder = ControlFlowBuilder()
 
@@ -426,9 +437,9 @@ class TestBuilderProperties:
             ),
             min_size=1,
             max_size=10,
-        )
+        ),
     )
-    def test_builder_switch_properties(self, case_data):
+    def test_builder_switch_properties(self, case_data) -> None:
         """Property: Builder should create valid switch structures."""
         builder = ControlFlowBuilder()
 
@@ -463,8 +474,12 @@ class TestHelperFunctionProperties:
         st.lists(safe_action_strategy(), min_size=1, max_size=5),
     )
     def test_create_simple_if_properties(
-        self, expression, operator, operand, then_actions
-    ):
+        self,
+        expression,
+        operator,
+        operand,
+        then_actions,
+    ) -> None:
         """Property: create_simple_if should always produce valid structures."""
         node = create_simple_if(expression, operator, operand, then_actions)
 
@@ -482,8 +497,12 @@ class TestHelperFunctionProperties:
         st.integers(min_value=1, max_value=1000),
     )
     def test_create_for_loop_properties(
-        self, iterator, collection, actions, max_iterations
-    ):
+        self,
+        iterator,
+        collection,
+        actions,
+        max_iterations,
+    ) -> None:
         """Property: create_for_loop should always produce valid structures."""
         node = create_for_loop(iterator, collection, actions, max_iterations)
 
@@ -501,8 +520,13 @@ class TestHelperFunctionProperties:
         st.integers(min_value=1, max_value=1000),
     )
     def test_create_while_loop_properties(
-        self, expression, operator, operand, actions, max_iterations
-    ):
+        self,
+        expression,
+        operator,
+        operand,
+        actions,
+        max_iterations,
+    ) -> None:
         """Property: create_while_loop should always produce valid structures."""
         node = create_while_loop(expression, operator, operand, actions, max_iterations)
 
@@ -520,7 +544,7 @@ class TestPerformanceProperties:
 
     @settings(max_examples=50, deadline=5000)  # 5 second deadline
     @given(st.lists(safe_action_strategy(), min_size=50, max_size=100))
-    def test_large_action_block_performance(self, actions):
+    def test_large_action_block_performance(self, actions) -> None:
         """Property: Large action blocks should be created efficiently."""
         import time
 
@@ -534,7 +558,7 @@ class TestPerformanceProperties:
 
     @settings(max_examples=20, deadline=10000)  # 10 second deadline
     @given(st.lists(safe_condition_strategy(), min_size=1, max_size=20))
-    def test_complex_validation_performance(self, conditions):
+    def test_complex_validation_performance(self, conditions) -> None:
         """Property: Complex validation should complete efficiently."""
         import time
 

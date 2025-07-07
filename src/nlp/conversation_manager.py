@@ -1,5 +1,4 @@
-"""
-Conversation Manager - TASK_60 Phase 2 Core Implementation
+"""Conversation Manager - TASK_60 Phase 2 Core Implementation.
 
 Conversational automation interface management for natural language interactions.
 Provides context-aware conversation handling, guidance, and automation assistance.
@@ -94,7 +93,9 @@ class ConversationManager:
     """Conversational automation interface management system."""
 
     def __init__(
-        self, intent_classifier: IntentClassifier, command_processor: CommandProcessor
+        self,
+        intent_classifier: IntentClassifier,
+        command_processor: CommandProcessor,
     ):
         self.intent_classifier = intent_classifier
         self.command_processor = command_processor
@@ -226,7 +227,7 @@ class ConversationManager:
     @require(lambda user_input: isinstance(user_input, TextContent))
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.left_value, ConversationError)
+        or isinstance(result.left_value, ConversationError),
     )
     async def process_conversation(
         self,
@@ -252,7 +253,7 @@ class ConversationManager:
                     "type": "user_input",
                     "content": str(user_input),
                     "mode": mode.value,
-                }
+                },
             )
 
             # Analyze user intent
@@ -261,11 +262,13 @@ class ConversationManager:
             if intent_result.is_left():
                 return await self._handle_unclear_input(session, user_input)
 
-            recognized_intents = intent_result.right_value
+            recognized_intents = intent_result.value
 
             # Update conversation state based on intent
             await self._update_conversation_state(
-                session, recognized_intents, user_input
+                session,
+                recognized_intents,
+                user_input,
             )
 
             # Generate appropriate response
@@ -284,7 +287,7 @@ class ConversationManager:
                     "type": "assistant_response",
                     "content": response.response_text,
                     "response_type": response.response_type,
-                }
+                },
             )
 
             # Update learning data
@@ -295,14 +298,16 @@ class ConversationManager:
         except Exception as e:
             return Either.left(
                 ConversationError(
-                    f"Conversation processing failed: {str(e)}",
+                    f"Conversation processing failed: {e!s}",
                     "CONVERSATION_ERROR",
                     context={"conversation_id": conversation_id, "mode": mode.value},
-                )
+                ),
             )
 
     def _get_or_create_session(
-        self, conversation_id: ConversationId, mode: ConversationMode
+        self,
+        conversation_id: ConversationId,
+        mode: ConversationMode,
     ) -> ConversationSession:
         """Get existing session or create new one."""
         if conversation_id not in self.active_sessions:
@@ -325,7 +330,10 @@ class ConversationManager:
         return self.active_sessions[conversation_id]
 
     async def _update_conversation_state(
-        self, session: ConversationSession, intents: list, user_input: TextContent
+        self,
+        session: ConversationSession,
+        intents: list,
+        user_input: TextContent,
     ) -> None:
         """Update conversation state based on recognized intents."""
         if not intents:
@@ -363,7 +371,7 @@ class ConversationManager:
         # Check if intent has required entities or parameters
         if intent.category.value == "automation_command":
             return len(intent.entities) >= 1
-        elif intent.category.value == "workflow_creation":
+        if intent.category.value == "workflow_creation":
             return len(intent.entities) >= 1 or len(intent.parameters) >= 2
         return True
 
@@ -386,7 +394,9 @@ class ConversationManager:
 
         # Select response template based on state and intent
         template_key = self._select_response_template(
-            session.state, primary_intent, session.context.mode
+            session.state,
+            primary_intent,
+            session.context.mode,
         )
         template = self.response_templates.get(template_key)
 
@@ -416,7 +426,8 @@ class ConversationManager:
 
         # Generate follow-up questions
         follow_up_questions = self._generate_follow_up_questions(
-            session, primary_intent
+            session,
+            primary_intent,
         )
 
         return ConversationResponse(
@@ -433,32 +444,36 @@ class ConversationManager:
         )
 
     def _select_response_template(
-        self, state: ConversationState, intent, mode: ConversationMode
+        self,
+        state: ConversationState,
+        intent,
+        mode: ConversationMode,
     ) -> str:
         """Select appropriate response template."""
         if state == ConversationState.INITIAL:
             if intent.category.value == "greeting":
                 return f"greeting_{mode.value}"
-            else:
-                return f"greeting_{mode.value}"
-        elif state == ConversationState.CLARIFYING:
+            return f"greeting_{mode.value}"
+        if state == ConversationState.CLARIFYING:
             return "unclear_intent"
-        elif state == ConversationState.PROCESSING:
+        if state == ConversationState.PROCESSING:
             if intent.category.value == "information_request":
                 return "automation_list"
-            else:
-                return "automation_suggestions"
-        elif state == ConversationState.ERROR:
+            return "automation_suggestions"
+        if state == ConversationState.ERROR:
             return "processing_error"
-        else:
-            return "unclear_intent"
+        return "unclear_intent"
 
     def _format_response_template(
-        self, template: ResponseTemplate, skill_level: str, context_vars: dict[str, Any]
+        self,
+        template: ResponseTemplate,
+        skill_level: str,
+        context_vars: dict[str, Any],
     ) -> str:
         """Format response template with context variables."""
         base_response = template.templates.get(
-            skill_level, template.templates.get("intermediate", "")
+            skill_level,
+            template.templates.get("intermediate", ""),
         )
 
         # Replace placeholders
@@ -472,7 +487,9 @@ class ConversationManager:
         return base_response
 
     async def _generate_suggestions(
-        self, session: ConversationSession, intent
+        self,
+        session: ConversationSession,
+        intent,
     ) -> list[str]:
         """Generate contextual suggestions for the user."""
         suggestions = []
@@ -483,7 +500,7 @@ class ConversationManager:
                     "Add error handling to your automation",
                     "Set up a keyboard shortcut trigger",
                     "Test the automation before saving",
-                ]
+                ],
             )
         elif intent.category.value == "workflow_creation":
             suggestions.extend(
@@ -491,7 +508,7 @@ class ConversationManager:
                     "Consider adding conditions for different scenarios",
                     "Break complex workflows into smaller steps",
                     "Add notifications for completion status",
-                ]
+                ],
             )
         elif intent.category.value == "information_request":
             suggestions.extend(
@@ -499,7 +516,7 @@ class ConversationManager:
                     "Filter automations by category",
                     "Sort by most recently used",
                     "Search for specific functionality",
-                ]
+                ],
             )
 
         return suggestions[:3]  # Limit to top 3 suggestions
@@ -515,7 +532,7 @@ class ConversationManager:
                         "Launch Safari and open my email",
                         "Set volume to 50% and play my morning playlist",
                         "Create a new document and type my signature",
-                    ]
+                    ],
                 )
             else:
                 examples.extend(
@@ -523,13 +540,15 @@ class ConversationManager:
                         "If battery is low, close non-essential apps and dim screen",
                         "When I connect headphones, pause current audio and switch output",
                         "Schedule weekly folder cleanup and file organization",
-                    ]
+                    ],
                 )
 
         return examples[:2]  # Limit to 2 examples
 
     def _generate_follow_up_questions(
-        self, session: ConversationSession, intent
+        self,
+        session: ConversationSession,
+        intent,
     ) -> list[str]:
         """Generate follow-up questions to gather more information."""
         questions = []
@@ -541,7 +560,7 @@ class ConversationManager:
                         "What should trigger this automation?",
                         "Should this run automatically or manually?",
                         "Are there any conditions when this shouldn't run?",
-                    ]
+                    ],
                 )
             elif intent.category.value == "workflow_creation":
                 questions.extend(
@@ -549,7 +568,7 @@ class ConversationManager:
                         "What's the first step in this workflow?",
                         "How often will you use this?",
                         "Should this work with specific applications?",
-                    ]
+                    ],
                 )
 
         return questions[:2]  # Limit to 2 questions
@@ -563,14 +582,18 @@ class ConversationManager:
         ]
 
     async def _handle_unclear_input(
-        self, session: ConversationSession, user_input: TextContent
+        self,
+        session: ConversationSession,
+        user_input: TextContent,
     ) -> Either[ConversationError, ConversationResponse]:
         """Handle unclear or unrecognized user input."""
         response_id = f"resp_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
 
         template = self.response_templates["unclear_intent"]
         response_text = self._format_response_template(
-            template, session.context.skill_level, {}
+            template,
+            session.context.skill_level,
+            {},
         )
 
         return Either.right(
@@ -582,16 +605,20 @@ class ConversationManager:
                 suggestions=template.follow_up_suggestions,
                 requires_action=True,
                 confidence=0.5,
-            )
+            ),
         )
 
     async def _generate_clarification_response(
-        self, session: ConversationSession, response_id: str
+        self,
+        session: ConversationSession,
+        response_id: str,
     ) -> ConversationResponse:
         """Generate a clarification response when input is unclear."""
         template = self.response_templates["unclear_intent"]
         response_text = self._format_response_template(
-            template, session.context.skill_level, {}
+            template,
+            session.context.skill_level,
+            {},
         )
 
         return ConversationResponse(
@@ -631,7 +658,8 @@ class ConversationManager:
             ][-1000:]
 
     def get_session_info(
-        self, conversation_id: ConversationId
+        self,
+        conversation_id: ConversationId,
     ) -> dict[str, Any] | None:
         """Get information about a conversation session."""
         if conversation_id not in self.active_sessions:

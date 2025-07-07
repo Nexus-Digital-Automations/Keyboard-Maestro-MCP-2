@@ -1,9 +1,11 @@
-"""
-Server Utilities and Shared Components
+"""Server Utilities and Shared Components.
 
 Shared utilities and singleton instances for the MCP server.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
 import logging
 
@@ -66,7 +68,9 @@ def get_sync_manager() -> MacroSyncManager:
             cache_ttl=Duration.from_minutes(10),
         )
         sync_manager = MacroSyncManager(
-            get_km_client(), get_metadata_extractor(), config
+            get_km_client(),
+            get_metadata_extractor(),
+            config,
         )
     return sync_manager
 
@@ -76,7 +80,7 @@ def get_file_monitor() -> KMFileMonitor:
     global file_monitor
     if file_monitor is None:
 
-        def on_file_change(event: FileChangeEvent):
+        def on_file_change(event: FileChangeEvent) -> Any:
             """Handle file system changes."""
             logger.info(f"File change detected: {event.event_type} {event.file_path}")
             # Trigger sync manager to check for changes

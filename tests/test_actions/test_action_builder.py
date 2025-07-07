@@ -1,10 +1,13 @@
-"""
-Property-based tests for Action Builder system.
+"""Property-based tests for Action Builder system.
 
 Comprehensive test suite for action building functionality with
 security validation, XML generation, and builder pattern testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import re
 
 import pytest
@@ -14,22 +17,24 @@ from src.actions import ActionBuilder, ActionCategory, ActionRegistry
 from src.core.errors import SecurityViolationError, ValidationError
 from src.core.types import Duration
 
+logger = logging.getLogger(__name__)
+
 
 class TestActionBuilder:
     """Test suite for ActionBuilder with property-based testing."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test environment for each test."""
         self.registry = ActionRegistry()
         self.builder = ActionBuilder(self.registry)
 
-    def test_builder_initialization(self):
+    def test_builder_initialization(self) -> None:
         """Test ActionBuilder initialization."""
         assert self.builder.get_action_count() == 0
         assert len(self.builder.get_actions()) == 0
         assert self.builder._registry is not None
 
-    def test_add_basic_text_action(self):
+    def test_add_basic_text_action(self) -> None:
         """Test adding basic text action."""
         result = self.builder.add_text_action("Hello World")
 
@@ -41,7 +46,7 @@ class TestActionBuilder:
         assert actions[0].action_type.identifier == "Type a String"
         assert actions[0].parameters["text"] == "Hello World"
 
-    def test_add_pause_action(self):
+    def test_add_pause_action(self) -> None:
         """Test adding pause action."""
         duration = Duration.from_seconds(2.5)
         result = self.builder.add_pause_action(duration)
@@ -53,7 +58,7 @@ class TestActionBuilder:
         assert actions[0].action_type.identifier == "Pause"
         assert actions[0].parameters["duration"] == 2.5
 
-    def test_add_variable_action(self):
+    def test_add_variable_action(self) -> None:
         """Test adding variable action."""
         result = self.builder.add_variable_action("TestVar", "TestValue")
 
@@ -65,7 +70,7 @@ class TestActionBuilder:
         assert actions[0].parameters["variable"] == "TestVar"
         assert actions[0].parameters["text"] == "TestValue"
 
-    def test_add_app_action(self):
+    def test_add_app_action(self) -> None:
         """Test adding application action."""
         result = self.builder.add_app_action("Safari", bring_all_windows=True)
 
@@ -77,7 +82,7 @@ class TestActionBuilder:
         assert actions[0].parameters["application"] == "Safari"
         assert actions[0].parameters["bring_all_windows"] is True
 
-    def test_builder_fluent_interface(self):
+    def test_builder_fluent_interface(self) -> None:
         """Test builder fluent interface with chaining."""
         result = (
             self.builder.add_text_action("Step 1")
@@ -95,7 +100,7 @@ class TestActionBuilder:
         assert actions[2].parameters["text"] == "Step 2"
         assert actions[3].parameters["variable"] == "Counter"
 
-    def test_action_position_insertion(self):
+    def test_action_position_insertion(self) -> None:
         """Test inserting actions at specific positions."""
         # Add initial actions
         self.builder.add_text_action("First").add_text_action("Third")
@@ -109,10 +114,10 @@ class TestActionBuilder:
         assert actions[1].parameters["text"] == "Second"
         assert actions[2].parameters["text"] == "Third"
 
-    def test_remove_action(self):
+    def test_remove_action(self) -> None:
         """Test removing actions by index."""
         self.builder.add_text_action("Keep").add_text_action("Remove").add_text_action(
-            "Keep"
+            "Keep",
         )
 
         assert self.builder.get_action_count() == 3
@@ -124,7 +129,7 @@ class TestActionBuilder:
         assert actions[0].parameters["text"] == "Keep"
         assert actions[1].parameters["text"] == "Keep"
 
-    def test_clear_actions(self):
+    def test_clear_actions(self) -> None:
         """Test clearing all actions."""
         self.builder.add_text_action("Test1").add_text_action("Test2")
         assert self.builder.get_action_count() == 2
@@ -133,7 +138,7 @@ class TestActionBuilder:
         assert result is self.builder
         assert self.builder.get_action_count() == 0
 
-    def test_unknown_action_type_error(self):
+    def test_unknown_action_type_error(self) -> None:
         """Test error handling for unknown action types."""
         with pytest.raises(ValidationError) as exc_info:
             self.builder.add_action("Unknown Action Type", {})
@@ -141,16 +146,17 @@ class TestActionBuilder:
         assert "Unknown action type" in str(exc_info.value)
         assert "Available:" in str(exc_info.value)
 
-    def test_missing_required_parameters(self):
+    def test_missing_required_parameters(self) -> None:
         """Test validation of required parameters."""
         with pytest.raises(ValidationError) as exc_info:
             self.builder.add_action(
-                "Type a String", {}
+                "Type a String",
+                {},
             )  # Missing required 'text' parameter
 
         assert "Must include required parameters" in str(exc_info.value)
 
-    def test_xml_generation_success(self):
+    def test_xml_generation_success(self) -> None:
         """Test successful XML generation."""
         self.builder.add_text_action("Hello World", by_typing=True)
         self.builder.add_pause_action(Duration.from_seconds(1))
@@ -169,14 +175,14 @@ class TestActionBuilder:
         assert "Pause" in xml
         assert "Hello World" in xml
 
-    def test_xml_generation_empty_builder(self):
+    def test_xml_generation_empty_builder(self) -> None:
         """Test XML generation with empty builder."""
         result = self.builder.build_xml()
 
         assert result["success"] is False
         assert "No actions to build" in result["error"]
 
-    def test_validation_all_valid(self):
+    def test_validation_all_valid(self) -> None:
         """Test validation with all valid actions."""
         self.builder.add_text_action("Valid text")
         self.builder.add_pause_action(Duration.from_seconds(1))
@@ -189,7 +195,7 @@ class TestActionBuilder:
         assert len(result["results"]) == 2
         assert all(r["valid"] for r in result["results"])
 
-    def test_validation_with_errors(self):
+    def test_validation_with_errors(self) -> None:
         """Test validation with invalid actions."""
         # Add valid action
         self.builder.add_text_action("Valid")
@@ -213,7 +219,7 @@ class TestActionBuilder:
         assert result["valid_actions"] == 1
 
     @given(st.text(min_size=1, max_size=100))
-    def test_property_text_action_content(self, text):
+    def test_property_text_action_content(self, text) -> None:
         """Property test: Text actions preserve content."""
         assume(len(text.strip()) > 0)
 
@@ -227,11 +233,11 @@ class TestActionBuilder:
         assert actions[0].action_type.identifier == "Type a String"
 
     @given(st.floats(min_value=0.1, max_value=3600.0))
-    def test_property_pause_duration(self, duration_seconds):
+    def test_property_pause_duration(self, duration_seconds) -> None:
         """Property test: Pause actions handle various durations."""
         # Clear builder for each hypothesis example
         self.builder.clear()
-        
+
         duration = Duration.from_seconds(duration_seconds)
 
         self.builder.add_pause_action(duration)
@@ -241,10 +247,10 @@ class TestActionBuilder:
         assert abs(actions[0].parameters["duration"] - duration_seconds) < 0.001
 
     @given(st.text(min_size=1, max_size=50), st.text(min_size=1, max_size=100))
-    def test_property_variable_names_and_values(self, var_name, var_value):
+    def test_property_variable_names_and_values(self, var_name, var_value) -> None:
         """Property test: Variable actions handle various names and values."""
         assume(var_name.strip() and var_value.strip())
-        
+
         # Clear builder for each hypothesis example
         self.builder.clear()
 
@@ -256,11 +262,11 @@ class TestActionBuilder:
         assert actions[0].parameters["text"] == var_value
 
     @given(st.integers(min_value=1, max_value=10))
-    def test_property_action_count_consistency(self, action_count):
+    def test_property_action_count_consistency(self, action_count) -> None:
         """Property test: Action count remains consistent."""
         # Clear builder for each hypothesis example
         self.builder.clear()
-        
+
         for i in range(action_count):
             self.builder.add_text_action(f"Action {i}")
 
@@ -268,7 +274,7 @@ class TestActionBuilder:
         assert len(self.builder.get_actions()) == action_count
 
     @given(st.lists(st.text(min_size=1, max_size=20), min_size=1, max_size=5))
-    def test_property_xml_generation_security(self, texts):
+    def test_property_xml_generation_security(self, texts) -> None:
         """Property test: XML generation maintains security."""
         assume(all(t.strip() for t in texts))
 
@@ -295,12 +301,15 @@ class TestActionBuilder:
                     f"Dangerous pattern found: {pattern}"
                 )
 
-    def test_action_timeout_configuration(self):
+    def test_action_timeout_configuration(self) -> None:
         """Test action timeout configuration."""
         timeout = Duration.from_seconds(30)
 
         self.builder.add_action(
-            "Type a String", {"text": "Test"}, timeout=timeout, abort_on_failure=True
+            "Type a String",
+            {"text": "Test"},
+            timeout=timeout,
+            abort_on_failure=True,
         )
 
         actions = self.builder.get_actions()
@@ -310,7 +319,7 @@ class TestActionBuilder:
         assert action.abort_on_failure is True
         assert action.enabled is True  # default
 
-    def test_action_enabled_disabled(self):
+    def test_action_enabled_disabled(self) -> None:
         """Test action enabled/disabled state."""
         self.builder.add_text_action("Enabled", enabled=True)
         self.builder.add_text_action("Disabled", enabled=False)
@@ -321,7 +330,7 @@ class TestActionBuilder:
         assert actions[1].enabled is False
 
     @given(st.text())
-    def test_property_dangerous_content_rejection(self, malicious_text):
+    def test_property_dangerous_content_rejection(self, malicious_text) -> None:
         """Property test: Dangerous content is properly handled."""
         dangerous_patterns = [
             "<script>",
@@ -356,7 +365,7 @@ class TestActionBuilder:
 
     @settings(max_examples=20)
     @given(st.integers(min_value=0, max_value=100))
-    def test_property_position_insertion_bounds(self, position):
+    def test_property_position_insertion_bounds(self, position) -> None:
         """Property test: Position insertion respects bounds."""
         # Add some initial actions
         for i in range(3):
@@ -376,20 +385,19 @@ class TestActionBuilder:
                 # Invalid position - action should still be added (at end)
                 assert new_count == initial_count + 1
 
-        except Exception:
-            # Some positions might cause exceptions, which is acceptable
-            pass
+        except Exception as e:
+            logger.debug(f"Operation failed during operation: {e}")
 
 
 class TestActionSecurity:
     """Security-focused tests for action building."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test environment."""
         self.registry = ActionRegistry()
         self.builder = ActionBuilder(self.registry)
 
-    def test_xml_injection_prevention(self):
+    def test_xml_injection_prevention(self) -> None:
         """Test prevention of XML injection attacks."""
         # These should be rejected (contain literal dangerous patterns)
         dangerous_inputs = [
@@ -401,35 +409,44 @@ class TestActionSecurity:
 
         for malicious_input in dangerous_inputs:
             self.builder.clear()
-            
+
             # Expect ValidationError for dangerous content
             from src.core.errors import ValidationError
+
             with pytest.raises(ValidationError) as exc_info:
                 self.builder.add_text_action(malicious_input)
-            
+
             # Verify the error mentions security
             error_message = str(exc_info.value)
-            assert "security" in error_message.lower() or "dangerous" in error_message.lower()
+            assert (
+                "security" in error_message.lower()
+                or "dangerous" in error_message.lower()
+            )
 
         # This should be allowed (already encoded, safe)
         safe_encoded_input = "&lt;script&gt;evil()&lt;/script&gt;"
         self.builder.clear()
         self.builder.add_text_action(safe_encoded_input)  # Should not raise
 
-    def test_parameter_size_limits(self):
+    def test_parameter_size_limits(self) -> None:
         """Test parameter size validation."""
         huge_text = "A" * 50000  # 50KB text (exceeds 10KB limit)
 
         # Expect ValidationError for oversized parameter
         from src.core.errors import ValidationError
+
         with pytest.raises(ValidationError) as exc_info:
             self.builder.add_text_action(huge_text)
-        
+
         # Verify the error mentions limit or security
         error_message = str(exc_info.value)
-        assert "limit" in error_message.lower() or "security" in error_message.lower() or "dangerous" in error_message.lower()
+        assert (
+            "limit" in error_message.lower()
+            or "security" in error_message.lower()
+            or "dangerous" in error_message.lower()
+        )
 
-    def test_special_characters_handling(self):
+    def test_special_characters_handling(self) -> None:
         """Test handling of special characters in parameters."""
         # Characters that should be handled properly in XML
         safe_special_chars = ["&", "<", ">", '"', "'", "\n", "\t", "\r"]
@@ -468,11 +485,11 @@ class TestActionSecurity:
 class TestActionRegistry:
     """Test suite for ActionRegistry functionality."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test environment."""
         self.registry = ActionRegistry()
 
-    def test_registry_initialization(self):
+    def test_registry_initialization(self) -> None:
         """Test registry initialization with core actions."""
         assert self.registry.get_action_count() > 50  # Should have 80+ actions
 
@@ -490,7 +507,7 @@ class TestActionRegistry:
             assert category in categories
             assert categories[category] > 0
 
-    def test_get_action_by_identifier(self):
+    def test_get_action_by_identifier(self) -> None:
         """Test retrieving actions by identifier."""
         action = self.registry.get_action_type("Type a String")
 
@@ -499,7 +516,7 @@ class TestActionRegistry:
         assert action.category == ActionCategory.TEXT
         assert "text" in action.required_params
 
-    def test_get_actions_by_category(self):
+    def test_get_actions_by_category(self) -> None:
         """Test filtering actions by category."""
         text_actions = self.registry.get_actions_by_category(ActionCategory.TEXT)
 
@@ -511,7 +528,7 @@ class TestActionRegistry:
         assert "Type a String" in text_identifiers
         assert "Search and Replace" in text_identifiers
 
-    def test_search_actions(self):
+    def test_search_actions(self) -> None:
         """Test action search functionality."""
         # Search for "Type" actions
         type_actions = self.registry.search_actions("Type")
@@ -523,11 +540,12 @@ class TestActionRegistry:
         type_actions_lower = self.registry.search_actions("type")
         assert len(type_actions_lower) == len(type_actions)
 
-    def test_parameter_validation(self):
+    def test_parameter_validation(self) -> None:
         """Test parameter validation functionality."""
         # Valid parameters
         result = self.registry.validate_action_parameters(
-            "Type a String", {"text": "Hello World", "by_typing": True}
+            "Type a String",
+            {"text": "Hello World", "by_typing": True},
         )
 
         assert result["valid"] is True

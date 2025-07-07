@@ -1,10 +1,12 @@
-"""
-Property-based tests for the macro execution engine.
+"""Property-based tests for the macro execution engine.
 
 This module uses Hypothesis to test engine behavior across wide input ranges,
 ensuring robust behavior under all conditions and edge cases.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import string
 import time
 
@@ -40,8 +42,10 @@ class TestEngineProperties:
     @given(simple_macro_definitions(), execution_contexts())
     @settings(max_examples=50, deadline=3000)
     def test_execution_always_returns_result(
-        self, macro_def: MacroDefinition, context: ExecutionContext
-    ):
+        self,
+        macro_def: MacroDefinition,
+        context: ExecutionContext,
+    ) -> bool:
         """Property: Engine always returns a complete execution result."""
         assume(macro_def.is_valid())
         assume(len(macro_def.commands) <= 5)  # Keep tests fast
@@ -67,7 +71,7 @@ class TestEngineProperties:
 
     @given(execution_contexts())
     @settings(max_examples=30)
-    def test_invalid_macros_rejected(self, context: ExecutionContext):
+    def test_invalid_macros_rejected(self, context: ExecutionContext) -> bool:
         """Property: Invalid macros are always rejected before execution."""
         engine = MacroEngine()
 
@@ -93,7 +97,7 @@ class TestEngineProperties:
 
     @given(simple_macro_definitions())
     @settings(max_examples=20)
-    def test_execution_respects_timeouts(self, macro_def: MacroDefinition):
+    def test_execution_respects_timeouts(self, macro_def: MacroDefinition) -> bool:
         """Property: Execution never significantly exceeds context timeout."""
         assume(macro_def.is_valid())
 
@@ -127,7 +131,7 @@ class TestEngineProperties:
 
     @given(permission_sets(min_size=1, max_size=5))
     @settings(max_examples=20)
-    def test_permission_enforcement(self, available_permissions: frozenset[Permission]):
+    def test_permission_enforcement(self, available_permissions: frozenset[Permission]) -> bool:
         """Property: Commands requiring unavailable permissions are rejected."""
         # Create a macro that requires a permission not in the available set
         all_permissions = set(Permission)
@@ -149,7 +153,8 @@ class TestEngineProperties:
             required_permission = Permission.TEXT_INPUT
 
         context = ExecutionContext.create_test_context(
-            permissions=available_permissions, timeout=Duration.from_seconds(30)
+            permissions=available_permissions,
+            timeout=Duration.from_seconds(30),
         )
 
         engine = MacroEngine()
@@ -178,7 +183,7 @@ class TestEngineProperties:
 
     @given(st.integers(min_value=1, max_value=10))
     @settings(max_examples=15)
-    def test_engine_handles_concurrent_executions(self, num_concurrent: int):
+    def test_engine_handles_concurrent_executions(self, num_concurrent: int) -> bool:
         """Property: Engine handles concurrent executions safely."""
         engine = MacroEngine()
 
@@ -193,7 +198,7 @@ class TestEngineProperties:
         ]
 
         # Test thread safety
-        def execute_single(macro, context):
+        def execute_single(macro, context) -> bool:
             return engine.execute_macro(macro, context)
 
         args_list = list(zip(macros, contexts, strict=False))
@@ -208,7 +213,7 @@ class TestEngineProperties:
 
     @given(durations(min_seconds=0.01, max_seconds=1.0))
     @settings(max_examples=20)
-    def test_execution_timing_consistency(self, expected_duration: Duration):
+    def test_execution_timing_consistency(self, expected_duration: Duration) -> None:
         """Property: Execution timing is reasonably consistent and predictable."""
         # Create a simple macro
         macro = create_test_macro("Timing Test", [CommandType.PAUSE])
@@ -240,7 +245,7 @@ class TestEngineProperties:
 
     @given(simple_macro_definitions())
     @settings(max_examples=15)
-    def test_execution_status_transitions_valid(self, macro_def: MacroDefinition):
+    def test_execution_status_transitions_valid(self, macro_def: MacroDefinition) -> None:
         """Property: Execution status follows valid state transitions."""
         assume(macro_def.is_valid())
 
@@ -274,7 +279,7 @@ class TestEngineProperties:
 
     @given(st.integers(min_value=1, max_value=20))
     @settings(max_examples=10)
-    def test_engine_resource_cleanup(self, num_executions: int):
+    def test_engine_resource_cleanup(self, num_executions: int) -> None:
         """Property: Engine properly cleans up resources after executions."""
         engine = MacroEngine()
 
@@ -308,12 +313,11 @@ class TestEngineEdgeCases:
             alphabet=string.ascii_letters + string.digits + " .-_",
             min_size=1000,
             max_size=5000,
-        )
+        ),
     )
     @settings(max_examples=10, suppress_health_check=[HealthCheck.filter_too_much])
-    def test_large_input_handling(self, large_text: str):
+    def test_large_input_handling(self, large_text: str) -> None:
         """Property: Engine handles large inputs gracefully."""
-
         # Create macro with large text input
         from src.core import CommandParameters
         from src.core.engine import PlaceholderCommand
@@ -345,12 +349,15 @@ class TestEngineEdgeCases:
 
     @given(st.integers(min_value=0, max_value=100))
     @settings(max_examples=15)
-    def test_empty_and_minimal_macros(self, num_commands: int):
+    def test_empty_and_minimal_macros(self, num_commands: int) -> None:
         """Property: Engine handles macros with varying numbers of commands."""
         if num_commands == 0:
             # Empty macro should be invalid
             empty_macro = MacroDefinition(
-                macro_id="empty_test", name="Empty Test", commands=[], enabled=True
+                macro_id="empty_test",
+                name="Empty Test",
+                commands=[],
+                enabled=True,
             )
 
             assert not empty_macro.is_valid(), "Empty macro should be invalid"
@@ -358,7 +365,8 @@ class TestEngineEdgeCases:
         else:
             # Create macro with specified number of simple commands
             command_types = [CommandType.TEXT_INPUT] * min(
-                num_commands, 10
+                num_commands,
+                10,
             )  # Limit for performance
             macro = create_test_macro("Multi Command Test", command_types)
 
@@ -381,7 +389,7 @@ class TestEnginePerformanceProperties:
     @pytest.mark.performance
     @given(st.integers(min_value=1, max_value=5))
     @settings(max_examples=10, deadline=5000)
-    def test_execution_time_scales_linearly(self, num_commands: int):
+    def test_execution_time_scales_linearly(self, num_commands: int) -> None:
         """Property: Execution time scales roughly linearly with number of commands."""
         command_types = [CommandType.TEXT_INPUT] * num_commands
         macro = create_test_macro("Scaling Test", command_types)
@@ -407,7 +415,7 @@ class TestEnginePerformanceProperties:
     @pytest.mark.performance
     @given(durations(min_seconds=0.01, max_seconds=0.5))
     @settings(max_examples=10)
-    def test_engine_startup_performance(self, pause_duration: Duration):
+    def test_engine_startup_performance(self, pause_duration: Duration) -> None:
         """Property: Engine startup time is consistently fast."""
         # Measure engine creation time
         start_time = time.perf_counter()

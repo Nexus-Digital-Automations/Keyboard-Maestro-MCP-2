@@ -1,5 +1,4 @@
-"""
-System Resource Monitor - TASK_54 Phase 2 Implementation
+"""System Resource Monitor - TASK_54 Phase 2 Implementation.
 
 Advanced system resource monitoring with real-time tracking, trend analysis,
 and resource optimization recommendations.
@@ -106,8 +105,7 @@ class SystemResourceReport:
 
 
 class ResourceMonitor:
-    """
-    Advanced system resource monitoring with real-time tracking and analysis.
+    """Advanced system resource monitoring with real-time tracking and analysis.
 
     Provides comprehensive system resource information including CPU, memory,
     disk, network, and process monitoring with trend analysis.
@@ -199,7 +197,7 @@ class ResourceMonitor:
             return Either.right(report)
 
         except Exception as e:
-            error_msg = f"Failed to collect resource information: {str(e)}"
+            error_msg = f"Failed to collect resource information: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -219,8 +217,10 @@ class ResourceMonitor:
                 per_cpu = psutil.cpu_percent(percpu=True)
                 for i, usage in enumerate(per_cpu):
                     cpu_usage[f"core_{i}_percent"] = usage
-            except Exception:
-                pass
+            except Exception as e:
+                # S110 fix: Add proper logging for per-core CPU metrics
+                logger.debug(f"Per-core CPU metrics not available: {e}")
+                # Continue collection - per-core metrics are optional
 
             # CPU times
             try:
@@ -230,10 +230,12 @@ class ResourceMonitor:
                         "user_time": cpu_times.user,
                         "system_time": cpu_times.system,
                         "idle_time": cpu_times.idle,
-                    }
+                    },
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                # S110 fix: Add proper logging for CPU times
+                logger.debug(f"CPU times not available: {e}")
+                # Continue collection - CPU times are optional
 
             # CPU frequency
             try:
@@ -244,10 +246,12 @@ class ResourceMonitor:
                             "current_freq_mhz": cpu_freq.current,
                             "min_freq_mhz": cpu_freq.min,
                             "max_freq_mhz": cpu_freq.max,
-                        }
+                        },
                     )
-            except Exception:
-                pass
+            except Exception as e:
+                # S110 fix: Add proper logging for CPU frequency
+                logger.debug(f"CPU frequency not available: {e}")
+                # Continue collection - CPU frequency is optional
 
             return cpu_usage
 
@@ -277,10 +281,12 @@ class ResourceMonitor:
                         "swap_used": swap.used,
                         "swap_free": swap.free,
                         "swap_percent": swap.percent,
-                    }
+                    },
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                # S110 fix: Add proper logging for swap memory
+                logger.debug(f"Swap memory information not available: {e}")
+                # Continue collection - swap is optional
 
             return memory_usage
 
@@ -336,8 +342,12 @@ class ResourceMonitor:
                     try:
                         addrs = psutil.net_if_addrs().get(interface_name, [])
                         is_up = len(addrs) > 0
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        # S110 fix: Add proper logging for interface status
+                        logger.debug(
+                            f"Interface {interface_name} status check failed: {e}",
+                        )
+                        # Default to up state if check fails
 
                     interface = NetworkInterface(
                         interface_name=interface_name,
@@ -355,7 +365,7 @@ class ResourceMonitor:
 
                 except Exception as e:
                     logger.debug(
-                        f"Failed to get info for interface {interface_name}: {e}"
+                        f"Failed to get info for interface {interface_name}: {e}",
                     )
                     continue
 
@@ -381,7 +391,7 @@ class ResourceMonitor:
                     "status",
                     "create_time",
                     "num_threads",
-                ]
+                ],
             ):
                 try:
                     pinfo = proc.info
@@ -442,10 +452,13 @@ class ResourceMonitor:
             try:
                 boot_time = psutil.boot_time()
                 system_info["boot_time"] = datetime.fromtimestamp(
-                    boot_time, UTC
+                    boot_time,
+                    UTC,
                 ).isoformat()
-            except Exception:
-                pass
+            except Exception as e:
+                # S110 fix: Add proper logging for boot time
+                logger.debug(f"Boot time not available: {e}")
+                # Continue collection - boot time is optional
 
             # Update cache
             self._system_info_cache = system_info
@@ -462,9 +475,8 @@ class ResourceMonitor:
         try:
             if hasattr(psutil, "getloadavg"):
                 return psutil.getloadavg()
-            else:
-                # Load averages not available on all platforms
-                return (0.0, 0.0, 0.0)
+            # Load averages not available on all platforms
+            return (0.0, 0.0, 0.0)
         except Exception as e:
             logger.debug(f"Load average collection failed: {e}")
             return (0.0, 0.0, 0.0)
@@ -535,10 +547,12 @@ class ResourceMonitor:
 
         except Exception as e:
             logger.error(f"Trend calculation failed: {e}")
-            return {"error": f"Trend calculation failed: {str(e)}"}
+            return {"error": f"Trend calculation failed: {e!s}"}
 
     def get_resource_alerts(
-        self, cpu_threshold: float = 80.0, memory_threshold: float = 85.0
+        self,
+        cpu_threshold: float = 80.0,
+        memory_threshold: float = 85.0,
     ) -> list[str]:
         """Get current resource alerts based on thresholds."""
         alerts = []
@@ -552,21 +566,21 @@ class ResourceMonitor:
         cpu_percent = latest_report.cpu_usage.get("overall_percent", 0)
         if cpu_percent > cpu_threshold:
             alerts.append(
-                f"High CPU usage: {cpu_percent:.1f}% (threshold: {cpu_threshold}%)"
+                f"High CPU usage: {cpu_percent:.1f}% (threshold: {cpu_threshold}%)",
             )
 
         # Memory alerts
         memory_percent = latest_report.memory_usage.get("virtual_percent", 0)
         if memory_percent > memory_threshold:
             alerts.append(
-                f"High memory usage: {memory_percent:.1f}% (threshold: {memory_threshold}%)"
+                f"High memory usage: {memory_percent:.1f}% (threshold: {memory_threshold}%)",
             )
 
         # Disk alerts
         for disk in latest_report.disk_usage:
             if disk.usage_percent > 90.0:
                 alerts.append(
-                    f"High disk usage on {disk.mount_point}: {disk.usage_percent:.1f}%"
+                    f"High disk usage on {disk.mount_point}: {disk.usage_percent:.1f}%",
                 )
 
         return alerts

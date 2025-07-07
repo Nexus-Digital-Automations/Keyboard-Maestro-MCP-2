@@ -1,5 +1,4 @@
-"""
-AI integration type system for Keyboard Maestro MCP tools.
+"""AI integration type system for Keyboard Maestro MCP tools.
 
 This module provides comprehensive AI/ML integration with support for multiple
 model providers, secure processing, and cost optimization. Implements all
@@ -139,10 +138,11 @@ class AIModel:
     @require(lambda self: self.rate_limit_per_minute > 0)
     def __post_init__(self):
         """Validate AI model configuration."""
-        pass
 
     def estimate_cost(
-        self, input_tokens: TokenCount, output_tokens: TokenCount = TokenCount(0)
+        self,
+        input_tokens: TokenCount,
+        output_tokens: TokenCount = TokenCount(0),
     ) -> CostAmount:
         """Estimate processing cost for token usage."""
         input_cost = input_tokens * self.cost_per_input_token
@@ -186,7 +186,6 @@ class AIRequest:
     @require(lambda self: len(str(self.input_data)) > 0)
     def __post_init__(self):
         """Validate AI request parameters."""
-        pass
 
     def get_effective_max_tokens(self) -> TokenCount:
         """Get effective max tokens for request."""
@@ -196,12 +195,11 @@ class AIRequest:
         """Prepare input data for AI model processing."""
         if isinstance(self.input_data, str):
             return self.input_data
-        elif isinstance(self.input_data, dict):
+        if isinstance(self.input_data, dict):
             return json.dumps(self.input_data, indent=2)
-        elif isinstance(self.input_data, list):
+        if isinstance(self.input_data, list):
             return "\n".join(str(item) for item in self.input_data)
-        else:
-            return str(self.input_data)
+        return str(self.input_data)
 
     def estimate_input_tokens(self) -> TokenCount:
         """Estimate input token count for request."""
@@ -222,7 +220,7 @@ class AIRequest:
                         "operation_not_supported",
                         self.operation.value,
                         f"Model {self.model.model_name} cannot handle operation {self.operation.value}",
-                    )
+                    ),
                 )
 
             # Check context window
@@ -233,7 +231,7 @@ class AIRequest:
                         "context_window_exceeded",
                         estimated_tokens,
                         f"Input tokens {estimated_tokens} exceed model context window {self.model.context_window}",
-                    )
+                    ),
                 )
 
             return Either.right(None)
@@ -267,10 +265,10 @@ class AIResponse:
     @require(lambda self: self.confidence is None or 0.0 <= self.confidence <= 1.0)
     def __post_init__(self):
         """Validate AI response data."""
-        pass
 
     def is_high_confidence(
-        self, threshold: ConfidenceScore = ConfidenceScore(0.8)
+        self,
+        threshold: ConfidenceScore = ConfidenceScore(0.8),
     ) -> bool:
         """Check if result meets confidence threshold."""
         return self.confidence is not None and self.confidence >= threshold
@@ -279,15 +277,13 @@ class AIResponse:
         """Get result formatted in specified format."""
         if format_type == OutputFormat.TEXT:
             return str(self.result)
-        elif format_type == OutputFormat.JSON:
+        if format_type == OutputFormat.JSON:
             if isinstance(self.result, dict | list):
                 return json.dumps(self.result, indent=2)
-            else:
-                return json.dumps({"result": self.result}, indent=2)
-        elif format_type == OutputFormat.MARKDOWN:
+            return json.dumps({"result": self.result}, indent=2)
+        if format_type == OutputFormat.MARKDOWN:
             return f"# AI Processing Result\n\n{self.result}"
-        else:
-            return str(self.result)
+        return str(self.result)
 
     def get_cost_breakdown(self) -> dict[str, Any]:
         """Get detailed cost breakdown for response."""
@@ -328,7 +324,6 @@ class AISecurityConfig:
     @require(lambda self: self.max_output_size > 0)
     def __post_init__(self):
         """Validate security configuration."""
-        pass
 
     def should_scan_content(self, content_size: int) -> bool:
         """Determine if content should be scanned based on size and policy."""
@@ -447,8 +442,7 @@ def create_ai_request(
     model_id: AIModelId | None = None,
     **kwargs,
 ) -> Either[ValidationError, AIRequest]:
-    """
-    Create and validate AI request with automatic model selection.
+    """Create and validate AI request with automatic model selection.
 
     This function provides a convenient way to create AI requests with
     automatic model selection if no specific model is provided.
@@ -456,7 +450,7 @@ def create_ai_request(
     try:
         # Generate unique request ID
         request_id = AIRequestId(
-            f"ai_req_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{id(input_data)}"
+            f"ai_req_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{id(input_data)}",
         )
 
         # Select model if not provided
@@ -464,7 +458,8 @@ def create_ai_request(
             # Default model selection based on operation
             if operation in [AIOperation.ANALYZE, AIOperation.EXTRACT]:
                 model = DEFAULT_AI_MODELS.get(
-                    "gpt-4-vision", DEFAULT_AI_MODELS["gpt-4"]
+                    "gpt-4-vision",
+                    DEFAULT_AI_MODELS["gpt-4"],
                 )
             else:
                 model = DEFAULT_AI_MODELS["gpt-3.5-turbo"]
@@ -473,8 +468,10 @@ def create_ai_request(
             if model is None:
                 return Either.left(
                     ValidationError(
-                        "invalid_model", model_id, f"Model {model_id} not found"
-                    )
+                        "invalid_model",
+                        model_id,
+                        f"Model {model_id} not found",
+                    ),
                 )
 
         # Create request

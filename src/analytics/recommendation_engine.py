@@ -1,5 +1,4 @@
-"""
-Recommendation engine for optimization suggestions and strategic insights.
+"""Recommendation engine for optimization suggestions and strategic insights.
 
 Provides intelligent recommendations based on performance analysis,
 ROI calculations, and ML-powered pattern recognition.
@@ -20,26 +19,27 @@ class RecommendationEngine:
         self.recommendations_generated = 0
 
     async def generate_optimization_recommendations(
-        self, analytics_data: dict[str, Any]
+        self,
+        analytics_data: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate comprehensive optimization recommendations."""
         recommendations = []
 
         # Performance optimization recommendations
         perf_recommendations = await self._analyze_performance_optimization(
-            analytics_data.get("performance", {})
+            analytics_data.get("performance", {}),
         )
         recommendations.extend(perf_recommendations)
 
         # ROI optimization recommendations
         roi_recommendations = await self._analyze_roi_optimization(
-            analytics_data.get("roi", {})
+            analytics_data.get("roi", {}),
         )
         recommendations.extend(roi_recommendations)
 
         # Resource optimization recommendations
         resource_recommendations = await self._analyze_resource_optimization(
-            analytics_data.get("performance", {})
+            analytics_data.get("performance", {}),
         )
         recommendations.extend(resource_recommendations)
 
@@ -47,7 +47,8 @@ class RecommendationEngine:
         return recommendations
 
     async def _analyze_performance_optimization(
-        self, performance_data: dict[str, Any]
+        self,
+        performance_data: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Analyze performance data for optimization opportunities."""
         recommendations = []
@@ -67,7 +68,7 @@ class RecommendationEngine:
                         "recommendation": "Optimize algorithm or increase resources",
                         "expected_improvement": "30-50% response time reduction",
                         "confidence": 0.8,
-                    }
+                    },
                 )
 
             if success_rate < 0.95:
@@ -81,13 +82,14 @@ class RecommendationEngine:
                         "recommendation": "Review error handling and input validation",
                         "expected_improvement": "Up to 99% success rate",
                         "confidence": 0.9,
-                    }
+                    },
                 )
 
         return recommendations
 
     async def _analyze_roi_optimization(
-        self, roi_data: dict[str, Any]
+        self,
+        roi_data: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Analyze ROI data for optimization opportunities."""
         recommendations = []
@@ -106,13 +108,14 @@ class RecommendationEngine:
                         "recommendation": "Evaluate usage patterns and optimize workflows",
                         "expected_improvement": "50-100% ROI increase",
                         "confidence": 0.7,
-                    }
+                    },
                 )
 
         return recommendations
 
     async def _analyze_resource_optimization(
-        self, performance_data: dict[str, Any]
+        self,
+        performance_data: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Analyze resource utilization for optimization opportunities."""
         recommendations = []
@@ -141,7 +144,7 @@ class RecommendationEngine:
                     "recommendation": "Implement memory optimization and caching strategies",
                     "expected_improvement": "20-40% memory reduction",
                     "confidence": 0.8,
-                }
+                },
             )
 
         if avg_cpu > 0.8:  # High CPU usage
@@ -155,7 +158,7 @@ class RecommendationEngine:
                     "recommendation": "Optimize algorithms and distribute workload",
                     "expected_improvement": "30-50% CPU reduction",
                     "confidence": 0.9,
-                }
+                },
             )
 
         return recommendations

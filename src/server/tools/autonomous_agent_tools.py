@@ -1,5 +1,4 @@
-"""
-FastMCP tools for autonomous agent creation and management.
+"""FastMCP tools for autonomous agent creation and management.
 
 This module provides comprehensive tools for creating and managing self-managing
 automation agents with learning capabilities, goal-driven behavior, and
@@ -37,6 +36,8 @@ from ...core.autonomous_systems import (
     get_default_config,
 )
 
+logger = logging.getLogger(__name__)
+
 # Singleton agent manager instance
 _agent_manager: AgentManager | None = None
 # _ai_processor: Optional[AIProcessor] = None  # Not implemented yet
@@ -70,9 +71,9 @@ def get_model_manager() -> ModelManager | None:
     if _model_manager is None:
         try:
             _model_manager = ModelManager()
-        except Exception:
+        except Exception as e:
             # Model manager not available
-            pass
+            logger.debug(f"Model manager initialization failed: {e!s}")
     return _model_manager
 
 
@@ -82,9 +83,9 @@ def get_audit_manager() -> AuditSystemManager | None:
     if _audit_manager is None:
         try:
             _audit_manager = AuditSystemManager()
-        except Exception:
+        except Exception as e:
             # Audit manager not available
-            pass
+            logger.debug(f"Audit manager initialization failed: {e!s}")
     return _audit_manager
 
 
@@ -137,8 +138,7 @@ async def km_autonomous_agent(
     timeout: int = 300,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """
-    Create and manage autonomous agents with learning capabilities.
+    """Create and manage autonomous agents with learning capabilities.
 
     Args:
         operation: Operation to perform (create|start|stop|configure|monitor|optimize)
@@ -158,11 +158,14 @@ async def km_autonomous_agent(
 
     Returns:
         Dict containing operation results and agent status
+
     """
     try:
         if ctx:
             await ctx.report_progress(
-                0, 100, f"Starting autonomous agent operation: {operation}"
+                0,
+                100,
+                f"Starting autonomous agent operation: {operation}",
             )
 
         # Validate operation
@@ -179,7 +182,7 @@ async def km_autonomous_agent(
         ]
         if operation not in valid_operations:
             raise InvalidParams(
-                f"Invalid operation. Must be one of: {', '.join(valid_operations)}"
+                f"Invalid operation. Must be one of: {', '.join(valid_operations)}",
             )
 
         manager = get_agent_manager()
@@ -205,18 +208,18 @@ async def km_autonomous_agent(
             # Validate agent type
             try:
                 agent_type_enum = AgentType(agent_type)
-            except ValueError:
+            except ValueError as e:
                 raise InvalidParams(
-                    f"Invalid agent type. Must be one of: {', '.join([t.value for t in AgentType])}"
-                )
+                    f"Invalid agent type. Must be one of: {', '.join([t.value for t in AgentType])}",
+                ) from e
 
             # Validate autonomy level
             try:
                 autonomy_level_enum = AutonomyLevel(autonomy_level)
-            except ValueError:
+            except ValueError as e:
                 raise InvalidParams(
-                    f"Invalid autonomy level. Must be one of: {', '.join([l.value for l in AutonomyLevel])}"
-                )
+                    f"Invalid autonomy level. Must be one of: {', '.join([level.value for level in AutonomyLevel])}",
+                ) from e
 
             # Build configuration
             config = get_default_config(agent_type_enum)
@@ -233,7 +236,8 @@ async def km_autonomous_agent(
                 "adaptive": timedelta(hours=4),
             }
             config.optimization_frequency = frequency_map.get(
-                optimization_frequency, timedelta(hours=1)
+                optimization_frequency,
+                timedelta(hours=1),
             )
 
             # Apply resource limits
@@ -262,7 +266,7 @@ async def km_autonomous_agent(
             if agent_config:
                 if "decision_threshold" in agent_config:
                     config.decision_threshold = ConfidenceScore(
-                        agent_config["decision_threshold"]
+                        agent_config["decision_threshold"],
                     )
                 if "risk_tolerance" in agent_config:
                     config.risk_tolerance = RiskScore(agent_config["risk_tolerance"])
@@ -282,7 +286,9 @@ async def km_autonomous_agent(
             if result.is_left():
                 error = result.get_left()
                 await _log_agent_operation(
-                    "create", details={"error": str(error)}, success=False
+                    "create",
+                    details={"error": str(error)},
+                    success=False,
                 )
                 raise InternalError(f"Failed to create agent: {error.message}")
 
@@ -304,7 +310,8 @@ async def km_autonomous_agent(
                             for k, v in goal_data.get("target_metrics", {}).items()
                         },
                         success_criteria=goal_data.get(
-                            "success_criteria", ["Goal completed"]
+                            "success_criteria",
+                            ["Goal completed"],
                         ),
                         constraints=goal_data.get("constraints", {}),
                         deadline=datetime.fromisoformat(goal_data["deadline"])
@@ -315,7 +322,7 @@ async def km_autonomous_agent(
                     goal_result = await agent.add_goal(goal)
                     if goal_result.is_left() and ctx:
                         await ctx.warn(
-                            f"Failed to add goal: {goal_result.get_left().message}"
+                            f"Failed to add goal: {goal_result.get_left().message}",
                         )
 
             if ctx:
@@ -388,7 +395,7 @@ async def km_autonomous_agent(
             }
 
         # Handle stop operation
-        elif operation == "stop":
+        if operation == "stop":
             if ctx:
                 await ctx.report_progress(50, 100, f"Stopping agent {agent_id}")
 
@@ -418,7 +425,7 @@ async def km_autonomous_agent(
             }
 
         # Handle monitor operation
-        elif operation == "monitor":
+        if operation == "monitor":
             if ctx:
                 await ctx.report_progress(30, 100, f"Monitoring agent {agent_id}")
 
@@ -452,7 +459,9 @@ async def km_autonomous_agent(
                 await ctx.report_progress(100, 100, "Monitoring complete")
 
             await _log_agent_operation(
-                "monitor", agent_id=agent_id, details={"status": status["status"]}
+                "monitor",
+                agent_id=agent_id,
+                details={"status": status["status"]},
             )
 
             return {
@@ -465,7 +474,7 @@ async def km_autonomous_agent(
             }
 
         # Handle optimize operation
-        elif operation == "optimize":
+        if operation == "optimize":
             if ctx:
                 await ctx.report_progress(30, 100, f"Optimizing agent {agent_id}")
 
@@ -495,7 +504,7 @@ async def km_autonomous_agent(
             }
 
         # Handle configure operation
-        elif operation == "configure":
+        if operation == "configure":
             if ctx:
                 await ctx.report_progress(30, 100, f"Configuring agent {agent_id}")
 
@@ -507,10 +516,12 @@ async def km_autonomous_agent(
             if autonomy_level != agent.state.configuration.autonomy_level.value:
                 try:
                     agent.state.configuration.autonomy_level = AutonomyLevel(
-                        autonomy_level
+                        autonomy_level,
                     )
-                except ValueError:
-                    raise InvalidParams(f"Invalid autonomy level: {autonomy_level}")
+                except ValueError as e:
+                    raise InvalidParams(
+                        f"Invalid autonomy level: {autonomy_level}",
+                    ) from e
 
             if resource_limits:
                 agent.state.configuration.resource_limits.update(resource_limits)
@@ -520,7 +531,7 @@ async def km_autonomous_agent(
 
             agent.state.configuration.human_approval_required = human_approval_required
             agent.state.configuration.monitoring_interval = timedelta(
-                seconds=monitoring_interval
+                seconds=monitoring_interval,
             )
 
             if ctx:
@@ -550,7 +561,7 @@ async def km_autonomous_agent(
             }
 
         # Handle add_goal operation
-        elif operation == "add_goal":
+        if operation == "add_goal":
             if ctx:
                 await ctx.report_progress(30, 100, f"Adding goals to agent {agent_id}")
 
@@ -572,7 +583,8 @@ async def km_autonomous_agent(
                         for k, v in goal_data.get("target_metrics", {}).items()
                     },
                     success_criteria=goal_data.get(
-                        "success_criteria", ["Goal completed"]
+                        "success_criteria",
+                        ["Goal completed"],
                     ),
                     constraints=goal_data.get("constraints", {}),
                     deadline=datetime.fromisoformat(goal_data["deadline"])
@@ -589,19 +601,20 @@ async def km_autonomous_agent(
                             "description": goal.description,
                             "priority": goal.priority.value,
                             "urgency_score": goal.get_urgency_score(),
-                        }
+                        },
                     )
-                else:
-                    if ctx:
-                        await ctx.warn(
-                            f"Failed to add goal: {result.get_left().message}"
-                        )
+                elif ctx:
+                    await ctx.warn(
+                        f"Failed to add goal: {result.get_left().message}",
+                    )
 
             if ctx:
                 await ctx.report_progress(100, 100, f"Added {len(added_goals)} goals")
 
             await _log_agent_operation(
-                "add_goal", agent_id=agent_id, details={"goals_added": len(added_goals)}
+                "add_goal",
+                agent_id=agent_id,
+                details={"goals_added": len(added_goals)},
             )
 
             return {
@@ -614,10 +627,12 @@ async def km_autonomous_agent(
             }
 
         # Handle status operation
-        elif operation == "status":
+        if operation == "status":
             if ctx:
                 await ctx.report_progress(
-                    50, 100, f"Getting status for agent {agent_id}"
+                    50,
+                    100,
+                    f"Getting status for agent {agent_id}",
                 )
 
             status_result = manager.get_agent_status(agent_id)
@@ -639,18 +654,17 @@ async def km_autonomous_agent(
 
             return {"success": True, "operation": "status", "agent_status": status}
 
-        else:
-            raise InvalidParams(f"Operation '{operation}' not implemented")
+        raise InvalidParams(f"Operation '{operation}' not implemented")
 
     except (InvalidParams, InternalError):
         raise
     except Exception as e:
         logging.error(f"Autonomous agent operation failed: {e}")
-        raise InternalError(f"Autonomous agent operation failed: {str(e)}")
+        raise InternalError(f"Autonomous agent operation failed: {e!s}") from e
 
 
 # Register the tool
-def register_autonomous_agent_tools(mcp):
+def register_autonomous_agent_tools(mcp) -> None:
     """Register autonomous agent tools with the MCP server."""
 
     @mcp.tool()

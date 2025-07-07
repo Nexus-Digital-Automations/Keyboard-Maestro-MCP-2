@@ -1,5 +1,4 @@
-"""
-Enterprise system integration types and core architecture.
+"""Enterprise system integration types and core architecture.
 
 This module provides comprehensive enterprise integration capabilities including
 LDAP/Active Directory, SSO authentication, enterprise databases, and secure
@@ -44,7 +43,7 @@ class AuthenticationMethod(Enum):
     NTLM = "ntlm"
     CERTIFICATE = "certificate"
     SAML_ASSERTION = "saml_assertion"
-    OAUTH_TOKEN = "oauth_token"
+    OAUTH_TOKEN = "oauth_token"  # noqa: S105 - Type identifier, not a secret
     API_KEY = "api_key"
     MUTUAL_TLS = "mutual_tls"
 
@@ -70,7 +69,8 @@ class EnterpriseError(Exception):
     @classmethod
     def connection_failed(cls, reason: str) -> EnterpriseError:
         return cls(
-            "CONNECTION_FAILED", f"Failed to establish enterprise connection: {reason}"
+            "CONNECTION_FAILED",
+            f"Failed to establish enterprise connection: {reason}",
         )
 
     @classmethod
@@ -94,7 +94,8 @@ class EnterpriseError(Exception):
     @classmethod
     def connection_not_found(cls, connection_id: str) -> EnterpriseError:
         return cls(
-            "CONNECTION_NOT_FOUND", f"Enterprise connection {connection_id} not found"
+            "CONNECTION_NOT_FOUND",
+            f"Enterprise connection {connection_id} not found",
         )
 
     @classmethod
@@ -150,7 +151,8 @@ class EnterpriseError(Exception):
 
     @classmethod
     def unsupported_integration_type(
-        cls, integration_type: IntegrationType
+        cls,
+        integration_type: IntegrationType,
     ) -> EnterpriseError:
         return cls(
             "UNSUPPORTED_INTEGRATION_TYPE",
@@ -164,7 +166,8 @@ class EnterpriseError(Exception):
     @classmethod
     def unsupported_sync_type(cls, sync_type: IntegrationType) -> EnterpriseError:
         return cls(
-            "UNSUPPORTED_SYNC_TYPE", f"Sync type {sync_type.value} not supported"
+            "UNSUPPORTED_SYNC_TYPE",
+            f"Sync type {sync_type.value} not supported",
         )
 
     @classmethod
@@ -195,7 +198,8 @@ class EnterpriseError(Exception):
     @classmethod
     def unencrypted_ldap_not_allowed(cls) -> EnterpriseError:
         return cls(
-            "UNENCRYPTED_LDAP_NOT_ALLOWED", "Unencrypted LDAP connections not allowed"
+            "UNENCRYPTED_LDAP_NOT_ALLOWED",
+            "Unencrypted LDAP connections not allowed",
         )
 
     @classmethod
@@ -208,7 +212,8 @@ class EnterpriseError(Exception):
     @classmethod
     def weak_password(cls) -> EnterpriseError:
         return cls(
-            "WEAK_PASSWORD", "Password does not meet enterprise complexity requirements"
+            "WEAK_PASSWORD",
+            "Password does not meet enterprise complexity requirements",
         )
 
 
@@ -266,14 +271,13 @@ class EnterpriseConnection:
         ):
             protocol = "ldaps" if self.use_ssl else "ldap"
             return f"{protocol}://{self.host}:{self.port}"
-        elif self.integration_type in [
+        if self.integration_type in [
             IntegrationType.REST_API,
             IntegrationType.GRAPHQL_API,
         ]:
             protocol = "https" if self.use_ssl else "http"
             return f"{protocol}://{self.host}:{self.port}"
-        else:
-            return f"{self.host}:{self.port}"
+        return f"{self.host}:{self.port}"
 
     def validate_ssl_configuration(self) -> bool:
         """Validate SSL configuration for enterprise security."""
@@ -284,7 +288,7 @@ class EnterpriseConnection:
             return (
                 self.use_ssl and self.ssl_verify
             )  # Enterprise requires encrypted LDAP
-        elif self.integration_type in [
+        if self.integration_type in [
             IntegrationType.REST_API,
             IntegrationType.GRAPHQL_API,
         ]:
@@ -315,13 +319,13 @@ class EnterpriseCredentials:
         """Validate credentials based on authentication method."""
         if self.auth_method == AuthenticationMethod.SIMPLE_BIND:
             return self.username is not None and self.password is not None
-        elif self.auth_method == AuthenticationMethod.CERTIFICATE:
+        if self.auth_method == AuthenticationMethod.CERTIFICATE:
             return self.certificate_path is not None
-        elif self.auth_method == AuthenticationMethod.OAUTH_TOKEN:
+        if self.auth_method == AuthenticationMethod.OAUTH_TOKEN:
             return self.token is not None
-        elif self.auth_method == AuthenticationMethod.API_KEY:
+        if self.auth_method == AuthenticationMethod.API_KEY:
             return self.api_key is not None
-        elif self.auth_method == AuthenticationMethod.KERBEROS:
+        if self.auth_method == AuthenticationMethod.KERBEROS:
             return self.username is not None and self.domain is not None
         return True
 
@@ -385,10 +389,9 @@ class LDAPUser:
         """Get full name from first and last name."""
         if self.first_name and self.last_name:
             return f"{self.first_name} {self.last_name}"
-        elif self.display_name:
+        if self.display_name:
             return self.display_name
-        else:
-            return self.username
+        return self.username
 
 
 @dataclass(frozen=True)
@@ -428,8 +431,7 @@ class SyncResult:
         """Get human-readable status summary."""
         if not self.has_errors():
             return f"Success: {self.records_successful}/{self.records_processed} records processed"
-        else:
-            return f"Partial: {self.records_successful}/{self.records_processed} successful, {self.records_failed} failed"
+        return f"Partial: {self.records_successful}/{self.records_processed} successful, {self.records_failed} failed"
 
 
 class EnterpriseSecurityValidator:
@@ -438,7 +440,7 @@ class EnterpriseSecurityValidator:
     DANGEROUS_HOSTNAMES = {
         "localhost",
         "127.0.0.1",
-        "0.0.0.0",
+        "0.0.0.0",  # noqa: S104 - This is a security blacklist preventing all-interface binding
         "::1",
         "metadata.google.internal",
         "169.254.169.254",  # Cloud metadata endpoints
@@ -452,7 +454,8 @@ class EnterpriseSecurityValidator:
     }
 
     def validate_connection_security(
-        self, connection: EnterpriseConnection
+        self,
+        connection: EnterpriseConnection,
     ) -> Either[EnterpriseError, None]:
         """Validate enterprise connection security requirements."""
         # Hostname validation
@@ -478,21 +481,23 @@ class EnterpriseSecurityValidator:
                 EnterpriseError(
                     "INVALID_TIMEOUT",
                     "Connection timeout must be between 5 and 300 seconds",
-                )
+                ),
             )
 
         return Either.right(None)
 
     def validate_credentials_security(
-        self, credentials: EnterpriseCredentials
+        self,
+        credentials: EnterpriseCredentials,
     ) -> Either[EnterpriseError, None]:
         """Validate enterprise credentials security."""
         # Check for expired credentials
         if credentials.is_expired():
             return Either.left(
                 EnterpriseError(
-                    "CREDENTIALS_EXPIRED", "Enterprise credentials have expired"
-                )
+                    "CREDENTIALS_EXPIRED",
+                    "Enterprise credentials have expired",
+                ),
             )
 
         # Check for weak authentication methods in non-secure environments
@@ -505,22 +510,23 @@ class EnterpriseSecurityValidator:
 
         # Validate password complexity (if applicable)
         if credentials.password and not self._validate_password_complexity(
-            credentials.password
+            credentials.password,
         ):
             return Either.left(EnterpriseError.weak_password())
 
         # Validate username format
         if credentials.username and not self._validate_username_format(
-            credentials.username
+            credentials.username,
         ):
             return Either.left(
-                EnterpriseError("INVALID_USERNAME", "Username format is invalid")
+                EnterpriseError("INVALID_USERNAME", "Username format is invalid"),
             )
 
         return Either.right(None)
 
     def validate_search_filter(
-        self, search_filter: str
+        self,
+        search_filter: str,
     ) -> Either[EnterpriseError, None]:
         """Validate LDAP search filter for injection attacks."""
         # Check for LDAP injection patterns
@@ -538,13 +544,15 @@ class EnterpriseSecurityValidator:
                     EnterpriseError(
                         "LDAP_INJECTION_DETECTED",
                         "Dangerous LDAP filter pattern detected",
-                    )
+                    ),
                 )
 
         # Validate filter length
         if len(search_filter) > 1000:
             return Either.left(
-                EnterpriseError("FILTER_TOO_LONG", "LDAP filter exceeds maximum length")
+                EnterpriseError(
+                    "FILTER_TOO_LONG", "LDAP filter exceeds maximum length"
+                ),
             )
 
         return Either.right(None)
@@ -592,8 +600,7 @@ def create_enterprise_connection(
     port: int,
     **kwargs,
 ) -> EnterpriseConnection:
-    """
-    Factory function to create enterprise connections with validation.
+    """Factory function to create enterprise connections with validation.
 
     Args:
         connection_id: Unique connection identifier
@@ -604,6 +611,7 @@ def create_enterprise_connection(
 
     Returns:
         Validated EnterpriseConnection instance
+
     """
     return EnterpriseConnection(
         connection_id=connection_id,
@@ -622,10 +630,10 @@ def create_enterprise_connection(
 
 
 def create_enterprise_credentials(
-    auth_method: AuthenticationMethod, **kwargs
+    auth_method: AuthenticationMethod,
+    **kwargs,
 ) -> EnterpriseCredentials:
-    """
-    Factory function to create enterprise credentials with validation.
+    """Factory function to create enterprise credentials with validation.
 
     Args:
         auth_method: Authentication method to use
@@ -633,6 +641,7 @@ def create_enterprise_credentials(
 
     Returns:
         Validated EnterpriseCredentials instance
+
     """
     return EnterpriseCredentials(
         auth_method=auth_method,

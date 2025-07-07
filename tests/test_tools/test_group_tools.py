@@ -1,5 +1,4 @@
-"""
-Comprehensive Test Suite for Group Tools - Following Proven MCP Tool Test Pattern
+"""Comprehensive Test Suite for Group Tools - Following Proven MCP Tool Test Pattern.
 
 This test suite validates the Group Tools functionality using the systematic
 testing approach that achieved 100% success rate across 15 tool suites.
@@ -29,6 +28,9 @@ Key Mocking Pattern:
 - Context: Mock progress reporting and logging operations
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import subprocess
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -45,7 +47,7 @@ from src.server.tools.group_tools import km_list_macro_groups
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context():
+def mock_context() -> Any:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -59,14 +61,14 @@ def mock_context():
 
 
 @pytest.fixture
-def mock_km_client():
+def mock_km_client() -> Any:
     """Create mock KM client with standard interface."""
     client = Mock()
     return client
 
 
 @pytest.fixture
-def mock_subprocess_success():
+def mock_subprocess_success() -> Any:
     """Create mock successful subprocess result."""
     result = Mock()
     result.returncode = 0
@@ -76,7 +78,7 @@ def mock_subprocess_success():
 
 
 @pytest.fixture
-def mock_subprocess_error():
+def mock_subprocess_error() -> Any:
     """Create mock failed subprocess result."""
     result = Mock()
     result.returncode = 1
@@ -86,7 +88,7 @@ def mock_subprocess_error():
 
 
 @pytest.fixture
-def mock_parsed_groups():
+def mock_parsed_groups() -> Any:
     """Create mock parsed group data."""
     return [
         {
@@ -110,8 +112,12 @@ class TestGroupListing:
 
     @pytest.mark.asyncio
     async def test_list_macro_groups_success(
-        self, mock_context, mock_km_client, mock_subprocess_success, mock_parsed_groups
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+        mock_parsed_groups,
+    ) -> None:
         """Test successful macro group listing."""
         with (
             patch(
@@ -139,8 +145,12 @@ class TestGroupListing:
 
     @pytest.mark.asyncio
     async def test_list_macro_groups_with_counts(
-        self, mock_context, mock_km_client, mock_subprocess_success, mock_parsed_groups
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+        mock_parsed_groups,
+    ) -> None:
         """Test macro group listing with macro counts."""
         with (
             patch(
@@ -157,7 +167,9 @@ class TestGroupListing:
             ),
         ):
             result = await km_list_macro_groups(
-                include_macro_count=True, include_enabled_count=True, ctx=mock_context
+                include_macro_count=True,
+                include_enabled_count=True,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -170,8 +182,12 @@ class TestGroupListing:
 
     @pytest.mark.asyncio
     async def test_list_macro_groups_without_counts(
-        self, mock_context, mock_km_client, mock_subprocess_success, mock_parsed_groups
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+        mock_parsed_groups,
+    ) -> None:
         """Test macro group listing without counts."""
         with (
             patch(
@@ -188,7 +204,9 @@ class TestGroupListing:
             ),
         ):
             result = await km_list_macro_groups(
-                include_macro_count=False, include_enabled_count=False, ctx=mock_context
+                include_macro_count=False,
+                include_enabled_count=False,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -199,8 +217,12 @@ class TestGroupListing:
 
     @pytest.mark.asyncio
     async def test_list_macro_groups_sort_by_name(
-        self, mock_context, mock_km_client, mock_subprocess_success, mock_parsed_groups
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+        mock_parsed_groups,
+    ) -> None:
         """Test sorting groups by name."""
         with (
             patch(
@@ -224,8 +246,12 @@ class TestGroupListing:
 
     @pytest.mark.asyncio
     async def test_list_macro_groups_sort_by_macro_count(
-        self, mock_context, mock_km_client, mock_subprocess_success, mock_parsed_groups
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+        mock_parsed_groups,
+    ) -> None:
         """Test sorting groups by macro count."""
         with (
             patch(
@@ -242,7 +268,9 @@ class TestGroupListing:
             ),
         ):
             result = await km_list_macro_groups(
-                sort_by="macro_count", include_macro_count=True, ctx=mock_context
+                sort_by="macro_count",
+                include_macro_count=True,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -252,8 +280,12 @@ class TestGroupListing:
 
     @pytest.mark.asyncio
     async def test_list_macro_groups_sort_by_enabled_count(
-        self, mock_context, mock_km_client, mock_subprocess_success, mock_parsed_groups
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+        mock_parsed_groups,
+    ) -> None:
         """Test sorting groups by enabled count."""
         with (
             patch(
@@ -270,7 +302,9 @@ class TestGroupListing:
             ),
         ):
             result = await km_list_macro_groups(
-                sort_by="enabled_count", include_enabled_count=True, ctx=mock_context
+                sort_by="enabled_count",
+                include_enabled_count=True,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -285,8 +319,11 @@ class TestGroupToolsErrorHandling:
 
     @pytest.mark.asyncio
     async def test_applescript_execution_failure(
-        self, mock_context, mock_km_client, mock_subprocess_error
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_error,
+    ) -> None:
         """Test handling of AppleScript execution failure."""
         with (
             patch(
@@ -306,7 +343,7 @@ class TestGroupToolsErrorHandling:
             assert result["error"]["details"] == "AppleScript execution failed"
 
     @pytest.mark.asyncio
-    async def test_applescript_timeout_error(self, mock_context, mock_km_client):
+    async def test_applescript_timeout_error(self, mock_context, mock_km_client) -> None:
         """Test handling of AppleScript timeout."""
         with (
             patch(
@@ -329,7 +366,7 @@ class TestGroupToolsErrorHandling:
             )
 
     @pytest.mark.asyncio
-    async def test_general_exception_handling(self, mock_context, mock_km_client):
+    async def test_general_exception_handling(self, mock_context, mock_km_client) -> None:
         """Test general exception handling."""
         with (
             patch(
@@ -349,7 +386,7 @@ class TestGroupToolsErrorHandling:
             assert "Test error" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_km_client_initialization_error(self, mock_context):
+    async def test_km_client_initialization_error(self, mock_context) -> None:
         """Test handling of KM client initialization error."""
         with patch(
             "src.server.tools.group_tools.get_km_client",
@@ -368,8 +405,12 @@ class TestGroupToolsIntegration:
 
     @pytest.mark.asyncio
     async def test_complete_group_workflow(
-        self, mock_context, mock_km_client, mock_subprocess_success, mock_parsed_groups
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+        mock_parsed_groups,
+    ) -> None:
         """Test complete group listing workflow with progress tracking."""
         with (
             patch(
@@ -406,8 +447,11 @@ class TestGroupToolsIntegration:
 
     @pytest.mark.asyncio
     async def test_empty_groups_handling(
-        self, mock_context, mock_km_client, mock_subprocess_success
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+    ) -> None:
         """Test handling of empty group list."""
         with (
             patch(
@@ -432,8 +476,11 @@ class TestGroupToolsIntegration:
 
     @pytest.mark.asyncio
     async def test_large_group_list_handling(
-        self, mock_context, mock_km_client, mock_subprocess_success
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+    ) -> None:
         """Test handling of large group lists."""
         # Create mock data for many groups
         large_group_list = [
@@ -461,7 +508,9 @@ class TestGroupToolsIntegration:
             ),
         ):
             result = await km_list_macro_groups(
-                include_macro_count=True, sort_by="macro_count", ctx=mock_context
+                include_macro_count=True,
+                sort_by="macro_count",
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -478,8 +527,12 @@ class TestGroupToolsContext:
 
     @pytest.mark.asyncio
     async def test_context_info_logging(
-        self, mock_context, mock_km_client, mock_subprocess_success, mock_parsed_groups
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+        mock_parsed_groups,
+    ) -> None:
         """Test context info logging during execution."""
         with (
             patch(
@@ -504,8 +557,11 @@ class TestGroupToolsContext:
 
     @pytest.mark.asyncio
     async def test_context_error_logging(
-        self, mock_context, mock_km_client, mock_subprocess_error
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_error,
+    ) -> None:
         """Test context error logging during failures."""
         with (
             patch(
@@ -525,8 +581,12 @@ class TestGroupToolsContext:
 
     @pytest.mark.asyncio
     async def test_context_progress_reporting(
-        self, mock_context, mock_km_client, mock_subprocess_success, mock_parsed_groups
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+        mock_parsed_groups,
+    ) -> None:
         """Test context progress reporting functionality."""
         with (
             patch(
@@ -557,8 +617,11 @@ class TestGroupToolsContext:
 
     @pytest.mark.asyncio
     async def test_without_context(
-        self, mock_km_client, mock_subprocess_success, mock_parsed_groups
-    ):
+        self,
+        mock_km_client,
+        mock_subprocess_success,
+        mock_parsed_groups,
+    ) -> None:
         """Test operation without context provided."""
         with (
             patch(
@@ -585,7 +648,7 @@ class TestGroupToolsSecurity:
     """Test group tools security validation."""
 
     @pytest.mark.asyncio
-    async def test_applescript_injection_prevention(self, mock_context, mock_km_client):
+    async def test_applescript_injection_prevention(self, mock_context, mock_km_client) -> None:
         """Test prevention of AppleScript injection attacks."""
         # The function doesn't take user input that goes into AppleScript,
         # but test that the AppleScript is fixed and secure
@@ -617,7 +680,7 @@ class TestGroupToolsSecurity:
             assert 'tell application "Keyboard Maestro"' in args[2]
 
     @pytest.mark.asyncio
-    async def test_subprocess_timeout_security(self, mock_context, mock_km_client):
+    async def test_subprocess_timeout_security(self, mock_context, mock_km_client) -> None:
         """Test subprocess timeout security measure."""
         with (
             patch(
@@ -638,7 +701,7 @@ class TestGroupToolsSecurity:
             assert kwargs["timeout"] == 30
 
     @pytest.mark.asyncio
-    async def test_subprocess_security_settings(self, mock_context, mock_km_client):
+    async def test_subprocess_security_settings(self, mock_context, mock_km_client) -> None:
         """Test subprocess security configuration."""
         with (
             patch(
@@ -671,12 +734,12 @@ class TestGroupToolsPropertyBased:
     """Property-based testing for group tools with Hypothesis."""
 
     @composite
-    def valid_sort_options(draw):
+    def valid_sort_options(draw) -> Any:
         """Generate valid sort options."""
         return draw(st.sampled_from(["name", "macro_count", "enabled_count"]))
 
     @composite
-    def valid_boolean_options(draw):
+    def valid_boolean_options(draw) -> Any:
         """Generate valid boolean option combinations."""
         include_macro_count = draw(st.booleans())
         include_enabled_count = draw(st.booleans())
@@ -684,7 +747,7 @@ class TestGroupToolsPropertyBased:
 
     @given(valid_sort_options(), valid_boolean_options())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    def test_sort_and_count_options_property(self, sort_by, count_options):
+    def test_sort_and_count_options_property(self, sort_by, count_options) -> None:
         """Property: All valid option combinations should be accepted."""
         include_macro_count, include_enabled_count = count_options
 
@@ -698,7 +761,12 @@ class TestGroupToolsPropertyBased:
         st.lists(
             st.dictionaries(
                 keys=st.sampled_from(
-                    ["groupName", "totalMacros", "enabledMacros", "enabled"]
+                    [
+                        "groupName",
+                        "totalMacros",
+                        "enabledMacros",
+                        "enabled",
+                    ],
                 ),
                 values=st.one_of(
                     st.text(min_size=1, max_size=100),
@@ -710,10 +778,10 @@ class TestGroupToolsPropertyBased:
             ),
             min_size=0,
             max_size=10,
-        )
+        ),
     )
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    async def test_group_data_processing_property(self, group_data_list):
+    async def test_group_data_processing_property(self, group_data_list) -> None:
         """Property: Group data processing should handle various group structures."""
         mock_context = Mock(spec=Context)
         mock_context.info = AsyncMock()
@@ -757,8 +825,12 @@ class TestGroupToolsPerformance:
 
     @pytest.mark.asyncio
     async def test_group_listing_response_time(
-        self, mock_context, mock_km_client, mock_subprocess_success, mock_parsed_groups
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+        mock_parsed_groups,
+    ) -> None:
         """Test that group listing completes within reasonable time."""
         import time
 
@@ -789,8 +861,11 @@ class TestGroupToolsPerformance:
 
     @pytest.mark.asyncio
     async def test_large_group_list_performance(
-        self, mock_context, mock_km_client, mock_subprocess_success
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+    ) -> None:
         """Test performance with large group lists."""
         import time
 
@@ -838,8 +913,11 @@ class TestGroupToolsPerformance:
 
     @pytest.mark.asyncio
     async def test_sorting_performance(
-        self, mock_context, mock_km_client, mock_subprocess_success
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+    ) -> None:
         """Test sorting performance with various sort options."""
         import time
 
@@ -895,8 +973,11 @@ class TestGroupToolsEdgeCases:
 
     @pytest.mark.asyncio
     async def test_empty_group_names(
-        self, mock_context, mock_km_client, mock_subprocess_success
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+    ) -> None:
         """Test handling of groups with empty names."""
         groups_with_empty_names = [
             {"groupName": "", "totalMacros": 5, "enabledMacros": 3, "enabled": True},
@@ -931,8 +1012,11 @@ class TestGroupToolsEdgeCases:
 
     @pytest.mark.asyncio
     async def test_unicode_group_names(
-        self, mock_context, mock_km_client, mock_subprocess_success
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+    ) -> None:
         """Test handling of Unicode group names."""
         unicode_groups = [
             {
@@ -974,8 +1058,11 @@ class TestGroupToolsEdgeCases:
 
     @pytest.mark.asyncio
     async def test_zero_macro_counts(
-        self, mock_context, mock_km_client, mock_subprocess_success
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+    ) -> None:
         """Test handling of groups with zero macro counts."""
         zero_count_groups = [
             {
@@ -983,7 +1070,7 @@ class TestGroupToolsEdgeCases:
                 "totalMacros": 0,
                 "enabledMacros": 0,
                 "enabled": True,
-            }
+            },
         ]
 
         with (
@@ -1001,7 +1088,9 @@ class TestGroupToolsEdgeCases:
             ),
         ):
             result = await km_list_macro_groups(
-                include_macro_count=True, include_enabled_count=True, ctx=mock_context
+                include_macro_count=True,
+                include_enabled_count=True,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -1012,12 +1101,15 @@ class TestGroupToolsEdgeCases:
 
     @pytest.mark.asyncio
     async def test_missing_group_fields(
-        self, mock_context, mock_km_client, mock_subprocess_success
-    ):
+        self,
+        mock_context,
+        mock_km_client,
+        mock_subprocess_success,
+    ) -> None:
         """Test handling of groups with missing fields."""
         incomplete_groups = [
             {
-                "groupName": "Incomplete Group"
+                "groupName": "Incomplete Group",
                 # Missing totalMacros, enabledMacros, enabled
             },
             {
@@ -1042,7 +1134,9 @@ class TestGroupToolsEdgeCases:
             ),
         ):
             result = await km_list_macro_groups(
-                include_macro_count=True, include_enabled_count=True, ctx=mock_context
+                include_macro_count=True,
+                include_enabled_count=True,
+                ctx=mock_context,
             )
 
             assert result["success"] is True

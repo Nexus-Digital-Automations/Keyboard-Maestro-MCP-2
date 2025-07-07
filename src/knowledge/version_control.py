@@ -1,5 +1,4 @@
-"""
-Version Control - TASK_56 Phase 2 Implementation
+"""Version Control - TASK_56 Phase 2 Implementation.
 
 Documentation versioning and change tracking system for knowledge management.
 Provides version history, change detection, rollback capabilities, and audit trails.
@@ -97,7 +96,7 @@ class ChangeRecord:
     summary: str = ""
     details: dict[str, Any] = field(default_factory=dict)
     diff_stats: dict[str, int] = field(
-        default_factory=dict
+        default_factory=dict,
     )  # lines_added, lines_removed, etc.
 
     def get_change_magnitude(self) -> float:
@@ -132,7 +131,7 @@ class ConflictInfo:
         content_b: str,
         line_start: int,
         line_end: int,
-    ):
+    ) -> None:
         """Add a conflicting section."""
         self.conflict_sections.append(
             {
@@ -141,13 +140,12 @@ class ConflictInfo:
                 "content_b": content_b,
                 "line_start": line_start,
                 "line_end": line_end,
-            }
+            },
         )
 
 
 class VersionManager:
-    """
-    Document version control and change tracking system.
+    """Document version control and change tracking system.
 
     Provides comprehensive version management with change detection,
     rollback capabilities, conflict resolution, and audit trails.
@@ -168,7 +166,9 @@ class VersionManager:
         "Returns version or error",
     )
     async def create_initial_version(
-        self, document: KnowledgeDocument, author: str = "system"
+        self,
+        document: KnowledgeDocument,
+        author: str = "system",
     ) -> Either[str, DocumentVersion]:
         """Create initial version for a new document."""
         try:
@@ -212,11 +212,11 @@ class VersionManager:
             return Either.right(version)
 
         except Exception as e:
-            error_msg = f"Failed to create initial version: {str(e)}"
+            error_msg = f"Failed to create initial version: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
-    @require(lambda document_id, content: content.strip(), "Content required")
+    @require(lambda _document_id, content: content.strip(), "Content required")
     @ensure(
         lambda result: result.is_right() or isinstance(result.left(), str),
         "Returns version or error",
@@ -282,12 +282,12 @@ class VersionManager:
             self.change_history.append(change_record)
 
             logger.info(
-                f"Created version {new_version_number} for document: {document_id}"
+                f"Created version {new_version_number} for document: {document_id}",
             )
             return Either.right(version)
 
         except Exception as e:
-            error_msg = f"Failed to create version: {str(e)}"
+            error_msg = f"Failed to create version: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -306,12 +306,14 @@ class VersionManager:
             return Either.right(version)
 
         except Exception as e:
-            error_msg = f"Failed to get version: {str(e)}"
+            error_msg = f"Failed to get version: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
     async def get_version_history(
-        self, document_id: DocumentId, limit: int = 50
+        self,
+        document_id: DocumentId,
+        limit: int = 50,
     ) -> Either[str, list[DocumentVersion]]:
         """Get version history for document."""
         try:
@@ -328,7 +330,7 @@ class VersionManager:
             return Either.right(versions)
 
         except Exception as e:
-            error_msg = f"Failed to get version history: {str(e)}"
+            error_msg = f"Failed to get version history: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -387,17 +389,19 @@ class VersionManager:
             self.change_history.append(change_record)
 
             logger.info(
-                f"Rolled back document {document_id} to version {target_version.version_number}"
+                f"Rolled back document {document_id} to version {target_version.version_number}",
             )
             return Either.right(rollback_version)
 
         except Exception as e:
-            error_msg = f"Failed to rollback document: {str(e)}"
+            error_msg = f"Failed to rollback document: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
     async def compare_versions(
-        self, version_a_id: VersionId, version_b_id: VersionId
+        self,
+        version_a_id: VersionId,
+        version_b_id: VersionId,
     ) -> Either[str, dict[str, Any]]:
         """Compare two document versions."""
         try:
@@ -438,12 +442,15 @@ class VersionManager:
             return Either.right(comparison)
 
         except Exception as e:
-            error_msg = f"Failed to compare versions: {str(e)}"
+            error_msg = f"Failed to compare versions: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
     async def detect_conflicts(
-        self, document_id: DocumentId, version_a_id: VersionId, version_b_id: VersionId
+        self,
+        document_id: DocumentId,
+        version_a_id: VersionId,
+        version_b_id: VersionId,
     ) -> Either[str, ConflictInfo]:
         """Detect conflicts between two versions."""
         try:
@@ -479,15 +486,15 @@ class VersionManager:
 
             # Find overlapping changes (conflicts)
             for line_num in a_changes:
-                if line_num in b_changes:
-                    if a_changes[line_num] != b_changes[line_num]:
-                        conflict_info.add_conflict_section(
-                            f"Line {line_num}",
-                            a_changes[line_num],
-                            b_changes[line_num],
-                            line_num,
-                            line_num,
-                        )
+                # SIM102 fix: Combine nested if statements
+                if line_num in b_changes and a_changes[line_num] != b_changes[line_num]:
+                    conflict_info.add_conflict_section(
+                        f"Line {line_num}",
+                        a_changes[line_num],
+                        b_changes[line_num],
+                        line_num,
+                        line_num,
+                    )
 
             # Determine if auto-resolvable
             conflict_info.auto_resolvable = len(conflict_info.conflict_sections) == 0
@@ -497,7 +504,7 @@ class VersionManager:
             return Either.right(conflict_info)
 
         except Exception as e:
-            error_msg = f"Failed to detect conflicts: {str(e)}"
+            error_msg = f"Failed to detect conflicts: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -540,7 +547,11 @@ class VersionManager:
             lines_b = content_b.split("\n")
 
             diff = difflib.unified_diff(
-                lines_a, lines_b, fromfile="version_a", tofile="version_b", lineterm=""
+                lines_a,
+                lines_b,
+                fromfile="version_a",
+                tofile="version_b",
+                lineterm="",
             )
 
             return list(diff)
@@ -562,7 +573,9 @@ class VersionManager:
         return min(1.0, change_ratio)
 
     def _get_line_changes(
-        self, base_lines: list[str], changed_lines: list[str]
+        self,
+        base_lines: list[str],
+        changed_lines: list[str],
     ) -> dict[int, str]:
         """Get line-by-line changes from base to changed version."""
         changes = {}
@@ -601,7 +614,9 @@ class VersionManager:
 
             # Sort by timestamp (most recent first) and limit
             sorted_changes = sorted(
-                filtered_changes, key=lambda c: c.timestamp, reverse=True
+                filtered_changes,
+                key=lambda c: c.timestamp,
+                reverse=True,
             )
             return sorted_changes[:limit]
 
@@ -646,7 +661,7 @@ class VersionManager:
                         c
                         for c in self.change_history
                         if (datetime.now(UTC) - c.timestamp).days <= 7
-                    ]
+                    ],
                 ),
             }
 

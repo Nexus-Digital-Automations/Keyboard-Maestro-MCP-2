@@ -1,5 +1,4 @@
-"""
-Hypothesis strategies for property-based testing of the Keyboard Maestro MCP system.
+"""Hypothesis strategies for property-based testing of the Keyboard Maestro MCP system.
 
 This module provides comprehensive data generators for testing system behavior
 across wide input ranges with property-based testing techniques.
@@ -35,7 +34,7 @@ def macro_ids(draw) -> MacroId:
             alphabet=string.ascii_letters + string.digits + "_-",
             min_size=1,
             max_size=50,
-        ).filter(lambda x: x and x[0].isalpha())
+        ).filter(lambda x: x and x[0].isalpha()),
     )
     return MacroId(identifier)
 
@@ -45,8 +44,10 @@ def command_ids(draw) -> CommandId:
     """Generate valid command IDs."""
     identifier = draw(
         st.text(
-            alphabet=string.ascii_letters + string.digits + "_", min_size=1, max_size=30
-        ).filter(lambda x: x and x[0].isalpha())
+            alphabet=string.ascii_letters + string.digits + "_",
+            min_size=1,
+            max_size=30,
+        ).filter(lambda x: x and x[0].isalpha()),
     )
     return CommandId(identifier)
 
@@ -73,7 +74,7 @@ def variable_names(draw) -> VariableName:
             alphabet=string.ascii_letters + string.digits + "_",
             min_size=1,
             max_size=100,
-        ).filter(lambda x: x and x[0].isalpha())
+        ).filter(lambda x: x and x[0].isalpha()),
     )
     return VariableName(name)
 
@@ -88,7 +89,7 @@ def durations(draw, min_seconds: float = 0.1, max_seconds: float = 300.0) -> Dur
             max_value=max_seconds,
             allow_nan=False,
             allow_infinity=False,
-        )
+        ),
     )
     return Duration.from_seconds(seconds)
 
@@ -96,13 +97,17 @@ def durations(draw, min_seconds: float = 0.1, max_seconds: float = 300.0) -> Dur
 # Permission generators
 @composite
 def permission_sets(
-    draw, min_size: int = 0, max_size: int = 8
+    draw,
+    min_size: int = 0,
+    max_size: int = 8,
 ) -> frozenset[Permission]:
     """Generate sets of permissions."""
     permissions = draw(
         st.frozensets(
-            st.sampled_from(list(Permission)), min_size=min_size, max_size=max_size
-        )
+            st.sampled_from(list(Permission)),
+            min_size=min_size,
+            max_size=max_size,
+        ),
     )
     return permissions
 
@@ -110,7 +115,8 @@ def permission_sets(
 # Command parameter generators
 @composite
 def command_parameters(
-    draw, command_type: CommandType | None = None
+    draw,
+    command_type: CommandType | None = None,
 ) -> CommandParameters:
     """Generate command parameters based on command type."""
     if command_type == CommandType.TEXT_INPUT:
@@ -118,11 +124,11 @@ def command_parameters(
         speed = draw(st.sampled_from(["slow", "normal", "fast"]))
         return CommandParameters({"text": text, "speed": speed})
 
-    elif command_type == CommandType.PAUSE:
+    if command_type == CommandType.PAUSE:
         duration = draw(st.floats(min_value=0.1, max_value=10.0))
         return CommandParameters({"duration": duration})
 
-    elif command_type == CommandType.PLAY_SOUND:
+    if command_type == CommandType.PLAY_SOUND:
         sound_name = draw(
             st.sampled_from(
                 [
@@ -141,18 +147,18 @@ def command_parameters(
                     "sosumi",
                     "submarine",
                     "tink",
-                ]
-            )
+                ],
+            ),
         )
         volume = draw(st.integers(min_value=0, max_value=100))
         return CommandParameters({"sound_name": sound_name, "volume": volume})
 
-    elif command_type == CommandType.VARIABLE_SET:
+    if command_type == CommandType.VARIABLE_SET:
         name = draw(variable_names())
         value = draw(safe_text_content(max_length=1000))
         return CommandParameters({"name": name, "value": value})
 
-    elif command_type == CommandType.VARIABLE_GET:
+    if command_type == CommandType.VARIABLE_GET:
         name = draw(variable_names())
         default = draw(st.one_of(st.none(), safe_text_content(max_length=100)))
         params = {"name": name}
@@ -160,22 +166,21 @@ def command_parameters(
             params["default"] = default
         return CommandParameters(params)
 
-    else:
-        # Generic parameters for other command types
-        num_params = draw(st.integers(min_value=0, max_value=5))
-        params = {}
-        for i in range(num_params):
-            key = f"param_{i}"
-            value = draw(
-                st.one_of(
-                    st.text(max_size=100),
-                    st.integers(),
-                    st.floats(allow_nan=False, allow_infinity=False),
-                    st.booleans(),
-                )
-            )
-            params[key] = value
-        return CommandParameters(params)
+    # Generic parameters for other command types
+    num_params = draw(st.integers(min_value=0, max_value=5))
+    params = {}
+    for i in range(num_params):
+        key = f"param_{i}"
+        value = draw(
+            st.one_of(
+                st.text(max_size=100),
+                st.integers(),
+                st.floats(allow_nan=False, allow_infinity=False),
+                st.booleans(),
+            ),
+        )
+        params[key] = value
+    return CommandParameters(params)
 
 
 # Text content generators
@@ -188,7 +193,7 @@ def safe_text_content(draw, min_length: int = 0, max_length: int = 1000) -> str:
             alphabet=string.ascii_letters + string.digits + " ,!?-_()[]{}",
             min_size=min_length,
             max_size=max_length,
-        )
+        ),
     )
 
     # Filter out potentially dangerous patterns
@@ -209,7 +214,7 @@ def safe_text_content(draw, min_length: int = 0, max_length: int = 1000) -> str:
                     alphabet=string.ascii_letters + string.digits + " ",
                     min_size=min_length,
                     max_size=min(max_length, 100),
-                )
+                ),
             )
 
     return text
@@ -236,7 +241,7 @@ def malicious_text_content(draw) -> str:
     # Sometimes combine with legitimate text
     if draw(st.booleans()):
         legitimate_text = draw(
-            st.text(alphabet=string.ascii_letters + " ", min_size=5, max_size=50)
+            st.text(alphabet=string.ascii_letters + " ", min_size=5, max_size=50),
         )
         return f"{legitimate_text} {base_pattern}"
 
@@ -246,7 +251,8 @@ def malicious_text_content(draw) -> str:
 # Execution context generators
 @composite
 def execution_contexts(
-    draw, require_permissions: list[Permission] | None = None
+    draw,
+    require_permissions: list[Permission] | None = None,
 ) -> ExecutionContext:
     """Generate valid execution contexts."""
     # Generate base permissions
@@ -267,7 +273,9 @@ def execution_contexts(
         variables[var_name] = var_value
 
     return ExecutionContext(
-        permissions=base_permissions, timeout=timeout, variables=variables
+        permissions=base_permissions,
+        timeout=timeout,
+        variables=variables,
     )
 
 
@@ -281,7 +289,7 @@ def simple_macro_definitions(draw) -> MacroDefinition:
             alphabet=string.ascii_letters + string.digits + " _-",
             min_size=1,
             max_size=100,
-        )
+        ),
     )
 
     # Generate 1-3 commands
@@ -289,11 +297,15 @@ def simple_macro_definitions(draw) -> MacroDefinition:
     command_types = draw(
         st.lists(
             st.sampled_from(
-                [CommandType.TEXT_INPUT, CommandType.PAUSE, CommandType.PLAY_SOUND]
+                [
+                    CommandType.TEXT_INPUT,
+                    CommandType.PAUSE,
+                    CommandType.PLAY_SOUND,
+                ],
             ),
             min_size=num_commands,
             max_size=num_commands,
-        )
+        ),
     )
 
     # For now, we'll use placeholder commands from the engine
@@ -304,7 +316,9 @@ def simple_macro_definitions(draw) -> MacroDefinition:
         command_id = CommandId(f"cmd_{i}")
         parameters = draw(command_parameters(cmd_type))
         command = PlaceholderCommand(
-            command_id=command_id, command_type=cmd_type, parameters=parameters
+            command_id=command_id,
+            command_type=cmd_type,
+            parameters=parameters,
         )
         commands.append(command)
 
@@ -329,7 +343,7 @@ def complex_macro_definitions(draw) -> MacroDefinition:
             alphabet=string.ascii_letters + string.digits + " _-",
             min_size=1,
             max_size=100,
-        )
+        ),
     )
 
     # Generate 3-10 commands of various types
@@ -339,7 +353,7 @@ def complex_macro_definitions(draw) -> MacroDefinition:
             st.sampled_from(list(CommandType)),
             min_size=num_commands,
             max_size=num_commands,
-        )
+        ),
     )
 
     from src.core.engine import PlaceholderCommand
@@ -349,7 +363,9 @@ def complex_macro_definitions(draw) -> MacroDefinition:
         command_id = CommandId(f"cmd_{i}")
         parameters = draw(command_parameters(cmd_type))
         command = PlaceholderCommand(
-            command_id=command_id, command_type=cmd_type, parameters=parameters
+            command_id=command_id,
+            command_type=cmd_type,
+            parameters=parameters,
         )
         commands.append(command)
 

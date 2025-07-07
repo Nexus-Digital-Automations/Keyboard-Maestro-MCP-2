@@ -1,5 +1,4 @@
-"""
-IoT Energy Management System - TASK_65 Phase 4 Advanced Features
+"""IoT Energy Management System - TASK_65 Phase 4 Advanced Features.
 
 Smart energy management, optimization algorithms, load balancing,
 and renewable energy integration for IoT device automation.
@@ -117,13 +116,11 @@ class EnergyProfile:
         """Get expected power consumption for usage level."""
         if usage_level <= 0:
             return self.standby_power
-        elif usage_level >= 1.0:
+        if usage_level >= 1.0:
             return self.peak_power
-        else:
-            return (
-                self.standby_power
-                + (self.rated_power - self.standby_power) * usage_level
-            )
+        return (
+            self.standby_power + (self.rated_power - self.standby_power) * usage_level
+        )
 
 
 @dataclass
@@ -166,8 +163,7 @@ class LoadBalancingResult:
 
 
 class EnergyManager:
-    """
-    Comprehensive energy management system for IoT devices.
+    """Comprehensive energy management system for IoT devices.
 
     Contracts:
         Preconditions:
@@ -208,7 +204,7 @@ class EnergyManager:
         # Initialize default energy sources
         self._initialize_energy_sources()
 
-    def _initialize_energy_sources(self):
+    def _initialize_energy_sources(self) -> bool:
         """Initialize default energy source configurations."""
         self.energy_sources = {
             EnergySource.GRID: {
@@ -234,13 +230,13 @@ class EnergyManager:
             },
         }
 
-    @require(lambda self, profile: profile.device_id and profile.rated_power >= 0)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, profile: profile.device_id and profile.rated_power >= 0)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def register_device_profile(
-        self, profile: EnergyProfile
+        self,
+        profile: EnergyProfile,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
-        """
-        Register energy profile for IoT device.
+        """Register energy profile for IoT device.
 
         Architecture:
             - Validates energy profile configuration
@@ -259,14 +255,15 @@ class EnergyManager:
                     IoTIntegrationError(
                         f"Device rated power {profile.rated_power}W exceeds system capacity",
                         profile.device_id,
-                    )
+                    ),
                 )
 
             if profile.standby_power < 0 or profile.peak_power < profile.rated_power:
                 return Either.error(
                     IoTIntegrationError(
-                        "Invalid power consumption values in profile", profile.device_id
-                    )
+                        "Invalid power consumption values in profile",
+                        profile.device_id,
+                    ),
                 )
 
             # Store profile
@@ -300,21 +297,21 @@ class EnergyManager:
                     "success": True,
                     "registration_info": registration_info,
                     "total_managed_devices": len(self.energy_profiles),
-                }
+                },
             )
 
         except Exception as e:
-            error_msg = f"Failed to register energy profile: {str(e)}"
+            error_msg = f"Failed to register energy profile: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg, profile.device_id))
 
-    @require(lambda self, reading: reading.device_id and reading.power_consumption >= 0)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, reading: reading.device_id and reading.power_consumption >= 0)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def record_energy_reading(
-        self, reading: EnergyReading
+        self,
+        reading: EnergyReading,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
-        """
-        Record energy consumption reading for device.
+        """Record energy consumption reading for device.
 
         Performance:
             - <10ms reading processing time
@@ -328,7 +325,7 @@ class EnergyManager:
                     IoTIntegrationError(
                         f"Power consumption {reading.power_consumption}W exceeds system capacity",
                         reading.device_id,
-                    )
+                    ),
                 )
 
             # Store reading
@@ -356,7 +353,7 @@ class EnergyManager:
             optimization_triggered = False
             if peak_violation or self._should_trigger_optimization(reading):
                 optimization_result = await self._trigger_automatic_optimization(
-                    reading
+                    reading,
                 )
                 optimization_triggered = optimization_result.is_success()
 
@@ -376,20 +373,19 @@ class EnergyManager:
             return Either.success({"success": True, "reading_info": reading_info})
 
         except Exception as e:
-            error_msg = f"Failed to record energy reading: {str(e)}"
+            error_msg = f"Failed to record energy reading: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg, reading.device_id))
 
-    @require(lambda self, devices, strategy: len(devices) > 0 and strategy)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, devices, strategy: len(devices) > 0 and strategy)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def optimize_energy_consumption(
         self,
         devices: list[DeviceId],
         strategy: OptimizationStrategy,
         optimization_period: tuple[datetime, datetime] | None = None,
     ) -> Either[IoTIntegrationError, EnergyOptimization]:
-        """
-        Optimize energy consumption for specified devices using given strategy.
+        """Optimize energy consumption for specified devices using given strategy.
 
         Architecture:
             - Multi-objective optimization algorithms
@@ -415,12 +411,14 @@ class EnergyManager:
                     IoTIntegrationError(
                         f"Unknown devices: {invalid_devices}",
                         invalid_devices[0] if invalid_devices else None,
-                    )
+                    ),
                 )
 
             # Run optimization algorithm
             optimization_result = await self._run_optimization_algorithm(
-                devices, strategy, optimization_period
+                devices,
+                strategy,
+                optimization_period,
             )
 
             # Store optimization
@@ -448,7 +446,7 @@ class EnergyManager:
             return Either.success(optimization)
 
         except Exception as e:
-            error_msg = f"Energy optimization failed: {str(e)}"
+            error_msg = f"Energy optimization failed: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg))
 
@@ -459,22 +457,22 @@ class EnergyManager:
         period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Run specific optimization algorithm based on strategy."""
-
         if strategy == OptimizationStrategy.COST_MINIMIZATION:
             return await self._optimize_for_cost(devices, period)
-        elif strategy == OptimizationStrategy.CARBON_REDUCTION:
+        if strategy == OptimizationStrategy.CARBON_REDUCTION:
             return await self._optimize_for_carbon(devices, period)
-        elif strategy == OptimizationStrategy.PEAK_SHAVING:
+        if strategy == OptimizationStrategy.PEAK_SHAVING:
             return await self._optimize_peak_shaving(devices, period)
-        elif strategy == OptimizationStrategy.LOAD_BALANCING:
+        if strategy == OptimizationStrategy.LOAD_BALANCING:
             return await self._optimize_load_balancing(devices, period)
-        elif strategy == OptimizationStrategy.RENEWABLE_MAXIMIZATION:
+        if strategy == OptimizationStrategy.RENEWABLE_MAXIMIZATION:
             return await self._optimize_renewable_usage(devices, period)
-        else:
-            return await self._optimize_efficiency(devices, period)
+        return await self._optimize_efficiency(devices, period)
 
     async def _optimize_for_cost(
-        self, devices: list[DeviceId], period: tuple[datetime, datetime]
+        self,
+        devices: list[DeviceId],
+        period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Optimize for minimum cost."""
         actions = []
@@ -494,7 +492,7 @@ class EnergyManager:
                 )
 
                 current_cost = sum(r.calculate_cost(1) for r in recent_readings) / len(
-                    recent_readings
+                    recent_readings,
                 )
                 optimized_cost = current_cost * (
                     self.energy_sources[cheapest_source]["cost_per_kwh"] / 0.12
@@ -508,7 +506,7 @@ class EnergyManager:
                             "action": "switch_energy_source",
                             "parameters": {"source": cheapest_source.value},
                             "projected_cost_savings": savings,
-                        }
+                        },
                     )
                     total_cost_savings += savings
 
@@ -520,7 +518,7 @@ class EnergyManager:
                             "action": "schedule_optimization",
                             "parameters": {"schedule": "off_peak_hours"},
                             "projected_cost_savings": current_cost * 0.3,
-                        }
+                        },
                     )
                     total_cost_savings += current_cost * 0.3
 
@@ -532,7 +530,9 @@ class EnergyManager:
         }
 
     async def _optimize_for_carbon(
-        self, devices: list[DeviceId], period: tuple[datetime, datetime]
+        self,
+        devices: list[DeviceId],
+        period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Optimize for carbon footprint reduction."""
         actions = []
@@ -563,7 +563,7 @@ class EnergyManager:
                             "action": "switch_energy_source",
                             "parameters": {"source": cleanest_source.value},
                             "projected_carbon_savings": savings,
-                        }
+                        },
                     )
                     total_carbon_savings += savings
 
@@ -579,7 +579,9 @@ class EnergyManager:
         }
 
     async def _optimize_peak_shaving(
-        self, devices: list[DeviceId], period: tuple[datetime, datetime]
+        self,
+        devices: list[DeviceId],
+        period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Optimize for peak demand reduction."""
         actions = []
@@ -608,7 +610,7 @@ class EnergyManager:
                             "action": "reduce_power",
                             "parameters": {"reduction_percentage": 50},
                             "power_reduction": device_reduction,
-                        }
+                        },
                     )
                     reduction_achieved += device_reduction
 
@@ -624,7 +626,9 @@ class EnergyManager:
         }
 
     async def _optimize_load_balancing(
-        self, devices: list[DeviceId], period: tuple[datetime, datetime]
+        self,
+        devices: list[DeviceId],
+        period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Optimize for load balancing across time periods."""
         actions = []
@@ -640,7 +644,7 @@ class EnergyManager:
                         "action": "stagger_schedule",
                         "parameters": {"time_offset_minutes": time_offset},
                         "load_balancing_benefit": profile.rated_power * 0.1,
-                    }
+                    },
                 )
                 time_offset += 15  # 15-minute intervals
 
@@ -652,7 +656,9 @@ class EnergyManager:
         }
 
     async def _optimize_renewable_usage(
-        self, devices: list[DeviceId], period: tuple[datetime, datetime]
+        self,
+        devices: list[DeviceId],
+        period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Optimize for maximum renewable energy usage."""
         actions = []
@@ -669,7 +675,7 @@ class EnergyManager:
                     "action": "prefer_renewable",
                     "parameters": {"renewable_sources": ["solar", "wind"]},
                     "renewable_percentage_increase": 20,
-                }
+                },
             )
 
         return {
@@ -684,7 +690,9 @@ class EnergyManager:
         }
 
     async def _optimize_efficiency(
-        self, devices: list[DeviceId], period: tuple[datetime, datetime]
+        self,
+        devices: list[DeviceId],
+        period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Optimize for overall efficiency."""
         actions = []
@@ -702,7 +710,7 @@ class EnergyManager:
                         "action": "efficiency_optimization",
                         "parameters": {"target_efficiency": 0.9},
                         "efficiency_gain": efficiency_gain,
-                    }
+                    },
                 )
                 total_efficiency_gain += efficiency_gain
 
@@ -781,7 +789,8 @@ class EnergyManager:
         return False
 
     async def _trigger_automatic_optimization(
-        self, reading: EnergyReading
+        self,
+        reading: EnergyReading,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Trigger automatic optimization based on current conditions."""
         try:
@@ -800,7 +809,8 @@ class EnergyManager:
 
             # Run optimization
             optimization_result = await self.optimize_energy_consumption(
-                devices, strategy
+                devices,
+                strategy,
             )
 
             return Either.success(
@@ -810,12 +820,12 @@ class EnergyManager:
                     "optimization_id": optimization_result.value.optimization_id
                     if optimization_result.is_success()
                     else None,
-                }
+                },
             )
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Automatic optimization failed: {str(e)}")
+                IoTIntegrationError(f"Automatic optimization failed: {e!s}"),
             )
 
     async def get_energy_summary(self) -> dict[str, Any]:
@@ -843,7 +853,11 @@ class EnergyManager:
             },
             "device_priorities": {
                 priority.value: len(
-                    [p for p in self.energy_profiles.values() if p.priority == priority]
+                    [
+                        p
+                        for p in self.energy_profiles.values()
+                        if p.priority == priority
+                    ],
                 )
                 for priority in EnergyPriority
             },
@@ -882,7 +896,7 @@ def calculate_time_of_use_cost(base_cost: float, hour: int) -> float:
 
     if 16 <= hour <= 20:  # Peak hours
         return base_cost * 1.5
-    elif hour >= 22 or hour <= 6:  # Off-peak hours
+    if hour >= 22 or hour <= 6:  # Off-peak hours
         return base_cost * 0.7
-    else:  # Standard hours
-        return base_cost
+    # Standard hours
+    return base_cost

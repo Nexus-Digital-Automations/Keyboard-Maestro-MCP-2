@@ -1,5 +1,4 @@
-"""
-Functional Keyboard Maestro Client Interface
+"""Functional Keyboard Maestro Client Interface.
 
 Provides a functional interface to Keyboard Maestro APIs with
 pure functions, error handling monads, and connection management.
@@ -110,7 +109,9 @@ class KMError:
 
     @classmethod
     def execution_error(
-        cls, message: str, details: dict[str, Any] | None = None
+        cls,
+        message: str,
+        details: dict[str, Any] | None = None,
     ) -> KMError:
         """Create execution error."""
         return cls(code="EXECUTION_ERROR", message=message, details=details)
@@ -194,7 +195,9 @@ class KMClient:
         return self._config
 
     def execute_macro(
-        self, macro_id: MacroId, trigger_value: str | None = None
+        self,
+        macro_id: MacroId,
+        trigger_value: str | None = None,
     ) -> Either[KMError, dict[str, Any]]:
         """Execute macro with functional error handling."""
         command_data = {"macro_id": macro_id}
@@ -203,9 +206,10 @@ class KMClient:
 
         return self._send_command("execute_macro", command_data)
 
-    @require(lambda self, trigger_def: trigger_def.trigger_id and trigger_def.macro_id)
+    @require(lambda __self, trigger_def: trigger_def.trigger_id and trigger_def.macro_id)
     def register_trigger(
-        self, trigger_def: TriggerDefinition
+        self,
+        trigger_def: TriggerDefinition,
     ) -> Either[KMError, TriggerId]:
         """Register trigger with functional error handling."""
         result = self._send_command("register_trigger", trigger_def.to_dict())
@@ -217,7 +221,8 @@ class KMClient:
         return result.map(lambda r: r.get("success", False))
 
     def get_macro_list(
-        self, group_filter: str | None = None
+        self,
+        group_filter: str | None = None,
     ) -> Either[KMError, list[dict[str, Any]]]:
         """Get list of available macros."""
         params = {"group_filter": group_filter} if group_filter else {}
@@ -252,7 +257,8 @@ class KMClient:
         return result.map(lambda r: r.get("triggers", []))
 
     def get_trigger_status(
-        self, trigger_id: TriggerId
+        self,
+        trigger_id: TriggerId,
     ) -> Either[KMError, dict[str, Any]]:
         """Get status of specific trigger."""
         result = self._send_command("get_trigger_status", {"trigger_id": trigger_id})
@@ -261,10 +267,10 @@ class KMClient:
     # Async versions for integration with async trigger manager
 
     async def register_trigger_async(
-        self, trigger_def: TriggerDefinition
+        self,
+        trigger_def: TriggerDefinition,
     ) -> Either[KMError, TriggerId]:
-        """
-        Register trigger with comprehensive error handling and validation.
+        """Register trigger with comprehensive error handling and validation.
 
         TASK_9 Enhancement: Provides reliable trigger registration with:
         - Input validation and sanitization
@@ -272,7 +278,6 @@ class KMClient:
         - Timeout handling and resource cleanup
         - Detailed error reporting
         """
-
         try:
             # Validate trigger definition structure
             validation_result = self._validate_trigger_definition(trigger_def)
@@ -284,15 +289,17 @@ class KMClient:
             if sanitized_data.is_left():
                 return Either.left(
                     KMError.validation_error(
-                        f"Trigger data sanitization failed: {sanitized_data.get_left()}"
-                    )
+                        f"Trigger data sanitization failed: {sanitized_data.get_left()}",
+                    ),
                 )
 
             safe_config = sanitized_data.get_right()
 
             # Build AppleScript for trigger registration with proper escaping
             script_result = self._build_trigger_script_safe(
-                trigger_def.trigger_type.value, safe_config, trigger_def.trigger_id
+                trigger_def.trigger_type.value,
+                safe_config,
+                trigger_def.trigger_id,
             )
             if script_result.is_left():
                 return script_result
@@ -308,7 +315,7 @@ class KMClient:
             km_response = execution_result.get_right()
             if not km_response or "error" in km_response.lower():
                 return Either.left(
-                    KMError.execution_error(f"KM registration failed: {km_response}")
+                    KMError.execution_error(f"KM registration failed: {km_response}"),
                 )
 
             return Either.right(trigger_def.trigger_id)
@@ -316,28 +323,34 @@ class KMClient:
         except Exception as e:
             return Either.left(
                 KMError.execution_error(
-                    f"Unexpected error in trigger registration: {str(e)}"
-                )
+                    f"Unexpected error in trigger registration: {e!s}",
+                ),
             )
 
     async def activate_trigger_async(
-        self, trigger_id: TriggerId
+        self,
+        trigger_id: TriggerId,
     ) -> Either[KMError, bool]:
         """Async version of activate_trigger."""
         import asyncio
 
         return await asyncio.get_event_loop().run_in_executor(
-            None, self.activate_trigger, trigger_id
+            None,
+            self.activate_trigger,
+            trigger_id,
         )
 
     async def deactivate_trigger_async(
-        self, trigger_id: TriggerId
+        self,
+        trigger_id: TriggerId,
     ) -> Either[KMError, bool]:
         """Async version of deactivate_trigger."""
         import asyncio
 
         return await asyncio.get_event_loop().run_in_executor(
-            None, self.deactivate_trigger, trigger_id
+            None,
+            self.deactivate_trigger,
+            trigger_id,
         )
 
     async def list_triggers_async(self) -> Either[KMError, list[dict[str, Any]]]:
@@ -349,14 +362,19 @@ class KMClient:
     # TASK_5: Real Macro Listing Implementation
 
     async def list_macros_async(
-        self, group_filters: list[str] | None = None, enabled_only: bool = True
+        self,
+        group_filters: list[str] | None = None,
+        enabled_only: bool = True,
     ) -> Either[KMError, list[dict[str, Any]]]:
         """Get real macro list from Keyboard Maestro using multiple API methods."""
         import asyncio
 
         # Try AppleScript first (most reliable)
         applescript_result = await asyncio.get_event_loop().run_in_executor(
-            None, self._list_macros_applescript, group_filters, enabled_only
+            None,
+            self._list_macros_applescript,
+            group_filters,
+            enabled_only,
         )
         if applescript_result.is_right():
             return applescript_result
@@ -368,14 +386,15 @@ class KMClient:
 
         # Both methods failed
         return Either.left(
-            KMError.connection_error("Cannot connect to Keyboard Maestro")
+            KMError.connection_error("Cannot connect to Keyboard Maestro"),
         )
 
     def _list_macros_applescript(
-        self, group_filters: list[str] | None = None, enabled_only: bool = True
+        self,
+        group_filters: list[str] | None = None,
+        enabled_only: bool = True,
     ) -> Either[KMError, list[dict[str, Any]]]:
         """List macros using AppleScript getmacros command."""
-
         # AppleScript to get macro information from Keyboard Maestro
         script = """
         tell application "Keyboard Maestro"
@@ -404,16 +423,26 @@ class KMClient:
         """
 
         try:
-            result = subprocess.run(
-                ["osascript", "-e", script],
-                capture_output=True,
-                text=True,
-                timeout=self.config.timeout.total_seconds(),
+            # S607 SECURITY FIX: Use secure subprocess execution
+            from ..commands.secure_subprocess import (
+                CommandType,
+                SecureCommand,
+                get_secure_subprocess_manager,
             )
+
+            secure_manager = get_secure_subprocess_manager()
+            command = SecureCommand(
+                command_type=CommandType.SYSTEM_INFO,
+                executable="osascript",
+                args=["-e", script],
+                timeout=self.config.timeout.total_seconds(),
+                allowed_return_codes={0, 1},
+            )
+            result = secure_manager.execute_secure_command(command)
 
             if result.returncode != 0:
                 return Either.left(
-                    KMError.execution_error(f"AppleScript failed: {result.stderr}")
+                    KMError.execution_error(f"AppleScript failed: {result.stderr}"),
                 )
 
             # Parse AppleScript record format and convert to dict
@@ -454,29 +483,30 @@ class KMClient:
         except subprocess.TimeoutExpired:
             return Either.left(KMError.timeout_error("AppleScript timeout"))
         except Exception as e:
-            return Either.left(KMError.execution_error(f"AppleScript error: {str(e)}"))
+            return Either.left(KMError.execution_error(f"AppleScript error: {e!s}"))
 
     async def _list_macros_web_api(
-        self, group_filters: list[str] | None = None, enabled_only: bool = True
+        self,
+        group_filters: list[str] | None = None,
+        enabled_only: bool = True,
     ) -> Either[KMError, list[dict[str, Any]]]:
         """List macros using KM Web API."""
-
         try:
             async with httpx.AsyncClient(
-                timeout=self.config.timeout.total_seconds()
+                timeout=self.config.timeout.total_seconds(),
             ) as client:
                 # Try to get macros from web API endpoints
                 # Note: Actual KM Web API endpoints may vary - this is based on common patterns
                 try:
                     response = await client.get(
-                        f"http://{self.config.web_api_host}:{self.config.web_api_port}/macros"
+                        f"http://{self.config.web_api_host}:{self.config.web_api_port}/macros",
                     )
                     response.raise_for_status()
                     data = response.json()
                 except httpx.HTTPStatusError:
                     # Try alternative endpoint format
                     response = await client.get(
-                        f"http://{self.config.web_api_host}:{self.config.web_api_port}/action.html?action=GetMacros"
+                        f"http://{self.config.web_api_host}:{self.config.web_api_port}/action.html?action=GetMacros",
                     )
                     response.raise_for_status()
 
@@ -487,8 +517,8 @@ class KMClient:
                         # For HTML responses, we need to parse the content
                         return Either.left(
                             KMError.execution_error(
-                                "Web API returned HTML instead of JSON"
-                            )
+                                "Web API returned HTML instead of JSON",
+                            ),
                         )
 
                 macros = data.get("macros", []) if isinstance(data, dict) else data
@@ -540,14 +570,15 @@ class KMClient:
         except httpx.HTTPStatusError as e:
             return Either.left(
                 KMError.connection_error(
-                    f"Web API HTTP error: {e.response.status_code}"
-                )
+                    f"Web API HTTP error: {e.response.status_code}",
+                ),
             )
         except Exception as e:
-            return Either.left(KMError.execution_error(f"Web API error: {str(e)}"))
+            return Either.left(KMError.execution_error(f"Web API error: {e!s}"))
 
     def _parse_applescript_records(
-        self, applescript_output: str
+        self,
+        applescript_output: str,
     ) -> list[dict[str, Any]]:
         """Parse AppleScript record format into Python dictionaries."""
         import re
@@ -624,27 +655,30 @@ class KMClient:
 
     @staticmethod
     def _safe_send(
-        config: ConnectionConfig, command: str, payload: dict[str, Any]
+        config: ConnectionConfig,
+        command: str,
+        payload: dict[str, Any],
     ) -> Either[KMError, dict[str, Any]]:
         """Pure function for safe command sending with error handling."""
         try:
             if config.method == ConnectionMethod.APPLESCRIPT:
                 return KMClient._send_via_applescript(command, payload, config)
-            elif config.method == ConnectionMethod.URL_SCHEME:
+            if config.method == ConnectionMethod.URL_SCHEME:
                 return KMClient._send_via_url_scheme(command, payload, config)
-            elif config.method == ConnectionMethod.WEB_API:
+            if config.method == ConnectionMethod.WEB_API:
                 return KMClient._send_via_web_api(command, payload, config)
-            else:
-                return Either.left(
-                    KMError.connection_error(f"Unsupported method: {config.method}")
-                )
+            return Either.left(
+                KMError.connection_error(f"Unsupported method: {config.method}"),
+            )
 
         except Exception as e:
-            return Either.left(KMError.execution_error(f"Command failed: {str(e)}"))
+            return Either.left(KMError.execution_error(f"Command failed: {e!s}"))
 
     @staticmethod
     def _send_via_applescript(
-        command: str, payload: dict[str, Any], config: ConnectionConfig
+        command: str,
+        payload: dict[str, Any],
+        config: ConnectionConfig,
     ) -> Either[KMError, dict[str, Any]]:
         """Send command via AppleScript."""
         if command == "execute_macro":
@@ -659,7 +693,7 @@ class KMClient:
                 else ""
             )
 
-            script = f'''
+            script = f"""
             tell application "Keyboard Maestro Engine"
                 try
                     set result to do script "{escaped_macro_name}" with parameter "{escaped_params}"
@@ -668,23 +702,32 @@ class KMClient:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             try:
-                result = subprocess.run(
-                    ["osascript", "-e", script],
-                    capture_output=True,
-                    text=True,
-                    timeout=config.timeout.total_seconds(),
+                # S607 SECURITY FIX: Use secure subprocess execution
+                from ..commands.secure_subprocess import (
+                    CommandType,
+                    SecureCommand,
+                    get_secure_subprocess_manager,
                 )
+
+                secure_manager = get_secure_subprocess_manager()
+                command = SecureCommand(
+                    command_type=CommandType.SYSTEM_INFO,
+                    executable="osascript",
+                    args=["-e", script],
+                    timeout=config.timeout.total_seconds(),
+                    allowed_return_codes={0, 1},
+                )
+                result = secure_manager.execute_secure_command(command)
 
                 if result.returncode == 0:
                     output = result.stdout.strip()
                     if output.startswith("ERROR:"):
                         return Either.left(KMError.execution_error(output[6:].strip()))
                     return Either.right({"output": output, "success": True})
-                else:
-                    return Either.left(KMError.execution_error(result.stderr.strip()))
+                return Either.left(KMError.execution_error(result.stderr.strip()))
 
             except subprocess.TimeoutExpired:
                 return Either.left(KMError.timeout_error(config.timeout))
@@ -698,12 +741,22 @@ class KMClient:
             end tell
             """
             try:
-                result = subprocess.run(
-                    ["osascript", "-e", ping_script],
-                    capture_output=True,
-                    text=True,
-                    timeout=5.0,
+                # S607 SECURITY FIX: Use secure subprocess execution
+                from ..commands.secure_subprocess import (
+                    CommandType,
+                    SecureCommand,
+                    get_secure_subprocess_manager,
                 )
+
+                secure_manager = get_secure_subprocess_manager()
+                command = SecureCommand(
+                    command_type=CommandType.SYSTEM_INFO,
+                    executable="osascript",
+                    args=["-e", ping_script],
+                    timeout=5.0,
+                    allowed_return_codes={0, 1},
+                )
+                result = secure_manager.execute_secure_command(command)
                 alive = result.returncode == 0 and "true" in result.stdout.lower()
                 return Either.right({"alive": alive})
             except Exception:
@@ -720,7 +773,7 @@ class KMClient:
             escaped_trigger_id = trigger_id.replace('"', '\\"').replace("\\", "\\\\")
             escaped_macro_id = macro_id.replace('"', '\\"').replace("\\", "\\\\")
 
-            register_script = f'''
+            register_script = f"""
             tell application "Keyboard Maestro"
                 try
                     -- Create new trigger for macro
@@ -733,25 +786,34 @@ class KMClient:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             try:
-                result = subprocess.run(
-                    ["osascript", "-e", register_script],
-                    capture_output=True,
-                    text=True,
-                    timeout=config.timeout.total_seconds(),
+                # S607 SECURITY FIX: Use secure subprocess execution
+                from ..commands.secure_subprocess import (
+                    CommandType,
+                    SecureCommand,
+                    get_secure_subprocess_manager,
                 )
+
+                secure_manager = get_secure_subprocess_manager()
+                command = SecureCommand(
+                    command_type=CommandType.SYSTEM_INFO,
+                    executable="osascript",
+                    args=["-e", register_script],
+                    timeout=config.timeout.total_seconds(),
+                    allowed_return_codes={0, 1},
+                )
+                result = secure_manager.execute_secure_command(command)
 
                 if result.returncode == 0 and not result.stdout.startswith("ERROR:"):
                     return Either.right({"trigger_id": trigger_id, "success": True})
-                else:
-                    error_msg = result.stderr.strip() or result.stdout.strip()
-                    return Either.left(
-                        KMError.execution_error(
-                            f"Trigger registration failed: {error_msg}"
-                        )
-                    )
+                error_msg = result.stderr.strip() or result.stdout.strip()
+                return Either.left(
+                    KMError.execution_error(
+                        f"Trigger registration failed: {error_msg}",
+                    ),
+                )
 
             except subprocess.TimeoutExpired:
                 return Either.left(KMError.timeout_error(config.timeout))
@@ -762,7 +824,7 @@ class KMClient:
             trigger_id = payload.get("trigger_id", "")
             escaped_trigger_id = trigger_id.replace('"', '\\"').replace("\\", "\\\\")
 
-            unregister_script = f'''
+            unregister_script = f"""
             tell application "Keyboard Maestro"
                 try
                     -- Find and delete trigger by name
@@ -779,25 +841,34 @@ class KMClient:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             try:
-                result = subprocess.run(
-                    ["osascript", "-e", unregister_script],
-                    capture_output=True,
-                    text=True,
-                    timeout=config.timeout.total_seconds(),
+                # S607 SECURITY FIX: Use secure subprocess execution
+                from ..commands.secure_subprocess import (
+                    CommandType,
+                    SecureCommand,
+                    get_secure_subprocess_manager,
                 )
+
+                secure_manager = get_secure_subprocess_manager()
+                command = SecureCommand(
+                    command_type=CommandType.SYSTEM_INFO,
+                    executable="osascript",
+                    args=["-e", unregister_script],
+                    timeout=config.timeout.total_seconds(),
+                    allowed_return_codes={0, 1},
+                )
+                result = secure_manager.execute_secure_command(command)
 
                 if result.returncode == 0 and not result.stdout.startswith("ERROR:"):
                     return Either.right({"success": True})
-                else:
-                    error_msg = result.stderr.strip() or result.stdout.strip()
-                    return Either.left(
-                        KMError.execution_error(
-                            f"Trigger unregistration failed: {error_msg}"
-                        )
-                    )
+                error_msg = result.stderr.strip() or result.stdout.strip()
+                return Either.left(
+                    KMError.execution_error(
+                        f"Trigger unregistration failed: {error_msg}",
+                    ),
+                )
 
             except subprocess.TimeoutExpired:
                 return Either.left(KMError.timeout_error(config.timeout))
@@ -808,7 +879,7 @@ class KMClient:
             trigger_id = payload.get("trigger_id", "")
             escaped_trigger_id = trigger_id.replace('"', '\\"').replace("\\", "\\\\")
 
-            activate_script = f'''
+            activate_script = f"""
             tell application "Keyboard Maestro"
                 try
                     -- Find and enable trigger by name
@@ -825,25 +896,34 @@ class KMClient:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             try:
-                result = subprocess.run(
-                    ["osascript", "-e", activate_script],
-                    capture_output=True,
-                    text=True,
-                    timeout=config.timeout.total_seconds(),
+                # S607 SECURITY FIX: Use secure subprocess execution
+                from ..commands.secure_subprocess import (
+                    CommandType,
+                    SecureCommand,
+                    get_secure_subprocess_manager,
                 )
+
+                secure_manager = get_secure_subprocess_manager()
+                command = SecureCommand(
+                    command_type=CommandType.SYSTEM_INFO,
+                    executable="osascript",
+                    args=["-e", activate_script],
+                    timeout=config.timeout.total_seconds(),
+                    allowed_return_codes={0, 1},
+                )
+                result = secure_manager.execute_secure_command(command)
 
                 if result.returncode == 0 and not result.stdout.startswith("ERROR:"):
                     return Either.right({"success": True})
-                else:
-                    error_msg = result.stderr.strip() or result.stdout.strip()
-                    return Either.left(
-                        KMError.execution_error(
-                            f"Trigger activation failed: {error_msg}"
-                        )
-                    )
+                error_msg = result.stderr.strip() or result.stdout.strip()
+                return Either.left(
+                    KMError.execution_error(
+                        f"Trigger activation failed: {error_msg}",
+                    ),
+                )
 
             except subprocess.TimeoutExpired:
                 return Either.left(KMError.timeout_error(config.timeout))
@@ -851,12 +931,14 @@ class KMClient:
                 return Either.left(KMError.execution_error(str(e)))
 
         return Either.left(
-            KMError.execution_error(f"Unsupported AppleScript command: {command}")
+            KMError.execution_error(f"Unsupported AppleScript command: {command}"),
         )
 
     @staticmethod
     def _send_via_url_scheme(
-        command: str, payload: dict[str, Any], config: ConnectionConfig
+        command: str,
+        payload: dict[str, Any],
+        config: ConnectionConfig,
     ) -> Either[KMError, dict[str, Any]]:
         """Send command via kmtrigger URL scheme."""
         if command == "execute_macro":
@@ -872,7 +954,22 @@ class KMClient:
                 url += f"&value={trigger_value}"
 
             try:
-                subprocess.run(["open", url], timeout=config.timeout.total_seconds())
+                # S607 SECURITY FIX: Use secure subprocess execution
+                from ..commands.secure_subprocess import (
+                    CommandType,
+                    SecureCommand,
+                    get_secure_subprocess_manager,
+                )
+
+                secure_manager = get_secure_subprocess_manager()
+                command = SecureCommand(
+                    command_type=CommandType.SYSTEM_INFO,
+                    executable="open",
+                    args=[url],
+                    timeout=config.timeout.total_seconds(),
+                    allowed_return_codes={0, 1},
+                )
+                secure_manager.execute_secure_command(command)
                 return Either.right({"success": True, "url": url})
             except subprocess.TimeoutExpired:
                 return Either.left(KMError.timeout_error(config.timeout))
@@ -880,12 +977,14 @@ class KMClient:
                 return Either.left(KMError.execution_error(str(e)))
 
         return Either.left(
-            KMError.execution_error(f"Unsupported URL scheme command: {command}")
+            KMError.execution_error(f"Unsupported URL scheme command: {command}"),
         )
 
     @staticmethod
     def _send_via_web_api(
-        command: str, payload: dict[str, Any], config: ConnectionConfig
+        command: str,
+        payload: dict[str, Any],
+        config: ConnectionConfig,
     ) -> Either[KMError, dict[str, Any]]:
         """Send command via web API."""
         base_url = f"http://{config.web_api_host}:{config.web_api_port}"
@@ -905,28 +1004,27 @@ class KMClient:
                     response = client.get(url, timeout=config.timeout.total_seconds())
                 if response.status_code == 200:
                     return Either.right({"success": True, "response": response.text})
-                else:
-                    return Either.left(
-                        KMError.execution_error(
-                            f"HTTP {response.status_code}: {response.text}"
-                        )
-                    )
+                return Either.left(
+                    KMError.execution_error(
+                        f"HTTP {response.status_code}: {response.text}",
+                    ),
+                )
             except httpx.TimeoutException:
                 return Either.left(KMError.timeout_error(config.timeout))
             except Exception as e:
                 return Either.left(KMError.execution_error(str(e)))
 
         return Either.left(
-            KMError.execution_error(f"Unsupported web API command: {command}")
+            KMError.execution_error(f"Unsupported web API command: {command}"),
         )
 
     # TASK_9: Enhanced helper methods for reliable trigger operations
 
     def _validate_trigger_definition(
-        self, trigger_def: TriggerDefinition
+        self,
+        trigger_def: TriggerDefinition,
     ) -> Either[KMError, TriggerDefinition]:
         """Validate trigger definition structure and required fields."""
-
         if not trigger_def.trigger_id:
             return Either.left(KMError.validation_error("Trigger ID is required"))
 
@@ -935,37 +1033,37 @@ class KMClient:
 
         if not isinstance(trigger_def.configuration, dict):
             return Either.left(
-                KMError.validation_error("Trigger configuration must be a dictionary")
+                KMError.validation_error("Trigger configuration must be a dictionary"),
             )
 
         # Validate trigger type specific requirements
         if trigger_def.trigger_type.value == "hotkey":
             if "key" not in trigger_def.configuration:
                 return Either.left(
-                    KMError.validation_error("Hotkey trigger requires 'key' parameter")
+                    KMError.validation_error("Hotkey trigger requires 'key' parameter"),
                 )
 
             key = trigger_def.configuration["key"]
             if not isinstance(key, str) or len(key) == 0:
                 return Either.left(
-                    KMError.validation_error("Hotkey 'key' must be a non-empty string")
+                    KMError.validation_error("Hotkey 'key' must be a non-empty string"),
                 )
 
         elif trigger_def.trigger_type.value == "application":
             if "application" not in trigger_def.configuration:
                 return Either.left(
                     KMError.validation_error(
-                        "Application trigger requires 'application' parameter"
-                    )
+                        "Application trigger requires 'application' parameter",
+                    ),
                 )
 
         return Either.right(trigger_def)
 
     def _sanitize_trigger_data(
-        self, config: dict[str, Any]
+        self,
+        config: dict[str, Any],
     ) -> Either[str, dict[str, Any]]:
         """Sanitize trigger configuration data to prevent injection attacks."""
-
         try:
             # Import security validation from our security module
             from .security import SecurityLevel, validate_km_input
@@ -979,16 +1077,19 @@ class KMClient:
                     for v in validation_result.violations
                 ]
                 return Either.left(
-                    f"Security violations detected: {'; '.join(violations)}"
+                    f"Security violations detected: {'; '.join(violations)}",
                 )
 
             return Either.right(validation_result.sanitized_data or config)
 
         except Exception as e:
-            return Either.left(f"Sanitization error: {str(e)}")
+            return Either.left(f"Sanitization error: {e!s}")
 
     def _build_trigger_script_safe(
-        self, trigger_type: str, config: dict[str, Any], trigger_id: TriggerId
+        self,
+        trigger_type: str,
+        config: dict[str, Any],
+        trigger_id: TriggerId,
     ) -> Either[KMError, str]:
         """Build AppleScript for trigger registration with comprehensive validation and escaping."""
 
@@ -1014,7 +1115,7 @@ class KMClient:
             # Validate and escape key
             if not key or not isinstance(key, str):
                 return Either.left(
-                    KMError.validation_error("Invalid or missing hotkey")
+                    KMError.validation_error("Invalid or missing hotkey"),
                 )
 
             escaped_key = escape_applescript_string(key)
@@ -1032,7 +1133,7 @@ class KMClient:
 
             escaped_trigger_id = escape_applescript_string(str(trigger_id))
 
-            script = f'''
+            script = f"""
             tell application "Keyboard Maestro"
                 try
                     set newTrigger to make new hotkey trigger with properties {{¬
@@ -1044,24 +1145,24 @@ class KMClient:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             return Either.right(script)
 
-        elif trigger_type == "application":
+        if trigger_type == "application":
             app_name = config.get("application", "")
             event_type = config.get("event", "launches")
 
             if not app_name:
                 return Either.left(
-                    KMError.validation_error("Application name is required")
+                    KMError.validation_error("Application name is required"),
                 )
 
             escaped_app = escape_applescript_string(app_name)
             escaped_event = escape_applescript_string(event_type)
             escaped_trigger_id = escape_applescript_string(str(trigger_id))
 
-            script = f'''
+            script = f"""
             tell application "Keyboard Maestro"
                 try
                     set newTrigger to make new application trigger with properties {{¬
@@ -1074,23 +1175,21 @@ class KMClient:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             return Either.right(script)
 
-        else:
-            return Either.left(
-                KMError.validation_error(f"Unsupported trigger type: {trigger_type}")
-            )
+        return Either.left(
+            KMError.validation_error(f"Unsupported trigger type: {trigger_type}"),
+        )
 
     async def _execute_applescript_safe(self, script: str) -> Either[KMError, str]:
         """Execute AppleScript with comprehensive security validation and error handling."""
-
         try:
             # Validate script safety before execution
             if self._contains_dangerous_commands(script):
                 return Either.left(
-                    KMError.validation_error("Dangerous AppleScript commands detected")
+                    KMError.validation_error("Dangerous AppleScript commands detected"),
                 )
 
             # Execute with timeout using asyncio subprocess
@@ -1107,7 +1206,8 @@ class KMClient:
                 timeout_seconds = self.config.timeout.total_seconds()
                 try:
                     stdout, stderr = await asyncio.wait_for(
-                        process.communicate(), timeout=timeout_seconds
+                        process.communicate(),
+                        timeout=timeout_seconds,
                     )
                 except asyncio.TimeoutError:
                     # Kill the process if it times out
@@ -1123,7 +1223,7 @@ class KMClient:
                         else "Unknown AppleScript error"
                     )
                     return Either.left(
-                        KMError.execution_error(f"AppleScript failed: {error_msg}")
+                        KMError.execution_error(f"AppleScript failed: {error_msg}"),
                     )
 
                 result = stdout.decode().strip()
@@ -1131,17 +1231,16 @@ class KMClient:
 
             except OSError as e:
                 return Either.left(
-                    KMError.execution_error(f"Failed to execute osascript: {str(e)}")
+                    KMError.execution_error(f"Failed to execute osascript: {e!s}"),
                 )
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"AppleScript execution error: {str(e)}")
+                KMError.execution_error(f"AppleScript execution error: {e!s}"),
             )
 
     def _contains_dangerous_commands(self, script: str) -> bool:
         """Check if AppleScript contains potentially dangerous commands."""
-
         dangerous_patterns = [
             r"do\s+shell\s+script",  # Shell execution
             r"system\s+info",  # System information
@@ -1170,7 +1269,7 @@ class KMClient:
             # Security: Validate AppleScript content
             if self._contains_dangerous_applescript(applescript):
                 return Either.left(
-                    KMError.security_error("Dangerous AppleScript content detected")
+                    KMError.security_error("Dangerous AppleScript content detected"),
                 )
 
             # Execute AppleScript asynchronously
@@ -1183,7 +1282,8 @@ class KMClient:
             )
 
             stdout, stderr = await asyncio.wait_for(
-                process.communicate(), timeout=self.config.timeout.total_seconds()
+                process.communicate(),
+                timeout=self.config.timeout.total_seconds(),
             )
 
             if process.returncode != 0:
@@ -1191,7 +1291,7 @@ class KMClient:
                     stderr.decode().strip() if stderr else "Unknown AppleScript error"
                 )
                 return Either.left(
-                    KMError.execution_error(f"AppleScript failed: {error_msg}")
+                    KMError.execution_error(f"AppleScript failed: {error_msg}"),
                 )
 
             return Either.right(stdout.decode().strip())
@@ -1200,7 +1300,7 @@ class KMClient:
             return Either.left(KMError.timeout_error("AppleScript execution timeout"))
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"AppleScript execution error: {str(e)}")
+                KMError.execution_error(f"AppleScript execution error: {e!s}"),
             )
 
     def _contains_dangerous_applescript(self, script: str) -> bool:
@@ -1258,12 +1358,12 @@ class KMClient:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to list groups: {str(e)}")
+                KMError.execution_error(f"Failed to list groups: {e!s}"),
             )
 
     # TASK_20: Macro Movement Operations
 
-    @require(lambda self, macro_id, target_group: macro_id and target_group)
+    @require(lambda __self, macro_id, target_group: macro_id and target_group)
     @ensure(
         lambda result: result.is_right()
         or result.get_left().code
@@ -1273,13 +1373,15 @@ class KMClient:
             "PERMISSION_ERROR",
             "MOVE_ERROR",
             "NOT_FOUND_ERROR",
-        ]
+        ],
     )
     async def move_macro_to_group_async(
-        self, macro_id: MacroId, target_group: GroupId, create_missing: bool = False
+        self,
+        macro_id: MacroId,
+        target_group: GroupId,
+        create_missing: bool = False,
     ) -> Either[KMError, MacroMoveResult]:
-        """
-        Execute macro movement with atomic operation guarantees.
+        """Execute macro movement with atomic operation guarantees.
 
         Security Features:
         - Input validation and sanitization
@@ -1317,7 +1419,8 @@ class KMClient:
         try:
             # Phase 1: Validate inputs and get current state
             validation_result = await self._validate_move_operation(
-                macro_id, target_group
+                macro_id,
+                target_group,
             )
             if validation_result.is_left():
                 return validation_result
@@ -1326,7 +1429,9 @@ class KMClient:
 
             # Phase 2: Check for conflicts and prepare rollback
             conflict_check = await self._check_move_conflicts(
-                macro_id, source_group, target_group
+                macro_id,
+                source_group,
+                target_group,
             )
             if conflict_check.is_left():
                 return conflict_check
@@ -1341,7 +1446,9 @@ class KMClient:
 
             # Phase 4: Execute atomic move operation
             move_result = await self._execute_macro_move(
-                macro_id, source_group, target_group
+                macro_id,
+                source_group,
+                target_group,
             )
             if move_result.is_left():
                 return move_result
@@ -1350,7 +1457,8 @@ class KMClient:
 
             # Phase 5: Verify move success
             verification_result = await self._verify_move_success(
-                macro_id, target_group
+                macro_id,
+                target_group,
             )
             if verification_result.is_left():
                 # Attempt rollback
@@ -1364,16 +1472,18 @@ class KMClient:
                     target_group=target_group,
                     execution_time=execution_time,
                     conflicts_resolved=conflicts_found,
-                )
+                ),
             )
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Macro movement failed: {str(e)}")
+                KMError.execution_error(f"Macro movement failed: {e!s}"),
             )
 
     async def _validate_move_operation(
-        self, macro_id: MacroId, target_group: GroupId
+        self,
+        macro_id: MacroId,
+        target_group: GroupId,
     ) -> Either[KMError, tuple[GroupId, dict[str, Any]]]:
         """Validate move operation and get current macro state."""
         try:
@@ -1393,26 +1503,27 @@ class KMClient:
             if source_group == target_group:
                 return Either.left(
                     KMError.validation_error(
-                        f"Macro {macro_id} is already in group {target_group}"
-                    )
+                        f"Macro {macro_id} is already in group {target_group}",
+                    ),
                 )
 
             return Either.right((source_group, macro_info))
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Move validation failed: {str(e)}")
+                KMError.execution_error(f"Move validation failed: {e!s}"),
             )
 
     async def _find_macro_current_group(
-        self, macro_id: MacroId
+        self,
+        macro_id: MacroId,
     ) -> Either[KMError, tuple[GroupId, dict[str, Any]]]:
         """Find macro's current group and get macro information."""
         try:
             # Escape macro ID for AppleScript
             escaped_macro_id = self._escape_applescript_string(macro_id)
 
-            script = f'''
+            script = f"""
             tell application "Keyboard Maestro"
                 try
                     set foundMacro to first macro whose name is "{escaped_macro_id}" or uid is "{escaped_macro_id}"
@@ -1427,7 +1538,7 @@ class KMClient:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             result = await self.execute_applescript_async(script)
             if result.is_left():
@@ -1436,14 +1547,14 @@ class KMClient:
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
                 return Either.left(
-                    KMError.not_found_error(f"Macro not found: {macro_id}")
+                    KMError.not_found_error(f"Macro not found: {macro_id}"),
                 )
 
             # Parse response: SUCCESS:groupID:groupName:macroName:enabled
             parts = output[8:].split(":", 4)  # Remove "SUCCESS:" prefix
             if len(parts) < 4:
                 return Either.left(
-                    KMError.execution_error("Invalid macro lookup response")
+                    KMError.execution_error("Invalid macro lookup response"),
                 )
 
             source_group = GroupId(parts[0])
@@ -1457,7 +1568,7 @@ class KMClient:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Macro lookup failed: {str(e)}")
+                KMError.execution_error(f"Macro lookup failed: {e!s}"),
             )
 
     async def _validate_group_exists(self, group_id: GroupId) -> Either[KMError, bool]:
@@ -1465,7 +1576,7 @@ class KMClient:
         try:
             escaped_group_id = self._escape_applescript_string(group_id)
 
-            script = f'''
+            script = f"""
             tell application "Keyboard Maestro"
                 try
                     set targetGroup to first macro group whose name is "{escaped_group_id}" or uid is "{escaped_group_id}"
@@ -1474,7 +1585,7 @@ class KMClient:
                     return "ERROR: Group not found"
                 end try
             end tell
-            '''
+            """
 
             result = await self.execute_applescript_async(script)
             if result.is_left():
@@ -1483,18 +1594,21 @@ class KMClient:
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
                 return Either.left(
-                    KMError.not_found_error(f"Target group not found: {group_id}")
+                    KMError.not_found_error(f"Target group not found: {group_id}"),
                 )
 
             return Either.right(True)
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Group validation failed: {str(e)}")
+                KMError.execution_error(f"Group validation failed: {e!s}"),
             )
 
     async def _check_move_conflicts(
-        self, macro_id: MacroId, source_group: GroupId, target_group: GroupId
+        self,
+        macro_id: MacroId,
+        source_group: GroupId,
+        target_group: GroupId,
     ) -> Either[KMError, list[str]]:
         """Check for potential conflicts in target group."""
         try:
@@ -1504,7 +1618,7 @@ class KMClient:
             escaped_macro_id = self._escape_applescript_string(macro_id)
             escaped_target = self._escape_applescript_string(target_group)
 
-            script = f'''
+            script = f"""
             tell application "Keyboard Maestro"
                 try
                     set targetGroup to first macro group whose name is "{escaped_target}" or uid is "{escaped_target}"
@@ -1521,7 +1635,7 @@ class KMClient:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             result = await self.execute_applescript_async(script)
             if result.is_left():
@@ -1537,11 +1651,12 @@ class KMClient:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Conflict check failed: {str(e)}")
+                KMError.execution_error(f"Conflict check failed: {e!s}"),
             )
 
     async def _ensure_target_group_exists(
-        self, group_id: GroupId
+        self,
+        group_id: GroupId,
     ) -> Either[KMError, bool]:
         """Create target group if it doesn't exist."""
         try:
@@ -1553,7 +1668,7 @@ class KMClient:
             # Create new group
             escaped_group_id = self._escape_applescript_string(group_id)
 
-            script = f'''
+            script = f"""
             tell application "Keyboard Maestro"
                 try
                     make new macro group with properties {{name:"{escaped_group_id}"}}
@@ -1562,7 +1677,7 @@ class KMClient:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             result = await self.execute_applescript_async(script)
             if result.is_left():
@@ -1576,18 +1691,21 @@ class KMClient:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Group creation failed: {str(e)}")
+                KMError.execution_error(f"Group creation failed: {e!s}"),
             )
 
     async def _execute_macro_move(
-        self, macro_id: MacroId, source_group: GroupId, target_group: GroupId
+        self,
+        macro_id: MacroId,
+        source_group: GroupId,
+        target_group: GroupId,
     ) -> Either[KMError, bool]:
         """Execute the actual macro move operation."""
         try:
             escaped_macro_id = self._escape_applescript_string(macro_id)
             escaped_target = self._escape_applescript_string(target_group)
 
-            script = f'''
+            script = f"""
             tell application "Keyboard Maestro"
                 try
                     set sourceMacro to first macro whose name is "{escaped_macro_id}" or uid is "{escaped_macro_id}"
@@ -1599,7 +1717,7 @@ class KMClient:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             result = await self.execute_applescript_async(script)
             if result.is_left():
@@ -1613,11 +1731,13 @@ class KMClient:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Macro move execution failed: {str(e)}")
+                KMError.execution_error(f"Macro move execution failed: {e!s}"),
             )
 
     async def _verify_move_success(
-        self, macro_id: MacroId, target_group: GroupId
+        self,
+        macro_id: MacroId,
+        target_group: GroupId,
     ) -> Either[KMError, bool]:
         """Verify that macro move was successful."""
         try:
@@ -1625,36 +1745,43 @@ class KMClient:
             find_result = await self._find_macro_current_group(macro_id)
             if find_result.is_left():
                 return Either.left(
-                    KMError.execution_error("Move verification failed: macro not found")
+                    KMError.execution_error(
+                        "Move verification failed: macro not found"
+                    ),
                 )
 
             current_group, _ = find_result.get_right()
             if current_group != target_group:
                 return Either.left(
                     KMError.execution_error(
-                        f"Move verification failed: macro in {current_group}, expected {target_group}"
-                    )
+                        f"Move verification failed: macro in {current_group}, expected {target_group}",
+                    ),
                 )
 
             return Either.right(True)
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Move verification failed: {str(e)}")
+                KMError.execution_error(f"Move verification failed: {e!s}"),
             )
 
     async def _rollback_macro_move(
-        self, macro_id: MacroId, current_group: GroupId, original_group: GroupId
+        self,
+        macro_id: MacroId,
+        current_group: GroupId,
+        original_group: GroupId,
     ) -> Either[KMError, bool]:
         """Rollback macro to original group on failure."""
         try:
             rollback_result = await self._execute_macro_move(
-                macro_id, current_group, original_group
+                macro_id,
+                current_group,
+                original_group,
             )
             return rollback_result
 
         except Exception as e:
-            return Either.left(KMError.execution_error(f"Rollback failed: {str(e)}"))
+            return Either.left(KMError.execution_error(f"Rollback failed: {e!s}"))
 
     def _escape_applescript_string(self, value: str) -> str:
         """Escape string for safe use in AppleScript."""
@@ -1677,9 +1804,11 @@ class KMClient:
 def retry_with_backoff(
     operation: Callable[[], Either[KMError, T]],
     max_retries: int = 3,
-    initial_delay: Duration = Duration.from_seconds(0.5),
+    initial_delay: Duration | None = None,
 ) -> Either[KMError, T]:
     """Retry operation with exponential backoff."""
+    if initial_delay is None:
+        initial_delay = Duration.from_seconds(0.5)
     current_delay = initial_delay
 
     for attempt in range(max_retries + 1):
@@ -1699,7 +1828,8 @@ def retry_with_backoff(
 
 
 def create_client_with_fallback(
-    primary_config: ConnectionConfig, fallback_config: ConnectionConfig
+    primary_config: ConnectionConfig,
+    fallback_config: ConnectionConfig,
 ) -> KMClient:
     """Create client that falls back to secondary method on failure."""
 
@@ -1709,7 +1839,9 @@ def create_client_with_fallback(
             self._fallback = KMClient(fallback_config)
 
         def execute_macro(
-            self, macro_id: MacroId, trigger_value: str | None = None
+            self,
+            macro_id: MacroId,
+            trigger_value: str | None = None,
         ) -> Either[KMError, dict[str, Any]]:
             result = super().execute_macro(macro_id, trigger_value)
             if result.is_left():

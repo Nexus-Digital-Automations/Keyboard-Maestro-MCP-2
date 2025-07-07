@@ -1,5 +1,4 @@
-"""
-Scene Analyzer - TASK_61 Phase 2 Core Implementation
+"""Scene Analyzer - TASK_61 Phase 2 Core Implementation.
 
 Advanced scene understanding and semantic analysis system for computer vision automation.
 Provides AI-powered scene classification, environment analysis, and contextual understanding capabilities.
@@ -331,7 +330,7 @@ class SceneAnalyzer:
     @require(lambda image_content: isinstance(image_content, ImageContent))
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.left_value, SceneAnalysisError)
+        or isinstance(result.left_value, SceneAnalysisError),
     )
     async def analyze_scene(
         self,
@@ -348,18 +347,21 @@ class SceneAnalyzer:
             if validation_result.is_left():
                 return Either.left(
                     SceneAnalysisError(
-                        validation_result.left_value.message, "IMAGE_VALIDATION_ERROR"
-                    )
+                        validation_result.left_value.message,
+                        "IMAGE_VALIDATION_ERROR",
+                    ),
                 )
 
             # Perform scene classification
             scene_classification = await self._classify_scene_type(
-                image_content, detected_objects
+                image_content,
+                detected_objects,
             )
 
             # Analyze environment
             environment_analysis = await self._analyze_environment(
-                image_content, detected_objects
+                image_content,
+                detected_objects,
             )
 
             # Analyze colors
@@ -367,17 +369,22 @@ class SceneAnalyzer:
 
             # Analyze spatial layout
             spatial_analysis = await self._analyze_spatial_layout(
-                image_content, detected_objects
+                image_content,
+                detected_objects,
             )
 
             # Extract contextual information
             contextual_info = await self._extract_contextual_information(
-                image_content, detected_objects, scene_classification
+                image_content,
+                detected_objects,
+                scene_classification,
             )
 
             # Calculate complexity score
             complexity_score = self._calculate_scene_complexity(
-                detected_objects or [], scene_classification, spatial_analysis
+                detected_objects or [],
+                scene_classification,
+                spatial_analysis,
             )
 
             # Generate scene description
@@ -426,15 +433,17 @@ class SceneAnalyzer:
         except Exception as e:
             return Either.left(
                 SceneAnalysisError(
-                    f"Scene analysis failed: {str(e)}",
+                    f"Scene analysis failed: {e!s}",
                     "ANALYSIS_ERROR",
                     VisionOperation.SCENE_CLASSIFICATION,
                     {"analysis_level": analysis_level},
-                )
+                ),
             )
 
     async def _classify_scene_type(
-        self, image_content: ImageContent, detected_objects: list[DetectedObject] | None
+        self,
+        image_content: ImageContent,
+        detected_objects: list[DetectedObject] | None,
     ) -> dict[str, Any]:
         """Classify the type of scene."""
         # Analyze detected objects if available
@@ -457,7 +466,8 @@ class SceneAnalyzer:
                     object_types.get(obj, 0) for obj in pattern["typical_objects"]
                 )
                 object_score = min(
-                    1.0, matching_objects / max(1, len(pattern["typical_objects"]))
+                    1.0,
+                    matching_objects / max(1, len(pattern["typical_objects"])),
                 )
                 score *= 0.7 + 0.3 * object_score
 
@@ -495,7 +505,9 @@ class SceneAnalyzer:
         }
 
     async def _analyze_environment(
-        self, image_content: ImageContent, detected_objects: list[DetectedObject] | None
+        self,
+        image_content: ImageContent,
+        detected_objects: list[DetectedObject] | None,
     ) -> dict[str, Any]:
         """Analyze environmental characteristics."""
         environment_attrs = {}
@@ -610,7 +622,7 @@ class SceneAnalyzer:
         ]
 
         # Select 3-5 colors for palette
-        palette_size = random.randint(3, 5)
+        palette_size = random.randint(3, 5)  # noqa: S311 # Simulation data generation
         selected_colors = random.sample(base_colors, palette_size)
 
         # Determine color temperature
@@ -625,8 +637,8 @@ class SceneAnalyzer:
             color_temperature = "neutral"
 
         # Determine saturation and brightness
-        avg_saturation = random.uniform(0.3, 0.8)
-        avg_brightness = random.uniform(0.4, 0.9)
+        avg_saturation = random.uniform(0.3, 0.8)  # noqa: S311 # Simulation data generation
+        avg_brightness = random.uniform(0.4, 0.9)  # noqa: S311 # Simulation data generation
 
         saturation_level = (
             "low"
@@ -650,14 +662,16 @@ class SceneAnalyzer:
             "saturation_level": saturation_level,
             "brightness_level": brightness_level,
             "lighting": {
-                "estimated_lux": random.randint(100, 1000),
-                "light_direction": random.choice(["natural", "artificial", "mixed"]),
-                "shadow_intensity": random.uniform(0.2, 0.8),
+                "estimated_lux": random.randint(100, 1000),  # noqa: S311 # Simulation data generation
+                "light_direction": random.choice(["natural", "artificial", "mixed"]),  # noqa: S311 # Simulation data generation
+                "shadow_intensity": random.uniform(0.2, 0.8),  # noqa: S311 # Simulation data generation
             },
         }
 
     async def _analyze_spatial_layout(
-        self, image_content: ImageContent, detected_objects: list[DetectedObject] | None
+        self,
+        image_content: ImageContent,
+        detected_objects: list[DetectedObject] | None,
     ) -> SpatialLayout | None:
         """Analyze spatial layout and composition."""
         if not detected_objects:
@@ -904,7 +918,7 @@ class SceneAnalyzer:
 
             if most_common:
                 category_desc = ", ".join(
-                    [f"{count} {cat.replace('_', ' ')}" for cat, count in most_common]
+                    [f"{count} {cat.replace('_', ' ')}" for cat, count in most_common],
                 )
                 base_desc += f" including {category_desc}"
 
@@ -973,9 +987,10 @@ class SceneAnalyzer:
                 formatted_results.append(
                     Either.left(
                         SceneAnalysisError(
-                            f"Batch analysis error: {str(result)}", "BATCH_ERROR"
-                        )
-                    )
+                            f"Batch analysis error: {result!s}",
+                            "BATCH_ERROR",
+                        ),
+                    ),
                 )
             else:
                 formatted_results.append(result)

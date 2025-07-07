@@ -1,10 +1,12 @@
-"""
-Pytest configuration and shared fixtures for the Keyboard Maestro MCP test suite.
+"""Pytest configuration and shared fixtures for the Keyboard Maestro MCP test suite.
 
 This module provides comprehensive test configuration including Hypothesis settings,
 mock frameworks, and reusable fixtures for property-based and integration testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
 import threading
 import time
@@ -56,7 +58,7 @@ settings.load_profile("default")
 
 
 @pytest.fixture(scope="session")
-def event_loop():
+def event_loop() -> None:
     """Create event loop for async tests."""
     loop = asyncio.new_event_loop()
     yield loop
@@ -95,7 +97,7 @@ def execution_context() -> ExecutionContext:
                 Permission.TEXT_INPUT,
                 Permission.SYSTEM_SOUND,
                 Permission.APPLICATION_CONTROL,
-            ]
+            ],
         ),
         timeout=Duration.from_seconds(30),
     )
@@ -122,7 +124,7 @@ def privileged_context() -> ExecutionContext:
                 Permission.SYSTEM_CONTROL,
                 Permission.FILE_ACCESS,
                 Permission.NETWORK_ACCESS,
-            ]
+            ],
         ),
         timeout=Duration.from_seconds(60),
     )
@@ -156,7 +158,7 @@ def complex_macro() -> MacroDefinition:
 
 
 @pytest.fixture
-def performance_timer():
+def performance_timer() -> bool:
     """Timer utility for performance testing."""
 
     class PerformanceTimer:
@@ -164,10 +166,10 @@ def performance_timer():
             self.start_time = None
             self.end_time = None
 
-        def start(self):
+        def start(self) -> bool:
             self.start_time = time.perf_counter()
 
-        def stop(self):
+        def stop(self) -> bool:
             self.end_time = time.perf_counter()
 
         @property
@@ -225,7 +227,7 @@ def security_test_data() -> dict[str, list[str]]:
 
 
 @pytest.fixture
-def mock_file_system():
+def mock_file_system() -> bool:
     """Mock file system for testing file operations."""
     mock_fs = {
         "/test/file.txt": "Test content",
@@ -253,7 +255,7 @@ def mock_file_system():
 
 
 @pytest.fixture
-def thread_safety_helper():
+def thread_safety_helper() -> Any:
     """Helper for testing thread safety."""
 
     class ThreadSafetyHelper:
@@ -262,11 +264,11 @@ def thread_safety_helper():
             self.lock = threading.Lock()
             self.errors = []
 
-        def run_concurrent(self, func, args_list, max_workers=5):
+        def run_concurrent(self, func, args_list, max_workers=5) -> None:
             """Run function concurrently with different arguments."""
             threads = []
 
-            def worker(args):
+            def worker(args) -> Any:
                 try:
                     result = (
                         func(*args) if isinstance(args, list | tuple) else func(args)
@@ -291,21 +293,23 @@ def thread_safety_helper():
 
 
 # Custom pytest markers
-def pytest_configure(config):
+def pytest_configure(config) -> None:
     """Configure custom pytest markers."""
     config.addinivalue_line(
-        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+        "markers",
+        "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     )
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "security: marks tests as security-focused")
     config.addinivalue_line(
-        "markers", "performance: marks tests as performance benchmarks"
+        "markers",
+        "performance: marks tests as performance benchmarks",
     )
     config.addinivalue_line("markers", "property: marks tests as property-based tests")
 
 
 # Pytest collection hooks
-def pytest_collection_modifyitems(config, items):
+def pytest_collection_modifyitems(config, items) -> None:
     """Modify test collection to add markers automatically."""
     for item in items:
         # Add slow marker to tests that take longer than expected
@@ -327,7 +331,7 @@ def pytest_collection_modifyitems(config, items):
 
 # Cleanup fixtures
 @pytest.fixture(autouse=True)
-def cleanup_engine_state():
+def cleanup_engine_state() -> None:
     """Clean up engine state between tests."""
     yield
 

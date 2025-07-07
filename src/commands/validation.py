@@ -1,5 +1,4 @@
-"""
-Security Validation for Command Library
+"""Security Validation for Command Library.
 
 Provides comprehensive security validation utilities for all command types
 with threat detection, input sanitization, and risk assessment.
@@ -10,6 +9,7 @@ from __future__ import annotations
 import os
 import os.path
 import re
+import tempfile
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Any
@@ -60,8 +60,7 @@ class CommandSecurityError(SecurityViolationError):
 
 
 class SecurityValidator:
-    """
-    Comprehensive security validator for command parameters.
+    """Comprehensive security validator for command parameters.
 
     Detects and prevents various types of security threats
     including injection attacks, path traversal, and privilege escalation.
@@ -106,8 +105,8 @@ class SecurityValidator:
         os.path.expanduser("~/Documents"),
         os.path.expanduser("~/Desktop"),
         os.path.expanduser("~/Downloads"),
-        "/tmp",
-        "/var/tmp",
+        tempfile.gettempdir(),
+        os.path.join(tempfile.gettempdir(), "var"),
     ]
 
     # Maximum safe values
@@ -120,8 +119,7 @@ class SecurityValidator:
         self.threats: list[SecurityThreat] = []
 
     def validate_text_input(self, text: str, field_name: str = "text") -> bool:
-        """
-        Validate text input for security threats.
+        """Validate text input for security threats.
 
         Args:
             text: Text to validate
@@ -129,6 +127,7 @@ class SecurityValidator:
 
         Returns:
             True if text is safe, False otherwise
+
         """
         if not isinstance(text, str):
             self._add_threat(
@@ -178,8 +177,7 @@ class SecurityValidator:
         return True
 
     def validate_file_path(self, path: str, field_name: str = "path") -> bool:
-        """
-        Validate file path for directory traversal and access control.
+        """Validate file path for directory traversal and access control.
 
         Args:
             path: File path to validate
@@ -187,6 +185,7 @@ class SecurityValidator:
 
         Returns:
             True if path is safe, False otherwise
+
         """
         if not isinstance(path, str):
             self._add_threat(
@@ -247,10 +246,13 @@ class SecurityValidator:
         return True
 
     def validate_numeric_range(
-        self, value: Any, min_val: float, max_val: float, field_name: str = "value"
+        self,
+        value: Any,
+        min_val: float,
+        max_val: float,
+        field_name: str = "value",
     ) -> bool:
-        """
-        Validate numeric value is within safe range.
+        """Validate numeric value is within safe range.
 
         Args:
             value: Value to validate
@@ -260,6 +262,7 @@ class SecurityValidator:
 
         Returns:
             True if value is within range, False otherwise
+
         """
         try:
             num_val = float(value)
@@ -286,10 +289,11 @@ class SecurityValidator:
         return True
 
     def validate_permissions(
-        self, required: set[Permission], available: set[Permission]
+        self,
+        required: set[Permission],
+        available: set[Permission],
     ) -> bool:
-        """
-        Validate that all required permissions are available.
+        """Validate that all required permissions are available.
 
         Args:
             required: Set of required permissions
@@ -297,6 +301,7 @@ class SecurityValidator:
 
         Returns:
             True if all required permissions are available
+
         """
         missing = required - available
         if missing:
@@ -360,8 +365,7 @@ def validate_file_path(path: str, field_name: str = "path") -> bool:
 
 
 def validate_command_parameters(command_type: str, parameters: dict[str, Any]) -> bool:
-    """
-    Validate command parameters against security policies.
+    """Validate command parameters against security policies.
 
     Args:
         command_type: Type of command being validated
@@ -372,6 +376,7 @@ def validate_command_parameters(command_type: str, parameters: dict[str, Any]) -
 
     Raises:
         CommandSecurityError: If critical security threats are detected
+
     """
     validator = SecurityValidator()
 

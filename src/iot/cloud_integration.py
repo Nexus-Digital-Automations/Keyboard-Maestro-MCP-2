@@ -1,5 +1,4 @@
-"""
-IoT Cloud Integration - TASK_65 Phase 5 Integration & Optimization
+"""IoT Cloud Integration - TASK_65 Phase 5 Integration & Optimization.
 
 Cloud platform integration, data synchronization, multi-cloud IoT management,
 and scalable cloud-based IoT orchestration for enterprise automation.
@@ -96,7 +95,7 @@ class CloudConnection:
             return False
 
         health_threshold = datetime.now(UTC) - timedelta(
-            seconds=self.health_check_interval * 2
+            seconds=self.health_check_interval * 2,
         )
         return self.last_health_check > health_threshold
 
@@ -141,8 +140,7 @@ class CloudResource:
 
 
 class CloudIntegrationManager:
-    """
-    Comprehensive cloud integration manager for IoT platforms.
+    """Comprehensive cloud integration manager for IoT platforms.
 
     Contracts:
         Preconditions:
@@ -182,7 +180,7 @@ class CloudIntegrationManager:
         # Initialize default cloud configurations
         self._initialize_cloud_providers()
 
-    def _initialize_cloud_providers(self):
+    def _initialize_cloud_providers(self) -> None:
         """Initialize default cloud provider configurations."""
         # AWS IoT Core configuration
         self.rate_limiters[CloudProvider.AWS_IOT] = {
@@ -205,13 +203,13 @@ class CloudIntegrationManager:
             "config_updates": {"operations_per_second": 1, "burst": 5},
         }
 
-    @require(lambda self, connection: connection.connection_id and connection.provider)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, connection: connection.connection_id and connection.provider)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def register_cloud_connection(
-        self, connection: CloudConnection
+        self,
+        connection: CloudConnection,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
-        """
-        Register cloud platform connection for IoT integration.
+        """Register cloud platform connection for IoT integration.
 
         Architecture:
             - Validates cloud credentials and connectivity
@@ -236,7 +234,7 @@ class CloudIntegrationManager:
 
             # Encrypt credentials
             encrypted_credentials = await self._encrypt_credentials(
-                connection.credentials
+                connection.credentials,
             )
             connection.credentials = encrypted_credentials
 
@@ -267,21 +265,21 @@ class CloudIntegrationManager:
                     "success": True,
                     "registration_info": registration_info,
                     "total_connections": len(self.cloud_connections),
-                }
+                },
             )
 
         except Exception as e:
-            error_msg = f"Failed to register cloud connection: {str(e)}"
+            error_msg = f"Failed to register cloud connection: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg))
 
-    @require(lambda self, config: config.sync_id and len(config.source_devices) > 0)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, config: config.sync_id and len(config.source_devices) > 0)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def configure_data_sync(
-        self, config: SyncConfiguration
+        self,
+        config: SyncConfiguration,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
-        """
-        Configure data synchronization between local IoT and cloud platforms.
+        """Configure data synchronization between local IoT and cloud platforms.
 
         Performance:
             - Optimizes batch sizes based on network conditions
@@ -292,12 +290,12 @@ class CloudIntegrationManager:
             # Validate sync configuration
             if config.sync_interval < 1:
                 return Either.error(
-                    IoTIntegrationError("Sync interval must be at least 1 second")
+                    IoTIntegrationError("Sync interval must be at least 1 second"),
                 )
 
             if config.batch_size > 1000:
                 return Either.error(
-                    IoTIntegrationError("Batch size cannot exceed 1000 items")
+                    IoTIntegrationError("Batch size cannot exceed 1000 items"),
                 )
 
             # Check cloud connection availability
@@ -305,8 +303,8 @@ class CloudIntegrationManager:
             if not cloud_available:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Cloud provider {config.target_cloud.value} not available"
-                    )
+                        f"Cloud provider {config.target_cloud.value} not available",
+                    ),
                 )
 
             # Store sync configuration
@@ -346,20 +344,21 @@ class CloudIntegrationManager:
                     "success": True,
                     "sync_info": sync_info,
                     "total_sync_jobs": len(self.sync_configurations),
-                }
+                },
             )
 
         except Exception as e:
-            error_msg = f"Failed to configure data sync: {str(e)}"
+            error_msg = f"Failed to configure data sync: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg))
 
     @require(lambda self, sync_id: sync_id in self.sync_configurations)
     async def execute_data_sync(
-        self, sync_id: SyncJobId, force_sync: bool = False
+        self,
+        sync_id: SyncJobId,
+        force_sync: bool = False,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
-        """
-        Execute data synchronization for specified sync job.
+        """Execute data synchronization for specified sync job.
 
         Architecture:
             - Implements different sync strategies (real-time, batch, delta)
@@ -379,7 +378,7 @@ class CloudIntegrationManager:
                             "success": True,
                             "message": "Sync not yet due",
                             "next_sync": next_sync.isoformat(),
-                        }
+                        },
                     )
 
             # Update sync job status
@@ -409,7 +408,7 @@ class CloudIntegrationManager:
 
             # Schedule next sync
             sync_job["next_sync"] = datetime.now(UTC) + timedelta(
-                seconds=config.sync_interval
+                seconds=config.sync_interval,
             )
 
             self.total_sync_operations += 1
@@ -417,12 +416,13 @@ class CloudIntegrationManager:
             return result
 
         except Exception as e:
-            error_msg = f"Failed to execute data sync: {str(e)}"
+            error_msg = f"Failed to execute data sync: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg))
 
     async def _execute_realtime_sync(
-        self, config: SyncConfiguration
+        self,
+        config: SyncConfiguration,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Execute real-time data synchronization."""
         try:
@@ -440,7 +440,8 @@ class CloudIntegrationManager:
 
                 # Apply data filters
                 filtered_data = self._apply_data_filters(
-                    device_data, config.data_filters
+                    device_data,
+                    config.data_filters,
                 )
 
                 # Compress if enabled
@@ -453,7 +454,8 @@ class CloudIntegrationManager:
 
                 # Send to cloud
                 cloud_result = await self._send_to_cloud(
-                    config.target_cloud, filtered_data
+                    config.target_cloud,
+                    filtered_data,
                 )
 
                 if cloud_result.is_success():
@@ -464,7 +466,7 @@ class CloudIntegrationManager:
                             "device_id": device_id,
                             "status": "success",
                             "bytes_sent": bytes_sent,
-                        }
+                        },
                     )
                 else:
                     sync_results.append(
@@ -472,7 +474,7 @@ class CloudIntegrationManager:
                             "device_id": device_id,
                             "status": "failed",
                             "error": str(cloud_result.error_value),
-                        }
+                        },
                     )
 
             return Either.success(
@@ -482,14 +484,15 @@ class CloudIntegrationManager:
                     "bytes_transferred": total_bytes,
                     "sync_results": sync_results,
                     "completed_at": datetime.now(UTC).isoformat(),
-                }
+                },
             )
 
         except Exception as e:
-            return Either.error(IoTIntegrationError(f"Real-time sync failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"Real-time sync failed: {e!s}"))
 
     async def _execute_batch_sync(
-        self, config: SyncConfiguration
+        self,
+        config: SyncConfiguration,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Execute batch data synchronization."""
         try:
@@ -508,7 +511,7 @@ class CloudIntegrationManager:
                             "device_id": device_id,
                             "data": device_data,
                             "timestamp": datetime.now(UTC).isoformat(),
-                        }
+                        },
                     )
                     device_count += 1
 
@@ -532,21 +535,23 @@ class CloudIntegrationManager:
                     "bytes_transferred": total_bytes,
                     "batch_size": config.batch_size,
                     "completed_at": datetime.now(UTC).isoformat(),
-                }
+                },
             )
 
         except Exception as e:
-            return Either.error(IoTIntegrationError(f"Batch sync failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"Batch sync failed: {e!s}"))
 
     async def _execute_delta_sync(
-        self, config: SyncConfiguration
+        self,
+        config: SyncConfiguration,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Execute delta (incremental) data synchronization."""
         try:
             # Get last sync timestamp for delta calculation
             sync_job = self.sync_jobs.get(config.sync_id, {})
             last_sync = sync_job.get(
-                "last_sync", datetime.now(UTC) - timedelta(hours=1)
+                "last_sync",
+                datetime.now(UTC) - timedelta(hours=1),
             )
 
             delta_data = []
@@ -564,7 +569,7 @@ class CloudIntegrationManager:
                             "device_id": device_id,
                             "changes": changed_data,
                             "change_timestamp": datetime.now(UTC).isoformat(),
-                        }
+                        },
                     )
                     device_count += 1
 
@@ -580,7 +585,8 @@ class CloudIntegrationManager:
 
                 # Send delta to cloud
                 cloud_result = await self._send_to_cloud(
-                    config.target_cloud, processed_data
+                    config.target_cloud,
+                    processed_data,
                 )
 
                 if cloud_result.is_error():
@@ -595,21 +601,23 @@ class CloudIntegrationManager:
                     "bytes_transferred": total_bytes,
                     "delta_since": last_sync.isoformat(),
                     "completed_at": datetime.now(UTC).isoformat(),
-                }
+                },
             )
 
         except Exception as e:
-            return Either.error(IoTIntegrationError(f"Delta sync failed: {str(e)}"))
+            return Either.error(IoTIntegrationError(f"Delta sync failed: {e!s}"))
 
     async def _execute_default_sync(
-        self, config: SyncConfiguration
+        self,
+        config: SyncConfiguration,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Execute default synchronization strategy."""
         # Default to batch sync
         return await self._execute_batch_sync(config)
 
     async def _validate_cloud_credentials(
-        self, connection: CloudConnection
+        self,
+        connection: CloudConnection,
     ) -> Either[IoTIntegrationError, bool]:
         """Validate cloud platform credentials."""
         try:
@@ -625,18 +633,19 @@ class CloudIntegrationManager:
             for key in required_keys:
                 if key not in connection.credentials:
                     return Either.error(
-                        IoTIntegrationError(f"Missing required credential: {key}")
+                        IoTIntegrationError(f"Missing required credential: {key}"),
                     )
 
             return Either.success(True)
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Credential validation failed: {str(e)}")
+                IoTIntegrationError(f"Credential validation failed: {e!s}"),
             )
 
     async def _test_cloud_connectivity(
-        self, connection: CloudConnection
+        self,
+        connection: CloudConnection,
     ) -> Either[IoTIntegrationError, bool]:
         """Test connectivity to cloud platform."""
         try:
@@ -647,18 +656,19 @@ class CloudIntegrationManager:
             await asyncio.sleep(0.1)
 
             # Simulate occasional connectivity issues
-            if random.random() < 0.05:  # 5% failure rate
+            if random.random() < 0.05:  # noqa: S311 - Testing simulation only, not cryptographic use
+                # 5% failure rate for simulation
                 return Either.error(
                     IoTIntegrationError(
-                        f"Connectivity test failed for {connection.provider.value}"
-                    )
+                        f"Connectivity test failed for {connection.provider.value}",
+                    ),
                 )
 
             return Either.success(True)
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Connectivity test failed: {str(e)}")
+                IoTIntegrationError(f"Connectivity test failed: {e!s}"),
             )
 
     async def _encrypt_credentials(self, credentials: dict[str, str]) -> dict[str, str]:
@@ -706,7 +716,9 @@ class CloudIntegrationManager:
         }
 
     async def _get_changed_device_data(
-        self, device_id: DeviceId, since: datetime
+        self,
+        device_id: DeviceId,
+        since: datetime,
     ) -> dict[str, Any] | None:
         """Get changed data for device since timestamp."""
         # Simulate changed data calculation
@@ -723,7 +735,9 @@ class CloudIntegrationManager:
         return None
 
     def _apply_data_filters(
-        self, data: dict[str, Any], filters: list[str]
+        self,
+        data: dict[str, Any],
+        filters: list[str],
     ) -> dict[str, Any]:
         """Apply data filters to device data."""
         if not filters:
@@ -755,7 +769,9 @@ class CloudIntegrationManager:
         return encrypted
 
     async def _send_to_cloud(
-        self, provider: CloudProvider, data: Any
+        self,
+        provider: CloudProvider,
+        data: Any,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Send data to cloud platform."""
         try:
@@ -774,16 +790,18 @@ class CloudIntegrationManager:
                     "data_size": data_size,
                     "cost": cost,
                     "transmitted_at": datetime.now(UTC).isoformat(),
-                }
+                },
             )
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Cloud transmission failed: {str(e)}")
+                IoTIntegrationError(f"Cloud transmission failed: {e!s}"),
             )
 
     async def _process_batch(
-        self, batch_data: list[dict[str, Any]], config: SyncConfiguration
+        self,
+        batch_data: list[dict[str, Any]],
+        config: SyncConfiguration,
     ):
         """Process a batch of data for cloud synchronization."""
         # Apply filters, compression, encryption to batch
@@ -800,7 +818,9 @@ class CloudIntegrationManager:
         return result
 
     def _calculate_transmission_cost(
-        self, provider: CloudProvider, data_size: int
+        self,
+        provider: CloudProvider,
+        data_size: int,
     ) -> float:
         """Calculate cost for data transmission."""
         # Cost per MB for different providers (simplified)
@@ -820,10 +840,10 @@ class CloudIntegrationManager:
     async def get_integration_status(self) -> dict[str, Any]:
         """Get comprehensive cloud integration status."""
         active_connections = len(
-            [c for c in self.cloud_connections.values() if c.is_active]
+            [c for c in self.cloud_connections.values() if c.is_active],
         )
         healthy_connections = len(
-            [c for c in self.cloud_connections.values() if c.is_healthy()]
+            [c for c in self.cloud_connections.values() if c.is_healthy()],
         )
 
         return {
@@ -841,7 +861,7 @@ class CloudIntegrationManager:
             "total_data_transferred": self.total_data_transferred,
             "total_cost_incurred": self.total_cost_incurred,
             "cloud_providers": list(
-                {c.provider.value for c in self.cloud_connections.values()}
+                {c.provider.value for c in self.cloud_connections.values()},
             ),
             "cost_optimizer_enabled": self.cost_optimizer_enabled,
             "auto_scaling_enabled": self.auto_scaling_enabled,

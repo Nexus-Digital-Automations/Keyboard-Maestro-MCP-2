@@ -1,5 +1,4 @@
-"""
-Dictionary manager MCP tools for advanced data structures and JSON handling.
+"""Dictionary manager MCP tools for advanced data structures and JSON handling.
 
 This module provides comprehensive dictionary management capabilities through
 MCP tools, enabling sophisticated data-driven automation workflows.
@@ -46,8 +45,7 @@ class DictionaryManagerTools:
         timeout_seconds: int = 30,
         ctx=None,
     ) -> dict[str, Any]:
-        """
-        Comprehensive dictionary and JSON management tool.
+        """Comprehensive dictionary and JSON management tool.
 
         Supports create, read, update, delete, query, merge, and transform operations
         on structured data with schema validation and security protection.
@@ -74,11 +72,11 @@ class DictionaryManagerTools:
             if schema and validate_schema:
                 try:
                     schema_id = SchemaId(
-                        f"schema_{dictionary_name}_{hash(json.dumps(schema, sort_keys=True)) % 10000}"
+                        f"schema_{dictionary_name}_{hash(json.dumps(schema, sort_keys=True)) % 10000}",
                     )
                     data_schema = DataSchema(schema=schema, schema_id=schema_id)
                 except Exception as e:
-                    return {"success": False, "error": f"Invalid schema: {str(e)}"}
+                    return {"success": False, "error": f"Invalid schema: {e!s}"}
 
             # Parse key path if provided
             dict_path = None
@@ -86,14 +84,16 @@ class DictionaryManagerTools:
                 try:
                     dict_path = DictionaryPath(key_path)
                 except Exception as e:
-                    return {"success": False, "error": f"Invalid key path: {str(e)}"}
+                    return {"success": False, "error": f"Invalid key path: {e!s}"}
 
             # Execute operation
             if data_operation == DataOperation.CREATE:
                 result = await self._handle_create(dictionary_name, value, data_schema)
             elif data_operation == DataOperation.READ:
                 result = await self._handle_read(
-                    dictionary_name, dict_path, format_output
+                    dictionary_name,
+                    dict_path,
+                    format_output,
                 )
             elif data_operation == DataOperation.UPDATE:
                 result = await self._handle_update(dictionary_name, dict_path, value)
@@ -103,7 +103,9 @@ class DictionaryManagerTools:
                 result = await self._handle_query(dictionary_name, query)
             elif data_operation == DataOperation.MERGE:
                 result = await self._handle_merge(
-                    dictionary_name, value, merge_strategy
+                    dictionary_name,
+                    value,
+                    merge_strategy,
                 )
             elif data_operation == DataOperation.TRANSFORM:
                 result = await self._handle_transform(dictionary_name, value)
@@ -111,11 +113,16 @@ class DictionaryManagerTools:
                 result = await self._handle_validate(dictionary_name, data_schema)
             elif data_operation == DataOperation.EXPORT:
                 result = await self._handle_export(
-                    dictionary_name, format_output, query
+                    dictionary_name,
+                    format_output,
+                    query,
                 )
             elif data_operation == DataOperation.IMPORT:
                 result = await self._handle_import(
-                    dictionary_name, value, format_output, data_schema
+                    dictionary_name,
+                    value,
+                    format_output,
+                    data_schema,
                 )
             else:
                 return {
@@ -139,22 +146,27 @@ class DictionaryManagerTools:
             return result
 
         except Exception as e:
-            logger.error(f"Dictionary manager error: {str(e)}", exc_info=True)
+            logger.error(f"Dictionary manager error: {e!s}", exc_info=True)
             return {
                 "success": False,
-                "error": f"Unexpected error: {str(e)}",
+                "error": f"Unexpected error: {e!s}",
                 "operation": operation,
                 "dictionary_name": dictionary_name,
             }
 
     async def _handle_create(
-        self, dictionary_name: str, initial_data: Any | None, schema: DataSchema | None
+        self,
+        dictionary_name: str,
+        initial_data: Any | None,
+        schema: DataSchema | None,
     ) -> dict[str, Any]:
         """Handle dictionary creation."""
         data = initial_data if isinstance(initial_data, dict) else {}
 
         result = await self.engine.create_dictionary(
-            name=dictionary_name, initial_data=data, schema=schema
+            name=dictionary_name,
+            initial_data=data,
+            schema=schema,
         )
 
         if result.is_right():
@@ -172,18 +184,20 @@ class DictionaryManagerTools:
                     "schema_id": metadata.schema_id,
                 },
             }
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.message,
-                "error_category": error.category.value
-                if hasattr(error, "category")
-                else "unknown",
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.message,
+            "error_category": error.category.value
+            if hasattr(error, "category")
+            else "unknown",
+        }
 
     async def _handle_read(
-        self, dictionary_name: str, path: DictionaryPath | None, format_output: str
+        self,
+        dictionary_name: str,
+        path: DictionaryPath | None,
+        format_output: str,
     ) -> dict[str, Any]:
         """Handle reading dictionary values."""
         result = await self.engine.get_value(dictionary_name, path)
@@ -210,16 +224,18 @@ class DictionaryManagerTools:
                 "path": path.path if path else None,
                 "format": format_output,
             }
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.message,
-                "path": path.path if path else None,
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.message,
+            "path": path.path if path else None,
+        }
 
     async def _handle_update(
-        self, dictionary_name: str, path: DictionaryPath | None, value: Any
+        self,
+        dictionary_name: str,
+        path: DictionaryPath | None,
+        value: Any,
     ) -> dict[str, Any]:
         """Handle updating dictionary values."""
         if path is None:
@@ -246,12 +262,13 @@ class DictionaryManagerTools:
                     else None,
                 },
             }
-        else:
-            error = result.get_left()
-            return {"success": False, "error": error.message, "path": path.path}
+        error = result.get_left()
+        return {"success": False, "error": error.message, "path": path.path}
 
     async def _handle_delete(
-        self, dictionary_name: str, path: DictionaryPath | None
+        self,
+        dictionary_name: str,
+        path: DictionaryPath | None,
     ) -> dict[str, Any]:
         """Handle deleting dictionary keys."""
         if path is None:
@@ -276,12 +293,13 @@ class DictionaryManagerTools:
                     else None,
                 },
             }
-        else:
-            error = result.get_left()
-            return {"success": False, "error": error.message, "path": path.path}
+        error = result.get_left()
+        return {"success": False, "error": error.message, "path": path.path}
 
     async def _handle_query(
-        self, dictionary_name: str, query: str | None
+        self,
+        dictionary_name: str,
+        query: str | None,
     ) -> dict[str, Any]:
         """Handle querying dictionary data."""
         if not query:
@@ -311,12 +329,14 @@ class DictionaryManagerTools:
                 "execution_time_seconds": result.execution_time.total_seconds(),
                 "metadata": result.metadata,
             }
-        else:
-            error = query_result.get_left()
-            return {"success": False, "error": error.message, "query": query}
+        error = query_result.get_left()
+        return {"success": False, "error": error.message, "query": query}
 
     async def _handle_merge(
-        self, dictionary_name: str, source_data: Any, merge_strategy: str
+        self,
+        dictionary_name: str,
+        source_data: Any,
+        merge_strategy: str,
     ) -> dict[str, Any]:
         """Handle merging data into dictionary."""
         if not isinstance(source_data, dict):
@@ -389,12 +409,14 @@ class DictionaryManagerTools:
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Merge failed: {str(e)}",
+                "error": f"Merge failed: {e!s}",
                 "merge_strategy": merge_strategy,
             }
 
     async def _handle_transform(
-        self, dictionary_name: str, transformations: Any
+        self,
+        dictionary_name: str,
+        transformations: Any,
     ) -> dict[str, Any]:
         """Handle transforming dictionary data."""
         if not isinstance(transformations, dict):
@@ -413,7 +435,8 @@ class DictionaryManagerTools:
 
         # Apply transformations
         transform_result = await self.json_processor.transform_json(
-            data, transformations
+            data,
+            transformations,
         )
 
         if transform_result.is_right():
@@ -438,16 +461,17 @@ class DictionaryManagerTools:
                 "transformations_applied": list(transformations.keys()),
                 "data": transformed_data,
             }
-        else:
-            error = transform_result.get_left()
-            return {
-                "success": False,
-                "error": error.message,
-                "transformations": transformations,
-            }
+        error = transform_result.get_left()
+        return {
+            "success": False,
+            "error": error.message,
+            "transformations": transformations,
+        }
 
     async def _handle_validate(
-        self, dictionary_name: str, schema: DataSchema | None
+        self,
+        dictionary_name: str,
+        schema: DataSchema | None,
     ) -> dict[str, Any]:
         """Handle validating dictionary against schema."""
         if not schema:
@@ -469,7 +493,9 @@ class DictionaryManagerTools:
 
         # Validate against schema
         validation_result = self.json_processor._validate_against_schema(
-            data, schema, True
+            data,
+            schema,
+            True,
         )
 
         if validation_result.is_right():
@@ -479,18 +505,20 @@ class DictionaryManagerTools:
                 "schema_id": schema.schema_id,
                 "valid": True,
             }
-        else:
-            error = validation_result.get_left()
-            return {
-                "success": True,  # Operation succeeded, but validation failed
-                "message": "Dictionary does not validate against schema",
-                "schema_id": schema.schema_id,
-                "valid": False,
-                "validation_error": error.message,
-            }
+        error = validation_result.get_left()
+        return {
+            "success": True,  # Operation succeeded, but validation failed
+            "message": "Dictionary does not validate against schema",
+            "schema_id": schema.schema_id,
+            "valid": False,
+            "validation_error": error.message,
+        }
 
     async def _handle_export(
-        self, dictionary_name: str, format_output: str, query: str | None
+        self,
+        dictionary_name: str,
+        format_output: str,
+        query: str | None,
     ) -> dict[str, Any]:
         """Handle exporting dictionary data."""
         # Get dictionary data
@@ -561,7 +589,7 @@ class DictionaryManagerTools:
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Export failed: {str(e)}",
+                "error": f"Export failed: {e!s}",
                 "format": format_output,
             }
 
@@ -578,7 +606,8 @@ class DictionaryManagerTools:
             if format_input == "json":
                 if isinstance(import_data, str):
                     parse_result = await self.json_processor.parse_json(
-                        import_data, schema
+                        import_data,
+                        schema,
                     )
                     if parse_result.is_left():
                         error = parse_result.get_left()
@@ -603,7 +632,9 @@ class DictionaryManagerTools:
 
             # Create or update dictionary with imported data
             create_result = await self.engine.create_dictionary(
-                name=dictionary_name, initial_data=data, schema=schema
+                name=dictionary_name,
+                initial_data=data,
+                schema=schema,
             )
 
             if create_result.is_right():
@@ -618,23 +649,24 @@ class DictionaryManagerTools:
                         "key_count": metadata.key_count,
                     },
                 }
-            else:
-                error = create_result.get_left()
-                return {
-                    "success": False,
-                    "error": f"Import failed: {error.message}",
-                    "format": format_input,
-                }
+            error = create_result.get_left()
+            return {
+                "success": False,
+                "error": f"Import failed: {error.message}",
+                "format": format_input,
+            }
 
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Import failed: {str(e)}",
+                "error": f"Import failed: {e!s}",
                 "format": format_input,
             }
 
     def _deep_merge(
-        self, target: dict[str, Any], source: dict[str, Any]
+        self,
+        target: dict[str, Any],
+        source: dict[str, Any],
     ) -> dict[str, Any]:
         """Perform deep merge of two dictionaries."""
         result = target.copy()

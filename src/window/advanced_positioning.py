@@ -1,5 +1,4 @@
-"""
-Advanced window positioning algorithms for sophisticated multi-monitor workflows.
+"""Advanced window positioning algorithms for sophisticated multi-monitor workflows.
 
 This module implements complex positioning algorithms including cross-monitor
 migration, relative position preservation, and intelligent window placement
@@ -60,8 +59,8 @@ class AdvancedPositioning:
         self.display_manager = display_manager
         self.grid_manager = AdvancedGridManager()
 
-    @require(lambda self, window_id: len(window_id) > 0)
-    @require(lambda self, target_display_id: target_display_id >= 0)
+    @require(lambda __self, window_id: len(window_id) > 0)
+    @require(lambda __self, target_display_id: target_display_id >= 0)
     async def migrate_window_to_display(
         self,
         window_identifier: str,
@@ -69,8 +68,7 @@ class AdvancedPositioning:
         preserve_relative_position: bool = True,
         intelligent_placement: bool = True,
     ) -> Either[WindowError, WindowMigrationResult]:
-        """
-        Migrate window to different display with advanced positioning.
+        """Migrate window to different display with advanced positioning.
 
         Architecture: Cross-monitor coordinate transformation with intelligence
         Security: Display bounds validation and coordinate overflow protection
@@ -88,12 +86,12 @@ class AdvancedPositioning:
             target_display = topology.get_display_by_id(target_display_id)
             if target_display is None:
                 return Either.left(
-                    WindowError(f"Display {target_display_id} not found")
+                    WindowError(f"Display {target_display_id} not found"),
                 )
 
             # Get current window position (mock implementation)
             current_position_result = await self._get_current_window_position(
-                window_identifier
+                window_identifier,
             )
             if current_position_result.is_left():
                 return Either.left(current_position_result.get_left())
@@ -104,16 +102,21 @@ class AdvancedPositioning:
             # Calculate new position based on strategy
             if preserve_relative_position and source_display:
                 new_position_result = self._calculate_relative_position(
-                    old_position, source_display, target_display
+                    old_position,
+                    source_display,
+                    target_display,
                 )
             elif intelligent_placement:
                 new_position_result = await self._calculate_intelligent_position(
-                    window_identifier, target_display, old_position[2:4]
+                    window_identifier,
+                    target_display,
+                    old_position[2:4],
                 )
             else:
                 # Center on target display
                 new_position_result = self._center_on_display(
-                    target_display, old_position[2:4]
+                    target_display,
+                    old_position[2:4],
                 )
 
             if new_position_result.is_left():
@@ -123,7 +126,8 @@ class AdvancedPositioning:
 
             # Apply new position (mock implementation)
             migration_result = await self._apply_window_position(
-                window_identifier, new_position
+                window_identifier,
+                new_position,
             )
             if migration_result.is_left():
                 return Either.left(migration_result.get_left())
@@ -141,14 +145,15 @@ class AdvancedPositioning:
             return Either.right(result)
 
         except Exception as e:
-            return Either.left(WindowError(f"Window migration failed: {str(e)}"))
+            return Either.left(WindowError(f"Window migration failed: {e!s}"))
 
-    @require(lambda self, requests: len(requests) > 0)
+    @require(lambda __self, requests: len(requests) > 0)
     async def arrange_windows_intelligently(
-        self, requests: list[SmartPositionRequest], target_display_id: int | None = None
+        self,
+        requests: list[SmartPositionRequest],
+        target_display_id: int | None = None,
     ) -> Either[WindowError, list[dict[str, Any]]]:
-        """
-        Intelligently arrange multiple windows based on content and workspace hints.
+        """Intelligently arrange multiple windows based on content and workspace hints.
 
         Architecture: Context-aware positioning with overlap avoidance
         Security: Window identifier validation and bounds checking
@@ -167,7 +172,7 @@ class AdvancedPositioning:
                 target_display = topology.get_display_by_id(target_display_id)
                 if target_display is None:
                     return Either.left(
-                        WindowError(f"Display {target_display_id} not found")
+                        WindowError(f"Display {target_display_id} not found"),
                     )
             else:
                 target_display = topology.get_main_display()
@@ -181,7 +186,9 @@ class AdvancedPositioning:
 
             for _category, category_requests in categorized.items():
                 category_results = await self._arrange_category_windows(
-                    category_requests, target_display, occupied_areas
+                    category_requests,
+                    target_display,
+                    occupied_areas,
                 )
                 if category_results.is_left():
                     return Either.left(category_results.get_left())
@@ -196,7 +203,7 @@ class AdvancedPositioning:
             return Either.right(results)
 
         except Exception as e:
-            return Either.left(WindowError(f"Intelligent arrangement failed: {str(e)}"))
+            return Either.left(WindowError(f"Intelligent arrangement failed: {e!s}"))
 
     def _calculate_relative_position(
         self,
@@ -232,11 +239,14 @@ class AdvancedPositioning:
 
         except Exception as e:
             return Either.left(
-                WindowError(f"Relative position calculation failed: {str(e)}")
+                WindowError(f"Relative position calculation failed: {e!s}"),
             )
 
     async def _calculate_intelligent_position(
-        self, window_identifier: str, target_display: DisplayInfo, size: tuple[int, int]
+        self,
+        window_identifier: str,
+        target_display: DisplayInfo,
+        size: tuple[int, int],
     ) -> Either[WindowError, tuple[int, int, int, int]]:
         """Calculate intelligent position based on window type and content."""
         try:
@@ -258,10 +268,12 @@ class AdvancedPositioning:
             return Either.right((x, y, width, height))
 
         except Exception as e:
-            return Either.left(WindowError(f"Intelligent positioning failed: {str(e)}"))
+            return Either.left(WindowError(f"Intelligent positioning failed: {e!s}"))
 
     def _center_on_display(
-        self, display: DisplayInfo, size: tuple[int, int]
+        self,
+        display: DisplayInfo,
+        size: tuple[int, int],
     ) -> Either[WindowError, tuple[int, int, int, int]]:
         """Center window on display."""
         try:
@@ -279,17 +291,20 @@ class AdvancedPositioning:
             return Either.right((x, y, width, height))
 
         except Exception as e:
-            return Either.left(WindowError(f"Center positioning failed: {str(e)}"))
+            return Either.left(WindowError(f"Center positioning failed: {e!s}"))
 
     def _find_display_for_position(
-        self, topology: DisplayTopology, position: tuple[int, int]
+        self,
+        topology: DisplayTopology,
+        position: tuple[int, int],
     ) -> DisplayInfo | None:
         """Find which display contains the given position."""
         x, y = position
         return topology.get_display_at_point(x, y)
 
     def _categorize_windows(
-        self, requests: list[SmartPositionRequest]
+        self,
+        requests: list[SmartPositionRequest],
     ) -> dict[str, list[SmartPositionRequest]]:
         """Categorize windows by content type for intelligent grouping."""
         categories = {
@@ -332,7 +347,8 @@ class AdvancedPositioning:
 
             # Calculate optimal grid pattern
             pattern_result = await self.grid_manager.calculate_optimal_pattern(
-                len(window_ids), display
+                len(window_ids),
+                display,
             )
             if pattern_result.is_left():
                 return Either.left(pattern_result.get_left())
@@ -341,7 +357,9 @@ class AdvancedPositioning:
 
             # Arrange in grid
             arrangement_result = await self.grid_manager.arrange_windows_in_grid(
-                window_ids, display, pattern
+                window_ids,
+                display,
+                pattern,
             )
             if arrangement_result.is_left():
                 return Either.left(arrangement_result.get_left())
@@ -351,17 +369,20 @@ class AdvancedPositioning:
             return Either.right(results)
 
         except Exception as e:
-            return Either.left(WindowError(f"Category arrangement failed: {str(e)}"))
+            return Either.left(WindowError(f"Category arrangement failed: {e!s}"))
 
     async def _get_current_window_position(
-        self, window_identifier: str
+        self,
+        window_identifier: str,
     ) -> Either[WindowError, tuple[int, int, int, int]]:
         """Get current window position (mock implementation)."""
         # Mock implementation - replace with actual window position detection
         return Either.right((100, 100, 800, 600))
 
     async def _apply_window_position(
-        self, window_identifier: str, position: tuple[int, int, int, int]
+        self,
+        window_identifier: str,
+        position: tuple[int, int, int, int],
     ) -> Either[WindowError, float]:
         """Apply window position (mock implementation)."""
         # Mock implementation - replace with actual window positioning
@@ -376,7 +397,9 @@ class WorkspaceManager:
         self._saved_layouts: dict[str, list[SmartPositionRequest]] = {}
 
     async def save_workspace_layout(
-        self, name: str, window_requests: list[SmartPositionRequest]
+        self,
+        name: str,
+        window_requests: list[SmartPositionRequest],
     ) -> Either[WindowError, None]:
         """Save current workspace layout for future restoration."""
         try:
@@ -387,10 +410,12 @@ class WorkspaceManager:
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(WindowError(f"Workspace save failed: {str(e)}"))
+            return Either.left(WindowError(f"Workspace save failed: {e!s}"))
 
     async def restore_workspace_layout(
-        self, name: str, target_display_id: int | None = None
+        self,
+        name: str,
+        target_display_id: int | None = None,
     ) -> Either[WindowError, list[dict[str, Any]]]:
         """Restore previously saved workspace layout."""
         try:
@@ -399,11 +424,12 @@ class WorkspaceManager:
 
             requests = self._saved_layouts[name]
             return await self.positioning.arrange_windows_intelligently(
-                requests, target_display_id
+                requests,
+                target_display_id,
             )
 
         except Exception as e:
-            return Either.left(WindowError(f"Workspace restore failed: {str(e)}"))
+            return Either.left(WindowError(f"Workspace restore failed: {e!s}"))
 
     def list_saved_workspaces(self) -> list[str]:
         """Get list of saved workspace names."""
@@ -419,40 +445,64 @@ class WorkspaceManager:
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(WindowError(f"Workspace deletion failed: {str(e)}"))
+            return Either.left(WindowError(f"Workspace deletion failed: {e!s}"))
 
 
 # Predefined workspace templates for common use cases
 WORKSPACE_TEMPLATES = {
     "development": [
         SmartPositionRequest(
-            "VS Code", "editor", (1200, 800), workspace_hint="development"
+            "VS Code",
+            "editor",
+            (1200, 800),
+            workspace_hint="development",
         ),
         SmartPositionRequest(
-            "Terminal", "terminal", (800, 600), workspace_hint="development"
+            "Terminal",
+            "terminal",
+            (800, 600),
+            workspace_hint="development",
         ),
         SmartPositionRequest(
-            "Safari", "browser", (1000, 700), workspace_hint="development"
+            "Safari",
+            "browser",
+            (1000, 700),
+            workspace_hint="development",
         ),
     ],
     "design": [
         SmartPositionRequest(
-            "Photoshop", "editor", (1400, 900), workspace_hint="design"
+            "Photoshop",
+            "editor",
+            (1400, 900),
+            workspace_hint="design",
         ),
         SmartPositionRequest(
-            "Finder", "reference", (400, 600), workspace_hint="design"
+            "Finder",
+            "reference",
+            (400, 600),
+            workspace_hint="design",
         ),
         SmartPositionRequest("Safari", "browser", (800, 600), workspace_hint="design"),
     ],
     "communication": [
         SmartPositionRequest(
-            "Slack", "chat", (400, 700), workspace_hint="communication"
+            "Slack",
+            "chat",
+            (400, 700),
+            workspace_hint="communication",
         ),
         SmartPositionRequest(
-            "Mail", "email", (800, 600), workspace_hint="communication"
+            "Mail",
+            "email",
+            (800, 600),
+            workspace_hint="communication",
         ),
         SmartPositionRequest(
-            "Calendar", "reference", (600, 500), workspace_hint="communication"
+            "Calendar",
+            "reference",
+            (600, 500),
+            workspace_hint="communication",
         ),
     ],
 }

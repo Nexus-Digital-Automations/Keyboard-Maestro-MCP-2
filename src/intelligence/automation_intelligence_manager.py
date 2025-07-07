@@ -1,5 +1,4 @@
-"""
-Comprehensive Automation Intelligence Management System.
+"""Comprehensive Automation Intelligence Management System.
 
 This module coordinates behavioral analysis, adaptive learning, intelligent suggestions,
 and performance optimization through privacy-preserving machine learning algorithms
@@ -61,7 +60,7 @@ class IntelligenceRequest:
     @require(lambda self: 0.0 <= self.confidence_threshold <= 1.0)
     @require(
         lambda self: self.optimization_target
-        in ["efficiency", "accuracy", "speed", "user_satisfaction"]
+        in ["efficiency", "accuracy", "speed", "user_satisfaction"],
     )
     def __post_init__(self):
         pass
@@ -121,8 +120,8 @@ class AutomationIntelligenceManager:
                     if hasattr(init_result, "is_left") and init_result.is_left():
                         return Either.left(
                             IntelligenceError.initialization_failed(
-                                f"{component_name} initialization failed: {init_result.get_left().message}"
-                            )
+                                f"{component_name} initialization failed: {init_result.get_left().message}",
+                            ),
                         )
 
             self._initialized = True
@@ -130,7 +129,7 @@ class AutomationIntelligenceManager:
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Intelligence system initialization error: {str(e)}")
+            logger.error(f"Intelligence system initialization error: {e!s}")
             return Either.left(IntelligenceError.initialization_failed(str(e)))
 
     async def process_intelligence_request(
@@ -169,7 +168,7 @@ class AutomationIntelligenceManager:
 
             # Privacy validation
             privacy_result = await self.privacy_manager.validate_privacy_compliance(
-                request
+                request,
             )
             if privacy_result.is_left():
                 return privacy_result
@@ -199,7 +198,9 @@ class AutomationIntelligenceManager:
 
             # Apply privacy filtering to results
             filtered_results = await self.privacy_manager.filter_results(
-                result.get_right(), privacy_level, anonymize_data
+                result.get_right(),
+                privacy_level,
+                anonymize_data,
             )
 
             # Track performance metrics
@@ -210,11 +211,12 @@ class AutomationIntelligenceManager:
             return Either.right(filtered_results)
 
         except Exception as e:
-            logger.error(f"Intelligence request processing error: {str(e)}")
+            logger.error(f"Intelligence request processing error: {e!s}")
             return Either.left(IntelligenceError.behavior_analysis_failed(str(e)))
 
     async def _process_analysis_request(
-        self, request: IntelligenceRequest
+        self,
+        request: IntelligenceRequest,
     ) -> Either[IntelligenceError, dict[str, Any]]:
         """Process behavioral analysis request with comprehensive pattern recognition."""
         try:
@@ -234,7 +236,7 @@ class AutomationIntelligenceManager:
             analysis_results = {
                 "total_patterns": len(patterns),
                 "high_confidence_patterns": len(
-                    [p for p in patterns if p.confidence >= 0.8]
+                    [p for p in patterns if p.confidence >= 0.8],
                 ),
                 "average_confidence": statistics.mean([p.confidence for p in patterns])
                 if patterns
@@ -242,11 +244,11 @@ class AutomationIntelligenceManager:
                 "most_common_tools": self._get_most_common_tools(patterns),
                 "peak_activity_hours": self._get_peak_activity_hours(patterns),
                 "efficiency_opportunities": await self._identify_efficiency_opportunities(
-                    patterns
+                    patterns,
                 ),
                 "workflow_patterns": await self._analyze_workflow_patterns(patterns),
                 "performance_insights": await self._generate_performance_insights(
-                    patterns
+                    patterns,
                 ),
                 "patterns_summary": [self._serialize_pattern(p) for p in patterns[:10]],
             }
@@ -254,7 +256,7 @@ class AutomationIntelligenceManager:
             # Add scope-specific analysis
             if request.analysis_scope == AnalysisScope.PERFORMANCE:
                 performance_analysis = await self._analyze_performance_patterns(
-                    patterns
+                    patterns,
                 )
                 analysis_results["performance_analysis"] = performance_analysis
             elif request.analysis_scope == AnalysisScope.ERROR_PATTERNS:
@@ -267,7 +269,8 @@ class AutomationIntelligenceManager:
             return Either.left(IntelligenceError.behavior_analysis_failed(str(e)))
 
     async def _process_suggestion_request(
-        self, request: IntelligenceRequest
+        self,
+        request: IntelligenceRequest,
     ) -> Either[IntelligenceError, dict[str, Any]]:
         """Process intelligent suggestion generation request."""
         try:
@@ -305,10 +308,10 @@ class AutomationIntelligenceManager:
                         s
                         for s in suggestions
                         if s.confidence >= request.confidence_threshold
-                    ]
+                    ],
                 ),
                 "average_confidence": statistics.mean(
-                    [s.confidence for s in suggestions]
+                    [s.confidence for s in suggestions],
                 )
                 if suggestions
                 else 0.0,
@@ -316,7 +319,7 @@ class AutomationIntelligenceManager:
                     s.potential_time_saved for s in suggestions
                 ),
                 "implementation_complexity_distribution": self._get_complexity_distribution(
-                    suggestions
+                    suggestions,
                 ),
                 "suggestion_categories": self._categorize_suggestions(suggestions),
             }
@@ -358,7 +361,8 @@ class AutomationIntelligenceManager:
         }
 
     def _get_most_common_tools(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[dict[str, Any]]:
         """Get most commonly used tools from patterns."""
         tool_counts = defaultdict(int)
@@ -374,7 +378,8 @@ class AutomationIntelligenceManager:
         ]
 
     def _get_peak_activity_hours(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[int]:
         """Get peak activity hours from patterns."""
         # This would extract time patterns from behavioral data
@@ -382,7 +387,8 @@ class AutomationIntelligenceManager:
         return [9, 10, 14, 15, 16]
 
     async def _identify_efficiency_opportunities(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[dict[str, Any]]:
         """Identify opportunities for efficiency improvements."""
         opportunities = []
@@ -403,32 +409,34 @@ class AutomationIntelligenceManager:
                         * 0.7,
                         "confidence": pattern.confidence_score,
                         "description": "High-frequency pattern suitable for automation",
-                    }
+                    },
                 )
 
         return opportunities[:10]  # Top 10 opportunities
 
     async def _analyze_workflow_patterns(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Analyze workflow patterns for optimization insights."""
         return {
             "sequential_patterns": len(
-                [p for p in patterns if len(p.action_sequence) > 1]
+                [p for p in patterns if len(p.action_sequence) > 1],
             ),
             "repetitive_patterns": len([p for p in patterns if p.frequency >= 10]),
             "efficient_patterns": len(
-                [p for p in patterns if p.get_efficiency_score() > 0.8]
+                [p for p in patterns if p.get_efficiency_score() > 0.8],
             ),
             "workflow_complexity": statistics.mean(
-                [len(p.action_sequence) for p in patterns]
+                [len(p.action_sequence) for p in patterns],
             )
             if patterns
             else 0.0,
         }
 
     async def _generate_performance_insights(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Generate performance insights from behavioral patterns."""
         if not patterns:
@@ -444,7 +452,7 @@ class AutomationIntelligenceManager:
                     "type": "efficiency",
                     "insight": f"Found {len(high_efficiency)} highly efficient patterns",
                     "recommendation": "Consider automating similar workflows",
-                }
+                },
             )
 
         # Frequency insights
@@ -455,7 +463,7 @@ class AutomationIntelligenceManager:
                     "type": "frequency",
                     "insight": f"Found {len(frequent_patterns)} frequently used patterns",
                     "recommendation": "High automation potential for time savings",
-                }
+                },
             )
 
         return {
@@ -465,27 +473,34 @@ class AutomationIntelligenceManager:
 
     # Placeholder methods for other operation types
     async def _process_learning_request(
-        self, request: IntelligenceRequest
+        self,
+        request: IntelligenceRequest,
     ) -> Either[IntelligenceError, dict[str, Any]]:
         """Process adaptive learning request."""
         return Either.right(
-            {"learning_status": "learning_completed", "patterns_learned": 0}
+            {
+                "learning_status": "learning_completed",
+                "patterns_learned": 0,
+            },
         )
 
     async def _process_optimization_request(
-        self, request: IntelligenceRequest
+        self,
+        request: IntelligenceRequest,
     ) -> Either[IntelligenceError, dict[str, Any]]:
         """Process performance optimization request."""
         return Either.right({"optimizations": [], "performance_improvements": 0})
 
     async def _process_prediction_request(
-        self, request: IntelligenceRequest
+        self,
+        request: IntelligenceRequest,
     ) -> Either[IntelligenceError, dict[str, Any]]:
         """Process predictive analysis request."""
         return Either.right({"predictions": [], "confidence": 0.0})
 
     async def _process_insights_request(
-        self, request: IntelligenceRequest
+        self,
+        request: IntelligenceRequest,
     ) -> Either[IntelligenceError, dict[str, Any]]:
         """Process insights generation request."""
         return Either.right({"insights": [], "trends": [], "anomalies": []})

@@ -1,5 +1,4 @@
-"""
-Cloud cost optimization and monitoring for intelligent resource management.
+"""Cloud cost optimization and monitoring for intelligent resource management.
 
 This module provides comprehensive cloud cost analysis, optimization recommendations,
 budget monitoring, and resource rightsizing across multiple cloud platforms
@@ -115,10 +114,12 @@ class CloudCostOptimizer:
     @require(lambda time_range: "start" in time_range and "end" in time_range)
     @ensure(
         lambda result: result.is_right()
-        or result.get_left().error_type == "COST_ANALYSIS_FAILED"
+        or result.get_left().error_type == "COST_ANALYSIS_FAILED",
     )
     async def analyze_costs(
-        self, provider: CloudProvider, time_range: dict[str, str]
+        self,
+        provider: CloudProvider,
+        time_range: dict[str, str],
     ) -> Either[CloudError, CostAnalysis]:
         """Perform comprehensive cost analysis with optimization recommendations."""
         try:
@@ -133,7 +134,8 @@ class CloudCostOptimizer:
 
             # Identify optimization opportunities
             opportunities = await self._identify_optimization_opportunities(
-                provider, cost_data
+                provider,
+                cost_data,
             )
 
             # Generate cost trends
@@ -141,7 +143,8 @@ class CloudCostOptimizer:
 
             # Check budget status
             budget_status = await self._check_budget_status(
-                provider, cost_data["total_cost"]
+                provider,
+                cost_data["total_cost"],
             )
 
             # Generate recommendations
@@ -166,7 +169,10 @@ class CloudCostOptimizer:
             return Either.left(CloudError.cost_analysis_failed(str(e)))
 
     async def _fetch_cost_data(
-        self, provider: CloudProvider, start_date: datetime, end_date: datetime
+        self,
+        provider: CloudProvider,
+        start_date: datetime,
+        end_date: datetime,
     ) -> dict[str, Any]:
         """Fetch cost data from cloud provider (mock implementation)."""
         # In real implementation, this would use cloud billing APIs
@@ -198,13 +204,17 @@ class CloudCostOptimizer:
         }
 
     async def _analyze_cost_breakdown(
-        self, provider: CloudProvider, cost_data: dict[str, Any]
+        self,
+        provider: CloudProvider,
+        cost_data: dict[str, Any],
     ) -> dict[str, float]:
         """Analyze cost breakdown by service type."""
         return cost_data.get("services", {})
 
     async def _identify_optimization_opportunities(
-        self, provider: CloudProvider, cost_data: dict[str, Any]
+        self,
+        provider: CloudProvider,
+        cost_data: dict[str, Any],
     ) -> list[CostOptimizationOpportunity]:
         """Identify cost optimization opportunities."""
         opportunities = []
@@ -224,7 +234,7 @@ class CloudCostOptimizer:
                 recommendation="Terminate or stop unused instances during off-hours",
                 implementation_effort="low",
                 risk_level="low",
-            )
+            ),
         )
 
         # Storage tier optimization
@@ -242,7 +252,7 @@ class CloudCostOptimizer:
                 recommendation="Move infrequently accessed data to cheaper storage tiers",
                 implementation_effort="medium",
                 risk_level="low",
-            )
+            ),
         )
 
         # Reserved instance recommendation
@@ -261,13 +271,16 @@ class CloudCostOptimizer:
                     recommendation="Purchase 1-year reserved instances for consistent workloads",
                     implementation_effort="low",
                     risk_level="low",
-                )
+                ),
             )
 
         return opportunities
 
     async def _generate_cost_trends(
-        self, provider: CloudProvider, start_date: datetime, end_date: datetime
+        self,
+        provider: CloudProvider,
+        start_date: datetime,
+        end_date: datetime,
     ) -> dict[str, list[float]]:
         """Generate cost trend data."""
         days = (end_date - start_date).days
@@ -295,7 +308,9 @@ class CloudCostOptimizer:
         }
 
     async def _check_budget_status(
-        self, provider: CloudProvider, current_cost: float
+        self,
+        provider: CloudProvider,
+        current_cost: float,
     ) -> dict[str, Any]:
         """Check budget status and alerts."""
         # Mock budget data (in real implementation, this would use budget APIs)
@@ -324,7 +339,8 @@ class CloudCostOptimizer:
         }
 
     async def _generate_recommendations(
-        self, opportunities: list[CostOptimizationOpportunity]
+        self,
+        opportunities: list[CostOptimizationOpportunity],
     ) -> list[str]:
         """Generate high-level cost optimization recommendations."""
         recommendations = []
@@ -338,7 +354,7 @@ class CloudCostOptimizer:
 
         recommendations.append(
             f"Total potential monthly savings: ${total_savings:.2f} "
-            f"(${high_confidence_savings:.2f} high confidence)"
+            f"(${high_confidence_savings:.2f} high confidence)",
         )
 
         # Group by optimization type
@@ -352,7 +368,7 @@ class CloudCostOptimizer:
             type_savings = sum(opp.potential_monthly_savings for opp in opps)
             recommendations.append(
                 f"{opt_type.value.replace('_', ' ').title()}: "
-                f"${type_savings:.2f} potential savings across {len(opps)} opportunities"
+                f"${type_savings:.2f} potential savings across {len(opps)} opportunities",
             )
 
         # Add specific actionable recommendations
@@ -362,7 +378,7 @@ class CloudCostOptimizer:
                 "Set up budget alerts at 80% and 95% thresholds",
                 "Review and optimize storage lifecycle policies quarterly",
                 "Consider multi-cloud cost comparison for new workloads",
-            ]
+            ],
         )
 
         return recommendations
@@ -391,11 +407,13 @@ class CloudCostOptimizer:
 
         except Exception as e:
             return Either.left(
-                CloudError.cost_analysis_failed(f"Failed to set budget alert: {str(e)}")
+                CloudError.cost_analysis_failed(f"Failed to set budget alert: {e!s}"),
             )
 
     async def get_cost_recommendations_by_confidence(
-        self, provider: CloudProvider, min_confidence: float = 0.7
+        self,
+        provider: CloudProvider,
+        min_confidence: float = 0.7,
     ) -> Either[CloudError, list[CostOptimizationOpportunity]]:
         """Get cost optimization recommendations filtered by confidence score."""
         try:

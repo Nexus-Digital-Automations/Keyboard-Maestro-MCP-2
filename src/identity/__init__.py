@@ -1,5 +1,4 @@
-"""
-User Identity Management System
+"""User Identity Management System.
 
 Enterprise-grade user identity, authentication, and personalization components
 for username-based automation and workflow customization.
@@ -13,8 +12,8 @@ from .user_profiler import UserProfiler
 
 __all__ = [
     "IdentityAuthenticationManager",
-    "UserProfiler",
     "PersonalizationEngine",
     "PrivacyManager",
     "SessionManager",
+    "UserProfiler",
 ]

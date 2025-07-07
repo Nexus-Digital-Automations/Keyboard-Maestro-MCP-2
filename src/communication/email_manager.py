@@ -1,5 +1,4 @@
-"""
-Email management and sending functionality for Keyboard Maestro MCP Tools.
+"""Email management and sending functionality for Keyboard Maestro MCP Tools.
 
 This module provides comprehensive email automation through macOS Mail app integration
 with enterprise-grade security validation and AppleScript execution.
@@ -62,7 +61,8 @@ class EmailSecurityValidator:
 
     @staticmethod
     def validate_email_content(
-        subject: str | None, body: str
+        subject: str | None,
+        body: str,
     ) -> Either[SecurityError, None]:
         """Validate email content for security threats."""
         # Check subject security
@@ -145,7 +145,8 @@ class EmailSecurityValidator:
 
     @staticmethod
     def validate_attachments(
-        attachments: list[str], config: EmailConfiguration
+        attachments: list[str],
+        config: EmailConfiguration,
     ) -> Either[SecurityError, None]:
         """Validate email attachments for security."""
         if len(attachments) > 10:  # Reasonable limit
@@ -156,7 +157,7 @@ class EmailSecurityValidator:
             # Check if file exists and is accessible
             if not os.path.exists(attachment_path):
                 return Either.left(
-                    SecurityError(f"Attachment not found: {attachment_path}")
+                    SecurityError(f"Attachment not found: {attachment_path}"),
                 )
 
             # Check file extension
@@ -171,12 +172,12 @@ class EmailSecurityValidator:
 
                 if file_size > config.max_attachment_size_mb * 1024 * 1024:
                     return Either.left(
-                        SecurityError(f"Attachment too large: {attachment_path}")
+                        SecurityError(f"Attachment too large: {attachment_path}"),
                     )
 
             except OSError:
                 return Either.left(
-                    SecurityError(f"Cannot access attachment: {attachment_path}")
+                    SecurityError(f"Cannot access attachment: {attachment_path}"),
                 )
 
         # Check total size
@@ -198,13 +199,14 @@ class EmailManager:
         self.config = config or EmailConfiguration()
         self.security_validator = EmailSecurityValidator()
 
-    @require(lambda self, request: isinstance(request, CommunicationRequest))
+    @require(lambda __self, request: isinstance(request, CommunicationRequest))
     @require(
-        lambda self, request: request.communication_type == CommunicationType.EMAIL
+        lambda _self, request: request.communication_type == CommunicationType.EMAIL,
     )
-    @ensure(lambda self, result: isinstance(result, Either))
+    @ensure(lambda __self, result: isinstance(result, Either))
     async def send_email(
-        self, request: CommunicationRequest
+        self,
+        request: CommunicationRequest,
     ) -> Either[CommunicationError, CommunicationResult]:
         """Send email using macOS Mail application with comprehensive validation."""
         try:
@@ -213,8 +215,8 @@ class EmailManager:
             if validation_result.is_left():
                 return Either.left(
                     CommunicationError.security_violation(
-                        validation_result.get_left().message
-                    )
+                        validation_result.get_left().message,
+                    ),
                 )
 
             # Build AppleScript for email sending
@@ -222,22 +224,23 @@ class EmailManager:
             if applescript_result.is_left():
                 return Either.left(
                     CommunicationError.script_generation_failed(
-                        applescript_result.get_left().message
-                    )
+                        applescript_result.get_left().message,
+                    ),
                 )
 
             applescript = applescript_result.get_right()
 
             # Execute AppleScript through KM client
             execution_result = await self.km_client.execute_applescript(
-                applescript, timeout=30
+                applescript,
+                timeout=30,
             )
             if execution_result.is_left():
                 error = execution_result.get_left()
                 return Either.left(
                     CommunicationError.email_send_failed(
-                        f"Mail app execution failed: {error.message}"
-                    )
+                        f"Mail app execution failed: {error.message}",
+                    ),
                 )
 
             # Create success result
@@ -265,24 +268,26 @@ class EmailManager:
 
         except Exception as e:
             return Either.left(
-                CommunicationError.execution_error(f"Email sending failed: {str(e)}")
+                CommunicationError.execution_error(f"Email sending failed: {e!s}"),
             )
 
     async def _validate_email_request(
-        self, request: CommunicationRequest
+        self,
+        request: CommunicationRequest,
     ) -> Either[SecurityError, None]:
         """Comprehensive email request validation."""
         # Validate recipients count
         if len(request.recipients) > self.config.max_recipients:
             return Either.left(
                 SecurityError(
-                    f"Too many recipients: {len(request.recipients)} > {self.config.max_recipients}"
-                )
+                    f"Too many recipients: {len(request.recipients)} > {self.config.max_recipients}",
+                ),
             )
 
         # Validate content security
         content_validation = self.security_validator.validate_email_content(
-            request.subject, request.message_content
+            request.subject,
+            request.message_content,
         )
         if content_validation.is_left():
             return content_validation
@@ -290,7 +295,8 @@ class EmailManager:
         # Validate attachments
         if request.attachments:
             attachment_validation = self.security_validator.validate_attachments(
-                request.attachments, self.config
+                request.attachments,
+                self.config,
             )
             if attachment_validation.is_left():
                 return attachment_validation
@@ -300,14 +306,15 @@ class EmailManager:
             if not isinstance(recipient, EmailAddress):
                 return Either.left(
                     SecurityError(
-                        f"Invalid recipient type for email: {type(recipient)}"
-                    )
+                        f"Invalid recipient type for email: {type(recipient)}",
+                    ),
                 )
 
         return Either.right(None)
 
     def _build_email_applescript(
-        self, request: CommunicationRequest
+        self,
+        request: CommunicationRequest,
     ) -> Either[ValidationError, str]:
         """Build secure AppleScript for email sending."""
         try:
@@ -342,7 +349,7 @@ class EmailManager:
                 [
                     f'        make new to recipient at end of to recipients with properties {{address:"{email}"}}'
                     for email in recipients
-                ]
+                ],
             )
 
             # Add attachments if present
@@ -351,7 +358,7 @@ class EmailManager:
                 for attachment_path in request.attachments:
                     safe_path = self._escape_applescript_string(attachment_path)
                     script_parts.append(
-                        f'        make new attachment with properties {{file name:POSIX file "{safe_path}"}}'
+                        f'        make new attachment with properties {{file name:POSIX file "{safe_path}"}}',
                     )
 
             # Complete script
@@ -367,7 +374,7 @@ class EmailManager:
 
         except Exception as e:
             return Either.left(
-                ValidationError(f"AppleScript generation failed: {str(e)}")
+                ValidationError(f"AppleScript generation failed: {e!s}"),
             )
 
     def _escape_applescript_string(self, text: str) -> str:
@@ -412,8 +419,8 @@ class EmailManager:
             if result.is_left():
                 return Either.left(
                     CommunicationError.execution_error(
-                        "Failed to retrieve Mail accounts"
-                    )
+                        "Failed to retrieve Mail accounts",
+                    ),
                 )
 
             # Parse result (simplified - would need proper AppleScript result parsing)

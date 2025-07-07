@@ -1,10 +1,12 @@
-"""
-Tests for trigger registration and event routing system.
+"""Tests for trigger registration and event routing system.
 
 Tests the TASK_2 Phase 2 implementation of trigger management
 with property-based testing and integration validation.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
 from unittest.mock import AsyncMock, Mock
 
@@ -34,7 +36,7 @@ class TestTriggerRegistrationManager:
     """Test trigger registration with KM system."""
 
     @pytest.fixture
-    def mock_km_client(self):
+    def mock_km_client(self) -> bool:
         """Mock KM client for testing."""
         client = Mock(spec=KMClient)
         client.register_trigger_async = AsyncMock()
@@ -44,12 +46,12 @@ class TestTriggerRegistrationManager:
         return client
 
     @pytest.fixture
-    def trigger_manager(self, mock_km_client):
+    def trigger_manager(self, mock_km_client) -> bool:
         """Trigger registration manager with mock client."""
         return TriggerRegistrationManager(mock_km_client)
 
     @pytest.fixture
-    def sample_trigger_def(self):
+    def sample_trigger_def(self) -> bool:
         """Sample trigger definition for testing."""
         return TriggerDefinition(
             trigger_id=TriggerId("test-trigger-123"),
@@ -63,12 +65,15 @@ class TestTriggerRegistrationManager:
 
     @pytest.mark.asyncio
     async def test_successful_trigger_registration(
-        self, trigger_manager, mock_km_client, sample_trigger_def
-    ):
+        self,
+        trigger_manager,
+        mock_km_client,
+        sample_trigger_def,
+    ) -> None:
         """Test successful trigger registration flow."""
         # Mock successful registration
         mock_km_client.register_trigger_async.return_value = Either.right(
-            sample_trigger_def.trigger_id
+            sample_trigger_def.trigger_id,
         )
 
         # Register trigger
@@ -91,8 +96,10 @@ class TestTriggerRegistrationManager:
 
     @pytest.mark.asyncio
     async def test_trigger_registration_validation_failure(
-        self, trigger_manager, mock_km_client
-    ):
+        self,
+        trigger_manager,
+        mock_km_client,
+    ) -> None:
         """Test trigger registration with invalid configuration."""
         # Create trigger with invalid config (script injection)
         bad_trigger_def = TriggerDefinition(
@@ -100,7 +107,7 @@ class TestTriggerRegistrationManager:
             macro_id=MacroId("test-macro"),
             trigger_type=TriggerType.HOTKEY,
             configuration={
-                "script": "<script>alert('xss')</script>"
+                "script": "<script>alert('xss')</script>",
             },  # Should be caught by validation
             enabled=True,
         )
@@ -117,12 +124,15 @@ class TestTriggerRegistrationManager:
 
     @pytest.mark.asyncio
     async def test_trigger_activation(
-        self, trigger_manager, mock_km_client, sample_trigger_def
-    ):
+        self,
+        trigger_manager,
+        mock_km_client,
+        sample_trigger_def,
+    ) -> None:
         """Test trigger activation flow."""
         # First register the trigger
         mock_km_client.register_trigger_async.return_value = Either.right(
-            sample_trigger_def.trigger_id
+            sample_trigger_def.trigger_id,
         )
         await trigger_manager.register_trigger(sample_trigger_def)
 
@@ -143,7 +153,7 @@ class TestTriggerRegistrationManager:
         assert sample_trigger_def.trigger_id in state.active_triggers
 
     @pytest.mark.asyncio
-    async def test_state_synchronization(self, trigger_manager, mock_km_client):
+    async def test_state_synchronization(self, trigger_manager, mock_km_client) -> None:
         """Test state synchronization with KM."""
         # Mock KM response
         km_triggers = [
@@ -166,14 +176,14 @@ class TestEventRouter:
     """Test event routing to macro handlers."""
 
     @pytest.fixture
-    def mock_macro_engine(self):
+    def mock_macro_engine(self) -> bool:
         """Mock macro engine for testing."""
         engine = Mock()
         engine.execute_macro_async = AsyncMock()
         return engine
 
     @pytest.fixture
-    def mock_trigger_manager(self):
+    def mock_trigger_manager(self) -> Any:
         """Mock trigger manager for testing."""
         manager = Mock()
         manager.get_current_state = Mock()
@@ -182,12 +192,12 @@ class TestEventRouter:
         return manager
 
     @pytest.fixture
-    def event_router(self, mock_macro_engine, mock_trigger_manager):
+    def event_router(self, mock_macro_engine, mock_trigger_manager) -> Any:
         """Event router with mock dependencies."""
         return EventRouter(mock_macro_engine, mock_trigger_manager)
 
     @pytest.fixture
-    def sample_trigger_info(self):
+    def sample_trigger_info(self) -> Any:
         """Sample trigger info for testing."""
         return TriggerInfo(
             trigger_id=TriggerId("test-trigger"),
@@ -199,7 +209,7 @@ class TestEventRouter:
         )
 
     @pytest.fixture
-    def sample_km_event(self):
+    def sample_km_event(self) -> Any:
         """Sample KM event for testing."""
         return KMEvent.create(
             trigger_type=TriggerType.HOTKEY,
@@ -216,7 +226,7 @@ class TestEventRouter:
         mock_trigger_manager,
         sample_trigger_info,
         sample_km_event,
-    ):
+    ) -> None:
         """Test successful event routing to macro execution."""
         # Setup mocks
         trigger_state = Mock()
@@ -247,8 +257,11 @@ class TestEventRouter:
 
     @pytest.mark.asyncio
     async def test_event_routing_trigger_not_found(
-        self, event_router, mock_trigger_manager, sample_km_event
-    ):
+        self,
+        event_router,
+        mock_trigger_manager,
+        sample_km_event,
+    ) -> None:
         """Test event routing when trigger is not found."""
         # Setup mocks - trigger not found
         trigger_state = Mock()
@@ -270,7 +283,7 @@ class TestEventRouter:
         mock_trigger_manager,
         sample_trigger_info,
         sample_km_event,
-    ):
+    ) -> None:
         """Test event routing with custom routing rules."""
         # Add routing rule
         hotkey_rule = create_hotkey_routing_rule()
@@ -296,7 +309,7 @@ class TestEventRouter:
         # Verify rule matched (hotkey rule should match hotkey event)
         assert len(event_router._routing_rules) == 1
 
-    def test_routing_rule_creation(self):
+    def test_routing_rule_creation(self) -> None:
         """Test built-in routing rule creation."""
         hotkey_rule = create_hotkey_routing_rule()
         app_rule = create_application_routing_rule()
@@ -316,7 +329,7 @@ class TestEventRouter:
 class TestTriggerDefinition:
     """Test trigger definition functionality."""
 
-    def test_trigger_definition_creation(self):
+    def test_trigger_definition_creation(self) -> None:
         """Test basic trigger definition creation."""
         trigger_def = TriggerDefinition(
             trigger_id=TriggerId("test-trigger"),
@@ -331,7 +344,7 @@ class TestTriggerDefinition:
         assert trigger_def.trigger_type == TriggerType.HOTKEY
         assert trigger_def.enabled is True  # Default value
 
-    def test_trigger_definition_conversion(self):
+    def test_trigger_definition_conversion(self) -> None:
         """Test conversion to KM format."""
         trigger_def = TriggerDefinition(
             trigger_id=TriggerId("test-trigger"),
@@ -350,7 +363,7 @@ class TestTriggerDefinition:
         assert km_format["name"] == "App Trigger"
         assert km_format["enabled"] is True
 
-    def test_trigger_definition_km_client_conversion(self):
+    def test_trigger_definition_km_client_conversion(self) -> None:
         """Test conversion to KMClient TriggerDefinition."""
         trigger_def = TriggerDefinition(
             trigger_id=TriggerId("test-trigger"),
@@ -389,7 +402,7 @@ class TestTriggerDefinition:
         alphabet=st.characters(whitelist_categories=["Lu", "Ll", "Nd"]),
     ),
 )
-def test_trigger_definition_properties(trigger_id, macro_id, key_name):
+def test_trigger_definition_properties(trigger_id, macro_id, key_name) -> None:
     """Property-based test for trigger definition invariants."""
     assume(len(trigger_id.strip()) > 0)
     assume(len(macro_id.strip()) > 0)
@@ -434,7 +447,7 @@ def test_trigger_definition_properties(trigger_id, macro_id, key_name):
                 min_size=0,
                 max_size=100,
                 alphabet=st.characters(
-                    whitelist_categories=["Lu", "Ll", "Nd", "Pc", "Zs"]
+                    whitelist_categories=["Lu", "Ll", "Nd", "Pc", "Zs"],
                 ),
             ),
             st.integers(min_value=-1000, max_value=1000),
@@ -442,9 +455,9 @@ def test_trigger_definition_properties(trigger_id, macro_id, key_name):
         ),
         min_size=0,
         max_size=10,
-    )
+    ),
 )
-def test_km_event_payload_properties(payload_data):
+def test_km_event_payload_properties(payload_data) -> None:
     """Property-based test for KM event payload handling."""
     # Create event with arbitrary payload
     event = KMEvent.create(

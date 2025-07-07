@@ -1,5 +1,4 @@
-"""
-Predictive Modeling Architecture - TASK_59 Phase 1 Implementation
+"""Predictive Modeling Architecture - TASK_59 Phase 1 Implementation.
 
 Comprehensive predictive analytics type definitions, modeling frameworks, and forecasting structures.
 Extends the existing analytics and AI processing systems with advanced predictive capabilities.
@@ -330,7 +329,9 @@ class ModelTrainingError(PredictiveModelingError):
 
     @classmethod
     def insufficient_data(
-        cls, required_points: int, available_points: int
+        cls,
+        required_points: int,
+        available_points: int,
     ) -> ModelTrainingError:
         return cls(
             f"Insufficient data: requires {required_points}, got {available_points}",
@@ -352,7 +353,8 @@ class PredictionError(PredictiveModelingError):
     @classmethod
     def prediction_failed(cls, model_id: str, error: str) -> PredictionError:
         return cls(
-            f"Prediction failed for model {model_id}: {error}", "PREDICTION_FAILED"
+            f"Prediction failed for model {model_id}: {error}",
+            "PREDICTION_FAILED",
         )
 
 
@@ -385,12 +387,15 @@ class ModelValidationError(PredictiveModelingError):
     @classmethod
     def validation_failed(cls, model_id: str, reason: str) -> ModelValidationError:
         return cls(
-            f"Model validation failed for {model_id}: {reason}", "VALIDATION_FAILED"
+            f"Model validation failed for {model_id}: {reason}",
+            "VALIDATION_FAILED",
         )
 
     @classmethod
     def insufficient_samples(
-        cls, required: int, available: int
+        cls,
+        required: int,
+        available: int,
     ) -> ModelValidationError:
         return cls(
             f"Insufficient validation samples: requires {required}, got {available}",
@@ -408,7 +413,8 @@ class OptimizationError(PredictiveModelingError):
     @classmethod
     def invalid_constraints(cls, constraint: str) -> OptimizationError:
         return cls(
-            f"Invalid optimization constraint: {constraint}", "INVALID_CONSTRAINTS"
+            f"Invalid optimization constraint: {constraint}",
+            "INVALID_CONSTRAINTS",
         )
 
 
@@ -424,7 +430,9 @@ class RealtimePredictionError(PredictiveModelingError):
 
     @classmethod
     def insufficient_data(
-        cls, required: int, available: int
+        cls,
+        required: int,
+        available: int,
     ) -> RealtimePredictionError:
         return cls(
             f"Insufficient data for prediction: requires {required}, got {available}",
@@ -445,7 +453,8 @@ class ScenarioModelingError(PredictiveModelingError):
     @classmethod
     def modeling_failed(cls, scenario_id: str, error: str) -> ScenarioModelingError:
         return cls(
-            f"Scenario modeling failed for {scenario_id}: {error}", "MODELING_FAILED"
+            f"Scenario modeling failed for {scenario_id}: {error}",
+            "MODELING_FAILED",
         )
 
     @classmethod
@@ -463,7 +472,8 @@ class ScenarioModelingError(PredictiveModelingError):
 @require(lambda data: len(data.timestamps) >= 10)
 @require(lambda horizon_days: 1 <= horizon_days <= 365)
 def validate_time_series_data(
-    data: TimeSeriesData, horizon_days: int
+    data: TimeSeriesData,
+    horizon_days: int,
 ) -> Either[ModelTrainingError, None]:
     """Validate time series data for predictive modeling."""
     try:
@@ -471,34 +481,39 @@ def validate_time_series_data(
         min_required = max(10, horizon_days // 2)
         if len(data.timestamps) < min_required:
             return Either.left(
-                ModelTrainingError.insufficient_data(min_required, len(data.timestamps))
+                ModelTrainingError.insufficient_data(
+                    min_required, len(data.timestamps)
+                ),
             )
 
         # Check for data quality
         if any(v is None or not isinstance(v, int | float) for v in data.values):
             return Either.left(
-                ModelTrainingError("Invalid data values detected", "INVALID_DATA")
+                ModelTrainingError("Invalid data values detected", "INVALID_DATA"),
             )
 
         # Check for temporal ordering
         if data.timestamps != sorted(data.timestamps):
             return Either.left(
                 ModelTrainingError(
-                    "Timestamps must be in chronological order", "UNORDERED_DATA"
-                )
+                    "Timestamps must be in chronological order",
+                    "UNORDERED_DATA",
+                ),
             )
 
         return Either.right(None)
 
     except Exception as e:
         return Either.left(
-            ModelTrainingError(f"Data validation failed: {str(e)}", "VALIDATION_ERROR")
+            ModelTrainingError(f"Data validation failed: {e!s}", "VALIDATION_ERROR"),
         )
 
 
 @ensure(lambda result: 0.0 <= result <= 1.0)
 def calculate_prediction_confidence(
-    model_performance: ModelPerformance, data_quality_score: float, horizon_days: int
+    model_performance: ModelPerformance,
+    data_quality_score: float,
+    horizon_days: int,
 ) -> float:
     """Calculate confidence score for predictions based on model performance and data quality."""
     base_confidence = (model_performance.accuracy + model_performance.f1_score) / 2
@@ -521,12 +536,11 @@ def categorize_confidence_level(confidence_score: float) -> ConfidenceLevel:
     """Categorize numeric confidence score into confidence level enum."""
     if confidence_score >= 0.95:
         return ConfidenceLevel.VERY_HIGH
-    elif confidence_score >= 0.90:
+    if confidence_score >= 0.90:
         return ConfidenceLevel.HIGH
-    elif confidence_score >= 0.80:
+    if confidence_score >= 0.80:
         return ConfidenceLevel.MEDIUM
-    else:
-        return ConfidenceLevel.LOW
+    return ConfidenceLevel.LOW
 
 
 @require(lambda insight_data: len(insight_data) > 0)
@@ -562,21 +576,21 @@ def generate_capacity_recommendations(
         excess_percentage = (projected_utilization - utilization_threshold) * 100
         recommendations.append(
             f"Consider increasing {forecast.resource_type} capacity by {excess_percentage:.1f}% "
-            f"to maintain utilization below {utilization_threshold * 100:.0f}%"
+            f"to maintain utilization below {utilization_threshold * 100:.0f}%",
         )
 
     # Check for growth trend
     if forecast.growth_rate and forecast.growth_rate > 0.1:  # >10% growth
         recommendations.append(
             f"High growth rate detected ({forecast.growth_rate * 100:.1f}%/month). "
-            f"Plan for additional {forecast.resource_type} capacity within 3 months"
+            f"Plan for additional {forecast.resource_type} capacity within 3 months",
         )
 
     # Check for seasonal patterns
     if forecast.seasonality_patterns:
         recommendations.append(
             f"Seasonal patterns detected. Consider auto-scaling for {forecast.resource_type} "
-            f"to handle periodic demand spikes"
+            f"to handle periodic demand spikes",
         )
 
     return recommendations
@@ -596,7 +610,7 @@ def create_failure_mitigation_strategies(
                 "Implement pre-execution validation checks",
                 "Add retry logic with exponential backoff",
                 "Set up alternative execution paths",
-            ]
+            ],
         )
 
     if "performance" in failure_type:
@@ -605,7 +619,7 @@ def create_failure_mitigation_strategies(
                 "Optimize resource allocation",
                 "Implement performance monitoring",
                 "Set up automatic scaling triggers",
-            ]
+            ],
         )
 
     if "resource" in failure_type:
@@ -614,7 +628,7 @@ def create_failure_mitigation_strategies(
                 "Increase resource limits",
                 "Implement resource cleanup procedures",
                 "Add resource usage monitoring",
-            ]
+            ],
         )
 
     # Add severity-specific strategies
@@ -637,7 +651,7 @@ def validate_model_performance(
                 ModelValidationError.validation_failed(
                     performance.model_id,
                     f"Accuracy {performance.accuracy:.3f} below minimum threshold 0.6",
-                )
+                ),
             )
 
         # Check precision and recall balance
@@ -646,7 +660,7 @@ def validate_model_performance(
                 ModelValidationError.validation_failed(
                     performance.model_id,
                     f"Precision {performance.precision:.3f} or recall {performance.recall:.3f} below threshold 0.5",
-                )
+                ),
             )
 
         # Check F1 score consistency
@@ -661,7 +675,7 @@ def validate_model_performance(
                 ModelValidationError.validation_failed(
                     performance.model_id,
                     f"F1 score {performance.f1_score:.3f} inconsistent with precision/recall (expected {expected_f1:.3f})",
-                )
+                ),
             )
 
         # Check training time reasonableness
@@ -670,7 +684,7 @@ def validate_model_performance(
                 ModelValidationError.validation_failed(
                     performance.model_id,
                     f"Training time {performance.training_time_seconds:.1f}s exceeds reasonable limit (3600s)",
-                )
+                ),
             )
 
         return Either.right(True)
@@ -678,8 +692,9 @@ def validate_model_performance(
     except Exception as e:
         return Either.left(
             ModelValidationError.validation_failed(
-                performance.model_id, f"Performance validation error: {str(e)}"
-            )
+                performance.model_id,
+                f"Performance validation error: {e!s}",
+            ),
         )
 
 
@@ -695,8 +710,8 @@ def validate_optimization_parameters(
         if missing_keys:
             return Either.left(
                 OptimizationError.invalid_constraints(
-                    f"Missing required parameters: {missing_keys}"
-                )
+                    f"Missing required parameters: {missing_keys}",
+                ),
             )
 
         # Validate target function
@@ -704,22 +719,22 @@ def validate_optimization_parameters(
         if not isinstance(target, str) or not target.strip():
             return Either.left(
                 OptimizationError.invalid_constraints(
-                    "Target must be a non-empty string"
-                )
+                    "Target must be a non-empty string",
+                ),
             )
 
         # Validate constraints
         constraints = parameters.get("constraints", [])
         if not isinstance(constraints, list):
             return Either.left(
-                OptimizationError.invalid_constraints("Constraints must be a list")
+                OptimizationError.invalid_constraints("Constraints must be a list"),
             )
 
         # Validate variables
         variables = parameters.get("variables", {})
         if not isinstance(variables, dict):
             return Either.left(
-                OptimizationError.invalid_constraints("Variables must be a dictionary")
+                OptimizationError.invalid_constraints("Variables must be a dictionary"),
             )
 
         # Check variable bounds
@@ -727,23 +742,23 @@ def validate_optimization_parameters(
             if not isinstance(bounds, list | tuple) or len(bounds) != 2:
                 return Either.left(
                     OptimizationError.invalid_constraints(
-                        f"Variable {var_name} bounds must be a 2-element list/tuple"
-                    )
+                        f"Variable {var_name} bounds must be a 2-element list/tuple",
+                    ),
                 )
 
             lower, upper = bounds
             if not isinstance(lower, int | float) or not isinstance(upper, int | float):
                 return Either.left(
                     OptimizationError.invalid_constraints(
-                        f"Variable {var_name} bounds must be numeric"
-                    )
+                        f"Variable {var_name} bounds must be numeric",
+                    ),
                 )
 
             if lower >= upper:
                 return Either.left(
                     OptimizationError.invalid_constraints(
-                        f"Variable {var_name} lower bound must be less than upper bound"
-                    )
+                        f"Variable {var_name} lower bound must be less than upper bound",
+                    ),
                 )
 
         return Either.right(True)
@@ -751,8 +766,9 @@ def validate_optimization_parameters(
     except Exception as e:
         return Either.left(
             OptimizationError.optimization_failed(
-                "parameter_validation", f"Parameter validation error: {str(e)}"
-            )
+                "parameter_validation",
+                f"Parameter validation error: {e!s}",
+            ),
         )
 
 
@@ -766,8 +782,8 @@ def validate_scenario_parameters(
         if not parameters:
             return Either.left(
                 ScenarioModelingError.invalid_configuration(
-                    "Scenario parameters cannot be empty"
-                )
+                    "Scenario parameters cannot be empty",
+                ),
             )
 
         # Validate simulation iterations
@@ -775,8 +791,8 @@ def validate_scenario_parameters(
         if not isinstance(iterations, int) or iterations < 10:
             return Either.left(
                 ScenarioModelingError.invalid_configuration(
-                    f"Simulation iterations must be an integer >= 10, got {iterations}"
-                )
+                    f"Simulation iterations must be an integer >= 10, got {iterations}",
+                ),
             )
 
         # Validate confidence level
@@ -784,25 +800,27 @@ def validate_scenario_parameters(
         if not isinstance(confidence, int | float) or not (0.5 <= confidence <= 0.99):
             return Either.left(
                 ScenarioModelingError.invalid_configuration(
-                    f"Confidence level must be between 0.5 and 0.99, got {confidence}"
-                )
+                    f"Confidence level must be between 0.5 and 0.99, got {confidence}",
+                ),
             )
 
         # Validate time horizon
         time_horizon = parameters.get("time_horizon")
-        if time_horizon is not None:
-            if not isinstance(time_horizon, int | float) or time_horizon <= 0:
-                return Either.left(
-                    ScenarioModelingError.invalid_configuration(
-                        f"Time horizon must be positive number, got {time_horizon}"
-                    )
-                )
+        if time_horizon is not None and (
+            not isinstance(time_horizon, int | float) or time_horizon <= 0
+        ):
+            return Either.left(
+                ScenarioModelingError.invalid_configuration(
+                    f"Time horizon must be positive number, got {time_horizon}",
+                ),
+            )
 
         return Either.right(True)
 
     except Exception as e:
         return Either.left(
             ScenarioModelingError.modeling_failed(
-                "parameter_validation", f"Parameter validation error: {str(e)}"
-            )
+                "parameter_validation",
+                f"Parameter validation error: {e!s}",
+            ),
         )

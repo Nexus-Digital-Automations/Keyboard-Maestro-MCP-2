@@ -1,10 +1,12 @@
-"""
-Tests for Security Validation and Input Sanitization.
+"""Tests for Security Validation and Input Sanitization.
 
 Tests comprehensive security boundaries, input validation,
 sanitization, and threat prevention for KM integration.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import pytest
 from src.core.types import Permission
 from src.integration.security import (
@@ -26,7 +28,7 @@ from src.integration.security import (
 
 
 @pytest.fixture
-def clean_input():
+def clean_input() -> Any:
     """Clean input data for testing."""
     return {
         "trigger_type": "hotkey",
@@ -41,7 +43,7 @@ def clean_input():
 
 
 @pytest.fixture
-def malicious_input():
+def malicious_input() -> Any:
     """Malicious input data for security testing."""
     return {
         "trigger_type": "application",
@@ -58,7 +60,7 @@ def malicious_input():
 
 
 @pytest.fixture
-def path_traversal_input():
+def path_traversal_input() -> Any:
     """Input with path traversal attempts."""
     return {
         "trigger_type": "file",
@@ -73,7 +75,7 @@ def path_traversal_input():
 class TestSecurityViolation:
     """Test security violation detection and reporting."""
 
-    def test_violation_creation(self):
+    def test_violation_creation(self) -> None:
         """Test creating security violations."""
         violation = SecurityViolation.create(
             ThreatType.SCRIPT_INJECTION,
@@ -92,7 +94,7 @@ class TestSecurityViolation:
 class TestValidationResult:
     """Test validation result creation and handling."""
 
-    def test_safe_result_creation(self, clean_input):
+    def test_safe_result_creation(self, clean_input) -> None:
         """Test creating safe validation results."""
         result = ValidationResult.safe(clean_input)
 
@@ -101,7 +103,7 @@ class TestValidationResult:
         assert result.sanitized_data == clean_input
         assert not result.has_critical_violations()
 
-    def test_unsafe_result_creation(self):
+    def test_unsafe_result_creation(self) -> None:
         """Test creating unsafe validation results."""
         violations = [
             SecurityViolation.create(
@@ -109,7 +111,7 @@ class TestValidationResult:
                 "test_field",
                 "dangerous content",
                 "critical",
-            )
+            ),
         ]
         result = ValidationResult.unsafe(violations)
 
@@ -122,7 +124,7 @@ class TestValidationResult:
 class TestInputValidation:
     """Test comprehensive input validation."""
 
-    def test_clean_input_validation(self, clean_input):
+    def test_clean_input_validation(self, clean_input) -> None:
         """Test validation of clean input."""
         result = validate_km_input(clean_input, SecurityLevel.STANDARD)
 
@@ -130,7 +132,7 @@ class TestInputValidation:
         assert len(result.violations) == 0
         assert result.sanitized_data is not None
 
-    def test_script_injection_detection(self, malicious_input):
+    def test_script_injection_detection(self, malicious_input) -> None:
         """Test detection of script injection attempts."""
         result = validate_km_input(malicious_input, SecurityLevel.STANDARD)
 
@@ -141,7 +143,7 @@ class TestInputValidation:
         assert len(script_violations) > 0
         assert any("script" in v.violation_text.lower() for v in script_violations)
 
-    def test_command_injection_detection(self, malicious_input):
+    def test_command_injection_detection(self, malicious_input) -> None:
         """Test detection of command injection attempts."""
         result = validate_km_input(malicious_input, SecurityLevel.STANDARD)
 
@@ -153,7 +155,7 @@ class TestInputValidation:
         assert len(command_violations) > 0
         assert any("rm" in v.violation_text for v in command_violations)
 
-    def test_path_traversal_detection(self, path_traversal_input):
+    def test_path_traversal_detection(self, path_traversal_input) -> None:
         """Test detection of path traversal attempts."""
         result = validate_km_input(path_traversal_input, SecurityLevel.STANDARD)
 
@@ -166,7 +168,7 @@ class TestInputValidation:
             "path traversal" in v.violation_text.lower() for v in path_violations
         )
 
-    def test_sql_injection_detection(self, malicious_input):
+    def test_sql_injection_detection(self, malicious_input) -> None:
         """Test detection of SQL injection attempts."""
         result = validate_km_input(malicious_input, SecurityLevel.STANDARD)
 
@@ -177,7 +179,7 @@ class TestInputValidation:
         # Check for SQL injection pattern detection in violation descriptions
         assert any("sql injection" in v.violation_text.lower() for v in sql_violations)
 
-    def test_applescript_danger_detection(self, malicious_input):
+    def test_applescript_danger_detection(self, malicious_input) -> None:
         """Test detection of dangerous AppleScript commands."""
         result = validate_km_input(malicious_input, SecurityLevel.STANDARD)
 
@@ -192,7 +194,7 @@ class TestInputValidation:
 class TestSecurityLevels:
     """Test different security validation levels."""
 
-    def test_minimal_security_level(self, malicious_input):
+    def test_minimal_security_level(self, malicious_input) -> None:
         """Test minimal security level (most permissive)."""
         result = validate_km_input(malicious_input, SecurityLevel.MINIMAL)
 
@@ -203,7 +205,7 @@ class TestSecurityLevels:
             if isinstance(value, str):
                 assert len(value) <= 1000
 
-    def test_standard_security_level(self, malicious_input):
+    def test_standard_security_level(self, malicious_input) -> None:
         """Test standard security level."""
         result = validate_km_input(malicious_input, SecurityLevel.STANDARD)
 
@@ -217,7 +219,7 @@ class TestSecurityLevels:
                 assert "<script" not in value  # Should be escaped
                 assert len(value) <= 1000
 
-    def test_strict_security_level(self, malicious_input):
+    def test_strict_security_level(self, malicious_input) -> None:
         """Test strict security level."""
         result = validate_km_input(malicious_input, SecurityLevel.STRICT)
 
@@ -232,7 +234,7 @@ class TestSecurityLevels:
                 assert "javascript:" not in value
                 assert len(value) <= 500
 
-    def test_paranoid_security_level(self, malicious_input):
+    def test_paranoid_security_level(self, malicious_input) -> None:
         """Test paranoid security level (most restrictive)."""
         result = validate_km_input(malicious_input, SecurityLevel.PARANOID)
 
@@ -242,7 +244,7 @@ class TestSecurityLevels:
             if isinstance(value, str):
                 # Should only contain alphanumeric and basic punctuation
                 allowed_chars = set(
-                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_.,!?"
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_.,!?",
                 )
                 assert all(c in allowed_chars for c in value)
                 assert len(value) <= 200
@@ -251,7 +253,7 @@ class TestSecurityLevels:
 class TestTriggerDataSanitization:
     """Test trigger-specific data sanitization."""
 
-    def test_sanitize_clean_trigger_data(self, clean_input):
+    def test_sanitize_clean_trigger_data(self, clean_input) -> None:
         """Test sanitizing clean trigger data."""
         result = sanitize_trigger_data(clean_input, SecurityLevel.STANDARD)
 
@@ -260,7 +262,7 @@ class TestTriggerDataSanitization:
         assert result.safety_level == SecurityLevel.STANDARD
         assert len(result.permissions_required) > 0
 
-    def test_sanitize_malicious_trigger_data(self, malicious_input):
+    def test_sanitize_malicious_trigger_data(self, malicious_input) -> None:
         """Test sanitizing malicious trigger data."""
         result = sanitize_trigger_data(malicious_input, SecurityLevel.STANDARD)
 
@@ -269,7 +271,7 @@ class TestTriggerDataSanitization:
         assert "[BLOCKED_SCRIPT]" in config.get("script", "")  # Script blocked
         assert "[BLOCKED_SCRIPT]" in config.get("js", "")  # JavaScript blocked
 
-    def test_permission_determination(self):
+    def test_permission_determination(self) -> None:
         """Test determination of required permissions."""
         hotkey_data = {"trigger_type": "hotkey", "configuration": {"key": "space"}}
         result = sanitize_trigger_data(hotkey_data)
@@ -291,7 +293,7 @@ class TestTriggerDataSanitization:
         assert Permission.FILE_ACCESS in result.permissions_required
         assert Permission.SYSTEM_CONTROL in result.permissions_required
 
-    def test_clipboard_permission_detection(self):
+    def test_clipboard_permission_detection(self) -> None:
         """Test detection of clipboard access requirements."""
         clipboard_data = {
             "trigger_type": "system",
@@ -303,7 +305,7 @@ class TestTriggerDataSanitization:
         result = sanitize_trigger_data(clipboard_data)
         assert Permission.CLIPBOARD_ACCESS in result.permissions_required
 
-    def test_network_permission_detection(self):
+    def test_network_permission_detection(self) -> None:
         """Test detection of network access requirements."""
         network_data = {
             "trigger_type": "remote",
@@ -315,7 +317,7 @@ class TestTriggerDataSanitization:
         result = sanitize_trigger_data(network_data)
         assert Permission.NETWORK_ACCESS in result.permissions_required
 
-    def test_screen_capture_permission_detection(self):
+    def test_screen_capture_permission_detection(self) -> None:
         """Test detection of screen capture requirements."""
         screen_data = {
             "trigger_type": "system",
@@ -328,11 +330,11 @@ class TestTriggerDataSanitization:
 class TestKMFormatValidation:
     """Test KM format validation functions."""
 
-    def test_valid_km_format(self, clean_input):
+    def test_valid_km_format(self, clean_input) -> None:
         """Test validation of correct KM format."""
         assert is_valid_km_format(clean_input)
 
-    def test_invalid_km_format_missing_fields(self):
+    def test_invalid_km_format_missing_fields(self) -> None:
         """Test validation with missing required fields."""
         invalid_data = {"trigger_type": "hotkey"}  # Missing configuration
         assert not is_valid_km_format(invalid_data)
@@ -340,7 +342,7 @@ class TestKMFormatValidation:
         invalid_data2 = {"configuration": {}}  # Missing trigger_type
         assert not is_valid_km_format(invalid_data2)
 
-    def test_invalid_km_format_wrong_types(self):
+    def test_invalid_km_format_wrong_types(self) -> None:
         """Test validation with wrong field types."""
         invalid_data = {
             "trigger_type": "hotkey",
@@ -348,7 +350,7 @@ class TestKMFormatValidation:
         }
         assert not is_valid_km_format(invalid_data)
 
-    def test_invalid_trigger_type(self):
+    def test_invalid_trigger_type(self) -> None:
         """Test validation with invalid trigger type."""
         invalid_data = {"trigger_type": "invalid_type", "configuration": {}}
         assert not is_valid_km_format(invalid_data)
@@ -357,7 +359,7 @@ class TestKMFormatValidation:
 class TestSanitizationValidation:
     """Test sanitization validation functions."""
 
-    def test_is_sanitized_check(self):
+    def test_is_sanitized_check(self) -> None:
         """Test sanitization validation."""
         sanitized_data = SanitizedTriggerData(
             trigger_type="hotkey",
@@ -389,14 +391,14 @@ class TestSanitizationValidation:
 class TestContractValidation:
     """Test contract-based validation functions."""
 
-    def test_process_km_event_success(self, clean_input):
+    def test_process_km_event_success(self, clean_input) -> None:
         """Test successful KM event processing with contracts."""
         result = process_km_event(clean_input)
 
         assert isinstance(result, SanitizedTriggerData)
         assert is_sanitized(result)
 
-    def test_process_km_event_invalid_format(self):
+    def test_process_km_event_invalid_format(self) -> None:
         """Test KM event processing with invalid format."""
         invalid_input = {"invalid": "data"}
 
@@ -407,7 +409,7 @@ class TestContractValidation:
 class TestTriggerManagementSecurity:
     """Test security functions for trigger management."""
 
-    def test_validate_trigger_input(self, clean_input):
+    def test_validate_trigger_input(self, clean_input) -> None:
         """Test trigger input validation."""
         config = clean_input["configuration"]
         assert validate_trigger_input(config)
@@ -416,7 +418,7 @@ class TestTriggerManagementSecurity:
         invalid_config = {"script": "<script>alert('xss')</script>"}
         assert not validate_trigger_input(invalid_config)
 
-    def test_sanitize_trigger_configuration(self, malicious_input):
+    def test_sanitize_trigger_configuration(self, malicious_input) -> None:
         """Test trigger configuration sanitization."""
         config = malicious_input["configuration"]
         sanitized = sanitize_trigger_configuration(config)
@@ -429,17 +431,26 @@ class TestTriggerManagementSecurity:
 class TestSecurityUtilities:
     """Test security utility functions."""
 
-    def test_create_security_report(self):
+    def test_create_security_report(self) -> None:
         """Test security report creation."""
         violations = [
             SecurityViolation.create(
-                ThreatType.SCRIPT_INJECTION, "field1", "content", "critical"
+                ThreatType.SCRIPT_INJECTION,
+                "field1",
+                "content",
+                "critical",
             ),
             SecurityViolation.create(
-                ThreatType.COMMAND_INJECTION, "field2", "content", "high"
+                ThreatType.COMMAND_INJECTION,
+                "field2",
+                "content",
+                "high",
             ),
             SecurityViolation.create(
-                ThreatType.PATH_TRAVERSAL, "field3", "content", "medium"
+                ThreatType.PATH_TRAVERSAL,
+                "field3",
+                "content",
+                "medium",
             ),
         ]
 
@@ -452,7 +463,7 @@ class TestSecurityUtilities:
         assert ThreatType.SCRIPT_INJECTION.value in report["threat_types"]
         assert len(report["recommendations"]) <= 5
 
-    def test_get_minimum_security_level(self):
+    def test_get_minimum_security_level(self) -> None:
         """Test minimum security level determination."""
         # Safe permissions
         safe_perms = {Permission.TEXT_INPUT, Permission.CLIPBOARD_ACCESS}
@@ -465,7 +476,7 @@ class TestSecurityUtilities:
 
 # Property-based testing for security robustness
 @pytest.mark.parametrize("security_level", list(SecurityLevel))
-def test_validation_robustness_across_levels(security_level, clean_input):
+def test_validation_robustness_across_levels(security_level, clean_input) -> None:
     """Property test: Clean input should always validate across security levels."""
     result = validate_km_input(clean_input, security_level)
 
@@ -485,7 +496,7 @@ def test_validation_robustness_across_levels(security_level, clean_input):
         'do shell script "dangerous command"',
     ],
 )
-def test_malicious_content_detection(malicious_content):
+def test_malicious_content_detection(malicious_content) -> None:
     """Property test: Various malicious content should be detected."""
     test_input = {
         "trigger_type": "hotkey",
@@ -513,7 +524,7 @@ def test_malicious_content_detection(malicious_content):
         ("system", Permission.SYSTEM_CONTROL),
     ],
 )
-def test_permission_mapping_consistency(trigger_type, expected_permission):
+def test_permission_mapping_consistency(trigger_type, expected_permission) -> None:
     """Property test: Trigger types should consistently map to permissions."""
     test_data = {"trigger_type": trigger_type, "configuration": {}}
 

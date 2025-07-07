@@ -1,5 +1,4 @@
-"""
-Access Controller - TASK_62 Phase 2 Core Security Engine
+"""Access Controller - TASK_62 Phase 2 Core Security Engine.
 
 Granular access control with context-aware permissions for zero trust security.
 Provides dynamic access control, context-aware authorization, and fine-grained permissions.
@@ -102,7 +101,9 @@ class Permission:
         return self.expires_at is not None and self.expires_at < datetime.now(UTC)
 
     def matches_request(
-        self, resource_path: str, permission_type: PermissionType
+        self,
+        resource_path: str,
+        permission_type: PermissionType,
     ) -> bool:
         """Check if permission matches access request."""
         # Check permission type
@@ -112,11 +113,10 @@ class Permission:
         # Check resource path (supports wildcards)
         if self.resource_path == "*":
             return True
-        elif self.resource_path.endswith("/*"):
+        if self.resource_path.endswith("/*"):
             base_path = self.resource_path[:-2]
             return resource_path.startswith(base_path)
-        else:
-            return self.resource_path == resource_path
+        return self.resource_path == resource_path
 
 
 @dataclass(frozen=True)
@@ -227,13 +227,14 @@ class AccessController:
         self.cache_hit_rate = 0.0
         self.denial_rate = 0.0
 
-    @require(lambda self, subject: isinstance(subject, Subject))
+    @require(lambda __self, subject: isinstance(subject, Subject))
     @ensure(
-        lambda self, result: result.is_right()
-        or isinstance(result.get_left(), AccessControlError)
+        lambda _self, result: result.is_right()
+        or isinstance(result.get_left(), AccessControlError),
     )
     async def register_subject(
-        self, subject: Subject
+        self,
+        subject: Subject,
     ) -> Either[AccessControlError, str]:
         """Register a subject for access control."""
         try:
@@ -244,7 +245,7 @@ class AccessController:
                         f"Subject {subject.subject_id} already exists",
                         "DUPLICATE_SUBJECT",
                         SecurityOperation.AUTHORIZE,
-                    )
+                    ),
                 )
 
             # Validate roles exist
@@ -256,7 +257,7 @@ class AccessController:
                             "INVALID_ROLE",
                             SecurityOperation.AUTHORIZE,
                             {"role_id": role_id},
-                        )
+                        ),
                     )
 
             # Validate permissions exist
@@ -268,7 +269,7 @@ class AccessController:
                             "INVALID_PERMISSION",
                             SecurityOperation.AUTHORIZE,
                             {"permission_id": permission_id},
-                        )
+                        ),
                     )
 
             # Register subject
@@ -279,13 +280,13 @@ class AccessController:
         except Exception as e:
             return Either.left(
                 AccessControlError(
-                    f"Failed to register subject: {str(e)}",
+                    f"Failed to register subject: {e!s}",
                     "SUBJECT_REGISTRATION_ERROR",
                     SecurityOperation.AUTHORIZE,
-                )
+                ),
             )
 
-    @require(lambda self, role: isinstance(role, Role))
+    @require(lambda __self, role: isinstance(role, Role))
     async def register_role(self, role: Role) -> Either[AccessControlError, str]:
         """Register a role for RBAC."""
         try:
@@ -296,7 +297,7 @@ class AccessController:
                         f"Role {role.role_id} already exists",
                         "DUPLICATE_ROLE",
                         SecurityOperation.AUTHORIZE,
-                    )
+                    ),
                 )
 
             # Check for circular role inheritance
@@ -306,7 +307,7 @@ class AccessController:
                         f"Circular role inheritance detected for role {role.role_id}",
                         "CIRCULAR_ROLE_INHERITANCE",
                         SecurityOperation.AUTHORIZE,
-                    )
+                    ),
                 )
 
             # Validate permissions exist
@@ -318,7 +319,7 @@ class AccessController:
                             "INVALID_PERMISSION",
                             SecurityOperation.AUTHORIZE,
                             {"permission_id": permission_id},
-                        )
+                        ),
                     )
 
             # Register role
@@ -329,15 +330,16 @@ class AccessController:
         except Exception as e:
             return Either.left(
                 AccessControlError(
-                    f"Failed to register role: {str(e)}",
+                    f"Failed to register role: {e!s}",
                     "ROLE_REGISTRATION_ERROR",
                     SecurityOperation.AUTHORIZE,
-                )
+                ),
             )
 
-    @require(lambda self, permission: isinstance(permission, Permission))
+    @require(lambda __self, permission: isinstance(permission, Permission))
     async def register_permission(
-        self, permission: Permission
+        self,
+        permission: Permission,
     ) -> Either[AccessControlError, str]:
         """Register a permission."""
         try:
@@ -348,7 +350,7 @@ class AccessController:
                         f"Permission {permission.permission_id} already exists",
                         "DUPLICATE_PERMISSION",
                         SecurityOperation.AUTHORIZE,
-                    )
+                    ),
                 )
 
             # Validate resource path
@@ -358,32 +360,33 @@ class AccessController:
                         "Permission must have a resource path",
                         "INVALID_RESOURCE_PATH",
                         SecurityOperation.AUTHORIZE,
-                    )
+                    ),
                 )
 
             # Register permission
             self.permissions[permission.permission_id] = permission
 
             return Either.right(
-                f"Permission {permission.permission_id} registered successfully"
+                f"Permission {permission.permission_id} registered successfully",
             )
 
         except Exception as e:
             return Either.left(
                 AccessControlError(
-                    f"Failed to register permission: {str(e)}",
+                    f"Failed to register permission: {e!s}",
                     "PERMISSION_REGISTRATION_ERROR",
                     SecurityOperation.AUTHORIZE,
-                )
+                ),
             )
 
-    @require(lambda self, request: isinstance(request, AccessRequest))
+    @require(lambda __self, request: isinstance(request, AccessRequest))
     @ensure(
-        lambda self, result: result.is_right()
-        or isinstance(result.get_left(), AccessControlError)
+        lambda _self, result: result.is_right()
+        or isinstance(result.get_left(), AccessControlError),
     )
     async def authorize_access(
-        self, request: AccessRequest
+        self,
+        request: AccessRequest,
     ) -> Either[AccessControlError, AuthorizationResult]:
         """Authorize access request with context-aware decision making."""
         try:
@@ -409,7 +412,7 @@ class AccessController:
                         "SUBJECT_NOT_FOUND",
                         SecurityOperation.AUTHORIZE,
                         {"subject_id": request.subject_id},
-                    )
+                    ),
                 )
 
             subject = self.subjects[request.subject_id]
@@ -430,7 +433,8 @@ class AccessController:
 
             # Apply context-aware modifications
             context_result = await self._apply_context_aware_modifications(
-                result, request
+                result,
+                request,
             )
             if context_result.is_left():
                 return context_result
@@ -439,7 +443,9 @@ class AccessController:
 
             # Calculate decision confidence
             confidence = self._calculate_decision_confidence(
-                final_result, request, subject
+                final_result,
+                request,
+                subject,
             )
 
             # Create final authorization result
@@ -457,7 +463,8 @@ class AccessController:
                 conditions=final_result.conditions,
                 constraints=final_result.constraints,
                 expires_at=self._calculate_authorization_expiration(
-                    final_result.decision, request.context
+                    final_result.decision,
+                    request.context,
                 ),
                 audit_trail=[
                     f"Authorization requested at {start_time.isoformat()}",
@@ -482,7 +489,8 @@ class AccessController:
 
             # Update metrics
             self._update_authorization_metrics(
-                authorization_time, final_result.decision == AccessResult.DENY
+                authorization_time,
+                final_result.decision == AccessResult.DENY,
             )
             self._update_cache_metrics(False)
 
@@ -491,15 +499,17 @@ class AccessController:
         except Exception as e:
             return Either.left(
                 AccessControlError(
-                    f"Authorization failed: {str(e)}",
+                    f"Authorization failed: {e!s}",
                     "AUTHORIZATION_ERROR",
                     SecurityOperation.AUTHORIZE,
                     {"request_id": request.request_id},
-                )
+                ),
             )
 
     async def revoke_permissions(
-        self, subject_id: str, permission_ids: list[str]
+        self,
+        subject_id: str,
+        permission_ids: list[str],
     ) -> Either[AccessControlError, str]:
         """Revoke permissions from subject."""
         try:
@@ -510,7 +520,7 @@ class AccessController:
                         "SUBJECT_NOT_FOUND",
                         SecurityOperation.AUTHORIZE,
                         {"subject_id": subject_id},
-                    )
+                    ),
                 )
 
             subject = self.subjects[subject_id]
@@ -539,20 +549,21 @@ class AccessController:
             self._clear_subject_cache(subject_id)
 
             return Either.right(
-                f"Revoked {len(permission_ids)} permissions from subject {subject_id}"
+                f"Revoked {len(permission_ids)} permissions from subject {subject_id}",
             )
 
         except Exception as e:
             return Either.left(
                 AccessControlError(
-                    f"Failed to revoke permissions: {str(e)}",
+                    f"Failed to revoke permissions: {e!s}",
                     "PERMISSION_REVOCATION_ERROR",
                     SecurityOperation.AUTHORIZE,
-                )
+                ),
             )
 
     async def get_effective_permissions(
-        self, subject_id: str
+        self,
+        subject_id: str,
     ) -> Either[AccessControlError, list[Permission]]:
         """Get effective permissions for subject (direct + role-based)."""
         try:
@@ -563,7 +574,7 @@ class AccessController:
                         "SUBJECT_NOT_FOUND",
                         SecurityOperation.AUTHORIZE,
                         {"subject_id": subject_id},
-                    )
+                    ),
                 )
 
             subject = self.subjects[subject_id]
@@ -590,14 +601,15 @@ class AccessController:
         except Exception as e:
             return Either.left(
                 AccessControlError(
-                    f"Failed to get effective permissions: {str(e)}",
+                    f"Failed to get effective permissions: {e!s}",
                     "EFFECTIVE_PERMISSIONS_ERROR",
                     SecurityOperation.AUTHORIZE,
-                )
+                ),
             )
 
     def _validate_access_request(
-        self, request: AccessRequest
+        self,
+        request: AccessRequest,
     ) -> Either[AccessControlError, None]:
         """Validate access request."""
         # Check resource path
@@ -607,7 +619,7 @@ class AccessController:
                     "Resource path cannot be empty",
                     "INVALID_RESOURCE_PATH",
                     SecurityOperation.AUTHORIZE,
-                )
+                ),
             )
 
         # Validate security context
@@ -617,19 +629,21 @@ class AccessController:
                     "Valid security context is required",
                     "INVALID_CONTEXT",
                     SecurityOperation.AUTHORIZE,
-                )
+                ),
             )
 
         return Either.right(None)
 
     async def _authorize_rbac(
-        self, request: AccessRequest, subject: Subject
+        self,
+        request: AccessRequest,
+        subject: Subject,
     ) -> Either[AccessControlError, AuthorizationResult]:
         """Perform Role-Based Access Control authorization."""
         try:
             # Get effective permissions
             effective_permissions_result = await self.get_effective_permissions(
-                subject.subject_id
+                subject.subject_id,
             )
             if effective_permissions_result.is_left():
                 return effective_permissions_result
@@ -654,13 +668,14 @@ class AccessController:
                         permission_type=request.permission_type,
                         reason="No matching permissions found",
                         confidence=1.0,
-                    )
+                    ),
                 )
 
             # Check permission conditions
             for permission in matching_permissions:
                 conditions_met = self._evaluate_permission_conditions(
-                    permission, request
+                    permission,
+                    request,
                 )
                 if conditions_met:
                     return Either.right(
@@ -674,7 +689,7 @@ class AccessController:
                             confidence=1.0,
                             conditions=list(permission.conditions.keys()),
                             constraints=permission.constraints,
-                        )
+                        ),
                     )
 
             # Permissions found but conditions not met
@@ -688,20 +703,22 @@ class AccessController:
                     reason="Permission conditions not fully satisfied",
                     confidence=0.7,
                     conditions=["Review permission conditions"],
-                )
+                ),
             )
 
         except Exception as e:
             return Either.left(
                 AccessControlError(
-                    f"RBAC authorization failed: {str(e)}",
+                    f"RBAC authorization failed: {e!s}",
                     "RBAC_AUTHORIZATION_ERROR",
                     SecurityOperation.AUTHORIZE,
-                )
+                ),
             )
 
     async def _authorize_abac(
-        self, request: AccessRequest, subject: Subject
+        self,
+        request: AccessRequest,
+        subject: Subject,
     ) -> Either[AccessControlError, AuthorizationResult]:
         """Perform Attribute-Based Access Control authorization."""
         try:
@@ -762,20 +779,22 @@ class AccessController:
                         "abac_scores": dict(decision_factors),
                         "overall_score": overall_score,
                     },
-                )
+                ),
             )
 
         except Exception as e:
             return Either.left(
                 AccessControlError(
-                    f"ABAC authorization failed: {str(e)}",
+                    f"ABAC authorization failed: {e!s}",
                     "ABAC_AUTHORIZATION_ERROR",
                     SecurityOperation.AUTHORIZE,
-                )
+                ),
             )
 
     async def _apply_context_aware_modifications(
-        self, initial_result: AuthorizationResult, request: AccessRequest
+        self,
+        initial_result: AuthorizationResult,
+        request: AccessRequest,
     ) -> Either[AccessControlError, AuthorizationResult]:
         """Apply context-aware modifications to authorization decision."""
         try:
@@ -788,7 +807,7 @@ class AccessController:
                 if modified_decision == AccessResult.ALLOW:
                     modified_decision = AccessResult.CONDITIONAL
                     modified_conditions.append(
-                        "Additional verification required due to low trust level"
+                        "Additional verification required due to low trust level",
                     )
                     modified_reason += " (Modified due to low trust level)"
             elif request.context.trust_level == TrustLevel.UNTRUSTED:
@@ -796,23 +815,27 @@ class AccessController:
                 modified_reason = "Access denied due to untrusted context"
 
             # Check risk score
-            if request.context.risk_score > 0.7:
-                if modified_decision == AccessResult.ALLOW:
-                    modified_decision = AccessResult.REQUIRES_APPROVAL
-                    modified_reason += " (Escalated due to high risk score)"
+            # SIM102 fix: Combine nested if statements
+            if (
+                request.context.risk_score > 0.7
+                and modified_decision == AccessResult.ALLOW
+            ):
+                modified_decision = AccessResult.REQUIRES_APPROVAL
+                modified_reason += " (Escalated due to high risk score)"
 
             # Check time-based restrictions
             current_hour = datetime.now(UTC).hour
-            if current_hour < 6 or current_hour > 22:  # Outside business hours
-                if (
-                    modified_decision == AccessResult.ALLOW
-                    and request.permission_type
-                    in [PermissionType.ADMIN, PermissionType.DELETE]
-                ):
-                    modified_decision = AccessResult.CONDITIONAL
-                    modified_conditions.append(
-                        "Administrative actions outside business hours require justification"
-                    )
+            # SIM102 fix: Combine nested if statements
+            if (
+                (current_hour < 6 or current_hour > 22)
+                and modified_decision == AccessResult.ALLOW
+                and request.permission_type
+                in [PermissionType.ADMIN, PermissionType.DELETE]
+            ):
+                modified_decision = AccessResult.CONDITIONAL
+                modified_conditions.append(
+                    "Administrative actions outside business hours require justification",
+                )
 
             # Check location-based restrictions
             if (
@@ -836,20 +859,22 @@ class AccessController:
                     audit_trail=initial_result.audit_trail
                     + ["Applied context-aware modifications"],
                     metadata=initial_result.metadata,
-                )
+                ),
             )
 
         except Exception as e:
             return Either.left(
                 AccessControlError(
-                    f"Failed to apply context-aware modifications: {str(e)}",
+                    f"Failed to apply context-aware modifications: {e!s}",
                     "CONTEXT_MODIFICATION_ERROR",
                     SecurityOperation.AUTHORIZE,
-                )
+                ),
             )
 
     def _evaluate_subject_attributes(
-        self, subject: Subject, request: AccessRequest
+        self,
+        subject: Subject,
+        request: AccessRequest,
     ) -> float:
         """Evaluate subject attributes for ABAC."""
         score = 0.5  # Base score
@@ -947,7 +972,9 @@ class AccessController:
         return action_risks.get(request.permission_type, 0.5)
 
     def _evaluate_permission_conditions(
-        self, permission: Permission, request: AccessRequest
+        self,
+        permission: Permission,
+        request: AccessRequest,
     ) -> bool:
         """Evaluate permission conditions."""
         try:
@@ -957,13 +984,15 @@ class AccessController:
                         return False
                 elif condition_key == "location_restriction":
                     if not self._check_location_restriction(
-                        condition_value, request.context
+                        condition_value,
+                        request.context,
                     ):
                         return False
                 elif condition_key == "trust_level_minimum":
                     required_level = TrustLevel(condition_value)
                     if not self._meets_trust_level_requirement(
-                        required_level, request.context.trust_level
+                        required_level,
+                        request.context.trust_level,
                     ):
                         return False
 
@@ -984,7 +1013,9 @@ class AccessController:
         return True
 
     def _check_location_restriction(
-        self, location_restriction: dict[str, Any], context: SecurityContext
+        self,
+        location_restriction: dict[str, Any],
+        context: SecurityContext,
     ) -> bool:
         """Check location-based restrictions."""
         if "allowed_locations" in location_restriction:
@@ -998,7 +1029,9 @@ class AccessController:
         return True
 
     def _meets_trust_level_requirement(
-        self, required_level: TrustLevel, current_level: TrustLevel
+        self,
+        required_level: TrustLevel,
+        current_level: TrustLevel,
     ) -> bool:
         """Check if current trust level meets requirement."""
         trust_levels = {
@@ -1016,7 +1049,10 @@ class AccessController:
         return current_value >= required_value
 
     def _calculate_decision_confidence(
-        self, result: AuthorizationResult, request: AccessRequest, subject: Subject
+        self,
+        result: AuthorizationResult,
+        request: AccessRequest,
+        subject: Subject,
     ) -> float:
         """Calculate confidence in authorization decision."""
         base_confidence = result.confidence
@@ -1050,7 +1086,9 @@ class AccessController:
         return max(0.0, min(1.0, final_confidence))
 
     def _calculate_authorization_expiration(
-        self, decision: AccessResult, context: SecurityContext
+        self,
+        decision: AccessResult,
+        context: SecurityContext,
     ) -> datetime | None:
         """Calculate when authorization expires."""
         if decision == AccessResult.DENY:
@@ -1075,7 +1113,9 @@ class AccessController:
         return datetime.now(UTC) + duration
 
     def _get_role_permissions_recursive(
-        self, role_id: str, visited: set[str] = None
+        self,
+        role_id: str,
+        visited: set[str] = None,
     ) -> set[str]:
         """Get all permissions for role including inherited ones."""
         if visited is None:
@@ -1092,14 +1132,17 @@ class AccessController:
         # Add permissions from parent roles
         for parent_role_id in role.parent_roles:
             parent_permissions = self._get_role_permissions_recursive(
-                parent_role_id, visited
+                parent_role_id,
+                visited,
             )
             permissions.update(parent_permissions)
 
         return permissions
 
     def _has_circular_role_inheritance(
-        self, role: Role, visited: set[str] = None
+        self,
+        role: Role,
+        visited: set[str] = None,
     ) -> bool:
         """Check for circular role inheritance."""
         if visited is None:
@@ -1136,14 +1179,15 @@ class AccessController:
             result, cached_time = self.authorization_cache[cache_key]
             if (datetime.now(UTC) - cached_time).total_seconds() < self.cache_duration:
                 return result
-            else:
-                # Remove expired cache entry
-                del self.authorization_cache[cache_key]
+            # Remove expired cache entry
+            del self.authorization_cache[cache_key]
 
         return None
 
     def _cache_authorization_result(
-        self, cache_key: str, result: AuthorizationResult
+        self,
+        cache_key: str,
+        result: AuthorizationResult,
     ) -> None:
         """Cache authorization result."""
         # Clean cache if it's getting too large
@@ -1169,7 +1213,9 @@ class AccessController:
             del self.authorization_cache[key]
 
     def _update_authorization_metrics(
-        self, authorization_time: float, was_denied: bool
+        self,
+        authorization_time: float,
+        was_denied: bool,
     ) -> None:
         """Update authorization performance metrics."""
         self.authorization_count += 1
@@ -1207,7 +1253,10 @@ class AccessController:
 
     # Simple interface methods for test compatibility
     def check_access(
-        self, user_id: str, resource: str, required_permission: Permission
+        self,
+        user_id: str,
+        resource: str,
+        required_permission: Permission,
     ) -> AccessDecision:
         """Simple access check interface for test compatibility."""
         from src.core.zero_trust_architecture import (
@@ -1239,7 +1288,6 @@ class AccessController:
 
     def grant_permission(self, user_id: str, permission: Permission) -> None:
         """Grant permission to user (simple interface for test compatibility)."""
-
         # Create or get subject
         if user_id not in self.subjects:
             subject = Subject(
@@ -1270,7 +1318,6 @@ class AccessController:
 
     def revoke_permission(self, user_id: str, permission: Permission) -> None:
         """Revoke permission from user (simple interface for test compatibility)."""
-
         if user_id in self.subjects:
             existing = self.subjects[user_id]
             updated_permissions = existing.direct_permissions - {permission.value}

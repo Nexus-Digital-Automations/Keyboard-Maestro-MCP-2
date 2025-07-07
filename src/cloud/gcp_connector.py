@@ -1,5 +1,4 @@
-"""
-Google Cloud Platform services integration for multi-platform cloud automation.
+"""Google Cloud Platform services integration for multi-platform cloud automation.
 
 This module provides comprehensive GCP service integration with Google Cloud SDK,
 supporting storage, compute, database, messaging, and AI/ML services
@@ -13,11 +12,11 @@ Type Safety: Complete integration with cloud types and error handling
 from __future__ import annotations
 
 import json
+import logging
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ..core.cloud_integration import (
     CloudAuthMethod,
@@ -30,6 +29,11 @@ from ..core.cloud_integration import (
 )
 from ..core.contracts import ensure, require
 from ..core.either import Either
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 class GCPServiceType:
@@ -65,34 +69,38 @@ class GCPSession:
             from google.cloud import storage
 
             return storage.Client(
-                credentials=self.credentials, project=self.project_id, **kwargs
+                credentials=self.credentials,
+                project=self.project_id,
+                **kwargs,
             )
-        elif service_type == "compute":
+        if service_type == "compute":
             from google.cloud import compute_v1
 
             return compute_v1.InstancesClient(credentials=self.credentials, **kwargs)
-        elif service_type == "sql":
+        if service_type == "sql":
             from google.cloud.sql import v1
 
             return v1.SqlInstancesServiceClient(credentials=self.credentials, **kwargs)
-        elif service_type == "firestore":
+        if service_type == "firestore":
             from google.cloud import firestore
 
             return firestore.Client(
-                credentials=self.credentials, project=self.project_id, **kwargs
+                credentials=self.credentials,
+                project=self.project_id,
+                **kwargs,
             )
-        elif service_type == "pubsub":
+        if service_type == "pubsub":
             from google.cloud import pubsub_v1
 
             return pubsub_v1.PublisherClient(credentials=self.credentials, **kwargs)
-        elif service_type == "monitoring":
+        if service_type == "monitoring":
             from google.cloud import monitoring_v3
 
             return monitoring_v3.MetricServiceClient(
-                credentials=self.credentials, **kwargs
+                credentials=self.credentials,
+                **kwargs,
             )
-        else:
-            raise ValueError(f"Unsupported GCP service type: {service_type}")
+        raise ValueError(f"Unsupported GCP service type: {service_type}")
 
 
 class GCPConnector:
@@ -107,7 +115,7 @@ class GCPConnector:
     @ensure(
         lambda result: result.is_right()
         or result.get_left().error_type
-        in ["AUTHENTICATION_FAILED", "CONNECTION_FAILED"]
+        in ["AUTHENTICATION_FAILED", "CONNECTION_FAILED"],
     )
     async def connect(self, credentials: CloudCredentials) -> Either[CloudError, str]:
         """Establish secure GCP connection with service account authentication."""
@@ -120,7 +128,7 @@ class GCPConnector:
                 from google.oauth2 import service_account
             except ImportError:
                 return Either.left(
-                    CloudError.authentication_failed("Google Cloud SDK not installed")
+                    CloudError.authentication_failed("Google Cloud SDK not installed"),
                 )
 
             session_id = (
@@ -142,12 +150,12 @@ class GCPConnector:
                 if not os.path.exists(credentials.service_account_file):
                     return Either.left(
                         CloudError.authentication_failed(
-                            f"Service account file not found: {credentials.service_account_file}"
-                        )
+                            f"Service account file not found: {credentials.service_account_file}",
+                        ),
                     )
 
                 creds = service_account.Credentials.from_service_account_file(
-                    credentials.service_account_file
+                    credentials.service_account_file,
                 )
 
                 # Extract project ID from service account file
@@ -159,8 +167,8 @@ class GCPConnector:
                 if not project_id:
                     return Either.left(
                         CloudError.authentication_failed(
-                            "Project ID not found in service account file"
-                        )
+                            "Project ID not found in service account file",
+                        ),
                     )
 
             elif credentials.auth_method == CloudAuthMethod.OAUTH2:
@@ -172,13 +180,13 @@ class GCPConnector:
                 except DefaultCredentialsError:
                     return Either.left(
                         CloudError.authentication_failed(
-                            "No default credentials found. Use service account or set GOOGLE_APPLICATION_CREDENTIALS"
-                        )
+                            "No default credentials found. Use service account or set GOOGLE_APPLICATION_CREDENTIALS",
+                        ),
                     )
 
             else:
                 return Either.left(
-                    CloudError.insecure_auth_method(credentials.auth_method)
+                    CloudError.insecure_auth_method(credentials.auth_method),
                 )
 
             # Override project ID if specified in credentials
@@ -187,7 +195,7 @@ class GCPConnector:
 
             if not project_id:
                 return Either.left(
-                    CloudError.authentication_failed("GCP project ID is required")
+                    CloudError.authentication_failed("GCP project ID is required"),
                 )
 
             # Test connection by listing storage buckets
@@ -198,14 +206,14 @@ class GCPConnector:
             except Exception as e:
                 return Either.left(
                     CloudError.authentication_failed(
-                        f"Failed to test GCP connection: {str(e)}"
-                    )
+                        f"Failed to test GCP connection: {e!s}",
+                    ),
                 )
 
             # Validate minimum required permissions
             if not await self._validate_gcp_permissions(creds, project_id):
                 return Either.left(
-                    CloudError.authentication_failed("Insufficient GCP permissions")
+                    CloudError.authentication_failed("Insufficient GCP permissions"),
                 )
 
             # Create session wrapper
@@ -227,7 +235,9 @@ class GCPConnector:
             return Either.left(CloudError.connection_failed(str(e)))
 
     async def _validate_gcp_permissions(
-        self, credentials: Any, project_id: str
+        self,
+        credentials: Any,
+        project_id: str,
     ) -> bool:
         """Validate minimum required GCP permissions."""
         try:
@@ -243,7 +253,15 @@ class GCPConnector:
             rm_client.fetch_project(project_id)
 
             return True
-        except Exception:
+        except Exception as e:
+            logger.warning(
+                f"Failed to validate GCP permissions: {e}",
+                extra={
+                    "project_id": project_id,
+                    "error_type": type(e).__name__,
+                    "operation": "validate_gcp_permissions",
+                },
+            )
             return False
 
     @require(lambda session_id: len(session_id) > 0)
@@ -251,7 +269,7 @@ class GCPConnector:
     @ensure(
         lambda result: result.is_right()
         or result.get_left().error_type
-        in ["SESSION_NOT_FOUND", "RESOURCE_CREATION_FAILED"]
+        in ["SESSION_NOT_FOUND", "RESOURCE_CREATION_FAILED"],
     )
     async def create_storage_bucket(
         self,
@@ -273,7 +291,7 @@ class GCPConnector:
             # Validate bucket name
             if not self._validate_gcs_bucket_name(bucket_name):
                 return Either.left(
-                    CloudError.resource_creation_failed("Invalid GCS bucket name")
+                    CloudError.resource_creation_failed("Invalid GCS bucket name"),
                 )
 
             storage_client = session.get_client("storage")
@@ -290,7 +308,8 @@ class GCPConnector:
 
             # Enable uniform bucket-level access for security
             bucket.iam_configuration.uniform_bucket_level_access_enabled = config.get(
-                "uniform_bucket_access", True
+                "uniform_bucket_access",
+                True,
             )
 
             # Enable versioning if requested
@@ -322,7 +341,9 @@ class GCPConnector:
             return Either.left(CloudError.resource_creation_failed(str(e)))
 
     async def _apply_gcs_security_config(
-        self, bucket: Any, config: dict[str, Any]
+        self,
+        bucket: Any,
+        config: dict[str, Any],
     ) -> None:
         """Apply comprehensive GCS security configuration."""
         try:
@@ -346,9 +367,18 @@ class GCPConnector:
                 bucket.default_kms_key_name = config["encryption_key"]
                 bucket.patch()
 
-        except Exception:
+        except Exception as e:
             # Non-critical security configurations shouldn't fail the main operation
-            pass
+            logger.warning(
+                f"Failed to apply GCS bucket security configuration: {e}",
+                extra={
+                    "bucket_name": bucket.name
+                    if hasattr(bucket, "name")
+                    else str(bucket),
+                    "error_type": type(e).__name__,
+                    "operation": "apply_bucket_security_config",
+                },
+            )
 
     def _validate_gcs_bucket_name(self, bucket_name: str) -> bool:
         """Validate Google Cloud Storage bucket naming requirements."""
@@ -411,8 +441,8 @@ class GCPConnector:
             if not bucket.exists():
                 return Either.left(
                     CloudError.sync_operation_failed(
-                        f"Bucket {bucket_name} does not exist"
-                    )
+                        f"Bucket {bucket_name} does not exist",
+                    ),
                 )
 
             from pathlib import Path
@@ -422,8 +452,8 @@ class GCPConnector:
             if not source.exists():
                 return Either.left(
                     CloudError.sync_operation_failed(
-                        f"Source path not found: {source_path}"
-                    )
+                        f"Source path not found: {source_path}",
+                    ),
                 )
 
             uploaded_files = []
@@ -433,7 +463,10 @@ class GCPConnector:
             if source.is_file():
                 # Upload single file
                 result = await self._upload_file_to_gcs(
-                    bucket, source, destination_prefix, options
+                    bucket,
+                    source,
+                    destination_prefix,
+                    options,
                 )
                 if result.is_right():
                     file_info = result.get_right()
@@ -453,11 +486,15 @@ class GCPConnector:
                             else str(relative_path)
                         )
                         object_name = object_name.replace(
-                            "\\", "/"
+                            "\\",
+                            "/",
                         )  # GCS uses forward slashes
 
                         result = await self._upload_file_to_gcs(
-                            bucket, file_path, object_name, options
+                            bucket,
+                            file_path,
+                            object_name,
+                            options,
                         )
 
                         if result.is_right():
@@ -490,7 +527,11 @@ class GCPConnector:
             return Either.left(CloudError.sync_operation_failed(str(e)))
 
     async def _upload_file_to_gcs(
-        self, bucket: Any, file_path: Path, object_name: str, options: dict[str, Any]
+        self,
+        bucket: Any,
+        file_path: Path,
+        object_name: str,
+        options: dict[str, Any],
     ) -> Either[CloudError, dict[str, Any]]:
         """Upload single file to Google Cloud Storage with metadata."""
         try:
@@ -532,8 +573,8 @@ class GCPConnector:
         except Exception as e:
             return Either.left(
                 CloudError.sync_operation_failed(
-                    f"Failed to upload {file_path}: {str(e)}"
-                )
+                    f"Failed to upload {file_path}: {e!s}",
+                ),
             )
 
     @require(lambda session_id: len(session_id) > 0)
@@ -580,7 +621,8 @@ class GCPConnector:
             return Either.left(CloudError.sync_operation_failed(str(e)))
 
     async def get_session_info(
-        self, session_id: str
+        self,
+        session_id: str,
     ) -> Either[CloudError, dict[str, Any]]:
         """Get GCP session information and statistics."""
         if session_id not in self.sessions:
@@ -597,7 +639,7 @@ class GCPConnector:
             "created_at": session.created_at.isoformat(),
             "last_used": session.last_used.isoformat(),
             "duration_minutes": int(
-                (datetime.now(UTC) - session.created_at).total_seconds() / 60
+                (datetime.now(UTC) - session.created_at).total_seconds() / 60,
             ),
             "available_services": [
                 GCPServiceType.STORAGE,

@@ -1,5 +1,4 @@
-"""
-Pattern Predictor Engine - TASK_59 Phase 2 Core Implementation
+"""Pattern Predictor Engine - TASK_59 Phase 2 Core Implementation.
 
 Advanced pattern analysis and prediction engine for automation workflows.
 Provides ML-powered pattern recognition, trend analysis, and behavioral prediction.
@@ -117,7 +116,7 @@ class PatternPrediction:
     def __post_init__(self):
         if len(self.predicted_values) != len(self.prediction_timestamps):
             raise ValueError(
-                "Predicted values and timestamps must have the same length"
+                "Predicted values and timestamps must have the same length",
             )
         if not (0.0 <= self.accuracy_estimate <= 1.0):
             raise ValueError("Accuracy estimate must be between 0.0 and 1.0")
@@ -126,8 +125,7 @@ class PatternPrediction:
 
 
 class PatternPredictor:
-    """
-    Advanced pattern analysis and prediction engine for automation workflows.
+    """Advanced pattern analysis and prediction engine for automation workflows.
 
     Provides ML-powered pattern recognition, trend analysis, and behavioral prediction
     with comprehensive validation and performance optimization.
@@ -147,7 +145,7 @@ class PatternPredictor:
         # Initialize prediction models
         self._initialize_prediction_models()
 
-    def _initialize_pattern_detectors(self):
+    def _initialize_pattern_detectors(self) -> bool:
         """Initialize pattern detection algorithms."""
         self.pattern_detectors = {
             PatternType.USAGE_FREQUENCY: self._detect_usage_frequency_patterns,
@@ -160,7 +158,7 @@ class PatternPredictor:
             PatternType.PERFORMANCE_TREND: self._detect_performance_trends,
         }
 
-    def _initialize_prediction_models(self):
+    def _initialize_prediction_models(self) -> bool:
         """Initialize prediction models for different pattern types."""
         self.prediction_models = {
             PatternType.USAGE_FREQUENCY: "linear_regression",
@@ -181,8 +179,7 @@ class PatternPredictor:
         pattern_types: list[PatternType] | None = None,
         min_confidence: float = 0.6,
     ) -> Either[PredictiveModelingError, list[DetectedPattern]]:
-        """
-        Detect patterns in automation data features.
+        """Detect patterns in automation data features.
 
         Uses multiple pattern detection algorithms to identify various types of patterns
         in automation workflows and behaviors.
@@ -217,12 +214,15 @@ class PatternPredictor:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Pattern detection failed: {str(e)}", "PATTERN_DETECTION_ERROR"
-                )
+                    f"Pattern detection failed: {e!s}",
+                    "PATTERN_DETECTION_ERROR",
+                ),
             )
 
     async def _detect_usage_frequency_patterns(
-        self, features: list[PatternFeature], min_confidence: float
+        self,
+        features: list[PatternFeature],
+        min_confidence: float,
     ) -> Either[PredictiveModelingError, list[DetectedPattern]]:
         """Detect usage frequency patterns in automation data."""
         try:
@@ -269,13 +269,15 @@ class PatternPredictor:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Usage frequency pattern detection failed: {str(e)}",
+                    f"Usage frequency pattern detection failed: {e!s}",
                     "USAGE_PATTERN_ERROR",
-                )
+                ),
             )
 
     async def _detect_timing_patterns(
-        self, features: list[PatternFeature], min_confidence: float
+        self,
+        features: list[PatternFeature],
+        min_confidence: float,
     ) -> Either[PredictiveModelingError, list[DetectedPattern]]:
         """Detect timing patterns in automation execution."""
         try:
@@ -302,7 +304,8 @@ class PatternPredictor:
                         max_hour_count / total_count > 0.3
                     ):  # 30% concentration in one hour
                         peak_hour = max(
-                            hour_distribution.keys(), key=lambda h: hour_distribution[h]
+                            hour_distribution.keys(),
+                            key=lambda h: hour_distribution[h],
                         )
                         confidence = max_hour_count / total_count
 
@@ -329,7 +332,8 @@ class PatternPredictor:
                         max_day_count / total_count > 0.25
                     ):  # 25% concentration in one day
                         peak_day = max(
-                            day_distribution.keys(), key=lambda d: day_distribution[d]
+                            day_distribution.keys(),
+                            key=lambda d: day_distribution[d],
                         )
                         confidence = max_day_count / total_count
 
@@ -361,12 +365,15 @@ class PatternPredictor:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Timing pattern detection failed: {str(e)}", "TIMING_PATTERN_ERROR"
-                )
+                    f"Timing pattern detection failed: {e!s}",
+                    "TIMING_PATTERN_ERROR",
+                ),
             )
 
     async def _detect_sequence_patterns(
-        self, features: list[PatternFeature], min_confidence: float
+        self,
+        features: list[PatternFeature],
+        min_confidence: float,
     ) -> Either[PredictiveModelingError, list[DetectedPattern]]:
         """Detect workflow sequence patterns."""
         try:
@@ -396,7 +403,8 @@ class PatternPredictor:
                     if total_transitions >= 3:  # Minimum transitions for pattern
                         max_transition_count = max(next_states.values())
                         most_likely_next = max(
-                            next_states.keys(), key=lambda k: next_states[k]
+                            next_states.keys(),
+                            key=lambda k: next_states[k],
                         )
 
                         transition_probability = (
@@ -421,13 +429,15 @@ class PatternPredictor:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Sequence pattern detection failed: {str(e)}",
+                    f"Sequence pattern detection failed: {e!s}",
                     "SEQUENCE_PATTERN_ERROR",
-                )
+                ),
             )
 
     async def _detect_resource_patterns(
-        self, features: list[PatternFeature], min_confidence: float
+        self,
+        features: list[PatternFeature],
+        min_confidence: float,
     ) -> Either[PredictiveModelingError, list[DetectedPattern]]:
         """Detect resource consumption patterns."""
         try:
@@ -522,13 +532,15 @@ class PatternPredictor:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Resource pattern detection failed: {str(e)}",
+                    f"Resource pattern detection failed: {e!s}",
                     "RESOURCE_PATTERN_ERROR",
-                )
+                ),
             )
 
     async def _detect_error_patterns(
-        self, features: list[PatternFeature], min_confidence: float
+        self,
+        features: list[PatternFeature],
+        min_confidence: float,
     ) -> Either[PredictiveModelingError, list[DetectedPattern]]:
         """Detect error occurrence patterns."""
         try:
@@ -561,7 +573,8 @@ class PatternPredictor:
                             pattern_complexity=PatternComplexity.SIMPLE,
                             description=f"Elevated error rate in {feature.feature_name} ({error_rate:.1%})",
                             confidence_score=min(
-                                0.95, error_rate * 10
+                                0.95,
+                                error_rate * 10,
                             ),  # Scale to confidence
                             strength=error_rate,
                             supporting_features=[feature.feature_name],
@@ -589,7 +602,8 @@ class PatternPredictor:
                             pattern_complexity=PatternComplexity.SIMPLE,
                             description=f"High error count pattern in {feature.feature_name} (avg: {mean_errors:.1f})",
                             confidence_score=min(
-                                0.95, mean_errors / 10
+                                0.95,
+                                mean_errors / 10,
                             ),  # Scale to confidence
                             strength=min(1.0, mean_errors / 5),
                             supporting_features=[feature.feature_name],
@@ -602,12 +616,15 @@ class PatternPredictor:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Error pattern detection failed: {str(e)}", "ERROR_PATTERN_ERROR"
-                )
+                    f"Error pattern detection failed: {e!s}",
+                    "ERROR_PATTERN_ERROR",
+                ),
             )
 
     async def _detect_seasonal_patterns(
-        self, features: list[PatternFeature], min_confidence: float
+        self,
+        features: list[PatternFeature],
+        min_confidence: float,
     ) -> Either[PredictiveModelingError, list[DetectedPattern]]:
         """Detect seasonal behavior patterns."""
         try:
@@ -625,7 +642,9 @@ class PatternPredictor:
                 hourly_stats = defaultdict(list)
 
                 for timestamp, value in zip(
-                    feature.timestamps, feature.values, strict=False
+                    feature.timestamps,
+                    feature.values,
+                    strict=False,
                 ):
                     if isinstance(value, int | float):
                         monthly_stats[timestamp.month].append(float(value))
@@ -710,13 +729,15 @@ class PatternPredictor:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Seasonal pattern detection failed: {str(e)}",
+                    f"Seasonal pattern detection failed: {e!s}",
                     "SEASONAL_PATTERN_ERROR",
-                )
+                ),
             )
 
     async def _detect_user_behavior_patterns(
-        self, features: list[PatternFeature], min_confidence: float
+        self,
+        features: list[PatternFeature],
+        min_confidence: float,
     ) -> Either[PredictiveModelingError, list[DetectedPattern]]:
         """Detect user behavior patterns."""
         try:
@@ -749,7 +770,9 @@ class PatternPredictor:
 
                     # Find peak activity hours
                     peak_hours = sorted(
-                        activity_hours.items(), key=lambda x: x[1], reverse=True
+                        activity_hours.items(),
+                        key=lambda x: x[1],
+                        reverse=True,
                     )[:3]
 
                     if peak_hours:
@@ -776,13 +799,15 @@ class PatternPredictor:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"User behavior pattern detection failed: {str(e)}",
+                    f"User behavior pattern detection failed: {e!s}",
                     "USER_BEHAVIOR_PATTERN_ERROR",
-                )
+                ),
             )
 
     async def _detect_performance_trends(
-        self, features: list[PatternFeature], min_confidence: float
+        self,
+        features: list[PatternFeature],
+        min_confidence: float,
     ) -> Either[PredictiveModelingError, list[DetectedPattern]]:
         """Detect performance trend patterns."""
         try:
@@ -859,9 +884,9 @@ class PatternPredictor:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Performance trend detection failed: {str(e)}",
+                    f"Performance trend detection failed: {e!s}",
                     "PERFORMANCE_TREND_ERROR",
-                )
+                ),
             )
 
     @require(lambda pattern_id: len(pattern_id) > 0)
@@ -872,8 +897,7 @@ class PatternPredictor:
         horizon_hours: int,
         confidence_level: ConfidenceLevel = ConfidenceLevel.MEDIUM,
     ) -> Either[PredictionError, PatternPrediction]:
-        """
-        Predict future behavior based on detected pattern.
+        """Predict future behavior based on detected pattern.
 
         Uses appropriate prediction models based on pattern type to forecast
         future automation behavior and trends.
@@ -889,7 +913,10 @@ class PatternPredictor:
 
             # Generate prediction based on pattern type
             prediction_result = await self._generate_pattern_prediction(
-                pattern, horizon_hours, model_type, confidence_level
+                pattern,
+                horizon_hours,
+                model_type,
+                confidence_level,
             )
 
             if prediction_result.is_left():
@@ -938,25 +965,30 @@ class PatternPredictor:
             # Generate predicted values based on pattern type
             if pattern.pattern_type == PatternType.USAGE_FREQUENCY:
                 predicted_values = await self._predict_usage_frequency(
-                    pattern, horizon_hours
+                    pattern,
+                    horizon_hours,
                 )
             elif pattern.pattern_type == PatternType.EXECUTION_TIMING:
                 predicted_values = await self._predict_execution_timing(
-                    pattern, horizon_hours
+                    pattern,
+                    horizon_hours,
                 )
             elif pattern.pattern_type == PatternType.SEASONAL_BEHAVIOR:
                 predicted_values = await self._predict_seasonal_behavior(
-                    pattern, horizon_hours
+                    pattern,
+                    horizon_hours,
                 )
             else:
                 # Generic linear extrapolation for other patterns
                 predicted_values = await self._predict_generic_pattern(
-                    pattern, horizon_hours
+                    pattern,
+                    horizon_hours,
                 )
 
             # Generate confidence intervals
             confidence_intervals = self._generate_confidence_intervals(
-                predicted_values, confidence_level
+                predicted_values,
+                confidence_level,
             )
 
             # Calculate accuracy estimate
@@ -985,11 +1017,13 @@ class PatternPredictor:
 
         except Exception as e:
             return Either.left(
-                PredictionError.prediction_failed(pattern.pattern_id, str(e))
+                PredictionError.prediction_failed(pattern.pattern_id, str(e)),
             )
 
     async def _predict_usage_frequency(
-        self, pattern: DetectedPattern, horizon_hours: int
+        self,
+        pattern: DetectedPattern,
+        horizon_hours: int,
     ) -> list[float]:
         """Predict usage frequency patterns."""
         # Simple frequency-based prediction
@@ -1013,7 +1047,9 @@ class PatternPredictor:
         return predicted_values
 
     async def _predict_execution_timing(
-        self, pattern: DetectedPattern, horizon_hours: int
+        self,
+        pattern: DetectedPattern,
+        horizon_hours: int,
     ) -> list[float]:
         """Predict execution timing patterns."""
         # Timing-based prediction with hourly patterns
@@ -1040,7 +1076,9 @@ class PatternPredictor:
         return predicted_values
 
     async def _predict_seasonal_behavior(
-        self, pattern: DetectedPattern, horizon_hours: int
+        self,
+        pattern: DetectedPattern,
+        horizon_hours: int,
     ) -> list[float]:
         """Predict seasonal behavior patterns."""
         predicted_values = []
@@ -1069,7 +1107,9 @@ class PatternPredictor:
         return predicted_values
 
     async def _predict_generic_pattern(
-        self, pattern: DetectedPattern, horizon_hours: int
+        self,
+        pattern: DetectedPattern,
+        horizon_hours: int,
     ) -> list[float]:
         """Generic pattern prediction using linear extrapolation."""
         base_value = pattern.strength * 10
@@ -1090,7 +1130,9 @@ class PatternPredictor:
         return predicted_values
 
     def _generate_confidence_intervals(
-        self, predicted_values: list[float], confidence_level: ConfidenceLevel
+        self,
+        predicted_values: list[float],
+        confidence_level: ConfidenceLevel,
     ) -> list[tuple[float, float]]:
         """Generate confidence intervals for predictions."""
         confidence_multipliers = {
@@ -1128,7 +1170,7 @@ class PatternPredictor:
                             "description": pattern.description,
                             "confidence": pattern.confidence_score,
                             "strength": pattern.strength,
-                        }
+                        },
                     )
 
             return {
@@ -1141,6 +1183,6 @@ class PatternPredictor:
 
         except Exception as e:
             return {
-                "error": f"Failed to generate pattern summary: {str(e)}",
+                "error": f"Failed to generate pattern summary: {e!s}",
                 "timestamp": datetime.now(UTC).isoformat(),
             }

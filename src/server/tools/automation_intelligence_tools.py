@@ -1,5 +1,4 @@
-"""
-Automation Intelligence MCP Tools for Adaptive Learning & Behavior Analysis.
+"""Automation Intelligence MCP Tools for Adaptive Learning & Behavior Analysis.
 
 This module provides comprehensive behavioral analysis, pattern learning, and
 intelligent automation suggestions through advanced machine learning and
@@ -58,7 +57,7 @@ class AutomationIntelligenceTools:
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Intelligence system initialization failed: {str(e)}")
+            logger.error(f"Intelligence system initialization failed: {e!s}")
             return Either.left(IntelligenceError.initialization_failed(str(e)))
 
 
@@ -69,21 +68,21 @@ automation_intelligence_tools = AutomationIntelligenceTools()
 @mcp.tool()
 @require(
     lambda operation: operation
-    in ["analyze", "learn", "suggest", "optimize", "predict", "insights"]
+    in ["analyze", "learn", "suggest", "optimize", "predict", "insights"],
 )
 @require(
     lambda analysis_scope: analysis_scope
-    in ["user_behavior", "automation_patterns", "performance", "usage"]
+    in ["user_behavior", "automation_patterns", "performance", "usage"],
 )
 @require(lambda time_period: time_period in ["1d", "7d", "30d", "90d", "all"])
 @require(
     lambda learning_mode: learning_mode
-    in ["adaptive", "supervised", "unsupervised", "reinforcement"]
+    in ["adaptive", "supervised", "unsupervised", "reinforcement"],
 )
 @require(lambda privacy_level: privacy_level in ["strict", "balanced", "permissive"])
 @require(
     lambda optimization_target: optimization_target
-    in ["efficiency", "accuracy", "speed", "user_satisfaction"]
+    in ["efficiency", "accuracy", "speed", "user_satisfaction"],
 )
 @require(lambda suggestion_count: 1 <= suggestion_count <= 20)
 @require(lambda confidence_threshold: 0.0 <= confidence_threshold <= 1.0)
@@ -101,8 +100,7 @@ async def km_automation_intelligence(
     anonymize_data: bool = True,  # Anonymize behavioral data
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Advanced automation intelligence with behavioral analysis and adaptive learning.
+    """Advanced automation intelligence with behavioral analysis and adaptive learning.
 
     Provides comprehensive behavioral pattern analysis, intelligent automation suggestions,
     and adaptive learning capabilities while maintaining strict privacy protection and
@@ -134,6 +132,7 @@ async def km_automation_intelligence(
         - Sub-second analysis with intelligent caching
         - Optimized pattern recognition algorithms
         - Efficient data processing and storage
+
     """
     try:
         # Ensure system is initialized
@@ -162,7 +161,7 @@ async def km_automation_intelligence(
 
         # Security validation
         security_result = automation_intelligence_tools.security_validator.validate_suggestion_context(
-            context
+            context,
         )
         if security_result.is_left():
             return {
@@ -222,7 +221,7 @@ async def km_automation_intelligence(
                 "patterns_analyzed": result_data.get("total_patterns", 0),
                 "confidence_patterns": result_data.get("high_confidence_patterns", 0),
                 "efficiency_opportunities": len(
-                    result_data.get("efficiency_opportunities", [])
+                    result_data.get("efficiency_opportunities", []),
                 ),
             }
         elif operation == "suggest":
@@ -233,7 +232,7 @@ async def km_automation_intelligence(
                         s
                         for s in result_data.get("suggestions", [])
                         if s.get("confidence", 0) >= confidence_threshold
-                    ]
+                    ],
                 ),
                 "average_confidence": result_data.get("average_confidence", 0.0),
             }
@@ -242,7 +241,8 @@ async def km_automation_intelligence(
                 "optimizations_identified": len(result_data.get("optimizations", [])),
                 "potential_time_savings": result_data.get("total_time_savings", 0.0),
                 "implementation_complexity": result_data.get(
-                    "average_complexity", "unknown"
+                    "average_complexity",
+                    "unknown",
                 ),
             }
 
@@ -255,24 +255,24 @@ async def km_automation_intelligence(
         }
 
         logger.info(
-            f"Intelligence operation '{operation}' completed successfully in {processing_time:.3f}s"
+            f"Intelligence operation '{operation}' completed successfully in {processing_time:.3f}s",
         )
         return response
 
     except ValueError as e:
-        logger.error(f"Invalid parameter in intelligence operation: {str(e)}")
+        logger.error(f"Invalid parameter in intelligence operation: {e!s}")
         return {
             "success": False,
-            "error": f"Invalid parameter: {str(e)}",
+            "error": f"Invalid parameter: {e!s}",
             "operation": operation,
             "timestamp": datetime.now(UTC).isoformat(),
         }
 
     except Exception as e:
-        logger.error(f"Unexpected error in intelligence operation: {str(e)}")
+        logger.error(f"Unexpected error in intelligence operation: {e!s}")
         return {
             "success": False,
-            "error": f"Intelligence system error: {str(e)}",
+            "error": f"Intelligence system error: {e!s}",
             "operation": operation,
             "timestamp": datetime.now(UTC).isoformat(),
         }

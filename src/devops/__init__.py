@@ -1,5 +1,4 @@
-"""
-DevOps integration package for developer toolkit and CI/CD automation.
+"""DevOps integration package for developer toolkit and CI/CD automation.
 
 This package provides comprehensive DevOps capabilities including:
 - Git integration and version control automation
@@ -15,18 +14,18 @@ from .deployment_engine import DeploymentEngine, DeploymentResult, DeploymentStr
 from .git_connector import BranchInfo, GitConnector, GitOperation
 
 __all__ = [
-    # Core classes
-    "GitConnector",
-    "CICDPipeline",
-    "APIManager",
-    "DeploymentEngine",
-    # Data structures
-    "GitOperation",
-    "BranchInfo",
-    "PipelineConfig",
-    "BuildResult",
     "APIDocumentation",
     "APIGovernance",
-    "DeploymentStrategy",
+    "APIManager",
+    "BranchInfo",
+    "BuildResult",
+    "CICDPipeline",
+    "DeploymentEngine",
     "DeploymentResult",
+    "DeploymentStrategy",
+    # Core classes
+    "GitConnector",
+    # Data structures
+    "GitOperation",
+    "PipelineConfig",
 ]

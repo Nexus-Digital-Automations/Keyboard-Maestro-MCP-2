@@ -1,5 +1,4 @@
-"""
-Smart Filtering and Search for Macro Discovery
+"""Smart Filtering and Search for Macro Discovery.
 
 Provides advanced search, categorization, pattern recognition,
 and intelligent filtering capabilities for macro libraries.
@@ -96,7 +95,9 @@ class SmartMacroFilter:
         # Text search
         if query.text:
             filtered_macros = self._apply_text_search(
-                filtered_macros, query.text, query.scope
+                filtered_macros,
+                query.text,
+                query.scope,
             )
             applied_filters["text_search"] = query.text
 
@@ -173,7 +174,9 @@ class SmartMacroFilter:
 
         # Generate suggestions
         suggestions = self._generate_search_suggestions(
-            macros, query, len(filtered_macros)
+            macros,
+            query,
+            len(filtered_macros),
         )
 
         search_time = (time.perf_counter() - start_time) * 1000
@@ -206,13 +209,15 @@ class SmartMacroFilter:
 
         # Sort by similarity (highest first)
         similar_macros.sort(
-            key=lambda m: self._calculate_similarity(target_macro, m), reverse=True
+            key=lambda m: self._calculate_similarity(target_macro, m),
+            reverse=True,
         )
 
         return similar_macros
 
     def categorize_macro_library(
-        self, macros: list[EnhancedMacroMetadata]
+        self,
+        macros: list[EnhancedMacroMetadata],
     ) -> dict[str, list[EnhancedMacroMetadata]]:
         """Automatically categorize macro library by function and pattern."""
         categories = defaultdict(list)
@@ -241,7 +246,7 @@ class SmartMacroFilter:
             # Group-based categorization
             if macro.group:
                 categories[f"group_{macro.group.lower().replace(' ', '_')}"].append(
-                    macro
+                    macro,
                 )
 
         return dict(categories)
@@ -259,7 +264,7 @@ class SmartMacroFilter:
 
         if unused_count > len(macros) * 0.3:
             insights.append(
-                f"{unused_count} macros ({unused_count / len(macros) * 100:.1f}%) have never been used"
+                f"{unused_count} macros ({unused_count / len(macros) * 100:.1f}%) have never been used",
             )
 
         # Complexity distribution
@@ -269,7 +274,7 @@ class SmartMacroFilter:
 
         if complexity_counts[ComplexityLevel.ADVANCED] > len(macros) * 0.2:
             insights.append(
-                f"High complexity detected: {complexity_counts[ComplexityLevel.ADVANCED]} advanced macros may need refactoring"
+                f"High complexity detected: {complexity_counts[ComplexityLevel.ADVANCED]} advanced macros may need refactoring",
             )
 
         # Function distribution
@@ -279,7 +284,7 @@ class SmartMacroFilter:
 
         top_function = max(function_counts.keys(), key=lambda k: function_counts[k])
         insights.append(
-            f"Most common automation: {top_function.value} ({function_counts[top_function]} macros)"
+            f"Most common automation: {top_function.value} ({function_counts[top_function]} macros)",
         )
 
         # Success rate analysis
@@ -290,7 +295,7 @@ class SmartMacroFilter:
         ]
         if low_success_macros:
             insights.append(
-                f"{len(low_success_macros)} macros have low success rates and may need debugging"
+                f"{len(low_success_macros)} macros have low success rates and may need debugging",
             )
 
         return {
@@ -303,7 +308,10 @@ class SmartMacroFilter:
         }
 
     def _apply_text_search(
-        self, macros: list[EnhancedMacroMetadata], search_text: str, scope: SearchScope
+        self,
+        macros: list[EnhancedMacroMetadata],
+        search_text: str,
+        scope: SearchScope,
     ) -> list[EnhancedMacroMetadata]:
         """Apply text search based on scope."""
         search_lower = search_text.lower()
@@ -353,22 +361,26 @@ class SmartMacroFilter:
         return results
 
     def _sort_macros(
-        self, macros: list[EnhancedMacroMetadata], sort_by: SortCriteria
+        self,
+        macros: list[EnhancedMacroMetadata],
+        sort_by: SortCriteria,
     ) -> list[EnhancedMacroMetadata]:
         """Sort macros by specified criteria."""
         if sort_by == SortCriteria.NAME:
             return sorted(macros, key=lambda m: m.name.lower())
-        elif sort_by == SortCriteria.LAST_USED:
+        if sort_by == SortCriteria.LAST_USED:
             return sorted(
                 macros,
                 key=lambda m: m.usage_stats.last_executed or datetime.min,
                 reverse=True,
             )
-        elif sort_by == SortCriteria.USAGE_FREQUENCY:
+        if sort_by == SortCriteria.USAGE_FREQUENCY:
             return sorted(
-                macros, key=lambda m: m.usage_stats.total_executions, reverse=True
+                macros,
+                key=lambda m: m.usage_stats.total_executions,
+                reverse=True,
             )
-        elif sort_by == SortCriteria.COMPLEXITY:
+        if sort_by == SortCriteria.COMPLEXITY:
             complexity_order = {
                 ComplexityLevel.SIMPLE: 1,
                 ComplexityLevel.MODERATE: 2,
@@ -376,21 +388,25 @@ class SmartMacroFilter:
                 ComplexityLevel.ADVANCED: 4,
             }
             return sorted(macros, key=lambda m: complexity_order[m.complexity])
-        elif sort_by == SortCriteria.GROUP:
+        if sort_by == SortCriteria.GROUP:
             return sorted(macros, key=lambda m: (m.group.lower(), m.name.lower()))
-        elif sort_by == SortCriteria.SUCCESS_RATE:
+        if sort_by == SortCriteria.SUCCESS_RATE:
             return sorted(
-                macros, key=lambda m: m.usage_stats.success_rate, reverse=True
+                macros,
+                key=lambda m: m.usage_stats.success_rate,
+                reverse=True,
             )
-        elif sort_by == SortCriteria.PRIMARY_FUNCTION:
+        if sort_by == SortCriteria.PRIMARY_FUNCTION:
             return sorted(
-                macros, key=lambda m: (m.primary_function.value, m.name.lower())
+                macros,
+                key=lambda m: (m.primary_function.value, m.name.lower()),
             )
-        else:
-            return macros
+        return macros
 
     def _calculate_similarity(
-        self, macro1: EnhancedMacroMetadata, macro2: EnhancedMacroMetadata
+        self,
+        macro1: EnhancedMacroMetadata,
+        macro2: EnhancedMacroMetadata,
     ) -> float:
         """Calculate similarity score between two macros."""
         similarity_factors = []
@@ -406,18 +422,19 @@ class SmartMacroFilter:
         # Trigger similarity
         trigger_overlap = len(
             {t.category for t in macro1.triggers}
-            & {t.category for t in macro2.triggers}
+            & {t.category for t in macro2.triggers},
         )
         if macro1.triggers and macro2.triggers:
             trigger_similarity = trigger_overlap / max(
-                len(macro1.triggers), len(macro2.triggers)
+                len(macro1.triggers),
+                len(macro2.triggers),
             )
             similarity_factors.append(trigger_similarity * 0.2)
 
         # Complexity similarity
         complexity_distance = abs(
             list(ComplexityLevel).index(macro1.complexity)
-            - list(ComplexityLevel).index(macro2.complexity)
+            - list(ComplexityLevel).index(macro2.complexity),
         )
         complexity_similarity = 1.0 - (complexity_distance / len(ComplexityLevel))
         similarity_factors.append(complexity_similarity * 0.1)
@@ -464,12 +481,12 @@ class SmartMacroFilter:
 
             if query.text:
                 suggestions.append(
-                    f"Try searching for partial matches of '{query.text}'"
+                    f"Try searching for partial matches of '{query.text}'",
                 )
 
             if query.enabled_only:
                 suggestions.append(
-                    "Include disabled macros by setting enabled_only=False"
+                    "Include disabled macros by setting enabled_only=False",
                 )
 
             if query.complexity_levels:
@@ -477,13 +494,13 @@ class SmartMacroFilter:
 
         elif result_count > 50:
             suggestions.append(
-                "Many results found. Consider adding more specific filters."
+                "Many results found. Consider adding more specific filters.",
             )
 
             if not query.action_categories:
                 popular_categories = self._get_popular_categories(all_macros)
                 suggestions.append(
-                    f"Filter by category: {', '.join(popular_categories[:3])}"
+                    f"Filter by category: {', '.join(popular_categories[:3])}",
                 )
 
             if not query.groups:
@@ -493,11 +510,11 @@ class SmartMacroFilter:
         # Usage-based suggestions
         if not query.min_usage_count and all_macros:
             avg_usage = sum(m.usage_stats.total_executions for m in all_macros) / len(
-                all_macros
+                all_macros,
             )
             if avg_usage > 5:
                 suggestions.append(
-                    f"Filter frequently used macros with min_usage_count > {int(avg_usage)}"
+                    f"Filter frequently used macros with min_usage_count > {int(avg_usage)}",
                 )
 
         return suggestions
@@ -509,7 +526,9 @@ class SmartMacroFilter:
             category_counts[macro.primary_function.value] += 1
 
         return sorted(
-            category_counts.keys(), key=lambda k: category_counts[k], reverse=True
+            category_counts.keys(),
+            key=lambda k: category_counts[k],
+            reverse=True,
         )
 
     def _get_popular_groups(self, macros: list[EnhancedMacroMetadata]) -> list[str]:
@@ -526,7 +545,7 @@ class SmartMacroFilter:
         return {
             "email": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"),
             "url": re.compile(
-                r"https?://(?:[-\w.])+(?:[:\d]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:#(?:\w)*)?)?"
+                r"https?://(?:[-\w.])+(?:[:\d]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:#(?:\w)*)?)?",
             ),
             "file_path": re.compile(r"[/\\](?:[^/\\]+[/\\])*[^/\\]+"),
             "hotkey": re.compile(r"(⌘|⌥|⇧|⌃|Command|Option|Shift|Control)\s*\+?\s*\w"),

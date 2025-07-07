@@ -1,5 +1,4 @@
-"""
-Macro Command Library - Public API
+"""Macro Command Library - Public API.
 
 Provides a comprehensive library of macro commands with strong type safety,
 contract-based validation, and security boundaries.
@@ -37,32 +36,32 @@ def get_command_registry() -> CommandRegistry:
 
 # Expose key types for external use
 __all__ = [
+    "ActivateApplicationCommand",
     # Base classes
     "BaseCommand",
+    "BreakCommand",
     "CommandContract",
     # Registry
     "CommandRegistry",
-    "get_command_registry",
-    # Text commands
-    "TypeTextCommand",
+    "CommandSecurityError",
+    # Flow control commands
+    "ConditionalCommand",
     "FindTextCommand",
-    "ReplaceTextCommand",
+    # Application commands
+    "LaunchApplicationCommand",
+    "LoopCommand",
     # System commands
     "PauseCommand",
     "PlaySoundCommand",
-    "SetVolumeCommand",
-    # Application commands
-    "LaunchApplicationCommand",
     "QuitApplicationCommand",
-    "ActivateApplicationCommand",
-    # Flow control commands
-    "ConditionalCommand",
-    "LoopCommand",
-    "BreakCommand",
+    "ReplaceTextCommand",
+    "SecurityValidator",
+    "SetVolumeCommand",
+    # Text commands
+    "TypeTextCommand",
+    "get_command_registry",
+    "validate_command_parameters",
+    "validate_file_path",
     # Validation
     "validate_text_input",
-    "validate_file_path",
-    "validate_command_parameters",
-    "SecurityValidator",
-    "CommandSecurityError",
 ]

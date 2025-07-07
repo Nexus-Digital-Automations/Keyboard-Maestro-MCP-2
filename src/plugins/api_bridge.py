@@ -1,5 +1,4 @@
-"""
-Plugin API bridge providing secure access to all existing MCP tools.
+"""Plugin API bridge providing secure access to all existing MCP tools.
 
 This module creates a secure bridge that allows plugins to access all 38 existing
 MCP tools while maintaining security boundaries and resource management.
@@ -57,7 +56,7 @@ class APICallMetrics:
     error_count: int = 0
     average_response_time: float = 0.0
 
-    def record_call(self, response_time: float, success: bool, resource_cost: int):
+    def record_call(self, response_time: float, success: bool, resource_cost: int) -> None:
         """Record API call metrics."""
         self.call_count += 1
         self.last_call = datetime.now()
@@ -102,7 +101,7 @@ class RateLimiter:
         current_calls = len(self.call_history[key])
         return current_calls < limit
 
-    def record_call(self, plugin_id: PluginId, tool_name: str):
+    def record_call(self, plugin_id: PluginId, tool_name: str) -> None:
         """Record an API call."""
         key = f"{plugin_id}:{tool_name}"
         if key not in self.call_history:
@@ -134,13 +133,13 @@ class PluginAPIBridge:
             await self._discover_mcp_tools()
             await self._load_tool_modules()
             logger.info(
-                f"API bridge initialized with {len(self.available_tools)} tools"
+                f"API bridge initialized with {len(self.available_tools)} tools",
             )
             return Either.right(None)
 
         except Exception as e:
             return Either.left(
-                PluginError.initialization_failed(f"API bridge init failed: {str(e)}")
+                PluginError.initialization_failed(f"API bridge init failed: {e!s}"),
             )
 
     async def _discover_mcp_tools(self):
@@ -361,17 +360,17 @@ class PluginAPIBridge:
                 self.tool_modules[tool_name] = module
                 logger.debug(f"Loaded module for tool: {tool_name}")
             except ImportError as e:
-                logger.warning(f"Failed to load module for {tool_name}: {str(e)}")
+                logger.warning(f"Failed to load module for {tool_name}: {e!s}")
                 # For testing, create a mock function
                 self.tool_modules[tool_name] = self._create_mock_tool(tool_name)
                 continue
 
-    def _create_mock_tool(self, tool_name: str):
+    def _create_mock_tool(self, tool_name: str) -> dict[str, Any]:
         """Create mock tool module for testing."""
 
         class MockModule:
             def __getattr__(self, name):
-                def mock_function(*args, **kwargs):
+                def mock_function(*args, **kwargs) -> dict[str, Any]:
                     return {"success": True, "mock": True, "tool": tool_name}
 
                 return mock_function
@@ -385,8 +384,7 @@ class PluginAPIBridge:
         tool_name: str,
         parameters: dict[str, Any],
     ) -> Either[PluginError, Any]:
-        """
-        Secure API call to an MCP tool with comprehensive validation.
+        """Secure API call to an MCP tool with comprehensive validation.
 
         Design by Contract:
         Preconditions:
@@ -411,38 +409,45 @@ class PluginAPIBridge:
             # Validate plugin authorization
             if plugin_id not in self.authorized_plugins:
                 return Either.left(
-                    PluginError.permission_denied(f"Plugin not authorized: {plugin_id}")
+                    PluginError.permission_denied(
+                        f"Plugin not authorized: {plugin_id}"
+                    ),
                 )
 
             # Validate tool exists
             if tool_name not in self.available_tools:
                 return Either.left(
-                    PluginError(f"Tool not found: {tool_name}", "TOOL_NOT_FOUND")
+                    PluginError(f"Tool not found: {tool_name}", "TOOL_NOT_FOUND"),
                 )
 
             tool_def = self.available_tools[tool_name]
 
             # Security validation
             security_result = await self._validate_security(
-                plugin_id, plugin_permissions, tool_def
+                plugin_id,
+                plugin_permissions,
+                tool_def,
             )
             if security_result.is_left():
                 return security_result
 
             # Rate limiting
             if tool_def.rate_limit and not self.rate_limiter.is_allowed(
-                plugin_id, tool_name, tool_def.rate_limit
+                plugin_id,
+                tool_name,
+                tool_def.rate_limit,
             ):
                 return Either.left(
                     PluginError(
                         f"Rate limit exceeded for {tool_name}: {tool_def.rate_limit}/min",
                         "RATE_LIMIT_EXCEEDED",
-                    )
+                    ),
                 )
 
             # Resource validation
             resource_result = await self._validate_resources(
-                plugin_id, tool_def.resource_cost
+                plugin_id,
+                tool_def.resource_cost,
             )
             if resource_result.is_left():
                 return resource_result
@@ -472,7 +477,11 @@ class PluginAPIBridge:
         except Exception as e:
             response_time = (datetime.now() - start_time).total_seconds()
             self._record_metrics(
-                plugin_id, tool_name, response_time, False, tool_def.resource_cost
+                plugin_id,
+                tool_name,
+                response_time,
+                False,
+                tool_def.resource_cost,
             )
 
             context = create_error_context(
@@ -497,13 +506,15 @@ class PluginAPIBridge:
                 if not plugin_permissions.has_permission(required_permission):
                     return Either.left(
                         PluginError.permission_denied(
-                            f"Plugin lacks permission: {required_permission}"
-                        )
+                            f"Plugin lacks permission: {required_permission}",
+                        ),
                     )
 
             # Validate security level compatibility
             plugin_security_level = getattr(
-                plugin_permissions, "security_profile", SecurityProfile.STANDARD
+                plugin_permissions,
+                "security_profile",
+                SecurityProfile.STANDARD,
             )
             if (
                 tool_def.security_level == SecurityProfile.STRICT
@@ -512,19 +523,21 @@ class PluginAPIBridge:
             ):
                 return Either.left(
                     PluginError.security_violation(
-                        f"Tool requires strict security profile, plugin has: {plugin_security_level}"
-                    )
+                        f"Tool requires strict security profile, plugin has: {plugin_security_level}",
+                    ),
                 )
 
             return Either.right(None)
 
         except Exception as e:
             return Either.left(
-                PluginError.security_violation(f"Security validation failed: {str(e)}")
+                PluginError.security_violation(f"Security validation failed: {e!s}"),
             )
 
     async def _validate_resources(
-        self, plugin_id: PluginId, resource_cost: int
+        self,
+        plugin_id: PluginId,
+        resource_cost: int,
     ) -> Either[PluginError, None]:
         """Validate plugin hasn't exceeded resource limits."""
         try:
@@ -541,18 +554,20 @@ class PluginAPIBridge:
                     PluginError(
                         f"Resource limit exceeded: {current_usage + resource_cost} > {max_resources}",
                         "RESOURCE_LIMIT_EXCEEDED",
-                    )
+                    ),
                 )
 
             return Either.right(None)
 
         except Exception as e:
             return Either.left(
-                PluginError(f"Resource validation failed: {str(e)}", "RESOURCE_ERROR")
+                PluginError(f"Resource validation failed: {e!s}", "RESOURCE_ERROR"),
             )
 
     async def _sanitize_parameters(
-        self, tool_name: str, parameters: dict[str, Any]
+        self,
+        tool_name: str,
+        parameters: dict[str, Any],
     ) -> dict[str, Any]:
         """Sanitize and validate parameters for security."""
         # Basic parameter sanitization
@@ -579,7 +594,9 @@ class PluginAPIBridge:
         return sanitized
 
     async def _execute_tool(
-        self, tool_name: str, parameters: dict[str, Any]
+        self,
+        tool_name: str,
+        parameters: dict[str, Any],
     ) -> Either[PluginError, Any]:
         """Execute the specified MCP tool with parameters."""
         try:
@@ -589,8 +606,9 @@ class PluginAPIBridge:
             if not module:
                 return Either.left(
                     PluginError(
-                        f"Module not loaded for tool: {tool_name}", "MODULE_NOT_FOUND"
-                    )
+                        f"Module not loaded for tool: {tool_name}",
+                        "MODULE_NOT_FOUND",
+                    ),
                 )
 
             # Get the function
@@ -600,7 +618,7 @@ class PluginAPIBridge:
                     PluginError(
                         f"Function not found: {tool_def.function_name}",
                         "FUNCTION_NOT_FOUND",
-                    )
+                    ),
                 )
 
             # Execute with timeout
@@ -608,7 +626,8 @@ class PluginAPIBridge:
 
             if asyncio.iscoroutinefunction(tool_function):
                 result = await asyncio.wait_for(
-                    tool_function(**parameters), timeout=timeout
+                    tool_function(**parameters),
+                    timeout=timeout,
                 )
             else:
                 result = tool_function(**parameters)
@@ -617,11 +636,13 @@ class PluginAPIBridge:
 
         except asyncio.TimeoutError:
             return Either.left(
-                PluginError(f"Tool execution timeout: {tool_name}", "EXECUTION_TIMEOUT")
+                PluginError(
+                    f"Tool execution timeout: {tool_name}", "EXECUTION_TIMEOUT"
+                ),
             )
         except Exception as e:
             return Either.left(
-                PluginError.execution_error(f"Tool execution failed: {str(e)}")
+                PluginError.execution_error(f"Tool execution failed: {e!s}"),
             )
 
     def _record_metrics(
@@ -631,7 +652,7 @@ class PluginAPIBridge:
         response_time: float,
         success: bool,
         resource_cost: int,
-    ):
+    ) -> Any:
         """Record API call metrics for monitoring and analysis."""
         key = f"{plugin_id}:{tool_name}"
 
@@ -640,18 +661,19 @@ class PluginAPIBridge:
 
         self.metrics[key].record_call(response_time, success, resource_cost)
 
-    def authorize_plugin(self, plugin_id: PluginId):
+    def authorize_plugin(self, plugin_id: PluginId) -> Any:
         """Authorize a plugin to use the API bridge."""
         self.authorized_plugins.add(plugin_id)
         logger.info(f"Plugin authorized for API access: {plugin_id}")
 
-    def revoke_plugin_authorization(self, plugin_id: PluginId):
+    def revoke_plugin_authorization(self, plugin_id: PluginId) -> Any:
         """Revoke plugin authorization."""
         self.authorized_plugins.discard(plugin_id)
         logger.info(f"Plugin authorization revoked: {plugin_id}")
 
     def get_available_tools(
-        self, plugin_permissions: PluginPermissions
+        self,
+        plugin_permissions: PluginPermissions,
     ) -> list[dict[str, Any]]:
         """Get list of tools available to plugin based on permissions."""
         available = []
@@ -672,7 +694,7 @@ class PluginAPIBridge:
                         "rate_limit": tool_def.rate_limit,
                         "resource_cost": tool_def.resource_cost,
                         "permissions_required": list(tool_def.permissions_required),
-                    }
+                    },
                 )
 
         return available

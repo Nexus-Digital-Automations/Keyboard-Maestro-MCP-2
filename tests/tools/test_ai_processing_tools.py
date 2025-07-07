@@ -1,11 +1,13 @@
-"""
-Comprehensive tests for AI processing MCP tools using systematic MCP tool test pattern.
+"""Comprehensive tests for AI processing MCP tools using systematic MCP tool test pattern.
 
 This module provides extensive testing for AI/ML model integration including
 text analysis, image processing, content generation, and intelligent automation.
 Tests follow the proven systematic pattern that achieved 100% success across 21 tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -24,19 +26,19 @@ class TestAIProcessingManager:
     """Test suite for AI processing manager using systematic MCP tool test pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> bool:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-123"}
         return context
 
     @pytest.fixture
-    def ai_manager(self):
+    def ai_manager(self) -> bool:
         """Create AI processing manager instance with systematic pattern."""
         return AIProcessingManager()
 
     @pytest.mark.asyncio
-    async def test_initialization_success(self, ai_manager):
+    async def test_initialization_success(self, ai_manager) -> None:
         """Test successful AI manager initialization using systematic pattern."""
         # Apply systematic Either.right() pattern
         result = await ai_manager.initialize()
@@ -45,7 +47,7 @@ class TestAIProcessingManager:
         assert ai_manager.initialized is True
 
     @pytest.mark.asyncio
-    async def test_ai_request_processing_success(self, ai_manager):
+    async def test_ai_request_processing_success(self, ai_manager) -> None:
         """Test AI request processing using systematic pattern."""
         # Initialize first
         await ai_manager.initialize()
@@ -74,10 +76,14 @@ class TestAIProcessingManager:
                     return_value=Either.right(None),
                 ),
                 patch.object(
-                    ai_manager, "_select_model", return_value=Either.right(real_model)
+                    ai_manager,
+                    "_select_model",
+                    return_value=Either.right(real_model),
                 ),
                 patch.object(
-                    ai_manager, "_format_response", return_value=mock_response
+                    ai_manager,
+                    "_format_response",
+                    return_value=mock_response,
                 ),
                 patch.object(ai_manager, "_record_usage"),
                 patch(
@@ -103,14 +109,14 @@ class TestKMAIProcessing:
     """Test suite for km_ai_processing MCP tool using proven systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-123"}
         return context
 
     @pytest.fixture
-    def sample_ai_operations(self):
+    def sample_ai_operations(self) -> Any:
         """Sample AI operations for testing."""
         return {
             "text_analysis": {
@@ -129,8 +135,10 @@ class TestKMAIProcessing:
 
     @pytest.mark.asyncio
     async def test_ai_processing_success_basic(
-        self, mock_context, sample_ai_operations
-    ):
+        self,
+        mock_context,
+        sample_ai_operations,
+    ) -> None:
         """Test successful AI processing with basic operation."""
         with patch("src.server.tools.ai_core_tools.ai_manager") as mock_manager:
             # Apply systematic Either.right() success pattern with full formatted response
@@ -160,12 +168,14 @@ class TestKMAIProcessing:
                 },
             }
             mock_manager.process_ai_request = AsyncMock(
-                return_value=Either.right(mock_response)
+                return_value=Either.right(mock_response),
             )
             mock_manager.initialized = True
 
             result = await km_ai_processing(
-                operation="analyze", input_data="Test input text", ctx=mock_context
+                operation="analyze",
+                input_data="Test input text",
+                ctx=mock_context,
             )
 
         assert result["success"] is True
@@ -174,7 +184,7 @@ class TestKMAIProcessing:
         assert result["metadata"]["model_used"] == "gpt-3.5-turbo"
 
     @pytest.mark.asyncio
-    async def test_ai_processing_initialization_error(self, mock_context):
+    async def test_ai_processing_initialization_error(self, mock_context) -> None:
         """Test AI processing with uninitialized system."""
         with patch("src.server.tools.ai_core_tools.ai_manager") as mock_manager:
             # Apply systematic Either.left() error pattern - mock ai_manager completely
@@ -185,12 +195,14 @@ class TestKMAIProcessing:
                         "not_initialized",
                         "AI system not initialized",
                         "must be initialized",
-                    )
-                )
+                    ),
+                ),
             )
 
             result = await km_ai_processing(
-                operation="analyze", input_data="Test input text", ctx=mock_context
+                operation="analyze",
+                input_data="Test input text",
+                ctx=mock_context,
             )
 
         assert result["success"] is False
@@ -198,19 +210,21 @@ class TestKMAIProcessing:
         assert "initialized" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_ai_processing_validation_error(self, mock_context):
+    async def test_ai_processing_validation_error(self, mock_context) -> None:
         """Test AI processing with validation error."""
         with patch("src.server.tools.ai_core_tools.ai_manager") as mock_manager:
             # Apply systematic ValidationError pattern
             mock_manager.initialized = True
             mock_manager.process_ai_request = AsyncMock(
                 return_value=Either.left(
-                    ValidationError("input_data", "", "must not be empty")
-                )
+                    ValidationError("input_data", "", "must not be empty"),
+                ),
             )
 
             result = await km_ai_processing(
-                operation="analyze", input_data="", ctx=mock_context
+                operation="analyze",
+                input_data="",
+                ctx=mock_context,
             )
 
         assert result["success"] is False
@@ -222,14 +236,14 @@ class TestKMAIStatus:
     """Test suite for km_ai_status MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-456"}
         return context
 
     @pytest.mark.asyncio
-    async def test_ai_status_initialized(self, mock_context):
+    async def test_ai_status_initialized(self, mock_context) -> None:
         """Test AI status when system is initialized."""
         with patch("src.server.tools.ai_core_tools.ai_manager") as mock_manager:
             # Apply systematic Either.right() success pattern
@@ -250,7 +264,7 @@ class TestKMAIStatus:
         assert len(result["status"]["usage_history"]) == 1
 
     @pytest.mark.asyncio
-    async def test_ai_status_not_initialized(self, mock_context):
+    async def test_ai_status_not_initialized(self, mock_context) -> None:
         """Test AI status when system is not initialized."""
         with patch("src.server.tools.ai_core_tools.ai_manager") as mock_manager:
             # Apply systematic pattern for uninitialized state
@@ -264,8 +278,8 @@ class TestKMAIStatus:
                         "initialization_failed",
                         "Unable to initialize",
                         "System requirements not met",
-                    )
-                )
+                    ),
+                ),
             )
             mock_manager.get_system_status.return_value = {
                 "initialized": False,
@@ -284,14 +298,14 @@ class TestKMAIModels:
     """Test suite for km_ai_models MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-789"}
         return context
 
     @pytest.mark.asyncio
-    async def test_ai_models_list_success(self, mock_context):
+    async def test_ai_models_list_success(self, mock_context) -> None:
         """Test successful AI models listing."""
         result = await km_ai_models(ctx=mock_context)
 
@@ -308,7 +322,7 @@ class TestKMAIModels:
         assert "max_tokens" in model or "supported_operations" in model
 
     @pytest.mark.asyncio
-    async def test_ai_models_with_filter(self, mock_context):
+    async def test_ai_models_with_filter(self, mock_context) -> None:
         """Test AI models listing with model type filter."""
         result = await km_ai_models(provider="openai", ctx=mock_context)
 
@@ -325,14 +339,14 @@ class TestAIProcessingIntegration:
     """Integration tests for AI processing tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-integration-123"}
         return context
 
     @pytest.mark.asyncio
-    async def test_ai_workflow_text_analysis(self, mock_context):
+    async def test_ai_workflow_text_analysis(self, mock_context) -> None:
         """Test complete AI text analysis workflow."""
         with patch("src.server.tools.ai_core_tools.ai_manager") as mock_manager:
             # Apply systematic workflow pattern
@@ -352,8 +366,8 @@ class TestAIProcessingIntegration:
                             "model_used": "gpt-3.5-turbo",
                             "timestamp": "2025-07-04T24:30:00Z",
                         },
-                    }
-                )
+                    },
+                ),
             )
 
             # Test km_ai_processing
@@ -369,7 +383,7 @@ class TestAIProcessingIntegration:
         assert result["result"]["confidence"] == 0.92
 
     @pytest.mark.asyncio
-    async def test_ai_workflow_status_models_integration(self, mock_context):
+    async def test_ai_workflow_status_models_integration(self, mock_context) -> None:
         """Test AI status and models integration workflow."""
         # Test km_ai_status
         with patch("src.server.tools.ai_core_tools.ai_manager") as mock_manager:

@@ -1,5 +1,4 @@
-"""
-Performance analysis and bottleneck detection engine.
+"""Performance analysis and bottleneck detection engine.
 
 Advanced performance analysis with ML-powered bottleneck detection,
 optimization recommendations, and predictive insights.
@@ -72,7 +71,9 @@ class PerformanceAnalyzer:
         }
 
     async def analyze_performance(
-        self, metrics: PerformanceMetrics, analysis_depth: str = "full"
+        self,
+        metrics: PerformanceMetrics,
+        analysis_depth: str = "full",
     ) -> Either[Exception, dict[str, Any]]:
         """Comprehensive performance analysis."""
         try:
@@ -92,7 +93,8 @@ class PerformanceAnalyzer:
 
             # Generate recommendations
             recommendations_result = await self.generate_optimization_recommendations(
-                metrics, bottlenecks
+                metrics,
+                bottlenecks,
             )
             if recommendations_result.is_left():
                 return Either.left(recommendations_result.get_left())
@@ -124,7 +126,11 @@ class PerformanceAnalyzer:
                     if performance_score > 50
                     else "poor",
                     "critical_issues": len(
-                        [b for b in bottlenecks if b.severity == AlertSeverity.CRITICAL]
+                        [
+                            b
+                            for b in bottlenecks
+                            if b.severity == AlertSeverity.CRITICAL
+                        ],
                     ),
                     "optimization_opportunities": len(recommendations),
                     "metrics_analyzed": len(metrics.metrics),
@@ -139,7 +145,8 @@ class PerformanceAnalyzer:
             return Either.left(PerformanceMonitoringError(f"Analysis failed: {e}"))
 
     async def detect_bottlenecks(
-        self, metrics: PerformanceMetrics
+        self,
+        metrics: PerformanceMetrics,
     ) -> Either[Exception, list[BottleneckAnalysis]]:
         """Detect performance bottlenecks using advanced analysis."""
         try:
@@ -148,7 +155,8 @@ class PerformanceAnalyzer:
             # Analyze each metric type for bottlenecks
             for metric_type in MetricType:
                 bottleneck_result = await self._analyze_metric_bottleneck(
-                    metrics, metric_type
+                    metrics,
+                    metric_type,
                 )
 
                 if bottleneck_result.is_right():
@@ -171,11 +179,13 @@ class PerformanceAnalyzer:
         except Exception as e:
             self.logger.error(f"Bottleneck detection failed: {e}")
             return Either.left(
-                PerformanceMonitoringError(f"Bottleneck detection failed: {e}")
+                PerformanceMonitoringError(f"Bottleneck detection failed: {e}"),
             )
 
     async def generate_optimization_recommendations(
-        self, metrics: PerformanceMetrics, bottlenecks: list[BottleneckAnalysis]
+        self,
+        metrics: PerformanceMetrics,
+        bottlenecks: list[BottleneckAnalysis],
     ) -> Either[Exception, list[OptimizationRecommendation]]:
         """Generate optimization recommendations based on analysis."""
         try:
@@ -190,7 +200,7 @@ class PerformanceAnalyzer:
 
             # Generate general performance recommendations
             general_recommendations = await self._generate_general_recommendations(
-                metrics
+                metrics,
             )
             recommendations.extend(general_recommendations)
 
@@ -199,7 +209,8 @@ class PerformanceAnalyzer:
 
             # Sort by expected improvement (highest first)
             unique_recommendations.sort(
-                key=lambda r: r.expected_improvement, reverse=True
+                key=lambda r: r.expected_improvement,
+                reverse=True,
             )
 
             return Either.right(unique_recommendations[:10])  # Top 10 recommendations
@@ -207,7 +218,7 @@ class PerformanceAnalyzer:
         except Exception as e:
             self.logger.error(f"Recommendation generation failed: {e}")
             return Either.left(
-                PerformanceMonitoringError(f"Recommendation generation failed: {e}")
+                PerformanceMonitoringError(f"Recommendation generation failed: {e}"),
             )
 
     async def benchmark_comparison(
@@ -221,22 +232,26 @@ class PerformanceAnalyzer:
                 baseline_metrics = self._get_cached_baseline()
                 if not baseline_metrics:
                     return Either.left(
-                        PerformanceMonitoringError("No baseline metrics available")
+                        PerformanceMonitoringError("No baseline metrics available"),
                     )
 
             comparison = {}
 
             for metric_type in MetricType:
                 current_stats = self._calculate_metric_stats(
-                    current_metrics, metric_type
+                    current_metrics,
+                    metric_type,
                 )
                 baseline_stats = self._calculate_metric_stats(
-                    baseline_metrics, metric_type
+                    baseline_metrics,
+                    metric_type,
                 )
 
                 if current_stats and baseline_stats:
                     improvement = self._calculate_improvement(
-                        baseline_stats["mean"], current_stats["mean"], metric_type
+                        baseline_stats["mean"],
+                        current_stats["mean"],
+                        metric_type,
                     )
 
                     comparison[metric_type.value] = {
@@ -254,7 +269,7 @@ class PerformanceAnalyzer:
 
         except Exception as e:
             return Either.left(
-                PerformanceMonitoringError(f"Benchmark comparison failed: {e}")
+                PerformanceMonitoringError(f"Benchmark comparison failed: {e}"),
             )
 
     def establish_baseline(self, metric_type: MetricType, values: list[float]) -> None:
@@ -276,7 +291,8 @@ class PerformanceAnalyzer:
         # Calculate confidence interval as a normalized value (0-1)
         # Higher confidence for more samples and lower variance
         confidence_interval = min(1.0, len(values) / 100.0) * max(
-            0.1, 1.0 - (std_dev / baseline_value) if baseline_value > 0 else 0.1
+            0.1,
+            1.0 - (std_dev / baseline_value) if baseline_value > 0 else 0.1,
         )
 
         # Create and store baseline
@@ -301,7 +317,8 @@ class PerformanceAnalyzer:
         }
 
     async def _analyze_basic_metrics(
-        self, metrics: PerformanceMetrics
+        self,
+        metrics: PerformanceMetrics,
     ) -> Either[Exception, dict[str, Any]]:
         """Analyze basic performance metrics."""
         try:
@@ -313,7 +330,8 @@ class PerformanceAnalyzer:
                     analysis[metric_type.value] = {
                         **stats,
                         "threshold_violations": self._count_threshold_violations(
-                            metrics, metric_type
+                            metrics,
+                            metric_type,
                         ),
                         "trend": self._calculate_trend(metrics, metric_type),
                     }
@@ -322,11 +340,13 @@ class PerformanceAnalyzer:
 
         except Exception as e:
             return Either.left(
-                PerformanceMonitoringError(f"Basic analysis failed: {e}")
+                PerformanceMonitoringError(f"Basic analysis failed: {e}"),
             )
 
     async def _analyze_metric_bottleneck(
-        self, metrics: PerformanceMetrics, metric_type: MetricType
+        self,
+        metrics: PerformanceMetrics,
+        metric_type: MetricType,
     ) -> Either[Exception, BottleneckAnalysis | None]:
         """Analyze specific metric for bottlenecks."""
         try:
@@ -365,13 +385,18 @@ class PerformanceAnalyzer:
                 current_value=avg_value,
                 normal_range=normal_range,
                 impact_description=self._generate_impact_description(
-                    metric_type, avg_value, threshold
+                    metric_type,
+                    avg_value,
+                    threshold,
                 ),
                 recommendations=self._generate_metric_recommendations(
-                    metric_type, avg_value
+                    metric_type,
+                    avg_value,
                 ),
                 estimated_improvement=self._estimate_improvement(
-                    metric_type, avg_value, threshold
+                    metric_type,
+                    avg_value,
+                    threshold,
                 ),
             )
 
@@ -379,11 +404,13 @@ class PerformanceAnalyzer:
 
         except Exception as e:
             return Either.left(
-                PerformanceMonitoringError(f"Metric bottleneck analysis failed: {e}")
+                PerformanceMonitoringError(f"Metric bottleneck analysis failed: {e}"),
             )
 
     async def _generate_bottleneck_recommendations(
-        self, bottleneck: BottleneckAnalysis, metrics: PerformanceMetrics
+        self,
+        bottleneck: BottleneckAnalysis,
+        metrics: PerformanceMetrics,
     ) -> list[OptimizationRecommendation]:
         """Generate recommendations for a specific bottleneck."""
         recommendations = []
@@ -399,7 +426,7 @@ class PerformanceAnalyzer:
                     risk_level="low",
                     estimated_time="2-4 hours",
                     prerequisites=["Performance profiling", "Code analysis"],
-                )
+                ),
             )
 
         # Memory bottleneck recommendations
@@ -413,7 +440,7 @@ class PerformanceAnalyzer:
                     risk_level="medium",
                     estimated_time="3-6 hours",
                     prerequisites=["Memory profiling", "Garbage collection tuning"],
-                )
+                ),
             )
 
         # I/O bottleneck recommendations
@@ -427,13 +454,14 @@ class PerformanceAnalyzer:
                     risk_level="medium",
                     estimated_time="4-8 hours",
                     prerequisites=["I/O analysis", "Storage optimization"],
-                )
+                ),
             )
 
         return recommendations
 
     async def _generate_general_recommendations(
-        self, metrics: PerformanceMetrics
+        self,
+        metrics: PerformanceMetrics,
     ) -> list[OptimizationRecommendation]:
         """Generate general performance recommendations."""
         recommendations = []
@@ -448,13 +476,15 @@ class PerformanceAnalyzer:
                 risk_level="low",
                 estimated_time="1-2 hours",
                 prerequisites=["Monitoring system access"],
-            )
+            ),
         )
 
         return recommendations
 
     def _calculate_metric_stats(
-        self, metrics: PerformanceMetrics, metric_type: MetricType
+        self,
+        metrics: PerformanceMetrics,
+        metric_type: MetricType,
     ) -> dict[str, float] | None:
         """Calculate statistics for a specific metric type."""
         values = [
@@ -495,15 +525,19 @@ class PerformanceAnalyzer:
         return final_score
 
     def _count_threshold_violations(
-        self, metrics: PerformanceMetrics, metric_type: MetricType
+        self,
+        metrics: PerformanceMetrics,
+        metric_type: MetricType,
     ) -> int:
         """Count threshold violations for a metric type."""
         return len(
-            [alert for alert in metrics.alerts if alert.metric_type == metric_type]
+            [alert for alert in metrics.alerts if alert.metric_type == metric_type],
         )
 
     def _calculate_trend(
-        self, metrics: PerformanceMetrics, metric_type: MetricType
+        self,
+        metrics: PerformanceMetrics,
+        metric_type: MetricType,
     ) -> str:
         """Calculate trend for a metric type."""
         values = [
@@ -522,10 +556,9 @@ class PerformanceAnalyzer:
 
         if change_percent > 10:
             return "increasing"
-        elif change_percent < -10:
+        if change_percent < -10:
             return "decreasing"
-        else:
-            return "stable"
+        return "stable"
 
     def _metric_to_bottleneck_type(self, metric_type: MetricType) -> BottleneckType:
         """Convert metric type to bottleneck type."""
@@ -539,7 +572,10 @@ class PerformanceAnalyzer:
         return mapping.get(metric_type, BottleneckType.RESOURCE_CONTENTION)
 
     def _generate_impact_description(
-        self, metric_type: MetricType, current_value: float, threshold: float
+        self,
+        metric_type: MetricType,
+        current_value: float,
+        threshold: float,
     ) -> str:
         """Generate impact description for bottleneck."""
         excess_percent = ((current_value - threshold) / threshold) * 100
@@ -557,7 +593,9 @@ class PerformanceAnalyzer:
         )
 
     def _generate_metric_recommendations(
-        self, metric_type: MetricType, current_value: float
+        self,
+        metric_type: MetricType,
+        current_value: float,
     ) -> list[str]:
         """Generate specific recommendations for metric."""
         recommendations = {
@@ -579,11 +617,15 @@ class PerformanceAnalyzer:
         }
 
         return recommendations.get(
-            metric_type, ["Monitor metric closely", "Investigate root cause"]
+            metric_type,
+            ["Monitor metric closely", "Investigate root cause"],
         )
 
     def _estimate_improvement(
-        self, metric_type: MetricType, current_value: float, threshold: float
+        self,
+        metric_type: MetricType,
+        current_value: float,
+        threshold: float,
     ) -> float:
         """Estimate potential improvement percentage."""
         if current_value <= threshold:
@@ -596,7 +638,10 @@ class PerformanceAnalyzer:
         return max_improvement
 
     def _calculate_improvement(
-        self, baseline: float, current: float, metric_type: MetricType
+        self,
+        baseline: float,
+        current: float,
+        metric_type: MetricType,
     ) -> float:
         """Calculate improvement percentage (positive = better)."""
         if baseline == 0:
@@ -652,7 +697,8 @@ class PerformanceAnalyzer:
         }
 
     def _recommendation_to_dict(
-        self, recommendation: OptimizationRecommendation
+        self,
+        recommendation: OptimizationRecommendation,
     ) -> dict[str, Any]:
         """Convert recommendation to dictionary."""
         return {
@@ -666,7 +712,8 @@ class PerformanceAnalyzer:
         }
 
     def _deduplicate_recommendations(
-        self, recommendations: list[OptimizationRecommendation]
+        self,
+        recommendations: list[OptimizationRecommendation],
     ) -> list[OptimizationRecommendation]:
         """Remove duplicate recommendations."""
         seen = set()

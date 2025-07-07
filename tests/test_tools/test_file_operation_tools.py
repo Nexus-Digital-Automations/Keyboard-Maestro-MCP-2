@@ -1,5 +1,4 @@
-"""
-Comprehensive Test Suite for File Operation Tools - Following Proven MCP Tool Test Pattern
+"""Comprehensive Test Suite for File Operation Tools - Following Proven MCP Tool Test Pattern.
 
 This test suite validates the File Operation Tools functionality using the systematic
 testing approach that achieved 100% success rate across 9 tool suites.
@@ -24,6 +23,10 @@ Testing Strategy:
 - Performance and safety testing with operation limits
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 from datetime import timedelta
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -42,10 +45,12 @@ from src.filesystem.file_operations import (
 # Import the tools we're testing
 from src.server.tools.file_operation_tools import km_file_operations
 
+logger = logging.getLogger(__name__)
+
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context():
+def mock_context() -> Any:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -58,7 +63,7 @@ def mock_context():
 
 
 @pytest.fixture
-def mock_file_manager():
+def mock_file_manager() -> Any:
     """Create mock FileOperationManager with standard interface."""
     manager = Mock(spec=FileOperationManager)
     manager.execute_operation = AsyncMock()
@@ -73,7 +78,7 @@ def mock_file_manager():
                 "success": True,
                 "bytes_transferred": 1024,
                 "files_processed": 1,
-            }
+            },
         ),
         execution_time=timedelta(seconds=0.5),
         bytes_processed=1024,
@@ -85,7 +90,7 @@ def mock_file_manager():
 
 
 @pytest.fixture
-def sample_file_paths():
+def sample_file_paths() -> Any:
     """Sample file paths for testing."""
     return {
         "valid_source": "/Users/test/Documents/source.txt",
@@ -101,8 +106,11 @@ class TestKMFileOperations:
 
     @pytest.mark.asyncio
     async def test_copy_file_success(
-        self, mock_context, mock_file_manager, sample_file_paths
-    ):
+        self,
+        mock_context,
+        mock_file_manager,
+        sample_file_paths,
+    ) -> None:
         """Test successful file copy operation."""
         with (
             patch(
@@ -110,7 +118,7 @@ class TestKMFileOperations:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
                 "src.server.tools.file_operation_tools.FileOperationManager",
@@ -150,8 +158,11 @@ class TestKMFileOperations:
 
     @pytest.mark.asyncio
     async def test_move_file_success(
-        self, mock_context, mock_file_manager, sample_file_paths
-    ):
+        self,
+        mock_context,
+        mock_file_manager,
+        sample_file_paths,
+    ) -> None:
         """Test successful file move operation."""
         with (
             patch(
@@ -159,7 +170,7 @@ class TestKMFileOperations:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
                 "src.server.tools.file_operation_tools.FileOperationManager",
@@ -189,8 +200,11 @@ class TestKMFileOperations:
 
     @pytest.mark.asyncio
     async def test_delete_file_success(
-        self, mock_context, mock_file_manager, sample_file_paths
-    ):
+        self,
+        mock_context,
+        mock_file_manager,
+        sample_file_paths,
+    ) -> None:
         """Test successful file delete operation."""
         with (
             patch(
@@ -198,7 +212,7 @@ class TestKMFileOperations:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
                 "src.server.tools.file_operation_tools.FileOperationManager",
@@ -225,8 +239,11 @@ class TestKMFileOperations:
 
     @pytest.mark.asyncio
     async def test_rename_file_success(
-        self, mock_context, mock_file_manager, sample_file_paths
-    ):
+        self,
+        mock_context,
+        mock_file_manager,
+        sample_file_paths,
+    ) -> None:
         """Test successful file rename operation."""
         with (
             patch(
@@ -234,7 +251,7 @@ class TestKMFileOperations:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
                 "src.server.tools.file_operation_tools.FileOperationManager",
@@ -262,8 +279,11 @@ class TestKMFileOperations:
 
     @pytest.mark.asyncio
     async def test_create_folder_success(
-        self, mock_context, mock_file_manager, sample_file_paths
-    ):
+        self,
+        mock_context,
+        mock_file_manager,
+        sample_file_paths,
+    ) -> None:
         """Test successful folder creation operation."""
         with (
             patch(
@@ -271,7 +291,7 @@ class TestKMFileOperations:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
                 "src.server.tools.file_operation_tools.FileOperationManager",
@@ -297,8 +317,11 @@ class TestKMFileOperations:
 
     @pytest.mark.asyncio
     async def test_get_info_success(
-        self, mock_context, mock_file_manager, sample_file_paths
-    ):
+        self,
+        mock_context,
+        mock_file_manager,
+        sample_file_paths,
+    ) -> None:
         """Test successful file info retrieval operation."""
         with (
             patch(
@@ -306,7 +329,7 @@ class TestKMFileOperations:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
                 "src.server.tools.file_operation_tools.FileOperationManager",
@@ -330,7 +353,7 @@ class TestKMFileOperations:
             assert result["operation"] == "get_info"
 
     @pytest.mark.asyncio
-    async def test_path_validation_failure(self, mock_context, sample_file_paths):
+    async def test_path_validation_failure(self, mock_context, sample_file_paths) -> None:
         """Test path validation failure handling."""
         with patch(
             "src.server.tools.file_operation_tools.PathSecurity.validate_path",
@@ -353,11 +376,13 @@ class TestKMFileOperations:
 
     @pytest.mark.asyncio
     async def test_destination_path_validation_failure(
-        self, mock_context, sample_file_paths
-    ):
+        self,
+        mock_context,
+        sample_file_paths,
+    ) -> None:
         """Test destination path validation failure handling."""
         with patch(
-            "src.server.tools.file_operation_tools.PathSecurity.validate_path"
+            "src.server.tools.file_operation_tools.PathSecurity.validate_path",
         ) as mock_validate:
             # Source path valid, destination path invalid
             mock_validate.side_effect = (
@@ -379,8 +404,10 @@ class TestKMFileOperations:
 
     @pytest.mark.asyncio
     async def test_source_path_safety_check_failure(
-        self, mock_context, sample_file_paths
-    ):
+        self,
+        mock_context,
+        sample_file_paths,
+    ) -> None:
         """Test source path safety check failure."""
         with (
             patch(
@@ -388,7 +415,7 @@ class TestKMFileOperations:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
         ):
             # Setup FilePath mock to fail safety check
@@ -411,8 +438,10 @@ class TestKMFileOperations:
 
     @pytest.mark.asyncio
     async def test_destination_path_safety_check_failure(
-        self, mock_context, sample_file_paths
-    ):
+        self,
+        mock_context,
+        sample_file_paths,
+    ) -> None:
         """Test destination path safety check failure."""
         with (
             patch(
@@ -420,7 +449,7 @@ class TestKMFileOperations:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
         ):
             # Setup FilePath mocks - source safe, destination unsafe
@@ -447,8 +476,10 @@ class TestKMFileOperations:
 
     @pytest.mark.asyncio
     async def test_file_operation_execution_failure(
-        self, mock_context, sample_file_paths
-    ):
+        self,
+        mock_context,
+        sample_file_paths,
+    ) -> None:
         """Test file operation execution failure handling."""
         with (
             patch(
@@ -456,10 +487,10 @@ class TestKMFileOperations:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
-                "src.server.tools.file_operation_tools.FileOperationManager"
+                "src.server.tools.file_operation_tools.FileOperationManager",
             ) as mock_manager_class,
         ):
             # Setup FilePath mocks
@@ -495,7 +526,7 @@ class TestKMFileOperations:
             assert result["security_status"]["operation_failed"] is True
 
     @pytest.mark.asyncio
-    async def test_permission_error_handling(self, mock_context, sample_file_paths):
+    async def test_permission_error_handling(self, mock_context, sample_file_paths) -> None:
         """Test permission error handling."""
         with (
             patch(
@@ -503,7 +534,7 @@ class TestKMFileOperations:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
         ):
             # Setup FilePath mock to raise PermissionError
@@ -524,7 +555,7 @@ class TestKMFileOperations:
             assert result["security_status"]["permission_denied"] is True
 
     @pytest.mark.asyncio
-    async def test_unexpected_error_handling(self, mock_context, sample_file_paths):
+    async def test_unexpected_error_handling(self, mock_context, sample_file_paths) -> None:
         """Test unexpected error handling."""
         with (
             patch(
@@ -532,12 +563,12 @@ class TestKMFileOperations:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
         ):
             # Setup FilePath mock to raise unexpected error
             mock_filepath_class.side_effect = RuntimeError(
-                "Unexpected filesystem error"
+                "Unexpected filesystem error",
             )
 
             # Execute
@@ -558,7 +589,7 @@ class TestKMFileOperations:
 class TestFileOperationHelperFunctions:
     """Test helper functions and validation components."""
 
-    def test_operation_validation(self):
+    def test_operation_validation(self) -> None:
         """Test operation parameter validation."""
         valid_operations = [
             "copy",
@@ -580,7 +611,7 @@ class TestFileOperationHelperFunctions:
                 "get_info",
             ]
 
-    def test_path_length_validation(self):
+    def test_path_length_validation(self) -> None:
         """Test path length validation limits."""
         # Test valid path lengths
         short_path = "/test"
@@ -598,7 +629,7 @@ class TestFileOperationIntegration:
     """Test integration scenarios across file operations."""
 
     @pytest.mark.asyncio
-    async def test_backup_creation_workflow(self, mock_context, sample_file_paths):
+    async def test_backup_creation_workflow(self, mock_context, sample_file_paths) -> None:
         """Test backup creation in file operations."""
         with (
             patch(
@@ -606,10 +637,10 @@ class TestFileOperationIntegration:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
-                "src.server.tools.file_operation_tools.FileOperationManager"
+                "src.server.tools.file_operation_tools.FileOperationManager",
             ) as mock_manager_class,
         ):
             # Setup FilePath mocks
@@ -649,8 +680,11 @@ class TestFileOperationIntegration:
 
     @pytest.mark.asyncio
     async def test_intermediate_directory_creation(
-        self, mock_context, mock_file_manager, sample_file_paths
-    ):
+        self,
+        mock_context,
+        mock_file_manager,
+        sample_file_paths,
+    ) -> None:
         """Test intermediate directory creation workflow."""
         with (
             patch(
@@ -658,7 +692,7 @@ class TestFileOperationIntegration:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
                 "src.server.tools.file_operation_tools.FileOperationManager",
@@ -686,8 +720,11 @@ class TestFileOperationIntegration:
 
     @pytest.mark.asyncio
     async def test_secure_delete_workflow(
-        self, mock_context, mock_file_manager, sample_file_paths
-    ):
+        self,
+        mock_context,
+        mock_file_manager,
+        sample_file_paths,
+    ) -> None:
         """Test secure delete workflow."""
         with (
             patch(
@@ -695,7 +732,7 @@ class TestFileOperationIntegration:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
                 "src.server.tools.file_operation_tools.FileOperationManager",
@@ -723,7 +760,7 @@ class TestFileOperationSecurity:
     """Test security validation and prevention measures."""
 
     @pytest.mark.asyncio
-    async def test_path_traversal_prevention(self, mock_context):
+    async def test_path_traversal_prevention(self, mock_context) -> None:
         """Test path traversal attack prevention."""
         dangerous_paths = [
             "../../../etc/passwd",
@@ -740,7 +777,9 @@ class TestFileOperationSecurity:
                 return_value=False,
             ):
                 result = await km_file_operations(
-                    operation="get_info", source_path=dangerous_path, ctx=mock_context
+                    operation="get_info",
+                    source_path=dangerous_path,
+                    ctx=mock_context,
                 )
 
                 # Should fail validation
@@ -749,7 +788,7 @@ class TestFileOperationSecurity:
                 assert result["security_status"]["security_violation"] is True
 
     @pytest.mark.asyncio
-    async def test_operation_parameter_validation(self, mock_context):
+    async def test_operation_parameter_validation(self, mock_context) -> None:
         """Test operation parameter validation."""
         invalid_operations = ["invalid_op", "hack", "execute", ""]
 
@@ -769,16 +808,15 @@ class TestFileOperationSecurity:
                     )
                     # If it somehow gets through, it should still fail
                     assert result["success"] is False
-                except:
-                    # Expected - contract validation should catch this
-                    pass
+                except (OSError, FileNotFoundError, PermissionError) as e:
+                    logger.debug(f"File operation failed during operation: {e}")
 
 
 class TestFileOperationPropertyBased:
     """Property-based testing for file operations."""
 
     @composite
-    def valid_file_path_strategy(draw):
+    def valid_file_path_strategy(draw) -> Any:
         """Generate valid file paths for testing."""
         # Generate realistic path components
         components = draw(
@@ -790,7 +828,7 @@ class TestFileOperationPropertyBased:
                 ),
                 min_size=1,
                 max_size=5,
-            )
+            ),
         )
 
         # Create absolute path
@@ -802,16 +840,17 @@ class TestFileOperationPropertyBased:
             not any(
                 dangerous in path.lower()
                 for dangerous in ["..", "etc", "root", "system"]
-            )
+            ),
         )
 
         return path
 
     @given(valid_file_path_strategy())
     @settings(
-        max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture]
+        max_examples=20,
+        suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
-    def test_path_validation_properties(self, path):
+    def test_path_validation_properties(self, path) -> None:
         """Property: Valid paths should pass basic validation checks."""
         # Test basic path properties
         assert len(path) > 0
@@ -821,11 +860,18 @@ class TestFileOperationPropertyBased:
 
     @given(
         st.sampled_from(
-            ["copy", "move", "delete", "rename", "create_folder", "get_info"]
-        )
+            [
+                "copy",
+                "move",
+                "delete",
+                "rename",
+                "create_folder",
+                "get_info",
+            ],
+        ),
     )
     @settings(max_examples=6)
-    def test_operation_validation_properties(self, operation):
+    def test_operation_validation_properties(self, operation) -> None:
         """Property: All valid operations should be properly defined."""
         valid_operations = [
             "copy",
@@ -840,8 +886,12 @@ class TestFileOperationPropertyBased:
     @given(st.booleans(), st.booleans(), st.booleans(), st.booleans())
     @settings(max_examples=10)
     def test_boolean_parameter_properties(
-        self, overwrite, create_intermediate, backup_existing, secure_delete
-    ):
+        self,
+        overwrite,
+        create_intermediate,
+        backup_existing,
+        secure_delete,
+    ) -> None:
         """Property: Boolean parameters should be handled consistently."""
         # All boolean combinations should be valid
         assert isinstance(overwrite, bool)
@@ -854,7 +904,7 @@ class TestFileOperationPerformance:
     """Test performance and limits for file operations."""
 
     @pytest.mark.asyncio
-    async def test_large_path_handling(self, mock_context, mock_file_manager):
+    async def test_large_path_handling(self, mock_context, mock_file_manager) -> None:
         """Test handling of large path names."""
         # Test maximum allowed path length
         max_path = "x" * 1000
@@ -865,7 +915,7 @@ class TestFileOperationPerformance:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
                 "src.server.tools.file_operation_tools.FileOperationManager",
@@ -878,14 +928,16 @@ class TestFileOperationPerformance:
             mock_filepath_class.return_value = mock_source_path
 
             result = await km_file_operations(
-                operation="get_info", source_path=max_path, ctx=mock_context
+                operation="get_info",
+                source_path=max_path,
+                ctx=mock_context,
             )
 
             # Should succeed with max length path
             assert result["success"] is True
 
     @pytest.mark.asyncio
-    async def test_progress_reporting(self, mock_context, mock_file_manager):
+    async def test_progress_reporting(self, mock_context, mock_file_manager) -> None:
         """Test progress reporting during operations."""
         with (
             patch(
@@ -893,7 +945,7 @@ class TestFileOperationPerformance:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
                 "src.server.tools.file_operation_tools.FileOperationManager",
@@ -906,7 +958,9 @@ class TestFileOperationPerformance:
             mock_filepath_class.return_value = mock_source_path
 
             await km_file_operations(
-                operation="get_info", source_path="/test/path.txt", ctx=mock_context
+                operation="get_info",
+                source_path="/test/path.txt",
+                ctx=mock_context,
             )
 
             # Verify progress was reported
@@ -922,7 +976,7 @@ class TestFileOperationEdgeCases:
     """Test edge cases and boundary conditions."""
 
     @pytest.mark.asyncio
-    async def test_empty_path_handling(self, mock_context):
+    async def test_empty_path_handling(self, mock_context) -> None:
         """Test handling of empty paths."""
         # Empty path should fail validation at pydantic level
         # But if it somehow gets through, we test the validation logic
@@ -941,7 +995,7 @@ class TestFileOperationEdgeCases:
             assert result["error"]["code"] == "VALIDATION_ERROR"
 
     @pytest.mark.asyncio
-    async def test_none_destination_path(self, mock_context, mock_file_manager):
+    async def test_none_destination_path(self, mock_context, mock_file_manager) -> None:
         """Test operations with None destination path."""
         with (
             patch(
@@ -949,7 +1003,7 @@ class TestFileOperationEdgeCases:
                 return_value=True,
             ),
             patch(
-                "src.server.tools.file_operation_tools.FilePath"
+                "src.server.tools.file_operation_tools.FilePath",
             ) as mock_filepath_class,
             patch(
                 "src.server.tools.file_operation_tools.FileOperationManager",
@@ -973,7 +1027,7 @@ class TestFileOperationEdgeCases:
             assert result["destination_path"] is None
 
     @pytest.mark.asyncio
-    async def test_special_characters_in_paths(self, mock_context, mock_file_manager):
+    async def test_special_characters_in_paths(self, mock_context, mock_file_manager) -> None:
         """Test handling of special characters in file paths."""
         special_paths = [
             "/test/file with spaces.txt",
@@ -989,7 +1043,7 @@ class TestFileOperationEdgeCases:
                     return_value=True,
                 ),
                 patch(
-                    "src.server.tools.file_operation_tools.FilePath"
+                    "src.server.tools.file_operation_tools.FilePath",
                 ) as mock_filepath_class,
                 patch(
                     "src.server.tools.file_operation_tools.FileOperationManager",
@@ -1002,7 +1056,9 @@ class TestFileOperationEdgeCases:
                 mock_filepath_class.return_value = mock_source_path
 
                 result = await km_file_operations(
-                    operation="get_info", source_path=special_path, ctx=mock_context
+                    operation="get_info",
+                    source_path=special_path,
+                    ctx=mock_context,
                 )
 
                 # Should handle special characters properly

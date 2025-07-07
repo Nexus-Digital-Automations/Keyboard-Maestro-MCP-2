@@ -1,5 +1,4 @@
-"""
-Accessibility Report Generator - TASK_57 Phase 2 Implementation
+"""Accessibility Report Generator - TASK_57 Phase 2 Implementation.
 
 Comprehensive accessibility compliance reporting with professional formatting and analysis.
 Provides detailed reports, executive summaries, and actionable recommendations.
@@ -112,7 +111,7 @@ class AccessibilityReportGenerator:
         self.generated_reports: dict[ComplianceReportId, ComplianceReport] = {}
         self._initialize_default_templates()
 
-    def _initialize_default_templates(self):
+    def _initialize_default_templates(self) -> bool:
         """Initialize default report templates."""
         self.report_templates["standard"] = {
             "sections": [
@@ -165,7 +164,7 @@ class AccessibilityReportGenerator:
             },
         }
 
-    @require(lambda self, test_results: len(test_results) > 0)
+    @require(lambda __self, test_results: len(test_results) > 0)
     async def generate_compliance_report(
         self,
         test_results: list[TestResult],
@@ -183,7 +182,10 @@ class AccessibilityReportGenerator:
 
             # Analyze test results
             analysis_result = await self._analyze_test_results(
-                test_results, standards, wcag_version, conformance_level
+                test_results,
+                standards,
+                wcag_version,
+                conformance_level,
             )
             if analysis_result.is_left():
                 return analysis_result
@@ -222,13 +224,13 @@ class AccessibilityReportGenerator:
 
         except Exception as e:
             return Either.left(
-                ReportGenerationError(f"Report generation failed: {str(e)}")
+                ReportGenerationError(f"Report generation failed: {e!s}"),
             )
 
     async def _analyze_test_results(
         self,
         test_results: list[TestResult],
-        standards: set[AccessibilityStandard],
+        _standards: set[AccessibilityStandard],
         wcag_version: WCAGVersion,
         conformance_level: ConformanceLevel,
     ) -> Either[ReportGenerationError, dict[str, Any]]:
@@ -258,20 +260,23 @@ class AccessibilityReportGenerator:
             # Categorize issues by severity
             issue_counts = {
                 "critical": len(
-                    [i for i in all_issues if i.severity == SeverityLevel.CRITICAL]
+                    [i for i in all_issues if i.severity == SeverityLevel.CRITICAL],
                 ),
                 "high": len(
-                    [i for i in all_issues if i.severity == SeverityLevel.HIGH]
+                    [i for i in all_issues if i.severity == SeverityLevel.HIGH],
                 ),
                 "medium": len(
-                    [i for i in all_issues if i.severity == SeverityLevel.MEDIUM]
+                    [i for i in all_issues if i.severity == SeverityLevel.MEDIUM],
                 ),
                 "low": len([i for i in all_issues if i.severity == SeverityLevel.LOW]),
             }
 
             # Generate summary
             summary = self._generate_summary(
-                overall_score, issue_counts, total_tests, passed_tests
+                overall_score,
+                issue_counts,
+                total_tests,
+                passed_tests,
             )
 
             # Generate recommendations
@@ -279,7 +284,9 @@ class AccessibilityReportGenerator:
 
             # Analyze WCAG compliance
             wcag_analysis = await self._analyze_wcag_compliance(
-                all_issues, wcag_version, conformance_level
+                all_issues,
+                wcag_version,
+                conformance_level,
             )
 
             return Either.right(
@@ -298,12 +305,12 @@ class AccessibilityReportGenerator:
                     "wcag_analysis": wcag_analysis,
                     "issues_by_severity": issue_counts,
                     "all_issues": all_issues,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
-                ReportGenerationError(f"Test result analysis failed: {str(e)}")
+                ReportGenerationError(f"Test result analysis failed: {e!s}"),
             )
 
     def _generate_summary(
@@ -338,28 +345,28 @@ class AccessibilityReportGenerator:
         """Get compliance level description based on score."""
         if score >= 95.0:
             return "excellent"
-        elif score >= 85.0:
+        if score >= 85.0:
             return "good"
-        elif score >= 70.0:
+        if score >= 70.0:
             return "fair"
-        elif score >= 50.0:
+        if score >= 50.0:
             return "poor"
-        else:
-            return "critical"
+        return "critical"
 
     def _identify_priority_areas(self, issue_counts: dict[str, int]) -> str:
         """Identify priority areas based on issue distribution."""
         if issue_counts["critical"] > 0:
             return "critical accessibility barriers"
-        elif issue_counts["high"] > 5:
+        if issue_counts["high"] > 5:
             return "high-impact usability issues"
-        elif issue_counts["medium"] > 10:
+        if issue_counts["medium"] > 10:
             return "structural accessibility improvements"
-        else:
-            return "minor accessibility enhancements"
+        return "minor accessibility enhancements"
 
     def _generate_recommendations(
-        self, issues: list[AccessibilityIssue], overall_score: float
+        self,
+        issues: list[AccessibilityIssue],
+        overall_score: float,
     ) -> list[str]:
         """Generate prioritized recommendations based on issues."""
         recommendations = []
@@ -375,44 +382,44 @@ class AccessibilityReportGenerator:
         # Generate recommendations based on issue patterns
         if "alt_text_missing" in issue_types:
             recommendations.append(
-                "Implement comprehensive alternative text for all images and non-text content"
+                "Implement comprehensive alternative text for all images and non-text content",
             )
 
         if "form_labels" in issue_types:
             recommendations.append(
-                "Associate all form inputs with descriptive labels for screen reader accessibility"
+                "Associate all form inputs with descriptive labels for screen reader accessibility",
             )
 
         if "keyboard_focus" in issue_types:
             recommendations.append(
-                "Enhance keyboard navigation with visible focus indicators and logical tab order"
+                "Enhance keyboard navigation with visible focus indicators and logical tab order",
             )
 
         if "color_contrast" in issue_types:
             recommendations.append(
-                "Improve color contrast ratios to meet WCAG AA standards (4.5:1 for normal text)"
+                "Improve color contrast ratios to meet WCAG AA standards (4.5:1 for normal text)",
             )
 
         if "heading_structure" in issue_types:
             recommendations.append(
-                "Implement proper heading hierarchy for improved content structure and navigation"
+                "Implement proper heading hierarchy for improved content structure and navigation",
             )
 
         # Add general recommendations based on overall score
         if overall_score < 70.0:
             recommendations.append(
-                "Establish comprehensive accessibility testing as part of development workflow"
+                "Establish comprehensive accessibility testing as part of development workflow",
             )
             recommendations.append(
-                "Provide accessibility training for development and design teams"
+                "Provide accessibility training for development and design teams",
             )
 
         if overall_score < 50.0:
             recommendations.append(
-                "Consider accessibility audit by certified professionals"
+                "Consider accessibility audit by certified professionals",
             )
             recommendations.append(
-                "Implement accessibility-first design principles for future development"
+                "Implement accessibility-first design principles for future development",
             )
 
         return recommendations[:10]  # Limit to top 10 recommendations
@@ -430,7 +437,8 @@ class AccessibilityReportGenerator:
 
             # Get criteria for the conformance level
             relevant_criteria = get_wcag_criteria_by_level(
-                conformance_level, wcag_version
+                conformance_level,
+                wcag_version,
             )
 
             # Analyze compliance for each criterion
@@ -469,14 +477,15 @@ class AccessibilityReportGenerator:
             principle_scores = {}
             for principle in AccessibilityPrinciple:
                 principle_criteria = get_wcag_criteria_by_principle(
-                    principle, wcag_version
+                    principle,
+                    wcag_version,
                 )
                 principle_criteria_count = len(
                     [
                         c
                         for c in principle_criteria
                         if c.level.value <= conformance_level.value
-                    ]
+                    ],
                 )
 
                 if principle_criteria_count > 0:
@@ -486,7 +495,7 @@ class AccessibilityReportGenerator:
                             for cid, details in criteria_compliance.items()
                             if details["principle"] == principle.value
                             and details["status"] == "pass"
-                        ]
+                        ],
                     )
                     principle_scores[principle] = (
                         passing_criteria / principle_criteria_count
@@ -510,18 +519,20 @@ class AccessibilityReportGenerator:
                 },
                 "total_criteria_tested": len(relevant_criteria),
                 "passing_criteria": len(
-                    [c for c in criteria_compliance.values() if c["status"] == "pass"]
+                    [c for c in criteria_compliance.values() if c["status"] == "pass"],
                 ),
                 "failing_criteria": len(
-                    [c for c in criteria_compliance.values() if c["status"] == "fail"]
+                    [c for c in criteria_compliance.values() if c["status"] == "fail"],
                 ),
             }
 
         except Exception as e:
-            return {"error": f"WCAG analysis failed: {str(e)}"}
+            return {"error": f"WCAG analysis failed: {e!s}"}
 
     async def _generate_report_sections(
-        self, analysis: dict[str, Any], config: ReportConfiguration
+        self,
+        analysis: dict[str, Any],
+        config: ReportConfiguration,
     ) -> Either[ReportGenerationError, list[ReportSection]]:
         """Generate report sections based on analysis and configuration."""
         try:
@@ -529,37 +540,37 @@ class AccessibilityReportGenerator:
 
             if config.include_executive_summary:
                 executive_section = await self._generate_executive_summary_section(
-                    analysis
+                    analysis,
                 )
                 sections.append(executive_section)
 
             # Compliance overview section
             compliance_section = await self._generate_compliance_overview_section(
-                analysis
+                analysis,
             )
             sections.append(compliance_section)
 
             if config.include_detailed_findings:
                 findings_section = await self._generate_detailed_findings_section(
-                    analysis
+                    analysis,
                 )
                 sections.append(findings_section)
 
             if config.include_compliance_matrix:
                 matrix_section = await self._generate_compliance_matrix_section(
-                    analysis
+                    analysis,
                 )
                 sections.append(matrix_section)
 
             if config.include_recommendations:
                 recommendations_section = await self._generate_recommendations_section(
-                    analysis
+                    analysis,
                 )
                 sections.append(recommendations_section)
 
             if config.include_technical_details:
                 technical_section = await self._generate_technical_details_section(
-                    analysis
+                    analysis,
                 )
                 sections.append(technical_section)
 
@@ -567,11 +578,12 @@ class AccessibilityReportGenerator:
 
         except Exception as e:
             return Either.left(
-                ReportGenerationError(f"Report section generation failed: {str(e)}")
+                ReportGenerationError(f"Report section generation failed: {e!s}"),
             )
 
     async def _generate_executive_summary_section(
-        self, analysis: dict[str, Any]
+        self,
+        analysis: dict[str, Any],
     ) -> ReportSection:
         """Generate executive summary section."""
         content = f"""
@@ -614,7 +626,8 @@ class AccessibilityReportGenerator:
         )
 
     async def _generate_compliance_overview_section(
-        self, analysis: dict[str, Any]
+        self,
+        analysis: dict[str, Any],
     ) -> ReportSection:
         """Generate compliance overview section."""
         content = f"""
@@ -682,7 +695,8 @@ class AccessibilityReportGenerator:
         """
 
     async def _generate_detailed_findings_section(
-        self, analysis: dict[str, Any]
+        self,
+        analysis: dict[str, Any],
     ) -> ReportSection:
         """Generate detailed findings section."""
         issues = analysis.get("all_issues", [])
@@ -702,12 +716,13 @@ class AccessibilityReportGenerator:
                 continue
 
             content_parts.append(
-                f"### {severity} Priority Issues ({len(severity_issues)})"
+                f"### {severity} Priority Issues ({len(severity_issues)})",
             )
             content_parts.append("")
 
             for i, issue in enumerate(
-                severity_issues[:10], 1
+                severity_issues[:10],
+                1,
             ):  # Limit to 10 issues per severity
                 wcag_criteria_str = (
                     ", ".join(issue.wcag_criteria) if issue.wcag_criteria else "N/A"
@@ -728,7 +743,7 @@ class AccessibilityReportGenerator:
 
             if len(severity_issues) > 10:
                 content_parts.append(
-                    f"*... and {len(severity_issues) - 10} more {severity.lower()} priority issues*"
+                    f"*... and {len(severity_issues) - 10} more {severity.lower()} priority issues*",
                 )
                 content_parts.append("")
 
@@ -740,7 +755,8 @@ class AccessibilityReportGenerator:
         )
 
     async def _generate_compliance_matrix_section(
-        self, analysis: dict[str, Any]
+        self,
+        analysis: dict[str, Any],
     ) -> ReportSection:
         """Generate WCAG compliance matrix section."""
         wcag_analysis = analysis.get("wcag_analysis", {})
@@ -777,7 +793,7 @@ class AccessibilityReportGenerator:
         for principle, score in principle_scores.items():
             status_icon = "✅" if score >= 80.0 else "❌" if score < 50.0 else "⚠️"
             content_parts.append(
-                f"- **{principle.title()}:** {score:.1f}% {status_icon}"
+                f"- **{principle.title()}:** {score:.1f}% {status_icon}",
             )
 
         content_parts.extend(["", "### Success Criteria Details", ""])
@@ -787,7 +803,7 @@ class AccessibilityReportGenerator:
         for criterion_id, details in sorted(criteria_compliance.items()):
             status_icon = "✅" if details["status"] == "pass" else "❌"
             content_parts.append(
-                f"**{criterion_id} - {details['title']}** {status_icon}"
+                f"**{criterion_id} - {details['title']}** {status_icon}",
             )
             if details["issues_count"] > 0:
                 content_parts.append(f"  - {details['issues_count']} issue(s) found")
@@ -811,7 +827,8 @@ class AccessibilityReportGenerator:
         )
 
     async def _generate_recommendations_section(
-        self, analysis: dict[str, Any]
+        self,
+        analysis: dict[str, Any],
     ) -> ReportSection:
         """Generate recommendations section."""
         recommendations = analysis.get("recommendations", [])
@@ -845,7 +862,7 @@ class AccessibilityReportGenerator:
                 "- Regular accessibility audits",
                 "- User testing with people with disabilities",
                 "- Stay updated with accessibility standards",
-            ]
+            ],
         )
 
         return ReportSection(
@@ -856,7 +873,8 @@ class AccessibilityReportGenerator:
         )
 
     async def _generate_technical_details_section(
-        self, analysis: dict[str, Any]
+        self,
+        analysis: dict[str, Any],
     ) -> ReportSection:
         """Generate technical details section."""
         content = f"""
@@ -904,7 +922,7 @@ class AccessibilityReportGenerator:
         try:
             if report_id not in self.generated_reports:
                 return Either.left(
-                    ReportGenerationError(f"Report {report_id} not found")
+                    ReportGenerationError(f"Report {report_id} not found"),
                 )
 
             report = self.generated_reports[report_id]
@@ -920,16 +938,20 @@ class AccessibilityReportGenerator:
                 export_result = await self._export_json_report(report)
             else:
                 return Either.left(
-                    ReportGenerationError(f"Unsupported export format: {export_format}")
+                    ReportGenerationError(
+                        f"Unsupported export format: {export_format}"
+                    ),
                 )
 
             return export_result
 
         except Exception as e:
-            return Either.left(ReportGenerationError(f"Report export failed: {str(e)}"))
+            return Either.left(ReportGenerationError(f"Report export failed: {e!s}"))
 
     async def _export_pdf_report(
-        self, report: ComplianceReport, custom_styling: dict[str, Any] | None
+        self,
+        report: ComplianceReport,
+        _custom_styling: dict[str, Any] | None,
     ) -> Either[ReportGenerationError, dict[str, Any]]:
         """Export report as PDF."""
         try:
@@ -954,7 +976,8 @@ class AccessibilityReportGenerator:
 
             temp_dir = tempfile.gettempdir()
             file_path = os.path.join(
-                temp_dir, f"accessibility_report_{report.report_id}.pdf"
+                temp_dir,
+                f"accessibility_report_{report.report_id}.pdf",
             )
             file_size = len(pdf_content.encode("utf-8"))
 
@@ -967,14 +990,16 @@ class AccessibilityReportGenerator:
                     if len(pdf_content) > 500
                     else pdf_content,
                     "generation_timestamp": datetime.now(UTC).isoformat(),
-                }
+                },
             )
 
         except Exception as e:
-            return Either.left(ReportGenerationError(f"PDF export failed: {str(e)}"))
+            return Either.left(ReportGenerationError(f"PDF export failed: {e!s}"))
 
     async def _export_html_report(
-        self, report: ComplianceReport, custom_styling: dict[str, Any] | None
+        self,
+        report: ComplianceReport,
+        _custom_styling: dict[str, Any] | None,
     ) -> Either[ReportGenerationError, dict[str, Any]]:
         """Export report as HTML."""
         try:
@@ -1032,7 +1057,8 @@ class AccessibilityReportGenerator:
 
             temp_dir = tempfile.gettempdir()
             file_path = os.path.join(
-                temp_dir, f"accessibility_report_{report.report_id}.html"
+                temp_dir,
+                f"accessibility_report_{report.report_id}.html",
             )
             file_size = len(html_content.encode("utf-8"))
 
@@ -1043,14 +1069,16 @@ class AccessibilityReportGenerator:
                     "file_size": file_size,
                     "content": html_content,
                     "generation_timestamp": datetime.now(UTC).isoformat(),
-                }
+                },
             )
 
         except Exception as e:
-            return Either.left(ReportGenerationError(f"HTML export failed: {str(e)}"))
+            return Either.left(ReportGenerationError(f"HTML export failed: {e!s}"))
 
     async def _export_docx_report(
-        self, report: ComplianceReport, custom_styling: dict[str, Any] | None
+        self,
+        report: ComplianceReport,
+        _custom_styling: dict[str, Any] | None,
     ) -> Either[ReportGenerationError, dict[str, Any]]:
         """Export report as DOCX."""
         try:
@@ -1074,7 +1102,8 @@ class AccessibilityReportGenerator:
 
             temp_dir = tempfile.gettempdir()
             file_path = os.path.join(
-                temp_dir, f"accessibility_report_{report.report_id}.docx"
+                temp_dir,
+                f"accessibility_report_{report.report_id}.docx",
             )
             file_size = 524288  # Simulated file size (512KB)
 
@@ -1085,14 +1114,15 @@ class AccessibilityReportGenerator:
                     "file_size": file_size,
                     "metadata": docx_metadata,
                     "generation_timestamp": datetime.now(UTC).isoformat(),
-                }
+                },
             )
 
         except Exception as e:
-            return Either.left(ReportGenerationError(f"DOCX export failed: {str(e)}"))
+            return Either.left(ReportGenerationError(f"DOCX export failed: {e!s}"))
 
     async def _export_json_report(
-        self, report: ComplianceReport
+        self,
+        report: ComplianceReport,
     ) -> Either[ReportGenerationError, dict[str, Any]]:
         """Export report as JSON."""
         try:
@@ -1124,7 +1154,8 @@ class AccessibilityReportGenerator:
 
             temp_dir = tempfile.gettempdir()
             file_path = os.path.join(
-                temp_dir, f"accessibility_report_{report.report_id}.json"
+                temp_dir,
+                f"accessibility_report_{report.report_id}.json",
             )
             file_size = len(json_content.encode("utf-8"))
 
@@ -1135,11 +1166,11 @@ class AccessibilityReportGenerator:
                     "file_size": file_size,
                     "content": json_data,
                     "generation_timestamp": datetime.now(UTC).isoformat(),
-                }
+                },
             )
 
         except Exception as e:
-            return Either.left(ReportGenerationError(f"JSON export failed: {str(e)}"))
+            return Either.left(ReportGenerationError(f"JSON export failed: {e!s}"))
 
     def get_generated_reports(self) -> list[ComplianceReport]:
         """Get all generated reports."""
@@ -1154,13 +1185,15 @@ class AccessibilityReportGenerator:
         return list(self.report_templates.keys())
 
     def add_custom_template(
-        self, template_name: str, template_config: dict[str, Any]
+        self,
+        template_name: str,
+        template_config: dict[str, Any],
     ) -> Either[ReportGenerationError, None]:
         """Add custom report template."""
         try:
             if template_name in self.report_templates:
                 return Either.left(
-                    ReportGenerationError(f"Template '{template_name}' already exists")
+                    ReportGenerationError(f"Template '{template_name}' already exists"),
                 )
 
             # Validate template structure
@@ -1168,7 +1201,7 @@ class AccessibilityReportGenerator:
             for key in required_keys:
                 if key not in template_config:
                     return Either.left(
-                        ReportGenerationError(f"Template missing required key: {key}")
+                        ReportGenerationError(f"Template missing required key: {key}"),
                     )
 
             self.report_templates[template_name] = template_config
@@ -1176,5 +1209,5 @@ class AccessibilityReportGenerator:
 
         except Exception as e:
             return Either.left(
-                ReportGenerationError(f"Failed to add custom template: {str(e)}")
+                ReportGenerationError(f"Failed to add custom template: {e!s}"),
             )

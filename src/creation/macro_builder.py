@@ -1,5 +1,4 @@
-"""
-Core Macro Creation Engine
+"""Core Macro Creation Engine.
 
 Provides type-safe macro creation with comprehensive security validation,
 template support, and AppleScript integration for Keyboard Maestro.
@@ -43,33 +42,43 @@ class MacroCreationRequest:
 
         if len(self.name) > 255:
             raise ValidationError(
-                "macro_name", self.name, "Name too long (max 255 characters)"
+                "macro_name",
+                self.name,
+                "Name too long (max 255 characters)",
             )
 
         # Security: ASCII only, no control characters
         if not self.name.isascii():
             raise SecurityViolationError(
-                "macro_name", self.name, "Non-ASCII characters not allowed"
+                "macro_name",
+                self.name,
+                "Non-ASCII characters not allowed",
             )
 
         # Security: Restrict to safe character set
         safe_pattern = re.compile(r"^[a-zA-Z0-9_\s\-\.]+$")
         if not safe_pattern.match(self.name):
             raise SecurityViolationError(
-                "macro_name", self.name, "Invalid characters in name"
+                "macro_name",
+                self.name,
+                "Invalid characters in name",
             )
 
     def _validate_parameters(self) -> None:
         """Validate template parameters for security compliance."""
         if not isinstance(self.parameters, dict):
             raise ValidationError(
-                "parameters", self.parameters, "Parameters must be a dictionary"
+                "parameters",
+                self.parameters,
+                "Parameters must be a dictionary",
             )
 
         # Security: Limit parameter complexity
         if len(str(self.parameters)) > 10000:
             raise SecurityViolationError(
-                "parameters", self.parameters, "Parameters too large"
+                "parameters",
+                self.parameters,
+                "Parameters too large",
             )
 
         # Security: No script injection in parameter values
@@ -111,10 +120,10 @@ class MacroBuilder:
     @require(lambda request: request.template in MacroTemplate)
     @ensure(lambda result: result is not None)
     async def create_macro(
-        self, request: MacroCreationRequest
+        self,
+        request: MacroCreationRequest,
     ) -> MacroId | MacroEngineError:
-        """
-        Create macro with comprehensive validation and error handling.
+        """Create macro with comprehensive validation and error handling.
 
         Architecture:
             - Pattern: Builder Pattern with Template Method
@@ -146,6 +155,7 @@ class MacroBuilder:
         Raises:
             SecurityViolationError: Security validation failed
             ValidationError: Input validation failed
+
         """
         try:
             logger.info(f"Starting macro creation: {request.name}")
@@ -195,7 +205,9 @@ class MacroBuilder:
         if cache_key in self._validation_cache:
             if not self._validation_cache[cache_key]:
                 raise SecurityViolationError(
-                    "request", request, "Cached validation failure"
+                    "request",
+                    request,
+                    "Cached validation failure",
                 )
             return
 
@@ -212,7 +224,9 @@ class MacroBuilder:
                 group_exists = await self._validate_group_exists(request.group_id)
                 if not group_exists:
                     raise ValidationError(
-                        "group_id", request.group_id, "Group does not exist"
+                        "group_id",
+                        request.group_id,
+                        "Group does not exist",
                     )
 
             # Check for naming conflicts
@@ -255,7 +269,9 @@ class MacroBuilder:
             return False
 
     def _generate_applescript(
-        self, request: MacroCreationRequest, actions: list[dict[str, Any]]
+        self,
+        request: MacroCreationRequest,
+        actions: list[dict[str, Any]],
     ) -> str:
         """Generate AppleScript for macro creation with security escaping."""
         # Security: Escape all user-provided values
@@ -275,7 +291,7 @@ class MacroBuilder:
         # Add group assignment if specified
         if safe_group:
             script_lines.append(
-                f'    set macro group of newMacro to macro group "{safe_group}"'
+                f'    set macro group of newMacro to macro group "{safe_group}"',
             )
 
         # Add actions to macro
@@ -283,12 +299,16 @@ class MacroBuilder:
             action_xml = self._generate_action_xml(action)
             safe_xml = self._escape_applescript_string(action_xml)
             script_lines.append(
-                f'    tell newMacro to make new action with properties {{xml:"{safe_xml}"}}'
+                f'    tell newMacro to make new action with properties {{xml:"{safe_xml}"}}',
             )
 
         # Return macro UUID
         script_lines.extend(
-            ["    set macroUUID to uid of newMacro", "    return macroUUID", "end tell"]
+            [
+                "    set macroUUID to uid of newMacro",
+                "    return macroUUID",
+                "end tell",
+            ],
         )
 
         return "\n".join(script_lines)
@@ -326,7 +346,9 @@ class MacroBuilder:
 
         if action_type not in allowed_types:
             raise SecurityViolationError(
-                "action_type", action_type, "Action type not allowed"
+                "action_type",
+                action_type,
+                "Action type not allowed",
             )
 
         # Generate basic XML structure
@@ -360,7 +382,9 @@ class MacroBuilder:
         return value
 
     async def _execute_creation(
-        self, applescript: str, request: MacroCreationRequest
+        self,
+        applescript: str,
+        request: MacroCreationRequest,
     ) -> str:
         """Execute macro creation with rollback support."""
         try:
@@ -388,13 +412,13 @@ class MacroBuilder:
         """Attempt to rollback failed macro creation."""
         try:
             # Try to find and delete any partially created macro
-            rollback_script = f'''
+            rollback_script = f"""
             tell application "Keyboard Maestro"
                 try
                     delete macro "{self._escape_applescript_string(macro_name)}"
                 end try
             end tell
-            '''
+            """
 
             await self.km_client.execute_applescript_async(rollback_script)
             logger.info(f"Rollback completed for macro: {macro_name}")

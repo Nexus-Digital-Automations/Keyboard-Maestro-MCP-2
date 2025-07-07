@@ -1,5 +1,4 @@
-"""
-Application Control MCP Tools
+"""Application Control MCP Tools.
 
 Provides comprehensive application lifecycle management through MCP interface
 with security validation, state tracking, and menu automation capabilities.
@@ -56,18 +55,20 @@ async def km_app_control(
         Field(default=False, description="Force termination option for quit operation"),
     ] = False,
     wait_for_completion: Annotated[
-        bool, Field(default=True, description="Wait for operation to complete")
+        bool,
+        Field(default=True, description="Wait for operation to complete"),
     ] = True,
     timeout_seconds: Annotated[
-        int, Field(default=30, ge=1, le=120, description="Operation timeout in seconds")
+        int,
+        Field(default=30, ge=1, le=120, description="Operation timeout in seconds"),
     ] = 30,
     hide_on_launch: Annotated[
-        bool, Field(default=False, description="Hide application after launch")
+        bool,
+        Field(default=False, description="Hide application after launch"),
     ] = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Comprehensive application control with security validation and error handling.
+    """Comprehensive application control with security validation and error handling.
 
     Architecture:
         - Pattern: Command Pattern with State Machine
@@ -131,6 +132,7 @@ async def km_app_control(
     Raises:
         ValidationError: Input validation failed
         SecurityViolationError: Security validation failed
+
     """
     correlation_id = str(uuid.uuid4())
     start_time = datetime.now()
@@ -138,11 +140,11 @@ async def km_app_control(
     try:
         if ctx:
             await ctx.info(
-                f"Starting app control operation: {operation} on {app_identifier}"
+                f"Starting app control operation: {operation} on {app_identifier}",
             )
 
         logger.info(
-            f"App control: {operation} on '{app_identifier}' [correlation_id: {correlation_id}]"
+            f"App control: {operation} on '{app_identifier}' [correlation_id: {correlation_id}]",
         )
 
         # Phase 1: Input validation and security
@@ -192,7 +194,11 @@ async def km_app_control(
             )
         elif operation == "quit":
             result = await _execute_quit_operation(
-                app_controller, app_id, force_quit, timeout, ctx
+                app_controller,
+                app_id,
+                force_quit,
+                timeout,
+                ctx,
             )
         elif operation == "activate":
             result = await _execute_activate_operation(app_controller, app_id, ctx)
@@ -214,7 +220,11 @@ async def km_app_control(
                 }
 
             result = await _execute_menu_select_operation(
-                app_controller, app_id, menu_path, timeout, ctx
+                app_controller,
+                app_id,
+                menu_path,
+                timeout,
+                ctx,
             )
         elif operation == "get_state":
             result = await _execute_get_state_operation(app_controller, app_id, ctx)
@@ -242,7 +252,7 @@ async def km_app_control(
 
         if result.get("success", False):
             logger.info(
-                f"App control success: {operation} on '{app_identifier}' [correlation_id: {correlation_id}]"
+                f"App control success: {operation} on '{app_identifier}' [correlation_id: {correlation_id}]",
             )
 
             if ctx:
@@ -259,12 +269,12 @@ async def km_app_control(
             }
         else:
             logger.error(
-                f"App control failed: {operation} on '{app_identifier}' - {result.get('error', {}).get('message', 'Unknown error')} [correlation_id: {correlation_id}]"
+                f"App control failed: {operation} on '{app_identifier}' - {result.get('error', {}).get('message', 'Unknown error')} [correlation_id: {correlation_id}]",
             )
 
             if ctx:
                 await ctx.error(
-                    f"Operation failed: {result.get('error', {}).get('message', 'Unknown error')}"
+                    f"Operation failed: {result.get('error', {}).get('message', 'Unknown error')}",
                 )
 
         return result
@@ -272,7 +282,7 @@ async def km_app_control(
     except ValidationError as e:
         execution_time = (datetime.now() - start_time).total_seconds()
         logger.warning(
-            f"Validation error for {operation} on '{app_identifier}': {e} [correlation_id: {correlation_id}]"
+            f"Validation error for {operation} on '{app_identifier}': {e} [correlation_id: {correlation_id}]",
         )
 
         if ctx:
@@ -298,7 +308,7 @@ async def km_app_control(
     except SecurityViolationError as e:
         execution_time = (datetime.now() - start_time).total_seconds()
         logger.error(
-            f"Security violation for {operation} on '{app_identifier}': {e} [correlation_id: {correlation_id}]"
+            f"Security violation for {operation} on '{app_identifier}': {e} [correlation_id: {correlation_id}]",
         )
 
         if ctx:
@@ -324,11 +334,11 @@ async def km_app_control(
     except Exception as e:
         execution_time = (datetime.now() - start_time).total_seconds()
         logger.exception(
-            f"Unexpected error in {operation} on '{app_identifier}' [correlation_id: {correlation_id}]"
+            f"Unexpected error in {operation} on '{app_identifier}' [correlation_id: {correlation_id}]",
         )
 
         if ctx:
-            await ctx.error(f"Unexpected error: {str(e)}")
+            await ctx.error(f"Unexpected error: {e!s}")
 
         return {
             "success": False,
@@ -402,8 +412,8 @@ async def _execute_launch_operation(
             "success": False,
             "error": {
                 "code": "LAUNCH_ERROR",
-                "message": f"Launch operation failed: {str(e)}",
-                "details": f"Error launching {app_id.display_name()}: {str(e)}",
+                "message": f"Launch operation failed: {e!s}",
+                "details": f"Error launching {app_id.display_name()}: {e!s}",
                 "recovery_suggestion": "Check application exists and you have permission to launch it",
             },
         }
@@ -452,15 +462,17 @@ async def _execute_quit_operation(
             "success": False,
             "error": {
                 "code": "QUIT_ERROR",
-                "message": f"Quit operation failed: {str(e)}",
-                "details": f"Error quitting {app_id.display_name()}: {str(e)}",
+                "message": f"Quit operation failed: {e!s}",
+                "details": f"Error quitting {app_id.display_name()}: {e!s}",
                 "recovery_suggestion": "Try force quit if graceful quit failed",
             },
         }
 
 
 async def _execute_activate_operation(
-    controller: AppController, app_id: AppIdentifier, ctx: Context | None
+    controller: AppController,
+    app_id: AppIdentifier,
+    ctx: Context | None,
 ) -> dict[str, Any]:
     """Execute application activation operation."""
     try:
@@ -497,8 +509,8 @@ async def _execute_activate_operation(
             "success": False,
             "error": {
                 "code": "ACTIVATION_ERROR",
-                "message": f"Activation failed: {str(e)}",
-                "details": f"Error activating {app_id.display_name()}: {str(e)}",
+                "message": f"Activation failed: {e!s}",
+                "details": f"Error activating {app_id.display_name()}: {e!s}",
                 "recovery_suggestion": "Check if application is running and accessible",
             },
         }
@@ -551,8 +563,8 @@ async def _execute_menu_select_operation(
             "success": False,
             "error": {
                 "code": "INVALID_MENU_PATH",
-                "message": f"Invalid menu path: {str(e)}",
-                "details": f"Menu path validation failed: {str(e)}",
+                "message": f"Invalid menu path: {e!s}",
+                "details": f"Menu path validation failed: {e!s}",
                 "recovery_suggestion": "Ensure menu path contains valid menu item names",
             },
         }
@@ -561,15 +573,17 @@ async def _execute_menu_select_operation(
             "success": False,
             "error": {
                 "code": "MENU_ERROR",
-                "message": f"Menu selection failed: {str(e)}",
-                "details": f"Error selecting menu in {app_id.display_name()}: {str(e)}",
+                "message": f"Menu selection failed: {e!s}",
+                "details": f"Error selecting menu in {app_id.display_name()}: {e!s}",
                 "recovery_suggestion": "Verify menu path exists and application supports UI automation",
             },
         }
 
 
 async def _execute_get_state_operation(
-    controller: AppController, app_id: AppIdentifier, ctx: Context | None
+    controller: AppController,
+    app_id: AppIdentifier,
+    ctx: Context | None,
 ) -> dict[str, Any]:
     """Execute application state query operation."""
     try:
@@ -607,8 +621,8 @@ async def _execute_get_state_operation(
             "success": False,
             "error": {
                 "code": "STATE_QUERY_ERROR",
-                "message": f"State query failed: {str(e)}",
-                "details": f"Error querying state of {app_id.display_name()}: {str(e)}",
+                "message": f"State query failed: {e!s}",
+                "details": f"Error querying state of {app_id.display_name()}: {e!s}",
                 "recovery_suggestion": "Check application identifier and system permissions",
             },
         }

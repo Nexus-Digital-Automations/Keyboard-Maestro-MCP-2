@@ -1,5 +1,4 @@
-"""
-Shared type definitions for the intelligence module.
+"""Shared type definitions for the intelligence module.
 
 This module contains common enums and types used across the intelligence system
 to avoid circular imports between modules.

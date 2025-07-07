@@ -1,5 +1,4 @@
-"""
-Azure cloud services integration for multi-platform cloud automation.
+"""Azure cloud services integration for multi-platform cloud automation.
 
 This module provides comprehensive Azure service integration with Azure SDK,
 supporting storage, compute, database, messaging, and AI/ML services
@@ -12,11 +11,11 @@ Type Safety: Complete integration with cloud types and error handling
 
 from __future__ import annotations
 
+import logging
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ..core.cloud_integration import (
     CloudAuthMethod,
@@ -29,6 +28,11 @@ from ..core.cloud_integration import (
 )
 from ..core.contracts import ensure, require
 from ..core.either import Either
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 class AzureServiceType:
@@ -64,26 +68,31 @@ class AzureSession:
             from azure.mgmt.storage import StorageManagementClient
 
             return StorageManagementClient(
-                self.credential, self.subscription_id, **kwargs
+                self.credential,
+                self.subscription_id,
+                **kwargs,
             )
-        elif service_type == "compute":
+        if service_type == "compute":
             from azure.mgmt.compute import ComputeManagementClient
 
             return ComputeManagementClient(
-                self.credential, self.subscription_id, **kwargs
+                self.credential,
+                self.subscription_id,
+                **kwargs,
             )
-        elif service_type == "sql":
+        if service_type == "sql":
             from azure.mgmt.sql import SqlManagementClient
 
             return SqlManagementClient(self.credential, self.subscription_id, **kwargs)
-        elif service_type == "monitor":
+        if service_type == "monitor":
             from azure.mgmt.monitor import MonitorManagementClient
 
             return MonitorManagementClient(
-                self.credential, self.subscription_id, **kwargs
+                self.credential,
+                self.subscription_id,
+                **kwargs,
             )
-        else:
-            raise ValueError(f"Unsupported Azure service type: {service_type}")
+        raise ValueError(f"Unsupported Azure service type: {service_type}")
 
 
 class AzureConnector:
@@ -98,7 +107,7 @@ class AzureConnector:
     @ensure(
         lambda result: result.is_right()
         or result.get_left().error_type
-        in ["AUTHENTICATION_FAILED", "CONNECTION_FAILED"]
+        in ["AUTHENTICATION_FAILED", "CONNECTION_FAILED"],
     )
     async def connect(self, credentials: CloudCredentials) -> Either[CloudError, str]:
         """Establish secure Azure connection with multiple authentication methods."""
@@ -112,13 +121,12 @@ class AzureConnector:
                 from azure.identity import (
                     ClientCertificateCredential,
                     ClientSecretCredential,
-                    DefaultAzureCredential,
                     ManagedIdentityCredential,
                 )
                 from azure.mgmt.subscription import SubscriptionClient
             except ImportError:
                 return Either.left(
-                    CloudError.authentication_failed("Azure SDK not installed")
+                    CloudError.authentication_failed("Azure SDK not installed"),
                 )
 
             session_id = (
@@ -133,12 +141,12 @@ class AzureConnector:
                         credentials.tenant_id,
                         credentials.client_id,
                         credentials.client_secret,
-                    ]
+                    ],
                 ):
                     return Either.left(
                         CloudError.authentication_failed(
-                            "Missing required fields for Azure service principal authentication"
-                        )
+                            "Missing required fields for Azure service principal authentication",
+                        ),
                     )
 
                 credential = ClientSecretCredential(
@@ -154,8 +162,8 @@ class AzureConnector:
                 if not credentials.additional_params.get("certificate_path"):
                     return Either.left(
                         CloudError.authentication_failed(
-                            "Certificate path required for certificate authentication"
-                        )
+                            "Certificate path required for certificate authentication",
+                        ),
                     )
 
                 credential = ClientCertificateCredential(
@@ -166,7 +174,7 @@ class AzureConnector:
 
             else:
                 return Either.left(
-                    CloudError.insecure_auth_method(credentials.auth_method)
+                    CloudError.insecure_auth_method(credentials.auth_method),
                 )
 
             # Test connection and get subscription information
@@ -186,14 +194,14 @@ class AzureConnector:
             if subscription_info.state != "Enabled":
                 return Either.left(
                     CloudError.authentication_failed(
-                        f"Subscription {subscription_id} is not enabled"
-                    )
+                        f"Subscription {subscription_id} is not enabled",
+                    ),
                 )
 
             # Validate minimum required permissions
             if not await self._validate_azure_permissions(credential, subscription_id):
                 return Either.left(
-                    CloudError.authentication_failed("Insufficient Azure permissions")
+                    CloudError.authentication_failed("Insufficient Azure permissions"),
                 )
 
             # Create session wrapper
@@ -217,7 +225,9 @@ class AzureConnector:
             return Either.left(CloudError.connection_failed(str(e)))
 
     async def _validate_azure_permissions(
-        self, credential: Any, subscription_id: str
+        self,
+        credential: Any,
+        subscription_id: str,
     ) -> bool:
         """Validate minimum required Azure permissions."""
         try:
@@ -228,7 +238,15 @@ class AzureConnector:
             list(resource_client.resource_groups.list())
 
             return True
-        except Exception:
+        except Exception as e:
+            logger.warning(
+                f"Failed to validate Azure permissions: {e}",
+                extra={
+                    "subscription_id": subscription_id,
+                    "error_type": type(e).__name__,
+                    "operation": "validate_azure_permissions",
+                },
+            )
             return False
 
     @require(lambda session_id: len(session_id) > 0)
@@ -237,7 +255,7 @@ class AzureConnector:
     @ensure(
         lambda result: result.is_right()
         or result.get_left().error_type
-        in ["SESSION_NOT_FOUND", "RESOURCE_CREATION_FAILED"]
+        in ["SESSION_NOT_FOUND", "RESOURCE_CREATION_FAILED"],
     )
     async def create_storage_account(
         self,
@@ -261,8 +279,8 @@ class AzureConnector:
             if not self._validate_storage_account_name(account_name):
                 return Either.left(
                     CloudError.resource_creation_failed(
-                        "Invalid Azure storage account name"
-                    )
+                        "Invalid Azure storage account name",
+                    ),
                 )
 
             # Import Azure Storage management
@@ -287,7 +305,8 @@ class AzureConnector:
             )
 
             encryption = Encryption(
-                services=encryption_services, key_source="Microsoft.Storage"
+                services=encryption_services,
+                key_source="Microsoft.Storage",
             )
 
             # Create storage account parameters
@@ -307,7 +326,8 @@ class AzureConnector:
                 network_rules = NetworkRuleSet(
                     default_action=Action.DENY,
                     virtual_network_rules=config["network_restrictions"].get(
-                        "vnet_rules", []
+                        "vnet_rules",
+                        [],
                     ),
                     ip_rules=config["network_restrictions"].get("ip_rules", []),
                 )
@@ -325,7 +345,10 @@ class AzureConnector:
 
             # Apply additional security configurations
             await self._apply_storage_security_config(
-                storage_client, resource_group, account_name, config
+                storage_client,
+                resource_group,
+                account_name,
+                config,
             )
 
             # Create resource object
@@ -370,9 +393,17 @@ class AzureConnector:
                 # Apply stored access policies
                 pass
 
-        except Exception:
+        except Exception as e:
             # Non-critical security configurations shouldn't fail the main operation
-            pass
+            logger.warning(
+                f"Failed to apply storage security configuration: {e}",
+                extra={
+                    "resource_group": resource_group,
+                    "account_name": account_name,
+                    "error_type": type(e).__name__,
+                    "operation": "apply_storage_security_config",
+                },
+            )
 
     def _validate_storage_account_name(self, name: str) -> bool:
         """Validate Azure storage account naming requirements."""
@@ -433,20 +464,21 @@ class AzureConnector:
             if not keys.keys:
                 return Either.left(
                     CloudError.sync_operation_failed(
-                        "No storage account keys available"
-                    )
+                        "No storage account keys available",
+                    ),
                 )
 
             # Create blob service client
             account_url = f"https://{account_name}.blob.core.windows.net"
             blob_service_client = BlobServiceClient(
-                account_url=account_url, credential=keys.keys[0].value
+                account_url=account_url,
+                credential=keys.keys[0].value,
             )
 
             # Ensure container exists
             try:
                 container_client = blob_service_client.get_container_client(
-                    container_name
+                    container_name,
                 )
                 container_client.get_container_properties()
             except ResourceNotFoundError:
@@ -459,8 +491,8 @@ class AzureConnector:
             if not source.exists():
                 return Either.left(
                     CloudError.sync_operation_failed(
-                        f"Source path not found: {source_path}"
-                    )
+                        f"Source path not found: {source_path}",
+                    ),
                 )
 
             uploaded_files = []
@@ -494,7 +526,8 @@ class AzureConnector:
                             else str(relative_path)
                         )
                         blob_name = blob_name.replace(
-                            "\\", "/"
+                            "\\",
+                            "/",
                         )  # Azure uses forward slashes
 
                         result = await self._upload_file_to_blob(
@@ -559,7 +592,8 @@ class AzureConnector:
 
             # Upload file
             blob_client = blob_service_client.get_blob_client(
-                container=container_name, blob=blob_name
+                container=container_name,
+                blob=blob_name,
             )
 
             with open(file_path, "rb") as data:
@@ -577,12 +611,13 @@ class AzureConnector:
         except Exception as e:
             return Either.left(
                 CloudError.sync_operation_failed(
-                    f"Failed to upload {file_path}: {str(e)}"
-                )
+                    f"Failed to upload {file_path}: {e!s}",
+                ),
             )
 
     async def get_session_info(
-        self, session_id: str
+        self,
+        session_id: str,
     ) -> Either[CloudError, dict[str, Any]]:
         """Get Azure session information and statistics."""
         if session_id not in self.sessions:
@@ -599,7 +634,7 @@ class AzureConnector:
             "created_at": session.created_at.isoformat(),
             "last_used": session.last_used.isoformat(),
             "duration_minutes": int(
-                (datetime.now(UTC) - session.created_at).total_seconds() / 60
+                (datetime.now(UTC) - session.created_at).total_seconds() / 60,
             ),
             "available_services": [
                 AzureServiceType.STORAGE,

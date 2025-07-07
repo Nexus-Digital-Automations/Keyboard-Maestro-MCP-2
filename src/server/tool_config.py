@@ -1,5 +1,4 @@
-"""
-Tool Configuration and Metadata Schema for Keyboard Maestro MCP.
+"""Tool Configuration and Metadata Schema for Keyboard Maestro MCP.
 
 This module defines the configuration schema for tools, including categorization,
 security policies, and validation rules.
@@ -24,7 +23,7 @@ class ToolCategory(Enum):
     WINDOW_MANAGEMENT = "window_management"
     NOTIFICATIONS = "notifications"
     CALCULATIONS = "calculations"
-    TOKEN_PROCESSING = "token_processing"
+    TOKEN_PROCESSING = "token_processing"  # noqa: S105 - Type identifier, not a secret
     CONDITIONAL_LOGIC = "conditional_logic"
     CONTROL_FLOW = "control_flow"
     TRIGGERS = "triggers"
@@ -99,7 +98,6 @@ class ToolConfigurationManager:
 
     def _load_default_configurations(self) -> None:
         """Load default configurations for all tool categories."""
-
         # Core Tools
         core_tools = ["km_execute_macro", "km_list_macros", "km_variable_manager"]
         for tool in core_tools:
@@ -110,7 +108,8 @@ class ToolConfigurationManager:
                 module_path="src.server.tools.core_tools",
                 priority=10,
                 security_policy=ToolSecurityPolicy(
-                    level=SecurityLevel.STANDARD, audit_level="detailed"
+                    level=SecurityLevel.STANDARD,
+                    audit_level="detailed",
                 ),
             )
 
@@ -149,7 +148,8 @@ class ToolConfigurationManager:
             module_path="src.server.tools.file_operation_tools",
             priority=6,
             security_policy=ToolSecurityPolicy(
-                level=SecurityLevel.STRICT, audit_level="comprehensive"
+                level=SecurityLevel.STRICT,
+                audit_level="comprehensive",
             ),
         )
 
@@ -195,7 +195,8 @@ class ToolConfigurationManager:
                 module_path=f"src.server.tools.{tool.replace('km_', '').replace('_processor', '')}_tools",
                 priority=5,
                 security_policy=ToolSecurityPolicy(
-                    level=SecurityLevel.STANDARD, input_validation=True
+                    level=SecurityLevel.STANDARD,
+                    input_validation=True,
                 ),
             )
 
@@ -263,7 +264,8 @@ class ToolConfigurationManager:
                 module_path=f"src.server.tools.{module}",
                 priority=9,
                 security_policy=ToolSecurityPolicy(
-                    level=SecurityLevel.ENTERPRISE, audit_level="comprehensive"
+                    level=SecurityLevel.ENTERPRISE,
+                    audit_level="comprehensive",
                 ),
             )
 
@@ -292,7 +294,8 @@ class ToolConfigurationManager:
             module_path="src.server.tools.plugin_ecosystem_tools",
             priority=5,
             security_policy=ToolSecurityPolicy(
-                level=SecurityLevel.STRICT, audit_level="comprehensive"
+                level=SecurityLevel.STRICT,
+                audit_level="comprehensive",
             ),
         )
 

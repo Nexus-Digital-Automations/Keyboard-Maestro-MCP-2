@@ -1,5 +1,4 @@
-"""
-Comprehensive test coverage for High-Impact Tools (TASK_10-20) - TASK_69 Coverage Expansion.
+"""Comprehensive test coverage for High-Impact Tools (TASK_10-20) - TASK_69 Coverage Expansion.
 
 This module systematically tests the High-Impact Tools including app control, action building,
 creation tools, group management, and advanced automation features to achieve near-100% coverage.
@@ -8,6 +7,7 @@ Targeting 0% coverage modules with comprehensive functional tests, not shortcuts
 """
 
 import uuid
+from typing import Any
 
 import pytest
 from src.core.errors import ExecutionError, ValidationError
@@ -30,7 +30,7 @@ class TestActionTools:
     """Test Action Building Tools (TASK_10-12) - Programmatic macro construction."""
 
     @pytest.mark.asyncio
-    async def test_km_add_action_basic_functionality(self):
+    async def test_km_add_action_basic_functionality(self) -> None:
         """Test basic action addition functionality."""
         # Test with valid parameters
         test_macro_id = str(uuid.uuid4())
@@ -46,7 +46,7 @@ class TestActionTools:
             assert isinstance(e, ValidationError | ExecutionError | Exception)
 
     @pytest.mark.asyncio
-    async def test_km_list_action_types_functionality(self):
+    async def test_km_list_action_types_functionality(self) -> None:
         """Test action type listing functionality."""
         try:
             result = await km_list_action_types()
@@ -60,7 +60,7 @@ class TestCreationTools:
     """Test Macro Creation Tools (TASK_13-15) - Template-based macro creation."""
 
     @pytest.mark.asyncio
-    async def test_km_create_macro_operations(self):
+    async def test_km_create_macro_operations(self) -> None:
         """Test macro creation functionality."""
         # Test basic macro creation
         try:
@@ -77,7 +77,7 @@ class TestCreationTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_list_templates_functionality(self):
+    async def test_km_list_templates_functionality(self) -> None:
         """Test template listing functionality."""
         try:
             result = await km_list_templates()
@@ -91,7 +91,7 @@ class TestAppControlTools:
     """Test Application Control Tools (TASK_16-17) - App lifecycle management."""
 
     @pytest.mark.asyncio
-    async def test_km_app_control_operations(self):
+    async def test_km_app_control_operations(self) -> None:
         """Test application control functionality."""
         # Test app launch/quit operations
         try:
@@ -108,14 +108,15 @@ class TestAppControlTools:
         # Test app state checking
         try:
             state_result = await km_app_control(
-                operation="get_state", app_identifier="com.apple.TextEdit"
+                operation="get_state",
+                app_identifier="com.apple.TextEdit",
             )
             assert isinstance(state_result, dict | str | type(None))
         except Exception as e:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_window_manager_functionality(self):
+    async def test_km_window_manager_functionality(self) -> None:
         """Test window management functionality."""
         try:
             result = await km_window_manager(operation="list", app_filter="TextEdit")
@@ -129,7 +130,7 @@ class TestGroupTools:
     """Test Group Management Tools (TASK_18-19) - Macro organization."""
 
     @pytest.mark.asyncio
-    async def test_km_list_macro_groups_functionality(self):
+    async def test_km_list_macro_groups_functionality(self) -> None:
         """Test macro group listing functionality."""
         try:
             result = await km_list_macro_groups()
@@ -139,14 +140,15 @@ class TestGroupTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_move_macro_to_group_functionality(self):
+    async def test_km_move_macro_to_group_functionality(self) -> None:
         """Test macro movement between groups."""
         test_macro_id = str(uuid.uuid4())
         target_group = "Target Group"
 
         try:
             result = await km_move_macro_to_group(
-                macro_identifier=test_macro_id, target_group_name=target_group
+                macro_identifier=test_macro_id,
+                target_group_name=target_group,
             )
             assert isinstance(result, dict | str | bool | type(None))
         except Exception as e:
@@ -158,7 +160,7 @@ class TestHotkeyTools:
     """Test Hotkey Management Tools (TASK_20) - Keyboard shortcut automation."""
 
     @pytest.mark.asyncio
-    async def test_km_create_hotkey_trigger_functionality(self):
+    async def test_km_create_hotkey_trigger_functionality(self) -> None:
         """Test hotkey trigger creation functionality."""
         test_macro_id = str(uuid.uuid4())
 
@@ -174,7 +176,7 @@ class TestHotkeyTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_list_hotkey_triggers_functionality(self):
+    async def test_km_list_hotkey_triggers_functionality(self) -> None:
         """Test hotkey trigger listing functionality."""
         try:
             result = await km_list_hotkey_triggers()
@@ -188,7 +190,7 @@ class TestHighImpactToolIntegration:
     """Test integration between High-Impact Tools."""
 
     @pytest.mark.asyncio
-    async def test_macro_creation_to_execution_workflow(self):
+    async def test_macro_creation_to_execution_workflow(self) -> None:
         """Test complete workflow from creation to execution."""
         # Create macro -> Add actions -> Assign hotkey -> Test execution
         workflow_results = []
@@ -196,7 +198,9 @@ class TestHighImpactToolIntegration:
         try:
             # Step 1: Create macro
             creation_result = await km_create_macro(
-                name="Integration Test Macro", template="hotkey_action", enabled=True
+                name="Integration Test Macro",
+                template="hotkey_action",
+                enabled=True,
             )
             workflow_results.append(("creation", creation_result))
 
@@ -223,7 +227,7 @@ class TestHighImpactToolIntegration:
         assert len(workflow_results) >= 1
 
     @pytest.mark.asyncio
-    async def test_group_and_app_control_integration(self):
+    async def test_group_and_app_control_integration(self) -> None:
         """Test integration between group management and app control."""
         integration_results = []
 
@@ -234,13 +238,15 @@ class TestHighImpactToolIntegration:
 
             # Launch target application
             app_result = await km_app_control(
-                operation="launch", app_identifier="com.apple.TextEdit"
+                operation="launch",
+                app_identifier="com.apple.TextEdit",
             )
             integration_results.append(("app_launch", app_result))
 
             # Create app-specific macro
             macro_result = await km_create_macro(
-                name="TextEdit Helper", template="app_launcher"
+                name="TextEdit Helper",
+                template="app_launcher",
             )
             integration_results.append(("macro_creation", macro_result))
 
@@ -251,7 +257,7 @@ class TestHighImpactToolIntegration:
         assert len(integration_results) >= 1
 
     @pytest.mark.asyncio
-    async def test_error_handling_across_tools(self):
+    async def test_error_handling_across_tools(self) -> None:
         """Test error handling consistency across High-Impact Tools."""
         error_test_results = []
 
@@ -279,7 +285,7 @@ class TestHighImpactToolPerformance:
     """Test performance characteristics of High-Impact Tools."""
 
     @pytest.mark.asyncio
-    async def test_tool_response_times(self):
+    async def test_tool_response_times(self) -> None:
         """Test that High-Impact Tools respond within reasonable time limits."""
         import time
 
@@ -313,7 +319,7 @@ class TestHighImpactToolPerformance:
         assert len(performance_results) == len(operations)
 
     @pytest.mark.asyncio
-    async def test_concurrent_tool_operations(self):
+    async def test_concurrent_tool_operations(self) -> None:
         """Test High-Impact Tools work correctly under concurrent load."""
         import asyncio
 
@@ -339,7 +345,8 @@ class TestHighImpactToolPerformance:
             # Results should be valid or handled exceptions
             for result in results:
                 assert isinstance(
-                    result, dict | str | list | bool | type(None) | Exception
+                    result,
+                    dict | str | list | bool | type(None) | Exception,
                 )
 
         except Exception as e:

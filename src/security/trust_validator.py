@@ -1,5 +1,4 @@
-"""
-Trust Validator - TASK_62 Phase 2 Core Security Engine
+"""Trust Validator - TASK_62 Phase 2 Core Security Engine.
 
 Continuous trust validation and verification system for zero trust security.
 Provides real-time trust assessment, validation criteria evaluation, and continuous monitoring.
@@ -12,6 +11,7 @@ Security: Never trust always verify, continuous validation, comprehensive threat
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
@@ -35,6 +35,8 @@ from src.core.zero_trust_architecture import (
     validate_security_context,
     validate_trust_result,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ValidationStatus(Enum):
@@ -116,7 +118,7 @@ class ContinuousValidationConfig:
             TrustFactor.IDENTITY,
             TrustFactor.DEVICE,
             TrustFactor.BEHAVIOR,
-        }
+        },
     )
     escalation_rules: dict[str, Any] = field(default_factory=dict)
 
@@ -137,13 +139,14 @@ class TrustValidator:
         self.average_validation_time = 0.0
         self.cache_hit_rate = 0.0
 
-    @require(lambda self, request: isinstance(request, TrustValidationRequest))
+    @require(lambda __self, request: isinstance(request, TrustValidationRequest))
     @ensure(
-        lambda self, result: result.is_right()
-        or isinstance(result.get_left(), TrustValidationError)
+        lambda _self, result: result.is_right()
+        or isinstance(result.get_left(), TrustValidationError),
     )
     async def validate_trust(
-        self, request: TrustValidationRequest
+        self,
+        request: TrustValidationRequest,
     ) -> Either[TrustValidationError, TrustValidationResult]:
         """Perform comprehensive trust validation."""
         try:
@@ -156,13 +159,16 @@ class TrustValidator:
 
             # Check cache first
             cached_result = self._get_cached_trust_score(
-                request.target_id, request.scope
+                request.target_id,
+                request.scope,
             )
             if cached_result:
                 trust_score, cached_time = cached_result
                 if (start_time - cached_time).total_seconds() < 300:  # 5 minutes cache
                     return self._create_cached_validation_result(
-                        request, trust_score, cached_time
+                        request,
+                        trust_score,
+                        cached_time,
                     )
 
             # Store active validation
@@ -187,7 +193,8 @@ class TrustValidator:
 
             # Calculate expiration
             expires_at = self._calculate_validation_expiration(
-                trust_level, request.criteria
+                trust_level,
+                request.criteria,
             )
 
             # Create validation result
@@ -228,7 +235,7 @@ class TrustValidator:
                         "Trust validation result failed integrity check",
                         "INVALID_VALIDATION_RESULT",
                         SecurityOperation.VALIDATE,
-                    )
+                    ),
                 )
 
             # Store result and update cache
@@ -251,18 +258,20 @@ class TrustValidator:
         except Exception as e:
             return Either.left(
                 TrustValidationError(
-                    f"Trust validation failed: {str(e)}",
+                    f"Trust validation failed: {e!s}",
                     "VALIDATION_ERROR",
                     SecurityOperation.VALIDATE,
                     {"target_id": request.target_id, "scope": request.scope.value},
-                )
+                ),
             )
 
     @require(
-        lambda self, target_id, scope: target_id and isinstance(scope, ValidationScope)
+        lambda _self, target_id, scope: target_id and isinstance(scope, ValidationScope),
     )
     async def get_current_trust_score(
-        self, target_id: str, scope: ValidationScope
+        self,
+        target_id: str,
+        scope: ValidationScope,
     ) -> Either[TrustValidationError, TrustScore]:
         """Get current trust score for target."""
         try:
@@ -277,10 +286,14 @@ class TrustValidator:
             # Find most recent validation result
             recent_result = None
             for result in reversed(self.validation_history):
-                if result.target_id == target_id and result.scope == scope:
-                    if not result.expires_at or result.expires_at > datetime.now(UTC):
-                        recent_result = result
-                        break
+                # SIM102 fix: Combine nested if statements
+                if (
+                    result.target_id == target_id
+                    and result.scope == scope
+                    and (not result.expires_at or result.expires_at > datetime.now(UTC))
+                ):
+                    recent_result = result
+                    break
 
             if recent_result:
                 return Either.right(recent_result.trust_score)
@@ -292,20 +305,22 @@ class TrustValidator:
                     "NO_TRUST_SCORE",
                     SecurityOperation.VALIDATE,
                     {"target_id": target_id, "scope": scope.value},
-                )
+                ),
             )
 
         except Exception as e:
             return Either.left(
                 TrustValidationError(
-                    f"Failed to get trust score: {str(e)}",
+                    f"Failed to get trust score: {e!s}",
                     "TRUST_SCORE_ERROR",
                     SecurityOperation.VALIDATE,
-                )
+                ),
             )
 
     async def setup_continuous_validation(
-        self, target_id: str, config: ContinuousValidationConfig
+        self,
+        target_id: str,
+        config: ContinuousValidationConfig,
     ) -> Either[TrustValidationError, str]:
         """Setup continuous trust validation for target."""
         try:
@@ -316,7 +331,7 @@ class TrustValidator:
                         "Continuous validation interval must be at least 60 seconds",
                         "INVALID_INTERVAL",
                         SecurityOperation.VALIDATE,
-                    )
+                    ),
                 )
 
             # Store configuration
@@ -331,14 +346,15 @@ class TrustValidator:
         except Exception as e:
             return Either.left(
                 TrustValidationError(
-                    f"Failed to setup continuous validation: {str(e)}",
+                    f"Failed to setup continuous validation: {e!s}",
                     "CONTINUOUS_SETUP_ERROR",
                     SecurityOperation.VALIDATE,
-                )
+                ),
             )
 
     async def _validate_trust_factors(
-        self, request: TrustValidationRequest
+        self,
+        request: TrustValidationRequest,
     ) -> Either[TrustValidationError, dict[TrustFactor, TrustFactorResult]]:
         """Validate individual trust factors."""
         try:
@@ -385,14 +401,15 @@ class TrustValidator:
         except Exception as e:
             return Either.left(
                 TrustValidationError(
-                    f"Trust factor validation failed: {str(e)}",
+                    f"Trust factor validation failed: {e!s}",
                     "FACTOR_VALIDATION_ERROR",
                     SecurityOperation.VALIDATE,
-                )
+                ),
             )
 
     async def _validate_identity_factor(
-        self, request: TrustValidationRequest
+        self,
+        request: TrustValidationRequest,
     ) -> Either[TrustValidationError, TrustFactorResult]:
         """Validate identity trust factor."""
         try:
@@ -413,7 +430,7 @@ class TrustValidator:
 
             # Check for identity risks
             if request.context.user_id and self._is_high_risk_user(
-                request.context.user_id
+                request.context.user_id,
             ):
                 identity_score *= 0.8
                 warnings.append("User identified as high-risk")
@@ -435,14 +452,15 @@ class TrustValidator:
         except Exception as e:
             return Either.left(
                 TrustValidationError(
-                    f"Identity validation failed: {str(e)}",
+                    f"Identity validation failed: {e!s}",
                     "IDENTITY_VALIDATION_ERROR",
                     SecurityOperation.VALIDATE,
-                )
+                ),
             )
 
     async def _validate_device_factor(
-        self, request: TrustValidationRequest
+        self,
+        request: TrustValidationRequest,
     ) -> Either[TrustValidationError, TrustFactorResult]:
         """Validate device trust factor."""
         try:
@@ -482,14 +500,15 @@ class TrustValidator:
         except Exception as e:
             return Either.left(
                 TrustValidationError(
-                    f"Device validation failed: {str(e)}",
+                    f"Device validation failed: {e!s}",
                     "DEVICE_VALIDATION_ERROR",
                     SecurityOperation.VALIDATE,
-                )
+                ),
             )
 
     async def _validate_location_factor(
-        self, request: TrustValidationRequest
+        self,
+        request: TrustValidationRequest,
     ) -> Either[TrustValidationError, TrustFactorResult]:
         """Validate location trust factor."""
         try:
@@ -529,14 +548,15 @@ class TrustValidator:
         except Exception as e:
             return Either.left(
                 TrustValidationError(
-                    f"Location validation failed: {str(e)}",
+                    f"Location validation failed: {e!s}",
                     "LOCATION_VALIDATION_ERROR",
                     SecurityOperation.VALIDATE,
-                )
+                ),
             )
 
     async def _validate_behavior_factor(
-        self, request: TrustValidationRequest
+        self,
+        request: TrustValidationRequest,
     ) -> Either[TrustValidationError, TrustFactorResult]:
         """Validate behavior trust factor."""
         try:
@@ -576,14 +596,15 @@ class TrustValidator:
         except Exception as e:
             return Either.left(
                 TrustValidationError(
-                    f"Behavior validation failed: {str(e)}",
+                    f"Behavior validation failed: {e!s}",
                     "BEHAVIOR_VALIDATION_ERROR",
                     SecurityOperation.VALIDATE,
-                )
+                ),
             )
 
     async def _validate_network_factor(
-        self, request: TrustValidationRequest
+        self,
+        request: TrustValidationRequest,
     ) -> Either[TrustValidationError, TrustFactorResult]:
         """Validate network trust factor."""
         try:
@@ -623,14 +644,15 @@ class TrustValidator:
         except Exception as e:
             return Either.left(
                 TrustValidationError(
-                    f"Network validation failed: {str(e)}",
+                    f"Network validation failed: {e!s}",
                     "NETWORK_VALIDATION_ERROR",
                     SecurityOperation.VALIDATE,
-                )
+                ),
             )
 
     async def _validate_temporal_factor(
-        self, request: TrustValidationRequest
+        self,
+        request: TrustValidationRequest,
     ) -> Either[TrustValidationError, TrustFactorResult]:
         """Validate temporal trust factor."""
         try:
@@ -671,14 +693,15 @@ class TrustValidator:
         except Exception as e:
             return Either.left(
                 TrustValidationError(
-                    f"Temporal validation failed: {str(e)}",
+                    f"Temporal validation failed: {e!s}",
                     "TEMPORAL_VALIDATION_ERROR",
                     SecurityOperation.VALIDATE,
-                )
+                ),
             )
 
     def _calculate_composite_trust_score(
-        self, factors: dict[TrustFactor, TrustFactorResult]
+        self,
+        factors: dict[TrustFactor, TrustFactorResult],
     ) -> TrustScore:
         """Calculate composite trust score from factor results."""
         if not factors:
@@ -727,13 +750,13 @@ class TrustValidator:
             # Check for low scores
             if result.score < 0.5:
                 risk_factors.append(
-                    f"Low {factor.value} trust score ({result.score:.2f})"
+                    f"Low {factor.value} trust score ({result.score:.2f})",
                 )
 
             # Check for low confidence
             if result.confidence < 0.7:
                 risk_factors.append(
-                    f"Low confidence in {factor.value} validation ({result.confidence:.2f})"
+                    f"Low confidence in {factor.value} validation ({result.confidence:.2f})",
                 )
 
         # Check context-specific risks
@@ -742,13 +765,15 @@ class TrustValidator:
 
         if request.context.risk_score > 0.7:
             risk_factors.append(
-                f"High context risk score ({request.context.risk_score:.2f})"
+                f"High context risk score ({request.context.risk_score:.2f})",
             )
 
         return list(set(risk_factors))  # Remove duplicates
 
     def _generate_trust_recommendations(
-        self, factors: dict[TrustFactor, TrustFactorResult], trust_level: TrustLevel
+        self,
+        factors: dict[TrustFactor, TrustFactorResult],
+        trust_level: TrustLevel,
     ) -> list[str]:
         """Generate trust improvement recommendations."""
         recommendations = []
@@ -780,7 +805,9 @@ class TrustValidator:
         return list(set(recommendations))  # Remove duplicates
 
     def _calculate_validation_expiration(
-        self, trust_level: TrustLevel, criteria: ValidationCriteria
+        self,
+        trust_level: TrustLevel,
+        criteria: ValidationCriteria,
     ) -> datetime | None:
         """Calculate when validation expires based on trust level."""
         # Higher trust = longer validity
@@ -801,7 +828,8 @@ class TrustValidator:
         return datetime.now(UTC) + timedelta(seconds=duration_seconds)
 
     def _validate_request(
-        self, request: TrustValidationRequest
+        self,
+        request: TrustValidationRequest,
     ) -> Either[TrustValidationError, None]:
         """Validate trust validation request."""
         # Validate security context
@@ -812,7 +840,7 @@ class TrustValidator:
                     f"Invalid security context: {context_validation.get_left().message}",
                     "INVALID_CONTEXT",
                     SecurityOperation.VALIDATE,
-                )
+                ),
             )
 
         # Check for duplicate active validation
@@ -826,13 +854,15 @@ class TrustValidator:
                         f"Validation already in progress for {request.target_id}",
                         "DUPLICATE_VALIDATION",
                         SecurityOperation.VALIDATE,
-                    )
+                    ),
                 )
 
         return Either.right(None)
 
     def _get_cached_trust_score(
-        self, target_id: str, scope: ValidationScope
+        self,
+        target_id: str,
+        scope: ValidationScope,
     ) -> tuple[TrustScore, datetime] | None:
         """Get cached trust score if available and valid."""
         cache_key = f"{target_id}:{scope.value}"
@@ -881,7 +911,9 @@ class TrustValidator:
             )
 
     async def _run_continuous_validation(
-        self, target_id: str, config: ContinuousValidationConfig
+        self,
+        target_id: str,
+        config: ContinuousValidationConfig,
     ) -> None:
         """Run continuous validation for a target."""
         try:
@@ -900,7 +932,8 @@ class TrustValidator:
                         # Create basic validation request
                         validation_id = create_validation_id()
                         context = SecurityContext(
-                            context_id=f"continuous_{target_id}", user_id=target_id
+                            context_id=f"continuous_{target_id}",
+                            user_id=target_id,
                         )
                         criteria = ValidationCriteria()
 
@@ -922,12 +955,17 @@ class TrustValidator:
                             if validation_result.trust_score < config.score_threshold:
                                 # Trigger alerts or remediation
                                 await self._handle_low_trust_score(
-                                    target_id, validation_result, config
+                                    target_id,
+                                    validation_result,
+                                    config,
                                 )
 
-                    except Exception:
+                    except Exception as e:
                         # Log error but continue monitoring
-                        pass
+                        logger.error(
+                            f"Continuous validation error for {target_id}: {e!s}",
+                            exc_info=True,
+                        )
 
                 # Wait for next validation cycle
                 await asyncio.sleep(current_config.validation_interval)
@@ -950,7 +988,7 @@ class TrustValidator:
                 self.threat_indicators[target_id] = []
 
             self.threat_indicators[target_id].append(
-                f"Low trust score: {result.trust_score:.2f} at {result.validation_timestamp}"
+                f"Low trust score: {result.trust_score:.2f} at {result.validation_timestamp}",
             )
 
             # Auto-remediation if enabled
@@ -958,9 +996,9 @@ class TrustValidator:
                 # Implement remediation actions
                 pass
 
-        except Exception:
+        except Exception as e:
             # Log but don't fail
-            pass
+            logger.error(f"Low trust score handling failed: {e!s}", exc_info=True)
 
     # Helper methods for risk assessment
     def _is_high_risk_user(self, user_id: str) -> bool:

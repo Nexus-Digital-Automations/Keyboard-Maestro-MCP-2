@@ -1,6 +1,4 @@
-"""
-Capacity planning for resource scaling and optimization.
-"""
+"""Capacity planning for resource scaling and optimization."""
 
 import logging
 from datetime import UTC, datetime, timedelta
@@ -25,7 +23,9 @@ class CapacityPlanner:
         self.logger = logging.getLogger(__name__)
 
     async def create_capacity_plan(
-        self, resource_type: str, planning_horizon: timedelta = timedelta(days=30)
+        self,
+        resource_type: str,
+        planning_horizon: timedelta = timedelta(days=30),
     ) -> Either[Exception, CapacityPlan]:
         """Create capacity plan for resource scaling."""
         try:

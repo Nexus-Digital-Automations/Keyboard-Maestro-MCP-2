@@ -1,11 +1,13 @@
-"""
-Comprehensive tests for core AI integration module.
+"""Comprehensive tests for core AI integration module.
 
 Tests cover all AI processing functionality including model management,
 request/response handling, security validation, and cost optimization.
 Implements property-based testing for robust validation.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import json
 from datetime import UTC, datetime
 
@@ -37,7 +39,7 @@ from src.core.errors import ValidationError
 class TestAIModel:
     """Test AI model functionality and validation."""
 
-    def test_ai_model_creation_valid(self):
+    def test_ai_model_creation_valid(self) -> None:
         """Test creating valid AI model."""
         model = AIModel(
             model_id=AIModelId("test-model"),
@@ -56,7 +58,7 @@ class TestAIModel:
         assert model.max_tokens == TokenCount(1000)
         assert model.context_window == TokenCount(2000)
 
-    def test_ai_model_cost_estimation(self):
+    def test_ai_model_cost_estimation(self) -> None:
         """Test cost estimation functionality."""
         model = AIModel(
             model_id=AIModelId("cost-test"),
@@ -68,13 +70,14 @@ class TestAIModel:
         )
 
         cost = model.estimate_cost(
-            input_tokens=TokenCount(100), output_tokens=TokenCount(50)
+            input_tokens=TokenCount(100),
+            output_tokens=TokenCount(50),
         )
 
         expected_cost = (100 * 0.001) + (50 * 0.002)
         assert cost == CostAmount(expected_cost)
 
-    def test_ai_model_operation_support(self):
+    def test_ai_model_operation_support(self) -> None:
         """Test operation support checking."""
         vision_model = AIModel(
             model_id=AIModelId("vision-test"),
@@ -105,7 +108,7 @@ class TestAIModel:
         # Context window limits
         assert not text_model.can_handle_operation(AIOperation.GENERATE, 2000)
 
-    def test_ai_model_rate_limiting(self):
+    def test_ai_model_rate_limiting(self) -> None:
         """Test rate limiting functionality."""
         model = AIModel(
             model_id=AIModelId("rate-test"),
@@ -121,7 +124,7 @@ class TestAIModel:
         assert not model.is_within_rate_limit(100)
 
     @given(st.text(min_size=1), st.integers(min_value=1, max_value=100000))
-    def test_ai_model_property_validation(self, model_name: str, max_tokens: int):
+    def test_ai_model_property_validation(self, model_name: str, max_tokens: int) -> None:
         """Property test for AI model validation."""
         assume(len(model_name.strip()) > 0)
 
@@ -146,7 +149,7 @@ class TestAIModel:
 class TestAIRequest:
     """Test AI request functionality and validation."""
 
-    def test_ai_request_creation_valid(self):
+    def test_ai_request_creation_valid(self) -> None:
         """Test creating valid AI request."""
         model = DEFAULT_AI_MODELS["gpt-3.5-turbo"]
 
@@ -165,7 +168,7 @@ class TestAIRequest:
         assert request.temperature == 0.7
         assert request.max_tokens == TokenCount(500)
 
-    def test_ai_request_input_preparation(self):
+    def test_ai_request_input_preparation(self) -> None:
         """Test input data preparation for different types."""
         model = DEFAULT_AI_MODELS["gpt-3.5-turbo"]
 
@@ -200,7 +203,7 @@ class TestAIRequest:
         assert "item1" in prepared_list
         assert "item2" in prepared_list
 
-    def test_ai_request_token_estimation(self):
+    def test_ai_request_token_estimation(self) -> None:
         """Test token count estimation."""
         model = DEFAULT_AI_MODELS["gpt-3.5-turbo"]
 
@@ -216,7 +219,7 @@ class TestAIRequest:
         assert tokens > 0
         assert isinstance(tokens, int)
 
-    def test_ai_request_model_validation(self):
+    def test_ai_request_model_validation(self) -> None:
         """Test request validation against model capabilities."""
         # Model with small context window
         small_model = AIModel(
@@ -256,8 +259,11 @@ class TestAIRequest:
         st.integers(min_value=1, max_value=4096),
     )
     def test_ai_request_property_validation(
-        self, input_text: str, temperature: float, max_tokens: int
-    ):
+        self,
+        input_text: str,
+        temperature: float,
+        max_tokens: int,
+    ) -> None:
         """Property test for AI request validation."""
         assume(len(input_text.strip()) > 0)
 
@@ -283,7 +289,7 @@ class TestAIRequest:
 class TestAIResponse:
     """Test AI response functionality and formatting."""
 
-    def test_ai_response_creation_valid(self):
+    def test_ai_response_creation_valid(self) -> None:
         """Test creating valid AI response."""
         response = AIResponse(
             request_id=AIRequestId("test-request"),
@@ -304,7 +310,7 @@ class TestAIResponse:
         assert response.tokens_used == TokenCount(150)
         assert response.confidence == ConfidenceScore(0.85)
 
-    def test_ai_response_confidence_checking(self):
+    def test_ai_response_confidence_checking(self) -> None:
         """Test confidence threshold checking."""
         high_confidence_response = AIResponse(
             request_id=AIRequestId("high-conf"),
@@ -336,7 +342,7 @@ class TestAIResponse:
         assert not low_confidence_response.is_high_confidence()
         assert low_confidence_response.is_high_confidence(ConfidenceScore(0.6))
 
-    def test_ai_response_formatting(self):
+    def test_ai_response_formatting(self) -> None:
         """Test response formatting in different formats."""
         response_data = {
             "analysis": "Text analysis result",
@@ -368,7 +374,7 @@ class TestAIResponse:
         md_result = response.get_formatted_result(OutputFormat.MARKDOWN)
         assert "# AI Processing Result" in md_result
 
-    def test_ai_response_cost_breakdown(self):
+    def test_ai_response_cost_breakdown(self) -> None:
         """Test cost breakdown functionality."""
         response = AIResponse(
             request_id=AIRequestId("cost-test"),
@@ -395,7 +401,7 @@ class TestAIResponse:
 class TestAISecurityConfig:
     """Test AI security configuration and validation."""
 
-    def test_security_config_creation(self):
+    def test_security_config_creation(self) -> None:
         """Test creating security configuration."""
         config = AISecurityConfig(
             security_level=AISecurityLevel.STRICT,
@@ -410,7 +416,7 @@ class TestAISecurityConfig:
         assert config.max_input_size == 500_000
         assert "password" in config.blocked_patterns
 
-    def test_security_config_scanning_logic(self):
+    def test_security_config_scanning_logic(self) -> None:
         """Test content scanning decision logic."""
         strict_config = AISecurityConfig(
             security_level=AISecurityLevel.STRICT,
@@ -438,7 +444,7 @@ class TestAISecurityConfig:
 class TestAIUsageStats:
     """Test AI usage statistics tracking."""
 
-    def test_usage_stats_creation(self):
+    def test_usage_stats_creation(self) -> None:
         """Test creating usage statistics."""
         session_id = create_ai_session()
         stats = AIUsageStats(session_id=session_id)
@@ -448,7 +454,7 @@ class TestAIUsageStats:
         assert stats.total_tokens == TokenCount(0)
         assert stats.total_cost == CostAmount(0.0)
 
-    def test_usage_stats_calculations(self):
+    def test_usage_stats_calculations(self) -> None:
         """Test usage statistics calculations."""
         session_id = create_ai_session()
 
@@ -468,13 +474,15 @@ class TestAIUsageStats:
         assert empty_stats.get_success_rate() == 0.0
         assert empty_stats.get_average_cost_per_request() == CostAmount(0.0)
 
-    def test_usage_stats_session_duration(self):
+    def test_usage_stats_session_duration(self) -> None:
         """Test session duration calculation."""
         session_id = create_ai_session()
 
         start_time = datetime.now(UTC)
         stats = AIUsageStats(
-            session_id=session_id, start_time=start_time, last_request_time=start_time
+            session_id=session_id,
+            start_time=start_time,
+            last_request_time=start_time,
         )
 
         duration = stats.get_session_duration()
@@ -484,7 +492,7 @@ class TestAIUsageStats:
 class TestAIRequestFactory:
     """Test AI request factory functions."""
 
-    def test_create_ai_request_success(self):
+    def test_create_ai_request_success(self) -> None:
         """Test successful AI request creation."""
         result = create_ai_request(
             operation=AIOperation.GENERATE,
@@ -501,7 +509,7 @@ class TestAIRequestFactory:
         assert request.temperature == 0.8
         assert request.max_tokens == TokenCount(200)
 
-    def test_create_ai_request_with_model_selection(self):
+    def test_create_ai_request_with_model_selection(self) -> None:
         """Test request creation with specific model."""
         result = create_ai_request(
             operation=AIOperation.ANALYZE,
@@ -514,7 +522,7 @@ class TestAIRequestFactory:
         request = result.get_right()
         assert request.model.model_name == "gpt-4"
 
-    def test_create_ai_request_invalid_model(self):
+    def test_create_ai_request_invalid_model(self) -> None:
         """Test request creation with invalid model."""
         result = create_ai_request(
             operation=AIOperation.GENERATE,
@@ -527,7 +535,7 @@ class TestAIRequestFactory:
         error = result.get_left()
         assert "Model invalid-model not found" in error.constraint
 
-    def test_create_ai_session(self):
+    def test_create_ai_session(self) -> None:
         """Test AI session creation."""
         session_id = create_ai_session()
 
@@ -541,13 +549,18 @@ class TestAIRequestFactory:
         st.floats(min_value=0.0, max_value=2.0),
     )
     def test_create_ai_request_property_validation(
-        self, operation: AIOperation, input_text: str, temperature: float
-    ):
+        self,
+        operation: AIOperation,
+        input_text: str,
+        temperature: float,
+    ) -> None:
         """Property test for AI request creation."""
         assume(len(input_text.strip()) > 0)
 
         result = create_ai_request(
-            operation=operation, input_data=input_text.strip(), temperature=temperature
+            operation=operation,
+            input_data=input_text.strip(),
+            temperature=temperature,
         )
 
         # Should either succeed or fail gracefully
@@ -564,7 +577,7 @@ class TestAIRequestFactory:
 class TestDefaultModels:
     """Test predefined AI models."""
 
-    def test_default_models_exist(self):
+    def test_default_models_exist(self) -> None:
         """Test that default models are properly defined."""
         assert "gpt-4" in DEFAULT_AI_MODELS
         assert "gpt-3.5-turbo" in DEFAULT_AI_MODELS
@@ -578,7 +591,7 @@ class TestDefaultModels:
         gemini = DEFAULT_AI_MODELS["gemini-pro"]
         assert gemini.model_type == AIModelType.GOOGLE_AI
 
-    def test_default_models_validation(self):
+    def test_default_models_validation(self) -> None:
         """Test that all default models are valid."""
         for _model_name, model in DEFAULT_AI_MODELS.items():
             # Each model should be properly configured
@@ -589,7 +602,7 @@ class TestDefaultModels:
             assert model.cost_per_output_token >= 0.0
             assert model.rate_limit_per_minute > 0
 
-    def test_vision_model_capabilities(self):
+    def test_vision_model_capabilities(self) -> None:
         """Test vision-enabled models."""
         vision_models = [
             model for model in DEFAULT_AI_MODELS.values() if model.supports_vision
@@ -605,7 +618,7 @@ class TestDefaultModels:
 class TestAIEnums:
     """Test AI enumeration types."""
 
-    def test_ai_operation_values(self):
+    def test_ai_operation_values(self) -> None:
         """Test AI operation enum values."""
         operations = [op.value for op in AIOperation]
 
@@ -625,7 +638,7 @@ class TestAIEnums:
         for expected in expected_operations:
             assert expected in operations
 
-    def test_model_type_values(self):
+    def test_model_type_values(self) -> None:
         """Test AI model type enum values."""
         types = [t.value for t in AIModelType]
 
@@ -634,7 +647,7 @@ class TestAIEnums:
         for expected in expected_types:
             assert expected in types
 
-    def test_processing_mode_values(self):
+    def test_processing_mode_values(self) -> None:
         """Test processing mode enum values."""
         modes = [m.value for m in ProcessingMode]
 
@@ -648,7 +661,7 @@ class TestAIEnums:
 class TestAIIntegrationWorkflow:
     """Test complete AI processing workflows."""
 
-    def test_complete_ai_workflow(self):
+    def test_complete_ai_workflow(self) -> None:
         """Test complete AI processing workflow."""
         # 1. Create AI session
         session_id = create_ai_session()
@@ -696,7 +709,7 @@ class TestAIIntegrationWorkflow:
         assert breakdown["total_cost"] > 0
         assert breakdown["model_used"] == request.model.model_name
 
-    def test_security_validation_workflow(self):
+    def test_security_validation_workflow(self) -> None:
         """Test AI processing with security validation."""
         # Create security config
         security_config = AISecurityConfig(
@@ -717,14 +730,16 @@ class TestAIIntegrationWorkflow:
 
         # Create request with security context
         request_result = create_ai_request(
-            operation=AIOperation.ANALYZE, input_data=safe_content, privacy_mode=True
+            operation=AIOperation.ANALYZE,
+            input_data=safe_content,
+            privacy_mode=True,
         )
 
         assert request_result.is_right()
         request = request_result.get_right()
         assert request.privacy_mode
 
-    def test_cost_optimization_workflow(self):
+    def test_cost_optimization_workflow(self) -> None:
         """Test cost optimization strategies."""
         # Compare costs between models
         gpt4_model = DEFAULT_AI_MODELS["gpt-4"]

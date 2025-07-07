@@ -1,5 +1,4 @@
-"""
-Security Validation and Input Sanitization
+"""Security Validation and Input Sanitization.
 
 Provides comprehensive security boundaries for Keyboard Maestro integration
 with input validation, sanitization, and threat prevention.
@@ -208,7 +207,8 @@ DANGEROUS_APPLESCRIPT_PATTERNS = [
 
 
 def validate_km_input(
-    raw_input: dict[str, Any], level: SecurityLevel = SecurityLevel.STANDARD
+    raw_input: dict[str, Any],
+    level: SecurityLevel = SecurityLevel.STANDARD,
 ) -> ValidationResult:
     """Comprehensive validation of KM input data."""
     violations = []
@@ -246,7 +246,9 @@ def validate_km_input(
 
 
 def _validate_field(
-    field_name: str, value: Any, level: SecurityLevel
+    field_name: str,
+    value: Any,
+    level: SecurityLevel,
 ) -> tuple[list[SecurityViolation], Any]:
     """Validate individual field value."""
     violations = []
@@ -256,7 +258,9 @@ def _validate_field(
         sanitized_dict = {}
         for nested_field, nested_value in value.items():
             nested_violations, nested_sanitized = _validate_field(
-                f"{field_name}.{nested_field}", nested_value, level
+                f"{field_name}.{nested_field}",
+                nested_value,
+                level,
             )
             violations.extend(nested_violations)
             sanitized_dict[nested_field] = nested_sanitized
@@ -278,7 +282,7 @@ def _validate_field(
                     f"Potential script injection detected: {pattern}",
                     "critical",
                     "Remove script tags and JavaScript code",
-                )
+                ),
             )
 
     # Check for command injection in original value
@@ -291,7 +295,7 @@ def _validate_field(
                     f"Potential command injection detected: {pattern}",
                     "critical",
                     "Remove shell commands and dangerous operators",
-                )
+                ),
             )
 
     # Check for path traversal in original value
@@ -304,7 +308,7 @@ def _validate_field(
                     f"Path traversal attempt detected: {pattern}",
                     "high",
                     "Use relative paths within allowed directories",
-                )
+                ),
             )
 
     # Check for SQL injection in original value
@@ -317,7 +321,7 @@ def _validate_field(
                     f"SQL injection attempt detected: {pattern}",
                     "high",
                     "Use parameterized queries and escape SQL characters",
-                )
+                ),
             )
 
     # AppleScript-specific validation in original value
@@ -331,7 +335,7 @@ def _validate_field(
                         f"Dangerous AppleScript command detected: {pattern}",
                         "critical",
                         "Use safer alternatives or remove system-level commands",
-                    )
+                    ),
                 )
 
     # Return violations and SANITIZED value (not original)
@@ -339,7 +343,8 @@ def _validate_field(
 
 
 def _validate_field_combinations(
-    data: dict[str, Any], level: SecurityLevel
+    data: dict[str, Any],
+    level: SecurityLevel,
 ) -> list[SecurityViolation]:
     """Validate combinations of fields for security issues."""
     violations = []
@@ -350,7 +355,7 @@ def _validate_field_combinations(
         requested_perms = set(data.get("permissions", []))
 
         if high_perms.intersection(requested_perms) and "sudo" in str(
-            data.get("script_content", "")
+            data.get("script_content", ""),
         ):
             violations.append(
                 SecurityViolation.create(
@@ -359,7 +364,7 @@ def _validate_field_combinations(
                     "High permissions requested with sudo in script",
                     "critical",
                     "Remove sudo commands or reduce permissions",
-                )
+                ),
             )
 
     return violations
@@ -372,7 +377,7 @@ def _sanitize_value(value: str, level: SecurityLevel) -> str:
     if level == SecurityLevel.MINIMAL:
         return value[:1000]  # Just truncate
 
-    elif level == SecurityLevel.STANDARD:
+    if level == SecurityLevel.STANDARD:
         # Enhanced sanitization for standard level
         sanitized = value  # Don't html.escape initially to check patterns on original
 
@@ -380,35 +385,50 @@ def _sanitize_value(value: str, level: SecurityLevel) -> str:
         for pattern in SCRIPT_INJECTION_PATTERNS:
             if re.search(pattern, sanitized, re.IGNORECASE):
                 sanitized = re.sub(
-                    pattern, "[BLOCKED_SCRIPT]", sanitized, flags=re.IGNORECASE
+                    pattern,
+                    "[BLOCKED_SCRIPT]",
+                    sanitized,
+                    flags=re.IGNORECASE,
                 )
 
         # Remove command injection patterns
         for pattern in COMMAND_INJECTION_PATTERNS:
             if re.search(pattern, sanitized, re.IGNORECASE):
                 sanitized = re.sub(
-                    pattern, "[BLOCKED_COMMAND]", sanitized, flags=re.IGNORECASE
+                    pattern,
+                    "[BLOCKED_COMMAND]",
+                    sanitized,
+                    flags=re.IGNORECASE,
                 )
 
         # Remove path traversal patterns
         for pattern in PATH_TRAVERSAL_PATTERNS:
             if re.search(pattern, sanitized, re.IGNORECASE):
                 sanitized = re.sub(
-                    pattern, "[BLOCKED_PATH]", sanitized, flags=re.IGNORECASE
+                    pattern,
+                    "[BLOCKED_PATH]",
+                    sanitized,
+                    flags=re.IGNORECASE,
                 )
 
         # Remove SQL injection patterns
         for pattern in SQL_INJECTION_PATTERNS:
             if re.search(pattern, sanitized, re.IGNORECASE):
                 sanitized = re.sub(
-                    pattern, "[BLOCKED_SQL]", sanitized, flags=re.IGNORECASE
+                    pattern,
+                    "[BLOCKED_SQL]",
+                    sanitized,
+                    flags=re.IGNORECASE,
                 )
 
         # Remove AppleScript danger patterns
         for pattern in DANGEROUS_APPLESCRIPT_PATTERNS:
             if re.search(pattern, sanitized, re.IGNORECASE):
                 sanitized = re.sub(
-                    pattern, "[BLOCKED_APPLESCRIPT]", sanitized, flags=re.IGNORECASE
+                    pattern,
+                    "[BLOCKED_APPLESCRIPT]",
+                    sanitized,
+                    flags=re.IGNORECASE,
                 )
 
         # Then apply HTML escaping for additional safety
@@ -419,13 +439,13 @@ def _sanitize_value(value: str, level: SecurityLevel) -> str:
 
         if original_value != sanitized:
             print(
-                f"SANITIZATION: {repr(original_value)} -> {repr(sanitized)}",
+                f"SANITIZATION: {original_value!r} -> {sanitized!r}",
                 file=sys.stderr,
             )
 
         return sanitized[:1000]
 
-    elif level == SecurityLevel.STRICT:
+    if level == SecurityLevel.STRICT:
         # More aggressive sanitization
         sanitized = html.escape(value)
 
@@ -445,7 +465,7 @@ def _sanitize_value(value: str, level: SecurityLevel) -> str:
 
         return sanitized[:500]
 
-    elif level == SecurityLevel.PARANOID:
+    if level == SecurityLevel.PARANOID:
         # Very strict whitelist approach - only allow safe characters
         sanitized = re.sub(r"[^a-zA-Z0-9\s\-_.,!?]", "", value)
         return sanitized[:200]
@@ -454,7 +474,8 @@ def _sanitize_value(value: str, level: SecurityLevel) -> str:
 
 
 def sanitize_trigger_data(
-    trigger_data: dict[str, Any], level: SecurityLevel = SecurityLevel.STANDARD
+    trigger_data: dict[str, Any],
+    level: SecurityLevel = SecurityLevel.STANDARD,
 ) -> SanitizedTriggerData:
     """Sanitize trigger data to prevent injection attacks."""
     trigger_type = trigger_data.get("trigger_type", "unknown")
@@ -479,7 +500,8 @@ def sanitize_trigger_data(
 
 
 def _determine_permissions(
-    trigger_type: str, config: dict[str, Any]
+    trigger_type: str,
+    config: dict[str, Any],
 ) -> set[Permission]:
     """Determine required permissions for trigger configuration."""
     permissions = set()

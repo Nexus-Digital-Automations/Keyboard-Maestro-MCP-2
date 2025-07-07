@@ -1,5 +1,4 @@
-"""
-Pattern Validation for Behavioral Intelligence with Security Compliance.
+"""Pattern Validation for Behavioral Intelligence with Security Compliance.
 
 This module provides comprehensive validation for behavioral patterns, ensuring
 privacy compliance, security validation, and analytical utility while maintaining
@@ -32,12 +31,13 @@ class PatternValidator:
         self.quality_thresholds: dict[str, float] = {}
         self._configure_validation_rules()
 
-    @require(lambda self, pattern: isinstance(pattern, UserBehaviorPattern))
+    @require(lambda __self, pattern: isinstance(pattern, UserBehaviorPattern))
     def is_valid_for_analysis(
-        self, pattern: UserBehaviorPattern, privacy_level: PrivacyLevel
+        self,
+        pattern: UserBehaviorPattern,
+        privacy_level: PrivacyLevel,
     ) -> bool:
-        """
-        Validate behavioral pattern for analysis with privacy compliance.
+        """Validate behavioral pattern for analysis with privacy compliance.
 
         Performs comprehensive validation including privacy compliance,
         security boundaries, quality thresholds, and analytical utility
@@ -54,6 +54,7 @@ class PatternValidator:
             - Privacy level compliance verification
             - Sensitive data detection and filtering
             - Security boundary validation
+
         """
         try:
             # Privacy compliance validation
@@ -80,16 +81,17 @@ class PatternValidator:
 
         except Exception as e:
             logger.warning(
-                f"Pattern validation error for {pattern.pattern_id}: {str(e)}"
+                f"Pattern validation error for {pattern.pattern_id}: {e!s}",
             )
             return False
 
-    @require(lambda self, pattern: isinstance(pattern, UserBehaviorPattern))
+    @require(lambda __self, pattern: isinstance(pattern, UserBehaviorPattern))
     def is_valid_for_learning(
-        self, pattern: UserBehaviorPattern, learning_type: str = "general"
+        self,
+        pattern: UserBehaviorPattern,
+        learning_type: str = "general",
     ) -> bool:
-        """
-        Validate behavioral pattern for machine learning applications.
+        """Validate behavioral pattern for machine learning applications.
 
         Ensures pattern meets quality standards for adaptive learning,
         has sufficient data points for statistical reliability, and
@@ -101,6 +103,7 @@ class PatternValidator:
 
         Returns:
             True if pattern is suitable for machine learning
+
         """
         try:
             # Minimum data requirements for learning
@@ -122,19 +125,20 @@ class PatternValidator:
             # Learning-specific validation
             if learning_type == "automation":
                 return self._validate_automation_learning_criteria(pattern)
-            elif learning_type == "optimization":
+            if learning_type == "optimization":
                 return self._validate_optimization_learning_criteria(pattern)
-            else:
-                return True  # General learning requirements already met
+            return True  # General learning requirements already met
 
         except Exception as e:
             logger.warning(
-                f"Learning validation error for {pattern.pattern_id}: {str(e)}"
+                f"Learning validation error for {pattern.pattern_id}: {e!s}",
             )
             return False
 
     def _validate_privacy_compliance(
-        self, pattern: UserBehaviorPattern, privacy_level: PrivacyLevel
+        self,
+        pattern: UserBehaviorPattern,
+        privacy_level: PrivacyLevel,
     ) -> bool:
         """Validate pattern compliance with privacy level requirements."""
         self.validation_rules.get(privacy_level, {})
@@ -225,7 +229,8 @@ class PatternValidator:
         return not pattern.get_reliability_score() < 0.3
 
     def _validate_automation_learning_criteria(
-        self, pattern: UserBehaviorPattern
+        self,
+        pattern: UserBehaviorPattern,
     ) -> bool:
         """Validate pattern meets criteria for automation learning."""
         # High frequency patterns are better for automation
@@ -240,7 +245,8 @@ class PatternValidator:
         return not len(pattern.action_sequence) < 2
 
     def _validate_optimization_learning_criteria(
-        self, pattern: UserBehaviorPattern
+        self,
+        pattern: UserBehaviorPattern,
     ) -> bool:
         """Validate pattern meets criteria for optimization learning."""
         # Need performance data for optimization
@@ -418,7 +424,8 @@ class PatternValidator:
         }
 
     def get_validation_summary(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Get validation summary for a list of patterns."""
         total_patterns = len(patterns)
@@ -431,18 +438,15 @@ class PatternValidator:
         for pattern in patterns:
             if self.is_valid_for_analysis(pattern, PrivacyLevel.BALANCED):
                 valid_count += 1
+            # Determine why it's invalid for reporting
+            elif pattern.frequency < self.quality_thresholds["min_frequency"]:
+                invalid_reasons["low_frequency"] += 1
+            elif pattern.success_rate < self.quality_thresholds["min_success_rate"]:
+                invalid_reasons["low_success_rate"] += 1
+            elif pattern.confidence_score < self.quality_thresholds["min_confidence"]:
+                invalid_reasons["low_confidence"] += 1
             else:
-                # Determine why it's invalid for reporting
-                if pattern.frequency < self.quality_thresholds["min_frequency"]:
-                    invalid_reasons["low_frequency"] += 1
-                elif pattern.success_rate < self.quality_thresholds["min_success_rate"]:
-                    invalid_reasons["low_success_rate"] += 1
-                elif (
-                    pattern.confidence_score < self.quality_thresholds["min_confidence"]
-                ):
-                    invalid_reasons["low_confidence"] += 1
-                else:
-                    invalid_reasons["other"] += 1
+                invalid_reasons["other"] += 1
 
         return {
             "total": total_patterns,

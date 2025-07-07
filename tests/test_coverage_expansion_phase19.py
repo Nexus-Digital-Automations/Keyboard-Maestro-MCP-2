@@ -1,5 +1,4 @@
-"""
-Phase 19 Focused High-Value Module Testing & Strategic Coverage Consolidation for Keyboard Maestro MCP.
+"""Phase 19 Focused High-Value Module Testing & Strategic Coverage Consolidation for Keyboard Maestro MCP.
 
 This module targets focused high-value module testing and strategic coverage consolidation,
 focusing on proven high-impact modules, comprehensive tool suite testing, security system validation,
@@ -7,6 +6,9 @@ workflow orchestration consolidation, analytics pipeline optimization, and strat
 for maximum coverage improvement toward the 95% target through systematic focused testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import sys
 from pathlib import Path
 
@@ -16,9 +18,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_proven_high_impact_server_tools_consolidation():
+def test_proven_high_impact_server_tools_consolidation() -> None:
     """Test consolidation of proven high-impact server tools with known functionality."""
-
     # Target proven high-impact server tools that have shown import success
     proven_server_tools = [
         ("server.tools", "action_tools"),  # Known working, has tests
@@ -65,9 +66,8 @@ def test_proven_high_impact_server_tools_consolidation():
     assert proven_imports >= 8, f"Only {proven_imports} proven server tools imported"
 
 
-def test_comprehensive_security_system_validation():
+def test_comprehensive_security_system_validation() -> None:
     """Test comprehensive validation of security systems with known patterns."""
-
     # Target security modules that have been successfully tested
     security_modules = [
         ("security", "access_controller"),  # Known working
@@ -112,9 +112,8 @@ def test_comprehensive_security_system_validation():
     assert security_imports >= 6, f"Only {security_imports} security modules found"
 
 
-def test_workflow_orchestration_consolidation():
+def test_workflow_orchestration_consolidation() -> None:
     """Test consolidation of workflow orchestration with proven components."""
-
     # Target workflow modules that we know exist and have functionality
     workflow_modules = [
         ("server.tools", "workflow_intelligence_tools"),  # Known working
@@ -159,9 +158,8 @@ def test_workflow_orchestration_consolidation():
     assert workflow_imports >= 6, f"Only {workflow_imports} workflow modules found"
 
 
-def test_analytics_pipeline_optimization():
+def test_analytics_pipeline_optimization() -> None:
     """Test optimization of analytics pipeline with proven components."""
-
     # Target analytics modules that have shown functionality
     analytics_modules = [
         ("server.tools", "analytics_engine_tools"),  # Known working, has tests
@@ -206,9 +204,8 @@ def test_analytics_pipeline_optimization():
     assert analytics_imports >= 5, f"Only {analytics_imports} analytics modules found"
 
 
-def test_core_infrastructure_optimization():
+def test_core_infrastructure_optimization() -> None:
     """Test optimization of core infrastructure with proven high-value components."""
-
     # Target core modules that are known to work and have high value
     core_modules = [
         ("core", "engine"),  # Known working, has comprehensive tests
@@ -253,9 +250,8 @@ def test_core_infrastructure_optimization():
     assert core_imports >= 8, f"Only {core_imports} core modules found"
 
 
-def test_agent_and_intelligence_systems_consolidation():
+def test_agent_and_intelligence_systems_consolidation() -> None:
     """Test consolidation of agent and intelligence systems."""
-
     # Target agent and intelligence modules
     agent_intelligence_modules = [
         ("agents", "agent_manager"),  # Known exists
@@ -302,9 +298,8 @@ def test_agent_and_intelligence_systems_consolidation():
     assert agent_imports >= 5, f"Only {agent_imports} agent modules found"
 
 
-def test_comprehensive_focused_functionality_patterns():
+def test_comprehensive_focused_functionality_patterns() -> None:
     """Test comprehensive functionality patterns for focused high-value testing."""
-
     # Test focused high-value functionality patterns
     focused_functionality_data = {
         "proven_server_tools": {
@@ -450,7 +445,7 @@ def test_comprehensive_focused_functionality_patterns():
     assert workflow_metrics["workflow_efficiency"] > 0.90
 
 
-def test_advanced_focused_async_functionality():
+def test_advanced_focused_async_functionality() -> bool:
     """Test advanced async functionality for focused high-value modules."""
 
     @pytest.mark.asyncio
@@ -573,9 +568,8 @@ def test_advanced_focused_async_functionality():
     assert result is True
 
 
-def test_strategic_coverage_consolidation_patterns():
+def test_strategic_coverage_consolidation_patterns() -> None:
     """Test strategic patterns for coverage consolidation and optimization."""
-
     # Test strategic coverage consolidation scenarios
     coverage_consolidation = {
         "focused_high_value_targeting": {
@@ -693,9 +687,8 @@ def test_strategic_coverage_consolidation_patterns():
     assert remaining_to_target < 0.80  # Should be making solid progress
 
 
-def test_focused_consolidation_validation():
+def test_focused_consolidation_validation() -> None:
     """Test focused consolidation validation for Phase 19 completion."""
-
     # Test focused consolidation validation scenarios
     consolidation_validation = {
         "phase_19_completion_criteria": {

@@ -1,11 +1,13 @@
-"""
-Comprehensive test suite for voice control tools using systematic MCP tool test pattern.
+"""Comprehensive test suite for voice control tools using systematic MCP tool test pattern.
 
 Tests the complete voice control functionality including voice command processing, voice control
 configuration, voice feedback synthesis, and voice recognition training capabilities.
 Tests follow the proven systematic pattern that achieved 100% success across 35+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import Mock
 
@@ -457,7 +459,7 @@ async def mock_km_provide_voice_feedback(
     # Audio file information
     if save_audio:
         feedback_results["audio_file"] = {
-            "file_path": f"/tmp/voice_feedback_{feedback_id}.wav",
+            "file_path": f"audio_output/voice_feedback_{feedback_id}.wav",
             "file_format": "wav",
             "file_size": feedback_results["synthesis_details"]["file_size"],
             "metadata_included": True,
@@ -674,12 +676,12 @@ class TestKMProcessVoiceCommands:
     """Test class for voice command processing functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_process_voice_commands_basic(self, mock_context):
+    async def test_process_voice_commands_basic(self, mock_context) -> None:
         """Test basic voice command processing."""
         result = await mock_km_process_voice_commands(
             audio_input="audio_data_sample",
@@ -699,7 +701,7 @@ class TestKMProcessVoiceCommands:
         assert result["security_validation"]["command_authorized"] is True
 
     @pytest.mark.asyncio
-    async def test_process_voice_commands_with_intent(self, mock_context):
+    async def test_process_voice_commands_with_intent(self, mock_context) -> None:
         """Test voice command processing with intent recognition."""
         result = await mock_km_process_voice_commands(
             voice_data="voice_input_data",
@@ -720,7 +722,7 @@ class TestKMProcessVoiceCommands:
         assert execution["automation_triggered"] is True
 
     @pytest.mark.asyncio
-    async def test_process_voice_commands_invalid_engine(self, mock_context):
+    async def test_process_voice_commands_invalid_engine(self, mock_context) -> None:
         """Test voice command processing with invalid engine."""
         result = await mock_km_process_voice_commands(
             audio_input="test_audio",
@@ -733,7 +735,7 @@ class TestKMProcessVoiceCommands:
         assert "Invalid recognition engine" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_process_voice_commands_missing_input(self, mock_context):
+    async def test_process_voice_commands_missing_input(self, mock_context) -> None:
         """Test voice command processing without input."""
         result = await mock_km_process_voice_commands(ctx=mock_context)
 
@@ -744,10 +746,12 @@ class TestKMProcessVoiceCommands:
         )
 
     @pytest.mark.asyncio
-    async def test_process_voice_commands_invalid_confidence(self, mock_context):
+    async def test_process_voice_commands_invalid_confidence(self, mock_context) -> None:
         """Test voice command processing with invalid confidence threshold."""
         result = await mock_km_process_voice_commands(
-            audio_input="test_audio", confidence_threshold=1.5, ctx=mock_context
+            audio_input="test_audio",
+            confidence_threshold=1.5,
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -762,12 +766,12 @@ class TestKMConfigureVoiceControl:
     """Test class for voice control configuration functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_configure_voice_control_recognition(self, mock_context):
+    async def test_configure_voice_control_recognition(self, mock_context) -> None:
         """Test voice control recognition settings configuration."""
         voice_settings = {
             "recognition_engine": "azure",
@@ -791,7 +795,7 @@ class TestKMConfigureVoiceControl:
         assert recognition["adaptive_learning"] is True
 
     @pytest.mark.asyncio
-    async def test_configure_voice_control_language(self, mock_context):
+    async def test_configure_voice_control_language(self, mock_context) -> None:
         """Test voice control language preferences configuration."""
         language_prefs = {
             "primary_language": "es-ES",
@@ -813,10 +817,11 @@ class TestKMConfigureVoiceControl:
         assert language["auto_detection_enabled"] is True
 
     @pytest.mark.asyncio
-    async def test_configure_voice_control_full_setup(self, mock_context):
+    async def test_configure_voice_control_full_setup(self, mock_context) -> None:
         """Test comprehensive voice control configuration."""
         result = await mock_km_configure_voice_control(
-            configuration_type="full_setup", ctx=mock_context
+            configuration_type="full_setup",
+            ctx=mock_context,
         )
 
         assert result["success"] is True
@@ -829,10 +834,11 @@ class TestKMConfigureVoiceControl:
         assert result["system_status"]["voice_engine_status"] == "running"
 
     @pytest.mark.asyncio
-    async def test_configure_voice_control_invalid_type(self, mock_context):
+    async def test_configure_voice_control_invalid_type(self, mock_context) -> None:
         """Test voice control configuration with invalid type."""
         result = await mock_km_configure_voice_control(
-            configuration_type="invalid_type", ctx=mock_context
+            configuration_type="invalid_type",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -844,12 +850,12 @@ class TestKMProvideVoiceFeedback:
     """Test class for voice feedback synthesis functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_provide_voice_feedback_basic(self, mock_context):
+    async def test_provide_voice_feedback_basic(self, mock_context) -> None:
         """Test basic voice feedback synthesis."""
         result = await mock_km_provide_voice_feedback(
             feedback_text="Command executed successfully",
@@ -867,7 +873,7 @@ class TestKMProvideVoiceFeedback:
         assert feedback["synthesis_status"] == "completed"
 
     @pytest.mark.asyncio
-    async def test_provide_voice_feedback_custom_voice(self, mock_context):
+    async def test_provide_voice_feedback_custom_voice(self, mock_context) -> None:
         """Test voice feedback with custom voice settings."""
         voice_settings = {
             "speech_rate": 1.2,
@@ -895,10 +901,12 @@ class TestKMProvideVoiceFeedback:
         assert feedback["audio_file"]["file_format"] == "wav"
 
     @pytest.mark.asyncio
-    async def test_provide_voice_feedback_invalid_type(self, mock_context):
+    async def test_provide_voice_feedback_invalid_type(self, mock_context) -> None:
         """Test voice feedback with invalid feedback type."""
         result = await mock_km_provide_voice_feedback(
-            feedback_text="Test message", feedback_type="invalid_type", ctx=mock_context
+            feedback_text="Test message",
+            feedback_type="invalid_type",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -906,10 +914,11 @@ class TestKMProvideVoiceFeedback:
         assert "Invalid feedback type" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_provide_voice_feedback_empty_text(self, mock_context):
+    async def test_provide_voice_feedback_empty_text(self, mock_context) -> None:
         """Test voice feedback with empty text."""
         result = await mock_km_provide_voice_feedback(
-            feedback_text="", ctx=mock_context
+            feedback_text="",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -921,12 +930,12 @@ class TestKMTrainVoiceRecognition:
     """Test class for voice recognition training functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_train_voice_recognition_speaker_profile(self, mock_context):
+    async def test_train_voice_recognition_speaker_profile(self, mock_context) -> None:
         """Test voice recognition speaker profile training."""
         result = await mock_km_train_voice_recognition(
             training_type="speaker_profile",
@@ -947,7 +956,7 @@ class TestKMTrainVoiceRecognition:
         assert speaker["voice_biometrics_enrolled"] is True
 
     @pytest.mark.asyncio
-    async def test_train_voice_recognition_language_model(self, mock_context):
+    async def test_train_voice_recognition_language_model(self, mock_context) -> None:
         """Test voice recognition language model training."""
         result = await mock_km_train_voice_recognition(
             training_type="language_model",
@@ -966,7 +975,7 @@ class TestKMTrainVoiceRecognition:
         assert training["model_performance"]["recognition_accuracy"] == 0.95
 
     @pytest.mark.asyncio
-    async def test_train_voice_recognition_comprehensive(self, mock_context):
+    async def test_train_voice_recognition_comprehensive(self, mock_context) -> None:
         """Test comprehensive voice recognition training."""
         result = await mock_km_train_voice_recognition(
             training_type="comprehensive",
@@ -982,10 +991,11 @@ class TestKMTrainVoiceRecognition:
         assert result["quality_assurance"]["training_quality"] == "excellent"
 
     @pytest.mark.asyncio
-    async def test_train_voice_recognition_invalid_type(self, mock_context):
+    async def test_train_voice_recognition_invalid_type(self, mock_context) -> None:
         """Test voice recognition training with invalid type."""
         result = await mock_km_train_voice_recognition(
-            training_type="invalid_type", ctx=mock_context
+            training_type="invalid_type",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -993,7 +1003,7 @@ class TestKMTrainVoiceRecognition:
         assert "Invalid training type" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_train_voice_recognition_invalid_duration(self, mock_context):
+    async def test_train_voice_recognition_invalid_duration(self, mock_context) -> None:
         """Test voice recognition training with invalid duration."""
         result = await mock_km_train_voice_recognition(
             training_type="speaker_profile",
@@ -1013,21 +1023,24 @@ class TestVoiceControlIntegration:
     """Test class for voice control integration workflows."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_complete_voice_control_workflow(self, mock_context):
+    async def test_complete_voice_control_workflow(self, mock_context) -> None:
         """Test complete voice control workflow integration."""
         # Step 1: Configure voice control
         config_result = await mock_km_configure_voice_control(
-            configuration_type="full_setup", ctx=mock_context
+            configuration_type="full_setup",
+            ctx=mock_context,
         )
 
         # Step 2: Train voice recognition
         training_result = await mock_km_train_voice_recognition(
-            training_type="speaker_profile", voice_samples=25, ctx=mock_context
+            training_type="speaker_profile",
+            voice_samples=25,
+            ctx=mock_context,
         )
 
         # Step 3: Process voice command
@@ -1072,18 +1085,20 @@ class TestVoiceControlProperties:
     """Test class for voice control property-based testing."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_recognition_engine_consistency(self, mock_context):
+    async def test_recognition_engine_consistency(self, mock_context) -> None:
         """Test voice recognition engines consistency."""
         engines = ["whisper", "google", "azure", "aws"]
 
         for engine in engines:
             result = await mock_km_process_voice_commands(
-                audio_input="test_audio", recognition_engine=engine, ctx=mock_context
+                audio_input="test_audio",
+                recognition_engine=engine,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -1092,7 +1107,7 @@ class TestVoiceControlProperties:
             assert "audio_analysis" in result
 
     @pytest.mark.asyncio
-    async def test_configuration_type_coverage(self, mock_context):
+    async def test_configuration_type_coverage(self, mock_context) -> None:
         """Test voice control configuration type coverage."""
         config_types = [
             "recognition_settings",
@@ -1103,7 +1118,8 @@ class TestVoiceControlProperties:
 
         for config_type in config_types:
             result = await mock_km_configure_voice_control(
-                configuration_type=config_type, ctx=mock_context
+                configuration_type=config_type,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -1114,7 +1130,7 @@ class TestVoiceControlProperties:
             assert result["system_status"]["voice_engine_status"] == "running"
 
     @pytest.mark.asyncio
-    async def test_feedback_type_behavior(self, mock_context):
+    async def test_feedback_type_behavior(self, mock_context) -> None:
         """Test voice feedback type behavior."""
         feedback_types = ["response", "confirmation", "error", "warning"]
 
@@ -1130,13 +1146,15 @@ class TestVoiceControlProperties:
             assert result["voice_feedback"]["synthesis_status"] == "completed"
 
     @pytest.mark.asyncio
-    async def test_training_type_effectiveness(self, mock_context):
+    async def test_training_type_effectiveness(self, mock_context) -> None:
         """Test voice recognition training type effectiveness."""
         training_types = ["speaker_profile", "language_model", "command_recognition"]
 
         for training_type in training_types:
             result = await mock_km_train_voice_recognition(
-                training_type=training_type, training_duration=300, ctx=mock_context
+                training_type=training_type,
+                training_duration=300,
+                ctx=mock_context,
             )
 
             assert result["success"] is True

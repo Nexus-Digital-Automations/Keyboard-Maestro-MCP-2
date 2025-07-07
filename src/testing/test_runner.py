@@ -1,5 +1,4 @@
-"""
-Advanced Test Execution Engine - TASK_58 Phase 2 Implementation
+"""Advanced Test Execution Engine - TASK_58 Phase 2 Implementation.
 
 Advanced test execution with parallel processing, comprehensive validation,
 and intelligent test orchestration for automation workflows.
@@ -13,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import logging
 import shutil
 import tempfile
 import time
@@ -37,6 +37,8 @@ from src.core.testing_architecture import (
     create_test_environment_id,
     create_test_run_id,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -129,7 +131,8 @@ class TestExecutionEnvironment:
 
         # Initialize resource monitoring
         self.resource_monitor = ResourceMonitor(
-            limits=self.config.resource_limits, environment_id=self.environment_id
+            limits=self.config.resource_limits,
+            environment_id=self.environment_id,
         )
         await self.resource_monitor.start()
 
@@ -154,7 +157,8 @@ class TestExecutionEnvironment:
         """Get the isolated workspace path."""
         if not self.workspace_path:
             raise TestExecutionError(
-                "Test environment not initialized", "ENV_NOT_INITIALIZED"
+                "Test environment not initialized",
+                "ENV_NOT_INITIALIZED",
             )
         return self.workspace_path
 
@@ -213,9 +217,9 @@ class ResourceMonitor:
                 await asyncio.sleep(0.1)  # Monitor every 100ms
             except asyncio.CancelledError:
                 break
-            except Exception:
+            except Exception as e:
                 # Log error but continue monitoring
-                pass
+                logger.error(f"Resource monitoring error: {e!s}", exc_info=True)
 
     async def _collect_usage_metrics(self) -> dict[str, float]:
         """Collect current resource usage metrics."""
@@ -261,7 +265,9 @@ class TestStepExecutor:
         self.environment = environment
 
     async def execute_step(
-        self, step: TestStep, test_context: dict[str, Any]
+        self,
+        step: TestStep,
+        test_context: dict[str, Any],
     ) -> dict[str, Any]:
         """Execute a single test step with comprehensive validation."""
         start_time = time.time()
@@ -298,7 +304,9 @@ class TestStepExecutor:
             }
 
     async def _execute_step_action(
-        self, step: TestStep, context: dict[str, Any]
+        self,
+        step: TestStep,
+        context: dict[str, Any],
     ) -> Any:
         """Execute the step's main action."""
         action_map = {
@@ -317,13 +325,16 @@ class TestStepExecutor:
         return await action_func(step.parameters, context)
 
     async def _execute_macro(
-        self, parameters: dict[str, Any], context: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
+        context: dict[str, Any],
     ) -> dict[str, Any]:
         """Execute a macro for testing."""
         macro_id = parameters.get("macro_id")
         if not macro_id:
             raise TestExecutionError(
-                "macro_id required for execute_macro action", "MISSING_PARAMETER"
+                "macro_id required for execute_macro action",
+                "MISSING_PARAMETER",
             )
 
         # Simulate macro execution (in real implementation, this would call the actual macro engine)
@@ -337,7 +348,9 @@ class TestStepExecutor:
         }
 
     async def _validate_system(
-        self, parameters: dict[str, Any], context: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
+        context: dict[str, Any],
     ) -> dict[str, Any]:
         """Validate system state."""
         validation_type = parameters.get("validation_type", "basic")
@@ -354,10 +367,11 @@ class TestStepExecutor:
         }
 
     async def _check_performance(
-        self, parameters: dict[str, Any], context: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
+        context: dict[str, Any],
     ) -> dict[str, Any]:
         """Check performance metrics."""
-
         # Simulate performance checking
         await asyncio.sleep(0.2)
 
@@ -372,11 +386,14 @@ class TestStepExecutor:
         }
 
     async def _verify_security(
-        self, parameters: dict[str, Any], context: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
+        context: dict[str, Any],
     ) -> dict[str, Any]:
         """Verify security compliance."""
         security_checks = parameters.get(
-            "checks", ["permissions", "encryption", "access_control"]
+            "checks",
+            ["permissions", "encryption", "access_control"],
         )
 
         # Simulate security verification
@@ -390,21 +407,27 @@ class TestStepExecutor:
         }
 
     async def _setup_environment(
-        self, parameters: dict[str, Any], context: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
+        context: dict[str, Any],
     ) -> dict[str, Any]:
         """Setup test environment."""
         await asyncio.sleep(0.1)
         return {"status": "success", "setup_time_ms": 100}
 
     async def _cleanup_resources(
-        self, parameters: dict[str, Any], context: dict[str, Any]
+        self,
+        parameters: dict[str, Any],
+        context: dict[str, Any],
     ) -> dict[str, Any]:
         """Cleanup test resources."""
         await asyncio.sleep(0.1)
         return {"status": "success", "cleanup_time_ms": 100}
 
     async def _validate_assertions(
-        self, step: TestStep, step_result: Any
+        self,
+        step: TestStep,
+        step_result: Any,
     ) -> list[bool]:
         """Validate all assertions for a test step."""
         assertion_results = []
@@ -412,10 +435,13 @@ class TestStepExecutor:
         for assertion in step.assertions:
             try:
                 actual_value = self._extract_value(
-                    step_result, assertion.actual_value_path
+                    step_result,
+                    assertion.actual_value_path,
                 )
                 assertion_passed = self._evaluate_assertion(
-                    actual_value, assertion.expected_value, assertion.assertion_type
+                    actual_value,
+                    assertion.expected_value,
+                    assertion.assertion_type,
                 )
                 assertion_results.append(assertion_passed)
             except Exception:
@@ -425,8 +451,7 @@ class TestStepExecutor:
 
     def _extract_value(self, data: Any, path: str) -> Any:
         """Extract value from data using JSONPath-like syntax."""
-        if path.startswith("$."):
-            path = path[2:]  # Remove $. prefix
+        path = path.removeprefix("$.")  # Remove $. prefix
 
         current = data
         for part in path.split("."):
@@ -438,23 +463,25 @@ class TestStepExecutor:
         return current
 
     def _evaluate_assertion(
-        self, actual: Any, expected: Any, assertion_type: str
+        self,
+        actual: Any,
+        expected: Any,
+        assertion_type: str,
     ) -> bool:
         """Evaluate a single assertion."""
         if assertion_type == "equals":
             return actual == expected
-        elif assertion_type == "contains":
+        if assertion_type == "contains":
             return expected in str(actual)
-        elif assertion_type == "greater_than":
+        if assertion_type == "greater_than":
             return float(actual) > float(expected)
-        elif assertion_type == "less_than":
+        if assertion_type == "less_than":
             return float(actual) < float(expected)
-        elif assertion_type == "matches":
+        if assertion_type == "matches":
             import re
 
             return bool(re.match(str(expected), str(actual)))
-        else:
-            return False
+        return False
 
 
 class AdvancedTestRunner:
@@ -472,7 +499,8 @@ class AdvancedTestRunner:
         start_time = datetime.now(UTC)
 
         async with TestExecutionEnvironment(
-            environment_id, test.test_configuration
+            environment_id,
+            test.test_configuration,
         ) as env:
             try:
                 # Create execution context
@@ -534,7 +562,9 @@ class AdvancedTestRunner:
                     del self.active_executions[test.test_id]
 
     async def _execute_test_steps(
-        self, test: AutomationTest, env: TestExecutionEnvironment
+        self,
+        test: AutomationTest,
+        env: TestExecutionEnvironment,
     ) -> dict[str, Any]:
         """Execute all test steps in sequence."""
         step_executor = TestStepExecutor(env)
@@ -552,7 +582,8 @@ class AdvancedTestRunner:
 
                 if step_result["status"] == "failed":
                     raise TestExecutionError.setup_failed(
-                        test.test_id, "Setup step failed"
+                        test.test_id,
+                        "Setup step failed",
                     )
 
             # Execute main test steps
@@ -592,7 +623,7 @@ class AdvancedTestRunner:
                 "assertions_passed": assertions_passed,
                 "assertions_failed": assertions_failed,
                 "performance_metrics": await self._collect_performance_metrics(
-                    step_results
+                    step_results,
                 ),
             }
 
@@ -606,7 +637,8 @@ class AdvancedTestRunner:
             }
 
     async def _collect_performance_metrics(
-        self, step_results: list[dict[str, Any]]
+        self,
+        step_results: list[dict[str, Any]],
     ) -> dict[str, float]:
         """Collect performance metrics from step results."""
         total_execution_time = sum(
@@ -640,11 +672,11 @@ class AdvancedTestRunner:
         """Execute a complete test suite with parallel processing support."""
         if test_suite.parallel_execution:
             return await self._execute_suite_parallel(test_suite)
-        else:
-            return await self._execute_suite_sequential(test_suite)
+        return await self._execute_suite_sequential(test_suite)
 
     async def _execute_suite_sequential(
-        self, test_suite: TestSuite
+        self,
+        test_suite: TestSuite,
     ) -> list[TestResult]:
         """Execute test suite sequentially."""
         results = []
@@ -745,9 +777,10 @@ class AdvancedTestRunner:
                 {
                     "reliability": success_rate,
                     "performance": min(
-                        100, max(0, 100 - (avg_execution_time / 1000))
+                        100,
+                        max(0, 100 - (avg_execution_time / 1000)),
                     ),  # Simple performance score
                     "coverage": 100,  # Assume full coverage for now
-                }
+                },
             ),
         }

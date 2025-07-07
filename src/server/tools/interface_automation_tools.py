@@ -1,5 +1,4 @@
-"""
-Interface automation tools for universal hardware interaction.
+"""Interface automation tools for universal hardware interaction.
 
 This module provides comprehensive interface automation capabilities including
 mouse control, keyboard simulation, gesture recognition, and accessibility
@@ -53,8 +52,7 @@ async def km_interface_automation(
     finger_count: int = 2,
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Universal interface automation for mouse, keyboard, and gesture interactions.
+    """Universal interface automation for mouse, keyboard, and gesture interactions.
 
     Provides comprehensive hardware-level automation capabilities for interacting
     with any macOS application through mouse clicks, keyboard input, drag operations,
@@ -94,6 +92,7 @@ async def km_interface_automation(
         ValidationError: Invalid parameters or unsafe coordinates
         SecurityError: Rate limiting exceeded or dangerous input detected
         IntegrationError: Hardware interaction failed
+
     """
     try:
         logger.info(f"Interface automation: {operation}")
@@ -121,15 +120,22 @@ async def km_interface_automation(
         # Execute operation based on type
         if operation == "mouse_click":
             return await _handle_mouse_click(
-                coordinates, button, click_count, duration_ms, validate_coordinates
+                coordinates,
+                button,
+                click_count,
+                duration_ms,
+                validate_coordinates,
             )
 
-        elif operation == "mouse_move":
+        if operation == "mouse_move":
             return await _handle_mouse_move(
-                coordinates, duration_ms, smooth_movement, validate_coordinates
+                coordinates,
+                duration_ms,
+                smooth_movement,
+                validate_coordinates,
             )
 
-        elif operation == "mouse_drag":
+        if operation == "mouse_drag":
             return await _handle_mouse_drag(
                 coordinates,
                 drag_destination,
@@ -139,7 +145,7 @@ async def km_interface_automation(
                 validate_coordinates,
             )
 
-        elif operation == "mouse_scroll":
+        if operation == "mouse_scroll":
             return await _handle_mouse_scroll(
                 coordinates,
                 scroll_direction,
@@ -149,13 +155,13 @@ async def km_interface_automation(
                 validate_coordinates,
             )
 
-        elif operation == "key_press":
+        if operation == "key_press":
             return await _handle_key_press(key_combination, modifier_keys, duration_ms)
 
-        elif operation == "type_text":
+        if operation == "type_text":
             return await _handle_type_text(text_content, delay_between_events)
 
-        elif operation == "gesture":
+        if operation == "gesture":
             return await _handle_gesture(
                 gesture_type,
                 coordinates,
@@ -165,25 +171,25 @@ async def km_interface_automation(
                 validate_coordinates,
             )
 
-        elif operation == "accessibility":
+        if operation == "accessibility":
             return await _handle_accessibility_interaction(
-                coordinates, validate_coordinates
+                coordinates,
+                validate_coordinates,
             )
 
-        else:
-            return {
-                "success": False,
-                "error": "UNSUPPORTED_OPERATION",
-                "message": f"Operation '{operation}' not yet implemented",
-                "timestamp": datetime.now().isoformat(),
-            }
+        return {
+            "success": False,
+            "error": "UNSUPPORTED_OPERATION",
+            "message": f"Operation '{operation}' not yet implemented",
+            "timestamp": datetime.now().isoformat(),
+        }
 
     except Exception as e:
-        logger.error(f"Error in interface automation: {str(e)}")
+        logger.error(f"Error in interface automation: {e!s}")
         return {
             "success": False,
             "error": "AUTOMATION_ERROR",
-            "message": f"Interface automation failed: {str(e)}",
+            "message": f"Interface automation failed: {e!s}",
             "timestamp": datetime.now().isoformat(),
         }
 
@@ -219,18 +225,20 @@ async def _handle_mouse_click(
 
         # Execute mouse click
         result = await mouse_controller.click_at_position(
-            position, mouse_button, click_count, duration_ms
+            position,
+            mouse_button,
+            click_count,
+            duration_ms,
         )
 
         if result.is_right():
             return result.get_right()
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.error_code,
-                "message": error.message,
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.error_code,
+            "message": error.message,
+        }
 
     except Exception as e:
         return {"success": False, "error": "CLICK_ERROR", "message": str(e)}
@@ -254,18 +262,19 @@ async def _handle_mouse_move(
         position = Coordinate(coordinates["x"], coordinates["y"])
 
         result = await mouse_controller.move_to_position(
-            position, duration_ms, smooth_movement
+            position,
+            duration_ms,
+            smooth_movement,
         )
 
         if result.is_right():
             return result.get_right()
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.error_code,
-                "message": error.message,
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.error_code,
+            "message": error.message,
+        }
 
     except Exception as e:
         return {"success": False, "error": "MOVE_ERROR", "message": str(e)}
@@ -302,18 +311,21 @@ async def _handle_mouse_drag(
         destination = Coordinate(drag_destination["x"], drag_destination["y"])
 
         result = await mouse_controller.drag_and_drop(
-            source, destination, duration_ms, smooth_movement, mouse_button
+            source,
+            destination,
+            duration_ms,
+            smooth_movement,
+            mouse_button,
         )
 
         if result.is_right():
             return result.get_right()
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.error_code,
-                "message": error.message,
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.error_code,
+            "message": error.message,
+        }
 
     except Exception as e:
         return {"success": False, "error": "DRAG_ERROR", "message": str(e)}
@@ -349,25 +361,30 @@ async def _handle_mouse_scroll(
         position = Coordinate(coordinates["x"], coordinates["y"])
 
         result = await mouse_controller.scroll_at_position(
-            position, direction, scroll_amount, duration_ms, smooth_movement
+            position,
+            direction,
+            scroll_amount,
+            duration_ms,
+            smooth_movement,
         )
 
         if result.is_right():
             return result.get_right()
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.error_code,
-                "message": error.message,
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.error_code,
+            "message": error.message,
+        }
 
     except Exception as e:
         return {"success": False, "error": "SCROLL_ERROR", "message": str(e)}
 
 
 async def _handle_key_press(
-    key_combination: list[str] | None, modifier_keys: list[str] | None, duration_ms: int
+    key_combination: list[str] | None,
+    modifier_keys: list[str] | None,
+    duration_ms: int,
 ) -> dict[str, Any]:
     """Handle key press operations."""
     if not key_combination:
@@ -379,25 +396,26 @@ async def _handle_key_press(
 
     try:
         result = await keyboard_controller.press_key_combination(
-            key_combination, duration_ms
+            key_combination,
+            duration_ms,
         )
 
         if result.is_right():
             return result.get_right()
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.error_code,
-                "message": error.message,
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.error_code,
+            "message": error.message,
+        }
 
     except Exception as e:
         return {"success": False, "error": "KEY_PRESS_ERROR", "message": str(e)}
 
 
 async def _handle_type_text(
-    text_content: str | None, delay_between_chars: int
+    text_content: str | None,
+    delay_between_chars: int,
 ) -> dict[str, Any]:
     """Handle text typing operations."""
     if not text_content:
@@ -412,13 +430,12 @@ async def _handle_type_text(
 
         if result.is_right():
             return result.get_right()
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.error_code,
-                "message": error.message,
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.error_code,
+            "message": error.message,
+        }
 
     except Exception as e:
         return {"success": False, "error": "TYPE_TEXT_ERROR", "message": str(e)}
@@ -454,25 +471,30 @@ async def _handle_gesture(
         position = Coordinate(coordinates["x"], coordinates["y"])
 
         result = await gesture_controller.perform_gesture(
-            g_type, position, gesture_magnitude, None, duration_ms, finger_count
+            g_type,
+            position,
+            gesture_magnitude,
+            None,
+            duration_ms,
+            finger_count,
         )
 
         if result.is_right():
             return result.get_right()
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.error_code,
-                "message": error.message,
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.error_code,
+            "message": error.message,
+        }
 
     except Exception as e:
         return {"success": False, "error": "GESTURE_ERROR", "message": str(e)}
 
 
 async def _handle_accessibility_interaction(
-    coordinates: dict[str, int] | None, validate_coordinates: bool
+    coordinates: dict[str, int] | None,
+    validate_coordinates: bool,
 ) -> dict[str, Any]:
     """Handle accessibility interactions."""
     if not coordinates:
@@ -486,18 +508,19 @@ async def _handle_accessibility_interaction(
         position = Coordinate(coordinates["x"], coordinates["y"])
 
         result = await gesture_controller.create_accessibility_interaction(
-            "button", "click", position
+            "button",
+            "click",
+            position,
         )
 
         if result.is_right():
             return result.get_right()
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.error_code,
-                "message": error.message,
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.error_code,
+            "message": error.message,
+        }
 
     except Exception as e:
         return {"success": False, "error": "ACCESSIBILITY_ERROR", "message": str(e)}
@@ -507,11 +530,11 @@ async def _handle_accessibility_interaction(
 
 
 async def km_get_mouse_position(ctx=None) -> dict[str, Any]:
-    """
-    Get current mouse cursor position.
+    """Get current mouse cursor position.
 
     Returns:
         Dict containing current mouse coordinates and screen information
+
     """
     try:
         # In production, would use actual macOS APIs to get cursor position
@@ -528,26 +551,27 @@ async def km_get_mouse_position(ctx=None) -> dict[str, Any]:
         }
 
     except Exception as e:
-        logger.error(f"Error getting mouse position: {str(e)}")
+        logger.error(f"Error getting mouse position: {e!s}")
         return {
             "success": False,
             "error": "POSITION_ERROR",
-            "message": f"Failed to get mouse position: {str(e)}",
+            "message": f"Failed to get mouse position: {e!s}",
             "timestamp": datetime.now().isoformat(),
         }
 
 
 async def km_validate_coordinates(
-    coordinates: dict[str, int], ctx=None
+    coordinates: dict[str, int],
+    ctx=None,
 ) -> dict[str, Any]:
-    """
-    Validate coordinates are within screen bounds and safe for interaction.
+    """Validate coordinates are within screen bounds and safe for interaction.
 
     Args:
         coordinates: Coordinates to validate {x: int, y: int}
 
     Returns:
         Dict containing validation result and safety information
+
     """
     try:
         position = Coordinate(coordinates["x"], coordinates["y"])
@@ -568,10 +592,10 @@ async def km_validate_coordinates(
         }
 
     except Exception as e:
-        logger.error(f"Error validating coordinates: {str(e)}")
+        logger.error(f"Error validating coordinates: {e!s}")
         return {
             "success": False,
             "error": "VALIDATION_ERROR",
-            "message": f"Failed to validate coordinates: {str(e)}",
+            "message": f"Failed to validate coordinates: {e!s}",
             "timestamp": datetime.now().isoformat(),
         }

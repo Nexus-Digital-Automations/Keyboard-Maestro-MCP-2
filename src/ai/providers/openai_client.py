@@ -1,5 +1,4 @@
-"""
-OpenAI provider client for AI service integration.
+"""OpenAI provider client for AI service integration.
 
 This module provides comprehensive OpenAI API integration including ChatCompletion,
 Completion, and Embeddings with enterprise-grade error handling, cost calculation,
@@ -118,15 +117,14 @@ class OpenAIClient(BaseProviderClient):
         self.model = model
         self.tokenizer = self._get_tokenizer(model)
 
-    def _get_tokenizer(self, model: str):
+    def _get_tokenizer(self, model: str) -> dict[str, Any]:
         """Get appropriate tokenizer for model."""
         try:
             if "gpt-4" in model:
                 return tiktoken.encoding_for_model("gpt-4")
-            elif "gpt-3.5" in model:
+            if "gpt-3.5" in model:
                 return tiktoken.encoding_for_model("gpt-3.5-turbo")
-            else:
-                return tiktoken.get_encoding("cl100k_base")
+            return tiktoken.get_encoding("cl100k_base")
         except Exception:
             # Fallback to default encoding
             return tiktoken.get_encoding("cl100k_base")
@@ -142,10 +140,12 @@ class OpenAIClient(BaseProviderClient):
     async def get_capabilities(self) -> ProviderCapabilities:
         """Get OpenAI model capabilities."""
         capabilities = self.MODEL_CAPABILITIES.get(
-            self.model, self.MODEL_CAPABILITIES["gpt-3.5-turbo"]
+            self.model,
+            self.MODEL_CAPABILITIES["gpt-3.5-turbo"],
         )
         pricing = self.MODEL_PRICING.get(
-            self.model, self.MODEL_PRICING["gpt-3.5-turbo"]
+            self.model,
+            self.MODEL_PRICING["gpt-3.5-turbo"],
         )
 
         return ProviderCapabilities(
@@ -170,35 +170,35 @@ class OpenAIClient(BaseProviderClient):
 
     def _build_request_payload(self, request: AIRequest) -> dict[str, Any]:
         """Build OpenAI-specific request payload."""
-        # Extract parameters
-        params = getattr(request, "processing_parameters", {})
-        temperature = params.get("temperature", 0.7)
-        max_tokens = params.get("max_tokens", 1000)
+        # Extract parameters from request
+        temperature = request.temperature
+        max_tokens = request.get_effective_max_tokens() if request.max_tokens else 1000
 
         if self.model.startswith("text-embedding"):
             # Embedding request
             return {"model": self.model, "input": str(request.input_data)}
-        else:
-            # Chat completion request
-            messages = self._format_messages(request)
+        # Chat completion request
+        messages = self._format_messages(request)
 
-            payload = {
-                "model": self.model,
-                "messages": messages,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "stream": False,
-            }
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "stream": False,
+        }
 
-            # Add function calling if supported
-            if self.MODEL_CAPABILITIES.get(self.model, {}).get(
-                "supports_function_calling", False
-            ):
-                functions = params.get("functions")
-                if functions:
-                    payload["functions"] = functions
+        # Add function calling if supported
+        if self.MODEL_CAPABILITIES.get(self.model, {}).get(
+            "supports_function_calling",
+            False,
+        ):
+            # Functions would be part of context or specific processing
+            functions = request.context.get("functions")
+            if functions:
+                payload["functions"] = functions
 
-            return payload
+        return payload
 
     def _format_messages(self, request: AIRequest) -> list[dict[str, str]]:
         """Format input data as OpenAI messages."""
@@ -211,28 +211,26 @@ class OpenAIClient(BaseProviderClient):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": input_data},
             ]
-        elif isinstance(input_data, list):
+        if isinstance(input_data, list):
             # Assume it's already in message format
             return input_data
-        elif isinstance(input_data, dict):
+        if isinstance(input_data, dict):
             # Handle structured input
             if "messages" in input_data:
                 return input_data["messages"]
-            else:
-                # Convert dict to user message
-                content = json.dumps(input_data)
-                system_prompt = self._get_system_prompt(request.operation)
-                return [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": content},
-                ]
-        else:
-            # Fallback
+            # Convert dict to user message
+            content = json.dumps(input_data)
             system_prompt = self._get_system_prompt(request.operation)
             return [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": str(input_data)},
+                {"role": "user", "content": content},
             ]
+        # Fallback
+        system_prompt = self._get_system_prompt(request.operation)
+        return [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": str(input_data)},
+        ]
 
     def _get_system_prompt(self, operation: AIOperation) -> str:
         """Get appropriate system prompt for operation."""
@@ -247,7 +245,8 @@ class OpenAIClient(BaseProviderClient):
         return prompts.get(operation, "You are a helpful AI assistant.")
 
     async def process_request(
-        self, request: AIRequest
+        self,
+        request: AIRequest,
     ) -> Either[ValidationError, AIResponse]:
         """Process request with OpenAI API."""
         try:
@@ -275,10 +274,13 @@ class OpenAIClient(BaseProviderClient):
             return self._parse_response(response_data)
 
         except Exception as e:
-            return Either.left(ValidationError("openai_request_failed", str(e)))
+            return Either.left(ValidationError("openai_request_failed", str(e), "OpenAI API request failed"))
 
     async def _make_api_call(
-        self, endpoint: str, headers: dict[str, str], payload: dict[str, Any]
+        self,
+        endpoint: str,
+        headers: dict[str, str],
+        payload: dict[str, Any],
     ) -> dict[str, Any]:
         """Make actual API call to OpenAI (simulated)."""
         # In production, this would use httpx or similar:
@@ -294,36 +296,36 @@ class OpenAIClient(BaseProviderClient):
             return {
                 "object": "list",
                 "data": [
-                    {"object": "embedding", "embedding": [0.1] * 1536, "index": 0}
+                    {"object": "embedding", "embedding": [0.1] * 1536, "index": 0},
                 ],
                 "model": self.model,
                 "usage": {"prompt_tokens": 10, "total_tokens": 10},
             }
-        else:
-            return {
-                "id": f"chatcmpl-{datetime.now(UTC).timestamp()}",
-                "object": "chat.completion",
-                "created": int(datetime.now(UTC).timestamp()),
-                "model": self.model,
-                "choices": [
-                    {
-                        "index": 0,
-                        "message": {
-                            "role": "assistant",
-                            "content": f"This is a simulated response for operation: {payload.get('messages', [{}])[-1].get('content', 'N/A')[:100]}...",
-                        },
-                        "finish_reason": "stop",
-                    }
-                ],
-                "usage": {
-                    "prompt_tokens": 50,
-                    "completion_tokens": 100,
-                    "total_tokens": 150,
+        return {
+            "id": f"chatcmpl-{datetime.now(UTC).timestamp()}",
+            "object": "chat.completion",
+            "created": int(datetime.now(UTC).timestamp()),
+            "model": self.model,
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": f"This is a simulated response for operation: {payload.get('messages', [{}])[-1].get('content', 'N/A')[:100]}...",
+                    },
+                    "finish_reason": "stop",
                 },
-            }
+            ],
+            "usage": {
+                "prompt_tokens": 50,
+                "completion_tokens": 100,
+                "total_tokens": 150,
+            },
+        }
 
     def _parse_response(
-        self, response_data: dict[str, Any]
+        self,
+        response_data: dict[str, Any],
     ) -> Either[ValidationError, AIResponse]:
         """Parse OpenAI response into standard format."""
         try:
@@ -340,36 +342,37 @@ class OpenAIClient(BaseProviderClient):
                             "model": response_data.get("model", self.model),
                             "usage": usage,
                         },
-                    )
+                    ),
                 )
-            else:  # Chat completion response
-                choice = response_data["choices"][0]
-                content = choice["message"]["content"]
-                usage = response_data.get("usage", {})
+            # Chat completion response
+            choice = response_data["choices"][0]
+            content = choice["message"]["content"]
+            usage = response_data.get("usage", {})
 
-                return Either.right(
-                    AIResponse(
-                        content=content,
-                        token_count=TokenCount(usage.get("total_tokens", 0)),
-                        cost=self._calculate_cost(
-                            usage.get("prompt_tokens", 0),
-                            usage.get("completion_tokens", 0),
-                        ),
-                        metadata={
-                            "model": response_data.get("model", self.model),
-                            "usage": usage,
-                            "finish_reason": choice.get("finish_reason"),
-                        },
-                    )
-                )
+            return Either.right(
+                AIResponse(
+                    content=content,
+                    token_count=TokenCount(usage.get("total_tokens", 0)),
+                    cost=self._calculate_cost(
+                        usage.get("prompt_tokens", 0),
+                        usage.get("completion_tokens", 0),
+                    ),
+                    metadata={
+                        "model": response_data.get("model", self.model),
+                        "usage": usage,
+                        "finish_reason": choice.get("finish_reason"),
+                    },
+                ),
+            )
 
         except Exception as e:
-            return Either.left(ValidationError("response_parsing_failed", str(e)))
+            return Either.left(ValidationError("response_parsing_failed", str(e), "OpenAI response parsing failed"))
 
     def _calculate_cost(self, input_tokens: int, output_tokens: int) -> CostAmount:
         """Calculate cost based on token usage."""
         pricing = self.MODEL_PRICING.get(
-            self.model, self.MODEL_PRICING["gpt-3.5-turbo"]
+            self.model,
+            self.MODEL_PRICING["gpt-3.5-turbo"],
         )
 
         input_cost = (Decimal(str(input_tokens)) / 1000) * pricing["input"]
@@ -381,18 +384,18 @@ class OpenAIClient(BaseProviderClient):
         """Extract text from input data for token counting."""
         if isinstance(input_data, str):
             return input_data
-        elif isinstance(input_data, list):
+        if isinstance(input_data, list):
             # Assume messages format
             return " ".join(
                 msg.get("content", "") for msg in input_data if isinstance(msg, dict)
             )
-        elif isinstance(input_data, dict):
+        if isinstance(input_data, dict):
             return json.dumps(input_data)
-        else:
-            return str(input_data)
+        return str(input_data)
 
     async def estimate_cost(
-        self, request: AIRequest
+        self,
+        request: AIRequest,
     ) -> Either[ValidationError, CostAmount]:
         """Estimate cost for request."""
         try:
@@ -400,19 +403,20 @@ class OpenAIClient(BaseProviderClient):
             input_tokens = self._count_tokens(input_text)
 
             # Estimate output tokens based on operation
-            params = getattr(request, "processing_parameters", {})
-            estimated_output_tokens = params.get("max_tokens", 1000)
+            estimated_output_tokens = request.get_effective_max_tokens() if request.max_tokens else 1000
 
             cost = self._calculate_cost(input_tokens, estimated_output_tokens)
             return Either.right(cost)
 
         except Exception as e:
-            return Either.left(ValidationError("cost_estimation_failed", str(e)))
+            return Either.left(ValidationError("cost_estimation_failed", str(e), "OpenAI cost estimation failed"))
 
 
 # Factory function for easy client creation
 def create_openai_client(
-    api_key: str, model: str = "gpt-3.5-turbo", **kwargs
+    api_key: str,
+    model: str = "gpt-3.5-turbo",
+    **kwargs,
 ) -> OpenAIClient:
     """Create configured OpenAI client."""
     return OpenAIClient(api_key=api_key, model=model, **kwargs)

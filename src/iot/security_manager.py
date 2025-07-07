@@ -1,5 +1,4 @@
-"""
-IoT Security Framework - TASK_65 Phase 4 Advanced Features
+"""IoT Security Framework - TASK_65 Phase 4 Advanced Features.
 
 Comprehensive IoT security with device authentication, encrypted communication,
 threat detection, and security policy enforcement for smart device networks.
@@ -176,8 +175,7 @@ class ThreatSignature:
 
 
 class SecurityManager:
-    """
-    Comprehensive IoT security management system.
+    """Comprehensive IoT security management system.
 
     Contracts:
         Preconditions:
@@ -224,7 +222,7 @@ class SecurityManager:
         self._initialize_default_policies()
         self._initialize_threat_signatures()
 
-    def _initialize_default_policies(self):
+    def _initialize_default_policies(self) -> bool:
         """Initialize default security policies."""
         # High security policy for critical devices
         critical_policy = SecurityPolicy(
@@ -256,7 +254,7 @@ class SecurityManager:
 
         self.security_policies[critical_policy.policy_id] = critical_policy
 
-    def _initialize_threat_signatures(self):
+    def _initialize_threat_signatures(self) -> bool:
         """Initialize threat detection signatures."""
         signatures = [
             ThreatSignature(
@@ -294,8 +292,8 @@ class SecurityManager:
         for signature in signatures:
             self.threat_signatures[signature.signature_id] = signature
 
-    @require(lambda self, device_id, auth_method: device_id and auth_method)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, device_id, auth_method: device_id and auth_method)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def register_device_credentials(
         self,
         device_id: DeviceId,
@@ -304,8 +302,7 @@ class SecurityManager:
         access_level: AccessLevel = AccessLevel.CONTROL,
         validity_days: int = 90,
     ) -> Either[IoTIntegrationError, SecurityCredential]:
-        """
-        Register security credentials for IoT device.
+        """Register security credentials for IoT device.
 
         Architecture:
             - Secure credential storage with encryption
@@ -320,7 +317,8 @@ class SecurityManager:
         try:
             # Validate credential data based on auth method
             validation_result = await self._validate_credential_data(
-                auth_method, credential_data
+                auth_method,
+                credential_data,
             )
             if validation_result.is_error():
                 return validation_result
@@ -366,20 +364,19 @@ class SecurityManager:
             return Either.success(credential)
 
         except Exception as e:
-            error_msg = f"Failed to register device credentials: {str(e)}"
+            error_msg = f"Failed to register device credentials: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg, device_id))
 
-    @require(lambda self, device_id, auth_data: device_id and auth_data)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, device_id, auth_data: device_id and auth_data)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def authenticate_device(
         self,
         device_id: DeviceId,
         auth_data: dict[str, str],
         source_ip: str | None = None,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
-        """
-        Authenticate IoT device using registered credentials.
+        """Authenticate IoT device using registered credentials.
 
         Performance:
             - <100ms authentication response time
@@ -401,18 +398,21 @@ class SecurityManager:
                     IoTIntegrationError(
                         f"Device {device_id} is temporarily locked due to authentication failures",
                         device_id,
-                    )
+                    ),
                 )
 
             # Get device credentials
             if device_id not in self.device_credentials:
                 await self._handle_auth_failure(
-                    device_id, "credentials_not_found", source_ip
+                    device_id,
+                    "credentials_not_found",
+                    source_ip,
                 )
                 return Either.error(
                     IoTIntegrationError(
-                        f"No credentials found for device {device_id}", device_id
-                    )
+                        f"No credentials found for device {device_id}",
+                        device_id,
+                    ),
                 )
 
             credential = self.device_credentials[device_id]
@@ -420,26 +420,30 @@ class SecurityManager:
             # Check credential validity
             if not credential.is_valid():
                 await self._handle_auth_failure(
-                    device_id, "invalid_credentials", source_ip
+                    device_id,
+                    "invalid_credentials",
+                    source_ip,
                 )
                 return Either.error(
                     IoTIntegrationError(
                         f"Invalid or expired credentials for device {device_id}",
                         device_id,
-                    )
+                    ),
                 )
 
             # Verify authentication data
             auth_valid = await self._verify_authentication_data(credential, auth_data)
             if not auth_valid:
                 await self._handle_auth_failure(
-                    device_id, "auth_verification_failed", source_ip
+                    device_id,
+                    "auth_verification_failed",
+                    source_ip,
                 )
                 return Either.error(
                     IoTIntegrationError(
                         f"Authentication verification failed for device {device_id}",
                         device_id,
-                    )
+                    ),
                 )
 
             # Authentication successful
@@ -481,22 +485,23 @@ class SecurityManager:
 
         except Exception as e:
             await self._handle_auth_failure(
-                device_id, f"auth_exception: {str(e)}", source_ip
+                device_id,
+                f"auth_exception: {e!s}",
+                source_ip,
             )
-            error_msg = f"Authentication failed for device {device_id}: {str(e)}"
+            error_msg = f"Authentication failed for device {device_id}: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg, device_id))
 
-    @require(lambda self, data, device_id: data and device_id)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, data, device_id: data and device_id)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def encrypt_communication(
         self,
         data: str,
         device_id: DeviceId,
         algorithm: EncryptionAlgorithm = EncryptionAlgorithm.AES_256_GCM,
     ) -> Either[IoTIntegrationError, dict[str, str]]:
-        """
-        Encrypt communication data for IoT device.
+        """Encrypt communication data for IoT device.
 
         Security:
             - End-to-end encryption with perfect forward secrecy
@@ -508,8 +513,9 @@ class SecurityManager:
             if device_id not in self.encryption_keys:
                 return Either.error(
                     IoTIntegrationError(
-                        f"No encryption keys found for device {device_id}", device_id
-                    )
+                        f"No encryption keys found for device {device_id}",
+                        device_id,
+                    ),
                 )
 
             device_keys = self.encryption_keys[device_id]
@@ -520,17 +526,20 @@ class SecurityManager:
                     IoTIntegrationError(
                         f"Encryption key not available for device {device_id}",
                         device_id,
-                    )
+                    ),
                 )
 
             # Simulate encryption (in real implementation, use proper crypto library)
             encrypted_data = await self._perform_encryption(
-                data, encryption_key, algorithm
+                data,
+                encryption_key,
+                algorithm,
             )
 
             # Generate authentication tag
             auth_tag = self._generate_auth_tag(
-                encrypted_data, device_keys.get("auth_key", "")
+                encrypted_data,
+                device_keys.get("auth_key", ""),
             )
 
             encryption_result = {
@@ -544,19 +553,18 @@ class SecurityManager:
             return Either.success(encryption_result)
 
         except Exception as e:
-            error_msg = f"Encryption failed for device {device_id}: {str(e)}"
+            error_msg = f"Encryption failed for device {device_id}: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg, device_id))
 
-    @require(lambda self, communication_data, patterns: communication_data)
+    @require(lambda __self, communication_data, patterns: communication_data)
     async def analyze_threat_patterns(
         self,
         communication_data: str,
         device_id: DeviceId | None = None,
         custom_patterns: list[str] | None = None,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
-        """
-        Analyze communication data for security threats.
+        """Analyze communication data for security threats.
 
         Architecture:
             - Multi-layered threat detection algorithms
@@ -579,7 +587,7 @@ class SecurityManager:
                             "severity": signature.severity.value,
                             "confidence": threat_confidence,
                             "detection_method": signature.detection_method,
-                        }
+                        },
                     )
 
                     # Log security event if confidence is high
@@ -611,14 +619,15 @@ class SecurityManager:
                                     "severity": ThreatLevel.MEDIUM.value,
                                     "confidence": 0.7,
                                     "detection_method": "custom_pattern",
-                                }
+                                },
                             )
                     except re.error:
                         logger.warning(f"Invalid regex pattern: {pattern}")
 
             # Behavioral analysis (simplified)
             behavioral_threats = await self._analyze_behavioral_patterns(
-                communication_data, device_id
+                communication_data,
+                device_id,
             )
             threats_detected.extend(behavioral_threats)
 
@@ -632,7 +641,7 @@ class SecurityManager:
                 "analysis_timestamp": datetime.now(UTC).isoformat(),
                 "data_size_analyzed": len(communication_data),
                 "high_confidence_threats": len(
-                    [t for t in threats_detected if t["confidence"] > 0.8]
+                    [t for t in threats_detected if t["confidence"] > 0.8],
                 ),
                 "requires_immediate_action": any(
                     t["severity"] in ["critical", "emergency"] for t in threats_detected
@@ -642,15 +651,16 @@ class SecurityManager:
             return Either.success(analysis_result)
 
         except Exception as e:
-            error_msg = f"Threat analysis failed: {str(e)}"
+            error_msg = f"Threat analysis failed: {e!s}"
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg, device_id))
 
     async def _validate_credential_data(
-        self, auth_method: AuthenticationMethod, credential_data: dict[str, str]
+        self,
+        auth_method: AuthenticationMethod,
+        credential_data: dict[str, str],
     ) -> Either[IoTIntegrationError, bool]:
         """Validate credential data based on authentication method."""
-
         if auth_method == AuthenticationMethod.CERTIFICATE:
             if (
                 "certificate" not in credential_data
@@ -658,16 +668,16 @@ class SecurityManager:
             ):
                 return Either.error(
                     IoTIntegrationError(
-                        "Certificate authentication requires 'certificate' and 'private_key'"
-                    )
+                        "Certificate authentication requires 'certificate' and 'private_key'",
+                    ),
                 )
 
         elif auth_method == AuthenticationMethod.SHARED_KEY:
             if "shared_key" not in credential_data:
                 return Either.error(
                     IoTIntegrationError(
-                        "Shared key authentication requires 'shared_key'"
-                    )
+                        "Shared key authentication requires 'shared_key'",
+                    ),
                 )
 
             # Validate key strength
@@ -675,8 +685,8 @@ class SecurityManager:
             if len(shared_key) < 32:  # Minimum 32 characters
                 return Either.error(
                     IoTIntegrationError(
-                        "Shared key must be at least 32 characters long"
-                    )
+                        "Shared key must be at least 32 characters long",
+                    ),
                 )
 
         elif auth_method == AuthenticationMethod.OAUTH2:
@@ -684,13 +694,17 @@ class SecurityManager:
             for field in required_fields:
                 if field not in credential_data:
                     return Either.error(
-                        IoTIntegrationError(f"OAuth2 authentication requires '{field}'")
+                        IoTIntegrationError(
+                            f"OAuth2 authentication requires '{field}'"
+                        ),
                     )
 
         return Either.success(True)
 
     def _generate_credential_id(
-        self, device_id: DeviceId, auth_method: AuthenticationMethod
+        self,
+        device_id: DeviceId,
+        auth_method: AuthenticationMethod,
     ) -> str:
         """Generate unique credential ID."""
         timestamp = int(datetime.now(UTC).timestamp())
@@ -698,7 +712,8 @@ class SecurityManager:
         return hashlib.sha256(data.encode()).hexdigest()[:16]
 
     async def _encrypt_credential_data(
-        self, credential_data: dict[str, str]
+        self,
+        credential_data: dict[str, str],
     ) -> dict[str, str]:
         """Encrypt sensitive credential data."""
         # In real implementation, use proper encryption
@@ -729,14 +744,16 @@ class SecurityManager:
             lockout_time = self.locked_devices[device_id]
             if datetime.now(UTC) < lockout_time:
                 return True
-            else:
-                # Lockout expired, remove from locked devices
-                del self.locked_devices[device_id]
+            # Lockout expired, remove from locked devices
+            del self.locked_devices[device_id]
 
         return False
 
     async def _handle_auth_failure(
-        self, device_id: DeviceId, reason: str, source_ip: str | None
+        self,
+        device_id: DeviceId,
+        reason: str,
+        source_ip: str | None,
     ):
         """Handle authentication failure and potential lockout."""
         self.failed_auths += 1
@@ -775,10 +792,11 @@ class SecurityManager:
             )
 
     async def _verify_authentication_data(
-        self, credential: SecurityCredential, auth_data: dict[str, str]
+        self,
+        credential: SecurityCredential,
+        auth_data: dict[str, str],
     ) -> bool:
         """Verify authentication data against stored credentials."""
-
         if credential.auth_method == AuthenticationMethod.SHARED_KEY:
             provided_key = auth_data.get("shared_key", "")
             # Decrypt stored key (simple simulation)
@@ -810,7 +828,10 @@ class SecurityManager:
         return base64.b64encode(hashlib.sha256(token_data).digest()).decode()
 
     async def _perform_encryption(
-        self, data: str, encryption_key: str, algorithm: EncryptionAlgorithm
+        self,
+        data: str,
+        encryption_key: str,
+        algorithm: EncryptionAlgorithm,
     ) -> str:
         """Perform data encryption using specified algorithm."""
         # Simplified encryption simulation
@@ -825,7 +846,9 @@ class SecurityManager:
             encrypted_bytes = bytes(
                 a ^ b
                 for a, b in zip(
-                    data_bytes, key_bytes * (len(data_bytes) // 32 + 1), strict=False
+                    data_bytes,
+                    key_bytes * (len(data_bytes) // 32 + 1),
+                    strict=False,
                 )
             )
             return base64.b64encode(encrypted_bytes).decode()
@@ -842,7 +865,9 @@ class SecurityManager:
         return tag[:16]  # Use first 16 characters
 
     async def _analyze_behavioral_patterns(
-        self, communication_data: str, device_id: DeviceId | None
+        self,
+        communication_data: str,
+        device_id: DeviceId | None,
     ) -> list[dict[str, Any]]:
         """Analyze behavioral patterns for anomaly detection."""
         behavioral_threats = []
@@ -857,7 +882,7 @@ class SecurityManager:
                     "severity": ThreatLevel.MEDIUM.value,
                     "confidence": 0.6,
                     "detection_method": "behavioral_analysis",
-                }
+                },
             )
 
         # Check for repeated patterns (potential DoS)
@@ -870,7 +895,7 @@ class SecurityManager:
                     "severity": ThreatLevel.LOW.value,
                     "confidence": 0.5,
                     "detection_method": "behavioral_analysis",
-                }
+                },
             )
 
         return behavioral_threats
@@ -905,7 +930,7 @@ class SecurityManager:
         # Log critical events immediately
         if event.requires_immediate_action():
             logger.critical(
-                f"Critical security event: {event_id} - {event_type.value} on device {device_id}"
+                f"Critical security event: {event_id} - {event_type.value} on device {device_id}",
             )
 
     async def get_security_summary(self) -> dict[str, Any]:
@@ -936,7 +961,7 @@ class SecurityManager:
                     e
                     for e in recent_events
                     if e.threat_level in [ThreatLevel.CRITICAL, ThreatLevel.EMERGENCY]
-                ]
+                ],
             ),
             "devices_with_encryption": len(self.encryption_keys),
             "threat_monitoring_enabled": self.threat_monitoring_enabled,

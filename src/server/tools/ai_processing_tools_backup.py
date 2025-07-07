@@ -1,5 +1,4 @@
-"""
-AI processing MCP tool implementation for intelligent automation.
+"""AI processing MCP tool implementation for intelligent automation.
 
 This tool provides comprehensive AI/ML model integration for intelligent automation
 including text analysis, image processing, content generation, and smart decision-making.
@@ -33,8 +32,7 @@ from src.core.errors import ValidationError
 
 
 class AIProcessingManager:
-    """
-    Comprehensive AI processing management with security and cost optimization.
+    """Comprehensive AI processing management with security and cost optimization.
 
     Implements enterprise-grade AI integration with support for multiple model
     providers, intelligent caching, and comprehensive security validation.
@@ -55,11 +53,11 @@ class AIProcessingManager:
         except Exception as e:
             return Either.left(ValidationError("initialization_failed", str(e)))
 
-    @require(lambda self, operation: operation in AIOperation)
-    @require(lambda self, input_data: len(str(input_data)) > 0)
+    @require(lambda __self, operation: operation in AIOperation)
+    @require(lambda __self, input_data: len(str(input_data)) > 0)
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.get_left(), ValidationError)
+        or isinstance(result.get_left(), ValidationError),
     )
     async def process_ai_request(
         self,
@@ -77,13 +75,11 @@ class AIProcessingManager:
         privacy_mode: bool = True,
         user_id: str | None = None,
     ) -> Either[ValidationError, dict[str, Any]]:
-        """
-        Process AI request with comprehensive validation and optimization.
-        """
+        """Process AI request with comprehensive validation and optimization."""
         try:
             if not self.initialized:
                 return Either.left(
-                    ValidationError("not_initialized", "AI system not initialized")
+                    ValidationError("not_initialized", "AI system not initialized"),
                 )
 
             # Validate and parse parameters
@@ -92,8 +88,9 @@ class AIProcessingManager:
             except ValueError:
                 return Either.left(
                     ValidationError(
-                        "invalid_mode", f"Unknown processing mode: {processing_mode}"
-                    )
+                        "invalid_mode",
+                        f"Unknown processing mode: {processing_mode}",
+                    ),
                 )
 
             try:
@@ -101,20 +98,25 @@ class AIProcessingManager:
             except ValueError:
                 return Either.left(
                     ValidationError(
-                        "invalid_format", f"Unknown output format: {output_format}"
-                    )
+                        "invalid_format",
+                        f"Unknown output format: {output_format}",
+                    ),
                 )
 
             # Security validation
             security_result = await self._validate_input_security(
-                input_data, privacy_mode
+                input_data,
+                privacy_mode,
             )
             if security_result.is_left():
                 return security_result
 
             # Model selection
             model_result = self._select_model(
-                operation, model_type, model_name, proc_mode
+                operation,
+                model_type,
+                model_name,
+                proc_mode,
             )
             if model_result.is_left():
                 return model_result
@@ -124,12 +126,15 @@ class AIProcessingManager:
             # Check cache if enabled
             if enable_caching:
                 cache_key = self._generate_cache_key(
-                    operation, input_data, model.model_name, temperature
+                    operation,
+                    input_data,
+                    model.model_name,
+                    temperature,
                 )
                 cached_response = self.request_cache.get(cache_key)
                 if cached_response:
                     return Either.right(
-                        self._format_response(cached_response, out_format, cached=True)
+                        self._format_response(cached_response, out_format, cached=True),
                     )
 
             # Create AI request
@@ -159,7 +164,7 @@ class AIProcessingManager:
                         ValidationError(
                             "cost_limit_exceeded",
                             f"Estimated cost ${estimated_cost:.4f} exceeds limit ${cost_limit:.4f}",
-                        )
+                        ),
                     )
 
             # Process request
@@ -185,11 +190,13 @@ class AIProcessingManager:
 
         except Exception as e:
             return Either.left(
-                ValidationError("ai_request", str(e), "Valid AI request processing")
+                ValidationError("ai_request", str(e), "Valid AI request processing"),
             )
 
     async def _validate_input_security(
-        self, input_data: Any, privacy_mode: bool
+        self,
+        input_data: Any,
+        privacy_mode: bool,
     ) -> Either[ValidationError, None]:
         """Validate input data for security threats."""
         try:
@@ -199,8 +206,9 @@ class AIProcessingManager:
             if len(input_str.encode("utf-8")) > 1_000_000:  # 1MB limit
                 return Either.left(
                     ValidationError(
-                        "input_too_large", "Input exceeds maximum size limit"
-                    )
+                        "input_too_large",
+                        "Input exceeds maximum size limit",
+                    ),
                 )
 
             # Check for dangerous patterns
@@ -216,8 +224,9 @@ class AIProcessingManager:
                 if re.search(pattern, input_str, re.IGNORECASE):
                     return Either.left(
                         ValidationError(
-                            "dangerous_content", "Input contains dangerous pattern"
-                        )
+                            "dangerous_content",
+                            "Input contains dangerous pattern",
+                        ),
                     )
 
             # PII detection if privacy mode enabled
@@ -248,8 +257,9 @@ class AIProcessingManager:
         if detected_pii:
             return Either.left(
                 ValidationError(
-                    "pii_detected", f"Detected PII types: {', '.join(detected_pii)}"
-                )
+                    "pii_detected",
+                    f"Detected PII types: {', '.join(detected_pii)}",
+                ),
             )
 
         return Either.right(None)
@@ -288,8 +298,9 @@ class AIProcessingManager:
             if not suitable_models:
                 return Either.left(
                     ValidationError(
-                        "no_suitable_model", "No model found matching criteria"
-                    )
+                        "no_suitable_model",
+                        "No model found matching criteria",
+                    ),
                 )
 
             # Select based on processing mode
@@ -318,7 +329,8 @@ class AIProcessingManager:
             return Either.left(ValidationError("model_selection_failed", str(e)))
 
     async def _execute_ai_request(
-        self, request: AIRequest
+        self,
+        request: AIRequest,
     ) -> Either[ValidationError, AIResponse]:
         """Execute AI request - mock implementation."""
         try:
@@ -329,7 +341,8 @@ class AIProcessingManager:
                 result = self._mock_analyze(request.prepare_input_for_model())
             elif request.operation == AIOperation.GENERATE:
                 result = self._mock_generate(
-                    request.prepare_input_for_model(), request.temperature
+                    request.prepare_input_for_model(),
+                    request.temperature,
                 )
             elif request.operation == AIOperation.SUMMARIZE:
                 result = self._mock_summarize(request.prepare_input_for_model())
@@ -416,10 +429,12 @@ class AIProcessingManager:
 
         text_lower = text.lower()
         positive_score = sum(1 for word in positive_words if word in text_lower) / max(
-            1, len(text.split())
+            1,
+            len(text.split()),
         )
         negative_score = sum(1 for word in negative_words if word in text_lower) / max(
-            1, len(text.split())
+            1,
+            len(text.split()),
         )
         neutral_score = max(0, 1 - positive_score - negative_score)
 
@@ -438,26 +453,26 @@ class AIProcessingManager:
                 "objects_detected": ["text", "interface elements"],
                 "confidence": 0.92,
             }
-        else:
-            # Extract emails, URLs, numbers from text
-            import re
+        # Extract emails, URLs, numbers from text
+        import re
 
-            emails = re.findall(
-                r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", input_data
-            )
-            urls = re.findall(
-                r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
-                input_data,
-            )
-            numbers = re.findall(r"\b\d+\b", input_data)
+        emails = re.findall(
+            r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+            input_data,
+        )
+        urls = re.findall(
+            r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
+            input_data,
+        )
+        numbers = re.findall(r"\b\d+\b", input_data)
 
-            return {
-                "type": "text_extraction",
-                "emails": emails,
-                "urls": urls,
-                "numbers": numbers[:10],  # Limit to first 10
-                "extracted_entities": len(emails) + len(urls) + len(numbers),
-            }
+        return {
+            "type": "text_extraction",
+            "emails": emails,
+            "urls": urls,
+            "numbers": numbers[:10],  # Limit to first 10
+            "extracted_entities": len(emails) + len(urls) + len(numbers),
+        }
 
     def _is_image_path(self, input_data: str) -> bool:
         """Check if input is an image file path."""
@@ -474,11 +489,14 @@ class AIProcessingManager:
         """Generate cache key for request."""
         import hashlib
 
-        key_data = f"{operation.value}|{str(input_data)}|{model_name}|{temperature}"
-        return hashlib.md5(key_data.encode()).hexdigest()
+        key_data = f"{operation.value}|{input_data!s}|{model_name}|{temperature}"
+        return hashlib.sha256(key_data.encode()).hexdigest()
 
     def _format_response(
-        self, response: AIResponse, output_format: OutputFormat, cached: bool = False
+        self,
+        response: AIResponse,
+        output_format: OutputFormat,
+        cached: bool = False,
     ) -> dict[str, Any]:
         """Format AI response for return to client."""
         return {
@@ -555,8 +573,7 @@ async def km_ai_processing(
     timeout: int = 60,  # Processing timeout
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    AI/ML model integration for intelligent automation and decision-making.
+    """AI/ML model integration for intelligent automation and decision-making.
 
     This tool provides comprehensive AI processing capabilities including text analysis,
     content generation, image recognition, and intelligent decision-making with
@@ -603,6 +620,7 @@ async def km_ai_processing(
             input_data="/path/to/screenshot.png",
             model_type="openai"
         )
+
     """
     try:
         # Initialize system if needed
@@ -672,7 +690,7 @@ async def km_ai_processing(
     except Exception as e:
         return {
             "success": False,
-            "error": f"Unexpected error: {str(e)}",
+            "error": f"Unexpected error: {e!s}",
             "error_type": "internal_error",
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -684,8 +702,7 @@ async def km_ai_status(
     include_statistics: bool = True,
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Get AI processing system status and capabilities.
+    """Get AI processing system status and capabilities.
 
     This tool provides information about the AI system state, available models,
     usage statistics, and supported operations.
@@ -697,6 +714,7 @@ async def km_ai_status(
 
     Returns:
         Dict containing AI system status and information
+
     """
     try:
         if not ai_manager.initialized:
@@ -762,7 +780,7 @@ async def km_ai_status(
     except Exception as e:
         return {
             "success": False,
-            "error": f"Status check failed: {str(e)}",
+            "error": f"Status check failed: {e!s}",
             "error_type": "status_error",
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -783,8 +801,7 @@ async def km_ai_intelligence(
     timeout: int = 30,  # Processing timeout
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    AI-powered intelligent automation with context awareness and adaptive learning.
+    """AI-powered intelligent automation with context awareness and adaptive learning.
 
     This tool provides advanced AI intelligence capabilities including smart trigger
     evaluation, adaptive workflow optimization, context-aware decision making,
@@ -820,6 +837,7 @@ async def km_ai_intelligence(
             intelligence_type="adaptive",
             learning_enabled=True
         )
+
     """
     try:
         from ..ai.context_awareness import ContextAwarenessEngine
@@ -913,7 +931,7 @@ async def km_ai_intelligence(
     except Exception as e:
         return {
             "success": False,
-            "error": f"Intelligence processing failed: {str(e)}",
+            "error": f"Intelligence processing failed: {e!s}",
             "error_type": "intelligence_error",
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -963,7 +981,7 @@ async def _process_context_analysis(
 
             context_state = ContextState(
                 context_id=ContextStateId(
-                    f"analysis_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+                    f"analysis_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 ),
                 timestamp=datetime.now(UTC),
                 dimensions=dimensions,
@@ -991,17 +1009,16 @@ async def _process_context_analysis(
                 "processing_time": processing_time,
             }
 
-        else:
-            return {
-                "success": False,
-                "error": "Invalid input data format for context analysis",
-            }
+        return {
+            "success": False,
+            "error": "Invalid input data format for context analysis",
+        }
 
     except Exception as e:
         processing_time = (datetime.now(UTC) - start_time).total_seconds()
         return {
             "success": False,
-            "error": f"Context analysis failed: {str(e)}",
+            "error": f"Context analysis failed: {e!s}",
             "processing_time": processing_time,
         }
 
@@ -1046,17 +1063,16 @@ async def _process_smart_trigger(
                 "processing_time": processing_time,
             }
 
-        else:
-            return {
-                "success": False,
-                "error": "Invalid input data format for smart trigger",
-            }
+        return {
+            "success": False,
+            "error": "Invalid input data format for smart trigger",
+        }
 
     except Exception as e:
         processing_time = (datetime.now(UTC) - start_time).total_seconds()
         return {
             "success": False,
-            "error": f"Smart trigger processing failed: {str(e)}",
+            "error": f"Smart trigger processing failed: {e!s}",
             "processing_time": processing_time,
         }
 
@@ -1114,17 +1130,16 @@ async def _process_adaptive_workflow(
                 "processing_time": processing_time,
             }
 
-        else:
-            return {
-                "success": False,
-                "error": "Invalid input data format for adaptive workflow",
-            }
+        return {
+            "success": False,
+            "error": "Invalid input data format for adaptive workflow",
+        }
 
     except Exception as e:
         processing_time = (datetime.now(UTC) - start_time).total_seconds()
         return {
             "success": False,
-            "error": f"Adaptive workflow processing failed: {str(e)}",
+            "error": f"Adaptive workflow processing failed: {e!s}",
             "processing_time": processing_time,
         }
 
@@ -1179,17 +1194,16 @@ async def _process_decision_engine(
                 "processing_time": processing_time,
             }
 
-        else:
-            return {
-                "success": False,
-                "error": "Invalid input data format for decision engine",
-            }
+        return {
+            "success": False,
+            "error": "Invalid input data format for decision engine",
+        }
 
     except Exception as e:
         processing_time = (datetime.now(UTC) - start_time).total_seconds()
         return {
             "success": False,
-            "error": f"Decision engine processing failed: {str(e)}",
+            "error": f"Decision engine processing failed: {e!s}",
             "processing_time": processing_time,
         }
 
@@ -1221,7 +1235,7 @@ async def _process_pattern_detection(
                         "description": "Recurring data pattern detected",
                         "confidence": 0.85,
                         "occurrences": len(data_points),
-                    }
+                    },
                 )
 
             if len(time_series) > 3:
@@ -1231,7 +1245,7 @@ async def _process_pattern_detection(
                         "description": "Time-based pattern identified",
                         "confidence": 0.78,
                         "time_span": "recent_activity",
-                    }
+                    },
                 )
 
             # Privacy filtering
@@ -1266,7 +1280,7 @@ async def _process_pattern_detection(
         processing_time = (datetime.now(UTC) - start_time).total_seconds()
         return {
             "success": False,
-            "error": f"Pattern detection failed: {str(e)}",
+            "error": f"Pattern detection failed: {e!s}",
             "processing_time": processing_time,
         }
 
@@ -1282,8 +1296,7 @@ async def km_ai_batch(
     timeout_hours: int = 1,  # Total job timeout
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Advanced batch processing for AI operations with enterprise-grade management.
+    """Advanced batch processing for AI operations with enterprise-grade management.
 
     This tool provides comprehensive batch processing capabilities including
     parallel execution, dependency management, progress tracking, and intelligent
@@ -1320,6 +1333,7 @@ async def km_ai_batch(
             operation="status",
             batch_data={"job_id": "job_123"}
         )
+
     """
     try:
         from datetime import UTC, timedelta
@@ -1377,7 +1391,7 @@ async def km_ai_batch(
 
                 task = BatchTask(
                     task_id=BatchTaskId(
-                        f"task_{i}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+                        f"task_{i}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                     ),
                     operation=ai_op,
                     input_data=task_data["input_data"],
@@ -1392,7 +1406,7 @@ async def km_ai_batch(
             from ..ai.batch_processing import BatchJobId
 
             job_id = BatchJobId(
-                f"job_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{len(tasks)}"
+                f"job_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{len(tasks)}",
             )
 
             job = BatchJob(
@@ -1426,7 +1440,7 @@ async def km_ai_batch(
                 "submitted_at": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "status":
+        if operation == "status":
             if not batch_data or "job_id" not in batch_data:
                 return {
                     "success": False,
@@ -1447,7 +1461,7 @@ async def km_ai_batch(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "cancel":
+        if operation == "cancel":
             if not batch_data or "job_id" not in batch_data:
                 return {
                     "success": False,
@@ -1466,7 +1480,7 @@ async def km_ai_batch(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "list":
+        if operation == "list":
             system_status = batch_processor.get_system_status()
             return {
                 "success": True,
@@ -1474,7 +1488,7 @@ async def km_ai_batch(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "optimize":
+        if operation == "optimize":
             # Get optimization recommendations for batch processing
             return {
                 "success": True,
@@ -1499,17 +1513,16 @@ async def km_ai_batch(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        else:
-            return {
-                "success": False,
-                "error": f"Unknown batch operation: {operation}",
-                "valid_operations": ["submit", "status", "cancel", "list", "optimize"],
-            }
+        return {
+            "success": False,
+            "error": f"Unknown batch operation: {operation}",
+            "valid_operations": ["submit", "status", "cancel", "list", "optimize"],
+        }
 
     except Exception as e:
         return {
             "success": False,
-            "error": f"Batch processing failed: {str(e)}",
+            "error": f"Batch processing failed: {e!s}",
             "error_type": "batch_error",
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -1525,8 +1538,7 @@ async def km_ai_cache(
     enable_prefetch: bool = True,  # Enable predictive prefetching
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Intelligent caching system for AI operations with multi-level hierarchy.
+    """Intelligent caching system for AI operations with multi-level hierarchy.
 
     This tool provides comprehensive caching capabilities including multi-level
     caching (L1/L2/L3), intelligent cache management, predictive prefetching,
@@ -1561,6 +1573,7 @@ async def km_ai_cache(
             },
             ttl_hours=6
         )
+
     """
     try:
         from datetime import UTC, timedelta
@@ -1597,7 +1610,7 @@ async def km_ai_cache(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "put":
+        if operation == "put":
             if not cache_data or "key" not in cache_data or "value" not in cache_data:
                 return {
                     "success": False,
@@ -1627,7 +1640,7 @@ async def km_ai_cache(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "invalidate":
+        if operation == "invalidate":
             if not cache_data:
                 return {
                     "success": False,
@@ -1645,11 +1658,11 @@ async def km_ai_cache(
                     "namespace": namespace,
                 }
 
-            elif "namespace" in cache_data:
+            if "namespace" in cache_data:
                 # Invalidate entire namespace
                 target_namespace = CacheNamespace(cache_data["namespace"])
                 count = cache_manager.cache.l1_cache.invalidate_namespace(
-                    target_namespace
+                    target_namespace,
                 )
                 return {
                     "success": True,
@@ -1657,19 +1670,18 @@ async def km_ai_cache(
                     "namespace": cache_data["namespace"],
                 }
 
-            elif "tags" in cache_data:
+            if "tags" in cache_data:
                 # Invalidate by tags
                 tags = set(cache_data["tags"])
                 count = cache_manager.cache.l1_cache.invalidate_by_tags(tags)
                 return {"success": True, "invalidated_count": count, "tags": list(tags)}
 
-            else:
-                return {
-                    "success": False,
-                    "error": "invalidate requires 'key', 'namespace', or 'tags' in cache_data",
-                }
+            return {
+                "success": False,
+                "error": "invalidate requires 'key', 'namespace', or 'tags' in cache_data",
+            }
 
-        elif operation == "clear":
+        if operation == "clear":
             # Clear all caches
             cache_manager.cache.l1_cache.clear()
             cache_manager.cache.l2_cache.clear()
@@ -1680,7 +1692,7 @@ async def km_ai_cache(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "stats":
+        if operation == "stats":
             # Get comprehensive cache statistics
             stats = cache_manager.cache.get_comprehensive_statistics()
             efficiency_report = cache_manager.get_cache_efficiency_report()
@@ -1692,7 +1704,7 @@ async def km_ai_cache(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "optimize":
+        if operation == "optimize":
             # Perform cache optimization
             if enable_prefetch:
                 await cache_manager.predictive_prefetch()
@@ -1723,24 +1735,23 @@ async def km_ai_cache(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        else:
-            return {
-                "success": False,
-                "error": f"Unknown cache operation: {operation}",
-                "valid_operations": [
-                    "get",
-                    "put",
-                    "invalidate",
-                    "clear",
-                    "stats",
-                    "optimize",
-                ],
-            }
+        return {
+            "success": False,
+            "error": f"Unknown cache operation: {operation}",
+            "valid_operations": [
+                "get",
+                "put",
+                "invalidate",
+                "clear",
+                "stats",
+                "optimize",
+            ],
+        }
 
     except Exception as e:
         return {
             "success": False,
-            "error": f"Cache operation failed: {str(e)}",
+            "error": f"Cache operation failed: {e!s}",
             "error_type": "cache_error",
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -1756,8 +1767,7 @@ async def km_ai_cost_optimization(
     alert_thresholds: list[float] | None = None,  # Alert thresholds (0.0-1.0)
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Advanced cost optimization system for AI operations with enterprise controls.
+    """Advanced cost optimization system for AI operations with enterprise controls.
 
     This tool provides comprehensive cost optimization including usage tracking,
     budget management, intelligent model selection, cost prediction, and
@@ -1792,6 +1802,7 @@ async def km_ai_cost_optimization(
             operation="report",
             period="monthly"
         )
+
     """
     try:
         from decimal import Decimal
@@ -1826,7 +1837,7 @@ async def km_ai_cost_optimization(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "budget":
+        if operation == "budget":
             if not cost_data or "name" not in cost_data or "amount" not in cost_data:
                 return {
                     "success": False,
@@ -1843,7 +1854,7 @@ async def km_ai_cost_optimization(
                 }
 
             budget_id = BudgetId(
-                f"budget_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+                f"budget_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
             )
 
             budget = CostBudget(
@@ -1870,7 +1881,7 @@ async def km_ai_cost_optimization(
                 "created_at": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "optimize":
+        if operation == "optimize":
             try:
                 strategy = CostOptimizationStrategy(optimization_strategy)
             except ValueError:
@@ -1884,7 +1895,7 @@ async def km_ai_cost_optimization(
             from ..core.ai_integration import AIOperation
 
             recommendations = cost_optimizer.get_model_recommendations(
-                AIOperation.ANALYZE
+                AIOperation.ANALYZE,
             )
 
             # Apply auto-optimization if enabled
@@ -1911,7 +1922,7 @@ async def km_ai_cost_optimization(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "report":
+        if operation == "report":
             # Generate comprehensive cost report
             optimization_report = cost_optimizer.get_optimization_report()
 
@@ -1921,7 +1932,7 @@ async def km_ai_cost_optimization(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "alert":
+        if operation == "alert":
             # Get active cost alerts
             active_alerts = cost_optimizer.get_active_alerts()
 
@@ -1932,17 +1943,16 @@ async def km_ai_cost_optimization(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        else:
-            return {
-                "success": False,
-                "error": f"Unknown cost optimization operation: {operation}",
-                "valid_operations": ["track", "budget", "optimize", "report", "alert"],
-            }
+        return {
+            "success": False,
+            "error": f"Unknown cost optimization operation: {operation}",
+            "valid_operations": ["track", "budget", "optimize", "report", "alert"],
+        }
 
     except Exception as e:
         return {
             "success": False,
-            "error": f"Cost optimization failed: {str(e)}",
+            "error": f"Cost optimization failed: {e!s}",
             "error_type": "cost_optimization_error",
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -1954,8 +1964,7 @@ async def km_ai_models(
     include_costs: bool = False,
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    List available AI models with capabilities and usage information.
+    """List available AI models with capabilities and usage information.
 
     Args:
         provider: Filter by AI provider (openai, google, azure, etc.)
@@ -1964,6 +1973,7 @@ async def km_ai_models(
 
     Returns:
         Dict containing list of available AI models with metadata
+
     """
     try:
         # Parse filters
@@ -2032,7 +2042,7 @@ async def km_ai_models(
     except Exception as e:
         return {
             "success": False,
-            "error": f"Models listing failed: {str(e)}",
+            "error": f"Models listing failed: {e!s}",
             "error_type": "models_error",
             "timestamp": datetime.now(UTC).isoformat(),
         }

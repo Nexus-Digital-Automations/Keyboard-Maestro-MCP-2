@@ -1,5 +1,4 @@
-"""
-Documentation Generator - TASK_56 Phase 2 Implementation
+"""Documentation Generator - TASK_56 Phase 2 Implementation.
 
 Automated documentation generation from macro structures, workflows, and automation components.
 Provides intelligent content creation with template integration and AI enhancement.
@@ -61,8 +60,7 @@ class DocumentationContext:
 
 
 class DocumentationGenerator:
-    """
-    Advanced documentation generator for automated content creation.
+    """Advanced documentation generator for automated content creation.
 
     Generates comprehensive documentation from automation structures with
     template integration, AI enhancement, and intelligent content organization.
@@ -108,7 +106,7 @@ class DocumentationGenerator:
 
             if content_result.is_left():
                 return Either.left(
-                    f"Content processing failed: {content_result.left()}"
+                    f"Content processing failed: {content_result.left()}",
                 )
 
             content_data = content_result.right()
@@ -117,12 +115,14 @@ class DocumentationGenerator:
             if config.template_id and config.template_id in self.templates:
                 template = self.templates[config.template_id]
                 content_result = await self._apply_template(
-                    content_data, template, config
+                    content_data,
+                    template,
+                    config,
                 )
 
                 if content_result.is_left():
                     return Either.left(
-                        f"Template application failed: {content_result.left()}"
+                        f"Template application failed: {content_result.left()}",
                     )
 
                 content_data = content_result.right()
@@ -132,10 +132,12 @@ class DocumentationGenerator:
 
             # Create document metadata
             title = content_data.get(
-                "title", f"{context.source_type.title()} Documentation"
+                "title",
+                f"{context.source_type.title()} Documentation",
             )
             description = content_data.get(
-                "description", f"Auto-generated documentation for {context.source_id}"
+                "description",
+                f"Auto-generated documentation for {context.source_id}",
             )
 
             metadata = ContentMetadata(
@@ -166,17 +168,19 @@ class DocumentationGenerator:
             )
 
             logger.info(
-                f"Generated documentation for {context.source_type}: {context.source_id}"
+                f"Generated documentation for {context.source_type}: {context.source_id}",
             )
             return Either.right(document)
 
         except Exception as e:
-            error_msg = f"Documentation generation failed: {str(e)}"
+            error_msg = f"Documentation generation failed: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
     async def _process_macro_documentation(
-        self, context: DocumentationContext, config: MacroDocumentationConfig
+        self,
+        context: DocumentationContext,
+        config: MacroDocumentationConfig,
     ) -> Either[str, dict[str, Any]]:
         """Process macro documentation content."""
         try:
@@ -189,12 +193,12 @@ class DocumentationGenerator:
 
             if config.include_overview:
                 content_data["sections"]["overview"] = self._generate_macro_overview(
-                    macro_data
+                    macro_data,
                 )
 
             if config.include_usage:
                 content_data["sections"]["usage"] = self._generate_macro_usage(
-                    macro_data
+                    macro_data,
                 )
 
             if config.include_parameters:
@@ -204,7 +208,7 @@ class DocumentationGenerator:
 
             if config.include_examples:
                 content_data["sections"]["examples"] = self._generate_macro_examples(
-                    macro_data
+                    macro_data,
                 )
 
             if config.include_troubleshooting:
@@ -215,10 +219,12 @@ class DocumentationGenerator:
             return Either.right(content_data)
 
         except Exception as e:
-            return Either.left(f"Macro processing failed: {str(e)}")
+            return Either.left(f"Macro processing failed: {e!s}")
 
     async def _process_workflow_documentation(
-        self, context: DocumentationContext, config: MacroDocumentationConfig
+        self,
+        context: DocumentationContext,
+        config: MacroDocumentationConfig,
     ) -> Either[str, dict[str, Any]]:
         """Process workflow documentation content."""
         try:
@@ -236,10 +242,12 @@ class DocumentationGenerator:
             return Either.right(content_data)
 
         except Exception as e:
-            return Either.left(f"Workflow processing failed: {str(e)}")
+            return Either.left(f"Workflow processing failed: {e!s}")
 
     async def _process_group_documentation(
-        self, context: DocumentationContext, config: MacroDocumentationConfig
+        self,
+        context: DocumentationContext,
+        config: MacroDocumentationConfig,
     ) -> Either[str, dict[str, Any]]:
         """Process group documentation content."""
         try:
@@ -256,10 +264,12 @@ class DocumentationGenerator:
             return Either.right(content_data)
 
         except Exception as e:
-            return Either.left(f"Group processing failed: {str(e)}")
+            return Either.left(f"Group processing failed: {e!s}")
 
     async def _process_system_documentation(
-        self, context: DocumentationContext, config: MacroDocumentationConfig
+        self,
+        context: DocumentationContext,
+        config: MacroDocumentationConfig,
     ) -> Either[str, dict[str, Any]]:
         """Process system documentation content."""
         try:
@@ -277,7 +287,7 @@ class DocumentationGenerator:
             return Either.right(content_data)
 
         except Exception as e:
-            return Either.left(f"System processing failed: {str(e)}")
+            return Either.left(f"System processing failed: {e!s}")
 
     def _generate_macro_overview(self, macro_data: dict[str, Any]) -> str:
         """Generate macro overview section."""
@@ -468,23 +478,24 @@ Macro execution completed successfully.
             return Either.right(content_data)
 
         except Exception as e:
-            return Either.left(f"Template application failed: {str(e)}")
+            return Either.left(f"Template application failed: {e!s}")
 
     async def _generate_final_content(
-        self, content_data: dict[str, Any], config: MacroDocumentationConfig
+        self,
+        content_data: dict[str, Any],
+        config: MacroDocumentationConfig,
     ) -> str:
         """Generate final content from processed data."""
         try:
             if config.format == ContentFormat.MARKDOWN:
                 return self._generate_markdown_content(content_data)
-            elif config.format == ContentFormat.HTML:
+            if config.format == ContentFormat.HTML:
                 return self._generate_html_content(content_data)
-            else:
-                return self._generate_text_content(content_data)
+            return self._generate_text_content(content_data)
 
         except Exception as e:
             logger.error(f"Final content generation failed: {e}")
-            return f"# {content_data.get('title', 'Documentation')}\n\nError generating content: {str(e)}"
+            return f"# {content_data.get('title', 'Documentation')}\n\nError generating content: {e!s}"
 
     def _generate_markdown_content(self, content_data: dict[str, Any]) -> str:
         """Generate Markdown formatted content."""
@@ -537,10 +548,13 @@ Macro execution completed successfully.
             if section_content:
                 # Convert basic markdown to HTML
                 html_content = section_content.replace("## ", "<h2>").replace(
-                    "\n", "</h2>\n", 1
+                    "\n",
+                    "</h2>\n",
+                    1,
                 )
                 html_content = html_content.replace("**", "<strong>").replace(
-                    "**", "</strong>"
+                    "**",
+                    "</strong>",
                 )
                 content += f"    {html_content}\n"
 
@@ -578,14 +592,14 @@ Macro execution completed successfully.
         """Add a content template to the generator."""
         try:
             template_id = TemplateId(
-                template.get("template_id", f"template_{len(self.templates)}")
+                template.get("template_id", f"template_{len(self.templates)}"),
             )
             self.templates[template_id] = template
             logger.info(f"Added template: {template.get('name', template_id)}")
             return Either.right(template_id)
 
         except Exception as e:
-            error_msg = f"Failed to add template: {str(e)}"
+            error_msg = f"Failed to add template: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -600,7 +614,7 @@ Macro execution completed successfully.
             return Either.right(template_id)
 
         except Exception as e:
-            error_msg = f"Failed to remove template: {str(e)}"
+            error_msg = f"Failed to remove template: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 

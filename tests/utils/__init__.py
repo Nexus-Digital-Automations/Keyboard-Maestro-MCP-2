@@ -1,5 +1,4 @@
-"""
-Test utilities package for the Keyboard Maestro MCP testing framework.
+"""Test utilities package for the Keyboard Maestro MCP testing framework.
 
 This package provides comprehensive testing utilities including:
 - Hypothesis data generators for property-based testing
@@ -9,6 +8,9 @@ This package provides comprehensive testing utilities including:
 """
 
 # Import key utilities for easy access
+from __future__ import annotations
+
+from typing import Any, Optional
 from .assertions import (
     assert_command_failed,
     assert_command_successful,
@@ -80,59 +82,59 @@ __version__ = "1.0.0"
 
 # Public API
 __all__ = [
-    # Generators
-    "macro_ids",
-    "command_ids",
-    "execution_tokens",
-    "variable_names",
-    "durations",
-    "permission_sets",
-    "command_parameters",
-    "execution_contexts",
-    "simple_macro_definitions",
-    "complex_macro_definitions",
-    "safe_text_content",
-    "malicious_text_content",
-    "invalid_identifiers",
-    "edge_case_durations",
-    "concurrent_execution_scenarios",
-    "is_safe_for_validation",
-    "contains_injection_pattern",
-    # Mocks
-    "MockKeyboardMaestroClient",
-    "MockExecutionContext",
     "MockCommand",
-    "MockMacroEngine",
+    "MockExecutionContext",
     "MockFileSystem",
     "MockKMResponse",
-    "create_failing_km_client",
-    "create_slow_km_client",
-    "create_reliable_km_client",
-    "create_mock_command_sequence",
-    "create_privileged_mock_context",
-    # Assertions
-    "assert_execution_successful",
-    "assert_execution_failed",
-    "assert_command_successful",
+    # Mocks
+    "MockKeyboardMaestroClient",
+    "MockMacroEngine",
     "assert_command_failed",
-    "assert_permissions_required",
-    "assert_security_violation_blocked",
-    "assert_input_sanitized",
-    "assert_injection_prevented",
-    "assert_performance_within_bounds",
-    "assert_thread_safe_operation",
-    "assert_macro_valid",
+    "assert_command_successful",
     "assert_context_valid",
     "assert_duration_valid",
-    "assert_property_holds",
-    "assert_invariant_maintained",
     "assert_error_contains_context",
-    "assert_no_memory_leaks",
+    "assert_execution_failed",
+    # Assertions
+    "assert_execution_successful",
     "assert_execution_time",
+    "assert_injection_prevented",
+    "assert_input_sanitized",
+    "assert_invariant_maintained",
+    "assert_macro_valid",
+    "assert_no_memory_leaks",
+    "assert_performance_within_bounds",
+    "assert_permissions_required",
+    "assert_property_holds",
+    "assert_security_violation_blocked",
+    "assert_thread_safe_operation",
+    "command_ids",
+    "command_parameters",
+    "complex_macro_definitions",
+    "concurrent_execution_scenarios",
+    "contains_injection_pattern",
+    "create_failing_km_client",
+    "create_mock_command_sequence",
+    "create_privileged_mock_context",
+    "create_reliable_km_client",
+    "create_slow_km_client",
+    "durations",
+    "edge_case_durations",
+    "execution_contexts",
+    "execution_tokens",
+    "invalid_identifiers",
+    "is_safe_for_validation",
+    # Generators
+    "macro_ids",
+    "malicious_text_content",
+    "permission_sets",
+    "safe_text_content",
+    "simple_macro_definitions",
+    "variable_names",
 ]
 
 
-def get_test_utilities_info():
+def get_test_utilities_info() -> None:
     """Get information about available test utilities."""
     return {
         "version": __version__,

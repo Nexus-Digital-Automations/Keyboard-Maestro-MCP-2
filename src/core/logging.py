@@ -1,5 +1,4 @@
-"""
-Logging utilities for the Keyboard Maestro MCP server.
+"""Logging utilities for the Keyboard Maestro MCP server.
 
 This module provides structured logging with security-conscious error handling
 and performance monitoring for the macro automation system.
@@ -11,14 +10,14 @@ from pathlib import Path
 
 
 def get_logger(name: str) -> logging.Logger:
-    """
-    Get a configured logger instance.
+    """Get a configured logger instance.
 
     Args:
         name: Logger name (typically __name__)
 
     Returns:
         Configured logger instance
+
     """
     logger = logging.getLogger(name)
 
@@ -29,7 +28,7 @@ def get_logger(name: str) -> logging.Logger:
 
         # Create formatter
         formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
 
         # Console handler (stderr to avoid corrupting MCP communications)

@@ -1,5 +1,4 @@
-"""
-Interface automation tools for mouse and keyboard control.
+"""Interface automation tools for mouse and keyboard control.
 
 Provides comprehensive interface automation including mouse clicks, drags,
 keyboard input, and coordinate-based interactions.
@@ -35,7 +34,8 @@ async def km_interface_automation(
     coordinates: Annotated[
         dict[str, int] | None,
         Field(
-            default=None, description="Target coordinates {x, y} for mouse operations"
+            default=None,
+            description="Target coordinates {x, y} for mouse operations",
         ),
     ] = None,
     end_coordinates: Annotated[
@@ -43,7 +43,8 @@ async def km_interface_automation(
         Field(default=None, description="End coordinates {x, y} for drag operation"),
     ] = None,
     text: Annotated[
-        str | None, Field(default=None, description="Text to type", max_length=10000)
+        str | None,
+        Field(default=None, description="Text to type", max_length=10000),
     ] = None,
     keystroke: Annotated[
         str | None,
@@ -72,8 +73,7 @@ async def km_interface_automation(
     ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Automate mouse and keyboard interactions for UI automation.
+    """Automate mouse and keyboard interactions for UI automation.
 
     Operations:
     - click: Single click at coordinates
@@ -126,12 +126,15 @@ async def km_interface_automation(
 
         if operation == "key_press" and not keystroke:
             raise ValidationError(
-                "keystroke", keystroke, "Keystroke required for key_press operation"
+                "keystroke",
+                keystroke,
+                "Keystroke required for key_press operation",
             )
 
         # Check connection
         connection_test = await asyncio.get_event_loop().run_in_executor(
-            None, km_client.check_connection
+            None,
+            km_client.check_connection,
         )
 
         if connection_test.is_left() or not connection_test.get_right():
@@ -155,27 +158,37 @@ async def km_interface_automation(
         # Execute the requested operation
         if operation in ["click", "double_click", "right_click"]:
             return await _perform_click(
-                km_client, operation, coordinates, modifiers, ctx
+                km_client,
+                operation,
+                coordinates,
+                modifiers,
+                ctx,
             )
-        elif operation == "move_mouse":
+        if operation == "move_mouse":
             return await _move_mouse(km_client, coordinates, ctx)
-        elif operation == "drag":
+        if operation == "drag":
             return await _perform_drag(
-                km_client, coordinates, end_coordinates, duration_ms, modifiers, ctx
+                km_client,
+                coordinates,
+                end_coordinates,
+                duration_ms,
+                modifiers,
+                ctx,
             )
-        elif operation == "type":
+        if operation == "type":
             return await _type_text(km_client, text, ctx)
-        elif operation == "key_press":
+        if operation == "key_press":
             return await _press_keys(km_client, keystroke, ctx)
-        else:
-            raise ValidationError(
-                "operation", operation, f"Unknown operation: {operation}"
-            )
+        raise ValidationError(
+            "operation",
+            operation,
+            f"Unknown operation: {operation}",
+        )
 
     except Exception as e:
         logger.error(f"Interface automation error: {e}")
         if ctx:
-            await ctx.error(f"Automation failed: {str(e)}")
+            await ctx.error(f"Automation failed: {e!s}")
 
         return {
             "success": False,
@@ -192,7 +205,9 @@ def _validate_coordinates(coords: dict[str, int]) -> None:
     """Validate coordinate dictionary."""
     if "x" not in coords or "y" not in coords:
         raise ValidationError(
-            "coordinates", coords, "Coordinates must have 'x' and 'y' values"
+            "coordinates",
+            coords,
+            "Coordinates must have 'x' and 'y' values",
         )
 
     x, y = coords["x"], coords["y"]
@@ -200,7 +215,9 @@ def _validate_coordinates(coords: dict[str, int]) -> None:
     # Basic range validation (typical screen bounds)
     if not (-5000 <= x <= 10000) or not (-5000 <= y <= 10000):
         raise ValidationError(
-            "coordinates", coords, f"Coordinates out of reasonable range: ({x}, {y})"
+            "coordinates",
+            coords,
+            f"Coordinates out of reasonable range: ({x}, {y})",
         )
 
 
@@ -244,7 +261,9 @@ async def _perform_click(
 
 
 async def _move_mouse(
-    km_client, coordinates: dict[str, int], ctx: Context = None
+    km_client,
+    coordinates: dict[str, int],
+    ctx: Context = None,
 ) -> dict[str, Any]:
     """Move mouse to coordinates without clicking."""
     x, y = coordinates["x"], coordinates["y"]
@@ -278,7 +297,9 @@ async def _perform_drag(
     """Perform a drag operation."""
     if ctx:
         await ctx.report_progress(
-            25, 100, f"Starting drag from ({start['x']}, {start['y']})"
+            25,
+            100,
+            f"Starting drag from ({start['x']}, {start['y']})",
         )
 
     # Calculate drag distance
@@ -286,7 +307,7 @@ async def _perform_drag(
 
     logger.info(
         f"Dragging from ({start['x']}, {start['y']}) to ({end['x']}, {end['y']}) "
-        f"over {duration_ms}ms (distance: {distance:.1f}px)"
+        f"over {duration_ms}ms (distance: {distance:.1f}px)",
     )
 
     if ctx:

@@ -1,5 +1,4 @@
-"""
-Accessibility Engine MCP Tools - TASK_57 Phase 3 Implementation
+"""Accessibility Engine MCP Tools - TASK_57 Phase 3 Implementation.
 
 FastMCP tools for accessibility compliance testing, WCAG validation, assistive technology integration,
 and comprehensive accessibility reporting for Claude Desktop interaction.
@@ -62,8 +61,7 @@ async def km_test_accessibility(
     auto_fix_issues: bool = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Perform comprehensive accessibility compliance testing for interfaces and automation workflows.
+    """Perform comprehensive accessibility compliance testing for interfaces and automation workflows.
 
     FastMCP Tool for accessibility testing through Claude Desktop.
     Tests against WCAG, Section 508, and other accessibility standards.
@@ -120,7 +118,9 @@ async def km_test_accessibility(
         # Progress reporting
         if ctx:
             await ctx.report_progress(
-                progress=10, total=100, message="Initializing accessibility test"
+                progress=10,
+                total=100,
+                message="Initializing accessibility test",
             )
 
         # Create accessibility test
@@ -148,7 +148,9 @@ async def km_test_accessibility(
 
         if ctx:
             await ctx.report_progress(
-                progress=30, total=100, message="Executing accessibility tests"
+                progress=30,
+                total=100,
+                message="Executing accessibility tests",
             )
 
         # Execute accessibility test
@@ -157,10 +159,10 @@ async def km_test_accessibility(
         if test_result.is_left():
             error = test_result.get_left()
             if ctx:
-                await ctx.error(f"Accessibility test failed: {str(error)}")
+                await ctx.error(f"Accessibility test failed: {error!s}")
             return {
                 "success": False,
-                "error": f"Test execution failed: {str(error)}",
+                "error": f"Test execution failed: {error!s}",
                 "error_type": type(error).__name__,
             }
 
@@ -168,7 +170,9 @@ async def km_test_accessibility(
 
         if ctx:
             await ctx.report_progress(
-                progress=60, total=100, message="Analyzing test results"
+                progress=60,
+                total=100,
+                message="Analyzing test results",
             )
 
         # Test assistive technology compatibility if requested
@@ -192,14 +196,15 @@ async def km_test_accessibility(
 
                 registration_result = (
                     await assistive_tech_manager.register_assistive_technology(
-                        tech_config
+                        tech_config,
                     )
                 )
                 if registration_result.is_right():
                     tech_id = registration_result.get_right()
                     compat_result = (
                         await assistive_tech_manager.test_assistive_tech_compatibility(
-                            tech_id, target_id or "system"
+                            tech_id,
+                            target_id or "system",
                         )
                     )
 
@@ -213,7 +218,9 @@ async def km_test_accessibility(
 
         if ctx:
             await ctx.report_progress(
-                progress=80, total=100, message="Generating compliance report"
+                progress=80,
+                total=100,
+                message="Generating compliance report",
             )
 
         # Generate detailed report if requested
@@ -271,10 +278,12 @@ async def km_test_accessibility(
 
         if ctx:
             await ctx.report_progress(
-                progress=100, total=100, message="Accessibility testing completed"
+                progress=100,
+                total=100,
+                message="Accessibility testing completed",
             )
             await ctx.info(
-                f"Accessibility test completed. Score: {result.compliance_score:.1f}%"
+                f"Accessibility test completed. Score: {result.compliance_score:.1f}%",
             )
 
         return {
@@ -289,13 +298,13 @@ async def km_test_accessibility(
                 "issues_found": len(result.issues),
                 "issues_by_severity": {
                     "critical": len(
-                        [i for i in result.issues if i.severity.value == "critical"]
+                        [i for i in result.issues if i.severity.value == "critical"],
                     ),
                     "high": len(
-                        [i for i in result.issues if i.severity.value == "high"]
+                        [i for i in result.issues if i.severity.value == "high"],
                     ),
                     "medium": len(
-                        [i for i in result.issues if i.severity.value == "medium"]
+                        [i for i in result.issues if i.severity.value == "medium"],
                     ),
                     "low": len([i for i in result.issues if i.severity.value == "low"]),
                 },
@@ -317,10 +326,10 @@ async def km_test_accessibility(
 
     except Exception as e:
         if ctx:
-            await ctx.error(f"Accessibility testing failed: {str(e)}")
+            await ctx.error(f"Accessibility testing failed: {e!s}")
         return {
             "success": False,
-            "error": f"Accessibility testing failed: {str(e)}",
+            "error": f"Accessibility testing failed: {e!s}",
             "error_type": type(e).__name__,
             "recovery_suggestion": "Check test parameters and target accessibility",
         }
@@ -338,8 +347,7 @@ async def km_validate_wcag(
     export_certificate: bool = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Validate WCAG compliance for interfaces, content, and automation workflows.
+    """Validate WCAG compliance for interfaces, content, and automation workflows.
 
     FastMCP Tool for WCAG validation through Claude Desktop.
     Provides comprehensive compliance validation against specific WCAG criteria.
@@ -349,7 +357,7 @@ async def km_validate_wcag(
     try:
         if ctx:
             await ctx.info(
-                f"Starting WCAG {wcag_version} Level {conformance_level} validation"
+                f"Starting WCAG {wcag_version} Level {conformance_level} validation",
             )
 
         # Validate input parameters
@@ -404,7 +412,9 @@ async def km_validate_wcag(
 
         if ctx:
             await ctx.report_progress(
-                progress=20, total=100, message="Preparing WCAG validation"
+                progress=20,
+                total=100,
+                message="Preparing WCAG validation",
             )
 
         # Create validation context
@@ -417,7 +427,9 @@ async def km_validate_wcag(
 
         if ctx:
             await ctx.report_progress(
-                progress=40, total=100, message="Executing WCAG compliance validation"
+                progress=40,
+                total=100,
+                message="Executing WCAG compliance validation",
             )
 
         # Perform WCAG compliance validation
@@ -432,10 +444,10 @@ async def km_validate_wcag(
         if validation_result.is_left():
             error = validation_result.get_left()
             if ctx:
-                await ctx.error(f"WCAG validation failed: {str(error)}")
+                await ctx.error(f"WCAG validation failed: {error!s}")
             return {
                 "success": False,
-                "error": f"WCAG validation failed: {str(error)}",
+                "error": f"WCAG validation failed: {error!s}",
                 "error_type": type(error).__name__,
             }
 
@@ -444,7 +456,9 @@ async def km_validate_wcag(
 
         if ctx:
             await ctx.report_progress(
-                progress=70, total=100, message="Analyzing WCAG compliance results"
+                progress=70,
+                total=100,
+                message="Analyzing WCAG compliance results",
             )
 
         # Perform detailed WCAG analysis if requested
@@ -455,7 +469,8 @@ async def km_validate_wcag(
             # Get implementation recommendations
             if wcag_result.issues:
                 recommendations = wcag_analyzer.get_implementation_recommendations(
-                    wcag_result.issues, severity_threshold=conf_level
+                    wcag_result.issues,
+                    severity_threshold=conf_level,
                 )
                 wcag_analysis["implementation_recommendations"] = recommendations[
                     :10
@@ -463,7 +478,9 @@ async def km_validate_wcag(
 
         if ctx:
             await ctx.report_progress(
-                progress=90, total=100, message="Generating WCAG compliance certificate"
+                progress=90,
+                total=100,
+                message="Generating WCAG compliance certificate",
             )
 
         # Generate compliance certificate if requested
@@ -484,10 +501,12 @@ async def km_validate_wcag(
 
         if ctx:
             await ctx.report_progress(
-                progress=100, total=100, message="WCAG validation completed"
+                progress=100,
+                total=100,
+                message="WCAG validation completed",
             )
             await ctx.info(
-                f"WCAG validation completed. Compliance: {wcag_result.compliance_score:.1f}%"
+                f"WCAG validation completed. Compliance: {wcag_result.compliance_score:.1f}%",
             )
 
         return {
@@ -535,10 +554,10 @@ async def km_validate_wcag(
 
     except Exception as e:
         if ctx:
-            await ctx.error(f"WCAG validation failed: {str(e)}")
+            await ctx.error(f"WCAG validation failed: {e!s}")
         return {
             "success": False,
-            "error": f"WCAG validation failed: {str(e)}",
+            "error": f"WCAG validation failed: {e!s}",
             "error_type": type(e).__name__,
             "recovery_suggestion": "Check validation parameters and target accessibility",
         }
@@ -555,8 +574,7 @@ async def km_integrate_assistive_tech(
     validate_usability: bool = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Integrate and test assistive technology compatibility with automation workflows.
+    """Integrate and test assistive technology compatibility with automation workflows.
 
     FastMCP Tool for assistive technology integration through Claude Desktop.
     Ensures automation workflows work effectively with various assistive technologies.
@@ -566,7 +584,7 @@ async def km_integrate_assistive_tech(
     try:
         if ctx:
             await ctx.info(
-                f"Starting assistive technology integration: {integration_type}"
+                f"Starting assistive technology integration: {integration_type}",
             )
 
         # Validate integration type
@@ -592,7 +610,9 @@ async def km_integrate_assistive_tech(
 
         if ctx:
             await ctx.report_progress(
-                progress=15, total=100, message="Configuring assistive technology"
+                progress=15,
+                total=100,
+                message="Configuring assistive technology",
             )
 
         # Create assistive technology configuration
@@ -600,13 +620,15 @@ async def km_integrate_assistive_tech(
             tech_id=f"integration_{integration_type}_{datetime.now(UTC).timestamp()}",
             technology=assistive_tech,
             name=assistive_tech_config.get(
-                "name", f"{integration_type.replace('_', ' ').title()} Integration"
+                "name",
+                f"{integration_type.replace('_', ' ').title()} Integration",
             ),
             version=assistive_tech_config.get("version", "1.0"),
             settings=assistive_tech_config.get("settings", {}),
             test_scenarios=assistive_tech_config.get("test_scenarios", []),
             compatibility_requirements=assistive_tech_config.get(
-                "compatibility_requirements", {}
+                "compatibility_requirements",
+                {},
             ),
         )
 
@@ -618,11 +640,11 @@ async def km_integrate_assistive_tech(
             error = registration_result.get_left()
             if ctx:
                 await ctx.error(
-                    f"Assistive technology registration failed: {str(error)}"
+                    f"Assistive technology registration failed: {error!s}",
                 )
             return {
                 "success": False,
-                "error": f"Registration failed: {str(error)}",
+                "error": f"Registration failed: {error!s}",
                 "error_type": type(error).__name__,
             }
 
@@ -630,7 +652,9 @@ async def km_integrate_assistive_tech(
 
         if ctx:
             await ctx.report_progress(
-                progress=35, total=100, message="Testing compatibility"
+                progress=35,
+                total=100,
+                message="Testing compatibility",
             )
 
         # Test compatibility if requested
@@ -638,7 +662,8 @@ async def km_integrate_assistive_tech(
         if test_compatibility:
             compat_result = (
                 await assistive_tech_manager.test_assistive_tech_compatibility(
-                    tech_id, target_automation
+                    tech_id,
+                    target_automation,
                 )
             )
 
@@ -662,7 +687,7 @@ async def km_integrate_assistive_tech(
                 }
             else:
                 compatibility_results = {
-                    "error": f"Compatibility testing failed: {str(compat_result.get_left())}"
+                    "error": f"Compatibility testing failed: {compat_result.get_left()!s}",
                 }
 
         if ctx:
@@ -682,18 +707,22 @@ async def km_integrate_assistive_tech(
             optimizer = AccessibilityOptimizer(assistive_tech_manager)
 
             optimization_result = await optimizer.optimize_for_assistive_tech(
-                target_automation, [assistive_tech]
+                target_automation,
+                [assistive_tech],
             )
 
             if optimization_result.is_right():
                 optimizations = optimization_result.get_right()
                 optimization_recommendations = optimizations.get(
-                    "optimizations", {}
+                    "optimizations",
+                    {},
                 ).get(assistive_tech.value, [])
 
         if ctx:
             await ctx.report_progress(
-                progress=80, total=100, message="Configuring alternative interactions"
+                progress=80,
+                total=100,
+                message="Configuring alternative interactions",
             )
 
         # Provide alternative interaction methods if requested
@@ -757,7 +786,9 @@ async def km_integrate_assistive_tech(
 
         if ctx:
             await ctx.report_progress(
-                progress=95, total=100, message="Validating usability"
+                progress=95,
+                total=100,
+                message="Validating usability",
             )
 
         # Validate usability if requested
@@ -780,10 +811,12 @@ async def km_integrate_assistive_tech(
 
         if ctx:
             await ctx.report_progress(
-                progress=100, total=100, message="Integration completed"
+                progress=100,
+                total=100,
+                message="Integration completed",
             )
             await ctx.info(
-                f"Assistive technology integration completed for {integration_type}"
+                f"Assistive technology integration completed for {integration_type}",
             )
 
         return {
@@ -800,7 +833,7 @@ async def km_integrate_assistive_tech(
                 "supported_capabilities": [
                     cap.name
                     for cap in assistive_tech_manager.get_technology_capabilities(
-                        assistive_tech
+                        assistive_tech,
                     )
                 ],
             },
@@ -818,10 +851,10 @@ async def km_integrate_assistive_tech(
 
     except Exception as e:
         if ctx:
-            await ctx.error(f"Assistive technology integration failed: {str(e)}")
+            await ctx.error(f"Assistive technology integration failed: {e!s}")
         return {
             "success": False,
-            "error": f"Integration failed: {str(e)}",
+            "error": f"Integration failed: {e!s}",
             "error_type": type(e).__name__,
             "recovery_suggestion": "Check integration parameters and assistive technology configuration",
         }
@@ -839,8 +872,7 @@ async def km_generate_accessibility_report(
     include_executive_summary: bool = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Generate comprehensive accessibility compliance reports with findings and recommendations.
+    """Generate comprehensive accessibility compliance reports with findings and recommendations.
 
     FastMCP Tool for accessibility reporting through Claude Desktop.
     Creates professional accessibility reports for compliance and audit purposes.
@@ -888,7 +920,9 @@ async def km_generate_accessibility_report(
 
         if ctx:
             await ctx.report_progress(
-                progress=10, total=100, message="Collecting accessibility test data"
+                progress=10,
+                total=100,
+                message="Collecting accessibility test data",
             )
 
         # Simulate collecting test results for the targets
@@ -925,7 +959,9 @@ async def km_generate_accessibility_report(
 
         if ctx:
             await ctx.report_progress(
-                progress=30, total=100, message="Analyzing compliance data"
+                progress=30,
+                total=100,
+                message="Analyzing compliance data",
             )
 
         # Map compliance standards
@@ -960,7 +996,9 @@ async def km_generate_accessibility_report(
 
         if ctx:
             await ctx.report_progress(
-                progress=50, total=100, message="Generating compliance report"
+                progress=50,
+                total=100,
+                message="Generating compliance report",
             )
 
         # Generate the accessibility report
@@ -975,10 +1013,10 @@ async def km_generate_accessibility_report(
         if report_result.is_left():
             error = report_result.get_left()
             if ctx:
-                await ctx.error(f"Report generation failed: {str(error)}")
+                await ctx.error(f"Report generation failed: {error!s}")
             return {
                 "success": False,
-                "error": f"Report generation failed: {str(error)}",
+                "error": f"Report generation failed: {error!s}",
                 "error_type": type(error).__name__,
             }
 
@@ -986,7 +1024,9 @@ async def km_generate_accessibility_report(
 
         if ctx:
             await ctx.report_progress(
-                progress=80, total=100, message=f"Exporting report as {export_format}"
+                progress=80,
+                total=100,
+                message=f"Exporting report as {export_format}",
             )
 
         # Export the report in the requested format
@@ -1003,16 +1043,18 @@ async def km_generate_accessibility_report(
             # If export fails, still provide basic report data
             export_data = {
                 "format": export_format,
-                "error": f"Export failed: {str(export_result.get_left())}",
+                "error": f"Export failed: {export_result.get_left()!s}",
                 "fallback_format": "json",
             }
 
         if ctx:
             await ctx.report_progress(
-                progress=100, total=100, message="Report generation completed"
+                progress=100,
+                total=100,
+                message="Report generation completed",
             )
             await ctx.info(
-                f"Accessibility report generated. Overall score: {report.overall_score:.1f}%"
+                f"Accessibility report generated. Overall score: {report.overall_score:.1f}%",
             )
 
         return {
@@ -1058,10 +1100,10 @@ async def km_generate_accessibility_report(
 
     except Exception as e:
         if ctx:
-            await ctx.error(f"Report generation failed: {str(e)}")
+            await ctx.error(f"Report generation failed: {e!s}")
         return {
             "success": False,
-            "error": f"Report generation failed: {str(e)}",
+            "error": f"Report generation failed: {e!s}",
             "error_type": type(e).__name__,
             "recovery_suggestion": "Check report parameters and ensure test data is available",
         }

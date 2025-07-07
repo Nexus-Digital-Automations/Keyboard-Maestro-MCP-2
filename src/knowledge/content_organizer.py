@@ -1,5 +1,4 @@
-"""
-Content Organizer - TASK_56 Phase 2 Implementation
+"""Content Organizer - TASK_56 Phase 2 Implementation.
 
 Intelligent content organization and categorization system for knowledge management.
 Provides automated tagging, category detection, and content relationship mapping.
@@ -80,8 +79,7 @@ class ContentRelationship:
 
 
 class ContentOrganizer:
-    """
-    Intelligent content organization and categorization system.
+    """Intelligent content organization and categorization system.
 
     Provides automated content analysis, categorization, tagging, and
     relationship detection for comprehensive knowledge organization.
@@ -205,7 +203,8 @@ class ContentOrganizer:
         "Returns analysis or error",
     )
     async def analyze_content(
-        self, document: KnowledgeDocument
+        self,
+        document: KnowledgeDocument,
     ) -> Either[str, ContentAnalysis]:
         """Analyze content for intelligent organization."""
         try:
@@ -220,7 +219,8 @@ class ContentOrganizer:
 
             # Categorize content
             suggested_category, confidence = self._categorize_content(
-                content_text, keywords
+                content_text,
+                keywords,
             )
 
             # Generate tags
@@ -257,12 +257,13 @@ class ContentOrganizer:
             return Either.right(analysis)
 
         except Exception as e:
-            error_msg = f"Content analysis failed: {str(e)}"
+            error_msg = f"Content analysis failed: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
     async def organize_documents(
-        self, documents: list[KnowledgeDocument]
+        self,
+        documents: list[KnowledgeDocument],
     ) -> Either[str, dict[str, Any]]:
         """Organize multiple documents with relationship detection."""
         try:
@@ -289,7 +290,7 @@ class ContentOrganizer:
                             "document_id": document.document_id,
                             "title": document.metadata.title,
                             "confidence": analysis.confidence_score,
-                        }
+                        },
                     )
 
                     # Group by tags
@@ -298,7 +299,7 @@ class ContentOrganizer:
                             {
                                 "document_id": document.document_id,
                                 "title": document.metadata.title,
-                            }
+                            },
                         )
 
             # Detect relationships if enabled
@@ -309,14 +310,14 @@ class ContentOrganizer:
 
             # Generate quality summary
             organization_results["quality_summary"] = self._generate_quality_summary(
-                organization_results["analyses"]
+                organization_results["analyses"],
             )
 
             logger.info(f"Organized {len(documents)} documents")
             return Either.right(organization_results)
 
         except Exception as e:
-            error_msg = f"Document organization failed: {str(e)}"
+            error_msg = f"Document organization failed: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -405,7 +406,9 @@ class ContentOrganizer:
             return set()
 
     def _categorize_content(
-        self, content: str, keywords: set[str]
+        self,
+        content: str,
+        keywords: set[str],
     ) -> tuple[KnowledgeCategory, float]:
         """Categorize content based on keywords and rules."""
         try:
@@ -433,8 +436,7 @@ class ContentOrganizer:
             if category_scores:
                 best_category = max(category_scores.items(), key=lambda x: x[1])
                 return best_category[0], min(1.0, best_category[1])
-            else:
-                return KnowledgeCategory.DOCUMENTATION, 0.1
+            return KnowledgeCategory.DOCUMENTATION, 0.1
 
         except Exception as e:
             logger.warning(f"Content categorization failed: {e}")
@@ -451,7 +453,7 @@ class ContentOrganizer:
                 content_words = set(content.split())
                 relevant_keywords = {kw for kw in keywords if kw in content_words}
                 tags.update(
-                    list(relevant_keywords)[: self.config.max_tags_per_document // 2]
+                    list(relevant_keywords)[: self.config.max_tags_per_document // 2],
                 )
 
             # Add domain-specific tags
@@ -529,7 +531,8 @@ class ContentOrganizer:
             return 0.5
 
     def _assess_quality(
-        self, document: KnowledgeDocument
+        self,
+        document: KnowledgeDocument,
     ) -> dict[QualityMetric, float]:
         """Assess content quality across multiple metrics."""
         try:
@@ -574,7 +577,8 @@ class ContentOrganizer:
             return dict.fromkeys(QualityMetric, 50.0)
 
     async def _detect_relationships(
-        self, documents: list[KnowledgeDocument]
+        self,
+        documents: list[KnowledgeDocument],
     ) -> list[ContentRelationship]:
         """Detect relationships between documents."""
         try:
@@ -612,7 +616,9 @@ class ContentOrganizer:
             return []
 
     def _calculate_similarity(
-        self, doc1: KnowledgeDocument, doc2: KnowledgeDocument
+        self,
+        doc1: KnowledgeDocument,
+        doc2: KnowledgeDocument,
     ) -> float:
         """Calculate similarity between two documents."""
         try:
@@ -634,9 +640,13 @@ class ContentOrganizer:
             analysis2 = self.content_cache.get(doc2.metadata.content_id)
 
             category_boost = 0.0
-            if analysis1 and analysis2:
-                if analysis1.suggested_category == analysis2.suggested_category:
-                    category_boost = 0.2
+            # SIM102 fix: Combine nested if statements
+            if (
+                analysis1
+                and analysis2
+                and analysis1.suggested_category == analysis2.suggested_category
+            ):
+                category_boost = 0.2
 
             return min(1.0, jaccard_sim + category_boost)
 
@@ -645,7 +655,8 @@ class ContentOrganizer:
             return 0.0
 
     def _generate_quality_summary(
-        self, analyses: list[ContentAnalysis]
+        self,
+        analyses: list[ContentAnalysis],
     ) -> dict[str, Any]:
         """Generate quality summary from content analyses."""
         try:
@@ -684,7 +695,8 @@ class ContentOrganizer:
             return {}
 
     async def get_content_recommendations(
-        self, content_id: ContentId
+        self,
+        content_id: ContentId,
     ) -> Either[str, dict[str, Any]]:
         """Get improvement recommendations for content."""
         try:
@@ -702,7 +714,7 @@ class ContentOrganizer:
             # Category confidence recommendations
             if analysis.confidence_score < 0.7:
                 recommendations["suggestions"].append(
-                    "Consider reviewing content categorization - low confidence in current category"
+                    "Consider reviewing content categorization - low confidence in current category",
                 )
 
             # Quality improvements
@@ -713,7 +725,7 @@ class ContentOrganizer:
                             "metric": metric.value,
                             "current_score": score,
                             "suggestion": self._get_quality_suggestion(metric, score),
-                        }
+                        },
                     )
 
             # Related content
@@ -736,7 +748,7 @@ class ContentOrganizer:
             return Either.right(recommendations)
 
         except Exception as e:
-            error_msg = f"Failed to get recommendations: {str(e)}"
+            error_msg = f"Failed to get recommendations: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 

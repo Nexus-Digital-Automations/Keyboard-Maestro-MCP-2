@@ -1,5 +1,4 @@
-"""
-Advanced image recognition and template matching engine for visual automation.
+"""Advanced image recognition and template matching engine for visual automation.
 
 This module implements sophisticated image recognition capabilities including template
 matching, feature detection, and visual element identification. Enables AI to locate
@@ -203,7 +202,7 @@ class TemplateCache:
         self._cleanup_cache()
 
         logger.debug(
-            f"Added template to cache: {template.name} ({template.template_id})"
+            f"Added template to cache: {template.name} ({template.template_id})",
         )
 
     def get_template(self, template_id: TemplateId) -> ImageTemplate | None:
@@ -286,8 +285,7 @@ class TemplateCache:
 
 
 class ImageRecognitionEngine:
-    """
-    Advanced image recognition engine with comprehensive matching capabilities.
+    """Advanced image recognition engine with comprehensive matching capabilities.
 
     Provides sophisticated template matching, feature detection, and visual element
     identification with support for scale, rotation, and noise tolerance.
@@ -302,13 +300,13 @@ class ImageRecognitionEngine:
             "cache_hits": 0,
         }
         logger.info(
-            f"Image Recognition Engine initialized with cache={'enabled' if cache_enabled else 'disabled'}"
+            f"Image Recognition Engine initialized with cache={'enabled' if cache_enabled else 'disabled'}",
         )
 
     @require(lambda screen_data: len(screen_data) > 0)
     @require(lambda template_data: len(template_data) > 0)
     @ensure(
-        lambda result: result.is_right() or isinstance(result.get_left(), VisualError)
+        lambda result: result.is_right() or isinstance(result.get_left(), VisualError),
     )
     async def find_template_matches(
         self,
@@ -317,8 +315,7 @@ class ImageRecognitionEngine:
         search_region: ScreenRegion | None = None,
         config: MatchingConfig | None = None,
     ) -> Either[VisualError, list[MatchResult]]:
-        """
-        Find template matches in screen image with advanced matching techniques.
+        """Find template matches in screen image with advanced matching techniques.
 
         Args:
             screen_data: Screen image data to search in
@@ -328,11 +325,12 @@ class ImageRecognitionEngine:
 
         Returns:
             Either list of match results or processing error
+
         """
         try:
             start_time = time.time()
             logger.info(
-                f"Starting template matching: {len(screen_data)} bytes screen, {len(template_data)} bytes template"
+                f"Starting template matching: {len(screen_data)} bytes screen, {len(template_data)} bytes template",
             )
 
             # Validate inputs
@@ -350,7 +348,10 @@ class ImageRecognitionEngine:
 
             # Perform matching based on method
             matches = await self._perform_template_matching(
-                bytes(screen_data), bytes(template_data), search_region, config
+                bytes(screen_data),
+                bytes(template_data),
+                search_region,
+                config,
             )
 
             if matches.is_left():
@@ -372,13 +373,13 @@ class ImageRecognitionEngine:
             ) / total
 
             logger.info(
-                f"Template matching completed: {len(results)} matches found in {processing_time:.1f}ms"
+                f"Template matching completed: {len(results)} matches found in {processing_time:.1f}ms",
             )
             return Either.right(results)
 
         except Exception as e:
-            logger.error(f"Template matching failed: {str(e)}")
-            return Either.left(ProcessingError(f"Template matching failed: {str(e)}"))
+            logger.error(f"Template matching failed: {e!s}")
+            return Either.left(ProcessingError(f"Template matching failed: {e!s}"))
 
     async def _perform_template_matching(
         self,
@@ -435,7 +436,7 @@ class ImageRecognitionEngine:
                 confidence_adjustment -= 0.02
 
             final_confidence = normalize_confidence(
-                base_confidence + confidence_adjustment
+                base_confidence + confidence_adjustment,
             )
 
             # Only include matches above threshold
@@ -475,7 +476,7 @@ class ImageRecognitionEngine:
                                 scale=1.0 + i * 0.1,
                                 orientation=i * 15.0,
                                 response=0.8 + i * 0.04,
-                            )
+                            ),
                         )
 
                 # Quality metrics
@@ -501,7 +502,7 @@ class ImageRecognitionEngine:
                 if config.enable_multi_scale and len(matches) < config.max_matches:
                     for i in range(min(2, config.max_matches - 1)):
                         alt_confidence = normalize_confidence(
-                            float(final_confidence) - 0.1 - i * 0.05
+                            float(final_confidence) - 0.1 - i * 0.05,
                         )
                         if alt_confidence >= config.confidence_threshold:
                             alt_region = ScreenRegion(
@@ -535,7 +536,7 @@ class ImageRecognitionEngine:
 
         except Exception as e:
             return Either.left(
-                ProcessingError(f"Template matching processing failed: {str(e)}")
+                ProcessingError(f"Template matching processing failed: {e!s}"),
             )
 
     async def detect_ui_elements(
@@ -544,8 +545,7 @@ class ImageRecognitionEngine:
         region: ScreenRegion,
         element_types: list[ElementType] | None = None,
     ) -> Either[VisualError, list[VisualElement]]:
-        """
-        Detect UI elements in screen region using computer vision.
+        """Detect UI elements in screen region using computer vision.
 
         Args:
             screen_data: Screen image data
@@ -554,6 +554,7 @@ class ImageRecognitionEngine:
 
         Returns:
             Either list of detected elements or processing error
+
         """
         try:
             logger.info(f"Starting UI element detection in region {region.to_dict()}")
@@ -629,14 +630,14 @@ class ImageRecognitionEngine:
                     detected_elements.append(element)
 
             logger.info(
-                f"UI element detection completed: {len(detected_elements)} elements found"
+                f"UI element detection completed: {len(detected_elements)} elements found",
             )
             return Either.right(detected_elements)
 
         except Exception as e:
-            logger.error(f"UI element detection failed: {str(e)}")
+            logger.error(f"UI element detection failed: {e!s}")
             return Either.left(
-                ProcessingError(f"UI element detection failed: {str(e)}")
+                ProcessingError(f"UI element detection failed: {e!s}"),
             )
 
     def register_template(
@@ -673,9 +674,9 @@ class ImageRecognitionEngine:
             return Either.right(template_id)
 
         except Exception as e:
-            logger.error(f"Template registration failed: {str(e)}")
+            logger.error(f"Template registration failed: {e!s}")
             return Either.left(
-                ProcessingError(f"Template registration failed: {str(e)}")
+                ProcessingError(f"Template registration failed: {e!s}"),
             )
 
     def get_template(self, template_id: TemplateId) -> ImageTemplate | None:
@@ -712,7 +713,9 @@ class ImageRecognitionEngine:
 
 # Convenience functions for common image recognition operations
 async def find_button_by_text(
-    screen_data: ImageData, button_text: str, search_region: ScreenRegion | None = None
+    screen_data: ImageData,
+    button_text: str,
+    search_region: ScreenRegion | None = None,
 ) -> Either[VisualError, list[VisualElement]]:
     """Find buttons containing specific text."""
     engine = ImageRecognitionEngine()
@@ -753,7 +756,10 @@ async def find_template_with_tolerance(
 
     engine = ImageRecognitionEngine()
     results = await engine.find_template_matches(
-        screen_data, template_data, search_region, config
+        screen_data,
+        template_data,
+        search_region,
+        config,
     )
 
     if results.is_left():
@@ -776,7 +782,7 @@ def create_matching_config_for_ui(element_type: ElementType) -> MatchingConfig:
             edge_threshold=30.0,
             blur_tolerance=True,
         )
-    elif element_type == ElementType.TEXT_FIELD:
+    if element_type == ElementType.TEXT_FIELD:
         return MatchingConfig(
             method=MatchingMethod.EDGE_DETECTION,
             confidence_threshold=0.75,
@@ -784,7 +790,7 @@ def create_matching_config_for_ui(element_type: ElementType) -> MatchingConfig:
             edge_threshold=20.0,
             partial_matching=True,
         )
-    elif element_type == ElementType.ICON:
+    if element_type == ElementType.ICON:
         return MatchingConfig(
             method=MatchingMethod.FEATURE_MATCHING,
             confidence_threshold=0.85,
@@ -793,5 +799,4 @@ def create_matching_config_for_ui(element_type: ElementType) -> MatchingConfig:
             scale_tolerance=0.3,
             rotation_tolerance=15.0,
         )
-    else:
-        return base_config
+    return base_config

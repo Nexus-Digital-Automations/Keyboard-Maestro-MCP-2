@@ -1,5 +1,4 @@
-"""
-Enhanced comprehensive tests for Keyboard Maestro client integration.
+"""Enhanced comprehensive tests for Keyboard Maestro client integration.
 
 Tests cover client initialization, macro operations, error handling,
 security validation, and performance with property-based testing.
@@ -15,7 +14,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
-from src.core.types import ExecutionResult, MacroDefinition, MacroId, Permission
+from src.core.types import MacroId, Permission
 from src.integration.km_client import (
     ConnectionConfig,
     ConnectionMethod,
@@ -23,12 +22,11 @@ from src.integration.km_client import (
     KMClient,
 )
 from src.security.policy_enforcer import SecurityPolicy
-from src.integration.security import SecurityLevel
 
 
 # Test data generators
 @st.composite
-def macro_info_data(draw):
+def macro_info_data(draw) -> Any:
     """Generate test macro information."""
     return {
         "id": draw(st.text(min_size=1, max_size=50)),
@@ -40,7 +38,7 @@ def macro_info_data(draw):
 
 
 @st.composite
-def security_test_data(draw):
+def security_test_data(draw) -> Any:
     """Generate test data for security validation."""
     safe_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ._-"
     unsafe_patterns = ["';", "<script>", "$(", "../", "DROP TABLE", "rm -rf"]
@@ -59,7 +57,7 @@ def security_test_data(draw):
 class TestKMClient:
     """Test KM client functionality."""
 
-    def test_client_initialization_default(self):
+    def test_client_initialization_default(self) -> None:
         """Test client initialization with default settings."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -69,7 +67,7 @@ class TestKMClient:
         assert client.config.method == ConnectionMethod.APPLESCRIPT
         assert hasattr(client, "_config")
 
-    def test_client_initialization_custom(self):
+    def test_client_initialization_custom(self) -> None:
         """Test client initialization with custom settings."""
         # Test SecurityPolicy creation (core security infrastructure)
         security_config = SecurityPolicy(
@@ -86,13 +84,13 @@ class TestKMClient:
             enforcement_level="strict",
         )
 
-        # Test ConnectionConfig creation (core KM client infrastructure)  
+        # Test ConnectionConfig creation (core KM client infrastructure)
         config = ConnectionConfig(
             method=ConnectionMethod.APPLESCRIPT,
             timeout=45.0,
             max_retries=3,
         )
-        
+
         client = KMClient(connection_config=config)
 
         # Test core client infrastructure (validates actual implementation)
@@ -100,13 +98,13 @@ class TestKMClient:
         assert client.config.method == ConnectionMethod.APPLESCRIPT
         assert client.config.timeout == 45.0
         assert hasattr(client, "_config")
-        
+
         # Test security policy creation (validates security infrastructure)
         assert security_config.enforcement_level == "strict"
         assert security_config.rules["enable_input_validation"] is True
         assert security_config.rules["max_execution_time"] == 60
 
-    def test_client_macro_listing(self):
+    def test_client_macro_listing(self) -> None:
         """Test listing macros."""
         # Test core KM client functionality with default config
         config = ConnectionConfig()
@@ -116,30 +114,30 @@ class TestKMClient:
         assert client.config is not None
         assert client.config.method == ConnectionMethod.APPLESCRIPT
         assert hasattr(client, "_config")
-        
+
         # Test macro listing simulation (validates infrastructure without non-existent methods)
         mock_macros = [
             {
                 "id": "macro_1",
-                "name": "Test Macro 1", 
+                "name": "Test Macro 1",
                 "group": "Test Group",
-                "enabled": True
+                "enabled": True,
             },
             {
                 "id": "macro_2",
                 "name": "Test Macro 2",
-                "group": "Test Group", 
-                "enabled": False
-            }
+                "group": "Test Group",
+                "enabled": False,
+            },
         ]
-        
+
         # Test macro data structure creation (validates data handling)
         assert len(mock_macros) == 2
         assert mock_macros[0]["id"] == "macro_1"
         assert mock_macros[0]["name"] == "Test Macro 1"
         assert mock_macros[1]["enabled"] is False
 
-    def test_client_macro_listing_error_handling(self):
+    def test_client_macro_listing_error_handling(self) -> None:
         """Test macro listing error handling."""
         # Test core KM client functionality
 
@@ -155,15 +153,17 @@ class TestKMClient:
             # Test core KM client infrastructure (validates actual implementation)
             assert client.config is not None
             assert hasattr(client, "_config")
-            
+
             # Test error handling infrastructure (validates error processing)
-            result = Either.left(Exception("AppleScript error: access denied"))  # Mock error result
+            result = Either.left(
+                Exception("AppleScript error: access denied"),
+            )  # Mock error result
 
             assert result.is_left()
             error = result.get_left()
             assert "AppleScript error" in str(error)
 
-    def test_client_macro_execution(self):
+    def test_client_macro_execution(self) -> None:
         """Test macro execution."""
         # Test core KM client functionality
 
@@ -179,21 +179,23 @@ class TestKMClient:
 
             # Test core KM client infrastructure (validates actual implementation)
 
-
             assert client.config is not None
-
 
             assert hasattr(client, "_config")
 
-
-            result = Either.right({"status": "completed", "output": "success"})  # Mock successful result
+            result = Either.right(
+                {
+                    "status": "completed",
+                    "output": "success",
+                },
+            )  # Mock successful result
 
             assert result.is_right()
             execution_result = result.get_right()
             assert execution_result["status"] == "completed"
             assert "success" in execution_result["output"]
 
-    def test_client_macro_execution_with_security(self):
+    def test_client_macro_execution_with_security(self) -> None:
         """Test macro execution with security validation."""
         security_config = SecurityPolicy(
             policy_id="test_security_policy",
@@ -219,38 +221,42 @@ class TestKMClient:
 
             # Test core KM client infrastructure (validates actual implementation)
 
-
             assert client.config is not None
-
 
             assert hasattr(client, "_config")
 
-
-            result = Either.right({"status": "completed", "output": "success"})  # Mock successful result
+            result = Either.right(
+                {
+                    "status": "completed",
+                    "output": "success",
+                },
+            )  # Mock successful result
             assert result.is_right()
-            
+
             # Test security policy creation (validates security infrastructure)
             assert security_config.enforcement_level == "strict"
             assert security_config.rules["enable_input_validation"] is True
 
         # Test with potentially unsafe macro ID
-        unsafe_macro_id = MacroId("'; DROP TABLE macros; --")
+        MacroId("'; DROP TABLE macros; --")
 
         # Test core KM client infrastructure (validates actual implementation)
 
-
         assert client.config is not None
-
 
         assert hasattr(client, "_config")
 
-
-        result = Either.right({"status": "completed", "output": "success"})  # Mock successful result
+        result = Either.right(
+            {
+                "status": "completed",
+                "output": "success",
+            },
+        )  # Mock successful result
         # Should either be blocked by security or validated properly
         # The exact behavior depends on implementation
         assert isinstance(result, Either)
 
-    def test_client_group_operations(self):
+    def test_client_group_operations(self) -> None:
         """Test macro group operations."""
         # Test core KM client functionality
 
@@ -279,19 +285,29 @@ class TestKMClient:
             # Test core KM client infrastructure (validates actual implementation)
             assert client.config is not None
             assert hasattr(client, "_config")
-            
+
             # Test group listing simulation (validates infrastructure without non-existent methods)
             mock_groups = [
-                {"id": "group_1", "name": "Test Group 1", "enabled": True, "macro_count": 5},
-                {"id": "group_2", "name": "Test Group 2", "enabled": True, "macro_count": 3}
+                {
+                    "id": "group_1",
+                    "name": "Test Group 1",
+                    "enabled": True,
+                    "macro_count": 5,
+                },
+                {
+                    "id": "group_2",
+                    "name": "Test Group 2",
+                    "enabled": True,
+                    "macro_count": 3,
+                },
             ]
-            
+
             # Test group data structure creation (validates data handling)
             assert len(mock_groups) == 2
             assert mock_groups[0]["name"] == "Test Group 1"
             assert mock_groups[0]["macro_count"] == 5
 
-    def test_client_macro_search(self):
+    def test_client_macro_search(self) -> None:
         """Test macro search functionality."""
         # Test core KM client functionality
 
@@ -312,12 +328,9 @@ class TestKMClient:
 
             # Test core KM client infrastructure (validates actual implementation)
 
-
             assert client.config is not None
 
-
             assert hasattr(client, "_config")
-
 
             # Test search result simulation (validates infrastructure without non-existent methods)
             mock_search_results = [
@@ -325,15 +338,15 @@ class TestKMClient:
                     "id": "search_result_1",
                     "name": "Email Template Macro",
                     "group": "Communication",
-                    "enabled": True
-                }
+                    "enabled": True,
+                },
             ]
-            
+
             # Test search data structure creation (validates data handling)
             assert len(mock_search_results) == 1
             assert "Email" in mock_search_results[0]["name"]
 
-    def test_client_macro_status(self):
+    def test_client_macro_status(self) -> None:
         """Test getting macro status."""
         # Test core KM client functionality
 
@@ -355,12 +368,9 @@ class TestKMClient:
 
             # Test core KM client infrastructure (validates actual implementation)
 
-
             assert client.config is not None
 
-
             assert hasattr(client, "_config")
-
 
             # Test status result simulation (validates infrastructure without non-existent methods)
             mock_status = {
@@ -369,15 +379,15 @@ class TestKMClient:
                 "enabled": True,
                 "last_executed": "2024-01-15T10:30:00Z",
                 "execution_count": 42,
-                "group": "Test Group"
+                "group": "Test Group",
             }
-            
+
             # Test status data structure creation (validates data handling)
             assert mock_status["enabled"] is True
             assert mock_status["execution_count"] == 42
 
     @pytest.mark.asyncio
-    async def test_client_async_operations(self):
+    async def test_client_async_operations(self) -> None:
         """Test asynchronous client operations."""
         # Test core KM client functionality
 
@@ -398,17 +408,22 @@ class TestKMClient:
             # Test core KM client infrastructure (validates actual implementation)
             assert client.config is not None
             assert hasattr(client, "_config")
-            
+
             # Test async result simulation (validates infrastructure without non-existent methods)
             mock_async_result = [
-                {"id": "async_test", "name": "Async Test", "group": "Test", "enabled": True}
+                {
+                    "id": "async_test",
+                    "name": "Async Test",
+                    "group": "Test",
+                    "enabled": True,
+                },
             ]
-            
+
             # Test async data structure creation (validates data handling)
             assert len(mock_async_result) == 1
             assert mock_async_result[0]["name"] == "Async Test"
 
-    def test_client_error_recovery(self):
+    def test_client_error_recovery(self) -> None:
         """Test client error recovery mechanisms."""
         # Test core KM client functionality
 
@@ -422,15 +437,14 @@ class TestKMClient:
 
             # Test core KM client infrastructure (validates actual implementation)
 
-
             assert client.config is not None
-
 
             assert hasattr(client, "_config")
 
-
             # Test error result simulation (validates infrastructure error handling)
-            result = Either.left(Exception("TimeoutExpired error: timeout"))  # Mock error result
+            result = Either.left(
+                Exception("TimeoutExpired error: timeout"),
+            )  # Mock error result
 
             assert result.is_left()
             error = result.get_left()
@@ -439,26 +453,27 @@ class TestKMClient:
         # Test permission error handling
         with patch("subprocess.run") as mock_run:
             mock_run.side_effect = subprocess.CalledProcessError(
-                128, "osascript", stderr="User cancelled"
+                128,
+                "osascript",
+                stderr="User cancelled",
             )
 
             # Test core KM client infrastructure (validates actual implementation)
 
-
             assert client.config is not None
-
 
             assert hasattr(client, "_config")
 
-
             # Test error result simulation (validates infrastructure error handling)
-            result = Either.left(Exception("CalledProcessError: User cancelled"))  # Mock error result
+            result = Either.left(
+                Exception("CalledProcessError: User cancelled"),
+            )  # Mock error result
 
             assert result.is_left()
             error = result.get_left()
             assert "cancelled" in str(error).lower()
 
-    def test_client_connection_health(self):
+    def test_client_connection_health(self) -> None:
         """Test client connection health checking."""
         # Test core KM client functionality
 
@@ -473,18 +488,15 @@ class TestKMClient:
 
             # Test core KM client infrastructure (validates actual implementation)
 
-
             assert client.config is not None
 
-
             assert hasattr(client, "_config")
-
 
             # Test health result simulation (validates infrastructure health checking)
             mock_health = {
                 "is_healthy": True,
                 "version_info": "Keyboard Maestro version 10.2",
-                "status": "connected"
+                "status": "connected",
             }
 
             assert mock_health["is_healthy"]
@@ -496,25 +508,22 @@ class TestKMClient:
 
             # Test core KM client infrastructure (validates actual implementation)
 
-
             assert client.config is not None
 
-
             assert hasattr(client, "_config")
-
 
             # Test unhealthy result simulation (validates infrastructure error handling)
             mock_unhealthy = {
                 "is_healthy": False,
                 "error_message": "Keyboard Maestro not found",
-                "status": "disconnected"
+                "status": "disconnected",
             }
 
             assert not mock_unhealthy["is_healthy"]
             assert "not found" in mock_unhealthy["error_message"].lower()
 
     @given(macro_info_data())
-    def test_client_macro_info_property_validation(self, macro_data: dict[str, Any]):
+    def test_client_macro_info_property_validation(self, macro_data: dict[str, Any]) -> None:
         """Property test for macro info validation."""
         # Test KM client creation
 
@@ -528,14 +537,14 @@ class TestKMClient:
         assert len(macro_data["group"]) > 0
         assert isinstance(macro_data["enabled"], bool)
         assert isinstance(macro_data.get("actions", []), list)
-        
+
         # Test macro data structure validation (validates data handling patterns)
         macro_id = MacroId(macro_data["id"])
         assert isinstance(macro_id, str)
         assert len(macro_id) > 0
 
     @given(security_test_data())
-    def test_client_security_validation(self, test_input: str):
+    def test_client_security_validation(self, test_input: str) -> None:
         """Property test for security validation."""
         security_config = SecurityPolicy(
             policy_id="test_security_policy",
@@ -549,7 +558,7 @@ class TestKMClient:
         )
 
         config = ConnectionConfig()
-        client = KMClient(connection_config=config)
+        KMClient(connection_config=config)
 
         # Test input validation simulation (validates security infrastructure)
         malicious_patterns = ["';", "<script>", "$(", "../", "DROP TABLE", "rm -rf"]
@@ -558,7 +567,9 @@ class TestKMClient:
         # Test security validation logic (validates security framework)
         mock_validation_result = {
             "is_safe": not has_malicious,
-            "detected_threats": [pattern for pattern in malicious_patterns if pattern in test_input]
+            "detected_threats": [
+                pattern for pattern in malicious_patterns if pattern in test_input
+            ],
         }
 
         if has_malicious:
@@ -566,7 +577,7 @@ class TestKMClient:
             assert len(mock_validation_result["detected_threats"]) > 0
         else:
             assert mock_validation_result["is_safe"]
-            
+
         # Test security policy validation (validates security infrastructure)
         assert security_config.enforcement_level == "strict"
         assert security_config.rules["enable_input_validation"] is True
@@ -575,7 +586,7 @@ class TestKMClient:
 class TestKMClientSecurity:
     """Test KM client security features."""
 
-    def test_security_config_creation(self):
+    def test_security_config_creation(self) -> None:
         """Test security configuration creation."""
         config = SecurityPolicy(
             policy_id="test_security_policy",
@@ -600,7 +611,7 @@ class TestKMClientSecurity:
         assert "admin" in config.rules["blocked_patterns"]
         assert config.rules["require_confirmation"]
 
-    def test_input_sanitization(self):
+    def test_input_sanitization(self) -> None:
         """Test input sanitization functionality."""
         config = ConnectionConfig()
         client = KMClient(connection_config=config)
@@ -625,7 +636,7 @@ class TestKMClientSecurity:
             mock_result = {
                 "is_safe": should_be_safe,
                 "sanitized_input": input_text if should_be_safe else "SANITIZED",
-                "threats_detected": [] if should_be_safe else ["malicious_pattern"]
+                "threats_detected": [] if should_be_safe else ["malicious_pattern"],
             }
 
             if should_be_safe:
@@ -633,9 +644,12 @@ class TestKMClientSecurity:
                 assert mock_result["sanitized_input"] == input_text  # No changes needed
             else:
                 # Should be marked as unsafe or sanitized
-                assert not mock_result["is_safe"] or mock_result["sanitized_input"] != input_text
+                assert (
+                    not mock_result["is_safe"]
+                    or mock_result["sanitized_input"] != input_text
+                )
 
-    def test_permission_checking(self):
+    def test_permission_checking(self) -> None:
         """Test permission checking for operations."""
         security_config = SecurityPolicy(
             policy_id="test_permission_policy",
@@ -664,14 +678,14 @@ class TestKMClientSecurity:
                 Permission.AUTOMATION_CONTROL,
                 Permission.SYSTEM_CONTROL,
                 Permission.READ_ACCESS,
-            ]
+            ],
         )
 
         # Test permission checking simulation (validates security infrastructure)
         mock_permission_check = {
             "has_sufficient_permissions": True,
             "required": security_config.rules["required_permissions"],
-            "provided": [p.value for p in user_permissions]
+            "provided": [p.value for p in user_permissions],
         }
         assert mock_permission_check["has_sufficient_permissions"]
 
@@ -681,11 +695,11 @@ class TestKMClientSecurity:
         mock_limited_check = {
             "has_sufficient_permissions": False,
             "required": security_config.rules["required_permissions"],
-            "provided": [p.value for p in limited_permissions]
+            "provided": [p.value for p in limited_permissions],
         }
         assert not mock_limited_check["has_sufficient_permissions"]
 
-    def test_execution_timeout_enforcement(self):
+    def test_execution_timeout_enforcement(self) -> None:
         """Test execution timeout enforcement."""
         config = ConnectionConfig(timeout=1.0)  # 1 second timeout
         client = KMClient(connection_config=config)
@@ -699,20 +713,22 @@ class TestKMClientSecurity:
             assert hasattr(client, "_config")
 
             # Test timeout error simulation (validates infrastructure timeout handling)
-            result = Either.left(Exception("TimeoutExpired: osascript timeout"))  # Mock timeout error
+            result = Either.left(
+                Exception("TimeoutExpired: osascript timeout"),
+            )  # Mock timeout error
 
             assert result.is_left()
             error = result.get_left()
             assert "timeout" in str(error).lower()
 
-    def test_secure_communication(self):
+    def test_secure_communication(self) -> None:
         """Test secure communication with Keyboard Maestro."""
         config = ConnectionConfig()
         client = KMClient(connection_config=config)
 
         # Test script injection prevention
         malicious_macro_id = MacroId(
-            'test\'; tell application "Finder" to delete every file; say "'
+            'test\'; tell application "Finder" to delete every file; say "',
         )
 
         # Test core KM client infrastructure (validates actual implementation)
@@ -729,13 +745,17 @@ class TestKMClientSecurity:
             assert len(malicious_macro_id) > 0
 
             # Test secure command construction simulation (validates security infrastructure)
-            mock_secure_args = ["osascript", "-e", f"tell application 'Keyboard Maestro' to execute macro '{malicious_macro_id}'"]
-            
+            mock_secure_args = [
+                "osascript",
+                "-e",
+                f"tell application 'Keyboard Maestro' to execute macro '{malicious_macro_id}'",
+            ]
+
             # The command should be properly structured and not contain raw injection
             assert isinstance(mock_secure_args, list)
             assert "osascript" in mock_secure_args[0]
 
-    def test_output_sanitization(self):
+    def test_output_sanitization(self) -> None:
         """Test output sanitization."""
         config = ConnectionConfig()
         client = KMClient(connection_config=config)
@@ -756,9 +776,9 @@ class TestKMClientSecurity:
 
             # Test output sanitization simulation (validates security framework)
             mock_sanitized_result = {
-                "status": "completed", 
+                "status": "completed",
                 "output": "User: admin, Password: [REDACTED], Token: [REDACTED]",
-                "debug_info": "/Users/admin/.ssh/[REDACTED]"
+                "debug_info": "/Users/admin/.ssh/[REDACTED]",
             }
 
             # Sensitive information should be sanitized
@@ -772,7 +792,7 @@ class TestKMClientSecurity:
 class TestKMClientPerformance:
     """Test KM client performance and optimization."""
 
-    def test_connection_pooling(self):
+    def test_connection_pooling(self) -> None:
         """Test connection pooling for performance."""
         # Test core KM client functionality
 
@@ -797,14 +817,16 @@ class TestKMClientPerformance:
 
                 assert hasattr(client, "_config")
 
-                result = Either.right([{"id": "test", "name": "Test"}])  # Mock successful result
+                result = Either.right(
+                    [{"id": "test", "name": "Test"}],
+                )  # Mock successful result
                 end_time = datetime.now()
 
                 operations.append(
                     {
                         "duration": (end_time - start_time).total_seconds(),
                         "success": result.is_right(),
-                    }
+                    },
                 )
 
         # All operations should succeed
@@ -818,7 +840,7 @@ class TestKMClientPerformance:
         for duration in durations:
             assert duration < avg_duration * 5  # Allow 400% variance for test stability
 
-    def test_batch_operations(self):
+    def test_batch_operations(self) -> None:
         """Test batch operations for efficiency."""
         # Test core KM client functionality
 
@@ -826,7 +848,7 @@ class TestKMClientPerformance:
 
         client = KMClient(connection_config=config)
 
-        macro_ids = [MacroId(f"batch_macro_{i}") for i in range(10)]
+        [MacroId(f"batch_macro_{i}") for i in range(10)]
 
         with patch("subprocess.run") as mock_run:
             mock_run.return_value.returncode = 0
@@ -838,31 +860,33 @@ class TestKMClientPerformance:
             ]"""
 
             start_time = datetime.now()
-            
+
             # Test core KM client infrastructure (validates actual implementation)
             assert client.config is not None
             assert hasattr(client, "_config")
-            
+
             # Test batch operation simulation (validates infrastructure without non-existent methods)
             mock_batch_results = [
                 {"id": "batch_macro_0", "status": "completed"},
                 {"id": "batch_macro_1", "status": "completed"},
                 {"id": "batch_macro_2", "status": "failed"},
-                {"id": "batch_macro_3", "status": "completed"}
+                {"id": "batch_macro_3", "status": "completed"},
             ]
-            
+
             end_time = datetime.now()
 
             # Test batch result validation (validates data handling)
             assert len(mock_batch_results) == 4
-            completed_count = sum(1 for r in mock_batch_results if r["status"] == "completed")
+            completed_count = sum(
+                1 for r in mock_batch_results if r["status"] == "completed"
+            )
             assert completed_count == 3
 
             # Batch should be faster than individual operations
             batch_duration = (end_time - start_time).total_seconds()
             assert batch_duration < 2.0  # Should complete quickly
 
-    def test_caching_mechanism(self):
+    def test_caching_mechanism(self) -> None:
         """Test caching for repeated operations."""
         # Test core KM client functionality
 
@@ -883,13 +907,17 @@ class TestKMClientPerformance:
             # Test caching mechanism simulation (validates infrastructure without non-existent methods)
             mock_cache_enabled = True
             mock_cache_ttl = 300  # 5 minutes
-            
+
             # First call simulation (validates caching infrastructure)
-            mock_call_count = 1
             mock_cached_data = [
-                {"id": "cached_macro", "name": "Cached Test", "group": "Cache", "enabled": True}
+                {
+                    "id": "cached_macro",
+                    "name": "Cached Test",
+                    "group": "Cache",
+                    "enabled": True,
+                },
             ]
-            
+
             # Second call simulation should use cache
             assert mock_cache_enabled
             assert mock_cache_ttl == 300
@@ -899,7 +927,7 @@ class TestKMClientPerformance:
             assert mock_cached_data[0]["id"] == "cached_macro"
             assert mock_cached_data[0]["name"] == "Cached Test"
 
-    def test_memory_usage_optimization(self):
+    def test_memory_usage_optimization(self) -> None:
         """Test memory usage optimization for large datasets."""
         # Test core KM client functionality
 
@@ -917,7 +945,7 @@ class TestKMClientPerformance:
                     "group": f"Group {i // 100}",
                     "enabled": True,
                     "actions": [f"action_{j}" for j in range(10)],
-                }
+                },
             )
 
         with patch("subprocess.run") as mock_run:
@@ -936,7 +964,7 @@ class TestKMClientPerformance:
                 "total_items": 1000,
                 "memory_efficient": True,
                 "chunked_processing": True,
-                "data_sample": large_macro_list[:5]  # Sample for validation
+                "data_sample": large_macro_list[:5],  # Sample for validation
             }
 
             assert mock_large_dataset_handling["total_items"] == 1000
@@ -954,7 +982,7 @@ class TestKMClientPerformance:
 class TestKMClientIntegration:
     """Integration tests for KM client."""
 
-    def test_full_macro_lifecycle(self):
+    def test_full_macro_lifecycle(self) -> None:
         """Test complete macro lifecycle operations."""
         # Test core KM client functionality
 
@@ -972,10 +1000,15 @@ class TestKMClientIntegration:
             # Test core KM client infrastructure (validates actual implementation)
             assert client.config is not None
             assert hasattr(client, "_config")
-            
+
             # Test macro listing simulation (validates infrastructure without non-existent methods)
             mock_macros = [
-                {"id": "lifecycle_test", "name": "Lifecycle Test", "group": "Test", "enabled": True}
+                {
+                    "id": "lifecycle_test",
+                    "name": "Lifecycle Test",
+                    "group": "Test",
+                    "enabled": True,
+                },
             ]
             test_macro = next(m for m in mock_macros if m["id"] == "lifecycle_test")
 
@@ -995,9 +1028,9 @@ class TestKMClientIntegration:
                 "id": "lifecycle_test",
                 "name": "Lifecycle Test",
                 "enabled": True,
-                "actions": ["type_text", "pause", "key_press"]
+                "actions": ["type_text", "pause", "key_press"],
             }
-            
+
             assert mock_details["id"] == test_macro["id"]
             assert mock_details["enabled"] is True
 
@@ -1017,9 +1050,9 @@ class TestKMClientIntegration:
                 "status": "completed",
                 "output": "Macro executed successfully",
                 "execution_time": 1.23,
-                "actions_completed": 3
+                "actions_completed": 3,
             }
-            
+
             assert mock_execution["status"] == "completed"
             assert mock_execution["execution_time"] > 0
 
@@ -1036,25 +1069,22 @@ class TestKMClientIntegration:
 
             # Test core KM client infrastructure (validates actual implementation)
 
-
             assert client.config is not None
 
-
             assert hasattr(client, "_config")
-
 
             # Test status verification simulation (validates infrastructure without non-existent methods)
             mock_status = {
                 "id": "lifecycle_test",
                 "last_executed": "2024-01-15T10:30:00Z",
                 "execution_count": 1,
-                "last_status": "completed"
+                "last_status": "completed",
             }
-            
+
             assert mock_status["execution_count"] == 1
             assert mock_status["last_status"] == "completed"
 
-    def test_error_handling_integration(self):
+    def test_error_handling_integration(self) -> None:
         """Test comprehensive error handling across operations."""
         # Test core KM client functionality
 
@@ -1066,21 +1096,27 @@ class TestKMClientIntegration:
             # Keyboard Maestro not running
             {
                 "exception": subprocess.CalledProcessError(
-                    1, "osascript", stderr="Application not running"
+                    1,
+                    "osascript",
+                    stderr="Application not running",
                 ),
                 "expected_error": "not running",
             },
             # Permission denied
             {
                 "exception": subprocess.CalledProcessError(
-                    128, "osascript", stderr="User cancelled"
+                    128,
+                    "osascript",
+                    stderr="User cancelled",
                 ),
                 "expected_error": "cancelled",
             },
             # Invalid macro ID
             {
                 "exception": subprocess.CalledProcessError(
-                    1, "osascript", stderr="Macro not found"
+                    1,
+                    "osascript",
+                    stderr="Macro not found",
                 ),
                 "expected_error": "not found",
             },
@@ -1103,40 +1139,44 @@ class TestKMClientIntegration:
                 assert hasattr(client, "_config")
 
                 # Test error result simulation (validates infrastructure error handling)
-                result = Either.left(Exception(f"Error: {scenario['expected_error']}"))  # Mock error result
+                result = Either.left(
+                    Exception(f"Error: {scenario['expected_error']}"),
+                )  # Mock error result
 
                 assert result.is_left()
                 error = result.get_left()
                 assert scenario["expected_error"] in str(error).lower()
 
-    def test_concurrent_operations(self):
+    def test_concurrent_operations(self) -> None:
         """Test concurrent client operations."""
         import concurrent.futures
 
         # Test core KM client functionality
 
-
         config = ConnectionConfig()
-
 
         client = KMClient(connection_config=config)
 
-        def execute_test_macro(macro_id: str):
+        def execute_test_macro(macro_id: str) -> None:
             with patch("subprocess.run") as mock_run:
                 mock_run.return_value.returncode = 0
-                mock_run.return_value.stdout = f'''
+                mock_run.return_value.stdout = f"""
                 {{
                     "status": "completed",
                     "output": "Executed {macro_id}",
                     "macro_id": "{macro_id}"
-                }}'''
+                }}"""
 
                 # Test core KM client infrastructure (validates actual implementation)
                 assert client.config is not None
                 assert hasattr(client, "_config")
-                
+
                 # Test execution simulation (validates infrastructure without non-existent methods)
-                return {"status": "completed", "output": f"Executed {macro_id}", "macro_id": macro_id}
+                return {
+                    "status": "completed",
+                    "output": f"Executed {macro_id}",
+                    "macro_id": macro_id,
+                }
 
         # Execute multiple macros concurrently
         macro_ids = [f"concurrent_test_{i}" for i in range(5)]
@@ -1162,7 +1202,7 @@ class TestKMClientIntegration:
         assert set(executed_ids) == set(macro_ids)
 
     @pytest.mark.asyncio
-    async def test_async_batch_processing(self):
+    async def test_async_batch_processing(self) -> None:
         """Test asynchronous batch processing."""
         # Test core KM client functionality
 
@@ -1175,7 +1215,7 @@ class TestKMClientIntegration:
         # Test core KM client infrastructure (validates actual implementation)
         assert client.config is not None
         assert hasattr(client, "_config")
-        
+
         async def mock_execute_async(macro_id):
             # Simulate async execution
             await asyncio.sleep(0.1)

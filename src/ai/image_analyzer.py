@@ -1,5 +1,4 @@
-"""
-AI image analysis system for computer vision and visual automation.
+"""AI image analysis system for computer vision and visual automation.
 
 This module provides comprehensive image analysis capabilities including
 object detection, OCR, scene analysis, and visual content understanding.
@@ -15,6 +14,7 @@ import base64
 import hashlib
 import mimetypes
 import os
+import tempfile
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
@@ -82,7 +82,6 @@ class ImageMetadata:
     @require(lambda self: len(self.file_path) > 0)
     def __post_init__(self):
         """Validate image metadata."""
-        pass
 
     def get_aspect_ratio(self) -> float | None:
         """Calculate image aspect ratio."""
@@ -114,12 +113,11 @@ class ImageAnalysisResult:
         """Get the primary result from analysis."""
         if self.analysis_type == ImageAnalysisType.DESCRIBE:
             return self.results.get("description", "")
-        elif self.analysis_type == ImageAnalysisType.TEXT_OCR:
+        if self.analysis_type == ImageAnalysisType.TEXT_OCR:
             return self.results.get("text", "")
-        elif self.analysis_type == ImageAnalysisType.OBJECTS:
+        if self.analysis_type == ImageAnalysisType.OBJECTS:
             return self.results.get("objects", [])
-        else:
-            return self.results
+        return self.results
 
     def get_structured_data(self) -> dict[str, Any]:
         """Get structured analysis data."""
@@ -166,7 +164,7 @@ class ImageSecurityValidator:
         "~/Desktop/",
         "./images/",
         "./temp/",
-        "/tmp/",
+        tempfile.gettempdir(),  # Use system's secure temp directory
     ]
 
     def validate_image_path(self, image_path: str) -> Either[SecurityError, str]:
@@ -179,22 +177,24 @@ class ImageSecurityValidator:
             if not os.path.exists(expanded_path):
                 return Either.left(
                     SecurityError(
-                        "file_not_found", f"Image file not found: {image_path}"
-                    )
+                        "file_not_found",
+                        f"Image file not found: {image_path}",
+                    ),
                 )
 
             # Check if it's a file (not directory)
             if not os.path.isfile(expanded_path):
                 return Either.left(
                     SecurityError(
-                        "invalid_file_type", f"Path is not a file: {image_path}"
-                    )
+                        "invalid_file_type",
+                        f"Path is not a file: {image_path}",
+                    ),
                 )
 
             # Validate path safety
             if not self._is_safe_path(expanded_path):
                 return Either.left(
-                    SecurityError("unsafe_path", f"Unsafe file path: {image_path}")
+                    SecurityError("unsafe_path", f"Unsafe file path: {image_path}"),
                 )
 
             return Either.right(expanded_path)
@@ -216,7 +216,8 @@ class ImageSecurityValidator:
         return False
 
     def validate_image_file(
-        self, file_path: str
+        self,
+        file_path: str,
     ) -> Either[SecurityError, ImageMetadata]:
         """Validate image file format, size, and properties."""
         try:
@@ -230,7 +231,7 @@ class ImageSecurityValidator:
                     SecurityError(
                         "file_too_large",
                         f"File size {file_size} exceeds maximum {self.MAX_FILE_SIZE}",
-                    )
+                    ),
                 )
 
             # Check MIME type
@@ -238,8 +239,9 @@ class ImageSecurityValidator:
             if mime_type not in self.ALLOWED_FORMATS:
                 return Either.left(
                     SecurityError(
-                        "unsupported_format", f"Unsupported image format: {mime_type}"
-                    )
+                        "unsupported_format",
+                        f"Unsupported image format: {mime_type}",
+                    ),
                 )
 
             # Determine image format
@@ -299,7 +301,7 @@ class ImageSecurityValidator:
                     SecurityError(
                         "invalid_image_signature",
                         "File does not have valid image signature",
-                    )
+                    ),
                 )
 
             return Either.right(None)
@@ -330,18 +332,18 @@ class ImageAnalyzer:
             path_result = self.security_validator.validate_image_path(image_path)
             if path_result.is_left():
                 return Either.left(
-                    AIError("security_validation_failed", str(path_result.get_left()))
+                    AIError("security_validation_failed", str(path_result.get_left())),
                 )
 
             validated_path = path_result.get_right()
 
             # File validation
             metadata_result = self.security_validator.validate_image_file(
-                validated_path
+                validated_path,
             )
             if metadata_result.is_left():
                 return Either.left(
-                    AIError("file_validation_failed", str(metadata_result.get_left()))
+                    AIError("file_validation_failed", str(metadata_result.get_left())),
                 )
 
             metadata = metadata_result.get_right()
@@ -350,12 +352,14 @@ class ImageAnalyzer:
             scan_result = self.security_validator.scan_image_content(validated_path)
             if scan_result.is_left():
                 return Either.left(
-                    AIError("content_scan_failed", str(scan_result.get_left()))
+                    AIError("content_scan_failed", str(scan_result.get_left())),
                 )
 
             # Check cache
             cache_key = self._generate_cache_key(
-                validated_path, analysis_type, additional_context
+                validated_path,
+                analysis_type,
+                additional_context,
             )
             cached_result = self._get_cached_result(cache_key)
             if cached_result:
@@ -374,7 +378,7 @@ class ImageAnalyzer:
                     AIError(
                         "no_vision_model_available",
                         "No vision-capable models available",
-                    )
+                    ),
                 )
 
             # Select best vision model
@@ -404,7 +408,10 @@ class ImageAnalyzer:
 
             # Create AI request with image
             request_result = self._create_vision_request(
-                prompt, image_data, model, analysis_type
+                prompt,
+                image_data,
+                model,
+                analysis_type,
             )
             if request_result.is_left():
                 return request_result
@@ -435,7 +442,7 @@ class ImageAnalyzer:
             self._cache_result(cache_key, analysis_result)
 
             logger.info(
-                f"Image analysis completed: {analysis_type.value} in {processing_time:.2f}s"
+                f"Image analysis completed: {analysis_type.value} in {processing_time:.2f}s",
             )
             return Either.right(analysis_result)
 
@@ -444,7 +451,9 @@ class ImageAnalyzer:
             return Either.left(AIError("analysis_failed", str(e)))
 
     def _build_analysis_prompt(
-        self, analysis_type: ImageAnalysisType, context: str | None = None
+        self,
+        analysis_type: ImageAnalysisType,
+        context: str | None = None,
     ) -> str:
         """Build analysis prompt based on analysis type."""
         prompts = {
@@ -514,7 +523,8 @@ class ImageAnalyzer:
             return Either.left(AIError("request_creation_failed", str(e)))
 
     async def _call_vision_model(
-        self, request: AIRequest
+        self,
+        request: AIRequest,
     ) -> Either[AIError, AIResponse]:
         """Call AI vision model with request (placeholder for actual implementation)."""
         try:
@@ -541,7 +551,8 @@ class ImageAnalyzer:
                 output_tokens=TokenCount(50),
                 processing_time=0.2,
                 cost_estimate=request.model.estimate_cost(
-                    TokenCount(150), TokenCount(50)
+                    TokenCount(150),
+                    TokenCount(50),
                 ),
                 confidence=ConfidenceScore(0.9),
             )
@@ -550,7 +561,7 @@ class ImageAnalyzer:
 
         except Exception as e:
             return Either.left(
-                AIError.api_call_failed(request.model.model_name, str(e))
+                AIError.api_call_failed(request.model.model_name, str(e)),
             )
 
     def _create_mock_vision_result(self, analysis_type: str) -> str:
@@ -569,7 +580,9 @@ class ImageAnalyzer:
         return mock_results.get(analysis_type, mock_results["describe"])
 
     def _parse_vision_response(
-        self, response: str, analysis_type: ImageAnalysisType
+        self,
+        response: str,
+        analysis_type: ImageAnalysisType,
     ) -> dict[str, Any]:
         """Parse AI vision response into structured data."""
         try:
@@ -577,24 +590,26 @@ class ImageAnalyzer:
                 import json
 
                 return json.loads(response)
-            else:
-                return {"raw_response": str(response)}
+            return {"raw_response": str(response)}
         except json.JSONDecodeError:
             return {"raw_response": str(response)}
 
     def _generate_cache_key(
-        self, image_path: str, analysis_type: ImageAnalysisType, context: str | None
+        self,
+        image_path: str,
+        analysis_type: ImageAnalysisType,
+        context: str | None,
     ) -> str:
-        """Generate cache key for image analysis."""
+        """Generate cache key for image analysis using secure hash."""
         # Include file modification time in cache key
         try:
             mtime = os.path.getmtime(image_path)
             key_data = f"{image_path}:{analysis_type.value}:{context or ''}:{mtime}"
-            return hashlib.md5(key_data.encode()).hexdigest()
+            return hashlib.sha256(key_data.encode()).hexdigest()
         except OSError:
             # Fallback if file doesn't exist
             key_data = f"{image_path}:{analysis_type.value}:{context or ''}"
-            return hashlib.md5(key_data.encode()).hexdigest()
+            return hashlib.sha256(key_data.encode()).hexdigest()
 
     def _get_cached_result(self, cache_key: str) -> ImageAnalysisResult | None:
         """Get cached analysis result if available and not expired."""
@@ -616,7 +631,8 @@ class ImageAnalyzer:
         if len(self.analysis_cache) > 100:
             # Remove oldest entries
             sorted_items = sorted(
-                self.analysis_cache.items(), key=lambda x: x[1].timestamp
+                self.analysis_cache.items(),
+                key=lambda x: x[1].timestamp,
             )
             for key, _ in sorted_items[:20]:  # Remove 20 oldest
                 del self.analysis_cache[key]
@@ -624,7 +640,10 @@ class ImageAnalyzer:
         self.analysis_cache[cache_key] = result
 
     async def compare_images(
-        self, image1_path: str, image2_path: str, comparison_type: str = "similarity"
+        self,
+        image1_path: str,
+        image2_path: str,
+        comparison_type: str = "similarity",
     ) -> Either[AIError, dict[str, Any]]:
         """Compare two images for similarity or differences."""
         try:

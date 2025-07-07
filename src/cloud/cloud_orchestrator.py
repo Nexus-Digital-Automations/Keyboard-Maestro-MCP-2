@@ -1,5 +1,4 @@
-"""
-Multi-cloud orchestration and workflow management for comprehensive cloud automation.
+"""Multi-cloud orchestration and workflow management for comprehensive cloud automation.
 
 This module provides sophisticated multi-cloud orchestration capabilities,
 enabling cross-platform automation workflows, data synchronization,
@@ -107,8 +106,8 @@ class WorkflowPlan:
                 if dep not in step_ids:
                     return Either.left(
                         ValidationError(
-                            f"Step {step.step_id} depends on non-existent step {dep}"
-                        )
+                            f"Step {step.step_id} depends on non-existent step {dep}",
+                        ),
                     )
 
         # Check for circular dependencies using DFS
@@ -122,7 +121,8 @@ class WorkflowPlan:
             path.add(node)
 
             dependencies = next(
-                (s.dependencies for s in self.steps if s.step_id == node), []
+                (s.dependencies for s in self.steps if s.step_id == node),
+                [],
             )
             for dep in dependencies:
                 if has_cycle(dep, visited, path):
@@ -133,11 +133,10 @@ class WorkflowPlan:
 
         visited = set()
         for step in self.steps:
-            if step.step_id not in visited:
-                if has_cycle(step.step_id, visited, set()):
-                    return Either.left(
-                        ValidationError("Circular dependency detected in workflow")
-                    )
+            if step.step_id not in visited and has_cycle(step.step_id, visited, set()):
+                return Either.left(
+                    ValidationError("Circular dependency detected in workflow"),
+                )
 
         return Either.right(None)
 
@@ -165,7 +164,7 @@ class WorkflowExecution:
                 step
                 for step in self.workflow_plan.steps
                 if step.step_id in self.step_results
-            ]
+            ],
         )
 
         return (completed_steps / len(self.workflow_plan.steps)) * 100.0
@@ -193,24 +192,25 @@ class CloudOrchestrator:
             CloudProvider.GOOGLE_CLOUD: set(),
         }
 
-    def get_connector(self, provider: CloudProvider):
+    def get_connector(self, provider: CloudProvider) -> bool:
         """Get appropriate cloud connector for provider."""
         if provider == CloudProvider.AWS:
             return self.aws_connector
-        elif provider == CloudProvider.AZURE:
+        if provider == CloudProvider.AZURE:
             return self.azure_connector
-        elif provider == CloudProvider.GOOGLE_CLOUD:
+        if provider == CloudProvider.GOOGLE_CLOUD:
             return self.gcp_connector
-        else:
-            raise ValueError(f"Unsupported cloud provider: {provider}")
+        raise ValueError(f"Unsupported cloud provider: {provider}")
 
     @require(lambda workflow_plan: workflow_plan.validate_dependencies().is_right())
     @ensure(
         lambda result: result.is_right()
-        or result.get_left().error_type in ["ORCHESTRATION_FAILED"]
+        or result.get_left().error_type in ["ORCHESTRATION_FAILED"],
     )
     async def execute_workflow(
-        self, workflow_plan: WorkflowPlan, cloud_sessions: dict[CloudProvider, str]
+        self,
+        workflow_plan: WorkflowPlan,
+        cloud_sessions: dict[CloudProvider, str],
     ) -> Either[CloudError, str]:
         """Execute multi-cloud workflow with dependency resolution and error handling."""
         try:
@@ -222,7 +222,7 @@ class CloudOrchestrator:
             dep_validation = workflow_plan.validate_dependencies()
             if dep_validation.is_left():
                 return Either.left(
-                    CloudError.orchestration_failed(str(dep_validation.get_left()))
+                    CloudError.orchestration_failed(str(dep_validation.get_left())),
                 )
 
             # Create workflow execution
@@ -244,7 +244,9 @@ class CloudOrchestrator:
             return Either.left(CloudError.orchestration_failed(str(e)))
 
     async def _execute_workflow_steps(
-        self, execution: WorkflowExecution, cloud_sessions: dict[CloudProvider, str]
+        self,
+        execution: WorkflowExecution,
+        cloud_sessions: dict[CloudProvider, str],
     ) -> None:
         """Execute workflow steps with dependency resolution."""
         execution.status = WorkflowStatus.RUNNING
@@ -273,7 +275,7 @@ class CloudOrchestrator:
                         if step.step_id not in completed_steps
                     ]
                     execution.errors.append(
-                        f"Workflow deadlock: cannot execute remaining steps {[s.step_id for s in remaining_steps]}"
+                        f"Workflow deadlock: cannot execute remaining steps {[s.step_id for s in remaining_steps]}",
                     )
                     execution.status = WorkflowStatus.FAILED
                     return
@@ -292,7 +294,7 @@ class CloudOrchestrator:
                         completed_steps.add(step_id)
                         execution.current_step = step_id
                     except Exception as e:
-                        execution.errors.append(f"Step {step_id} failed: {str(e)}")
+                        execution.errors.append(f"Step {step_id} failed: {e!s}")
                         execution.status = WorkflowStatus.FAILED
                         return
 
@@ -301,7 +303,7 @@ class CloudOrchestrator:
             execution.completed_at = datetime.now(UTC)
 
         except Exception as e:
-            execution.errors.append(f"Workflow execution failed: {str(e)}")
+            execution.errors.append(f"Workflow execution failed: {e!s}")
             execution.status = WorkflowStatus.FAILED
             execution.completed_at = datetime.now(UTC)
 
@@ -322,24 +324,31 @@ class CloudOrchestrator:
             try:
                 if step.operation_type == WorkflowOperationType.CREATE_RESOURCE:
                     return await self._execute_create_resource_step(
-                        connector, session_id, step
+                        connector,
+                        session_id,
+                        step,
                     )
-                elif step.operation_type == WorkflowOperationType.SYNC_DATA:
+                if step.operation_type == WorkflowOperationType.SYNC_DATA:
                     return await self._execute_sync_data_step(
-                        connector, session_id, step
+                        connector,
+                        session_id,
+                        step,
                     )
-                elif step.operation_type == WorkflowOperationType.BACKUP_DATA:
+                if step.operation_type == WorkflowOperationType.BACKUP_DATA:
                     return await self._execute_backup_data_step(
-                        connector, session_id, step
+                        connector,
+                        session_id,
+                        step,
                     )
-                elif step.operation_type == WorkflowOperationType.REPLICATE_CROSS_CLOUD:
+                if step.operation_type == WorkflowOperationType.REPLICATE_CROSS_CLOUD:
                     return await self._execute_cross_cloud_replication(
-                        step, execution, cloud_sessions
+                        step,
+                        execution,
+                        cloud_sessions,
                     )
-                else:
-                    raise ValueError(
-                        f"Unsupported operation type: {step.operation_type}"
-                    )
+                raise ValueError(
+                    f"Unsupported operation type: {step.operation_type}",
+                )
 
             except Exception as e:
                 if attempt == step.retry_count:
@@ -348,7 +357,10 @@ class CloudOrchestrator:
                 await asyncio.sleep(2**attempt)
 
     async def _execute_create_resource_step(
-        self, connector: Any, session_id: str, step: WorkflowStep
+        self,
+        connector: Any,
+        session_id: str,
+        step: WorkflowStep,
     ) -> dict[str, Any]:
         """Execute resource creation step."""
         params = step.parameters
@@ -384,11 +396,13 @@ class CloudOrchestrator:
 
             return {"resource": result.get_right(), "operation": "create_storage"}
 
-        else:
-            raise ValueError(f"Unsupported service type: {step.service_type}")
+        raise ValueError(f"Unsupported service type: {step.service_type}")
 
     async def _execute_sync_data_step(
-        self, connector: Any, session_id: str, step: WorkflowStep
+        self,
+        connector: Any,
+        session_id: str,
+        step: WorkflowStep,
     ) -> dict[str, Any]:
         """Execute data synchronization step."""
         params = step.parameters
@@ -427,7 +441,10 @@ class CloudOrchestrator:
         return {"sync_result": result.get_right(), "operation": "sync_data"}
 
     async def _execute_backup_data_step(
-        self, connector: Any, session_id: str, step: WorkflowStep
+        self,
+        connector: Any,
+        session_id: str,
+        step: WorkflowStep,
     ) -> dict[str, Any]:
         """Execute data backup step."""
         # Backup is essentially a sync operation with backup-specific settings
@@ -435,7 +452,7 @@ class CloudOrchestrator:
         backup_params["sync_options"] = backup_params.get("sync_options", {})
         backup_params["sync_options"]["backup_mode"] = True
         backup_params["sync_options"]["timestamp_prefix"] = datetime.now(UTC).strftime(
-            "%Y%m%d_%H%M%S_"
+            "%Y%m%d_%H%M%S_",
         )
 
         # Reuse sync logic
@@ -448,7 +465,9 @@ class CloudOrchestrator:
         )
 
         result = await self._execute_sync_data_step(
-            connector, session_id, modified_step
+            connector,
+            session_id,
+            modified_step,
         )
         result["operation"] = "backup_data"
         return result
@@ -474,12 +493,13 @@ class CloudOrchestrator:
         }
 
     async def get_workflow_status(
-        self, execution_id: str
+        self,
+        execution_id: str,
     ) -> Either[CloudError, dict[str, Any]]:
         """Get workflow execution status and progress."""
         if execution_id not in self.active_workflows:
             return Either.left(
-                CloudError.orchestration_failed(f"Workflow {execution_id} not found")
+                CloudError.orchestration_failed(f"Workflow {execution_id} not found"),
             )
 
         execution = self.active_workflows[execution_id]

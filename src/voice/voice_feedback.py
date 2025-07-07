@@ -1,5 +1,4 @@
-"""
-Voice Feedback System - TASK_66 Phase 2 Core Voice Engine
+"""Voice Feedback System - TASK_66 Phase 2 Core Voice Engine.
 
 Text-to-speech response system with natural voice synthesis, emotional tone,
 and comprehensive audio output management for voice command feedback.
@@ -202,7 +201,7 @@ class SpeechRequest:
                         "7": "seven",
                         "8": "eight",
                         "9": "nine",
-                    }.get(digit, digit)
+                    }.get(digit, digit),
                 )
 
             spoken_phone = f"{' '.join(spoken_digits[:3])}, {' '.join(spoken_digits[3:6])}, {' '.join(spoken_digits[6:])}"
@@ -234,8 +233,7 @@ class SpeechResult:
 
 
 class VoiceFeedbackSystem:
-    """
-    Comprehensive voice feedback and text-to-speech system.
+    """Comprehensive voice feedback and text-to-speech system.
 
     Contracts:
         Preconditions:
@@ -269,7 +267,7 @@ class VoiceFeedbackSystem:
         # Initialize available system voices
         self._initialize_system_voices()
 
-    def _initialize_system_voices(self):
+    def _initialize_system_voices(self) -> bool:
         """Initialize available system voices."""
         # macOS system voices
         system_voices = [
@@ -286,18 +284,21 @@ class VoiceFeedbackSystem:
 
         for voice_id, name, language, gender in system_voices:
             self.available_voices[voice_id] = VoiceSettings(
-                voice_id=voice_id, voice_name=name, language=language, gender=gender
+                voice_id=voice_id,
+                voice_name=name,
+                language=language,
+                gender=gender,
             )
 
         logger.info(f"Initialized {len(self.available_voices)} system voices")
 
-    @require(lambda self, request: len(request.text.strip()) > 0)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, request: len(request.text.strip()) > 0)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def synthesize_speech(
-        self, request: SpeechRequest
+        self,
+        request: SpeechRequest,
     ) -> Either[VoiceControlError, SpeechResult]:
-        """
-        Synthesize text to speech with specified voice settings.
+        """Synthesize text to speech with specified voice settings.
 
         Performance:
             - <500ms synthesis initialization
@@ -329,7 +330,8 @@ class VoiceFeedbackSystem:
             # Perform synthesis based on output destination
             if request.output_destination in ["system", "both"]:
                 system_result = await self._synthesize_to_system(
-                    prepared_text, request.voice_settings
+                    prepared_text,
+                    request.voice_settings,
                 )
                 if system_result.is_error():
                     return system_result
@@ -345,7 +347,8 @@ class VoiceFeedbackSystem:
             # Calculate synthesis time and estimate audio duration
             synthesis_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
             audio_duration = self._estimate_audio_duration(
-                prepared_text, request.voice_settings
+                prepared_text,
+                request.voice_settings,
             )
 
             # Create result
@@ -367,24 +370,26 @@ class VoiceFeedbackSystem:
             logger.info(
                 f"Speech synthesis successful: '{request.text[:50]}...' "
                 f"(voice: {request.voice_settings.voice_name}, "
-                f"time: {synthesis_time:.0f}ms, duration: {audio_duration:.1f}s)"
+                f"time: {synthesis_time:.0f}ms, duration: {audio_duration:.1f}s)",
             )
 
             return Either.success(result)
 
         except Exception as e:
             self._update_synthesis_stats(None, False)
-            error_msg = f"Speech synthesis failed: {str(e)}"
+            error_msg = f"Speech synthesis failed: {e!s}"
             logger.error(error_msg)
             return Either.error(VoiceControlError(error_msg))
 
     async def _synthesize_to_system(
-        self, text: str, voice_settings: VoiceSettings
+        self,
+        text: str,
+        voice_settings: VoiceSettings,
     ) -> Either[VoiceControlError, None]:
         """Synthesize speech directly to system audio output."""
         try:
             # Build AppleScript for speech synthesis
-            applescript = f'''
+            applescript = f"""
             set speechText to "{self._escape_applescript_text(text)}"
             set speechVoice to "{voice_settings.voice_id}"
             set speechRate to {voice_settings.speech_rate}
@@ -392,7 +397,7 @@ class VoiceFeedbackSystem:
             set speechVolume to {voice_settings.volume}
 
             say speechText using speechVoice speaking rate speechRate pitch speechPitch modulation 50
-            '''
+            """
 
             # Execute AppleScript
             process = await asyncio.create_subprocess_shell(
@@ -409,20 +414,22 @@ class VoiceFeedbackSystem:
                     stderr.decode() if stderr else "AppleScript execution failed"
                 )
                 return Either.error(
-                    VoiceControlError(f"System speech synthesis failed: {error_msg}")
+                    VoiceControlError(f"System speech synthesis failed: {error_msg}"),
                 )
 
             return Either.success(None)
 
         except Exception as e:
             return Either.error(
-                VoiceControlError(f"System speech synthesis error: {str(e)}")
+                VoiceControlError(f"System speech synthesis error: {e!s}"),
             )
         finally:
             self.current_playback = None
 
     async def _synthesize_to_file(
-        self, text: str, request: SpeechRequest
+        self,
+        text: str,
+        request: SpeechRequest,
     ) -> Either[VoiceControlError, str]:
         """Synthesize speech to audio file."""
         try:
@@ -437,7 +444,7 @@ class VoiceFeedbackSystem:
                 output_path = str(temp_dir / f"speech_{timestamp}.aiff")
 
             # Build AppleScript for file synthesis
-            applescript = f'''
+            applescript = f"""
             set speechText to "{self._escape_applescript_text(text)}"
             set speechVoice to "{request.voice_settings.voice_id}"
             set speechRate to {request.voice_settings.speech_rate}
@@ -445,7 +452,7 @@ class VoiceFeedbackSystem:
             set outputFile to POSIX file "{output_path}"
 
             say speechText using speechVoice speaking rate speechRate pitch speechPitch modulation 50 saving to outputFile
-            '''
+            """
 
             # Execute AppleScript
             process = await asyncio.create_subprocess_shell(
@@ -461,7 +468,7 @@ class VoiceFeedbackSystem:
                     stderr.decode() if stderr else "AppleScript execution failed"
                 )
                 return Either.error(
-                    VoiceControlError(f"File speech synthesis failed: {error_msg}")
+                    VoiceControlError(f"File speech synthesis failed: {error_msg}"),
                 )
 
             # Verify file was created
@@ -472,7 +479,7 @@ class VoiceFeedbackSystem:
 
         except Exception as e:
             return Either.error(
-                VoiceControlError(f"File speech synthesis error: {str(e)}")
+                VoiceControlError(f"File speech synthesis error: {e!s}"),
             )
 
     def _escape_applescript_text(self, text: str) -> str:
@@ -505,19 +512,21 @@ class VoiceFeedbackSystem:
                 if re.search(pattern, text):
                     return Either.error(
                         VoiceControlError(
-                            "Speech content contains sensitive information"
-                        )
+                            "Speech content contains sensitive information",
+                        ),
                     )
 
             return Either.success(None)
 
         except Exception as e:
             return Either.error(
-                VoiceControlError(f"Speech content validation failed: {str(e)}")
+                VoiceControlError(f"Speech content validation failed: {e!s}"),
             )
 
     def _estimate_audio_duration(
-        self, text: str, voice_settings: VoiceSettings
+        self,
+        text: str,
+        voice_settings: VoiceSettings,
     ) -> float:
         """Estimate audio duration in seconds."""
         # Rough estimation based on speech rate and text length
@@ -531,7 +540,7 @@ class VoiceFeedbackSystem:
         import hashlib
 
         key_data = f"{request.text}_{request.voice_settings.voice_id}_{request.voice_settings.speech_rate}_{request.voice_settings.pitch}_{request.voice_settings.tone.value}"
-        return hashlib.md5(key_data.encode()).hexdigest()
+        return hashlib.sha256(key_data.encode()).hexdigest()
 
     async def _stop_current_playback(self):
         """Stop current speech playback."""
@@ -542,11 +551,11 @@ class VoiceFeedbackSystem:
             except asyncio.TimeoutError:
                 self.current_playback.kill()
             except Exception as e:
-                logger.warning(f"Error stopping playback: {str(e)}")
+                logger.warning(f"Error stopping playback: {e!s}")
             finally:
                 self.current_playback = None
 
-    def _update_synthesis_stats(self, result: SpeechResult | None, success: bool):
+    def _update_synthesis_stats(self, result: SpeechResult | None, success: bool) -> bool:
         """Update synthesis statistics."""
         self.feedback_stats["total_requests"] += 1
 
@@ -567,7 +576,9 @@ class VoiceFeedbackSystem:
             self.feedback_stats["failed_synthesis"] += 1
 
     async def get_voice_for_language(
-        self, language: VoiceLanguage, gender: VoiceGender | None = None
+        self,
+        language: VoiceLanguage,
+        gender: VoiceGender | None = None,
     ) -> VoiceSettings | None:
         """Get best available voice for specified language and gender."""
         matching_voices = [
@@ -586,7 +597,9 @@ class VoiceFeedbackSystem:
         return matching_voices[0] if matching_voices else None
 
     async def configure_voice_profile(
-        self, speaker_id: SpeakerId, voice_preferences: dict[str, Any]
+        self,
+        speaker_id: SpeakerId,
+        voice_preferences: dict[str, Any],
     ) -> Either[VoiceControlError, VoiceSettings]:
         """Configure personalized voice settings for speaker."""
         try:
@@ -616,14 +629,14 @@ class VoiceFeedbackSystem:
             )
 
             logger.info(
-                f"Voice profile configured for speaker {speaker_id}: {custom_settings.voice_name}"
+                f"Voice profile configured for speaker {speaker_id}: {custom_settings.voice_name}",
             )
 
             return Either.success(custom_settings)
 
         except Exception as e:
             return Either.error(
-                VoiceControlError(f"Voice profile configuration failed: {str(e)}")
+                VoiceControlError(f"Voice profile configuration failed: {e!s}"),
             )
 
     async def provide_command_feedback(
@@ -652,7 +665,7 @@ class VoiceFeedbackSystem:
             return await self.synthesize_speech(request)
 
         except Exception as e:
-            return Either.error(VoiceControlError(f"Command feedback failed: {str(e)}"))
+            return Either.error(VoiceControlError(f"Command feedback failed: {e!s}"))
 
     async def get_available_voices(self) -> list[dict[str, Any]]:
         """Get list of available voices with their capabilities."""
@@ -668,7 +681,7 @@ class VoiceFeedbackSystem:
                     "default_rate": voice_settings.speech_rate,
                     "default_pitch": voice_settings.pitch,
                     "default_volume": voice_settings.volume,
-                }
+                },
             )
 
         return voices
@@ -682,13 +695,15 @@ class VoiceFeedbackSystem:
 
         return stats
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """Clear synthesis result cache."""
         self.synthesis_cache.clear()
         logger.info("Voice synthesis cache cleared")
 
     async def provide_feedback(
-        self, message: str, settings
+        self,
+        message: str,
+        settings,
     ) -> Either[VoiceControlError, Any]:
         """Provide voice feedback with text-to-speech."""
         try:
@@ -715,14 +730,14 @@ class VoiceFeedbackSystem:
 
             if result.is_success():
                 return Either.success(result.value)
-            else:
-                return Either.error(result.error_value)
+            return Either.error(result.error_value)
 
         except Exception as e:
-            return Either.error(VoiceControlError(f"Voice feedback failed: {str(e)}"))
+            return Either.error(VoiceControlError(f"Voice feedback failed: {e!s}"))
 
     async def configure_feedback(
-        self, configuration
+        self,
+        configuration,
     ) -> Either[VoiceControlError, dict[str, Any]]:
         """Configure voice feedback settings."""
         try:
@@ -733,7 +748,7 @@ class VoiceFeedbackSystem:
             return Either.success(result)
         except Exception as e:
             return Either.error(
-                VoiceControlError(f"Feedback configuration failed: {str(e)}")
+                VoiceControlError(f"Feedback configuration failed: {e!s}"),
             )
 
 

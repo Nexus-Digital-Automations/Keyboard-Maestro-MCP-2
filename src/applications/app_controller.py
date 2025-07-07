@@ -1,5 +1,4 @@
-"""
-Secure Application Control with State Tracking and Error Recovery
+"""Secure Application Control with State Tracking and Error Recovery.
 
 Implements comprehensive application lifecycle management with security validation,
 permission checking, and robust error handling for system-level operations.
@@ -16,6 +15,11 @@ from enum import Enum
 from ..core.contracts import ensure, require
 from ..core.types import Duration
 from ..integration.km_client import Either, KMError
+
+# Module-level constants for default values to avoid B008
+_DEFAULT_LAUNCH_CONFIG = None
+_DEFAULT_QUIT_TIMEOUT = Duration.from_seconds(10)
+_DEFAULT_MENU_TIMEOUT = Duration.from_seconds(5)
 
 
 class AppState(Enum):
@@ -102,7 +106,7 @@ class MenuPath:
         return len(self.path)
 
 
-@dataclass(frozen=True)
+@dataclass
 class LaunchConfiguration:
     """Configuration for application launch operations."""
 
@@ -132,7 +136,10 @@ class AppOperationResult:
 
     @classmethod
     def success_result(
-        cls, app_state: AppState, operation_time: Duration, details: str | None = None
+        cls,
+        app_state: AppState,
+        operation_time: Duration,
+        details: str | None = None,
     ) -> AppOperationResult:
         """Create successful operation result."""
         return cls(
@@ -161,8 +168,7 @@ class AppOperationResult:
 
 
 class AppController:
-    """
-    Secure application control with state tracking and error recovery.
+    """Secure application control with state tracking and error recovery.
 
     Provides comprehensive application lifecycle management with:
     - Security validation and permission checking
@@ -190,13 +196,14 @@ class AppController:
     @ensure(
         lambda result: result.is_right()
         or result.get_left().code
-        in ["LAUNCH_ERROR", "PERMISSION_ERROR", "SECURITY_ERROR"]
+        in ["LAUNCH_ERROR", "PERMISSION_ERROR", "SECURITY_ERROR"],
     )
     async def launch_application(
-        self, app_id: AppIdentifier, config: LaunchConfiguration = LaunchConfiguration()
+        self,
+        app_id: AppIdentifier,
+        config: LaunchConfiguration | None = None,
     ) -> Either[KMError, AppOperationResult]:
-        """
-        Launch application with security validation and state tracking.
+        """Launch application with security validation and state tracking.
 
         Security Features:
         - Bundle ID validation and format checking
@@ -211,6 +218,10 @@ class AppController:
         """
         start_time = time.time()
 
+        # Handle default configuration
+        if config is None:
+            config = LaunchConfiguration()
+
         try:
             # Phase 1: Security validation
             security_check = self._validate_app_security(app_id)
@@ -223,13 +234,14 @@ class AppController:
                 # App already running - just activate if needed
                 if config.activate_on_launch:
                     return await self.activate_application(app_id)
-                else:
-                    operation_time = Duration.from_seconds(time.time() - start_time)
-                    return Either.right(
-                        AppOperationResult.success_result(
-                            current_state, operation_time, "Application already running"
-                        )
-                    )
+                operation_time = Duration.from_seconds(time.time() - start_time)
+                return Either.right(
+                    AppOperationResult.success_result(
+                        current_state,
+                        operation_time,
+                        "Application already running",
+                    ),
+                )
 
             # Phase 3: Launch application via AppleScript
             launch_result = await self._launch_via_applescript(app_id, config)
@@ -260,27 +272,26 @@ class AppController:
                     final_state,
                     operation_time,
                     f"Successfully launched {app_id.display_name()}",
-                )
+                ),
             )
 
         except Exception as e:
             operation_time = Duration.from_seconds(time.time() - start_time)
-            return Either.left(KMError.execution_error(f"Launch failed: {str(e)}"))
+            return Either.left(KMError.execution_error(f"Launch failed: {e!s}"))
 
     @require(lambda app_id: app_id.primary_identifier() != "")
     @ensure(
         lambda result: result.is_right()
         or result.get_left().code
-        in ["QUIT_ERROR", "APP_NOT_RUNNING", "PERMISSION_ERROR"]
+        in ["QUIT_ERROR", "APP_NOT_RUNNING", "PERMISSION_ERROR"],
     )
     async def quit_application(
         self,
         app_id: AppIdentifier,
         force: bool = False,
-        timeout: Duration = Duration.from_seconds(10),
+        timeout: Duration | None = None,
     ) -> Either[KMError, AppOperationResult]:
-        """
-        Quit application with graceful/force options.
+        """Quit application with graceful/force options.
 
         Security Features:
         - Permission checking for quit operations
@@ -289,6 +300,10 @@ class AppController:
         """
         start_time = time.time()
 
+        # Handle default timeout
+        if timeout is None:
+            timeout = _DEFAULT_QUIT_TIMEOUT
+
         try:
             # Check current state
             current_state = await self._get_app_state_async(app_id)
@@ -296,8 +311,10 @@ class AppController:
                 operation_time = Duration.from_seconds(time.time() - start_time)
                 return Either.right(
                     AppOperationResult.success_result(
-                        AppState.NOT_RUNNING, operation_time, "Application not running"
-                    )
+                        AppState.NOT_RUNNING,
+                        operation_time,
+                        "Application not running",
+                    ),
                 )
 
             # Security check for force quit
@@ -305,8 +322,8 @@ class AppController:
                 operation_time = Duration.from_seconds(time.time() - start_time)
                 return Either.left(
                     KMError.validation_error(
-                        f"Force quit not allowed for {app_id.display_name()}"
-                    )
+                        f"Force quit not allowed for {app_id.display_name()}",
+                    ),
                 )
 
             # Attempt graceful quit first
@@ -324,19 +341,19 @@ class AppController:
                     operation_time,
                     f"Successfully quit {app_id.display_name()}"
                     + (" (forced)" if force else ""),
-                )
+                ),
             )
 
         except Exception as e:
             operation_time = Duration.from_seconds(time.time() - start_time)
-            return Either.left(KMError.execution_error(f"Quit failed: {str(e)}"))
+            return Either.left(KMError.execution_error(f"Quit failed: {e!s}"))
 
     @require(lambda app_id: app_id.primary_identifier() != "")
     async def activate_application(
-        self, app_id: AppIdentifier
+        self,
+        app_id: AppIdentifier,
     ) -> Either[KMError, AppOperationResult]:
-        """
-        Activate (bring to foreground) application.
+        """Activate (bring to foreground) application.
 
         Uses AppleScript for reliable activation with error handling.
         """
@@ -349,8 +366,8 @@ class AppController:
                 operation_time = Duration.from_seconds(time.time() - start_time)
                 return Either.left(
                     KMError.validation_error(
-                        f"Cannot activate {app_id.display_name()}: not running"
-                    )
+                        f"Cannot activate {app_id.display_name()}: not running",
+                    ),
                 )
 
             # Activate via AppleScript
@@ -367,26 +384,29 @@ class AppController:
                     AppState.FOREGROUND,
                     operation_time,
                     f"Activated {app_id.display_name()}",
-                )
+                ),
             )
 
         except Exception as e:
             operation_time = Duration.from_seconds(time.time() - start_time)
-            return Either.left(KMError.execution_error(f"Activation failed: {str(e)}"))
+            return Either.left(KMError.execution_error(f"Activation failed: {e!s}"))
 
     @require(lambda menu_path: len(menu_path.path) > 0)
     async def select_menu_item(
         self,
         app_id: AppIdentifier,
         menu_path: MenuPath,
-        timeout: Duration = Duration.from_seconds(5),
+        timeout: Duration | None = None,
     ) -> Either[KMError, AppOperationResult]:
-        """
-        Navigate and select menu item with path validation.
+        """Navigate and select menu item with path validation.
 
         Uses UI automation for reliable menu navigation with comprehensive error handling.
         """
         start_time = time.time()
+
+        # Handle default timeout
+        if timeout is None:
+            timeout = _DEFAULT_MENU_TIMEOUT
 
         try:
             # Ensure app is active for menu access
@@ -401,7 +421,9 @@ class AppController:
 
             # Navigate menu via AppleScript UI automation
             menu_result = await self._navigate_menu_applescript(
-                app_id, menu_path, timeout
+                app_id,
+                menu_path,
+                timeout,
             )
 
             operation_time = Duration.from_seconds(time.time() - start_time)
@@ -410,25 +432,28 @@ class AppController:
 
             return Either.right(
                 AppOperationResult.success_result(
-                    AppState.FOREGROUND, operation_time, f"Selected menu: {menu_path}"
-                )
+                    AppState.FOREGROUND,
+                    operation_time,
+                    f"Selected menu: {menu_path}",
+                ),
             )
 
         except Exception as e:
             operation_time = Duration.from_seconds(time.time() - start_time)
             return Either.left(
-                KMError.execution_error(f"Menu selection failed: {str(e)}")
+                KMError.execution_error(f"Menu selection failed: {e!s}"),
             )
 
     async def get_application_state(
-        self, app_id: AppIdentifier
+        self,
+        app_id: AppIdentifier,
     ) -> Either[KMError, AppState]:
         """Get current application state with caching."""
         try:
             state = await self._get_app_state_async(app_id)
             return Either.right(state)
         except Exception as e:
-            return Either.left(KMError.execution_error(f"State query failed: {str(e)}"))
+            return Either.left(KMError.execution_error(f"State query failed: {e!s}"))
 
     def _validate_app_security(self, app_id: AppIdentifier) -> Either[KMError, bool]:
         """Validate application security and permissions."""
@@ -438,24 +463,24 @@ class AppController:
         if identifier in self._app_blacklist:
             return Either.left(
                 KMError.validation_error(
-                    f"Application blocked by security policy: {app_id.display_name()}"
-                )
+                    f"Application blocked by security policy: {app_id.display_name()}",
+                ),
             )
 
         # Check whitelist (if enabled)
         if self._app_whitelist and identifier not in self._app_whitelist:
             return Either.left(
                 KMError.validation_error(
-                    f"Application not in whitelist: {app_id.display_name()}"
-                )
+                    f"Application not in whitelist: {app_id.display_name()}",
+                ),
             )
 
         # Validate bundle ID format
         if app_id.bundle_id and not self._is_valid_bundle_id(app_id.bundle_id):
             return Either.left(
                 KMError.validation_error(
-                    f"Invalid bundle ID format: {app_id.bundle_id}"
-                )
+                    f"Invalid bundle ID format: {app_id.bundle_id}",
+                ),
             )
 
         return Either.right(True)
@@ -505,7 +530,7 @@ class AppController:
         except Exception:
             return AppState.UNKNOWN
 
-    def _invalidate_state_cache(self, app_id: AppIdentifier):
+    def _invalidate_state_cache(self, app_id: AppIdentifier) -> bool:
         """Invalidate cached state for application."""
         cache_key = app_id.primary_identifier()
         if cache_key in self._state_cache:
@@ -523,7 +548,9 @@ class AppController:
 
     # AppleScript execution methods - Phase 2 Implementation
     async def _launch_via_applescript(
-        self, app_id: AppIdentifier, config: LaunchConfiguration
+        self,
+        app_id: AppIdentifier,
+        config: LaunchConfiguration,
     ) -> Either[KMError, bool]:
         """Launch application via AppleScript with comprehensive error handling."""
         try:
@@ -532,7 +559,7 @@ class AppController:
 
             if app_id.is_bundle_id():
                 # Use bundle ID for precise targeting
-                script = f'''
+                script = f"""
                 tell application "System Events"
                     try
                         set appExists to exists application process "{escaped_identifier}"
@@ -546,10 +573,10 @@ class AppController:
                         return "ERROR: " & errorMessage
                     end try
                 end tell
-                '''
+                """
             else:
                 # Use application name
-                script = f'''
+                script = f"""
                 tell application "{escaped_identifier}"
                     try
                         activate
@@ -558,7 +585,7 @@ class AppController:
                         return "ERROR: " & errorMessage
                     end try
                 end tell
-                '''
+                """
 
             result = await self._execute_applescript(script, config.timeout)
             if result.is_left():
@@ -567,18 +594,21 @@ class AppController:
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
                 return Either.left(
-                    KMError.execution_error(f"Launch failed: {output[6:].strip()}")
+                    KMError.execution_error(f"Launch failed: {output[6:].strip()}"),
                 )
 
             return Either.right(True)
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"AppleScript launch error: {str(e)}")
+                KMError.execution_error(f"AppleScript launch error: {e!s}"),
             )
 
     async def _quit_via_applescript(
-        self, app_id: AppIdentifier, force: bool, timeout: Duration
+        self,
+        app_id: AppIdentifier,
+        force: bool,
+        timeout: Duration,
     ) -> Either[KMError, bool]:
         """Quit application via AppleScript with graceful and force options."""
         try:
@@ -587,7 +617,7 @@ class AppController:
 
             if force:
                 # Force quit via System Events
-                script = f'''
+                script = f"""
                 tell application "System Events"
                     try
                         set proc to process "{escaped_identifier}"
@@ -597,10 +627,10 @@ class AppController:
                         return "ERROR: " & errorMessage
                     end try
                 end tell
-                '''
+                """
             else:
                 # Graceful quit
-                script = f'''
+                script = f"""
                 tell application "{escaped_identifier}"
                     try
                         quit
@@ -609,7 +639,7 @@ class AppController:
                         return "ERROR: " & errorMessage
                     end try
                 end tell
-                '''
+                """
 
             result = await self._execute_applescript(script, timeout)
             if result.is_left():
@@ -618,25 +648,26 @@ class AppController:
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
                 return Either.left(
-                    KMError.execution_error(f"Quit failed: {output[6:].strip()}")
+                    KMError.execution_error(f"Quit failed: {output[6:].strip()}"),
                 )
 
             return Either.right(True)
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"AppleScript quit error: {str(e)}")
+                KMError.execution_error(f"AppleScript quit error: {e!s}"),
             )
 
     async def _activate_via_applescript(
-        self, app_id: AppIdentifier
+        self,
+        app_id: AppIdentifier,
     ) -> Either[KMError, bool]:
         """Activate application via AppleScript."""
         try:
             identifier = app_id.primary_identifier()
             escaped_identifier = self._escape_applescript_string(identifier)
 
-            script = f'''
+            script = f"""
             tell application "{escaped_identifier}"
                 try
                     activate
@@ -645,7 +676,7 @@ class AppController:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
@@ -654,18 +685,21 @@ class AppController:
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
                 return Either.left(
-                    KMError.execution_error(f"Activation failed: {output[6:].strip()}")
+                    KMError.execution_error(f"Activation failed: {output[6:].strip()}"),
                 )
 
             return Either.right(True)
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"AppleScript activation error: {str(e)}")
+                KMError.execution_error(f"AppleScript activation error: {e!s}"),
             )
 
     async def _navigate_menu_applescript(
-        self, app_id: AppIdentifier, menu_path: MenuPath, timeout: Duration
+        self,
+        app_id: AppIdentifier,
+        menu_path: MenuPath,
+        timeout: Duration,
     ) -> Either[KMError, bool]:
         """Navigate and select menu item via AppleScript UI automation."""
         try:
@@ -687,7 +721,7 @@ class AppController:
                 for i in range(1, len(menu_items)):
                     menu_script += f"                        click {menu_items[i]} of menu 1 of {menu_items[i - 1]} of menu bar 1\n"
 
-            script = f'''
+            script = f"""
             tell application "System Events"
                 tell process "{escaped_identifier}"
                     try
@@ -698,7 +732,7 @@ class AppController:
                     end try
                 end tell
             end tell
-            '''
+            """
 
             result = await self._execute_applescript(script, timeout)
             if result.is_left():
@@ -708,15 +742,15 @@ class AppController:
             if output.startswith("ERROR:"):
                 return Either.left(
                     KMError.execution_error(
-                        f"Menu navigation failed: {output[6:].strip()}"
-                    )
+                        f"Menu navigation failed: {output[6:].strip()}",
+                    ),
                 )
 
             return Either.right(True)
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Menu navigation error: {str(e)}")
+                KMError.execution_error(f"Menu navigation error: {e!s}"),
             )
 
     async def _query_app_state_applescript(self, app_id: AppIdentifier) -> AppState:
@@ -725,7 +759,7 @@ class AppController:
             identifier = app_id.primary_identifier()
             escaped_identifier = self._escape_applescript_string(identifier)
 
-            script = f'''
+            script = f"""
             tell application "System Events"
                 try
                     set proc to process "{escaped_identifier}"
@@ -742,7 +776,7 @@ class AppController:
                     return "not_running"
                 end try
             end tell
-            '''
+            """
 
             result = await self._execute_applescript(script, Duration.from_seconds(5))
             if result.is_left():
@@ -750,20 +784,21 @@ class AppController:
 
             output = result.get_right().strip().lower()
 
-            if output == "not_running":
-                return AppState.NOT_RUNNING
-            elif output == "foreground":
-                return AppState.FOREGROUND
-            elif output == "background":
-                return AppState.BACKGROUND
-            else:
-                return AppState.RUNNING
+            # Use dictionary lookup for better performance and readability
+            state_mapping = {
+                "not_running": AppState.NOT_RUNNING,
+                "foreground": AppState.FOREGROUND,
+                "background": AppState.BACKGROUND,
+            }
+            return state_mapping.get(output, AppState.RUNNING)
 
         except Exception:
             return AppState.UNKNOWN
 
     async def _wait_for_launch(
-        self, app_id: AppIdentifier, timeout: Duration
+        self,
+        app_id: AppIdentifier,
+        timeout: Duration,
     ) -> Either[KMError, AppState]:
         """Wait for application launch completion with state polling."""
         start_time = time.time()
@@ -783,12 +818,14 @@ class AppController:
 
         return Either.left(
             KMError.timeout_error(
-                f"Application launch timeout: {app_id.display_name()}"
-            )
+                f"Application launch timeout: {app_id.display_name()}",
+            ),
         )
 
     async def _wait_for_termination(
-        self, app_id: AppIdentifier, timeout: Duration
+        self,
+        app_id: AppIdentifier,
+        timeout: Duration,
     ) -> AppState:
         """Wait for application termination with state polling."""
         start_time = time.time()
@@ -811,7 +848,7 @@ class AppController:
             identifier = app_id.primary_identifier()
             escaped_identifier = self._escape_applescript_string(identifier)
 
-            script = f'''
+            script = f"""
             tell application "System Events"
                 tell process "{escaped_identifier}"
                     try
@@ -822,7 +859,7 @@ class AppController:
                     end try
                 end tell
             end tell
-            '''
+            """
 
             result = await self._execute_applescript(script, Duration.from_seconds(5))
             if result.is_left():
@@ -831,18 +868,20 @@ class AppController:
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
                 return Either.left(
-                    KMError.execution_error(f"Hide failed: {output[6:].strip()}")
+                    KMError.execution_error(f"Hide failed: {output[6:].strip()}"),
                 )
 
             return Either.right(True)
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Hide application error: {str(e)}")
+                KMError.execution_error(f"Hide application error: {e!s}"),
             )
 
     async def _execute_applescript(
-        self, script: str, timeout: Duration
+        self,
+        script: str,
+        timeout: Duration,
     ) -> Either[KMError, str]:
         """Execute AppleScript with timeout and error handling."""
         try:
@@ -855,7 +894,8 @@ class AppController:
             )
 
             stdout, stderr = await asyncio.wait_for(
-                process.communicate(), timeout=timeout.total_seconds()
+                process.communicate(),
+                timeout=timeout.total_seconds(),
             )
 
             if process.returncode != 0:
@@ -863,7 +903,7 @@ class AppController:
                     stderr.decode().strip() if stderr else "Unknown AppleScript error"
                 )
                 return Either.left(
-                    KMError.execution_error(f"AppleScript failed: {error_msg}")
+                    KMError.execution_error(f"AppleScript failed: {error_msg}"),
                 )
 
             return Either.right(stdout.decode())
@@ -871,12 +911,12 @@ class AppController:
         except asyncio.TimeoutError:
             return Either.left(
                 KMError.timeout_error(
-                    f"AppleScript execution timeout ({timeout.total_seconds()}s)"
-                )
+                    f"AppleScript execution timeout ({timeout.total_seconds()}s)",
+                ),
             )
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"AppleScript execution error: {str(e)}")
+                KMError.execution_error(f"AppleScript execution error: {e!s}"),
             )
 
     def _escape_applescript_string(self, value: str) -> str:

@@ -1,5 +1,4 @@
-"""
-Safe Menu Navigation with Accessibility API Integration
+"""Safe Menu Navigation with Accessibility API Integration.
 
 Provides comprehensive menu automation with security validation,
 path-based navigation, and robust error handling.
@@ -16,13 +15,16 @@ from ..core.contracts import require
 from ..core.types import Duration
 from ..integration.km_client import Either, KMError
 
+# Module-level constants for default values to avoid B008
+_DEFAULT_MENU_TIMEOUT = Duration.from_seconds(5)
+_DEFAULT_STRUCTURE_TIMEOUT = Duration.from_seconds(10)
+
 if TYPE_CHECKING:
     from .app_controller import AppIdentifier
 
 
 class MenuNavigator:
-    """
-    Safe menu navigation with accessibility API integration.
+    """Safe menu navigation with accessibility API integration.
 
     Provides comprehensive menu automation with:
     - Path-based menu navigation with validation
@@ -55,10 +57,9 @@ class MenuNavigator:
         self,
         app_id: AppIdentifier,
         menu_path: list[str],
-        timeout: Duration = Duration.from_seconds(5),
+        timeout: Duration | None = None,
     ) -> Either[KMError, bool]:
-        """
-        Navigate menu hierarchy with error recovery.
+        """Navigate menu hierarchy with error recovery.
 
         Security Features:
         - Menu path validation and sanitization
@@ -71,6 +72,10 @@ class MenuNavigator:
         - Security: Input validation and injection prevention
         - Performance: Menu structure caching with intelligent invalidation
         """
+        # Handle default timeout
+        if timeout is None:
+            timeout = _DEFAULT_MENU_TIMEOUT
+
         try:
             # Phase 1: Validate menu path
             validation_result = self._validate_menu_path(menu_path)
@@ -84,7 +89,9 @@ class MenuNavigator:
 
             # Phase 3: Navigate menu via AppleScript
             navigation_result = await self._navigate_applescript(
-                app_id, menu_path, timeout
+                app_id,
+                menu_path,
+                timeout,
             )
             if navigation_result.is_left():
                 return navigation_result
@@ -93,13 +100,12 @@ class MenuNavigator:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Menu navigation failed: {str(e)}")
+                KMError.execution_error(f"Menu navigation failed: {e!s}"),
             )
 
     @require(lambda menu_path: len(menu_path) > 0)
     def _validate_menu_path(self, menu_path: list[str]) -> Either[KMError, bool]:
-        """
-        Validate menu path for security and format.
+        """Validate menu path for security and format.
 
         Checks for:
         - Valid string format and length
@@ -109,8 +115,8 @@ class MenuNavigator:
         if len(menu_path) > 10:  # Reasonable depth limit
             return Either.left(
                 KMError.validation_error(
-                    f"Menu path too deep (max 10): {len(menu_path)}"
-                )
+                    f"Menu path too deep (max 10): {len(menu_path)}",
+                ),
             )
 
         for i, item in enumerate(menu_path):
@@ -118,28 +124,28 @@ class MenuNavigator:
             if not isinstance(item, str):
                 return Either.left(
                     KMError.validation_error(
-                        f"Menu item {i} must be string: {type(item)}"
-                    )
+                        f"Menu item {i} must be string: {type(item)}",
+                    ),
                 )
 
             if len(item) == 0:
                 return Either.left(
-                    KMError.validation_error(f"Menu item {i} cannot be empty")
+                    KMError.validation_error(f"Menu item {i} cannot be empty"),
                 )
 
             if len(item) > 100:
                 return Either.left(
                     KMError.validation_error(
-                        f"Menu item {i} too long (max 100): {len(item)}"
-                    )
+                        f"Menu item {i} too long (max 100): {len(item)}",
+                    ),
                 )
 
             # Security validation - check for dangerous characters
             if self._contains_dangerous_chars(item):
                 return Either.left(
                     KMError.validation_error(
-                        f"Menu item {i} contains dangerous characters: {item}"
-                    )
+                        f"Menu item {i} contains dangerous characters: {item}",
+                    ),
                 )
 
         return Either.right(True)
@@ -152,8 +158,8 @@ class MenuNavigator:
             if re.search(pattern, full_path, re.IGNORECASE):
                 return Either.left(
                     KMError.validation_error(
-                        f"Dangerous menu operation blocked: {pattern}"
-                    )
+                        f"Dangerous menu operation blocked: {pattern}",
+                    ),
                 )
 
         return Either.right(True)
@@ -179,10 +185,12 @@ class MenuNavigator:
         return any(char in menu_item for char in dangerous_chars)
 
     async def _navigate_applescript(
-        self, app_id: AppIdentifier, menu_path: list[str], timeout: Duration
+        self,
+        app_id: AppIdentifier,
+        menu_path: list[str],
+        timeout: Duration,
     ) -> Either[KMError, bool]:
-        """
-        Navigate menu via AppleScript UI automation.
+        """Navigate menu via AppleScript UI automation.
 
         Generates safe AppleScript with proper escaping and error handling.
         """
@@ -202,7 +210,7 @@ class MenuNavigator:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"AppleScript navigation failed: {str(e)}")
+                KMError.execution_error(f"AppleScript navigation failed: {e!s}"),
             )
 
     def _escape_applescript_string(self, value: str) -> str:
@@ -220,7 +228,9 @@ class MenuNavigator:
         return value
 
     def _build_menu_script(
-        self, app_id: AppIdentifier, escaped_items: list[str]
+        self,
+        app_id: AppIdentifier,
+        escaped_items: list[str],
     ) -> str:
         """Build AppleScript for menu navigation."""
         app_name = self._escape_applescript_string(app_id.display_name())
@@ -230,7 +240,7 @@ class MenuNavigator:
         for item in escaped_items:
             menu_access = f'menu "{item}" of {menu_access}'
 
-        script = f'''
+        script = f"""
         tell application "System Events"
             try
                 tell application "{app_name}" to activate
@@ -245,12 +255,14 @@ class MenuNavigator:
                 return "ERROR: " & errorMessage
             end try
         end tell
-        '''
+        """
 
         return script
 
     async def _execute_menu_script(
-        self, script: str, timeout: Duration
+        self,
+        script: str,
+        timeout: Duration,
     ) -> Either[KMError, bool]:
         """Execute menu navigation script with timeout."""
         try:
@@ -266,7 +278,8 @@ class MenuNavigator:
             # Wait for completion with timeout
             try:
                 stdout, stderr = await asyncio.wait_for(
-                    process.communicate(), timeout=timeout.total_seconds()
+                    process.communicate(),
+                    timeout=timeout.total_seconds(),
                 )
             except asyncio.TimeoutError:
                 # Kill the process if it times out
@@ -278,7 +291,7 @@ class MenuNavigator:
             if process.returncode != 0:
                 error_msg = stderr.decode().strip() if stderr else "Unknown error"
                 return Either.left(
-                    KMError.execution_error(f"Menu script failed: {error_msg}")
+                    KMError.execution_error(f"Menu script failed: {error_msg}"),
                 )
 
             result = stdout.decode().strip()
@@ -289,7 +302,7 @@ class MenuNavigator:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Script execution failed: {str(e)}")
+                KMError.execution_error(f"Script execution failed: {e!s}"),
             )
 
     def _find_menu_item(self, menu_name: str, parent_menu: Any) -> Any | None:
@@ -305,13 +318,18 @@ class MenuNavigator:
         return True
 
     async def get_menu_structure(
-        self, app_id: AppIdentifier, timeout: Duration = Duration.from_seconds(10)
+        self,
+        app_id: AppIdentifier,
+        timeout: Duration | None = None,
     ) -> Either[KMError, dict[str, Any]]:
-        """
-        Get application menu structure for inspection.
+        """Get application menu structure for inspection.
 
         Returns hierarchical menu structure for analysis and validation.
         """
+        # Handle default timeout
+        if timeout is None:
+            timeout = _DEFAULT_STRUCTURE_TIMEOUT
+
         try:
             # This would query the application's menu structure
             # via accessibility APIs or AppleScript
@@ -328,10 +346,10 @@ class MenuNavigator:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Menu structure query failed: {str(e)}")
+                KMError.execution_error(f"Menu structure query failed: {e!s}"),
             )
 
-    def clear_menu_cache(self, app_id: AppIdentifier | None = None):
+    def clear_menu_cache(self, app_id: AppIdentifier | None = None) -> bool:
         """Clear menu structure cache."""
         if app_id:
             cache_key = app_id.primary_identifier()

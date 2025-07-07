@@ -1,5 +1,4 @@
-"""
-Autonomous systems type definitions and data structures for self-managing automation agents.
+"""Autonomous systems type definitions and data structures for self-managing automation agents.
 
 This module provides comprehensive type safety and data structures for autonomous agents,
 goal management, learning systems, and decision-making with enterprise-grade security
@@ -26,43 +25,29 @@ from ..core.errors import ValidationError
 class AgentId(str):
     """Unique identifier for autonomous agents."""
 
-    pass
-
 
 class GoalId(str):
     """Unique identifier for agent goals."""
-
-    pass
 
 
 class ActionId(str):
     """Unique identifier for agent actions."""
 
-    pass
-
 
 class ExperienceId(str):
     """Unique identifier for learning experiences."""
-
-    pass
 
 
 class ConfidenceScore(float):
     """Confidence score between 0.0 and 1.0."""
 
-    pass
-
 
 class RiskScore(float):
     """Risk score between 0.0 and 1.0."""
 
-    pass
-
 
 class PerformanceMetric(float):
     """Performance metric value."""
-
-    pass
 
 
 class AgentType(Enum):
@@ -195,9 +180,9 @@ class AgentGoal:
             time_remaining = (self.deadline - datetime.now(UTC)).total_seconds()
             if time_remaining <= 0:
                 return ConfidenceScore(1.0)  # Overdue goals get maximum urgency
-            elif time_remaining < 3600:  # Less than 1 hour
+            if time_remaining < 3600:  # Less than 1 hour
                 return ConfidenceScore(min(1.0, base_score * 1.5))
-            elif time_remaining < 86400:  # Less than 1 day
+            if time_remaining < 86400:  # Less than 1 day
                 return ConfidenceScore(min(1.0, base_score * 1.2))
 
         return ConfidenceScore(base_score)
@@ -243,10 +228,10 @@ class AgentAction:
     def __post_init__(self):
         pass
 
-    def is_high_confidence(
-        self, threshold: ConfidenceScore = ConfidenceScore(0.8)
-    ) -> bool:
+    def is_high_confidence(self, threshold: ConfidenceScore | None = None) -> bool:
         """Check if action has high confidence."""
+        if threshold is None:
+            threshold = ConfidenceScore(0.8)
         return self.confidence >= threshold
 
     def get_risk_score(self) -> RiskScore:
@@ -432,13 +417,17 @@ class AutonomousAgentError(ValidationError):
     @classmethod
     def invalid_goal_constraints(cls) -> AutonomousAgentError:
         return cls(
-            "goal_constraints", None, "Goal constraints are invalid or conflicting"
+            "goal_constraints",
+            None,
+            "Goal constraints are invalid or conflicting",
         )
 
     @classmethod
     def conflicting_goals(cls, conflicts: list[str]) -> AutonomousAgentError:
         return cls(
-            "goal_conflicts", conflicts, f"Goals conflict: {', '.join(conflicts)}"
+            "goal_conflicts",
+            conflicts,
+            f"Goals conflict: {', '.join(conflicts)}",
         )
 
     @classmethod
@@ -447,7 +436,9 @@ class AutonomousAgentError(ValidationError):
 
     @classmethod
     def action_too_risky(
-        cls, risk_score: RiskScore, max_risk: RiskScore
+        cls,
+        risk_score: RiskScore,
+        max_risk: RiskScore,
     ) -> AutonomousAgentError:
         return cls(
             "risk_score",
@@ -457,7 +448,10 @@ class AutonomousAgentError(ValidationError):
 
     @classmethod
     def resource_limit_exceeded(
-        cls, resource: str, usage: float, limit: float
+        cls,
+        resource: str,
+        usage: float,
+        limit: float,
     ) -> AutonomousAgentError:
         return cls(
             "resource_usage",
@@ -468,7 +462,9 @@ class AutonomousAgentError(ValidationError):
     @classmethod
     def initialization_failed(cls, reason: str) -> AutonomousAgentError:
         return cls(
-            "agent_initialization", None, f"Agent initialization failed: {reason}"
+            "agent_initialization",
+            None,
+            f"Agent initialization failed: {reason}",
         )
 
     @classmethod
@@ -482,13 +478,17 @@ class AutonomousAgentError(ValidationError):
     @classmethod
     def dangerous_goal_detected(cls) -> AutonomousAgentError:
         return cls(
-            "goal_safety", None, "Goal contains potentially dangerous operations"
+            "goal_safety",
+            None,
+            "Goal contains potentially dangerous operations",
         )
 
     @classmethod
     def manual_mode_action_blocked(cls) -> AutonomousAgentError:
         return cls(
-            "autonomy_level", "manual", "Autonomous actions blocked in manual mode"
+            "autonomy_level",
+            "manual",
+            "Autonomous actions blocked in manual mode",
         )
 
     @classmethod
@@ -498,7 +498,9 @@ class AutonomousAgentError(ValidationError):
     @classmethod
     def recovery_in_progress(cls) -> AutonomousAgentError:
         return cls(
-            "recovery_status", "in_progress", "Recovery operation already in progress"
+            "recovery_status",
+            "in_progress",
+            "Recovery operation already in progress",
         )
 
     @classmethod
@@ -573,5 +575,6 @@ DEFAULT_AGENT_CONFIGS = {
 def get_default_config(agent_type: AgentType) -> AgentConfiguration:
     """Get default configuration for agent type."""
     return DEFAULT_AGENT_CONFIGS.get(
-        agent_type, DEFAULT_AGENT_CONFIGS[AgentType.GENERAL]
+        agent_type,
+        DEFAULT_AGENT_CONFIGS[AgentType.GENERAL],
     )

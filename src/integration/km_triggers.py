@@ -1,5 +1,4 @@
-"""
-Keyboard Maestro trigger integration layer.
+"""Keyboard Maestro trigger integration layer.
 
 This module handles the integration between advanced trigger specifications and
 Keyboard Maestro's trigger system, generating appropriate XML and AppleScript
@@ -46,8 +45,7 @@ class KMTriggerIntegrator:
         trigger_spec: TriggerSpec,
         replace_existing: bool = False,
     ) -> Either[IntegrationError, dict[str, Any]]:
-        """
-        Add an advanced trigger to a Keyboard Maestro macro.
+        """Add an advanced trigger to a Keyboard Maestro macro.
 
         Args:
             macro_id: Target macro identifier
@@ -56,6 +54,7 @@ class KMTriggerIntegrator:
 
         Returns:
             Either integration error or success details
+
         """
         try:
             logger.info(f"Adding trigger {trigger_spec.trigger_id} to macro {macro_id}")
@@ -66,7 +65,7 @@ class KMTriggerIntegrator:
                     IntegrationError(
                         "UNSUPPORTED_TRIGGER",
                         f"Trigger type {trigger_spec.trigger_type.value} is not supported",
-                    )
+                    ),
                 )
 
             # Generate trigger XML
@@ -76,14 +75,16 @@ class KMTriggerIntegrator:
                     IntegrationError(
                         "XML_GENERATION_FAILED",
                         f"Failed to generate trigger XML: {xml_result.get_left().message}",
-                    )
+                    ),
                 )
 
             trigger_xml = xml_result.get_right()
 
             # Generate AppleScript for trigger registration
             applescript_result = self._generate_trigger_applescript(
-                macro_id, trigger_xml, replace_existing
+                macro_id,
+                trigger_xml,
+                replace_existing,
             )
             if applescript_result.is_left():
                 return Either.left(applescript_result.get_left())
@@ -102,28 +103,30 @@ class KMTriggerIntegrator:
                 "xml_generated": True,
                 "applescript_executed": True,
                 "integration_time_ms": execution_result.get_right().get(
-                    "execution_time_ms", 0
+                    "execution_time_ms",
+                    0,
                 ),
                 "km_trigger_id": f"km_trigger_{trigger_spec.trigger_id[:8]}",
                 "created_at": datetime.now().isoformat(),
             }
 
             logger.info(
-                f"Successfully added trigger {trigger_spec.trigger_id} to macro {macro_id}"
+                f"Successfully added trigger {trigger_spec.trigger_id} to macro {macro_id}",
             )
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Error adding trigger to macro {macro_id}: {str(e)}")
+            logger.error(f"Error adding trigger to macro {macro_id}: {e!s}")
             return Either.left(
                 IntegrationError(
                     "TRIGGER_INTEGRATION_ERROR",
-                    f"Failed to integrate trigger: {str(e)}",
-                )
+                    f"Failed to integrate trigger: {e!s}",
+                ),
             )
 
     def _generate_trigger_xml(
-        self, trigger_spec: TriggerSpec
+        self,
+        trigger_spec: TriggerSpec,
     ) -> Either[SecurityError, str]:
         """Generate Keyboard Maestro trigger XML."""
         try:
@@ -163,8 +166,9 @@ class KMTriggerIntegrator:
         except Exception as e:
             return Either.left(
                 SecurityError(
-                    "XML_GENERATION_ERROR", f"Failed to generate secure XML: {str(e)}"
-                )
+                    "XML_GENERATION_ERROR",
+                    f"Failed to generate secure XML: {e!s}",
+                ),
             )
 
     def _map_trigger_type(self, trigger_type: TriggerType) -> str:
@@ -183,7 +187,9 @@ class KMTriggerIntegrator:
         return mapping.get(trigger_type, "unknown")
 
     def _add_trigger_config(
-        self, root: ET.Element, trigger_spec: TriggerSpec
+        self,
+        root: ET.Element,
+        trigger_spec: TriggerSpec,
     ) -> Either[SecurityError, None]:
         """Add trigger-specific configuration to XML."""
         try:
@@ -215,8 +221,8 @@ class KMTriggerIntegrator:
             return Either.left(
                 SecurityError(
                     "CONFIG_GENERATION_ERROR",
-                    f"Failed to generate trigger configuration: {str(e)}",
-                )
+                    f"Failed to generate trigger configuration: {e!s}",
+                ),
             )
 
     def _add_time_config(self, root: ET.Element, config: dict[str, Any]) -> None:
@@ -299,7 +305,10 @@ class KMTriggerIntegrator:
         return text
 
     def _generate_trigger_applescript(
-        self, macro_id: MacroId, trigger_xml: str, replace_existing: bool
+        self,
+        macro_id: MacroId,
+        trigger_xml: str,
+        replace_existing: bool,
     ) -> Either[IntegrationError, str]:
         """Generate AppleScript for trigger registration."""
         try:
@@ -309,7 +318,7 @@ class KMTriggerIntegrator:
             # Escape macro ID
             escaped_macro_id = str(macro_id).replace('"', '\\"')
 
-            applescript = f'''
+            applescript = f"""
 tell application "Keyboard Maestro Engine"
     try
         set targetMacro to macro "{escaped_macro_id}"
@@ -326,7 +335,7 @@ tell application "Keyboard Maestro Engine"
         return "ERROR: " & errorMessage
     end try
 end tell
-'''
+"""
 
             return Either.right(applescript)
 
@@ -334,12 +343,13 @@ end tell
             return Either.left(
                 IntegrationError(
                     "APPLESCRIPT_GENERATION_ERROR",
-                    f"Failed to generate AppleScript: {str(e)}",
-                )
+                    f"Failed to generate AppleScript: {e!s}",
+                ),
             )
 
     async def _execute_applescript(
-        self, applescript: str
+        self,
+        applescript: str,
     ) -> Either[IntegrationError, dict[str, Any]]:
         """Execute AppleScript for trigger integration."""
         # Simulated execution for now - in production this would use osascript
@@ -365,12 +375,13 @@ end tell
             return Either.left(
                 IntegrationError(
                     "APPLESCRIPT_EXECUTION_ERROR",
-                    f"Failed to execute AppleScript: {str(e)}",
-                )
+                    f"Failed to execute AppleScript: {e!s}",
+                ),
             )
 
     def validate_trigger_compatibility(
-        self, trigger_spec: TriggerSpec
+        self,
+        trigger_spec: TriggerSpec,
     ) -> Either[IntegrationError, None]:
         """Validate that trigger is compatible with Keyboard Maestro."""
         if trigger_spec.trigger_type not in self.supported_triggers:
@@ -378,7 +389,7 @@ end tell
                 IntegrationError(
                     "UNSUPPORTED_TRIGGER_TYPE",
                     f"Trigger type {trigger_spec.trigger_type.value} is not supported by Keyboard Maestro",
-                )
+                ),
             )
 
         # Validate configuration completeness
@@ -396,7 +407,7 @@ end tell
                     IntegrationError(
                         "INCOMPLETE_TIME_CONFIG",
                         "Time trigger requires schedule_time, recurring_interval, or recurring_pattern",
-                    )
+                    ),
                 )
 
         elif trigger_spec.trigger_type in [
@@ -406,8 +417,9 @@ end tell
             if "watch_path" not in config:
                 return Either.left(
                     IntegrationError(
-                        "INCOMPLETE_FILE_CONFIG", "File trigger requires watch_path"
-                    )
+                        "INCOMPLETE_FILE_CONFIG",
+                        "File trigger requires watch_path",
+                    ),
                 )
 
         elif trigger_spec.trigger_type in [
@@ -418,7 +430,7 @@ end tell
                 IntegrationError(
                     "INCOMPLETE_APP_CONFIG",
                     "App trigger requires app_bundle_id or app_name",
-                )
+                ),
             )
 
         return Either.right(None)
@@ -433,12 +445,13 @@ def create_km_scheduled_trigger(macro_id: MacroId, when: datetime) -> TriggerSpe
 
     if result.is_right():
         return result.get_right()
-    else:
-        raise ValueError(f"Failed to create trigger: {result.get_left().constraint}")
+    raise ValueError(f"Failed to create trigger: {result.get_left().constraint}")
 
 
 def create_km_file_watcher(
-    macro_id: MacroId, watch_path: str, pattern: str | None = None
+    macro_id: MacroId,
+    watch_path: str,
+    pattern: str | None = None,
 ) -> TriggerSpec:
     """Create a KM-compatible file watcher trigger."""
     from src.core.triggers import TriggerBuilder
@@ -452,12 +465,13 @@ def create_km_file_watcher(
 
     if result.is_right():
         return result.get_right()
-    else:
-        raise ValueError(f"Failed to create trigger: {result.get_left().constraint}")
+    raise ValueError(f"Failed to create trigger: {result.get_left().constraint}")
 
 
 def create_km_app_trigger(
-    macro_id: MacroId, app_id: str, on_launch: bool = True
+    macro_id: MacroId,
+    app_id: str,
+    on_launch: bool = True,
 ) -> TriggerSpec:
     """Create a KM-compatible application trigger."""
     from src.core.triggers import TriggerBuilder
@@ -472,5 +486,4 @@ def create_km_app_trigger(
 
     if result.is_right():
         return result.get_right()
-    else:
-        raise ValueError(f"Failed to create trigger: {result.get_left().constraint}")
+    raise ValueError(f"Failed to create trigger: {result.get_left().constraint}")

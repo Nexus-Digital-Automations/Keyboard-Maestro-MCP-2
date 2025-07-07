@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for API orchestration tools module.
+"""Comprehensive tests for API orchestration tools module.
 
 Tests cover API workflow orchestration, service mesh management, microservices
 coordination, health monitoring, and integration with property-based testing.
@@ -25,28 +24,28 @@ km_monitor_api_health = api_orch.km_monitor_api_health.fn
 
 # Test data generators
 @st.composite
-def orchestration_type_strategy(draw):
+def orchestration_type_strategy(draw) -> Any:
     """Generate valid orchestration types."""
     types = ["sequential", "parallel", "conditional", "pipeline", "scatter_gather"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def error_handling_strategy(draw):
+def error_handling_strategy(draw) -> None:
     """Generate valid error handling strategies."""
     strategies = ["fail_fast", "continue", "retry"]
     return draw(st.sampled_from(strategies))
 
 
 @st.composite
-def api_sequence_strategy(draw):
+def api_sequence_strategy(draw) -> Any:
     """Generate valid API sequence configurations."""
     return draw(
         st.lists(
             st.fixed_dictionaries(
                 {
                     "service_name": st.text(min_size=3, max_size=20).filter(
-                        lambda x: x.isalnum()
+                        lambda x: x.isalnum(),
                     ),
                     "name": st.text(min_size=5, max_size=30),
                     "endpoint_id": st.text(min_size=5, max_size=25),
@@ -63,7 +62,9 @@ def api_sequence_strategy(draw):
                         max_size=3,
                     ),
                     "conditions": st.lists(
-                        st.text(min_size=3, max_size=15), min_size=0, max_size=2
+                        st.text(min_size=3, max_size=15),
+                        min_size=0,
+                        max_size=2,
                     ),
                     "metadata": st.dictionaries(
                         st.text(min_size=1, max_size=10),
@@ -71,37 +72,37 @@ def api_sequence_strategy(draw):
                         min_size=0,
                         max_size=2,
                     ),
-                }
+                },
             ),
             min_size=1,
             max_size=5,
-        )
+        ),
     )
 
 
 @st.composite
-def service_mesh_operation_strategy(draw):
+def service_mesh_operation_strategy(draw) -> Any:
     """Generate valid service mesh operations."""
     operations = ["configure", "monitor", "route", "secure"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def coordination_type_strategy(draw):
+def coordination_type_strategy(draw) -> Any:
     """Generate valid coordination types."""
     types = ["discovery", "communication", "dependency", "health"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def monitoring_scope_strategy(draw):
+def monitoring_scope_strategy(draw) -> Any:
     """Generate valid monitoring scopes."""
     scopes = ["gateway", "services", "endpoints", "workflows"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def service_names_strategy(draw):
+def service_names_strategy(draw) -> Any:
     """Generate valid service names."""
     service_names = [
         "auth-service",
@@ -112,12 +113,12 @@ def service_names_strategy(draw):
         "data-service",
     ]
     return draw(
-        st.lists(st.sampled_from(service_names), min_size=1, max_size=4, unique=True)
+        st.lists(st.sampled_from(service_names), min_size=1, max_size=4, unique=True),
     )
 
 
 @st.composite
-def health_metrics_strategy(draw):
+def health_metrics_strategy(draw) -> Any:
     """Generate valid health metrics."""
     metrics = [
         "response_time",
@@ -131,7 +132,7 @@ def health_metrics_strategy(draw):
 
 
 @st.composite
-def load_balancing_strategy_names(draw):
+def load_balancing_strategy_names(draw) -> None:
     """Generate valid load balancing strategy names."""
     strategies = [
         "round_robin",
@@ -144,7 +145,7 @@ def load_balancing_strategy_names(draw):
 
 
 @st.composite
-def failover_strategy_names(draw):
+def failover_strategy_names(draw) -> Any:
     """Generate valid failover strategy names."""
     strategies = ["none", "circuit_breaker", "retry", "fallback"]
     return draw(st.sampled_from(strategies))
@@ -153,20 +154,16 @@ def failover_strategy_names(draw):
 class TestAPIOrchestrationDependencies:
     """Test API orchestration dependencies and imports."""
 
-    def test_api_orchestration_imports(self):
+    def test_api_orchestration_imports(self) -> None:
         """Test importing API orchestration dependencies."""
         try:
             from src.api.api_gateway import APIGateway
             from src.api.service_coordinator import ServiceCoordinator
             from src.core.api_orchestration_architecture import (
-                APIEndpoint,
                 OrchestrationStrategy,
-                OrchestrationWorkflow,
-                ServiceDefinition,
                 ServiceId,
                 ServiceMeshType,
                 WorkflowId,
-                WorkflowStep,
             )
 
             # Test basic creation
@@ -186,7 +183,7 @@ class TestAPIOrchestrationParameterValidation:
     """Test API orchestration parameter validation."""
 
     @given(orchestration_type_strategy())
-    def test_valid_orchestration_types(self, orchestration_type: str):
+    def test_valid_orchestration_types(self, orchestration_type: str) -> None:
         """Test that valid orchestration types are accepted."""
         valid_types = [
             "sequential",
@@ -198,37 +195,37 @@ class TestAPIOrchestrationParameterValidation:
         assert orchestration_type in valid_types
 
     @given(error_handling_strategy())
-    def test_valid_error_handling_strategies(self, strategy: str):
+    def test_valid_error_handling_strategies(self, strategy: str) -> None:
         """Test that valid error handling strategies are accepted."""
         valid_strategies = ["fail_fast", "continue", "retry"]
         assert strategy in valid_strategies
 
     @given(service_mesh_operation_strategy())
-    def test_valid_service_mesh_operations(self, operation: str):
+    def test_valid_service_mesh_operations(self, operation: str) -> None:
         """Test that valid service mesh operations are accepted."""
         valid_operations = ["configure", "monitor", "route", "secure"]
         assert operation in valid_operations
 
     @given(coordination_type_strategy())
-    def test_valid_coordination_types(self, coordination_type: str):
+    def test_valid_coordination_types(self, coordination_type: str) -> None:
         """Test that valid coordination types are accepted."""
         valid_types = ["discovery", "communication", "dependency", "health"]
         assert coordination_type in valid_types
 
     @given(monitoring_scope_strategy())
-    def test_valid_monitoring_scopes(self, scope: str):
+    def test_valid_monitoring_scopes(self, scope: str) -> None:
         """Test that valid monitoring scopes are accepted."""
         valid_scopes = ["gateway", "services", "endpoints", "workflows"]
         assert scope in valid_scopes
 
     @given(service_names_strategy())
-    def test_service_names_validation(self, service_names: list[str]):
+    def test_service_names_validation(self, service_names: list[str]) -> None:
         """Test service names list validation."""
         assert len(service_names) > 0
         assert all(isinstance(name, str) for name in service_names)
         assert len(set(service_names)) == len(service_names)  # Unique names
 
-    def test_invalid_orchestration_types(self):
+    def test_invalid_orchestration_types(self) -> None:
         """Test that invalid orchestration types are rejected."""
         invalid_types = ["invalid", "unknown", "", "async", "sync"]
         valid_types = [
@@ -246,20 +243,20 @@ class TestAPIOrchestrationMocked:
     """Test API orchestration operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_orchestrate_apis_success(self):
+    async def test_km_orchestrate_apis_success(self) -> None:
         """Test successful API orchestration workflow."""
         with (
             patch(
-                "src.server.tools.api_orchestration_tools.service_coordinator"
+                "src.server.tools.api_orchestration_tools.service_coordinator",
             ) as mock_coordinator,
             patch(
-                "src.server.tools.api_orchestration_tools.OrchestrationStrategy"
+                "src.server.tools.api_orchestration_tools.OrchestrationStrategy",
             ) as mock_strategy,
             patch(
-                "src.server.tools.api_orchestration_tools.create_workflow_id"
+                "src.server.tools.api_orchestration_tools.create_workflow_id",
             ) as mock_create_workflow_id,
             patch(
-                "src.server.tools.api_orchestration_tools.create_service_id"
+                "src.server.tools.api_orchestration_tools.create_service_id",
             ) as mock_create_service_id,
         ):
             # Setup mocks for successful orchestration
@@ -325,13 +322,13 @@ class TestAPIOrchestrationMocked:
             assert "orchestration_id" in result
 
     @pytest.mark.asyncio
-    async def test_km_orchestrate_apis_invalid_type(self):
+    async def test_km_orchestrate_apis_invalid_type(self) -> None:
         """Test API orchestration with invalid orchestration type."""
         # Execute with invalid orchestration type
         result = await km_orchestrate_apis(
             workflow_name="test_workflow",
             api_sequence=[
-                {"service_name": "test", "name": "Test", "endpoint_id": "test"}
+                {"service_name": "test", "name": "Test", "endpoint_id": "test"},
             ],
             orchestration_type="invalid_type",
         )
@@ -342,17 +339,17 @@ class TestAPIOrchestrationMocked:
         assert "invalid_type" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_km_orchestrate_apis_execution_error(self):
+    async def test_km_orchestrate_apis_execution_error(self) -> None:
         """Test API orchestration with execution error."""
         with (
             patch(
-                "src.server.tools.api_orchestration_tools.service_coordinator"
+                "src.server.tools.api_orchestration_tools.service_coordinator",
             ) as mock_coordinator,
             patch(
-                "src.server.tools.api_orchestration_tools.OrchestrationStrategy"
+                "src.server.tools.api_orchestration_tools.OrchestrationStrategy",
             ) as mock_strategy,
             patch(
-                "src.server.tools.api_orchestration_tools.create_workflow_id"
+                "src.server.tools.api_orchestration_tools.create_workflow_id",
             ) as mock_create_workflow_id,
         ):
             # Setup mocks for execution error
@@ -364,7 +361,7 @@ class TestAPIOrchestrationMocked:
             mock_error_result.error = "Workflow execution failed"
 
             mock_coordinator.execute_workflow = AsyncMock(
-                return_value=mock_error_result
+                return_value=mock_error_result,
             )
 
             # Execute API orchestration that should fail
@@ -375,7 +372,7 @@ class TestAPIOrchestrationMocked:
                         "service_name": "failing_service",
                         "name": "Failing API",
                         "endpoint_id": "fail",
-                    }
+                    },
                 ],
                 orchestration_type="sequential",
             )
@@ -390,14 +387,14 @@ class TestServiceMeshManagementMocked:
     """Test service mesh management operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_manage_service_mesh_configure(self):
+    async def test_km_manage_service_mesh_configure(self) -> None:
         """Test successful service mesh configuration."""
         with (
             patch(
-                "src.server.tools.api_orchestration_tools.create_service_id"
+                "src.server.tools.api_orchestration_tools.create_service_id",
             ) as mock_create_service_id,
             patch(
-                "src.server.tools.api_orchestration_tools.ServiceMeshType"
+                "src.server.tools.api_orchestration_tools.ServiceMeshType",
             ) as mock_mesh_type,
         ):
             # Setup mocks for configuration
@@ -431,16 +428,18 @@ class TestServiceMeshManagementMocked:
             assert result["load_balancing_strategy"] == "round_robin"
 
     @pytest.mark.asyncio
-    async def test_km_manage_service_mesh_monitor(self):
+    async def test_km_manage_service_mesh_monitor(self) -> None:
         """Test service mesh monitoring operation."""
         with patch(
-            "src.server.tools.api_orchestration_tools.create_service_id"
+            "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
             mock_create_service_id.return_value = "monitor_service_001"
 
             # Execute service mesh monitoring
             result = await km_manage_service_mesh(
-                operation="monitor", service_name="payment_service", observability=True
+                operation="monitor",
+                service_name="payment_service",
+                observability=True,
             )
 
             # Verify successful monitoring
@@ -454,10 +453,10 @@ class TestServiceMeshManagementMocked:
             assert "recommendations" in result
 
     @pytest.mark.asyncio
-    async def test_km_manage_service_mesh_route(self):
+    async def test_km_manage_service_mesh_route(self) -> None:
         """Test service mesh routing configuration."""
         with patch(
-            "src.server.tools.api_orchestration_tools.create_service_id"
+            "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
             mock_create_service_id.return_value = "route_service_001"
 
@@ -486,10 +485,10 @@ class TestServiceMeshManagementMocked:
             assert "traffic_distribution" in result
 
     @pytest.mark.asyncio
-    async def test_km_manage_service_mesh_secure(self):
+    async def test_km_manage_service_mesh_secure(self) -> None:
         """Test service mesh security configuration."""
         with patch(
-            "src.server.tools.api_orchestration_tools.create_service_id"
+            "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
             mock_create_service_id.return_value = "secure_service_001"
 
@@ -514,11 +513,12 @@ class TestServiceMeshManagementMocked:
             assert result["vulnerabilities"] == []
 
     @pytest.mark.asyncio
-    async def test_km_manage_service_mesh_invalid_operation(self):
+    async def test_km_manage_service_mesh_invalid_operation(self) -> None:
         """Test service mesh management with invalid operation."""
         # Execute with invalid operation
         result = await km_manage_service_mesh(
-            operation="invalid_operation", service_name="test_service"
+            operation="invalid_operation",
+            service_name="test_service",
         )
 
         # Verify invalid operation error
@@ -531,13 +531,13 @@ class TestMicroservicesCoordinationMocked:
     """Test microservices coordination operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_coordinate_microservices_discovery(self):
+    async def test_km_coordinate_microservices_discovery(self) -> None:
         """Test microservices discovery coordination."""
         with patch(
-            "src.server.tools.api_orchestration_tools.create_service_id"
+            "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
             # Setup service ID creation
-            def create_service_id_side_effect(name):
+            def create_service_id_side_effect(name) -> None:
                 return f"service_{name.replace('-', '_')}"
 
             mock_create_service_id.side_effect = create_service_id_side_effect
@@ -561,13 +561,13 @@ class TestMicroservicesCoordinationMocked:
             assert "last_discovery" in result
 
     @pytest.mark.asyncio
-    async def test_km_coordinate_microservices_communication(self):
+    async def test_km_coordinate_microservices_communication(self) -> None:
         """Test microservices communication coordination."""
         with patch(
-            "src.server.tools.api_orchestration_tools.create_service_id"
+            "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
 
-            def create_service_id_side_effect(name):
+            def create_service_id_side_effect(name) -> None:
                 return f"comm_{name.replace('-', '_')}"
 
             mock_create_service_id.side_effect = create_service_id_side_effect
@@ -588,13 +588,13 @@ class TestMicroservicesCoordinationMocked:
             assert result["communication_health"] == "optimal"
 
     @pytest.mark.asyncio
-    async def test_km_coordinate_microservices_dependency(self):
+    async def test_km_coordinate_microservices_dependency(self) -> None:
         """Test microservices dependency coordination."""
         with patch(
-            "src.server.tools.api_orchestration_tools.create_service_id"
+            "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
 
-            def create_service_id_side_effect(name):
+            def create_service_id_side_effect(name) -> None:
                 return f"dep_{name.replace('-', '_')}"
 
             mock_create_service_id.side_effect = create_service_id_side_effect
@@ -619,13 +619,13 @@ class TestMicroservicesCoordinationMocked:
             assert result["circular_dependencies_detected"] is False
 
     @pytest.mark.asyncio
-    async def test_km_coordinate_microservices_health(self):
+    async def test_km_coordinate_microservices_health(self) -> None:
         """Test microservices health coordination."""
         with patch(
-            "src.server.tools.api_orchestration_tools.create_service_id"
+            "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
 
-            def create_service_id_side_effect(name):
+            def create_service_id_side_effect(name) -> None:
                 return f"health_{name.replace('-', '_')}"
 
             mock_create_service_id.side_effect = create_service_id_side_effect
@@ -647,11 +647,12 @@ class TestMicroservicesCoordinationMocked:
             assert result["unhealthy_services"] == []
 
     @pytest.mark.asyncio
-    async def test_km_coordinate_microservices_invalid_type(self):
+    async def test_km_coordinate_microservices_invalid_type(self) -> None:
         """Test microservices coordination with invalid type."""
         # Execute with invalid coordination type
         result = await km_coordinate_microservices(
-            coordination_type="invalid_type", services=["test_service"]
+            coordination_type="invalid_type",
+            services=["test_service"],
         )
 
         # Verify invalid type error
@@ -664,10 +665,10 @@ class TestAPIHealthMonitoringMocked:
     """Test API health monitoring operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_monitor_api_health_gateway(self):
+    async def test_km_monitor_api_health_gateway(self) -> None:
         """Test API health monitoring for gateway scope."""
         with patch(
-            "src.server.tools.api_orchestration_tools.api_gateway"
+            "src.server.tools.api_orchestration_tools.api_gateway",
         ) as mock_gateway:
             # Setup gateway health mocks
             mock_gateway.get_health_status.return_value = {"status": "healthy"}
@@ -698,7 +699,7 @@ class TestAPIHealthMonitoringMocked:
             assert result["monitoring_duration"] == 10
 
     @pytest.mark.asyncio
-    async def test_km_monitor_api_health_services(self):
+    async def test_km_monitor_api_health_services(self) -> None:
         """Test API health monitoring for services scope."""
         # Execute services health monitoring
         result = await km_monitor_api_health(
@@ -718,7 +719,7 @@ class TestAPIHealthMonitoringMocked:
         assert "total_alerts" in result
 
     @pytest.mark.asyncio
-    async def test_km_monitor_api_health_endpoints(self):
+    async def test_km_monitor_api_health_endpoints(self) -> None:
         """Test API health monitoring for endpoints scope."""
         # Execute endpoints health monitoring
         result = await km_monitor_api_health(
@@ -737,7 +738,7 @@ class TestAPIHealthMonitoringMocked:
         assert "overall_error_rate" in result
 
     @pytest.mark.asyncio
-    async def test_km_monitor_api_health_workflows(self):
+    async def test_km_monitor_api_health_workflows(self) -> None:
         """Test API health monitoring for workflows scope."""
         # Execute workflows health monitoring
         result = await km_monitor_api_health(
@@ -754,11 +755,12 @@ class TestAPIHealthMonitoringMocked:
         assert "performance_analytics" in result
 
     @pytest.mark.asyncio
-    async def test_km_monitor_api_health_invalid_scope(self):
+    async def test_km_monitor_api_health_invalid_scope(self) -> None:
         """Test API health monitoring with invalid scope."""
         # Execute with invalid monitoring scope
         result = await km_monitor_api_health(
-            monitoring_scope="invalid_scope", health_metrics=["response_time"]
+            monitoring_scope="invalid_scope",
+            health_metrics=["response_time"],
         )
 
         # Verify invalid scope error
@@ -771,10 +773,10 @@ class TestAPIOrchestrationErrorHandling:
     """Test API orchestration error handling."""
 
     @pytest.mark.asyncio
-    async def test_api_orchestration_system_error(self):
+    async def test_api_orchestration_system_error(self) -> None:
         """Test handling of system errors in API orchestration."""
         with patch(
-            "src.server.tools.api_orchestration_tools.OrchestrationStrategy"
+            "src.server.tools.api_orchestration_tools.OrchestrationStrategy",
         ) as mock_strategy:
             # Setup system error
             mock_strategy.side_effect = RuntimeError("System failure")
@@ -783,7 +785,7 @@ class TestAPIOrchestrationErrorHandling:
             result = await km_orchestrate_apis(
                 workflow_name="error_workflow",
                 api_sequence=[
-                    {"service_name": "test", "name": "Test", "endpoint_id": "test"}
+                    {"service_name": "test", "name": "Test", "endpoint_id": "test"},
                 ],
                 orchestration_type="sequential",
             )
@@ -794,19 +796,20 @@ class TestAPIOrchestrationErrorHandling:
             assert result["workflow_name"] == "error_workflow"
 
     @pytest.mark.asyncio
-    async def test_service_mesh_system_error(self):
+    async def test_service_mesh_system_error(self) -> None:
         """Test handling of system errors in service mesh management."""
         with patch(
-            "src.server.tools.api_orchestration_tools.create_service_id"
+            "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
             # Setup system error
             mock_create_service_id.side_effect = RuntimeError(
-                "Service ID creation failed"
+                "Service ID creation failed",
             )
 
             # Execute operation that should trigger system error
             result = await km_manage_service_mesh(
-                operation="configure", service_name="error_service"
+                operation="configure",
+                service_name="error_service",
             )
 
             # Verify system error handling
@@ -816,19 +819,20 @@ class TestAPIOrchestrationErrorHandling:
             assert result["service_name"] == "error_service"
 
     @pytest.mark.asyncio
-    async def test_microservices_coordination_system_error(self):
+    async def test_microservices_coordination_system_error(self) -> None:
         """Test handling of system errors in microservices coordination."""
         with patch(
-            "src.server.tools.api_orchestration_tools.create_service_id"
+            "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
             # Setup system error
             mock_create_service_id.side_effect = RuntimeError(
-                "Service coordination failed"
+                "Service coordination failed",
             )
 
             # Execute operation that should trigger system error
             result = await km_coordinate_microservices(
-                coordination_type="discovery", services=["error_service"]
+                coordination_type="discovery",
+                services=["error_service"],
             )
 
             # Verify system error handling
@@ -842,20 +846,20 @@ class TestAPIOrchestrationIntegration:
     """Integration tests for API orchestration operations."""
 
     @pytest.mark.asyncio
-    async def test_complete_api_orchestration_workflow(self):
+    async def test_complete_api_orchestration_workflow(self) -> None:
         """Test complete API orchestration workflow integration."""
         with (
             patch(
-                "src.server.tools.api_orchestration_tools.service_coordinator"
+                "src.server.tools.api_orchestration_tools.service_coordinator",
             ) as mock_coordinator,
             patch(
-                "src.server.tools.api_orchestration_tools.OrchestrationStrategy"
+                "src.server.tools.api_orchestration_tools.OrchestrationStrategy",
             ) as mock_strategy,
             patch(
-                "src.server.tools.api_orchestration_tools.create_workflow_id"
+                "src.server.tools.api_orchestration_tools.create_workflow_id",
             ) as mock_create_workflow_id,
             patch(
-                "src.server.tools.api_orchestration_tools.create_service_id"
+                "src.server.tools.api_orchestration_tools.create_service_id",
             ) as mock_create_service_id,
         ):
             # Setup mocks for complete workflow
@@ -934,7 +938,7 @@ class TestAPIOrchestrationIntegration:
             mock_coordinator.execute_workflow.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_api_orchestration_with_context(self):
+    async def test_api_orchestration_with_context(self) -> None:
         """Test API orchestration with FastMCP context integration."""
         mock_context = Mock()
         mock_context.info = AsyncMock()
@@ -942,13 +946,13 @@ class TestAPIOrchestrationIntegration:
 
         with (
             patch(
-                "src.server.tools.api_orchestration_tools.service_coordinator"
+                "src.server.tools.api_orchestration_tools.service_coordinator",
             ) as mock_coordinator,
             patch(
-                "src.server.tools.api_orchestration_tools.OrchestrationStrategy"
+                "src.server.tools.api_orchestration_tools.OrchestrationStrategy",
             ) as mock_strategy,
             patch(
-                "src.server.tools.api_orchestration_tools.create_workflow_id"
+                "src.server.tools.api_orchestration_tools.create_workflow_id",
             ) as mock_create_workflow_id,
         ):
             # Setup mocks for context testing
@@ -962,7 +966,7 @@ class TestAPIOrchestrationIntegration:
             mock_orchestration_result.end_time = datetime.now(UTC)
             mock_orchestration_result.total_duration_ms = 1800
             mock_orchestration_result.step_results = [
-                {"status": "success", "step_id": "step_1"}
+                {"status": "success", "step_id": "step_1"},
             ]
             mock_orchestration_result.performance_metrics = {}
             mock_orchestration_result.circuit_breaker_events = []
@@ -980,7 +984,7 @@ class TestAPIOrchestrationIntegration:
             result = await km_orchestrate_apis(
                 workflow_name="context_test_workflow",
                 api_sequence=[
-                    {"service_name": "test", "name": "Test", "endpoint_id": "test"}
+                    {"service_name": "test", "name": "Test", "endpoint_id": "test"},
                 ],
                 orchestration_type="sequential",
                 ctx=mock_context,
@@ -1010,7 +1014,7 @@ class TestAPIOrchestrationProperties:
         error_handling: str,
         service_names: list[str],
         health_metrics: list[str],
-    ):
+    ) -> None:
         """Property test for API orchestration parameter validation."""
         # Properties that should always hold
         valid_orchestration_types = [
@@ -1030,7 +1034,7 @@ class TestAPIOrchestrationProperties:
         assert all(isinstance(metric, str) for metric in health_metrics)
 
     @given(api_sequence_strategy())
-    def test_api_sequence_properties(self, api_sequence: list[dict[str, Any]]):
+    def test_api_sequence_properties(self, api_sequence: list[dict[str, Any]]) -> None:
         """Property test for API sequence validation."""
         # Properties that should always hold for API sequences
         assert isinstance(api_sequence, list)
@@ -1052,8 +1056,11 @@ class TestAPIOrchestrationProperties:
         failover_strategy_names(),
     )
     def test_microservices_coordination_properties(
-        self, coordination_type: str, service_names: list[str], failover_strategy: str
-    ):
+        self,
+        coordination_type: str,
+        service_names: list[str],
+        failover_strategy: str,
+    ) -> None:
         """Property test for microservices coordination validation."""
         # Properties that should always hold
         valid_coordination_types = [
@@ -1074,8 +1081,10 @@ class TestAPIOrchestrationProperties:
         st.integers(min_value=1, max_value=60),  # monitoring_duration
     )
     def test_health_monitoring_properties(
-        self, monitoring_scope: str, monitoring_duration: int
-    ):
+        self,
+        monitoring_scope: str,
+        monitoring_duration: int,
+    ) -> None:
         """Property test for health monitoring validation."""
         # Properties that should always hold
         valid_scopes = ["gateway", "services", "endpoints", "workflows"]
@@ -1084,7 +1093,7 @@ class TestAPIOrchestrationProperties:
         assert 1 <= monitoring_duration <= 60
 
     @given(load_balancing_strategy_names())
-    def test_load_balancing_strategy_properties(self, strategy: str):
+    def test_load_balancing_strategy_properties(self, strategy: str) -> None:
         """Property test for load balancing strategy validation."""
         valid_strategies = [
             "round_robin",
@@ -1095,7 +1104,7 @@ class TestAPIOrchestrationProperties:
         ]
         assert strategy in valid_strategies
 
-    def test_workflow_result_structure_properties(self):
+    def test_workflow_result_structure_properties(self) -> None:
         """Property test for workflow result structure."""
         # Mock result structure that should always be valid
         result_structure = {

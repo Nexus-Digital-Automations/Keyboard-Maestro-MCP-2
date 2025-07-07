@@ -1,5 +1,4 @@
-"""
-Optimization Modeler - TASK_59 Phase 4 Advanced Modeling Implementation
+"""Optimization Modeler - TASK_59 Phase 4 Advanced Modeling Implementation.
 
 Predictive optimization recommendations with simulation and trade-off analysis.
 Provides ML-powered optimization strategies, outcome simulation, and performance optimization.
@@ -220,7 +219,7 @@ class OptimizationModeler:
         self.optimization_templates: dict[OptimizationTarget, dict[str, Any]] = {}
         self._initialize_optimization_templates()
 
-    def _initialize_optimization_templates(self):
+    def _initialize_optimization_templates(self) -> None:
         """Initialize optimization templates for common targets."""
         self.optimization_templates[OptimizationTarget.PERFORMANCE] = {
             "variables": [
@@ -261,11 +260,11 @@ class OptimizationModeler:
 
     @require(lambda target_id: target_id is not None and target_id.strip() != "")
     @require(
-        lambda optimization_target: isinstance(optimization_target, OptimizationTarget)
+        lambda optimization_target: isinstance(optimization_target, OptimizationTarget),
     )
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.left_value, OptimizationError)
+        or isinstance(result.left_value, OptimizationError),
     )
     async def generate_optimization_recommendations(
         self,
@@ -280,12 +279,15 @@ class OptimizationModeler:
         try:
             # Get current performance baseline
             baseline = await self._get_performance_baseline(
-                target_id, optimization_scope
+                target_id,
+                optimization_scope,
             )
 
             # Set up optimization problem
             problem = await self._setup_optimization_problem(
-                optimization_target, constraints or [], variables or []
+                optimization_target,
+                constraints or [],
+                variables or [],
             )
 
             # Generate multiple optimization solutions
@@ -300,7 +302,11 @@ class OptimizationModeler:
 
             for method in methods:
                 solution = await self._solve_optimization_problem(
-                    problem, method, baseline, target_id, optimization_scope
+                    problem,
+                    method,
+                    baseline,
+                    target_id,
+                    optimization_scope,
                 )
                 if solution:
                     solutions.append(solution)
@@ -321,18 +327,20 @@ class OptimizationModeler:
                     "best_improvement": solutions[0].improvement_percentage
                     if solutions
                     else 0.0,
-                }
+                },
             )
 
             return Either.right(solutions[:5])  # Return top 5 solutions
 
         except Exception as e:
             return Either.left(
-                OptimizationError(f"Optimization recommendation failed: {str(e)}")
+                OptimizationError(f"Optimization recommendation failed: {e!s}"),
             )
 
     async def _get_performance_baseline(
-        self, target_id: str, optimization_scope: str
+        self,
+        target_id: str,
+        optimization_scope: str,
     ) -> dict[str, float]:
         """Get current performance baseline metrics."""
         # Simulate getting real performance data
@@ -397,7 +405,7 @@ class OptimizationModeler:
                     OptimizationTarget.RELIABILITY,
                 ]
                 else "minimize",
-            )
+            ),
         ]
 
         return {
@@ -446,7 +454,9 @@ class OptimizationModeler:
 
             # Calculate objective value and improvement
             objective_value = await self._evaluate_objective_function(
-                objectives[0], optimized_variables, baseline
+                objectives[0],
+                optimized_variables,
+                baseline,
             )
 
             baseline_value = baseline.get(objectives[0].target.value, 100.0)
@@ -456,7 +466,9 @@ class OptimizationModeler:
 
             # Calculate confidence based on method and problem complexity
             confidence_score = self._calculate_solution_confidence(
-                method, len(variables), improvement_percentage
+                method,
+                len(variables),
+                improvement_percentage,
             )
 
             # Analyze trade-offs
@@ -475,13 +487,15 @@ class OptimizationModeler:
                 trade_offs=trade_offs,
                 implementation_complexity=complexity,
                 estimated_implementation_time=self._estimate_implementation_time(
-                    complexity, len(optimized_variables)
+                    complexity,
+                    len(optimized_variables),
                 ),
                 resource_requirements=self._calculate_resource_requirements(
-                    optimized_variables
+                    optimized_variables,
                 ),
                 risk_assessment=self._assess_optimization_risks(
-                    optimized_variables, improvement_percentage
+                    optimized_variables,
+                    improvement_percentage,
                 ),
             )
 
@@ -542,7 +556,9 @@ class OptimizationModeler:
         return max(0.1, min(1.0, confidence))
 
     async def _analyze_trade_offs(
-        self, optimized_variables: dict[str, Any], baseline: dict[str, float]
+        self,
+        optimized_variables: dict[str, Any],
+        baseline: dict[str, float],
     ) -> dict[str, float]:
         """Analyze trade-offs in optimization solution."""
         trade_offs = {}
@@ -568,7 +584,8 @@ class OptimizationModeler:
         return trade_offs
 
     def _assess_implementation_complexity(
-        self, optimized_variables: dict[str, Any]
+        self,
+        optimized_variables: dict[str, Any],
     ) -> str:
         """Assess implementation complexity of optimization solution."""
         len(optimized_variables)
@@ -592,13 +609,14 @@ class OptimizationModeler:
 
         if complexity_score < 0.5:
             return "low"
-        elif complexity_score < 1.5:
+        if complexity_score < 1.5:
             return "medium"
-        else:
-            return "high"
+        return "high"
 
     def _estimate_implementation_time(
-        self, complexity: str, num_variables: int
+        self,
+        complexity: str,
+        num_variables: int,
     ) -> timedelta:
         """Estimate time required to implement optimization."""
         base_times = {
@@ -616,7 +634,8 @@ class OptimizationModeler:
         return timedelta(seconds=total_seconds)
 
     def _calculate_resource_requirements(
-        self, optimized_variables: dict[str, Any]
+        self,
+        optimized_variables: dict[str, Any],
     ) -> dict[str, float]:
         """Calculate resource requirements for implementing optimization."""
         requirements = {
@@ -643,7 +662,9 @@ class OptimizationModeler:
         return requirements
 
     def _assess_optimization_risks(
-        self, optimized_variables: dict[str, Any], improvement_percentage: float
+        self,
+        optimized_variables: dict[str, Any],
+        improvement_percentage: float,
     ) -> dict[str, Any]:
         """Assess risks associated with optimization implementation."""
         risks = {
@@ -677,10 +698,12 @@ class OptimizationModeler:
     @require(lambda scenario: isinstance(scenario, SimulationScenario))
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.left_value, OptimizationError)
+        or isinstance(result.left_value, OptimizationError),
     )
     async def simulate_optimization_outcomes(
-        self, optimization_solution: OptimizationSolution, scenario: SimulationScenario
+        self,
+        optimization_solution: OptimizationSolution,
+        scenario: SimulationScenario,
     ) -> Either[OptimizationError, SimulationResult]:
         """Simulate outcomes of optimization implementation."""
         try:
@@ -697,12 +720,13 @@ class OptimizationModeler:
 
             # Calculate confidence intervals
             confidence_intervals = self._calculate_confidence_intervals(
-                outcomes, scenario.confidence_level
+                outcomes,
+                scenario.confidence_level,
             )
 
             # Estimate probability distributions
             probability_distributions = self._estimate_probability_distributions(
-                outcomes
+                outcomes,
             )
 
             # Calculate risk metrics
@@ -710,7 +734,8 @@ class OptimizationModeler:
 
             # Perform sensitivity analysis
             sensitivity_analysis = await self._perform_sensitivity_analysis(
-                optimization_solution, scenario
+                optimization_solution,
+                scenario,
             )
 
             result = SimulationResult(
@@ -731,10 +756,12 @@ class OptimizationModeler:
             return Either.right(result)
 
         except Exception as e:
-            return Either.left(OptimizationError(f"Simulation failed: {str(e)}"))
+            return Either.left(OptimizationError(f"Simulation failed: {e!s}"))
 
     async def _run_simulation(
-        self, optimization_solution: OptimizationSolution, scenario: SimulationScenario
+        self,
+        optimization_solution: OptimizationSolution,
+        scenario: SimulationScenario,
     ) -> dict[str, list[float]]:
         """Run optimization outcome simulation."""
         outcomes = defaultdict(list)
@@ -742,20 +769,24 @@ class OptimizationModeler:
         # Simulate based on simulation type
         if scenario.simulation_type == SimulationType.MONTE_CARLO:
             outcomes = await self._run_monte_carlo_simulation(
-                optimization_solution, scenario
+                optimization_solution,
+                scenario,
             )
         elif scenario.simulation_type == SimulationType.WHAT_IF_ANALYSIS:
             outcomes = await self._run_what_if_analysis(optimization_solution, scenario)
         else:
             # Default to statistical modeling
             outcomes = await self._run_statistical_simulation(
-                optimization_solution, scenario
+                optimization_solution,
+                scenario,
             )
 
         return dict(outcomes)
 
     async def _run_monte_carlo_simulation(
-        self, optimization_solution: OptimizationSolution, scenario: SimulationScenario
+        self,
+        optimization_solution: OptimizationSolution,
+        scenario: SimulationScenario,
     ) -> dict[str, list[float]]:
         """Run Monte Carlo simulation for optimization outcomes."""
         import random
@@ -766,14 +797,15 @@ class OptimizationModeler:
         for _ in range(scenario.num_iterations):
             # Add random variation to improvement
             variation = random.gauss(
-                0, base_improvement * 0.1
+                0,
+                base_improvement * 0.1,
             )  # 10% standard deviation
             simulated_improvement = base_improvement + variation
 
             # Simulate different outcome metrics
             outcomes["performance_improvement"].append(simulated_improvement)
             outcomes["cost_change"].append(
-                simulated_improvement * -0.5
+                simulated_improvement * -0.5,
             )  # Cost reduction
             outcomes["reliability_change"].append(simulated_improvement * 0.3)
             outcomes["implementation_success_probability"].append(
@@ -783,13 +815,15 @@ class OptimizationModeler:
                         0.99,
                         optimization_solution.confidence_score + random.gauss(0, 0.1),
                     ),
-                )
+                ),
             )
 
         return dict(outcomes)
 
     async def _run_what_if_analysis(
-        self, optimization_solution: OptimizationSolution, scenario: SimulationScenario
+        self,
+        optimization_solution: OptimizationSolution,
+        scenario: SimulationScenario,
     ) -> dict[str, list[float]]:
         """Run what-if analysis for optimization scenarios."""
         outcomes = defaultdict(list)
@@ -804,7 +838,9 @@ class OptimizationModeler:
 
                 # Calculate impact of parameter change
                 impact = self._calculate_parameter_impact(
-                    param_name, param_value, optimization_solution
+                    param_name,
+                    param_value,
+                    optimization_solution,
                 )
 
                 outcomes[f"{param_name}_impact"].append(impact)
@@ -813,7 +849,9 @@ class OptimizationModeler:
         return dict(outcomes)
 
     async def _run_statistical_simulation(
-        self, optimization_solution: OptimizationSolution, scenario: SimulationScenario
+        self,
+        optimization_solution: OptimizationSolution,
+        scenario: SimulationScenario,
     ) -> dict[str, list[float]]:
         """Run statistical simulation for optimization outcomes."""
         import random
@@ -829,18 +867,21 @@ class OptimizationModeler:
 
             outcomes["expected_improvement"].append(
                 random.gauss(
-                    base_improvement * confidence_factor, base_improvement * 0.2
-                )
+                    base_improvement * confidence_factor,
+                    base_improvement * 0.2,
+                ),
             )
             outcomes["risk_adjusted_improvement"].append(
                 random.gauss(
-                    base_improvement * confidence_factor * 0.8, base_improvement * 0.15
-                )
+                    base_improvement * confidence_factor * 0.8,
+                    base_improvement * 0.15,
+                ),
             )
             outcomes["worst_case_improvement"].append(
                 random.gauss(
-                    base_improvement * confidence_factor * 0.5, base_improvement * 0.1
-                )
+                    base_improvement * confidence_factor * 0.5,
+                    base_improvement * 0.1,
+                ),
             )
 
         return dict(outcomes)
@@ -858,15 +899,15 @@ class OptimizationModeler:
         # Different parameters have different impact patterns
         if "cpu" in param_name.lower():
             return base_improvement * (param_value / 2.0)  # Linear relationship
-        elif "memory" in param_name.lower():
+        if "memory" in param_name.lower():
             return base_improvement * math.sqrt(
-                param_value / 2.0
+                param_value / 2.0,
             )  # Square root relationship
-        else:
-            return base_improvement * (param_value / 1.5)  # Default relationship
+        return base_improvement * (param_value / 1.5)  # Default relationship
 
     def _calculate_statistical_summary(
-        self, outcomes: dict[str, list[float]]
+        self,
+        outcomes: dict[str, list[float]],
     ) -> dict[str, dict[str, float]]:
         """Calculate statistical summary of simulation outcomes."""
         summary = {}
@@ -890,7 +931,9 @@ class OptimizationModeler:
         return summary
 
     def _calculate_confidence_intervals(
-        self, outcomes: dict[str, list[float]], confidence_level: float
+        self,
+        outcomes: dict[str, list[float]],
+        confidence_level: float,
     ) -> dict[str, tuple[float, float]]:
         """Calculate confidence intervals for simulation outcomes."""
         confidence_intervals = {}
@@ -913,7 +956,8 @@ class OptimizationModeler:
         return confidence_intervals
 
     def _estimate_probability_distributions(
-        self, outcomes: dict[str, list[float]]
+        self,
+        outcomes: dict[str, list[float]],
     ) -> dict[str, list[float]]:
         """Estimate probability distributions for outcomes."""
         distributions = {}
@@ -963,13 +1007,15 @@ class OptimizationModeler:
                 # Probability of loss (negative outcomes)
                 negative_outcomes = [v for v in values if v < 0]
                 risk_metrics[f"{metric_name}_prob_loss"] = len(negative_outcomes) / len(
-                    values
+                    values,
                 )
 
         return risk_metrics
 
     async def _perform_sensitivity_analysis(
-        self, optimization_solution: OptimizationSolution, scenario: SimulationScenario
+        self,
+        optimization_solution: OptimizationSolution,
+        scenario: SimulationScenario,
     ) -> dict[str, float]:
         """Perform sensitivity analysis for optimization parameters."""
         sensitivity = {}
@@ -994,15 +1040,16 @@ class OptimizationModeler:
         return sensitivity
 
     async def generate_trade_off_analysis(
-        self, solutions: list[OptimizationSolution]
+        self,
+        solutions: list[OptimizationSolution],
     ) -> Either[OptimizationError, TradeOffAnalysis]:
         """Generate comprehensive trade-off analysis for multiple solutions."""
         try:
             if len(solutions) < 2:
                 return Either.left(
                     OptimizationError(
-                        "At least 2 solutions required for trade-off analysis"
-                    )
+                        "At least 2 solutions required for trade-off analysis",
+                    ),
                 )
 
             # Extract objectives
@@ -1037,11 +1084,12 @@ class OptimizationModeler:
 
         except Exception as e:
             return Either.left(
-                OptimizationError(f"Trade-off analysis failed: {str(e)}")
+                OptimizationError(f"Trade-off analysis failed: {e!s}"),
             )
 
     def _build_pareto_frontier(
-        self, solutions: list[OptimizationSolution]
+        self,
+        solutions: list[OptimizationSolution],
     ) -> list[tuple[float, ...]]:
         """Build Pareto frontier from optimization solutions."""
         # Simplified Pareto frontier (replace with proper multi-objective optimization)
@@ -1095,10 +1143,10 @@ class OptimizationModeler:
                     if obj1_solutions and obj2_solutions:
                         # Calculate average trade-off ratio
                         obj1_avg = statistics.mean(
-                            [s.improvement_percentage for s in obj1_solutions]
+                            [s.improvement_percentage for s in obj1_solutions],
                         )
                         obj2_avg = statistics.mean(
-                            [s.improvement_percentage for s in obj2_solutions]
+                            [s.improvement_percentage for s in obj2_solutions],
                         )
 
                         if obj2_avg != 0:
@@ -1145,7 +1193,8 @@ class OptimizationModeler:
         return balance
 
     async def _analyze_balance_sensitivity(
-        self, solutions: list[OptimizationSolution]
+        self,
+        solutions: list[OptimizationSolution],
     ) -> dict[str, float]:
         """Analyze sensitivity of optimal balance to changes."""
         sensitivity = {}
@@ -1166,7 +1215,8 @@ class OptimizationModeler:
         return sensitivity
 
     def _build_decision_matrix(
-        self, solutions: list[OptimizationSolution]
+        self,
+        solutions: list[OptimizationSolution],
     ) -> dict[str, dict[str, float]]:
         """Build decision matrix for solution comparison."""
         matrix = {}
@@ -1176,14 +1226,16 @@ class OptimizationModeler:
 
             # Normalize scores to 0-1 scale
             solution_scores["improvement"] = min(
-                1.0, solution.improvement_percentage / 50.0
+                1.0,
+                solution.improvement_percentage / 50.0,
             )  # Cap at 50%
             solution_scores["confidence"] = solution.confidence_score
 
             # Convert complexity to score (low = high score)
             complexity_scores = {"low": 0.9, "medium": 0.6, "high": 0.3}
             solution_scores["complexity"] = complexity_scores.get(
-                solution.implementation_complexity, 0.5
+                solution.implementation_complexity,
+                0.5,
             )
 
             # Calculate risk score from risk assessment

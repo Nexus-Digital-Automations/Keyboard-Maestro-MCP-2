@@ -1,5 +1,4 @@
-"""
-Hotkey Trigger Management System
+"""Hotkey Trigger Management System.
 
 Provides type-safe hotkey creation with conflict detection, validation,
 and security boundaries for Keyboard Maestro automation.
@@ -56,7 +55,9 @@ class ActivationMode(Enum):
             if activation.value == normalized:
                 return activation
         raise ValidationError(
-            "activation_mode", mode, f"Invalid activation mode: {mode}"
+            "activation_mode",
+            mode,
+            f"Invalid activation mode: {mode}",
         )
 
 
@@ -93,7 +94,7 @@ VALID_SPECIAL_KEYS = frozenset(
         "clear",
         "help",
         "insert",
-    ]
+    ],
 )
 
 # System-reserved hotkey combinations that should not be overridden
@@ -105,7 +106,7 @@ SYSTEM_RESERVED_HOTKEYS = frozenset(
         "cmd+opt+esc",  # Force Quit
         "cmd+ctrl+space",  # Character Viewer
         "cmd+ctrl+f",  # Full Screen
-    ]
+    ],
 )
 
 
@@ -136,7 +137,9 @@ class HotkeySpec:
         if len(self.key) == 1:
             if not (self.key.isalnum() and self.key.isascii()):
                 raise ValidationError(
-                    "key", self.key, "Single character keys must be alphanumeric ASCII"
+                    "key",
+                    self.key,
+                    "Single character keys must be alphanumeric ASCII",
                 )
             return
 
@@ -153,21 +156,27 @@ class HotkeySpec:
         """Validate tap count."""
         if not (1 <= self.tap_count <= 4):
             raise ValidationError(
-                "tap_count", self.tap_count, "Tap count must be between 1 and 4"
+                "tap_count",
+                self.tap_count,
+                "Tap count must be between 1 and 4",
             )
 
     def _validate_modifiers(self) -> None:
         """Validate modifier key combinations."""
         if not isinstance(self.modifiers, set):
             raise ValidationError(
-                "modifiers", self.modifiers, "Modifiers must be a set"
+                "modifiers",
+                self.modifiers,
+                "Modifiers must be a set",
             )
 
         # Ensure all modifiers are valid ModifierKey instances
         for mod in self.modifiers:
             if not isinstance(mod, ModifierKey):
                 raise ValidationError(
-                    "modifiers", mod, f"Invalid modifier type: {type(mod)}"
+                    "modifiers",
+                    mod,
+                    f"Invalid modifier type: {type(mod)}",
                 )
 
     def _check_system_conflicts(self) -> None:
@@ -290,15 +299,17 @@ def create_hotkey_spec(
         raise ValidationError(
             "hotkey_spec",
             {"key": key, "modifiers": modifiers},
-            f"Failed to create hotkey spec: {str(e)}",
-        )
+            f"Failed to create hotkey spec: {e!s}",
+        ) from e
 
 
 class HotkeyManager:
     """Manages hotkey creation and conflict detection."""
 
     def __init__(
-        self, km_client: KMClient, trigger_manager: TriggerRegistrationManager
+        self,
+        km_client: KMClient,
+        trigger_manager: TriggerRegistrationManager,
     ):
         self._km_client = km_client
         self._trigger_manager = trigger_manager
@@ -309,10 +320,13 @@ class HotkeyManager:
     @ensure(
         lambda result: result.is_right()
         or result.get_left().code
-        in ["CONFLICT_ERROR", "INVALID_HOTKEY", "VALIDATION_ERROR"]
+        in ["CONFLICT_ERROR", "INVALID_HOTKEY", "VALIDATION_ERROR"],
     )
     async def create_hotkey_trigger(
-        self, macro_id: MacroId, hotkey: HotkeySpec, check_conflicts: bool = True
+        self,
+        macro_id: MacroId,
+        hotkey: HotkeySpec,
+        check_conflicts: bool = True,
     ) -> Either[KMError, TriggerId]:
         """Create hotkey trigger with comprehensive validation and conflict detection."""
         try:
@@ -327,9 +341,9 @@ class HotkeyManager:
                             details={
                                 "conflicts": [
                                     self._conflict_to_dict(c) for c in conflicts
-                                ]
+                                ],
                             },
-                        )
+                        ),
                     )
 
             # Generate unique trigger ID
@@ -348,7 +362,7 @@ class HotkeyManager:
 
             # Register with trigger management system
             registration_result = await self._trigger_manager.register_trigger(
-                trigger_def
+                trigger_def,
             )
 
             if registration_result.is_left():
@@ -359,17 +373,17 @@ class HotkeyManager:
             self._registered_hotkeys[hotkey_string] = (macro_id, hotkey)
 
             logger.info(
-                f"Successfully created hotkey trigger {trigger_id} for macro {macro_id}: {hotkey.to_display_string()}"
+                f"Successfully created hotkey trigger {trigger_id} for macro {macro_id}: {hotkey.to_display_string()}",
             )
 
             return Either.right(trigger_id)
 
         except Exception as e:
             logger.error(
-                f"Failed to create hotkey trigger for macro {macro_id}: {str(e)}"
+                f"Failed to create hotkey trigger for macro {macro_id}: {e!s}",
             )
             return Either.left(
-                KMError.execution_error(f"Hotkey trigger creation failed: {str(e)}")
+                KMError.execution_error(f"Hotkey trigger creation failed: {e!s}"),
             )
 
     async def detect_conflicts(self, hotkey: HotkeySpec) -> list[HotkeyConflict]:
@@ -385,7 +399,7 @@ class HotkeyManager:
                     conflict_type="system",
                     description=f"Conflicts with system shortcut {hotkey_string}",
                     suggestion=self._suggest_alternative_modifier(hotkey),
-                )
+                ),
             )
 
         # Check existing macro conflicts
@@ -398,7 +412,7 @@ class HotkeyManager:
                     description=f"Hotkey already assigned to macro {existing_macro_id}",
                     macro_name=str(existing_macro_id),
                     suggestion=self._suggest_alternative_key(hotkey),
-                )
+                ),
             )
 
         # Check application-specific conflicts (simplified for now)
@@ -408,7 +422,8 @@ class HotkeyManager:
         return conflicts
 
     async def _check_application_conflicts(
-        self, hotkey: HotkeySpec
+        self,
+        hotkey: HotkeySpec,
     ) -> list[HotkeyConflict]:
         """Check for conflicts with application-specific shortcuts."""
         # This would integrate with system APIs to check app shortcuts
@@ -438,13 +453,15 @@ class HotkeyManager:
                     conflict_type="application",
                     description=f"Conflicts with common application shortcut: {app_name}",
                     suggestion=self._suggest_alternative_modifier(hotkey),
-                )
+                ),
             )
 
         return conflicts
 
     def suggest_alternatives(
-        self, hotkey: HotkeySpec, max_suggestions: int = 3
+        self,
+        hotkey: HotkeySpec,
+        max_suggestions: int = 3,
     ) -> list[HotkeySpec]:
         """Suggest alternative hotkey combinations."""
         suggestions = []
@@ -568,7 +585,9 @@ class HotkeyManager:
         return key.lower()
 
     def _parse_hotkey_string(
-        self, hotkey_string: str, reference: HotkeySpec
+        self,
+        hotkey_string: str,
+        reference: HotkeySpec,
     ) -> HotkeySpec | None:
         """Parse hotkey string back to HotkeySpec."""
         try:

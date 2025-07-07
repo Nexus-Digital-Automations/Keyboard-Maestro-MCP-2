@@ -1,5 +1,4 @@
-"""
-Real-Time Monitor - TASK_64 Phase 5 Integration & Monitoring
+"""Real-Time Monitor - TASK_64 Phase 5 Integration & Monitoring.
 
 Real-time API monitoring, metrics, and alerting for API orchestration.
 Provides comprehensive monitoring with intelligent alerting and analytics.
@@ -13,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import statistics
 import time
 from collections import deque
@@ -27,6 +27,8 @@ from src.core.api_orchestration_architecture import (
 )
 from src.core.contracts import require
 from src.core.either import Either
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -221,12 +223,12 @@ class MetricSeries:
     data_points: deque = field(default_factory=lambda: deque(maxlen=10000))
     aggregations: dict[str, float] = field(default_factory=dict)
 
-    def add_point(self, point: MetricPoint):
+    def add_point(self, point: MetricPoint) -> str:
         """Add data point to series."""
         self.data_points.append(point)
         self._update_aggregations()
 
-    def _update_aggregations(self):
+    def _update_aggregations(self) -> str:
         """Update aggregated statistics."""
         if not self.data_points:
             return
@@ -276,10 +278,9 @@ class MetricSeries:
         # Simple linear trend calculation
         if recent_values[-1] > recent_values[0] * 1.1:
             return "increasing"
-        elif recent_values[-1] < recent_values[0] * 0.9:
+        if recent_values[-1] < recent_values[0] * 0.9:
             return "decreasing"
-        else:
-            return "stable"
+        return "stable"
 
     def get_percentile(self, percentile: float) -> float:
         """Get percentile value."""
@@ -303,7 +304,9 @@ class AnomalyDetector:
         }
 
     async def detect_anomalies(
-        self, metric_name: str, series: MetricSeries
+        self,
+        metric_name: str,
+        series: MetricSeries,
     ) -> list[dict[str, Any]]:
         """Detect anomalies in metric series."""
         anomalies = []
@@ -346,7 +349,9 @@ class AnomalyDetector:
         }
 
     async def _check_point_anomaly(
-        self, point: MetricPoint, baseline: dict[str, float]
+        self,
+        point: MetricPoint,
+        baseline: dict[str, float],
     ) -> dict[str, Any] | None:
         """Check if point is anomalous."""
         if not baseline or baseline.get("std_dev", 0) == 0:
@@ -360,7 +365,8 @@ class AnomalyDetector:
 
         # Get threshold for metric type
         threshold = self.anomaly_thresholds.get(
-            "response_time", 2.0
+            "response_time",
+            2.0,
         )  # Default threshold
         if "error" in point.metric_name.lower():
             threshold = self.anomaly_thresholds.get("error_rate", 3.0)
@@ -427,7 +433,8 @@ class RealTimeMonitor:
 
     @require(lambda metric: isinstance(metric, MetricPoint))
     async def collect_metric(
-        self, metric: MetricPoint
+        self,
+        metric: MetricPoint,
     ) -> Either[APIOrchestrationError, bool]:
         """Collect metric data point."""
         try:
@@ -439,7 +446,7 @@ class RealTimeMonitor:
             # Get or create metric series
             if metric.metric_name not in self.metrics:
                 self.metrics[metric.metric_name] = MetricSeries(
-                    metric_name=metric.metric_name
+                    metric_name=metric.metric_name,
                 )
 
             series = self.metrics[metric.metric_name]
@@ -462,7 +469,7 @@ class RealTimeMonitor:
 
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Metric collection failed: {str(e)}")
+                APIOrchestrationError(f"Metric collection failed: {e!s}"),
             )
 
     @require(lambda rule: isinstance(rule, AlertRule))
@@ -473,12 +480,13 @@ class RealTimeMonitor:
             return Either.success(True)
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Failed to add alert rule: {str(e)}")
+                APIOrchestrationError(f"Failed to add alert rule: {e!s}"),
             )
 
     @require(lambda dashboard: isinstance(dashboard, Dashboard))
     def add_dashboard(
-        self, dashboard: Dashboard
+        self,
+        dashboard: Dashboard,
     ) -> Either[APIOrchestrationError, bool]:
         """Add monitoring dashboard."""
         try:
@@ -486,11 +494,13 @@ class RealTimeMonitor:
             return Either.success(True)
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Failed to add dashboard: {str(e)}")
+                APIOrchestrationError(f"Failed to add dashboard: {e!s}"),
             )
 
     def add_notification_channel(
-        self, channel_name: str, handler: Callable
+        self,
+        channel_name: str,
+        handler: Callable,
     ) -> Either[APIOrchestrationError, bool]:
         """Add notification channel handler."""
         try:
@@ -498,17 +508,19 @@ class RealTimeMonitor:
             return Either.success(True)
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Failed to add notification channel: {str(e)}")
+                APIOrchestrationError(f"Failed to add notification channel: {e!s}"),
             )
 
     async def get_metric_data(
-        self, metric_name: str, time_range: str = "1h"
+        self,
+        metric_name: str,
+        time_range: str = "1h",
     ) -> Either[APIOrchestrationError, dict[str, Any]]:
         """Get metric data for specified time range."""
         try:
             if metric_name not in self.metrics:
                 return Either.error(
-                    APIOrchestrationError(f"Metric not found: {metric_name}")
+                    APIOrchestrationError(f"Metric not found: {metric_name}"),
                 )
 
             series = self.metrics[metric_name]
@@ -539,17 +551,18 @@ class RealTimeMonitor:
 
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Failed to get metric data: {str(e)}")
+                APIOrchestrationError(f"Failed to get metric data: {e!s}"),
             )
 
     async def get_dashboard_data(
-        self, dashboard_id: str
+        self,
+        dashboard_id: str,
     ) -> Either[APIOrchestrationError, dict[str, Any]]:
         """Get dashboard data."""
         try:
             if dashboard_id not in self.dashboards:
                 return Either.error(
-                    APIOrchestrationError(f"Dashboard not found: {dashboard_id}")
+                    APIOrchestrationError(f"Dashboard not found: {dashboard_id}"),
                 )
 
             dashboard = self.dashboards[dashboard_id]
@@ -567,7 +580,8 @@ class RealTimeMonitor:
 
             for metric_name in dashboard.metrics:
                 metric_result = await self.get_metric_data(
-                    metric_name, dashboard.time_range
+                    metric_name,
+                    dashboard.time_range,
                 )
                 if metric_result.is_success():
                     dashboard_data["metrics_data"][metric_name] = metric_result.value
@@ -576,11 +590,12 @@ class RealTimeMonitor:
 
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Failed to get dashboard data: {str(e)}")
+                APIOrchestrationError(f"Failed to get dashboard data: {e!s}"),
             )
 
     async def get_active_alerts(
-        self, severity_filter: AlertSeverity | None = None
+        self,
+        severity_filter: AlertSeverity | None = None,
     ) -> list[Alert]:
         """Get active alerts, optionally filtered by severity."""
         alerts = [alert for alert in self.active_alerts.values() if alert.is_active()]
@@ -600,13 +615,16 @@ class RealTimeMonitor:
         return alerts
 
     async def acknowledge_alert(
-        self, alert_id: str, acknowledged_by: str, note: str | None = None
+        self,
+        alert_id: str,
+        acknowledged_by: str,
+        note: str | None = None,
     ) -> Either[APIOrchestrationError, bool]:
         """Acknowledge an alert."""
         try:
             if alert_id not in self.active_alerts:
                 return Either.error(
-                    APIOrchestrationError(f"Alert not found: {alert_id}")
+                    APIOrchestrationError(f"Alert not found: {alert_id}"),
                 )
 
             alert = self.active_alerts[alert_id]
@@ -624,17 +642,19 @@ class RealTimeMonitor:
 
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Failed to acknowledge alert: {str(e)}")
+                APIOrchestrationError(f"Failed to acknowledge alert: {e!s}"),
             )
 
     async def resolve_alert(
-        self, alert_id: str, resolution_note: str | None = None
+        self,
+        alert_id: str,
+        resolution_note: str | None = None,
     ) -> Either[APIOrchestrationError, bool]:
         """Resolve an alert."""
         try:
             if alert_id not in self.active_alerts:
                 return Either.error(
-                    APIOrchestrationError(f"Alert not found: {alert_id}")
+                    APIOrchestrationError(f"Alert not found: {alert_id}"),
                 )
 
             alert = self.active_alerts[alert_id]
@@ -651,7 +671,7 @@ class RealTimeMonitor:
 
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Failed to resolve alert: {str(e)}")
+                APIOrchestrationError(f"Failed to resolve alert: {e!s}"),
             )
 
     # Background tasks
@@ -685,8 +705,20 @@ class RealTimeMonitor:
             try:
                 await self._evaluate_single_rule(rule)
                 rule.last_evaluated = datetime.now(UTC)
-            except Exception:
-                pass  # Continue with other rules
+            except Exception as e:
+                # Log alert rule evaluation failures for monitoring
+                logger.warning(
+                    f"Alert rule evaluation failed for {rule.rule_id}: {e}",
+                    extra={
+                        "rule_id": rule.rule_id,
+                        "metric_name": rule.metric_name,
+                        "error_type": type(e).__name__,
+                        "operation": "alert_evaluation",
+                    },
+                )
+                self.monitor_metrics["rule_evaluation_errors"] = (
+                    self.monitor_metrics.get("rule_evaluation_errors", 0) + 1
+                )
 
     async def _evaluate_single_rule(self, rule: AlertRule):
         """Evaluate single alert rule."""
@@ -710,7 +742,9 @@ class RealTimeMonitor:
         violations = 0
         for point in recent_points[-rule.consecutive_violations :]:
             if self._evaluate_condition(
-                point.value, rule.comparison_operator, rule.threshold_value
+                point.value,
+                rule.comparison_operator,
+                rule.threshold_value,
             ):
                 violations += 1
 
@@ -722,23 +756,23 @@ class RealTimeMonitor:
             await self._check_auto_resolve(rule)
 
     def _evaluate_condition(
-        self, value: float, operator: str, threshold: float
+        self,
+        value: float,
+        operator: str,
+        threshold: float,
     ) -> bool:
-        """Evaluate alert condition."""
-        if operator == ">":
-            return value > threshold
-        elif operator == ">=":
-            return value >= threshold
-        elif operator == "<":
-            return value < threshold
-        elif operator == "<=":
-            return value <= threshold
-        elif operator == "==":
-            return value == threshold
-        elif operator == "!=":
-            return value != threshold
-        else:
-            return False
+        """Evaluate alert condition using dictionary lookup for performance."""
+        operations = {
+            ">": lambda v, t: v > t,
+            ">=": lambda v, t: v >= t,
+            "<": lambda v, t: v < t,
+            "<=": lambda v, t: v <= t,
+            "==": lambda v, t: v == t,
+            "!=": lambda v, t: v != t,
+        }
+
+        operation = operations.get(operator)
+        return operation(value, threshold) if operation else False
 
     async def _trigger_alert(self, rule: AlertRule, triggering_point: MetricPoint):
         """Trigger alert for rule violation."""
@@ -793,15 +827,19 @@ class RealTimeMonitor:
         for alert in rule_alerts:
             # Check if auto-resolve timeout reached
             auto_resolve_time = alert.triggered_at + timedelta(
-                minutes=rule.auto_resolve_timeout_minutes
+                minutes=rule.auto_resolve_timeout_minutes,
             )
             if datetime.now(UTC) >= auto_resolve_time:
                 await self.resolve_alert(
-                    alert.alert_id, "Auto-resolved: condition no longer met"
+                    alert.alert_id,
+                    "Auto-resolved: condition no longer met",
                 )
 
     async def _send_notifications(
-        self, alert: Alert, is_new: bool = False, is_update: bool = False
+        self,
+        alert: Alert,
+        is_new: bool = False,
+        is_update: bool = False,
     ):
         """Send alert notifications."""
         if alert.rule_id not in self.alert_rules:
@@ -822,12 +860,27 @@ class RealTimeMonitor:
             if channel_name in self.notification_channels:
                 try:
                     await self.notification_channels[channel_name](
-                        alert, is_new, is_update
+                        alert,
+                        is_new,
+                        is_update,
                     )
                     alert.notification_count += 1
                     self.monitor_metrics["notification_sent"] += 1
-                except Exception:
-                    pass  # Continue with other channels
+                except Exception as e:
+                    # Log notification failures for monitoring
+                    logger.warning(
+                        f"Alert notification failed for channel {channel_name}: {e}",
+                        extra={
+                            "channel_name": channel_name,
+                            "alert_id": alert.alert_id,
+                            "rule_id": alert.rule_id,
+                            "error_type": type(e).__name__,
+                            "operation": "alert_notification",
+                        },
+                    )
+                    self.monitor_metrics["notification_errors"] = (
+                        self.monitor_metrics.get("notification_errors", 0) + 1
+                    )
 
         alert.last_notification = datetime.now(UTC)
 
@@ -839,7 +892,8 @@ class RealTimeMonitor:
 
                 for metric_name, series in self.metrics.items():
                     anomalies = await self.anomaly_detector.detect_anomalies(
-                        metric_name, series
+                        metric_name,
+                        series,
                     )
 
                     for anomaly in anomalies:
@@ -858,7 +912,7 @@ class RealTimeMonitor:
                 await asyncio.sleep(3600)  # Run every hour
 
                 cutoff_time = datetime.now(UTC) - timedelta(
-                    hours=self.metric_retention_hours
+                    hours=self.metric_retention_hours,
                 )
 
                 # Clean up old metric data
@@ -956,12 +1010,11 @@ class RealTimeMonitor:
         """Parse time range string to timedelta."""
         if time_range.endswith("m"):
             return timedelta(minutes=int(time_range[:-1]))
-        elif time_range.endswith("h"):
+        if time_range.endswith("h"):
             return timedelta(hours=int(time_range[:-1]))
-        elif time_range.endswith("d"):
+        if time_range.endswith("d"):
             return timedelta(days=int(time_range[:-1]))
-        else:
-            return timedelta(hours=1)  # Default to 1 hour
+        return timedelta(hours=1)  # Default to 1 hour
 
     def get_metrics(self) -> dict[str, Any]:
         """Get monitoring system metrics."""
@@ -970,7 +1023,7 @@ class RealTimeMonitor:
             len(series.data_points) for series in self.metrics.values()
         )
         active_alert_count = len(
-            [alert for alert in self.active_alerts.values() if alert.is_active()]
+            [alert for alert in self.active_alerts.values() if alert.is_active()],
         )
 
         return {
@@ -993,15 +1046,15 @@ class RealTimeMonitor:
 
 # Export the monitoring classes
 __all__ = [
-    "RealTimeMonitor",
-    "MetricPoint",
-    "AlertRule",
     "Alert",
-    "Dashboard",
-    "MetricSeries",
-    "AnomalyDetector",
-    "MetricType",
+    "AlertRule",
     "AlertSeverity",
     "AlertStatus",
+    "AnomalyDetector",
+    "Dashboard",
+    "MetricPoint",
+    "MetricSeries",
+    "MetricType",
     "MonitoringScope",
+    "RealTimeMonitor",
 ]

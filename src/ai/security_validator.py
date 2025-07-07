@@ -1,5 +1,4 @@
-"""
-AI security validation system for enterprise-grade protection.
+"""AI security validation system for enterprise-grade protection.
 
 This module provides comprehensive security validation for AI processing
 operations including content filtering, PII detection, threat analysis,
@@ -70,7 +69,6 @@ class SecurityThreat:
     @require(lambda self: len(self.description) > 0)
     def __post_init__(self):
         """Validate security threat data."""
-        pass
 
     def is_blocking(self) -> bool:
         """Check if threat should block processing."""
@@ -110,7 +108,8 @@ class SecurityScanResult:
             "threat_count": len(self.threats),
             "blocking_threats": len(self.get_blocking_threats()),
             "highest_severity": max(
-                (t.severity.value for t in self.threats), default="none"
+                (t.severity.value for t in self.threats),
+                default="none",
             ),
             "scan_time": self.scan_time,
             "recommendations": self.recommendations,
@@ -125,13 +124,13 @@ class PIIDetector:
         self.patterns = {
             "email": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"),
             "phone": re.compile(
-                r"\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b"
+                r"\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b",
             ),
             "ssn": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
             "credit_card": re.compile(r"\b(?:\d{4}[-\s]?){3}\d{4}\b"),
             "ip_address": re.compile(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"),
             "api_key": re.compile(
-                r'(?i)(?:api[_-]?key|token|secret)["\s:=]+[a-zA-Z0-9_-]{20,}'
+                r'(?i)(?:api[_-]?key|token|secret)["\s:=]+[a-zA-Z0-9_-]{20,}',
             ),
             "password": re.compile(r'(?i)(?:password|pwd)["\s:=]+[^\s"\']{8,}'),
             "address": re.compile(
@@ -182,10 +181,9 @@ class PIIDetector:
 
         if pii_type in high_risk:
             return SecurityThreatLevel.HIGH
-        elif pii_type in medium_risk:
+        if pii_type in medium_risk:
             return SecurityThreatLevel.MEDIUM
-        else:
-            return SecurityThreatLevel.LOW
+        return SecurityThreatLevel.LOW
 
 
 class ContentFilter:
@@ -342,7 +340,9 @@ class AISecurityValidator:
         self.rate_limiter = RateLimiter()
 
     async def validate_request(
-        self, request: AIRequest, user_id: str | None = None
+        self,
+        request: AIRequest,
+        user_id: str | None = None,
     ) -> Either[SecurityError, SecurityScanResult]:
         """Validate AI request for security compliance."""
         try:
@@ -353,7 +353,8 @@ class AISecurityValidator:
             # Rate limiting check
             if user_id:
                 rate_check = self.rate_limiter.check_rate_limit(
-                    user_id, request.operation
+                    user_id,
+                    request.operation,
                 )
                 if rate_check.is_left():
                     return rate_check
@@ -402,13 +403,13 @@ class AISecurityValidator:
 
             if not is_safe:
                 logger.warning(
-                    f"Security validation failed: {len(blocking_threats)} blocking threats"
+                    f"Security validation failed: {len(blocking_threats)} blocking threats",
                 )
                 return Either.left(
                     SecurityError(
                         "security_validation_failed",
                         f"Request blocked due to security threats: {[t.threat_type.value for t in blocking_threats]}",
-                    )
+                    ),
                 )
 
             logger.debug(f"Security validation passed: risk score {risk_score:.1f}")
@@ -512,7 +513,8 @@ class AISecurityValidator:
         # Estimate cost
         estimated_tokens = request.estimate_input_tokens()
         estimated_cost = request.model.estimate_cost(
-            estimated_tokens, TokenCount(estimated_tokens // 2)
+            estimated_tokens,
+            TokenCount(estimated_tokens // 2),
         )
 
         # Check cost limits
@@ -553,7 +555,7 @@ class AISecurityValidator:
 
         if SecurityThreatType.PII_DETECTED in threat_types:
             recommendations.append(
-                "Remove or mask personal information before processing"
+                "Remove or mask personal information before processing",
             )
 
         if SecurityThreatType.MALWARE_SIGNATURE in threat_types:
@@ -622,7 +624,9 @@ class RateLimiter:
         self.default_limit = 25
 
     def check_rate_limit(
-        self, user_id: str, operation: AIOperation
+        self,
+        user_id: str,
+        operation: AIOperation,
     ) -> Either[SecurityError, None]:
         """Check if user is within rate limits."""
         try:
@@ -648,7 +652,7 @@ class RateLimiter:
                     SecurityError(
                         "rate_limit_exceeded",
                         f"Rate limit exceeded: {current_count}/{limit} requests per minute",
-                    )
+                    ),
                 )
 
             # Record this request

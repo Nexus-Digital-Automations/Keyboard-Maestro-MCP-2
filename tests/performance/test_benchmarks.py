@@ -1,10 +1,12 @@
-"""
-Performance benchmark tests for the Keyboard Maestro MCP system.
+"""Performance benchmark tests for the Keyboard Maestro MCP system.
 
 This module provides comprehensive performance testing to ensure the system
 meets timing requirements and scales appropriately under load.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -26,7 +28,7 @@ class TestEnginePerformance:
     """Performance tests for the macro engine core operations."""
 
     @pytest.mark.performance
-    def test_engine_startup_time(self):
+    def test_engine_startup_time(self) -> None:
         """Engine startup should be under 10ms."""
         start_time = time.perf_counter()
         MacroEngine()
@@ -39,7 +41,7 @@ class TestEnginePerformance:
         )
 
     @pytest.mark.performance
-    def test_simple_macro_execution_time(self):
+    def test_simple_macro_execution_time(self) -> None:
         """Simple macro execution should be under 100ms."""
         engine = MacroEngine()
         macro = create_test_macro("Performance Test", [CommandType.TEXT_INPUT])
@@ -59,7 +61,7 @@ class TestEnginePerformance:
         )
 
     @pytest.mark.performance
-    def test_command_validation_time(self):
+    def test_command_validation_time(self) -> None:
         """Command validation should be under 5ms."""
         from src.core import CommandParameters
         from src.core.engine import PlaceholderCommand
@@ -83,7 +85,7 @@ class TestEnginePerformance:
 
     @pytest.mark.performance
     @pytest.mark.parametrize("text_length", [10, 100, 1000])
-    def test_text_command_scaling(self, text_length: int):
+    def test_text_command_scaling(self, text_length: int) -> None:
         """Text command execution should scale reasonably with input size."""
         from src.core import CommandParameters
         from src.core.engine import PlaceholderCommand
@@ -115,7 +117,7 @@ class TestEnginePerformance:
 
     @pytest.mark.performance
     @pytest.mark.parametrize("num_commands", [1, 5, 10])
-    def test_macro_complexity_scaling(self, num_commands: int):
+    def test_macro_complexity_scaling(self, num_commands: int) -> None:
         """Macro execution time should scale with number of commands."""
         command_types = [CommandType.TEXT_INPUT] * num_commands
         macro = create_test_macro(f"Complex Macro {num_commands}", command_types)
@@ -147,7 +149,7 @@ class TestConcurrencyPerformance:
 
     @pytest.mark.performance
     @pytest.mark.parametrize("num_concurrent", [2, 5, 10])
-    def test_concurrent_execution_performance(self, num_concurrent: int):
+    def test_concurrent_execution_performance(self, num_concurrent: int) -> None:
         """Concurrent macro executions should not significantly degrade performance."""
         engine = MacroEngine()
 
@@ -161,7 +163,7 @@ class TestConcurrencyPerformance:
             ExecutionContext.create_test_context() for _ in range(num_concurrent)
         ]
 
-        def execute_macro(macro_context_pair):
+        def execute_macro(macro_context_pair) -> None:
             macro, context = macro_context_pair
             start_time = time.perf_counter()
             result = engine.execute_macro(macro, context)
@@ -200,7 +202,7 @@ class TestConcurrencyPerformance:
         )
 
     @pytest.mark.performance
-    def test_thread_safety_performance(self):
+    def test_thread_safety_performance(self) -> None:
         """Thread-safe operations should not have excessive overhead."""
         from src.core.context import get_context_manager, get_variable_manager
 
@@ -210,7 +212,7 @@ class TestConcurrencyPerformance:
         num_operations = 100
         num_threads = 5
 
-        def stress_test_operations():
+        def stress_test_operations() -> None:
             context = ExecutionContext.create_test_context()
 
             # Perform multiple operations
@@ -251,7 +253,7 @@ class TestMemoryPerformance:
     """Performance tests for memory usage and resource management."""
 
     @pytest.mark.performance
-    def test_memory_usage_bounded(self):
+    def test_memory_usage_bounded(self) -> None:
         """Memory usage should remain bounded during normal operations."""
         import os
 
@@ -286,7 +288,7 @@ class TestMemoryPerformance:
         assert memory_growth <= 20.0, f"Memory growth too high: {memory_growth:.2f}MB"
 
     @pytest.mark.performance
-    def test_resource_cleanup_performance(self):
+    def test_resource_cleanup_performance(self) -> None:
         """Resource cleanup should be efficient."""
         engine = MacroEngine()
 
@@ -320,7 +322,7 @@ class TestIntegrationPerformance:
     """Performance tests for integration with external systems."""
 
     @pytest.mark.performance
-    def test_mock_km_client_performance(self):
+    def test_mock_km_client_performance(self) -> None:
         """Mock KM client should perform within expected bounds."""
         client = MockKeyboardMaestroClient(
             success_rate=1.0,
@@ -332,10 +334,17 @@ class TestIntegrationPerformance:
         operations = []
         for i in range(num_operations):
             operations.append(
-                ("register_trigger", {"trigger_type": "hotkey", "key": f"F{i}"})
+                (
+                    "register_trigger",
+                    {"trigger_type": "hotkey", "key": f"F{i}"},
+                ),
             )
             operations.append(
-                ("execute_macro", f"test_macro_{i}", {"param": f"value_{i}"})
+                (
+                    "execute_macro",
+                    f"test_macro_{i}",
+                    {"param": f"value_{i}"},
+                ),
             )
 
         start_time = time.perf_counter()
@@ -345,7 +354,8 @@ class TestIntegrationPerformance:
                 response = client.register_trigger(args[0])
             elif op_type == "execute_macro":
                 response = client.execute_macro(
-                    args[0], args[1] if len(args) > 1 else None
+                    args[0],
+                    args[1] if len(args) > 1 else None,
                 )
 
             assert response.status in ["success", "completed"], (
@@ -357,11 +367,13 @@ class TestIntegrationPerformance:
         # Should complete within reasonable time considering mock delays
         expected_max_time = num_operations * 0.1 + 1.0  # 100ms per op + 1s overhead
         assert_performance_within_bounds(
-            total_time, max_time=expected_max_time, message="Mock KM client performance"
+            total_time,
+            max_time=expected_max_time,
+            message="Mock KM client performance",
         )
 
     @pytest.mark.performance
-    async def test_async_operation_performance(self):
+    async def test_async_operation_performance(self) -> None:
         """Async operations should perform efficiently."""
         client = MockKeyboardMaestroClient(
             response_delay=0.01,
@@ -403,7 +415,7 @@ class TestPerformanceRegression:
     """Tests to detect performance regressions."""
 
     @pytest.mark.performance
-    def test_baseline_performance_metrics(self):
+    def test_baseline_performance_metrics(self) -> None:
         """Establish baseline performance metrics."""
         engine = MacroEngine()
         metrics = get_engine_metrics()
@@ -438,7 +450,7 @@ class TestPerformanceRegression:
 
     @pytest.mark.performance
     @pytest.mark.parametrize("load_factor", [1, 2, 5])
-    def test_performance_under_load(self, load_factor: int):
+    def test_performance_under_load(self, load_factor: int) -> None:
         """Test performance characteristics under varying load."""
         engine = MacroEngine()
         base_operations = 5

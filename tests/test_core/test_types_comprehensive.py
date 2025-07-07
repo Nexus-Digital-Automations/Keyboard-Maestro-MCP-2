@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for core types and data structures.
+"""Comprehensive tests for core types and data structures.
 
 Tests cover branded types, enums, dataclasses, protocols, and type safety
 with property-based testing and comprehensive validation.
@@ -42,49 +41,49 @@ from src.core.types import (
 
 # Test data generators
 @st.composite
-def duration_strategy(draw):
+def duration_strategy(draw) -> Any:
     """Generate valid duration values."""
     return draw(st.floats(min_value=0.0, max_value=3600.0))
 
 
 @st.composite
-def command_parameters_strategy(draw):
+def command_parameters_strategy(draw) -> Any:
     """Generate valid command parameters."""
     params = draw(
         st.dictionaries(
             st.text(min_size=1, max_size=50),
             st.one_of(st.text(max_size=100), st.integers(), st.floats(), st.booleans()),
             max_size=10,
-        )
+        ),
     )
     return params
 
 
 @st.composite
-def permission_set_strategy(draw):
+def permission_set_strategy(draw) -> Any:
     """Generate valid permission sets."""
     permissions = draw(
-        st.lists(st.sampled_from(list(Permission)), min_size=0, max_size=5)
+        st.lists(st.sampled_from(list(Permission)), min_size=0, max_size=5),
     )
     return frozenset(permissions)
 
 
 @st.composite
-def variable_dict_strategy(draw):
+def variable_dict_strategy(draw) -> Any:
     """Generate valid variable dictionaries."""
     return draw(
         st.dictionaries(
             st.text(min_size=1, max_size=50).map(VariableName),
             st.text(max_size=100),
             max_size=10,
-        )
+        ),
     )
 
 
 class TestBrandedTypes:
     """Test branded type functionality and type safety."""
 
-    def test_macro_id_creation(self):
+    def test_macro_id_creation(self) -> None:
         """Test MacroId creation and type safety."""
         macro_id = MacroId("test_macro_123")
         assert isinstance(macro_id, str)
@@ -95,25 +94,28 @@ class TestBrandedTypes:
         macro_id_uuid = MacroId(uuid_str)
         assert macro_id_uuid == uuid_str
 
-    def test_command_id_creation(self):
+    def test_command_id_creation(self) -> None:
         """Test CommandId creation."""
         command_id = CommandId("cmd_123")
         assert isinstance(command_id, str)
         assert command_id == "cmd_123"
 
-    def test_execution_token_creation(self):
+    def test_execution_token_creation(self) -> None:
         """Test ExecutionToken creation."""
-        token = ExecutionToken("exec_token_456")
-        assert isinstance(token, str)
-        assert token == "exec_token_456"
+        import secrets
 
-    def test_user_id_creation(self):
+        token_value = f"exec_token_{secrets.token_hex(8)}"
+        token = ExecutionToken(token_value)
+        assert isinstance(token, str)
+        assert token == token_value  # S105 fix: Use secure random token
+
+    def test_user_id_creation(self) -> None:
         """Test UserId creation."""
         user_id = UserId("user_789")
         assert isinstance(user_id, str)
         assert user_id == "user_789"
 
-    def test_create_macro_id_function(self):
+    def test_create_macro_id_function(self) -> None:
         """Test create_macro_id utility function."""
         macro_id = create_macro_id()
 
@@ -128,7 +130,7 @@ class TestBrandedTypes:
         assert macro_id != macro_id2
 
     @given(st.text(min_size=1, max_size=100))
-    def test_branded_types_property_validation(self, text_value: str):
+    def test_branded_types_property_validation(self, text_value: str) -> None:
         """Property test for branded type creation."""
         # Test various branded types with same underlying string
         macro_id = MacroId(text_value)
@@ -149,7 +151,7 @@ class TestBrandedTypes:
 class TestEnumerations:
     """Test enum definitions and values."""
 
-    def test_execution_status_enum(self):
+    def test_execution_status_enum(self) -> None:
         """Test ExecutionStatus enum values."""
         expected_statuses = {
             ExecutionStatus.PENDING: "pending",
@@ -166,7 +168,7 @@ class TestEnumerations:
         # Test all values are present
         assert len(list(ExecutionStatus)) == 6
 
-    def test_macro_creation_status_enum(self):
+    def test_macro_creation_status_enum(self) -> None:
         """Test MacroCreationStatus enum values."""
         expected_statuses = {
             MacroCreationStatus.VALIDATING: "validating",
@@ -181,7 +183,7 @@ class TestEnumerations:
 
         assert len(list(MacroCreationStatus)) == 5
 
-    def test_priority_enum(self):
+    def test_priority_enum(self) -> None:
         """Test Priority enum values."""
         expected_priorities = {
             Priority.LOW: "low",
@@ -195,7 +197,7 @@ class TestEnumerations:
 
         assert len(list(Priority)) == 4
 
-    def test_permission_enum(self):
+    def test_permission_enum(self) -> None:
         """Test Permission enum comprehensiveness."""
         expected_permissions = [
             "text_input",
@@ -227,7 +229,7 @@ class TestEnumerations:
         assert Permission.AUTOMATION_CONTROL.value == "automation_control"
         assert Permission.ADMIN_ACCESS.value == "admin_access"
 
-    def test_move_conflict_type_enum(self):
+    def test_move_conflict_type_enum(self) -> None:
         """Test MoveConflictType enum values."""
         expected_conflicts = {
             MoveConflictType.NAME_COLLISION: "name_collision",
@@ -247,30 +249,30 @@ class TestEnumerations:
 class TestDuration:
     """Test Duration class functionality."""
 
-    def test_duration_creation(self):
+    def test_duration_creation(self) -> bool:
         """Test Duration creation with valid values."""
         duration = Duration(5.0)
         assert duration.seconds == 5.0
         assert duration.total_seconds() == 5.0
 
-    def test_duration_negative_validation(self):
+    def test_duration_negative_validation(self) -> bool:
         """Test Duration validation for negative values."""
         with pytest.raises(ValueError, match="Duration cannot be negative"):
             Duration(-1.0)
 
-    def test_duration_from_seconds(self):
+    def test_duration_from_seconds(self) -> bool:
         """Test Duration.from_seconds class method."""
         duration = Duration.from_seconds(10.5)
         assert duration.seconds == 10.5
         assert duration.total_seconds() == 10.5
 
-    def test_duration_from_milliseconds(self):
+    def test_duration_from_milliseconds(self) -> bool:
         """Test Duration.from_milliseconds class method."""
         duration = Duration.from_milliseconds(1500)
         assert duration.seconds == 1.5
         assert duration.total_seconds() == 1.5
 
-    def test_duration_arithmetic_operations(self):
+    def test_duration_arithmetic_operations(self) -> bool:
         """Test Duration arithmetic operations."""
         d1 = Duration(5.0)
         d2 = Duration(3.0)
@@ -283,7 +285,7 @@ class TestDuration:
         assert d1.seconds == 5.0
         assert d2.seconds == 3.0
 
-    def test_duration_comparison_operations(self):
+    def test_duration_comparison_operations(self) -> None:
         """Test Duration comparison operations."""
         d1 = Duration(5.0)
         d2 = Duration(3.0)
@@ -316,7 +318,7 @@ class TestDuration:
         assert d1 != "5.0"
         assert d1 != 5.0
 
-    def test_duration_zero_constant(self):
+    def test_duration_zero_constant(self) -> None:
         """Test Duration.ZERO constant."""
         assert Duration.ZERO.seconds == 0.0
         assert Duration.ZERO.total_seconds() == 0.0
@@ -325,7 +327,7 @@ class TestDuration:
         assert Duration.ZERO == Duration(0.0)
 
     @given(duration_strategy())
-    def test_duration_property_validation(self, seconds: float):
+    def test_duration_property_validation(self, seconds: float) -> None:
         """Property test for Duration behavior."""
         assume(seconds >= 0.0)
 
@@ -349,7 +351,7 @@ class TestDuration:
 class TestCommandParameters:
     """Test CommandParameters functionality."""
 
-    def test_command_parameters_creation(self):
+    def test_command_parameters_creation(self) -> None:
         """Test CommandParameters creation."""
         params = CommandParameters({"key1": "value1", "key2": 42})
 
@@ -358,7 +360,7 @@ class TestCommandParameters:
         assert params.get("nonexistent") is None
         assert params.get("nonexistent", "default") == "default"
 
-    def test_command_parameters_empty(self):
+    def test_command_parameters_empty(self) -> None:
         """Test CommandParameters.empty() class method."""
         params = CommandParameters.empty()
 
@@ -366,7 +368,7 @@ class TestCommandParameters:
         assert len(params.data) == 0
         assert params.get("anything") is None
 
-    def test_command_parameters_with_parameter(self):
+    def test_command_parameters_with_parameter(self) -> None:
         """Test immutable parameter addition."""
         original = CommandParameters({"existing": "value"})
         updated = original.with_parameter("new_key", "new_value")
@@ -379,7 +381,7 @@ class TestCommandParameters:
         assert updated.get("existing") == "value"
         assert updated.get("new_key") == "new_value"
 
-    def test_command_parameters_with_parameter_override(self):
+    def test_command_parameters_with_parameter_override(self) -> None:
         """Test parameter override with with_parameter."""
         original = CommandParameters({"key": "old_value"})
         updated = original.with_parameter("key", "new_value")
@@ -388,7 +390,7 @@ class TestCommandParameters:
         assert updated.get("key") == "new_value"
 
     @given(command_parameters_strategy())
-    def test_command_parameters_property_validation(self, param_dict: dict[str, Any]):
+    def test_command_parameters_property_validation(self, param_dict: dict[str, Any]) -> None:
         """Property test for CommandParameters behavior."""
         import math
 
@@ -417,7 +419,7 @@ class TestCommandParameters:
             retrieved_original = params.get(first_key)
             if isinstance(original_value, float) and math.isnan(original_value):
                 assert isinstance(retrieved_original, float) and math.isnan(
-                    retrieved_original
+                    retrieved_original,
                 )
             else:
                 assert retrieved_original == original_value  # Original unchanged
@@ -428,14 +430,16 @@ class TestCommandParameters:
 class TestExecutionContext:
     """Test ExecutionContext functionality."""
 
-    def test_execution_context_creation(self):
+    def test_execution_context_creation(self) -> None:
         """Test ExecutionContext creation."""
         permissions = frozenset([Permission.TEXT_INPUT, Permission.SYSTEM_SOUND])
         timeout = Duration.from_seconds(30)
         variables = {VariableName("var1"): "value1"}
 
         context = ExecutionContext(
-            permissions=permissions, timeout=timeout, variables=variables
+            permissions=permissions,
+            timeout=timeout,
+            variables=variables,
         )
 
         assert context.permissions == permissions
@@ -444,11 +448,12 @@ class TestExecutionContext:
         assert isinstance(context.execution_id, str)
         assert isinstance(context.created_at, datetime)
 
-    def test_execution_context_permission_checking(self):
+    def test_execution_context_permission_checking(self) -> None:
         """Test ExecutionContext permission checking."""
         permissions = frozenset([Permission.TEXT_INPUT, Permission.CLIPBOARD_ACCESS])
         context = ExecutionContext(
-            permissions=permissions, timeout=Duration.from_seconds(30)
+            permissions=permissions,
+            timeout=Duration.from_seconds(30),
         )
 
         # Has permission
@@ -462,15 +467,15 @@ class TestExecutionContext:
         # Has all permissions
         assert context.has_permissions(frozenset([Permission.TEXT_INPUT]))
         assert context.has_permissions(
-            frozenset([Permission.TEXT_INPUT, Permission.CLIPBOARD_ACCESS])
+            frozenset([Permission.TEXT_INPUT, Permission.CLIPBOARD_ACCESS]),
         )
 
         # Doesn't have all permissions
         assert not context.has_permissions(
-            frozenset([Permission.TEXT_INPUT, Permission.ADMIN_ACCESS])
+            frozenset([Permission.TEXT_INPUT, Permission.ADMIN_ACCESS]),
         )
 
-    def test_execution_context_variable_operations(self):
+    def test_execution_context_variable_operations(self) -> None:
         """Test ExecutionContext variable operations."""
         variables = {VariableName("var1"): "value1", VariableName("var2"): "value2"}
         context = ExecutionContext(
@@ -486,7 +491,7 @@ class TestExecutionContext:
         # Get non-existent variable
         assert context.get_variable(VariableName("nonexistent")) is None
 
-    def test_execution_context_with_variable(self):
+    def test_execution_context_with_variable(self) -> None:
         """Test ExecutionContext immutable variable addition."""
         original_context = ExecutionContext(
             permissions=frozenset([Permission.TEXT_INPUT]),
@@ -496,7 +501,8 @@ class TestExecutionContext:
 
         # Add new variable
         updated_context = original_context.with_variable(
-            VariableName("new_var"), "new_value"
+            VariableName("new_var"),
+            "new_value",
         )
 
         # Original context unchanged
@@ -512,7 +518,7 @@ class TestExecutionContext:
         assert updated_context.timeout == original_context.timeout
         assert updated_context.execution_id == original_context.execution_id
 
-    def test_execution_context_create_test_context(self):
+    def test_execution_context_create_test_context(self) -> None:
         """Test ExecutionContext.create_test_context() class method."""
         # Default test context
         context = ExecutionContext.create_test_context()
@@ -526,13 +532,14 @@ class TestExecutionContext:
         custom_timeout = Duration.from_seconds(60)
 
         custom_context = ExecutionContext.create_test_context(
-            permissions=custom_permissions, timeout=custom_timeout
+            permissions=custom_permissions,
+            timeout=custom_timeout,
         )
 
         assert custom_context.permissions == custom_permissions
         assert custom_context.timeout == custom_timeout
 
-    def test_execution_context_default(self):
+    def test_execution_context_default(self) -> None:
         """Test ExecutionContext.default() class method."""
         context = ExecutionContext.default()
 
@@ -544,13 +551,18 @@ class TestExecutionContext:
 
     @given(permission_set_strategy(), duration_strategy(), variable_dict_strategy())
     def test_execution_context_property_validation(
-        self, permissions: frozenset, timeout_seconds: float, variables: dict
-    ):
+        self,
+        permissions: frozenset,
+        timeout_seconds: float,
+        variables: dict,
+    ) -> None:
         """Property test for ExecutionContext behavior."""
         timeout = Duration.from_seconds(timeout_seconds)
 
         context = ExecutionContext(
-            permissions=permissions, timeout=timeout, variables=variables
+            permissions=permissions,
+            timeout=timeout,
+            variables=variables,
         )
 
         # Properties that should always hold
@@ -572,7 +584,7 @@ class TestExecutionContext:
 class TestCommandResult:
     """Test CommandResult functionality."""
 
-    def test_command_result_success_creation(self):
+    def test_command_result_success_creation(self) -> None:
         """Test successful CommandResult creation."""
         result = CommandResult(
             success=True,
@@ -587,7 +599,7 @@ class TestCommandResult:
         assert result.execution_time.seconds == 1.5
         assert result.metadata["command_id"] == "cmd_123"
 
-    def test_command_result_failure_creation(self):
+    def test_command_result_failure_creation(self) -> None:
         """Test failed CommandResult creation."""
         result = CommandResult(
             success=False,
@@ -600,7 +612,7 @@ class TestCommandResult:
         assert result.error_message == "Operation failed"
         assert result.execution_time.seconds == 0.5
 
-    def test_command_result_success_result_factory(self):
+    def test_command_result_success_result_factory(self) -> None:
         """Test CommandResult.success_result() factory method."""
         result = CommandResult.success_result(
             output="Success message",
@@ -616,7 +628,7 @@ class TestCommandResult:
         assert result.metadata["command_id"] == "test_cmd"
         assert result.metadata["extra_data"] == "additional"
 
-    def test_command_result_failure_result_factory(self):
+    def test_command_result_failure_result_factory(self) -> None:
         """Test CommandResult.failure_result() factory method."""
         result = CommandResult.failure_result(
             error_message="Command execution failed",
@@ -632,7 +644,7 @@ class TestCommandResult:
         assert result.metadata["error_code"] == 500
         assert result.metadata["component"] == "parser"
 
-    def test_command_result_minimal_creation(self):
+    def test_command_result_minimal_creation(self) -> None:
         """Test CommandResult with minimal parameters."""
         success_result = CommandResult(success=True)
         assert success_result.success
@@ -648,7 +660,7 @@ class TestCommandResult:
 class TestMacroDefinition:
     """Test MacroDefinition functionality."""
 
-    def test_macro_definition_creation(self):
+    def test_macro_definition_creation(self) -> None:
         """Test MacroDefinition creation."""
         # Create mock commands
         mock_command1 = Mock(spec=MacroCommand)
@@ -676,37 +688,43 @@ class TestMacroDefinition:
         assert macro.description == "A test macro"
         assert isinstance(macro.created_at, datetime)
 
-    def test_macro_definition_is_valid_success(self):
+    def test_macro_definition_is_valid_success(self) -> None:
         """Test MacroDefinition.is_valid() with valid macro."""
         mock_command = Mock(spec=MacroCommand)
         mock_command.validate.return_value = True
 
         macro = MacroDefinition(
-            macro_id=MacroId("valid_macro"), name="Valid Macro", commands=[mock_command]
+            macro_id=MacroId("valid_macro"),
+            name="Valid Macro",
+            commands=[mock_command],
         )
 
         assert macro.is_valid()
         mock_command.validate.assert_called_once()
 
-    def test_macro_definition_is_valid_empty_name(self):
+    def test_macro_definition_is_valid_empty_name(self) -> None:
         """Test MacroDefinition.is_valid() with empty name."""
         mock_command = Mock(spec=MacroCommand)
 
         macro = MacroDefinition(
-            macro_id=MacroId("invalid_macro"), name="", commands=[mock_command]
+            macro_id=MacroId("invalid_macro"),
+            name="",
+            commands=[mock_command],
         )
 
         assert not macro.is_valid()
 
-    def test_macro_definition_is_valid_no_commands(self):
+    def test_macro_definition_is_valid_no_commands(self) -> None:
         """Test MacroDefinition.is_valid() with no commands."""
         macro = MacroDefinition(
-            macro_id=MacroId("empty_macro"), name="Empty Macro", commands=[]
+            macro_id=MacroId("empty_macro"),
+            name="Empty Macro",
+            commands=[],
         )
 
         assert not macro.is_valid()
 
-    def test_macro_definition_is_valid_invalid_command(self):
+    def test_macro_definition_is_valid_invalid_command(self) -> None:
         """Test MacroDefinition.is_valid() with invalid command."""
         mock_command1 = Mock(spec=MacroCommand)
         mock_command1.validate.return_value = True
@@ -721,7 +739,7 @@ class TestMacroDefinition:
 
         assert not macro.is_valid()
 
-    def test_macro_definition_create_test_macro(self):
+    def test_macro_definition_create_test_macro(self) -> None:
         """Test MacroDefinition.create_test_macro() factory method."""
         mock_command = Mock(spec=MacroCommand)
 
@@ -741,7 +759,7 @@ class TestMacroDefinition:
 class TestExecutionResult:
     """Test ExecutionResult functionality."""
 
-    def test_execution_result_creation(self):
+    def test_execution_result_creation(self) -> None:
         """Test ExecutionResult creation."""
         token = ExecutionToken("exec_123")
         macro_id = MacroId("macro_456")
@@ -770,7 +788,7 @@ class TestExecutionResult:
         assert len(result.command_results) == 2
         assert result.error_details is None
 
-    def test_execution_result_is_successful_true(self):
+    def test_execution_result_is_successful_true(self) -> None:
         """Test ExecutionResult.is_successful() with successful execution."""
         command_result1 = CommandResult.success_result("Success 1")
         command_result2 = CommandResult.success_result("Success 2")
@@ -785,7 +803,7 @@ class TestExecutionResult:
 
         assert result.is_successful()
 
-    def test_execution_result_is_successful_false_status(self):
+    def test_execution_result_is_successful_false_status(self) -> None:
         """Test ExecutionResult.is_successful() with failed status."""
         command_result = CommandResult.success_result("Success")
 
@@ -799,7 +817,7 @@ class TestExecutionResult:
 
         assert not result.is_successful()
 
-    def test_execution_result_is_successful_false_command(self):
+    def test_execution_result_is_successful_false_command(self) -> None:
         """Test ExecutionResult.is_successful() with failed command."""
         command_result1 = CommandResult.success_result("Success")
         command_result2 = CommandResult.failure_result("Command failed")
@@ -814,7 +832,7 @@ class TestExecutionResult:
 
         assert not result.is_successful()
 
-    def test_execution_result_has_error_info(self):
+    def test_execution_result_has_error_info(self) -> None:
         """Test ExecutionResult.has_error_info() method."""
         # With error details
         result_with_error = ExecutionResult(
@@ -855,7 +873,7 @@ class TestExecutionResult:
 class TestMacroMoveResult:
     """Test MacroMoveResult functionality."""
 
-    def test_macro_move_result_creation(self):
+    def test_macro_move_result_creation(self) -> None:
         """Test MacroMoveResult creation."""
         macro_id = MacroId("move_macro")
         source_group = GroupId("source_group")
@@ -878,7 +896,7 @@ class TestMacroMoveResult:
         assert result.conflicts_resolved == conflicts
         assert result.rollback_info is None
 
-    def test_macro_move_result_was_successful_true(self):
+    def test_macro_move_result_was_successful_true(self) -> None:
         """Test MacroMoveResult.was_successful() with successful move."""
         result = MacroMoveResult(
             macro_id=MacroId("macro"),
@@ -890,7 +908,7 @@ class TestMacroMoveResult:
 
         assert result.was_successful()
 
-    def test_macro_move_result_was_successful_false(self):
+    def test_macro_move_result_was_successful_false(self) -> None:
         """Test MacroMoveResult.was_successful() with failed move."""
         result = MacroMoveResult(
             macro_id=MacroId("macro"),
@@ -906,7 +924,7 @@ class TestMacroMoveResult:
 class TestIntegration:
     """Integration tests for type interactions."""
 
-    def test_complete_execution_workflow(self):
+    def test_complete_execution_workflow(self) -> None:
         """Test complete execution workflow with all types."""
         # Create execution context
         permissions = frozenset([Permission.TEXT_INPUT, Permission.AUTOMATION_CONTROL])
@@ -924,15 +942,18 @@ class TestIntegration:
 
         # Create macro definition
         macro = MacroDefinition.create_test_macro(
-            "Integration Test Macro", [mock_command1, mock_command2]
+            "Integration Test Macro",
+            [mock_command1, mock_command2],
         )
 
         # Create command results
         result1 = CommandResult.success_result(
-            output="Command 1 executed", execution_time=Duration.from_seconds(0.5)
+            output="Command 1 executed",
+            execution_time=Duration.from_seconds(0.5),
         )
         result2 = CommandResult.success_result(
-            output="Command 2 executed", execution_time=Duration.from_seconds(0.3)
+            output="Command 2 executed",
+            execution_time=Duration.from_seconds(0.3),
         )
 
         # Create execution result
@@ -956,7 +977,7 @@ class TestIntegration:
         assert not execution_result.has_error_info()
         assert len(execution_result.command_results) == 2
 
-    def test_type_immutability_workflow(self):
+    def test_type_immutability_workflow(self) -> None:
         """Test type immutability throughout workflow."""
         # Create initial context
         original_context = ExecutionContext.default()
@@ -964,7 +985,8 @@ class TestIntegration:
 
         # Add variable (should create new instance)
         updated_context = original_context.with_variable(
-            VariableName("new_var"), "new_value"
+            VariableName("new_var"),
+            "new_value",
         )
 
         # Original should be unchanged
@@ -983,7 +1005,7 @@ class TestIntegration:
         assert updated_params.get("new") == "param"
         assert updated_params.get("original") == "value"
 
-    def test_error_propagation_workflow(self):
+    def test_error_propagation_workflow(self) -> None:
         """Test error propagation through type system."""
         # Create context with limited permissions
         limited_context = ExecutionContext(
@@ -995,12 +1017,13 @@ class TestIntegration:
         assert limited_context.has_permission(Permission.TEXT_INPUT)
         assert not limited_context.has_permission(Permission.ADMIN_ACCESS)
         assert not limited_context.has_permissions(
-            frozenset([Permission.TEXT_INPUT, Permission.ADMIN_ACCESS])
+            frozenset([Permission.TEXT_INPUT, Permission.ADMIN_ACCESS]),
         )
 
         # Create failed command result
         failed_result = CommandResult.failure_result(
-            error_message="Permission denied", execution_time=Duration.from_seconds(0.1)
+            error_message="Permission denied",
+            execution_time=Duration.from_seconds(0.1),
         )
 
         # Create execution result with failure

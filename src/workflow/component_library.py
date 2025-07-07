@@ -1,5 +1,4 @@
-"""
-Reusable visual components for common automation patterns.
+"""Reusable visual components for common automation patterns.
 
 Component library providing pre-configured visual components and templates
 for efficient workflow creation with drag-and-drop functionality.
@@ -87,7 +86,6 @@ class ComponentLibrary:
 
     def _initialize_standard_components(self) -> None:
         """Initialize standard component library."""
-
         # Trigger Components
         self.component_definitions.update(
             {
@@ -148,7 +146,7 @@ class ComponentLibrary:
                     ComponentCategory.TRIGGERS,
                     icon="clock",
                 ),
-            }
+            },
         )
 
         # Condition Components
@@ -200,7 +198,7 @@ class ComponentLibrary:
                     icon="variable",
                     color="#FF6B35",
                 ),
-            }
+            },
         )
 
         # Action Components - File Operations
@@ -246,7 +244,7 @@ class ComponentLibrary:
                     icon="trash",
                     color="#FF3B30",
                 ),
-            }
+            },
         )
 
         # Action Components - Text Processing
@@ -299,7 +297,7 @@ class ComponentLibrary:
                     icon="magnifyingglass",
                     color="#007AFF",
                 ),
-            }
+            },
         )
 
         # Action Components - Application Control
@@ -345,7 +343,7 @@ class ComponentLibrary:
                     icon="menubar.rectangle",
                     color="#FF9500",
                 ),
-            }
+            },
         )
 
         # Action Components - Communication
@@ -400,7 +398,7 @@ class ComponentLibrary:
                     icon="speaker.wave.2",
                     color="#5856D6",
                 ),
-            }
+            },
         )
 
         # Utility Components
@@ -446,17 +444,18 @@ class ComponentLibrary:
                     icon="rectangle.3.group",
                     color="#8E8E93",
                 ),
-            }
+            },
         )
 
     def get_component_definition(self, component_key: str) -> dict[str, Any] | None:
         """Get component definition by key."""
         return self.component_definitions.get(
-            component_key
+            component_key,
         ) or self.custom_components.get(component_key)
 
     def list_components_by_category(
-        self, category: ComponentCategory
+        self,
+        category: ComponentCategory,
     ) -> list[dict[str, Any]]:
         """List all components in specified category."""
         components = []
@@ -492,10 +491,11 @@ class ComponentLibrary:
                     {
                         "key": key,
                         "relevance_score": self._calculate_relevance(
-                            query_lower, definition
+                            query_lower,
+                            definition,
                         ),
                         **definition,
-                    }
+                    },
                 )
 
         return sorted(results, key=lambda x: x["relevance_score"], reverse=True)
@@ -512,7 +512,7 @@ class ComponentLibrary:
             definition = self.get_component_definition(component_key)
             if not definition:
                 return Either.left(
-                    ValueError(f"Component definition '{component_key}' not found")
+                    ValueError(f"Component definition '{component_key}' not found"),
                 )
 
             # Merge default properties with custom properties
@@ -549,7 +549,9 @@ class ComponentLibrary:
             return Either.left(e)
 
     def add_custom_component(
-        self, key: str, component_definition: dict[str, Any]
+        self,
+        key: str,
+        component_definition: dict[str, Any],
     ) -> Either[Exception, bool]:
         """Add custom component definition to library."""
         try:
@@ -579,7 +581,9 @@ class ComponentLibrary:
     def get_popular_components(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get most popular components based on usage statistics."""
         popular = sorted(
-            self.usage_statistics.items(), key=lambda x: x[1], reverse=True
+            self.usage_statistics.items(),
+            key=lambda x: x[1],
+            reverse=True,
         )[:limit]
 
         results = []
@@ -587,7 +591,11 @@ class ComponentLibrary:
             definition = self.get_component_definition(component_key)
             if definition:
                 results.append(
-                    {"key": component_key, "usage_count": usage_count, **definition}
+                    {
+                        "key": component_key,
+                        "usage_count": usage_count,
+                        **definition,
+                    },
                 )
 
         return results
@@ -638,7 +646,8 @@ class ComponentLibrary:
             "category_breakdown": category_counts,
             "total_usage": sum(self.usage_statistics.values()),
             "most_used_component": max(
-                self.usage_statistics.items(), key=lambda x: x[1]
+                self.usage_statistics.items(),
+                key=lambda x: x[1],
             )[0]
             if self.usage_statistics
             else None,

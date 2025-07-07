@@ -1,5 +1,4 @@
-"""
-Sensor Manager - TASK_65 Phase 2 Core IoT Engine
+"""Sensor Manager - TASK_65 Phase 2 Core IoT Engine.
 
 Sensor data collection, processing, and event triggering with real-time analytics.
 Provides comprehensive sensor lifecycle management and intelligent automation triggers.
@@ -147,7 +146,7 @@ class SensorStatistics:
     anomalies_detected: int = 0
     last_anomaly: datetime | None = None
 
-    def update_statistics(self, readings: list[SensorReading]):
+    def update_statistics(self, readings: list[SensorReading]) -> bool:
         """Update statistics from readings."""
         if not readings:
             return
@@ -217,7 +216,7 @@ class SensorStatistics:
             + sorted_values[upper_index] * weight
         )
 
-    def _update_trend_analysis(self, values: list[float]):
+    def _update_trend_analysis(self, values: list[float]) -> Any:
         """Update trend analysis."""
         if len(values) < 3:
             self.trend_direction = "stable"
@@ -280,14 +279,14 @@ class SensorAlert:
     # Metadata
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def acknowledge(self, acknowledged_by: str | None = None):
+    def acknowledge(self, acknowledged_by: str | None = None) -> None:
         """Acknowledge the alert."""
         self.acknowledged = True
         self.acknowledged_at = datetime.now(UTC)
         if acknowledged_by:
             self.metadata["acknowledged_by"] = acknowledged_by
 
-    def resolve(self, resolution_note: str | None = None):
+    def resolve(self, resolution_note: str | None = None) -> None:
         """Resolve the alert."""
         self.resolved = True
         self.resolved_at = datetime.now(UTC)
@@ -340,39 +339,40 @@ class SensorManager:
 
     @require(lambda config: isinstance(config, SensorConfiguration))
     async def register_sensor(
-        self, config: SensorConfiguration
+        self,
+        config: SensorConfiguration,
     ) -> Either[IoTIntegrationError, bool]:
         """Register a new sensor for monitoring."""
         try:
             if config.sensor_id in self.sensors:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Sensor already registered: {config.sensor_id}"
-                    )
+                        f"Sensor already registered: {config.sensor_id}",
+                    ),
                 )
 
             # Validate configuration
             if config.collection_interval < 1:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Invalid collection interval: {config.collection_interval}"
-                    )
+                        f"Invalid collection interval: {config.collection_interval}",
+                    ),
                 )
 
             if config.quality_threshold < 0 or config.quality_threshold > 1:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Invalid quality threshold: {config.quality_threshold}"
-                    )
+                        f"Invalid quality threshold: {config.quality_threshold}",
+                    ),
                 )
 
             # Register sensor
             self.sensors[config.sensor_id] = config
             self.sensor_data[config.sensor_id] = deque(
-                maxlen=config.buffer_size * 10
+                maxlen=config.buffer_size * 10,
             )  # Store more for analytics
             self.sensor_statistics[config.sensor_id] = SensorStatistics(
-                sensor_id=config.sensor_id
+                sensor_id=config.sensor_id,
             )
             self.aggregation_results[config.sensor_id] = {}
 
@@ -380,12 +380,13 @@ class SensorManager:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Sensor registration failed: {str(e)}")
+                IoTIntegrationError(f"Sensor registration failed: {e!s}"),
             )
 
     @require(lambda reading: isinstance(reading, SensorReading))
     async def process_sensor_reading(
-        self, reading: SensorReading
+        self,
+        reading: SensorReading,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Process a new sensor reading."""
         try:
@@ -394,7 +395,7 @@ class SensorManager:
             # Check if sensor is registered
             if reading.sensor_id not in self.sensors:
                 return Either.error(
-                    IoTIntegrationError(f"Sensor not registered: {reading.sensor_id}")
+                    IoTIntegrationError(f"Sensor not registered: {reading.sensor_id}"),
                 )
 
             config = self.sensors[reading.sensor_id]
@@ -431,7 +432,7 @@ class SensorManager:
                             "timestamp": reading.timestamp.isoformat(),
                             "value": reading.value,
                             "anomaly_details": anomaly_result,
-                        }
+                        },
                     )
 
                     # Trigger anomaly event handlers
@@ -475,25 +476,28 @@ class SensorManager:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Reading processing failed: {str(e)}")
+                IoTIntegrationError(f"Reading processing failed: {e!s}"),
             )
 
     async def add_automation_condition(
-        self, condition: AutomationCondition
+        self,
+        condition: AutomationCondition,
     ) -> Either[IoTIntegrationError, bool]:
         """Add automation condition for sensor-based triggers."""
         try:
             if condition.condition_id in self.automation_conditions:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Condition already exists: {condition.condition_id}"
-                    )
+                        f"Condition already exists: {condition.condition_id}",
+                    ),
                 )
 
             # Validate condition
             if condition.sensor_id and condition.sensor_id not in self.sensors:
                 return Either.error(
-                    IoTIntegrationError(f"Sensor not registered: {condition.sensor_id}")
+                    IoTIntegrationError(
+                        f"Sensor not registered: {condition.sensor_id}"
+                    ),
                 )
 
             self.automation_conditions[condition.condition_id] = condition
@@ -501,17 +505,18 @@ class SensorManager:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Failed to add automation condition: {str(e)}")
+                IoTIntegrationError(f"Failed to add automation condition: {e!s}"),
             )
 
     async def add_automation_action(
-        self, action: AutomationAction
+        self,
+        action: AutomationAction,
     ) -> Either[IoTIntegrationError, bool]:
         """Add automation action for triggered conditions."""
         try:
             if action.action_id in self.automation_actions:
                 return Either.error(
-                    IoTIntegrationError(f"Action already exists: {action.action_id}")
+                    IoTIntegrationError(f"Action already exists: {action.action_id}"),
                 )
 
             self.automation_actions[action.action_id] = action
@@ -519,7 +524,7 @@ class SensorManager:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Failed to add automation action: {str(e)}")
+                IoTIntegrationError(f"Failed to add automation action: {e!s}"),
             )
 
     async def get_sensor_data(
@@ -532,7 +537,7 @@ class SensorManager:
         try:
             if sensor_id not in self.sensors:
                 return Either.error(
-                    IoTIntegrationError(f"Sensor not registered: {sensor_id}")
+                    IoTIntegrationError(f"Sensor not registered: {sensor_id}"),
                 )
 
             readings = list(self.sensor_data[sensor_id])
@@ -575,11 +580,12 @@ class SensorManager:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Failed to get sensor data: {str(e)}")
+                IoTIntegrationError(f"Failed to get sensor data: {e!s}"),
             )
 
     async def get_active_alerts(
-        self, severity_filter: AlertSeverity | None = None
+        self,
+        severity_filter: AlertSeverity | None = None,
     ) -> list[SensorAlert]:
         """Get active sensor alerts with optional severity filtering."""
         alerts = [alert for alert in self.active_alerts.values() if not alert.resolved]
@@ -601,7 +607,9 @@ class SensorManager:
     # Private methods
 
     def _validate_reading(
-        self, reading: SensorReading, config: SensorConfiguration
+        self,
+        reading: SensorReading,
+        config: SensorConfiguration,
     ) -> Either[IoTIntegrationError, bool]:
         """Validate sensor reading against configuration."""
         try:
@@ -609,16 +617,16 @@ class SensorManager:
             if reading.sensor_type != config.sensor_type:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Sensor type mismatch: {reading.sensor_type} != {config.sensor_type}"
-                    )
+                        f"Sensor type mismatch: {reading.sensor_type} != {config.sensor_type}",
+                    ),
                 )
 
             # Check quality threshold
             if reading.quality < config.quality_threshold:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Reading quality below threshold: {reading.quality} < {config.quality_threshold}"
-                    )
+                        f"Reading quality below threshold: {reading.quality} < {config.quality_threshold}",
+                    ),
                 )
 
             # Check value range
@@ -626,33 +634,35 @@ class SensorManager:
                 if config.min_value is not None and reading.value < config.min_value:
                     return Either.error(
                         IoTIntegrationError(
-                            f"Value below minimum: {reading.value} < {config.min_value}"
-                        )
+                            f"Value below minimum: {reading.value} < {config.min_value}",
+                        ),
                     )
                 if config.max_value is not None and reading.value > config.max_value:
                     return Either.error(
                         IoTIntegrationError(
-                            f"Value above maximum: {reading.value} > {config.max_value}"
-                        )
+                            f"Value above maximum: {reading.value} > {config.max_value}",
+                        ),
                     )
 
             # Check unit match
             if config.expected_unit and reading.unit != config.expected_unit:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Unit mismatch: {reading.unit} != {config.expected_unit}"
-                    )
+                        f"Unit mismatch: {reading.unit} != {config.expected_unit}",
+                    ),
                 )
 
             return Either.success(True)
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Reading validation failed: {str(e)}")
+                IoTIntegrationError(f"Reading validation failed: {e!s}"),
             )
 
     def _apply_smoothing(
-        self, reading: SensorReading, config: SensorConfiguration
+        self,
+        reading: SensorReading,
+        config: SensorConfiguration,
     ) -> float | Any:
         """Apply exponential smoothing to sensor value."""
         if not isinstance(reading.value, int | float):
@@ -678,7 +688,9 @@ class SensorManager:
         return smoothed_value
 
     async def _detect_anomaly(
-        self, reading: SensorReading, config: SensorConfiguration
+        self,
+        reading: SensorReading,
+        config: SensorConfiguration,
     ) -> dict[str, Any] | None:
         """Detect anomalies in sensor readings."""
         if not isinstance(reading.value, int | float):
@@ -726,7 +738,9 @@ class SensorManager:
         return None
 
     async def _evaluate_triggers(
-        self, reading: SensorReading, config: SensorConfiguration
+        self,
+        reading: SensorReading,
+        config: SensorConfiguration,
     ) -> list[AutomationCondition]:
         """Evaluate automation triggers for sensor reading."""
         triggered_conditions = []
@@ -753,7 +767,9 @@ class SensorManager:
         return triggered_conditions
 
     async def _execute_trigger_actions(
-        self, condition: AutomationCondition, reading: SensorReading
+        self,
+        condition: AutomationCondition,
+        reading: SensorReading,
     ):
         """Execute actions for triggered condition."""
         # Find associated actions (this would be implemented based on action-condition relationships)
@@ -786,7 +802,9 @@ class SensorManager:
             self.sensor_statistics[sensor_id].update_statistics(recent_readings)
 
     async def _aggregate_data(
-        self, readings: list[SensorReading], method: DataAggregationMethod
+        self,
+        readings: list[SensorReading],
+        method: DataAggregationMethod,
     ) -> Any:
         """Aggregate sensor data using specified method."""
         numeric_values = [r.value for r in readings if isinstance(r.value, int | float)]
@@ -796,22 +814,21 @@ class SensorManager:
 
         if method == DataAggregationMethod.AVERAGE:
             return statistics.mean(numeric_values)
-        elif method == DataAggregationMethod.MINIMUM:
+        if method == DataAggregationMethod.MINIMUM:
             return min(numeric_values)
-        elif method == DataAggregationMethod.MAXIMUM:
+        if method == DataAggregationMethod.MAXIMUM:
             return max(numeric_values)
-        elif method == DataAggregationMethod.SUM:
+        if method == DataAggregationMethod.SUM:
             return sum(numeric_values)
-        elif method == DataAggregationMethod.COUNT:
+        if method == DataAggregationMethod.COUNT:
             return len(numeric_values)
-        elif method == DataAggregationMethod.MEDIAN:
+        if method == DataAggregationMethod.MEDIAN:
             return statistics.median(numeric_values)
-        elif method == DataAggregationMethod.STANDARD_DEVIATION:
+        if method == DataAggregationMethod.STANDARD_DEVIATION:
             return statistics.stdev(numeric_values) if len(numeric_values) > 1 else 0
-        elif method == DataAggregationMethod.RANGE:
+        if method == DataAggregationMethod.RANGE:
             return max(numeric_values) - min(numeric_values)
-        else:
-            return statistics.mean(numeric_values)  # Default to average
+        return statistics.mean(numeric_values)  # Default to average
 
     # Background services
 
@@ -859,7 +876,7 @@ class SensorManager:
         for sensor_id, config in self.sensors.items():
             if sensor_id in self.sensor_data:
                 cutoff_time = datetime.now(UTC) - timedelta(
-                    hours=config.data_retention_hours
+                    hours=config.data_retention_hours,
                 )
 
                 # Remove old readings
@@ -877,16 +894,20 @@ class SensorManager:
                     # Calculate various aggregations
                     self.aggregation_results[sensor_id] = {
                         "hourly_average": await self._aggregate_data(
-                            readings[-60:], DataAggregationMethod.AVERAGE
+                            readings[-60:],
+                            DataAggregationMethod.AVERAGE,
                         ),
                         "daily_average": await self._aggregate_data(
-                            readings, DataAggregationMethod.AVERAGE
+                            readings,
+                            DataAggregationMethod.AVERAGE,
                         ),
                         "min_today": await self._aggregate_data(
-                            readings, DataAggregationMethod.MINIMUM
+                            readings,
+                            DataAggregationMethod.MINIMUM,
                         ),
                         "max_today": await self._aggregate_data(
-                            readings, DataAggregationMethod.MAXIMUM
+                            readings,
+                            DataAggregationMethod.MAXIMUM,
                         ),
                         "last_updated": datetime.now(UTC).isoformat(),
                     }
@@ -899,7 +920,7 @@ class SensorManager:
     async def _cleanup_resolved_alerts(self):
         """Clean up old resolved alerts."""
         cutoff_time = datetime.now(UTC) - timedelta(
-            days=7
+            days=7,
         )  # Keep resolved alerts for 7 days
 
         resolved_alert_ids = [
@@ -913,23 +934,25 @@ class SensorManager:
 
     # Event handler management
 
-    def add_reading_received_handler(self, handler: Callable[[SensorReading], None]):
+    def add_reading_received_handler(self, handler: Callable[[SensorReading], None]) -> None:
         """Add reading received event handler."""
         self.reading_received_handlers.append(handler)
 
     def add_trigger_activated_handler(
-        self, handler: Callable[[AutomationCondition, SensorReading], None]
-    ):
+        self,
+        handler: Callable[[AutomationCondition, SensorReading], None],
+    ) -> None:
         """Add trigger activated event handler."""
         self.trigger_activated_handlers.append(handler)
 
-    def add_alert_generated_handler(self, handler: Callable[[SensorAlert], None]):
+    def add_alert_generated_handler(self, handler: Callable[[SensorAlert], None]) -> None:
         """Add alert generated event handler."""
         self.alert_generated_handlers.append(handler)
 
     def add_anomaly_detected_handler(
-        self, handler: Callable[[SensorId, SensorReading, dict[str, Any]], None]
-    ):
+        self,
+        handler: Callable[[SensorId, SensorReading, dict[str, Any]], None],
+    ) -> None:
         """Add anomaly detected event handler."""
         self.anomaly_detected_handlers.append(handler)
 
@@ -951,7 +974,7 @@ class SensorManager:
             for sensor_id in sensor_ids:
                 if sensor_id not in self.sensors:
                     return Either.error(
-                        IoTIntegrationError(f"Sensor not registered: {sensor_id}")
+                        IoTIntegrationError(f"Sensor not registered: {sensor_id}"),
                     )
 
             session_info = {
@@ -968,17 +991,18 @@ class SensorManager:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Failed to start monitoring: {str(e)}")
+                IoTIntegrationError(f"Failed to start monitoring: {e!s}"),
             )
 
     async def get_sensor_reading(
-        self, sensor_id: SensorId
+        self,
+        sensor_id: SensorId,
     ) -> Either[IoTIntegrationError, SensorReading]:
         """Get current sensor reading (simulated for demo)."""
         try:
             if sensor_id not in self.sensors:
                 return Either.error(
-                    IoTIntegrationError(f"Sensor not registered: {sensor_id}")
+                    IoTIntegrationError(f"Sensor not registered: {sensor_id}"),
                 )
 
             config = self.sensors[sensor_id]
@@ -987,22 +1011,22 @@ class SensorManager:
             import random
 
             if config.sensor_type == SensorType.TEMPERATURE:
-                value = round(random.uniform(18.0, 28.0), 1)
+                value = round(random.uniform(18.0, 28.0), 1)  # noqa: S311 - Sensor simulation only
                 unit = "°C"
             elif config.sensor_type == SensorType.HUMIDITY:
-                value = round(random.uniform(30.0, 70.0), 1)
+                value = round(random.uniform(30.0, 70.0), 1)  # noqa: S311 - Sensor simulation only
                 unit = "%"
             elif config.sensor_type == SensorType.LIGHT:
-                value = random.randint(0, 1000)
+                value = random.randint(0, 1000)  # noqa: S311 - Sensor simulation only
                 unit = "lux"
             elif config.sensor_type == SensorType.MOTION:
-                value = random.choice([True, False])
+                value = random.choice([True, False])  # noqa: S311 - Sensor simulation only
                 unit = None
             elif config.sensor_type == SensorType.AIR_QUALITY:
-                value = random.randint(50, 300)
+                value = random.randint(50, 300)  # noqa: S311 - Sensor simulation only
                 unit = "AQI"
             else:
-                value = round(random.uniform(0.0, 100.0), 2)
+                value = round(random.uniform(0.0, 100.0), 2)  # noqa: S311 - Sensor simulation only
                 unit = "units"
 
             reading = SensorReading(
@@ -1011,7 +1035,7 @@ class SensorManager:
                 value=value,
                 unit=unit,
                 timestamp=datetime.now(UTC),
-                quality=random.uniform(0.8, 1.0),
+                quality=random.uniform(0.8, 1.0),  # noqa: S311 - Sensor simulation only
                 location=config.location,
                 device_id=config.device_id,
             )
@@ -1020,7 +1044,7 @@ class SensorManager:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Failed to get sensor reading: {str(e)}")
+                IoTIntegrationError(f"Failed to get sensor reading: {e!s}"),
             )
 
     def get_sensor_metrics(self) -> dict[str, Any]:
@@ -1028,7 +1052,7 @@ class SensorManager:
         total_sensors = len(self.sensors)
         total_readings = sum(len(data) for data in self.sensor_data.values())
         active_alerts = len(
-            [alert for alert in self.active_alerts.values() if not alert.resolved]
+            [alert for alert in self.active_alerts.values() if not alert.resolved],
         )
 
         return {
@@ -1037,7 +1061,7 @@ class SensorManager:
             "total_readings": total_readings,
             "active_alerts": active_alerts,
             "sensor_types": list(
-                {config.sensor_type.value for config in self.sensors.values()}
+                {config.sensor_type.value for config in self.sensors.values()},
             ),
             "automation_conditions": len(self.automation_conditions),
             "automation_actions": len(self.automation_actions),
@@ -1046,11 +1070,11 @@ class SensorManager:
 
 # Export the sensor manager
 __all__ = [
-    "SensorManager",
-    "SensorConfiguration",
-    "SensorStatistics",
-    "SensorAlert",
-    "DataAggregationMethod",
-    "TriggerEvaluationMode",
     "AlertSeverity",
+    "DataAggregationMethod",
+    "SensorAlert",
+    "SensorConfiguration",
+    "SensorManager",
+    "SensorStatistics",
+    "TriggerEvaluationMode",
 ]

@@ -1,5 +1,4 @@
-"""
-Self-healing capabilities for autonomous agents.
+"""Self-healing capabilities for autonomous agents.
 
 This module provides automatic error detection, diagnosis, and recovery mechanisms
 for autonomous agents. Implements pattern-based healing, predictive error prevention,
@@ -129,15 +128,17 @@ class HealingPattern:
     usage_count: int = 0
 
     def update_with_result(
-        self, strategy: RecoveryStrategy, success: bool, duration: timedelta
-    ):
+        self,
+        strategy: RecoveryStrategy,
+        success: bool,
+        duration: timedelta,
+    ) -> None:
         """Update pattern based on recovery result."""
         if success:
             if strategy not in self.successful_strategies:
                 self.successful_strategies.append(strategy)
-        else:
-            if strategy not in self.failure_strategies:
-                self.failure_strategies.append(strategy)
+        elif strategy not in self.failure_strategies:
+            self.failure_strategies.append(strategy)
 
         # Update success rate (simple moving average)
         self.usage_count += 1
@@ -167,7 +168,7 @@ class SelfHealingEngine:
         self.recovery_lock = asyncio.Lock()
         self._initialize_default_patterns()
 
-    def _initialize_default_patterns(self):
+    def _initialize_default_patterns(self) -> None:
         """Initialize default healing patterns."""
         # Execution failure pattern
         self.healing_patterns["exec_failure"] = HealingPattern(
@@ -215,7 +216,10 @@ class SelfHealingEngine:
         )
 
     async def detect_and_diagnose(
-        self, agent_id: AgentId, error: Exception, context: dict[str, Any]
+        self,
+        agent_id: AgentId,
+        error: Exception,
+        context: dict[str, Any],
     ) -> Either[AutonomousAgentError, ErrorEvent]:
         """Detect error type and diagnose root cause."""
         try:
@@ -249,7 +253,8 @@ class SelfHealingEngine:
             return Either.left(AutonomousAgentError.diagnostic_failure(str(e)))
 
     async def plan_recovery(
-        self, error_event: ErrorEvent
+        self,
+        error_event: ErrorEvent,
     ) -> Either[AutonomousAgentError, RecoveryAction]:
         """Plan recovery action based on error diagnosis."""
         try:
@@ -274,7 +279,8 @@ class SelfHealingEngine:
                 parameters=self._get_strategy_parameters(strategy, error_event),
                 estimated_duration=self._estimate_recovery_duration(strategy),
                 success_probability=self._estimate_success_probability(
-                    strategy, pattern
+                    strategy,
+                    pattern,
                 ),
                 risk_score=self._calculate_recovery_risk(strategy, error_event),
             )
@@ -298,7 +304,10 @@ class SelfHealingEngine:
             return Either.left(AutonomousAgentError.recovery_planning_failed(str(e)))
 
     async def execute_recovery(
-        self, agent_id: AgentId, recovery_action: RecoveryAction, agent_manager=None
+        self,
+        agent_id: AgentId,
+        recovery_action: RecoveryAction,
+        agent_manager=None,
     ) -> Either[AutonomousAgentError, dict[str, Any]]:
         """Execute the planned recovery action."""
         try:
@@ -315,17 +324,21 @@ class SelfHealingEngine:
                 # Execute strategy-specific recovery
                 if recovery_action.strategy == RecoveryStrategy.RETRY:
                     result = await self._execute_retry(
-                        agent_id, recovery_action.parameters
+                        agent_id,
+                        recovery_action.parameters,
                     )
 
                 elif recovery_action.strategy == RecoveryStrategy.ROLLBACK:
                     result = await self._execute_rollback(
-                        agent_id, recovery_action.parameters
+                        agent_id,
+                        recovery_action.parameters,
                     )
 
                 elif recovery_action.strategy == RecoveryStrategy.RECONFIGURE:
                     result = await self._execute_reconfigure(
-                        agent_id, recovery_action.parameters, agent_manager
+                        agent_id,
+                        recovery_action.parameters,
+                        agent_manager,
                     )
 
                 elif recovery_action.strategy == RecoveryStrategy.RESTART:
@@ -336,17 +349,21 @@ class SelfHealingEngine:
 
                 elif recovery_action.strategy == RecoveryStrategy.ESCALATE:
                     result = await self._execute_escalate(
-                        agent_id, recovery_action.parameters
+                        agent_id,
+                        recovery_action.parameters,
                     )
 
                 elif recovery_action.strategy == RecoveryStrategy.WAIT_AND_RETRY:
                     result = await self._execute_wait_and_retry(
-                        agent_id, recovery_action.parameters
+                        agent_id,
+                        recovery_action.parameters,
                     )
 
                 elif recovery_action.strategy == RecoveryStrategy.DEGRADE_GRACEFULLY:
                     result = await self._execute_graceful_degradation(
-                        agent_id, recovery_action.parameters, agent_manager
+                        agent_id,
+                        recovery_action.parameters,
+                        agent_manager,
                     )
 
                 else:
@@ -373,7 +390,7 @@ class SelfHealingEngine:
                         "success": success,
                         "duration": duration.total_seconds(),
                         "result": result,
-                    }
+                    },
                 )
 
             finally:
@@ -391,27 +408,28 @@ class SelfHealingEngine:
 
         if "resource" in error_str or "limit" in error_str or "exhausted" in error_str:
             return ErrorType.RESOURCE_EXHAUSTION
-        elif (
+        if (
             "connection" in error_str
             or "timeout" in error_str
             or "network" in error_str
         ):
             return ErrorType.COMMUNICATION_ERROR
-        elif "conflict" in error_str or "goal" in error_str:
+        if "conflict" in error_str or "goal" in error_str:
             return ErrorType.GOAL_CONFLICT
-        elif "performance" in error_str or "slow" in error_str:
+        if "performance" in error_str or "slow" in error_str:
             return ErrorType.PERFORMANCE_DEGRADATION
-        elif "safety" in error_str or "violation" in error_str:
+        if "safety" in error_str or "violation" in error_str:
             return ErrorType.SAFETY_VIOLATION
-        elif "config" in error_str or "setting" in error_str:
+        if "config" in error_str or "setting" in error_str:
             return ErrorType.CONFIGURATION_ERROR
-        elif "execution" in error_str or "failed" in error_str:
+        if "execution" in error_str or "failed" in error_str:
             return ErrorType.EXECUTION_FAILURE
-        else:
-            return ErrorType.UNKNOWN
+        return ErrorType.UNKNOWN
 
     def _calculate_error_severity(
-        self, error_type: ErrorType, context: dict[str, Any]
+        self,
+        error_type: ErrorType,
+        context: dict[str, Any],
     ) -> RiskScore:
         """Calculate error severity based on type and context."""
         base_severities = {
@@ -452,7 +470,9 @@ class SelfHealingEngine:
         return None
 
     def _select_best_strategy(
-        self, pattern: HealingPattern, error_event: ErrorEvent
+        self,
+        pattern: HealingPattern,
+        error_event: ErrorEvent,
     ) -> RecoveryStrategy:
         """Select best recovery strategy from pattern."""
         # Prioritize successful strategies
@@ -464,38 +484,39 @@ class SelfHealingEngine:
         return self._heuristic_strategy_selection(error_event)
 
     def _heuristic_strategy_selection(
-        self, error_event: ErrorEvent
+        self,
+        error_event: ErrorEvent,
     ) -> RecoveryStrategy:
         """Select recovery strategy using heuristics."""
         if error_event.error_type == ErrorType.EXECUTION_FAILURE:
             return RecoveryStrategy.RETRY
-        elif error_event.error_type == ErrorType.RESOURCE_EXHAUSTION:
+        if error_event.error_type == ErrorType.RESOURCE_EXHAUSTION:
             return RecoveryStrategy.RECONFIGURE
-        elif error_event.error_type == ErrorType.COMMUNICATION_ERROR:
+        if error_event.error_type == ErrorType.COMMUNICATION_ERROR:
             return RecoveryStrategy.WAIT_AND_RETRY
-        elif error_event.error_type == ErrorType.SAFETY_VIOLATION:
+        if error_event.error_type == ErrorType.SAFETY_VIOLATION:
             return RecoveryStrategy.ISOLATE
-        elif error_event.error_type == ErrorType.GOAL_CONFLICT:
+        if error_event.error_type == ErrorType.GOAL_CONFLICT:
             return RecoveryStrategy.ROLLBACK
-        elif error_event.is_critical():
+        if error_event.is_critical():
             return RecoveryStrategy.ESCALATE
-        else:
-            return RecoveryStrategy.RETRY
+        return RecoveryStrategy.RETRY
 
     def _get_strategy_parameters(
-        self, strategy: RecoveryStrategy, error_event: ErrorEvent
+        self,
+        strategy: RecoveryStrategy,
+        error_event: ErrorEvent,
     ) -> dict[str, Any]:
         """Get parameters for recovery strategy."""
         if strategy == RecoveryStrategy.RETRY:
             return {"max_attempts": 3, "backoff_seconds": 5}
-        elif strategy == RecoveryStrategy.WAIT_AND_RETRY:
+        if strategy == RecoveryStrategy.WAIT_AND_RETRY:
             return {"wait_seconds": 30, "max_attempts": 2}
-        elif strategy == RecoveryStrategy.RECONFIGURE:
+        if strategy == RecoveryStrategy.RECONFIGURE:
             return {"reduce_resources": True, "scale_factor": 0.7}
-        elif strategy == RecoveryStrategy.ESCALATE:
+        if strategy == RecoveryStrategy.ESCALATE:
             return {"priority": "high", "notification_required": True}
-        else:
-            return {}
+        return {}
 
     def _estimate_recovery_duration(self, strategy: RecoveryStrategy) -> timedelta:
         """Estimate recovery duration for strategy."""
@@ -514,7 +535,9 @@ class SelfHealingEngine:
         return durations.get(strategy, timedelta(seconds=30))
 
     def _estimate_success_probability(
-        self, strategy: RecoveryStrategy, pattern: HealingPattern | None
+        self,
+        strategy: RecoveryStrategy,
+        pattern: HealingPattern | None,
     ) -> ConfidenceScore:
         """Estimate success probability for recovery strategy."""
         if pattern and pattern.usage_count > 5:
@@ -536,7 +559,9 @@ class SelfHealingEngine:
         return ConfidenceScore(default_probs.get(strategy, 0.5))
 
     def _calculate_recovery_risk(
-        self, strategy: RecoveryStrategy, error_event: ErrorEvent
+        self,
+        strategy: RecoveryStrategy,
+        error_event: ErrorEvent,
     ) -> RiskScore:
         """Calculate risk score for recovery action."""
         base_risks = {
@@ -593,7 +618,9 @@ class SelfHealingEngine:
 
     # Recovery execution methods
     async def _execute_retry(
-        self, agent_id: AgentId, parameters: dict[str, Any]
+        self,
+        agent_id: AgentId,
+        parameters: dict[str, Any],
     ) -> dict[str, Any]:
         """Execute retry recovery strategy."""
         parameters.get("max_attempts", 3)
@@ -608,7 +635,9 @@ class SelfHealingEngine:
         }
 
     async def _execute_rollback(
-        self, agent_id: AgentId, parameters: dict[str, Any]
+        self,
+        agent_id: AgentId,
+        parameters: dict[str, Any],
     ) -> dict[str, Any]:
         """Execute rollback recovery strategy."""
         # In production, would rollback to previous state
@@ -619,7 +648,10 @@ class SelfHealingEngine:
         }
 
     async def _execute_reconfigure(
-        self, agent_id: AgentId, parameters: dict[str, Any], agent_manager
+        self,
+        agent_id: AgentId,
+        parameters: dict[str, Any],
+        agent_manager,
     ) -> dict[str, Any]:
         """Execute reconfiguration recovery strategy."""
         if not agent_manager:
@@ -635,7 +667,9 @@ class SelfHealingEngine:
         }
 
     async def _execute_restart(
-        self, agent_id: AgentId, agent_manager
+        self,
+        agent_id: AgentId,
+        agent_manager,
     ) -> dict[str, Any]:
         """Execute restart recovery strategy."""
         if not agent_manager:
@@ -649,7 +683,9 @@ class SelfHealingEngine:
         }
 
     async def _execute_isolate(
-        self, agent_id: AgentId, agent_manager
+        self,
+        agent_id: AgentId,
+        agent_manager,
     ) -> dict[str, Any]:
         """Execute isolation recovery strategy."""
         # In production, would isolate agent from other components
@@ -660,7 +696,9 @@ class SelfHealingEngine:
         }
 
     async def _execute_escalate(
-        self, agent_id: AgentId, parameters: dict[str, Any]
+        self,
+        agent_id: AgentId,
+        parameters: dict[str, Any],
     ) -> dict[str, Any]:
         """Execute escalation recovery strategy."""
         priority = parameters.get("priority", "high")
@@ -674,7 +712,9 @@ class SelfHealingEngine:
         }
 
     async def _execute_wait_and_retry(
-        self, agent_id: AgentId, parameters: dict[str, Any]
+        self,
+        agent_id: AgentId,
+        parameters: dict[str, Any],
     ) -> dict[str, Any]:
         """Execute wait and retry recovery strategy."""
         wait_seconds = parameters.get("wait_seconds", 30)
@@ -688,7 +728,10 @@ class SelfHealingEngine:
         }
 
     async def _execute_graceful_degradation(
-        self, agent_id: AgentId, parameters: dict[str, Any], agent_manager
+        self,
+        agent_id: AgentId,
+        parameters: dict[str, Any],
+        agent_manager,
     ) -> dict[str, Any]:
         """Execute graceful degradation recovery strategy."""
         # In production, would reduce agent capabilities gracefully
@@ -723,7 +766,7 @@ class SelfHealingEngine:
                     "success_rate": float(pattern.success_rate),
                     "average_recovery_time": pattern.average_recovery_time.total_seconds(),
                     "usage_count": pattern.usage_count,
-                }
+                },
             )
 
         return {

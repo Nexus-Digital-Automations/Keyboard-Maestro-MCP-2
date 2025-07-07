@@ -1,5 +1,4 @@
-"""
-Phase 20 Advanced High-Impact Module Testing & Strategic Coverage Consolidation for Keyboard Maestro MCP.
+"""Phase 20 Advanced High-Impact Module Testing & Strategic Coverage Consolidation for Keyboard Maestro MCP.
 
 This module targets advanced high-impact modules and strategic coverage consolidation patterns,
 focusing on advanced AI processing systems, enterprise integration systems, specialized tool categories,
@@ -7,18 +6,23 @@ advanced analytics & intelligence, and remaining high-value server tools for con
 progression toward the 95% target through comprehensive advanced module testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_advanced_ai_processing_systems_comprehensive():
+def test_advanced_ai_processing_systems_comprehensive() -> None:
     """Test comprehensive coverage of advanced AI processing systems with highest impact."""
-
     # Target advanced AI processing modules with proven functionality
     advanced_ai_modules = [
         ("server.tools", "ai_processing_tools"),  # Advanced AI processing functionality
@@ -73,9 +77,8 @@ def test_advanced_ai_processing_systems_comprehensive():
     )
 
 
-def test_enterprise_integration_systems_comprehensive():
+def test_enterprise_integration_systems_comprehensive() -> None:
     """Test comprehensive coverage of enterprise integration systems."""
-
     # Target enterprise integration modules with highest business value
     enterprise_integration_modules = [
         ("server.tools", "enterprise_sync_tools"),  # Enterprise synchronization
@@ -129,9 +132,9 @@ def test_enterprise_integration_systems_comprehensive():
                             if callable(cls):
                                 instance = cls()
                                 assert instance is not None
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -141,9 +144,8 @@ def test_enterprise_integration_systems_comprehensive():
     )
 
 
-def test_specialized_tool_categories_comprehensive():
+def test_specialized_tool_categories_comprehensive() -> None:
     """Test comprehensive coverage of specialized tool categories."""
-
     # Target specialized tool modules with unique functionality
     specialized_tool_modules = [
         ("server.tools", "quantum_ready_tools"),  # Quantum computing tools
@@ -202,9 +204,8 @@ def test_specialized_tool_categories_comprehensive():
     )
 
 
-def test_advanced_analytics_intelligence_comprehensive():
+def test_advanced_analytics_intelligence_comprehensive() -> None:
     """Test comprehensive coverage of advanced analytics and intelligence systems."""
-
     # Target advanced analytics and intelligence modules
     analytics_intelligence_modules = [
         ("server.tools", "analytics_engine_tools"),  # Analytics engine systems
@@ -264,9 +265,9 @@ def test_advanced_analytics_intelligence_comprehensive():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -276,9 +277,8 @@ def test_advanced_analytics_intelligence_comprehensive():
     )
 
 
-def test_remaining_high_value_server_tools():
+def test_remaining_high_value_server_tools() -> None:
     """Test coverage of remaining high-value server tools."""
-
     # Target remaining high-value server tools not covered in previous phases
     remaining_server_tools = [
         ("server.tools", "testing_automation_tools"),  # Testing automation systems
@@ -333,9 +333,8 @@ def test_remaining_high_value_server_tools():
     )
 
 
-def test_comprehensive_advanced_functionality_patterns():
+def test_comprehensive_advanced_functionality_patterns() -> None:
     """Test comprehensive functionality patterns across advanced high-impact modules."""
-
     # Test advanced functionality patterns
     advanced_functionality_data = {
         "advanced_ai_processing": {
@@ -481,7 +480,7 @@ def test_comprehensive_advanced_functionality_patterns():
     assert specialized_metrics["innovation_score"] > 0.85
 
 
-def test_advanced_async_functionality_comprehensive():
+def test_advanced_async_functionality_comprehensive() -> bool:
     """Test advanced async functionality for Phase 20 modules."""
 
     @pytest.mark.asyncio
@@ -606,9 +605,8 @@ def test_advanced_async_functionality_comprehensive():
     assert result is True
 
 
-def test_strategic_advanced_coverage_consolidation():
+def test_strategic_advanced_coverage_consolidation() -> None:
     """Test strategic patterns for advanced coverage consolidation in Phase 20."""
-
     # Test strategic advanced coverage consolidation scenarios
     advanced_coverage_consolidation = {
         "advanced_module_targeting": {
@@ -761,9 +759,8 @@ def test_strategic_advanced_coverage_consolidation():
     assert remaining_to_target < 0.78  # Should be making solid progress
 
 
-def test_phase_20_completion_validation():
+def test_phase_20_completion_validation() -> None:
     """Test Phase 20 completion validation for advanced coverage consolidation."""
-
     # Test Phase 20 completion validation scenarios
     phase_20_validation = {
         "completion_criteria": {

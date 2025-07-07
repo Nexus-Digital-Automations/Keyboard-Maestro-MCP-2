@@ -1,5 +1,4 @@
-"""
-JSON processing and schema validation engine.
+"""JSON processing and schema validation engine.
 
 This module provides comprehensive JSON processing capabilities including
 parsing, validation, transformation, and query operations.
@@ -40,14 +39,15 @@ class JSONProcessor:
 
             # Validate input size
             size_result = self.security_limits.validate_size(
-                len(json_string.encode("utf-8")), "value"
+                len(json_string.encode("utf-8")),
+                "value",
             )
             if size_result.is_left():
                 return Either.left(
                     DataError(
                         "parse_json",
                         f"Input too large: {size_result.get_left().message}",
-                    )
+                    ),
                 )
 
             # Basic security checks
@@ -59,7 +59,7 @@ class JSONProcessor:
             try:
                 data = json.loads(json_string)
             except json.JSONDecodeError as e:
-                return Either.left(DataError("parse_json", f"Invalid JSON: {str(e)}"))
+                return Either.left(DataError("parse_json", f"Invalid JSON: {e!s}"))
 
             # Validate structure depth
             depth = self._calculate_depth(data)
@@ -69,7 +69,7 @@ class JSONProcessor:
                     DataError(
                         "parse_json",
                         f"Structure too deep: {depth_result.get_left().message}",
-                    )
+                    ),
                 )
 
             # Schema validation if provided
@@ -80,7 +80,7 @@ class JSONProcessor:
                         DataError(
                             "parse_json",
                             f"Schema validation failed: {schema_result.get_left().message}",
-                        )
+                        ),
                     )
 
             return Either.right(data)
@@ -88,7 +88,7 @@ class JSONProcessor:
         except Exception as e:
             context = create_error_context("parse_json", "json_processor", error=str(e))
             return Either.left(
-                DataError("parse_json", f"Unexpected error: {str(e)}", context)
+                DataError("parse_json", f"Unexpected error: {e!s}", context),
             )
 
     async def generate_json(
@@ -107,7 +107,7 @@ class JSONProcessor:
                     DataError(
                         "generate_json",
                         f"Data too deep: {depth_result.get_left().message}",
-                    )
+                    ),
                 )
 
             # Schema validation if provided
@@ -118,7 +118,7 @@ class JSONProcessor:
                         DataError(
                             "generate_json",
                             f"Schema validation failed: {schema_result.get_left().message}",
-                        )
+                        ),
                     )
 
             # Apply formatting options
@@ -139,32 +139,38 @@ class JSONProcessor:
 
             # Validate output size
             size_result = self.security_limits.validate_size(
-                len(json_string.encode("utf-8")), "value"
+                len(json_string.encode("utf-8")),
+                "value",
             )
             if size_result.is_left():
                 return Either.left(
                     DataError(
                         "generate_json",
                         f"Output too large: {size_result.get_left().message}",
-                    )
+                    ),
                 )
 
             return Either.right(json_string)
 
         except (TypeError, ValueError) as e:
             return Either.left(
-                DataError("generate_json", f"Serialization failed: {str(e)}")
+                DataError("generate_json", f"Serialization failed: {e!s}"),
             )
         except Exception as e:
             context = create_error_context(
-                "generate_json", "json_processor", error=str(e)
+                "generate_json",
+                "json_processor",
+                error=str(e),
             )
             return Either.left(
-                DataError("generate_json", f"Unexpected error: {str(e)}", context)
+                DataError("generate_json", f"Unexpected error: {e!s}", context),
             )
 
     async def query_json(
-        self, data: dict[str, Any], query: str, query_type: str = "jsonpath"
+        self,
+        data: dict[str, Any],
+        query: str,
+        query_type: str = "jsonpath",
     ) -> Either[DataError, QueryResult]:
         """Query JSON data using JSONPath or other query languages."""
         try:
@@ -176,16 +182,16 @@ class JSONProcessor:
             elif query_type == "jq":
                 # Would integrate with jq if available
                 return Either.left(
-                    DataError("query_json", "JQ queries not yet implemented")
+                    DataError("query_json", "JQ queries not yet implemented"),
                 )
             else:
                 return Either.left(
-                    DataError("query_json", f"Unsupported query type: {query_type}")
+                    DataError("query_json", f"Unsupported query type: {query_type}"),
                 )
 
             end_time = datetime.now()
             execution_time = Duration.from_seconds(
-                (end_time - start_time).total_seconds()
+                (end_time - start_time).total_seconds(),
             )
 
             query_result = QueryResult(
@@ -200,14 +206,19 @@ class JSONProcessor:
 
         except Exception as e:
             context = create_error_context(
-                "query_json", "json_processor", query=query, query_type=query_type
+                "query_json",
+                "json_processor",
+                query=query,
+                query_type=query_type,
             )
             return Either.left(
-                DataError("query_json", f"Query execution failed: {str(e)}", context)
+                DataError("query_json", f"Query execution failed: {e!s}", context),
             )
 
     async def transform_json(
-        self, data: dict[str, Any], transformations: dict[str, Any]
+        self,
+        data: dict[str, Any],
+        transformations: dict[str, Any],
     ) -> Either[DataError, dict[str, Any]]:
         """Transform JSON data according to transformation rules."""
         try:
@@ -232,10 +243,12 @@ class JSONProcessor:
 
         except Exception as e:
             context = create_error_context(
-                "transform_json", "json_processor", error=str(e)
+                "transform_json",
+                "json_processor",
+                error=str(e),
             )
             return Either.left(
-                DataError("transform_json", f"Transformation failed: {str(e)}", context)
+                DataError("transform_json", f"Transformation failed: {e!s}", context),
             )
 
     def _validate_json_security(self, json_string: str) -> Either[DataError, None]:
@@ -256,7 +269,7 @@ class JSONProcessor:
                     DataError(
                         "validate_json_security",
                         f"Dangerous pattern detected: {pattern}",
-                    )
+                    ),
                 )
 
         return Either.right(None)
@@ -272,15 +285,17 @@ class JSONProcessor:
             return max(
                 self._calculate_depth(v, current_depth + 1) for v in data.values()
             )
-        elif isinstance(data, list):
+        if isinstance(data, list):
             if not data:
                 return current_depth
             return max(self._calculate_depth(item, current_depth + 1) for item in data)
-        else:
-            return current_depth
+        return current_depth
 
     def _validate_against_schema(
-        self, data: Any, schema: DataSchema, strict_mode: bool
+        self,
+        data: Any,
+        schema: DataSchema,
+        strict_mode: bool,
     ) -> Either[ValidationError, None]:
         """Validate data against JSON schema (simplified implementation)."""
         schema_dict = schema.schema
@@ -290,15 +305,15 @@ class JSONProcessor:
         if expected_type:
             if expected_type == "object" and not isinstance(data, dict):
                 return Either.left(ValidationError("Expected object type"))
-            elif expected_type == "array" and not isinstance(data, list):
+            if expected_type == "array" and not isinstance(data, list):
                 return Either.left(ValidationError("Expected array type"))
-            elif expected_type == "string" and not isinstance(data, str):
+            if expected_type == "string" and not isinstance(data, str):
                 return Either.left(ValidationError("Expected string type"))
-            elif expected_type == "number" and not isinstance(data, int | float):
+            if expected_type == "number" and not isinstance(data, int | float):
                 return Either.left(ValidationError("Expected number type"))
-            elif expected_type == "integer" and not isinstance(data, int):
+            if expected_type == "integer" and not isinstance(data, int):
                 return Either.left(ValidationError("Expected integer type"))
-            elif expected_type == "boolean" and not isinstance(data, bool):
+            if expected_type == "boolean" and not isinstance(data, bool):
                 return Either.left(ValidationError("Expected boolean type"))
 
         # Object validation
@@ -308,7 +323,7 @@ class JSONProcessor:
             for req_prop in required:
                 if req_prop not in data:
                     return Either.left(
-                        ValidationError(f"Required property '{req_prop}' missing")
+                        ValidationError(f"Required property '{req_prop}' missing"),
                     )
 
             # Property validation
@@ -318,13 +333,15 @@ class JSONProcessor:
                     # Recursive validation would go here
                     prop_schema = DataSchema(properties[prop], SchemaId(f"prop_{prop}"))
                     prop_result = self._validate_against_schema(
-                        value, prop_schema, strict_mode
+                        value,
+                        prop_schema,
+                        strict_mode,
                     )
                     if prop_result.is_left():
                         return prop_result
                 elif strict_mode and not schema.allow_additional:
                     return Either.left(
-                        ValidationError(f"Additional property '{prop}' not allowed")
+                        ValidationError(f"Additional property '{prop}' not allowed"),
                     )
 
         # Array validation
@@ -334,13 +351,15 @@ class JSONProcessor:
                 item_schema = DataSchema(items_schema, SchemaId("array_items"))
                 for i, item in enumerate(data):
                     item_result = self._validate_against_schema(
-                        item, item_schema, strict_mode
+                        item,
+                        item_schema,
+                        strict_mode,
                     )
                     if item_result.is_left():
                         return Either.left(
                             ValidationError(
-                                f"Array item {i} validation failed: {item_result.get_left().message}"
-                            )
+                                f"Array item {i} validation failed: {item_result.get_left().message}",
+                            ),
                         )
 
         return Either.right(None)
@@ -352,7 +371,7 @@ class JSONProcessor:
 
         if query == "$":
             return [data]
-        elif query.startswith("$."):
+        if query.startswith("$."):
             # Simple property access
             path = query[2:]  # Remove "$."
             parts = path.split(".")
@@ -372,20 +391,18 @@ class JSONProcessor:
                 current = new_current
 
             return current
-        else:
-            # Unsupported query format
-            return []
+        # Unsupported query format
+        return []
 
     def _transform_keys(self, data: dict[str, Any], case_style: str) -> dict[str, Any]:
         """Transform keys to specified case style."""
         if case_style == "camelCase":
             return self._to_camel_case(data)
-        elif case_style == "snake_case":
+        if case_style == "snake_case":
             return self._to_snake_case(data)
-        elif case_style == "kebab-case":
+        if case_style == "kebab-case":
             return self._to_kebab_case(data)
-        else:
-            return data
+        return data
 
     def _to_camel_case(self, data: dict[str, Any]) -> dict[str, Any]:
         """Convert keys to camelCase."""
@@ -431,7 +448,9 @@ class JSONProcessor:
         return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
 
     def _transform_values(
-        self, data: dict[str, Any], transforms: dict[str, str]
+        self,
+        data: dict[str, Any],
+        transforms: dict[str, str],
     ) -> dict[str, Any]:
         """Transform values according to transformation rules."""
         result = {}
@@ -463,7 +482,9 @@ class JSONProcessor:
         return result
 
     def _transform_structure(
-        self, data: dict[str, Any], structure_transforms: dict[str, Any]
+        self,
+        data: dict[str, Any],
+        structure_transforms: dict[str, Any],
     ) -> dict[str, Any]:
         """Transform data structure according to rules."""
         # Basic structure transformation (can be extended)

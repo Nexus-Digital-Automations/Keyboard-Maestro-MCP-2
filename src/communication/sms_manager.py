@@ -1,5 +1,4 @@
-"""
-SMS and iMessage management for Keyboard Maestro MCP Tools.
+"""SMS and iMessage management for Keyboard Maestro MCP Tools.
 
 This module provides comprehensive SMS/iMessage automation through macOS Messages app
 integration with security validation and delivery tracking.
@@ -55,7 +54,9 @@ class SMSSecurityValidator:
 
     @staticmethod
     def validate_message_content(
-        content: str, communication_type: CommunicationType, config: SMSConfiguration
+        content: str,
+        communication_type: CommunicationType,
+        config: SMSConfiguration,
     ) -> Either[SecurityError, None]:
         """Validate message content for security and compliance."""
         if not content or not content.strip():
@@ -70,7 +71,7 @@ class SMSSecurityValidator:
 
         if len(content) > max_length:
             return Either.left(
-                SecurityError(f"Message too long: {len(content)} > {max_length} chars")
+                SecurityError(f"Message too long: {len(content)} > {max_length} chars"),
             )
 
         # Check for spam patterns
@@ -169,7 +170,7 @@ class SMSSecurityValidator:
         for phone in recipients:
             if not SMSSecurityValidator._is_valid_phone_number(phone):
                 return Either.left(
-                    SecurityError(f"Invalid phone number: {phone.number}")
+                    SecurityError(f"Invalid phone number: {phone.number}"),
                 )
 
         return Either.right(None)
@@ -183,16 +184,13 @@ class SMSSecurityValidator:
         if re.search(r"(.)\1{4,}", formatted):  # Too many repeated digits
             return False
 
-        if (
+        return (
             formatted.startswith("+1")
             and len(formatted) == 12
             or formatted.startswith("+")
             and 11 <= len(formatted) <= 15
             or len(formatted) == 10
-        ):  # US/Canada
-            return True
-
-        return False
+        )  # US/Canada or international format
 
 
 class RateLimiter:
@@ -229,7 +227,7 @@ class RateLimiter:
 
         return not recent_hour >= self.config.rate_limit_per_hour
 
-    def record_message_sent(self):
+    def record_message_sent(self) -> None:
         """Record that a message was sent for rate limiting."""
         self.message_history.append(datetime.now(UTC))
 
@@ -238,21 +236,24 @@ class SMSManager:
     """Comprehensive SMS and iMessage management with macOS Messages integration."""
 
     def __init__(
-        self, km_client: KMClient | None = None, config: SMSConfiguration | None = None
+        self,
+        km_client: KMClient | None = None,
+        config: SMSConfiguration | None = None,
     ):
         self.km_client = km_client or KMClient()
         self.config = config or SMSConfiguration()
         self.security_validator = SMSSecurityValidator()
         self.rate_limiter = RateLimiter(self.config)
 
-    @require(lambda self, request: isinstance(request, CommunicationRequest))
+    @require(lambda __self, request: isinstance(request, CommunicationRequest))
     @require(
-        lambda self, request: request.communication_type
-        in [CommunicationType.SMS, CommunicationType.IMESSAGE]
+        lambda _self, request: request.communication_type
+        in [CommunicationType.SMS, CommunicationType.IMESSAGE],
     )
-    @ensure(lambda self, result: isinstance(result, Either))
+    @ensure(lambda __self, result: isinstance(result, Either))
     async def send_message(
-        self, request: CommunicationRequest
+        self,
+        request: CommunicationRequest,
     ) -> Either[CommunicationError, CommunicationResult]:
         """Send SMS or iMessage using macOS Messages application."""
         try:
@@ -260,8 +261,8 @@ class SMSManager:
             if not self.rate_limiter.can_send_message():
                 return Either.left(
                     CommunicationError.rate_limit_exceeded(
-                        "Message rate limit exceeded"
-                    )
+                        "Message rate limit exceeded",
+                    ),
                 )
 
             # Security validation
@@ -269,8 +270,8 @@ class SMSManager:
             if validation_result.is_left():
                 return Either.left(
                     CommunicationError.security_violation(
-                        validation_result.get_left().message
-                    )
+                        validation_result.get_left().message,
+                    ),
                 )
 
             # Build AppleScript for message sending
@@ -278,22 +279,23 @@ class SMSManager:
             if applescript_result.is_left():
                 return Either.left(
                     CommunicationError.script_generation_failed(
-                        applescript_result.get_left().message
-                    )
+                        applescript_result.get_left().message,
+                    ),
                 )
 
             applescript = applescript_result.get_right()
 
             # Execute AppleScript through KM client
             execution_result = await self.km_client.execute_applescript(
-                applescript, timeout=15
+                applescript,
+                timeout=15,
             )
             if execution_result.is_left():
                 error = execution_result.get_left()
                 return Either.left(
                     CommunicationError.sms_send_failed(
-                        f"Messages app execution failed: {error.message}"
-                    )
+                        f"Messages app execution failed: {error.message}",
+                    ),
                 )
 
             # Record successful send for rate limiting
@@ -324,16 +326,19 @@ class SMSManager:
 
         except Exception as e:
             return Either.left(
-                CommunicationError.execution_error(f"Message sending failed: {str(e)}")
+                CommunicationError.execution_error(f"Message sending failed: {e!s}"),
             )
 
     async def _validate_sms_request(
-        self, request: CommunicationRequest
+        self,
+        request: CommunicationRequest,
     ) -> Either[SecurityError, None]:
         """Comprehensive SMS/iMessage request validation."""
         # Validate message content
         content_validation = self.security_validator.validate_message_content(
-            request.message_content, request.communication_type, self.config
+            request.message_content,
+            request.communication_type,
+            self.config,
         )
         if content_validation.is_left():
             return content_validation
@@ -343,13 +348,13 @@ class SMSManager:
         for recipient in request.recipients:
             if not isinstance(recipient, PhoneNumber):
                 return Either.left(
-                    SecurityError(f"Invalid recipient type for SMS: {type(recipient)}")
+                    SecurityError(f"Invalid recipient type for SMS: {type(recipient)}"),
                 )
             phone_recipients.append(recipient)
 
         # Validate phone numbers
         phone_validation = self.security_validator.validate_phone_numbers(
-            phone_recipients
+            phone_recipients,
         )
         if phone_validation.is_left():
             return phone_validation
@@ -364,7 +369,8 @@ class SMSManager:
         return Either.right(None)
 
     def _build_message_applescript(
-        self, request: CommunicationRequest
+        self,
+        request: CommunicationRequest,
     ) -> Either[ValidationError, str]:
         """Build secure AppleScript for SMS/iMessage sending."""
         try:
@@ -384,37 +390,37 @@ class SMSManager:
                 recipient = request.recipients[0]
                 if isinstance(recipient, PhoneNumber):
                     safe_recipient = self._escape_applescript_string(
-                        recipient.format_for_sms()
+                        recipient.format_for_sms(),
                     )
                 else:
                     safe_recipient = self._escape_applescript_string(str(recipient))
 
-                script = f'''
+                script = f"""
                 tell application "Messages"
                     set targetService to 1st account whose service type = {service_type}
                     set targetBuddy to participant "{safe_recipient}" of targetService
                     send "{safe_message}" to targetBuddy
                 end tell
-                '''
+                """
             else:
                 # Group message (iMessage only)
                 recipients_list = []
                 for recipient in request.recipients:
                     if isinstance(recipient, PhoneNumber):
                         safe_recipient = self._escape_applescript_string(
-                            recipient.format_for_sms()
+                            recipient.format_for_sms(),
                         )
                         recipients_list.append(f'participant "{safe_recipient}"')
 
                 recipients_applescript = ", ".join(recipients_list)
 
-                script = f'''
+                script = f"""
                 tell application "Messages"
                     set targetService to 1st account whose service type = {service_type}
                     set targetBuddies to {{{recipients_applescript}}} of targetService
                     send "{safe_message}" to targetBuddies
                 end tell
-                '''
+                """
 
             # Validate script length
             if len(script) > 5000:
@@ -424,7 +430,7 @@ class SMSManager:
 
         except Exception as e:
             return Either.left(
-                ValidationError(f"AppleScript generation failed: {str(e)}")
+                ValidationError(f"AppleScript generation failed: {e!s}"),
             )
 
     def _escape_applescript_string(self, text: str) -> str:
@@ -466,15 +472,17 @@ class SMSManager:
             return False
 
     async def get_message_history(
-        self, contact: PhoneNumber, limit: int = 10
+        self,
+        contact: PhoneNumber,
+        limit: int = 10,
     ) -> Either[CommunicationError, list[dict[str, Any]]]:
         """Retrieve recent message history with a contact (read-only operation)."""
         try:
             if limit > 50:  # Reasonable limit
                 return Either.left(
                     CommunicationError.validation_error(
-                        "Message history limit too high"
-                    )
+                        "Message history limit too high",
+                    ),
                 )
 
             self._escape_applescript_string(contact.format_for_sms())
@@ -493,8 +501,8 @@ class SMSManager:
             if result.is_left():
                 return Either.left(
                     CommunicationError.execution_error(
-                        "Failed to retrieve message history"
-                    )
+                        "Failed to retrieve message history",
+                    ),
                 )
 
             # Placeholder result - would need actual parsing
@@ -521,7 +529,7 @@ class SMSManager:
                 msg_time
                 for msg_time in self.rate_limiter.message_history
                 if msg_time.timestamp() > hour_ago
-            ]
+            ],
         )
 
         return {

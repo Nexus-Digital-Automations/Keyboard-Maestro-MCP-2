@@ -1,5 +1,4 @@
-"""
-Personalization Engine - TASK_67 Phase 2 Core Identity Engine
+"""Personalization Engine - TASK_67 Phase 2 Core Identity Engine.
 
 Adaptive automation and personalization based on user identity, preferences, and behavioral patterns.
 Provides context-aware recommendations and automated workflow customization.
@@ -149,7 +148,7 @@ class PersonalizationEngine:
             self.adaptation_history[user_profile.profile_id] = []
 
             logger.info(
-                f"Registered user profile for personalization: {user_profile.username}"
+                f"Registered user profile for personalization: {user_profile.username}",
             )
             return Either.success(True)
 
@@ -157,20 +156,22 @@ class PersonalizationEngine:
             logger.error(f"Failed to register user profile: {e}")
             return Either.error(
                 IdentityError(
-                    f"Profile registration failed: {str(e)}",
+                    f"Profile registration failed: {e!s}",
                     "PROFILE_REGISTRATION_ERROR",
-                )
+                ),
             )
 
     @require(lambda context: context.user_profile_id is not None)
     async def personalize_automation(
-        self, context: PersonalizationContext, adaptation_level: str = "moderate"
+        self,
+        context: PersonalizationContext,
+        adaptation_level: str = "moderate",
     ) -> Either[IdentityError, AdaptationResult]:
         """Personalize automation based on user context and preferences."""
         try:
             if context.user_profile_id not in self.user_profiles:
                 return Either.error(
-                    IdentityError.user_not_found(str(context.user_profile_id))
+                    IdentityError.user_not_found(str(context.user_profile_id)),
                 )
 
             user_profile = self.user_profiles[context.user_profile_id]
@@ -179,7 +180,8 @@ class PersonalizationEngine:
             # Get personalization recommendations
             recommendations_result = (
                 await self._generate_personalization_recommendations(
-                    context, adaptation_level
+                    context,
+                    adaptation_level,
                 )
             )
 
@@ -196,7 +198,10 @@ class PersonalizationEngine:
             for recommendation in recommendations:
                 if recommendation.confidence > 0.7:  # High confidence threshold
                     adaptation_success = await self._apply_adaptation(
-                        context, recommendation, user_profile, settings
+                        context,
+                        recommendation,
+                        user_profile,
+                        settings,
                     )
 
                     if adaptation_success:
@@ -205,7 +210,9 @@ class PersonalizationEngine:
 
                         # Record adaptation
                         await self._record_adaptation(
-                            context.user_profile_id, recommendation, True
+                            context.user_profile_id,
+                            recommendation,
+                            True,
                         )
 
             # Calculate overall experience score
@@ -220,7 +227,8 @@ class PersonalizationEngine:
 
             # Identify next learning opportunities
             next_learning_opportunities = await self._identify_learning_opportunities(
-                context.user_profile_id, adaptations_applied
+                context.user_profile_id,
+                adaptations_applied,
             )
 
             result = AdaptationResult(
@@ -238,12 +246,15 @@ class PersonalizationEngine:
             logger.error(f"Personalization failed: {e}")
             return Either.error(
                 IdentityError(
-                    f"Personalization error: {str(e)}", "PERSONALIZATION_ERROR"
-                )
+                    f"Personalization error: {e!s}",
+                    "PERSONALIZATION_ERROR",
+                ),
             )
 
     async def _generate_personalization_recommendations(
-        self, context: PersonalizationContext, adaptation_level: str
+        self,
+        context: PersonalizationContext,
+        adaptation_level: str,
     ) -> Either[IdentityError, list[PersonalizationRecommendation]]:
         """Generate personalization recommendations based on context."""
         try:
@@ -254,31 +265,40 @@ class PersonalizationEngine:
 
             # Interface personalization recommendations
             interface_recs = await self._generate_interface_recommendations(
-                context, user_profile, settings
+                context,
+                user_profile,
+                settings,
             )
             recommendations.extend(interface_recs)
 
             # Automation personalization recommendations
             automation_recs = await self._generate_automation_recommendations(
-                context, user_profile, settings
+                context,
+                user_profile,
+                settings,
             )
             recommendations.extend(automation_recs)
 
             # Accessibility recommendations
             accessibility_recs = await self._generate_accessibility_recommendations(
-                context, user_profile, settings
+                context,
+                user_profile,
+                settings,
             )
             recommendations.extend(accessibility_recs)
 
             # Behavioral adaptation recommendations
             behavior_recs = await self._generate_behavioral_recommendations(
-                context, user_profile, settings
+                context,
+                user_profile,
+                settings,
             )
             recommendations.extend(behavior_recs)
 
             # Filter by adaptation level
             filtered_recs = self._filter_by_adaptation_level(
-                recommendations, adaptation_level
+                recommendations,
+                adaptation_level,
             )
 
             # Sort by priority and confidence
@@ -290,9 +310,9 @@ class PersonalizationEngine:
             logger.error(f"Failed to generate recommendations: {e}")
             return Either.error(
                 IdentityError(
-                    f"Recommendation generation failed: {str(e)}",
+                    f"Recommendation generation failed: {e!s}",
                     "RECOMMENDATION_ERROR",
-                )
+                ),
             )
 
     async def _generate_interface_recommendations(
@@ -306,7 +326,8 @@ class PersonalizationEngine:
 
         # Theme recommendation
         preferred_theme = user_profile.personalization_preferences.get(
-            "interface_theme", "auto"
+            "interface_theme",
+            "auto",
         )
         current_time = datetime.now(UTC).hour
 
@@ -381,7 +402,8 @@ class PersonalizationEngine:
 
         # Proactive automation based on usage patterns
         automation_style = user_profile.personalization_preferences.get(
-            "automation_style", "balanced"
+            "automation_style",
+            "balanced",
         )
 
         if automation_style in ["advanced", "comprehensive"]:
@@ -499,7 +521,7 @@ class PersonalizationEngine:
                 confidence=0.7,
                 impact_level="medium",
                 implementation_data={
-                    "feature_suggestions": ["advanced_macros", "custom_triggers"]
+                    "feature_suggestions": ["advanced_macros", "custom_triggers"],
                 },
                 rationale=["User shows high engagement", "Ready for advanced features"],
                 estimated_benefit="Expanded capabilities and improved productivity",
@@ -517,16 +539,15 @@ class PersonalizationEngine:
         """Filter recommendations by adaptation level."""
         if adaptation_level == "light":
             return [r for r in recommendations if r.impact_level in ["low", "medium"]]
-        elif adaptation_level == "moderate":
+        if adaptation_level == "moderate":
             return [
                 r
                 for r in recommendations
                 if r.impact_level in ["low", "medium", "high"]
             ]
-        elif adaptation_level == "comprehensive":
+        if adaptation_level == "comprehensive":
             return recommendations
-        else:
-            return recommendations
+        return recommendations
 
     async def _apply_adaptation(
         self,
@@ -541,7 +562,7 @@ class PersonalizationEngine:
 
             # Log adaptation for debugging
             logger.info(
-                f"Applying adaptation: {recommendation.title} for user {user_profile.username}"
+                f"Applying adaptation: {recommendation.title} for user {user_profile.username}",
             )
 
             # In a real implementation, this would apply the actual changes
@@ -585,7 +606,9 @@ class PersonalizationEngine:
             logger.error(f"Failed to record adaptation: {e}")
 
     async def _identify_learning_opportunities(
-        self, user_profile_id: UserProfileId, recent_adaptations: list[str]
+        self,
+        user_profile_id: UserProfileId,
+        recent_adaptations: list[str],
     ) -> list[str]:
         """Identify learning opportunities based on recent adaptations."""
         opportunities = []
@@ -603,7 +626,8 @@ class PersonalizationEngine:
 
     @require(lambda user_profile_id: user_profile_id is not None)
     async def get_personalization_insights(
-        self, user_profile_id: UserProfileId
+        self,
+        user_profile_id: UserProfileId,
     ) -> Either[IdentityError, dict[str, Any]]:
         """Get personalization insights for a user."""
         try:
@@ -615,7 +639,7 @@ class PersonalizationEngine:
             insights = {
                 "total_adaptations": len(adaptation_history),
                 "successful_adaptations": len(
-                    [a for a in adaptation_history if a["success"]]
+                    [a for a in adaptation_history if a["success"]],
                 ),
                 "adaptation_categories": {},
                 "recent_adaptations": adaptation_history[-5:],
@@ -633,7 +657,7 @@ class PersonalizationEngine:
             # Calculate personalization score
             if len(adaptation_history) > 0:
                 success_rate = insights["successful_adaptations"] / len(
-                    adaptation_history
+                    adaptation_history,
                 )
                 insights["personalization_score"] = success_rate
 
@@ -647,11 +671,12 @@ class PersonalizationEngine:
         except Exception as e:
             logger.error(f"Failed to get personalization insights: {e}")
             return Either.error(
-                IdentityError(f"Insights generation failed: {str(e)}", "INSIGHTS_ERROR")
+                IdentityError(f"Insights generation failed: {e!s}", "INSIGHTS_ERROR"),
             )
 
     async def reset_personalization(
-        self, user_profile_id: UserProfileId
+        self,
+        user_profile_id: UserProfileId,
     ) -> Either[IdentityError, bool]:
         """Reset personalization settings for a user."""
         try:
@@ -673,4 +698,4 @@ class PersonalizationEngine:
 
         except Exception as e:
             logger.error(f"Failed to reset personalization: {e}")
-            return Either.error(IdentityError(f"Reset failed: {str(e)}", "RESET_ERROR"))
+            return Either.error(IdentityError(f"Reset failed: {e!s}", "RESET_ERROR"))

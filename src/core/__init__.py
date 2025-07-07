@@ -1,5 +1,4 @@
-"""
-Core macro engine module for Keyboard Maestro MCP.
+"""Core macro engine module for Keyboard Maestro MCP.
 
 This module provides the complete core functionality for macro execution
 with type safety, contract-based validation, and security enforcement.
@@ -123,73 +122,81 @@ __author__ = "Agent_1"
 
 # Public API - what external modules should import
 __all__ = [
-    # Core types
-    "MacroId",
     "CommandId",
-    "ExecutionToken",
-    "TriggerId",
-    "GroupId",
-    "VariableName",
-    "ExecutionStatus",
-    "Priority",
-    "Permission",
-    "Duration",
     "CommandParameters",
-    "ExecutionContext",
     "CommandResult",
-    "MacroDefinition",
-    "ExecutionResult",
-    "MacroCommand",
-    # Error system
-    "MacroEngineError",
-    "ValidationError",
-    "SecurityViolationError",
-    "PermissionDeniedError",
-    "ExecutionError",
-    "TimeoutError",
-    "ResourceNotFoundError",
-    "ContractViolationError",
-    "SystemError",
-    "ErrorCategory",
-    "ErrorSeverity",
-    "ErrorContext",
-    "create_error_context",
-    "handle_error_safely",
-    # Contract system
-    "require",
-    "ensure",
-    "invariant",
-    "combine_conditions",
-    "any_condition",
-    "not_condition",
-    "get_contract_info",
-    "is_not_none",
-    "is_positive",
-    "is_non_negative",
-    "is_valid_string",
-    # Context management
-    "ExecutionContextManager",
-    "SecurityContextManager",
-    "VariableManager",
-    "SecurityBoundary",
-    "security_context",
-    "get_context_manager",
-    "get_variable_manager",
     # Parsing
     "CommandType",
-    "MacroParser",
-    "ParseResult",
-    "InputSanitizer",
     "CommandValidator",
-    "parse_macro_from_json",
-    "validate_macro_definition",
+    "CommunicationError",
+    "ConfigurationError",
+    "ContractViolationError",
+    "DataError",
+    "Duration",
+    "EngineMetrics",
+    "ErrorCategory",
+    "ErrorContext",
+    "ErrorSeverity",
+    "ExecutionContext",
+    # Context management
+    "ExecutionContextManager",
+    "ExecutionError",
+    "ExecutionResult",
+    "ExecutionStatus",
+    "ExecutionToken",
+    "GroupId",
+    "InputSanitizer",
+    "IntegrationError",
+    "IntelligenceError",
+    "MCPError",
+    "MacroCommand",
+    "MacroDefinition",
     # Engine
     "MacroEngine",
-    "EngineMetrics",
+    # Error system
+    "MacroEngineError",
+    # Core types
+    "MacroId",
+    "MacroParser",
+    "ParseResult",
+    "Permission",
+    "PermissionDeniedError",
     "PlaceholderCommand",
+    "Priority",
+    "ResourceNotFoundError",
+    "SecurityBoundary",
+    "SecurityContextManager",
+    "SecurityError",
+    "SecurityViolationError",
+    "SystemError",
+    "TimeoutError",
+    "TriggerId",
+    "ValidationError",
+    "VariableManager",
+    "VariableName",
+    "WindowError",
+    "any_condition",
+    "combine_conditions",
+    "create_error_context",
+    "create_test_macro",
+    "ensure",
+    "get_context_manager",
+    "get_contract_info",
     "get_default_engine",
     "get_engine_metrics",
-    "create_test_macro",
+    "get_variable_manager",
+    "handle_error_safely",
+    "invariant",
+    "is_non_negative",
+    "is_not_none",
+    "is_positive",
+    "is_valid_string",
+    "not_condition",
+    "parse_macro_from_json",
+    # Contract system
+    "require",
+    "security_context",
+    "validate_macro_definition",
 ]
 
 
@@ -199,8 +206,7 @@ def get_version() -> str:
 
 
 def create_simple_macro(name: str, text_to_type: str) -> MacroDefinition:
-    """
-    Convenience function to create a simple text-typing macro.
+    """Convenience function to create a simple text-typing macro.
 
     Args:
         name: Name of the macro
@@ -208,16 +214,23 @@ def create_simple_macro(name: str, text_to_type: str) -> MacroDefinition:
 
     Returns:
         MacroDefinition ready for execution
+
     """
-    return create_test_macro(name, [CommandType.TEXT_INPUT])
+    # Create macro with actual text input action
+    macro = create_test_macro(name, [CommandType.TEXT_INPUT])
+    # TODO: Implement actual text input action with text_to_type parameter
+    # For now, store the text in macro metadata
+    if hasattr(macro, "metadata") and isinstance(macro.metadata, dict):
+        macro.metadata["text_to_type"] = text_to_type
+    return macro
 
 
 def validate_system_requirements() -> bool:
-    """
-    Validate that system requirements are met for macro execution.
+    """Validate that system requirements are met for macro execution.
 
     Returns:
         True if all requirements are satisfied
+
     """
     # In a real implementation, this would check:
     # - Python version compatibility

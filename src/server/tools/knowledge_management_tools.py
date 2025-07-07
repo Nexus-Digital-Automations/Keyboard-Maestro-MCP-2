@@ -1,5 +1,4 @@
-"""
-Knowledge Management Tools - TASK_56 Phase 3 Implementation
+"""Knowledge Management Tools - TASK_56 Phase 3 Implementation.
 
 FastMCP tools for knowledge management operations through Claude Desktop.
 Provides comprehensive knowledge base management, documentation generation, and intelligent search.
@@ -12,11 +11,10 @@ Security: Access control, content validation, secure knowledge management
 import logging
 import uuid
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any, Annotated
+from typing import Any
 
-from fastmcp import FastMCP
-from fastmcp import Context
-from pydantic import Field
+from fastmcp import Context, FastMCP
+
 from ...core.knowledge_architecture import (
     ContentFormat,
     ContentMetadata,
@@ -38,9 +36,6 @@ from ...knowledge.documentation_generator import (
 )
 from ...knowledge.search_engine import SearchQuery, get_search_engine
 from ...knowledge.version_control import get_version_manager
-
-if TYPE_CHECKING:
-    from fastmcp import Context
 
 logger = logging.getLogger(__name__)
 
@@ -67,8 +62,7 @@ async def km_generate_documentation(
     author: str = "system",
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Generate comprehensive documentation automatically from macros, workflows, or system components.
+    """Generate comprehensive documentation automatically from macros, workflows, or system components.
 
     FastMCP Tool for automated documentation generation through Claude Desktop.
     Analyzes automation structures and generates professional documentation.
@@ -133,7 +127,7 @@ async def km_generate_documentation(
                         "name": "input",
                         "type": "string",
                         "description": "Input parameter",
-                    }
+                    },
                 ],
                 "components": [{"type": "action", "title": "Sample Action"}]
                 if source_type == "workflow"
@@ -185,7 +179,8 @@ async def km_generate_documentation(
         if auto_update:
             version_manager = get_version_manager()
             version_result = await version_manager.create_initial_version(
-                document, author
+                document,
+                author,
             )
             if version_result.is_right():
                 version_info = {
@@ -212,15 +207,21 @@ async def km_generate_documentation(
                 "author": getattr(document.metadata, "author", "unknown"),
                 "word_count": getattr(document.metadata, "word_count", 0),
                 "reading_time_minutes": getattr(
-                    document.metadata, "reading_time_minutes", 0
+                    document.metadata,
+                    "reading_time_minutes",
+                    0,
                 ),
                 "created_at": getattr(
-                    document.metadata.created_at, "isoformat", lambda: "unknown"
+                    document.metadata.created_at,
+                    "isoformat",
+                    lambda: "unknown",
                 )()
                 if hasattr(document.metadata, "created_at")
                 else "unknown",
                 "modified_at": getattr(
-                    document.metadata.modified_at, "isoformat", lambda: "unknown"
+                    document.metadata.modified_at,
+                    "isoformat",
+                    lambda: "unknown",
                 )()
                 if hasattr(document.metadata, "modified_at")
                 else "unknown",
@@ -270,8 +271,7 @@ async def km_manage_knowledge_base(
     enable_search: bool = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Create and manage knowledge bases for organizing automation documentation and resources.
+    """Create and manage knowledge bases for organizing automation documentation and resources.
 
     FastMCP Tool for knowledge base management through Claude Desktop.
     Provides centralized knowledge organization with intelligent categorization.
@@ -335,7 +335,7 @@ async def km_manage_knowledge_base(
                 "document_count": 0,
             }
 
-        elif operation == "organize":
+        if operation == "organize":
             if not knowledge_base_id:
                 return {
                     "success": False,
@@ -372,8 +372,9 @@ async def km_manage_knowledge_base(
             # Organize documents
             organizer = get_content_organizer(
                 OrganizationConfig(
-                    auto_categorize=kb.auto_categorize, enable_keyword_extraction=True
-                )
+                    auto_categorize=kb.auto_categorize,
+                    enable_keyword_extraction=True,
+                ),
             )
 
             organization_result = await organizer.organize_documents(kb_documents)
@@ -400,12 +401,11 @@ async def km_manage_knowledge_base(
                 },
             }
 
-        else:
-            return {
-                "success": False,
-                "error": f"Operation {operation} not yet implemented",
-                "operation": operation,
-            }
+        return {
+            "success": False,
+            "error": f"Operation {operation} not yet implemented",
+            "operation": operation,
+        }
 
     except Exception as e:
         logger.error(f"Knowledge base management failed: {e}")
@@ -425,8 +425,7 @@ async def km_search_knowledge(
     include_suggestions: bool = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Search knowledge bases with advanced semantic understanding and intelligent ranking.
+    """Search knowledge bases with advanced semantic understanding and intelligent ranking.
 
     FastMCP Tool for intelligent knowledge search through Claude Desktop.
     Provides semantic search with content understanding and relevance ranking.
@@ -510,7 +509,9 @@ async def km_search_knowledge(
         # Get top results if ranking requested
         if rank_by_relevance:
             formatted_results = sorted(
-                formatted_results, key=lambda r: r["relevance_score"], reverse=True
+                formatted_results,
+                key=lambda r: r["relevance_score"],
+                reverse=True,
             )
 
         response = {
@@ -553,8 +554,7 @@ async def km_update_documentation(
     author: str = "system",
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Update documentation with version control and change tracking.
+    """Update documentation with version control and change tracking.
 
     FastMCP Tool for documentation updates through Claude Desktop.
     Manages content updates with version control and stakeholder notifications.
@@ -609,7 +609,8 @@ async def km_update_documentation(
                 content_id=document.metadata.content_id,
                 title=content_updates.get("title", document.metadata.title),
                 description=content_updates.get(
-                    "description", document.metadata.description
+                    "description",
+                    document.metadata.description,
                 ),
                 category=document.metadata.category,
                 tags=set(content_updates.get("tags", list(document.metadata.tags))),
@@ -694,8 +695,7 @@ async def km_create_content_template(
     author: str = "system",
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Create reusable content templates for standardized documentation generation.
+    """Create reusable content templates for standardized documentation generation.
 
     FastMCP Tool for content template creation through Claude Desktop.
     Provides standardized templates for consistent documentation formats.
@@ -752,7 +752,7 @@ async def km_create_content_template(
                         description=f"Variable for {placeholder}",
                         variable_type="string",
                         required=True,
-                    )
+                    ),
                 )
 
         # Parse output formats
@@ -777,11 +777,13 @@ async def km_create_content_template(
             template_id=template_id,
             name=template_name,
             description=content_structure.get(
-                "description", f"Template for {template_name}"
+                "description",
+                f"Template for {template_name}",
             ),
             template_type=TemplateType(template_type),
             content_structure=content_structure.get(
-                "content", "# {{title}}\n\n{{content}}"
+                "content",
+                "# {{title}}\n\n{{content}}",
             ),
             variables=variables,
             output_formats=formats,
@@ -839,8 +841,7 @@ async def km_analyze_content_quality(
     auto_fix_issues: bool = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Analyze content quality and provide improvement recommendations.
+    """Analyze content quality and provide improvement recommendations.
 
     FastMCP Tool for content quality analysis through Claude Desktop.
     Evaluates documentation quality and provides actionable improvement suggestions.
@@ -941,8 +942,7 @@ async def km_export_knowledge(
     compress_output: bool = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Export knowledge base content in various formats for sharing and distribution.
+    """Export knowledge base content in various formats for sharing and distribution.
 
     FastMCP Tool for knowledge export through Claude Desktop.
     Exports documentation and knowledge in professional formats with custom branding.
@@ -1047,8 +1047,7 @@ async def km_schedule_content_review(
     completion_actions: list[str] | None = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Schedule content reviews with automated reminders and escalation management.
+    """Schedule content reviews with automated reminders and escalation management.
 
     FastMCP Tool for content review scheduling through Claude Desktop.
     Manages content review workflows with automated notifications and tracking.
@@ -1221,7 +1220,9 @@ async def km_schedule_content_review(
             "content_id": content_id,
             "reviewers": getattr(review_info, "reviewers", reviewers),
             "scheduled_date": getattr(
-                review_info, "scheduled_date", parsed_date.isoformat()
+                review_info,
+                "scheduled_date",
+                parsed_date.isoformat(),
             ),
             "documents_count": getattr(review_info, "documents_count", 1),
             "criteria": getattr(review_info, "criteria", []),

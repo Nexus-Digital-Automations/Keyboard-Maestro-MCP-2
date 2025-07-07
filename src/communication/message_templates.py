@@ -1,5 +1,4 @@
-"""
-Message template system for Keyboard Maestro MCP Tools.
+"""Message template system for Keyboard Maestro MCP Tools.
 
 This module provides a comprehensive template system for reusable communication
 patterns with secure variable substitution and template management.
@@ -67,7 +66,7 @@ class TemplateVariable:
             try:
                 re.compile(self.validation_pattern)
             except re.error as e:
-                raise ValidationError(f"Invalid validation pattern: {e}")
+                raise ValidationError(f"Invalid validation pattern: {e}") from e
 
 
 class TemplateSecurityValidator:
@@ -75,31 +74,33 @@ class TemplateSecurityValidator:
 
     @staticmethod
     def validate_template_content(
-        subject: str | None, body: str
+        subject: str | None,
+        body: str,
     ) -> Either[SecurityError, None]:
         """Validate template content for security threats."""
         # Check for template injection attempts
         if subject and TemplateSecurityValidator._contains_template_injection(subject):
             return Either.left(
                 SecurityError(
-                    "TEMPLATE_INJECTION", "Subject contains template injection"
-                )
+                    "TEMPLATE_INJECTION",
+                    "Subject contains template injection",
+                ),
             )
 
         if TemplateSecurityValidator._contains_template_injection(body):
             return Either.left(
-                SecurityError("TEMPLATE_INJECTION", "Body contains template injection")
+                SecurityError("TEMPLATE_INJECTION", "Body contains template injection"),
             )
 
         # Check for script injection
         if subject and TemplateSecurityValidator._contains_script_injection(subject):
             return Either.left(
-                SecurityError("SCRIPT_INJECTION", "Subject contains script injection")
+                SecurityError("SCRIPT_INJECTION", "Subject contains script injection"),
             )
 
         if TemplateSecurityValidator._contains_script_injection(body):
             return Either.left(
-                SecurityError("SCRIPT_INJECTION", "Body contains script injection")
+                SecurityError("SCRIPT_INJECTION", "Body contains script injection"),
             )
 
         return Either.right(None)
@@ -137,12 +138,13 @@ class TemplateSecurityValidator:
 
     @staticmethod
     def validate_variable_value(
-        variable: TemplateVariable, value: str
+        variable: TemplateVariable,
+        value: str,
     ) -> Either[ValidationError, str]:
         """Validate variable value against its definition."""
         if not value and variable.required:
             return Either.left(
-                ValidationError(f"Required variable '{variable.name}' is missing")
+                ValidationError(f"Required variable '{variable.name}' is missing"),
             )
 
         if not value and not variable.required:
@@ -152,46 +154,52 @@ class TemplateSecurityValidator:
         if variable.max_length and len(value) > variable.max_length:
             return Either.left(
                 ValidationError(
-                    f"Variable '{variable.name}' too long: {len(value)} > {variable.max_length}"
-                )
+                    f"Variable '{variable.name}' too long: {len(value)} > {variable.max_length}",
+                ),
             )
 
         # Type validation
         validation_result = TemplateSecurityValidator._validate_by_type(
-            variable.variable_type, value, variable.name
+            variable.variable_type,
+            value,
+            variable.name,
         )
         if validation_result.is_left():
             return validation_result
 
         # Pattern validation
-        if variable.validation_pattern:
-            if not re.match(variable.validation_pattern, value):
-                return Either.left(
-                    ValidationError(
-                        f"Variable '{variable.name}' doesn't match required pattern"
-                    )
-                )
+        if variable.validation_pattern and not re.match(
+            variable.validation_pattern,
+            value,
+        ):
+            return Either.left(
+                ValidationError(
+                    f"Variable '{variable.name}' doesn't match required pattern",
+                ),
+            )
 
         # Security validation
         if TemplateSecurityValidator._contains_injection_attempts(value):
             return Either.left(
                 ValidationError(
-                    f"Variable '{variable.name}' contains potentially dangerous content"
-                )
+                    f"Variable '{variable.name}' contains potentially dangerous content",
+                ),
             )
 
         return Either.right(value)
 
     @staticmethod
     def _validate_by_type(
-        var_type: str, value: str, var_name: str
+        var_type: str,
+        value: str,
+        var_name: str,
     ) -> Either[ValidationError, str]:
         """Validate value by its declared type."""
         if var_type == "email":
             email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
             if not re.match(email_pattern, value):
                 return Either.left(
-                    ValidationError(f"Variable '{var_name}' is not a valid email")
+                    ValidationError(f"Variable '{var_name}' is not a valid email"),
                 )
 
         elif var_type == "phone":
@@ -199,14 +207,14 @@ class TemplateSecurityValidator:
             clean_phone = re.sub(r"[^\d+]", "", value)
             if not re.match(phone_pattern, clean_phone):
                 return Either.left(
-                    ValidationError(f"Variable '{var_name}' is not a valid phone")
+                    ValidationError(f"Variable '{var_name}' is not a valid phone"),
                 )
 
         elif var_type == "url":
             url_pattern = r"^https?://[^\s/$.?#].[^\s]*$"
             if not re.match(url_pattern, value):
                 return Either.left(
-                    ValidationError(f"Variable '{var_name}' is not a valid URL")
+                    ValidationError(f"Variable '{var_name}' is not a valid URL"),
                 )
 
         elif var_type == "number":
@@ -214,7 +222,7 @@ class TemplateSecurityValidator:
                 float(value)
             except ValueError:
                 return Either.left(
-                    ValidationError(f"Variable '{var_name}' is not a valid number")
+                    ValidationError(f"Variable '{var_name}' is not a valid number"),
                 )
 
         return Either.right(value)
@@ -248,7 +256,7 @@ class MessageTemplateManager:
         # Built-in templates
         self._initialize_default_templates()
 
-    def _initialize_default_templates(self):
+    def _initialize_default_templates(self) -> dict[str, Any]:
         """Initialize default template library."""
         default_library = TemplateLibrary(
             library_id="default",
@@ -292,22 +300,25 @@ class MessageTemplateManager:
         object.__setattr__(default_library, "templates", templates)
         self.libraries["default"] = default_library
 
-    @require(lambda self, template: isinstance(template, MessageTemplate))
+    @require(lambda __self, template: isinstance(template, MessageTemplate))
     @ensure(lambda result: isinstance(result, Either))
     def add_template(
-        self, template: MessageTemplate, library_id: str = "default"
+        self,
+        template: MessageTemplate,
+        library_id: str = "default",
     ) -> Either[ValidationError, None]:
         """Add a new template to the specified library."""
         try:
             # Security validation
             security_result = self.security_validator.validate_template_content(
-                template.subject_template, template.body_template
+                template.subject_template,
+                template.body_template,
             )
             if security_result.is_left():
                 return Either.left(
                     ValidationError(
-                        f"Template security validation failed: {security_result.get_left().message}"
-                    )
+                        f"Template security validation failed: {security_result.get_left().message}",
+                    ),
                 )
 
             # Get or create library
@@ -325,8 +336,8 @@ class MessageTemplateManager:
             if template.template_id in library.templates:
                 return Either.left(
                     ValidationError(
-                        f"Template ID '{template.template_id}' already exists in library '{library_id}'"
-                    )
+                        f"Template ID '{template.template_id}' already exists in library '{library_id}'",
+                    ),
                 )
 
             # Add template
@@ -347,11 +358,13 @@ class MessageTemplateManager:
 
         except Exception as e:
             return Either.left(
-                ValidationError("template", str(e), f"Failed to add template: {str(e)}")
+                ValidationError("template", str(e), f"Failed to add template: {e!s}"),
             )
 
     def get_template(
-        self, template_id: TemplateId, library_id: str = "default"
+        self,
+        template_id: TemplateId,
+        library_id: str = "default",
     ) -> Either[ValidationError, MessageTemplate]:
         """Retrieve a template by ID from the specified library."""
         if library_id not in self.libraries:
@@ -364,13 +377,14 @@ class MessageTemplateManager:
                     "template_id",
                     template_id,
                     f"Template '{template_id}' not found in library '{library_id}'",
-                )
+                ),
             )
 
         return Either.right(library.templates[template_id])
 
     def list_templates(
-        self, library_id: str | None = None
+        self,
+        library_id: str | None = None,
     ) -> dict[str, list[dict[str, Any]]]:
         """List all templates, optionally filtered by library."""
         if library_id:
@@ -398,11 +412,13 @@ class MessageTemplateManager:
 
         return result
 
-    @require(lambda self, template, variables: isinstance(template, MessageTemplate))
-    @require(lambda self, template, variables: isinstance(variables, dict))
+    @require(lambda __self, template, variables: isinstance(template, MessageTemplate))
+    @require(lambda __self, template, variables: isinstance(variables, dict))
     @ensure(lambda result: isinstance(result, Either))
     def render_template(
-        self, template: MessageTemplate, variables: dict[str, str]
+        self,
+        template: MessageTemplate,
+        variables: dict[str, str],
     ) -> Either[ValidationError, dict[str, str]]:
         """Render template with provided variables and security validation."""
         try:
@@ -412,11 +428,11 @@ class MessageTemplateManager:
                 if var_name not in variables:
                     if var_name == "timestamp":  # Auto-generate timestamp if needed
                         validated_variables[var_name] = datetime.now(UTC).strftime(
-                            "%Y-%m-%d %H:%M:%S UTC"
+                            "%Y-%m-%d %H:%M:%S UTC",
                         )
                     else:
                         return Either.left(
-                            ValidationError(f"Missing required variable: {var_name}")
+                            ValidationError(f"Missing required variable: {var_name}"),
                         )
                 else:
                     value = variables[var_name]
@@ -425,16 +441,16 @@ class MessageTemplateManager:
                     if self.security_validator._contains_injection_attempts(value):
                         return Either.left(
                             ValidationError(
-                                f"Variable '{var_name}' contains potentially dangerous content"
-                            )
+                                f"Variable '{var_name}' contains potentially dangerous content",
+                            ),
                         )
 
                     # Length validation
                     if len(value) > 1000:
                         return Either.left(
                             ValidationError(
-                                f"Variable '{var_name}' value too long: {len(value)} chars"
-                            )
+                                f"Variable '{var_name}' value too long: {len(value)} chars",
+                            ),
                         )
 
                     validated_variables[var_name] = value
@@ -444,22 +460,25 @@ class MessageTemplateManager:
 
             # Final security check on rendered content
             final_security_check = self.security_validator.validate_template_content(
-                rendered.get("subject"), rendered["body"]
+                rendered.get("subject"),
+                rendered["body"],
             )
             if final_security_check.is_left():
                 return Either.left(
                     ValidationError(
-                        f"Rendered template failed security validation: {final_security_check.get_left().message}"
-                    )
+                        f"Rendered template failed security validation: {final_security_check.get_left().message}",
+                    ),
                 )
 
             return Either.right(rendered)
 
         except Exception as e:
-            return Either.left(ValidationError(f"Template rendering failed: {str(e)}"))
+            return Either.left(ValidationError(f"Template rendering failed: {e!s}"))
 
     def save_library(
-        self, library_id: str, file_path: Path | None = None
+        self,
+        library_id: str,
+        file_path: Path | None = None,
     ) -> Either[FileSystemError, None]:
         """Save template library to file."""
         try:
@@ -499,14 +518,14 @@ class MessageTemplateManager:
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(FileSystemError(f"Failed to save library: {str(e)}"))
+            return Either.left(FileSystemError(f"Failed to save library: {e!s}"))
 
     def load_library(self, file_path: Path) -> Either[FileSystemError, str]:
         """Load template library from file."""
         try:
             if not file_path.exists():
                 return Either.left(
-                    FileSystemError(f"Template file not found: {file_path}")
+                    FileSystemError(f"Template file not found: {file_path}"),
                 )
 
             with open(file_path, encoding="utf-8") as f:
@@ -521,7 +540,7 @@ class MessageTemplateManager:
                     subject_template=template_data.get("subject_template"),
                     body_template=template_data["body_template"],
                     communication_type=CommunicationType(
-                        template_data["communication_type"]
+                        template_data["communication_type"],
                     ),
                     created_at=datetime.fromisoformat(template_data["created_at"]),
                 )
@@ -541,10 +560,12 @@ class MessageTemplateManager:
             return Either.right(library.library_id)
 
         except Exception as e:
-            return Either.left(FileSystemError(f"Failed to load library: {str(e)}"))
+            return Either.left(FileSystemError(f"Failed to load library: {e!s}"))
 
     def delete_template(
-        self, template_id: TemplateId, library_id: str = "default"
+        self,
+        template_id: TemplateId,
+        library_id: str = "default",
     ) -> Either[ValidationError, None]:
         """Delete a template from the specified library."""
         try:
@@ -554,7 +575,7 @@ class MessageTemplateManager:
             library = self.libraries[library_id]
             if template_id not in library.templates:
                 return Either.left(
-                    ValidationError(f"Template '{template_id}' not found")
+                    ValidationError(f"Template '{template_id}' not found"),
                 )
 
             # Create new library without the template
@@ -577,10 +598,12 @@ class MessageTemplateManager:
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError(f"Failed to delete template: {str(e)}"))
+            return Either.left(ValidationError(f"Failed to delete template: {e!s}"))
 
     def get_template_variables(
-        self, template_id: TemplateId, library_id: str = "default"
+        self,
+        template_id: TemplateId,
+        library_id: str = "default",
     ) -> Either[ValidationError, set[str]]:
         """Get the list of variables required by a template."""
         template_result = self.get_template(template_id, library_id)

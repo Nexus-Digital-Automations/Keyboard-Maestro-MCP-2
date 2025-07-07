@@ -1,5 +1,4 @@
-"""
-Macro Movement Tools
+"""Macro Movement Tools.
 
 Provides comprehensive macro group movement capabilities through MCP interface
 with validation, conflict resolution, rollback functionality, and security validation.
@@ -85,12 +84,12 @@ async def km_move_macro_to_group(
         Field(default=True, description="Maintain group-specific activation settings"),
     ] = True,
     timeout_seconds: Annotated[
-        int, Field(default=30, ge=5, le=120, description="Operation timeout in seconds")
+        int,
+        Field(default=30, ge=5, le=120, description="Operation timeout in seconds"),
     ] = 30,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Move a macro from one group to another with comprehensive validation and conflict resolution.
+    """Move a macro from one group to another with comprehensive validation and conflict resolution.
 
     Architecture:
         - Pattern: Command Pattern with atomic operations and rollback capability
@@ -139,6 +138,7 @@ async def km_move_macro_to_group(
     Raises:
         ValidationError: Input validation failed
         SecurityViolationError: Security validation failed
+
     """
     correlation_id = str(uuid.uuid4())
     start_time = datetime.now()
@@ -146,11 +146,11 @@ async def km_move_macro_to_group(
     try:
         if ctx:
             await ctx.info(
-                f"Starting macro movement: '{macro_identifier}' to '{target_group}'"
+                f"Starting macro movement: '{macro_identifier}' to '{target_group}'",
             )
 
         logger.info(
-            f"Macro move: '{macro_identifier}' to '{target_group}' [correlation_id: {correlation_id}]"
+            f"Macro move: '{macro_identifier}' to '{target_group}' [correlation_id: {correlation_id}]",
         )
 
         # Phase 1: Input validation and sanitization
@@ -164,7 +164,7 @@ async def km_move_macro_to_group(
 
         except ValueError as e:
             logger.warning(
-                f"Input validation failed for macro move '{macro_identifier}': {e} [correlation_id: {correlation_id}]"
+                f"Input validation failed for macro move '{macro_identifier}': {e} [correlation_id: {correlation_id}]",
             )
             return _create_error_response(
                 correlation_id,
@@ -180,7 +180,10 @@ async def km_move_macro_to_group(
 
         # Phase 2: Pre-movement validation and conflict detection
         validation_result = await _validate_move_operation(
-            clean_macro_id, clean_target_group, create_group_if_missing, ctx
+            clean_macro_id,
+            clean_target_group,
+            create_group_if_missing,
+            ctx,
         )
 
         if not validation_result.success:
@@ -212,16 +215,21 @@ async def km_move_macro_to_group(
         # Phase 4: Post-movement verification
         if move_result.success:
             verification_result = await _verify_movement_completion(
-                clean_macro_id, move_result.source_group, clean_target_group, ctx
+                clean_macro_id,
+                move_result.source_group,
+                clean_target_group,
+                ctx,
             )
 
             if not verification_result:
                 # Attempt rollback
                 logger.warning(
-                    f"Movement verification failed, attempting rollback [correlation_id: {correlation_id}]"
+                    f"Movement verification failed, attempting rollback [correlation_id: {correlation_id}]",
                 )
                 await _attempt_rollback(
-                    clean_macro_id, move_result.source_group, clean_target_group
+                    clean_macro_id,
+                    move_result.source_group,
+                    clean_target_group,
                 )
 
                 return _create_error_response(
@@ -241,7 +249,7 @@ async def km_move_macro_to_group(
 
         if move_result.success:
             logger.info(
-                f"Macro move successful: '{macro_identifier}' to '{target_group}' [correlation_id: {correlation_id}]"
+                f"Macro move successful: '{macro_identifier}' to '{target_group}' [correlation_id: {correlation_id}]",
             )
 
             if ctx:
@@ -267,27 +275,26 @@ async def km_move_macro_to_group(
                     "operation": "move_macro_to_group",
                 },
             }
-        else:
-            logger.error(
-                f"Macro move failed: '{macro_identifier}' - {move_result.error_message} [correlation_id: {correlation_id}]"
-            )
+        logger.error(
+            f"Macro move failed: '{macro_identifier}' - {move_result.error_message} [correlation_id: {correlation_id}]",
+        )
 
-            if ctx:
-                await ctx.error(f"Movement failed: {move_result.error_message}")
+        if ctx:
+            await ctx.error(f"Movement failed: {move_result.error_message}")
 
-            return _create_error_response(
-                correlation_id,
-                move_result.error_code or "MOVE_FAILED",
-                move_result.error_message or "Movement operation failed",
-                f"Failed to move macro: {move_result.error_message}",
-                "Check macro and group accessibility, then retry",
-                execution_time,
-            )
+        return _create_error_response(
+            correlation_id,
+            move_result.error_code or "MOVE_FAILED",
+            move_result.error_message or "Movement operation failed",
+            f"Failed to move macro: {move_result.error_message}",
+            "Check macro and group accessibility, then retry",
+            execution_time,
+        )
 
     except ValidationError as e:
         execution_time = (datetime.now() - start_time).total_seconds()
         logger.warning(
-            f"Validation error for macro move '{macro_identifier}': {e} [correlation_id: {correlation_id}]"
+            f"Validation error for macro move '{macro_identifier}': {e} [correlation_id: {correlation_id}]",
         )
 
         if ctx:
@@ -305,7 +312,7 @@ async def km_move_macro_to_group(
     except SecurityViolationError as e:
         execution_time = (datetime.now() - start_time).total_seconds()
         logger.error(
-            f"Security violation for macro move '{macro_identifier}': {e} [correlation_id: {correlation_id}]"
+            f"Security violation for macro move '{macro_identifier}': {e} [correlation_id: {correlation_id}]",
         )
 
         if ctx:
@@ -323,11 +330,11 @@ async def km_move_macro_to_group(
     except Exception as e:
         execution_time = (datetime.now() - start_time).total_seconds()
         logger.exception(
-            f"Unexpected error in macro move '{macro_identifier}' [correlation_id: {correlation_id}]"
+            f"Unexpected error in macro move '{macro_identifier}' [correlation_id: {correlation_id}]",
         )
 
         if ctx:
-            await ctx.error(f"Unexpected error: {str(e)}")
+            await ctx.error(f"Unexpected error: {e!s}")
 
         return _create_error_response(
             correlation_id,
@@ -376,13 +383,13 @@ def _sanitize_identifier(identifier: str, identifier_type: str) -> str:
     for pattern in suspicious_patterns:
         if re.search(pattern, clean_id, re.IGNORECASE):
             raise ValueError(
-                f"Suspicious pattern detected in {identifier_type} identifier"
+                f"Suspicious pattern detected in {identifier_type} identifier",
             )
 
     return clean_id
 
 
-def _validate_security_constraints(macro_id: str, group_name: str):
+def _validate_security_constraints(macro_id: str, group_name: str) -> None:
     """Apply additional security constraints."""
     # Prevent system group modifications
     system_groups = {"Global Macro Group", "System", "Login", "Quit", "Sleep", "Wake"}
@@ -414,7 +421,10 @@ def _validate_security_constraints(macro_id: str, group_name: str):
 
 
 async def _validate_move_operation(
-    macro_id: str, target_group: str, create_missing: bool, ctx: Context | None
+    macro_id: str,
+    target_group: str,
+    create_missing: bool,
+    ctx: Context | None,
 ) -> MacroMoveResult:
     """Validate that the move operation can be performed safely."""
     try:
@@ -465,7 +475,7 @@ async def _validate_move_operation(
             None,
             target_group,
             error_code="VALIDATION_ERROR",
-            error_message=f"Validation failed: {str(e)}",
+            error_message=f"Validation failed: {e!s}",
         )
 
 
@@ -500,7 +510,7 @@ async def _execute_macro_movement(
         escaped_macro = _escape_applescript_string(macro_id)
         escaped_group = _escape_applescript_string(target_group)
 
-        script = f'''
+        script = f"""
         tell application "Keyboard Maestro"
             try
                 set targetMacro to macro "{escaped_macro}"
@@ -520,7 +530,7 @@ async def _execute_macro_movement(
                 return "ERROR: " & errorMessage
             end try
         end tell
-        '''
+        """
 
         process = await asyncio.create_subprocess_exec(
             "osascript",
@@ -531,7 +541,8 @@ async def _execute_macro_movement(
         )
 
         stdout, stderr = await asyncio.wait_for(
-            process.communicate(), timeout=timeout.total_seconds()
+            process.communicate(),
+            timeout=timeout.total_seconds(),
         )
 
         if process.returncode != 0:
@@ -576,7 +587,7 @@ async def _execute_macro_movement(
             source_group,
             target_group,
             error_code="EXECUTION_ERROR",
-            error_message=f"Movement execution failed: {str(e)}",
+            error_message=f"Movement execution failed: {e!s}",
         )
 
 
@@ -585,7 +596,7 @@ async def _get_macro_info(macro_id: str) -> dict[str, Any] | None:
     try:
         escaped_macro = _escape_applescript_string(macro_id)
 
-        script = f'''
+        script = f"""
         tell application "Keyboard Maestro"
             try
                 set targetMacro to macro "{escaped_macro}"
@@ -596,7 +607,7 @@ async def _get_macro_info(macro_id: str) -> dict[str, Any] | None:
                 return "NOT_FOUND"
             end try
         end tell
-        '''
+        """
 
         process = await asyncio.create_subprocess_exec(
             "osascript",
@@ -624,7 +635,7 @@ async def _check_group_exists(group_name: str) -> bool:
     try:
         escaped_group = _escape_applescript_string(group_name)
 
-        script = f'''
+        script = f"""
         tell application "Keyboard Maestro"
             try
                 set targetGroup to macro group "{escaped_group}"
@@ -633,7 +644,7 @@ async def _check_group_exists(group_name: str) -> bool:
                 return "NOT_FOUND"
             end try
         end tell
-        '''
+        """
 
         process = await asyncio.create_subprocess_exec(
             "osascript",
@@ -664,7 +675,7 @@ async def _create_group_if_missing(group_name: str) -> bool:
 
         escaped_group = _escape_applescript_string(group_name)
 
-        script = f'''
+        script = f"""
         tell application "Keyboard Maestro"
             try
                 make new macro group with properties {{name:"{escaped_group}"}}
@@ -673,7 +684,7 @@ async def _create_group_if_missing(group_name: str) -> bool:
                 return "ERROR: " & errorMessage
             end try
         end tell
-        '''
+        """
 
         process = await asyncio.create_subprocess_exec(
             "osascript",
@@ -696,7 +707,10 @@ async def _create_group_if_missing(group_name: str) -> bool:
 
 
 async def _verify_movement_completion(
-    macro_id: str, source_group: str | None, target_group: str, ctx: Context | None
+    macro_id: str,
+    source_group: str | None,
+    target_group: str,
+    ctx: Context | None,
 ) -> bool:
     """Verify that the macro movement completed successfully."""
     try:
@@ -719,23 +733,28 @@ async def _attempt_rollback(macro_id: str, source_group: str | None, target_grou
 
     try:
         logger.info(
-            f"Attempting rollback: moving '{macro_id}' back to '{source_group}'"
+            f"Attempting rollback: moving '{macro_id}' back to '{source_group}'",
         )
 
         # Try to move macro back to source group
         rollback_result = await _execute_macro_movement(
-            macro_id, source_group, False, True, Duration.from_seconds(10), None
+            macro_id,
+            source_group,
+            False,
+            True,
+            Duration.from_seconds(10),
+            None,
         )
 
         if rollback_result.success:
             logger.info(f"Rollback successful for macro '{macro_id}'")
         else:
             logger.error(
-                f"Rollback failed for macro '{macro_id}': {rollback_result.error_message}"
+                f"Rollback failed for macro '{macro_id}': {rollback_result.error_message}",
             )
 
     except Exception as e:
-        logger.error(f"Rollback attempt failed for macro '{macro_id}': {str(e)}")
+        logger.error(f"Rollback attempt failed for macro '{macro_id}': {e!s}")
 
 
 def _escape_applescript_string(value: str) -> str:

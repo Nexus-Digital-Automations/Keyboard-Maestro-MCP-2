@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Keyboard Maestro MCP Server - Modular Version
+"""Keyboard Maestro MCP Server - Modular Version.
 
 Advanced macOS automation through Model Context Protocol using FastMCP framework.
 Provides 10 production-ready tools for comprehensive Keyboard Maestro integration.
@@ -21,7 +20,9 @@ from pydantic import Field
 
 # Import modular components
 from .server.initialization import initialize_components
-from .server.resources import create_macro_prompt, get_server_status, get_tool_help
+
+# F811 fix: Remove duplicate import - create_macro_prompt is defined below
+from .server.resources import get_server_status, get_tool_help
 
 # Configure logging to stderr to avoid corrupting MCP communications
 logging.basicConfig(
@@ -68,13 +69,16 @@ Use these tools to automate any macOS task that Keyboard Maestro can perform.
 async def km_execute_macro(
     identifier: Annotated[str, Field(description="Macro name or UUID")],
     trigger_value: Annotated[
-        str, Field(default="", description="Optional parameter to pass to macro")
+        str,
+        Field(default="", description="Optional parameter to pass to macro"),
     ] = "",
     method: Annotated[
-        str, Field(default="applescript", description="Execution method")
+        str,
+        Field(default="applescript", description="Execution method"),
     ] = "applescript",
     timeout: Annotated[
-        int, Field(default=30, description="Maximum execution time in seconds")
+        int,
+        Field(default=30, description="Maximum execution time in seconds"),
     ] = 30,
     ctx=None,
 ) -> dict[str, Any]:
@@ -87,10 +91,12 @@ async def km_execute_macro(
 @mcp.tool()
 async def km_list_macros(
     group_filter: Annotated[
-        str, Field(default="", description="Filter by macro group name")
+        str,
+        Field(default="", description="Filter by macro group name"),
     ] = "",
     enabled_only: Annotated[
-        bool, Field(default=True, description="Only show enabled macros")
+        bool,
+        Field(default=True, description="Only show enabled macros"),
     ] = True,
     sort_by: Annotated[str, Field(default="name", description="Sort field")] = "name",
     limit: Annotated[int, Field(default=20, description="Maximum results")] = 20,
@@ -105,17 +111,21 @@ async def km_list_macros(
 @mcp.tool()
 async def km_variable_manager(
     operation: Annotated[
-        str, Field(description="Operation: get, set, delete, or list")
+        str,
+        Field(description="Operation: get, set, delete, or list"),
     ],
     name: Annotated[str, Field(default="", description="Variable name")] = "",
     value: Annotated[
-        str, Field(default="", description="Variable value for set operation")
+        str,
+        Field(default="", description="Variable value for set operation"),
     ] = "",
     scope: Annotated[
-        str, Field(default="global", description="Variable scope")
+        str,
+        Field(default="global", description="Variable scope"),
     ] = "global",
     instance_id: Annotated[
-        str, Field(default="", description="Instance ID for local variables")
+        str,
+        Field(default="", description="Instance ID for local variables"),
     ] = "",
     ctx=None,
 ) -> dict[str, Any]:
@@ -129,19 +139,24 @@ async def km_variable_manager(
 async def km_search_macros_advanced(
     query: Annotated[str, Field(description="Search query")],
     scope: Annotated[
-        str, Field(default="name_and_group", description="Search scope")
+        str,
+        Field(default="name_and_group", description="Search scope"),
     ] = "name_and_group",
     action_categories: Annotated[
-        str, Field(default="", description="Filter by action categories")
+        str,
+        Field(default="", description="Filter by action categories"),
     ] = "",
     complexity_levels: Annotated[
-        str, Field(default="", description="Filter by complexity levels")
+        str,
+        Field(default="", description="Filter by complexity levels"),
     ] = "",
     min_usage_count: Annotated[
-        int, Field(default=0, description="Minimum usage count")
+        int,
+        Field(default=0, description="Minimum usage count"),
     ] = 0,
     sort_by: Annotated[
-        str, Field(default="name", description="Sort criteria")
+        str,
+        Field(default="name", description="Sort criteria"),
     ] = "name",
     ctx=None,
 ) -> dict[str, Any]:
@@ -165,7 +180,8 @@ async def km_search_macros_advanced(
 async def km_analyze_macro_metadata(
     macro_id: Annotated[str, Field(description="Macro ID or name to analyze")],
     include_relationships: Annotated[
-        bool, Field(default=True, description="Include relationship analysis")
+        bool,
+        Field(default=True, description="Include relationship analysis"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
@@ -180,10 +196,12 @@ async def km_analyze_macro_metadata(
 @mcp.tool()
 async def km_start_realtime_sync(
     enable_file_monitoring: Annotated[
-        bool, Field(default=True, description="Enable file system monitoring")
+        bool,
+        Field(default=True, description="Enable file system monitoring"),
     ] = True,
     poll_interval_seconds: Annotated[
-        int, Field(default=30, description="Base polling interval")
+        int,
+        Field(default=30, description="Base polling interval"),
     ] = 30,
     ctx=None,
 ) -> dict[str, Any]:
@@ -193,7 +211,9 @@ async def km_start_realtime_sync(
     )
 
     return await _km_start_realtime_sync(
-        enable_file_monitoring, poll_interval_seconds, ctx
+        enable_file_monitoring,
+        poll_interval_seconds,
+        ctx,
     )
 
 
@@ -208,7 +228,8 @@ async def km_stop_realtime_sync(ctx=None) -> dict[str, Any]:
 @mcp.tool()
 async def km_sync_status(
     include_performance_metrics: Annotated[
-        bool, Field(default=True, description="Include performance metrics")
+        bool,
+        Field(default=True, description="Include performance metrics"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
@@ -221,7 +242,8 @@ async def km_sync_status(
 @mcp.tool()
 async def km_force_sync(
     full_resync: Annotated[
-        bool, Field(default=False, description="Force complete resynchronization")
+        bool,
+        Field(default=False, description="Force complete resynchronization"),
     ] = False,
     ctx=None,
 ) -> dict[str, Any]:
@@ -234,13 +256,16 @@ async def km_force_sync(
 @mcp.tool()
 async def km_list_macro_groups(
     include_macro_count: Annotated[
-        bool, Field(default=True, description="Include macro counts")
+        bool,
+        Field(default=True, description="Include macro counts"),
     ] = True,
     include_enabled_count: Annotated[
-        bool, Field(default=True, description="Include enabled macro counts")
+        bool,
+        Field(default=True, description="Include enabled macro counts"),
     ] = True,
     sort_by: Annotated[
-        str, Field(default="name", description="Sort criteria")
+        str,
+        Field(default="name", description="Sort criteria"),
     ] = "name",
     ctx=None,
 ) -> dict[str, Any]:
@@ -248,7 +273,10 @@ async def km_list_macro_groups(
     from .server.tools.group_tools import km_list_macro_groups as _km_list_macro_groups
 
     return await _km_list_macro_groups(
-        include_macro_count, include_enabled_count, sort_by, ctx
+        include_macro_count,
+        include_enabled_count,
+        sort_by,
+        ctx,
     )
 
 
@@ -275,7 +303,8 @@ def create_macro_prompt(
     app_context: Annotated[
         str,
         Field(
-            default="", description="Specific application or context for the automation"
+            default="",
+            description="Specific application or context for the automation",
         ),
     ] = "",
 ) -> list[Message]:
@@ -283,7 +312,7 @@ def create_macro_prompt(
     return create_macro_prompt(task_description, app_context)
 
 
-def main():
+def main() -> int:
     """Main entry point for the Keyboard Maestro MCP server."""
     import argparse
 
@@ -300,7 +329,10 @@ def main():
         help="Host for SSE transport (default: 127.0.0.1)",
     )
     parser.add_argument(
-        "--port", type=int, default=8000, help="Port for SSE transport (default: 8000)"
+        "--port",
+        type=int,
+        default=8000,
+        help="Port for SSE transport (default: 8000)",
     )
     parser.add_argument(
         "--log-level",

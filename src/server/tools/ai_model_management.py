@@ -1,5 +1,4 @@
-"""
-AI Model Management Tools - Model listing, caching, and cost optimization.
+"""AI Model Management Tools - Model listing, caching, and cost optimization.
 
 This module provides AI model management capabilities including model discovery,
 intelligent caching systems, cost optimization, and budget management.
@@ -28,8 +27,7 @@ async def km_ai_cache(
     enable_prefetch: bool = True,  # Enable predictive prefetching
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Intelligent caching system for AI operations with multi-level hierarchy.
+    """Intelligent caching system for AI operations with multi-level hierarchy.
 
     This tool provides comprehensive caching capabilities including multi-level
     caching (L1/L2/L3), intelligent cache management, predictive prefetching,
@@ -64,6 +62,7 @@ async def km_ai_cache(
             },
             ttl_hours=6
         )
+
     """
     try:
         # Real intelligent cache manager with multi-level caching
@@ -79,7 +78,8 @@ async def km_ai_cache(
             cache_key = cache_data["key"]
             # Real cache lookup using multi-level cache
             cached_value = await cache_manager.cache.get(
-                CacheKey(cache_key), CacheNamespace(namespace)
+                CacheKey(cache_key),
+                CacheNamespace(namespace),
             )
 
             return {
@@ -92,7 +92,7 @@ async def km_ai_cache(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "put":
+        if operation == "put":
             if not cache_data or "key" not in cache_data or "value" not in cache_data:
                 return {
                     "success": False,
@@ -127,7 +127,7 @@ async def km_ai_cache(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "invalidate":
+        if operation == "invalidate":
             if not cache_data:
                 return {
                     "success": False,
@@ -138,7 +138,8 @@ async def km_ai_cache(
                 # Invalidate specific key
                 cache_key = cache_data["key"]
                 success = cache_manager.cache.invalidate(
-                    CacheKey(cache_key), CacheNamespace(namespace)
+                    CacheKey(cache_key),
+                    CacheNamespace(namespace),
                 )
                 return {
                     "success": True,
@@ -147,11 +148,11 @@ async def km_ai_cache(
                     "namespace": namespace,
                 }
 
-            elif "namespace" in cache_data:
+            if "namespace" in cache_data:
                 # Invalidate entire namespace
                 target_namespace = cache_data["namespace"]
                 count = cache_manager.cache.l1_cache.invalidate_namespace(
-                    CacheNamespace(target_namespace)
+                    CacheNamespace(target_namespace),
                 )
                 return {
                     "success": True,
@@ -159,19 +160,18 @@ async def km_ai_cache(
                     "namespace": target_namespace,
                 }
 
-            elif "tags" in cache_data:
+            if "tags" in cache_data:
                 # Invalidate by tags
                 tags = set(cache_data["tags"])
                 count = cache_manager.cache.l1_cache.invalidate_by_tags(tags)
                 return {"success": True, "invalidated_count": count, "tags": list(tags)}
 
-            else:
-                return {
-                    "success": False,
-                    "error": "invalidate requires 'key', 'namespace', or 'tags' in cache_data",
-                }
+            return {
+                "success": False,
+                "error": "invalidate requires 'key', 'namespace', or 'tags' in cache_data",
+            }
 
-        elif operation == "clear":
+        if operation == "clear":
             # Clear all caches
             cache_manager.cache.l1_cache.clear()
             cache_manager.cache.l2_cache.clear()
@@ -183,7 +183,7 @@ async def km_ai_cache(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "stats":
+        if operation == "stats":
             # Get comprehensive cache statistics
             stats = cache_manager.get_cache_efficiency_report()
 
@@ -199,13 +199,14 @@ async def km_ai_cache(
                     "learning_enabled": stats.get("learning_enabled", False),
                     "access_patterns_tracked": stats.get("access_patterns_tracked", 0),
                     "estimated_time_saved_seconds": stats.get(
-                        "estimated_time_saved_seconds", 0
+                        "estimated_time_saved_seconds",
+                        0,
                     ),
                 },
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "optimize":
+        if operation == "optimize":
             # Perform cache optimization with predictive prefetching
             if enable_prefetch:
                 await cache_manager.predictive_prefetch()
@@ -219,7 +220,8 @@ async def km_ai_cache(
                 "compression_enabled": enable_compression,
                 "cache_levels_active": 3,
                 "optimization_score": efficiency_report.get(
-                    "cache_efficiency_score", 0
+                    "cache_efficiency_score",
+                    0,
                 ),
                 "recommendations": [
                     {
@@ -254,7 +256,8 @@ async def km_ai_cache(
             if enable_prefetch:
                 optimization_results["prefetch_results"] = {
                     "patterns_detected": efficiency_report.get(
-                        "access_patterns_tracked", 0
+                        "access_patterns_tracked",
+                        0,
                     ),
                     "prefetched_items": 0,  # Would be tracked in real implementation
                     "estimated_future_hits": 0,
@@ -266,24 +269,23 @@ async def km_ai_cache(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        else:
-            return {
-                "success": False,
-                "error": f"Unknown cache operation: {operation}",
-                "valid_operations": [
-                    "get",
-                    "put",
-                    "invalidate",
-                    "clear",
-                    "stats",
-                    "optimize",
-                ],
-            }
+        return {
+            "success": False,
+            "error": f"Unknown cache operation: {operation}",
+            "valid_operations": [
+                "get",
+                "put",
+                "invalidate",
+                "clear",
+                "stats",
+                "optimize",
+            ],
+        }
 
     except Exception as e:
         return {
             "success": False,
-            "error": f"Cache operation failed: {str(e)}",
+            "error": f"Cache operation failed: {e!s}",
             "error_type": "cache_error",
             "operation": operation,
             "timestamp": datetime.now(UTC).isoformat(),
@@ -300,8 +302,7 @@ async def km_ai_cost_optimization(
     alert_thresholds: list[float] | None = None,  # Alert thresholds (0.0-1.0)
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Advanced cost optimization system for AI operations with enterprise controls.
+    """Advanced cost optimization system for AI operations with enterprise controls.
 
     This tool provides comprehensive cost optimization including usage tracking,
     budget management, intelligent model selection, cost prediction, and
@@ -336,6 +337,7 @@ async def km_ai_cost_optimization(
             operation="report",
             period="monthly"
         )
+
     """
     try:
         # Real cost optimizer with budget management and usage tracking
@@ -383,7 +385,7 @@ async def km_ai_cost_optimization(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "budget":
+        if operation == "budget":
             if not cost_data or "name" not in cost_data or "amount" not in cost_data:
                 return {
                     "success": False,
@@ -400,7 +402,7 @@ async def km_ai_cost_optimization(
 
             # Create real budget
             budget_id = BudgetId(
-                f"budget_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+                f"budget_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
             )
             budget = CostBudget(
                 budget_id=budget_id,
@@ -431,7 +433,7 @@ async def km_ai_cost_optimization(
                 "created": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "optimize":
+        if operation == "optimize":
             # Perform real cost optimization with strategy selection
             from src.ai.cost_optimization import CostOptimizationStrategy
 
@@ -449,12 +451,14 @@ async def km_ai_cost_optimization(
             optimization_report = cost_optimizer.get_optimization_report()
             monthly_projection = float(optimization_report.get("monthly_projection", 0))
             current_cost = optimization_report.get("cost_analysis", {}).get(
-                "total_cost", 0
+                "total_cost",
+                0,
             )
 
             # Calculate savings based on optimization recommendations
             recommendations = optimization_report.get(
-                "optimization_recommendations", []
+                "optimization_recommendations",
+                [],
             )
             total_savings = sum(
                 rec.get("estimated_savings", 0) for rec in recommendations
@@ -467,7 +471,8 @@ async def km_ai_cost_optimization(
                 "results": {
                     "current_monthly_cost": current_cost,
                     "projected_monthly_cost": max(
-                        0, monthly_projection - total_savings
+                        0,
+                        monthly_projection - total_savings,
                     ),
                     "estimated_savings": total_savings,
                     "savings_percentage": (total_savings / monthly_projection * 100)
@@ -481,7 +486,7 @@ async def km_ai_cost_optimization(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "report":
+        if operation == "report":
             # Generate comprehensive cost report
             period_map = {
                 "daily": 1,
@@ -515,7 +520,8 @@ async def km_ai_cost_optimization(
                         "total_cost": cost_breakdown.get("total_cost", 0),
                         "total_requests": cost_breakdown.get("total_requests", 0),
                         "average_cost_per_request": cost_breakdown.get(
-                            "average_cost_per_request", 0
+                            "average_cost_per_request",
+                            0,
                         ),
                         "top_models": top_models,
                     },
@@ -531,7 +537,7 @@ async def km_ai_cost_optimization(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        elif operation == "alert":
+        if operation == "alert":
             # Get real budget alerts from cost optimizer
             active_alerts = cost_optimizer.get_active_alerts()
             optimization_report = cost_optimizer.get_optimization_report()
@@ -566,17 +572,16 @@ async def km_ai_cost_optimization(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        else:
-            return {
-                "success": False,
-                "error": f"Unknown cost optimization operation: {operation}",
-                "valid_operations": ["track", "budget", "optimize", "report", "alert"],
-            }
+        return {
+            "success": False,
+            "error": f"Unknown cost optimization operation: {operation}",
+            "valid_operations": ["track", "budget", "optimize", "report", "alert"],
+        }
 
     except Exception as e:
         return {
             "success": False,
-            "error": f"Cost optimization failed: {str(e)}",
+            "error": f"Cost optimization failed: {e!s}",
             "error_type": "cost_optimization_error",
             "operation": operation,
             "timestamp": datetime.now(UTC).isoformat(),
@@ -591,8 +596,7 @@ async def km_ai_models(
     sort_by: str = "name",  # name|cost|performance|popularity
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    List available AI models with capabilities and usage information.
+    """List available AI models with capabilities and usage information.
 
     This tool provides comprehensive model discovery including filtering by provider,
     operation support, cost information, and detailed capability matrices for
@@ -621,6 +625,7 @@ async def km_ai_models(
             operation="analyze",
             include_capabilities=True
         )
+
     """
     try:
         # Parse filters
@@ -681,7 +686,7 @@ async def km_ai_models(
                             for op in AIOperation
                             if model.can_handle_operation(op)
                         ],
-                    }
+                    },
                 )
 
             if include_costs:
@@ -690,14 +695,14 @@ async def km_ai_models(
                         "cost_per_input_token": float(model.cost_per_input_token),
                         "cost_per_output_token": float(model.cost_per_output_token),
                         "estimated_cost_per_1k_tokens": float(
-                            model.cost_per_input_token * 1000
+                            model.cost_per_input_token * 1000,
                         ),
                         "cost_tier": "low"
                         if model.cost_per_input_token < 0.001
                         else "medium"
                         if model.cost_per_input_token < 0.01
                         else "high",
-                    }
+                    },
                 )
 
             # Add performance metrics
@@ -724,14 +729,14 @@ async def km_ai_models(
             # Mock popularity sorting
             popularity_order = ["gpt-4", "gpt-3.5-turbo", "claude-3"]
             models.sort(
-                key=lambda m: next(
+                key=lambda _m: next(
                     (
                         i
                         for i, p in enumerate(popularity_order)
-                        if p in m["name"].lower()
+                        if p in _m["name"].lower()
                     ),
                     999,
-                )
+                ),
             )
         else:  # name
             models.sort(key=lambda m: m["name"])
@@ -751,10 +756,12 @@ async def km_ai_models(
                 "providers": list({m["provider"] for m in models}),
                 "cost_range": {
                     "min": min(
-                        (m.get("cost_per_input_token", 0) for m in models), default=0
+                        (m.get("cost_per_input_token", 0) for m in models),
+                        default=0,
                     ),
                     "max": max(
-                        (m.get("cost_per_input_token", 0) for m in models), default=0
+                        (m.get("cost_per_input_token", 0) for m in models),
+                        default=0,
                     ),
                 }
                 if include_costs
@@ -770,7 +777,7 @@ async def km_ai_models(
     except Exception as e:
         return {
             "success": False,
-            "error": f"Models listing failed: {str(e)}",
+            "error": f"Models listing failed: {e!s}",
             "error_type": "models_error",
             "timestamp": datetime.now(UTC).isoformat(),
         }

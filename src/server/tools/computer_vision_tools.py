@@ -1,5 +1,4 @@
-"""
-Computer Vision MCP Tools - TASK_61 Phase 3 FastMCP Implementation
+"""Computer Vision MCP Tools - TASK_61 Phase 3 FastMCP Implementation.
 
 FastMCP tools for advanced computer vision and image understanding capabilities.
 Provides comprehensive computer vision capabilities accessible through Claude Desktop interface.
@@ -67,19 +66,19 @@ async def initialize_computer_vision():
         return True
 
     except Exception as e:
-        logging.error(f"Failed to initialize computer vision components: {str(e)}")
+        logging.error(f"Failed to initialize computer vision components: {e!s}")
         return False
 
 
-def _validate_components():
+def _validate_components() -> None:
     """Validate that all components are initialized."""
     if not all([object_detector, scene_analyzer]):
         raise RuntimeError(
-            "Computer vision components not initialized. Call initialize_computer_vision() first."
+            "Computer vision components not initialized. Call initialize_computer_vision() first.",
         )
 
 
-def _update_performance_metrics(operation: str, response_time: float):
+def _update_performance_metrics(operation: str, response_time: float) -> None:
     """Update performance tracking metrics."""
     global vision_performance_metrics
 
@@ -117,40 +116,45 @@ def _decode_image_data(image_data: str) -> bytes:
 
         return base64.b64decode(image_data)
     except Exception as e:
-        raise ValueError(f"Invalid image data format: {str(e)}")
+        raise ValueError(f"Invalid image data format: {e!s}") from e
 
 
 @mcp.tool()
 async def km_detect_objects(
     image_data: Annotated[
-        str, Field(description="Base64 encoded image data", min_length=100)
+        str,
+        Field(description="Base64 encoded image data", min_length=100),
     ],
     confidence_threshold: Annotated[
         float,
         Field(description="Confidence threshold for object detection", ge=0.1, le=1.0),
     ] = 0.5,
     max_objects: Annotated[
-        int, Field(description="Maximum number of objects to detect", ge=1, le=100)
+        int,
+        Field(description="Maximum number of objects to detect", ge=1, le=100),
     ] = 20,
     model_type: Annotated[
-        str, Field(description="Detection model type (yolo_v8|detectron2|custom)")
+        str,
+        Field(description="Detection model type (yolo_v8|detectron2|custom)"),
     ] = "yolo_v8",
     enable_tracking: Annotated[
-        bool, Field(description="Enable object tracking across frames")
+        bool,
+        Field(description="Enable object tracking across frames"),
     ] = False,
     include_attributes: Annotated[
-        bool, Field(description="Include detailed object attributes")
+        bool,
+        Field(description="Include detailed object attributes"),
     ] = True,
     filter_categories: Annotated[
-        list[str] | None, Field(description="Filter by object categories")
+        list[str] | None,
+        Field(description="Filter by object categories"),
     ] = None,
     roi_coordinates: Annotated[
         list[float] | None,
         Field(description="Region of interest [x, y, width, height] (normalized 0-1)"),
     ] = None,
 ) -> dict[str, Any]:
-    """
-    Detect and classify objects in images with advanced AI-powered computer vision.
+    """Detect and classify objects in images with advanced AI-powered computer vision.
 
     FastMCP Tool for object detection through Claude Desktop.
     Identifies objects, people, vehicles, UI elements, and other entities in images.
@@ -169,7 +173,7 @@ async def km_detect_objects(
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Image processing failed: {str(e)}",
+                "error": f"Image processing failed: {e!s}",
                 "error_code": "IMAGE_PROCESSING_ERROR",
             }
 
@@ -197,7 +201,7 @@ async def km_detect_objects(
                 "error_code": detection_result.left_value.error_code,
             }
 
-        detected_objects = detection_result.right_value
+        detected_objects = detection_result.value
 
         # Apply category filtering if specified
         if filter_categories:
@@ -269,14 +273,14 @@ async def km_detect_objects(
     except Exception as e:
         error_response = {
             "success": False,
-            "error": f"Object detection failed: {str(e)}",
+            "error": f"Object detection failed: {e!s}",
             "error_code": "DETECTION_ERROR",
             "processing_time_ms": (datetime.now(UTC) - start_time).total_seconds()
             * 1000,
         }
 
         # Note: ctx logging would be handled by FastMCP framework
-        logging.error(f"Object detection error: {str(e)}")
+        logging.error(f"Object detection error: {e!s}")
 
         return error_response
 
@@ -284,30 +288,34 @@ async def km_detect_objects(
 @mcp.tool()
 async def km_analyze_scene(
     image_data: Annotated[
-        str, Field(description="Base64 encoded image data", min_length=100)
+        str,
+        Field(description="Base64 encoded image data", min_length=100),
     ],
     analysis_level: Annotated[
-        str, Field(description="Analysis level (fast|standard|detailed|comprehensive)")
+        str,
+        Field(description="Analysis level (fast|standard|detailed|comprehensive)"),
     ] = "standard",
     include_objects: Annotated[
-        bool, Field(description="Include object detection in scene analysis")
+        bool,
+        Field(description="Include object detection in scene analysis"),
     ] = True,
     include_colors: Annotated[bool, Field(description="Include color analysis")] = True,
     include_layout: Annotated[
-        bool, Field(description="Include spatial layout analysis")
+        bool,
+        Field(description="Include spatial layout analysis"),
     ] = True,
     include_context: Annotated[
-        bool, Field(description="Include contextual information extraction")
+        bool,
+        Field(description="Include contextual information extraction"),
     ] = True,
     environment_focus: Annotated[
         str | None,
         Field(
-            description="Focus analysis on specific environment (indoor|outdoor|digital)"
+            description="Focus analysis on specific environment (indoor|outdoor|digital)",
         ),
     ] = None,
 ) -> dict[str, Any]:
-    """
-    Perform comprehensive scene analysis and understanding of images.
+    """Perform comprehensive scene analysis and understanding of images.
 
     FastMCP Tool for scene analysis through Claude Desktop.
     Analyzes scene type, environment, lighting, composition, and contextual information.
@@ -326,7 +334,7 @@ async def km_analyze_scene(
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Image processing failed: {str(e)}",
+                "error": f"Image processing failed: {e!s}",
                 "error_code": "IMAGE_PROCESSING_ERROR",
             }
 
@@ -335,7 +343,7 @@ async def km_analyze_scene(
         if include_objects:
             detection_result = await object_detector.detect_objects(image_content)
             if detection_result.is_right():
-                detected_objects = detection_result.right_value
+                detected_objects = detection_result.value
 
         # Perform scene analysis
         analysis_result = await scene_analyzer.analyze_scene(
@@ -351,7 +359,7 @@ async def km_analyze_scene(
                 "error_code": analysis_result.left_value.error_code,
             }
 
-        scene_analysis = analysis_result.right_value
+        scene_analysis = analysis_result.value
 
         # Calculate response time
         response_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
@@ -390,7 +398,7 @@ async def km_analyze_scene(
                         "color_temperature": color_analysis.get("color_temperature"),
                         "saturation_level": color_analysis.get("saturation_level"),
                         "brightness_level": color_analysis.get("brightness_level"),
-                    }
+                    },
                 )
 
         # Add spatial layout if requested
@@ -449,14 +457,14 @@ async def km_analyze_scene(
     except Exception as e:
         error_response = {
             "success": False,
-            "error": f"Scene analysis failed: {str(e)}",
+            "error": f"Scene analysis failed: {e!s}",
             "error_code": "SCENE_ANALYSIS_ERROR",
             "processing_time_ms": (datetime.now(UTC) - start_time).total_seconds()
             * 1000,
         }
 
         # Note: ctx logging would be handled by FastMCP framework
-        logging.error(f"Scene analysis error: {str(e)}")
+        logging.error(f"Scene analysis error: {e!s}")
 
         return error_response
 
@@ -464,12 +472,13 @@ async def km_analyze_scene(
 @mcp.tool()
 async def km_classify_image_content(
     image_data: Annotated[
-        str, Field(description="Base64 encoded image data", min_length=100)
+        str,
+        Field(description="Base64 encoded image data", min_length=100),
     ],
     classification_type: Annotated[
         str,
         Field(
-            description="Type of classification (general|ui_elements|documents|photos)"
+            description="Type of classification (general|ui_elements|documents|photos)",
         ),
     ] = "general",
     confidence_threshold: Annotated[
@@ -477,17 +486,19 @@ async def km_classify_image_content(
         Field(description="Confidence threshold for classification", ge=0.1, le=1.0),
     ] = 0.6,
     include_probabilities: Annotated[
-        bool, Field(description="Include classification probabilities")
+        bool,
+        Field(description="Include classification probabilities"),
     ] = True,
     max_categories: Annotated[
-        int, Field(description="Maximum number of categories to return", ge=1, le=10)
+        int,
+        Field(description="Maximum number of categories to return", ge=1, le=10),
     ] = 5,
     custom_categories: Annotated[
-        list[str] | None, Field(description="Custom categories to classify against")
+        list[str] | None,
+        Field(description="Custom categories to classify against"),
     ] = None,
 ) -> dict[str, Any]:
-    """
-    Classify image content into categories with AI-powered image understanding.
+    """Classify image content into categories with AI-powered image understanding.
 
     FastMCP Tool for image classification through Claude Desktop.
     Classifies images into categories, identifies content types, and provides confidence scores.
@@ -506,7 +517,7 @@ async def km_classify_image_content(
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Image processing failed: {str(e)}",
+                "error": f"Image processing failed: {e!s}",
                 "error_code": "IMAGE_PROCESSING_ERROR",
             }
 
@@ -520,12 +531,12 @@ async def km_classify_image_content(
                 "error_code": analysis_result.left_value.error_code,
             }
 
-        scene_analysis = analysis_result.right_value
+        scene_analysis = analysis_result.value
 
         # Get object detection for additional classification context
         detection_result = await object_detector.detect_objects(image_content)
         detected_objects = (
-            detection_result.right_value if detection_result.is_right() else []
+            detection_result.value if detection_result.is_right() else []
         )
 
         # Build classification based on type
@@ -551,7 +562,7 @@ async def km_classify_image_content(
                         else 0.8,
                         "type": "content_medium",
                     },
-                ]
+                ],
             )
 
         elif classification_type == "ui_elements":
@@ -566,7 +577,7 @@ async def km_classify_image_content(
                         "confidence": max(obj.confidence for obj in ui_objects),
                         "type": "interface_type",
                         "elements_detected": len(ui_objects),
-                    }
+                    },
                 )
 
             if scene_analysis.scene_type.value in ["desktop", "website", "application"]:
@@ -575,7 +586,7 @@ async def km_classify_image_content(
                         "category": scene_analysis.scene_type.value,
                         "confidence": scene_analysis.confidence,
                         "type": "digital_interface",
-                    }
+                    },
                 )
 
         elif classification_type == "documents":
@@ -592,32 +603,40 @@ async def km_classify_image_content(
                         else 0.7,
                         "type": "document_type",
                         "text_regions": len(text_objects),
-                    }
+                    },
                 )
 
-        elif classification_type == "photos":
-            # Photo classification
-            if scene_analysis.scene_type.value not in [
+        # SIM102 fix: Combine nested if statements
+        elif (
+            classification_type == "photos"
+            and scene_analysis.scene_type.value
+            not in [
                 "desktop",
                 "website",
                 "application",
-            ]:
-                classification_results.append(
-                    {"category": "photograph", "confidence": 0.8, "type": "image_type"}
-                )
+            ]
+        ):
+            classification_results.append(
+                {
+                    "category": "photograph",
+                    "confidence": 0.8,
+                    "type": "image_type",
+                },
+            )
 
-                # Add environment classification
-                if scene_analysis.environment_attributes:
-                    env_type = scene_analysis.environment_attributes.get(
-                        "primary_environment", "unknown"
-                    )
-                    classification_results.append(
-                        {
-                            "category": f"{env_type}_photograph",
-                            "confidence": 0.7,
-                            "type": "environment_type",
-                        }
-                    )
+            # Add environment classification
+            if scene_analysis.environment_attributes:
+                env_type = scene_analysis.environment_attributes.get(
+                    "primary_environment",
+                    "unknown",
+                )
+                classification_results.append(
+                    {
+                        "category": f"{env_type}_photograph",
+                        "confidence": 0.7,
+                        "type": "environment_type",
+                    },
+                )
 
         # Apply custom categories if provided
         if custom_categories:
@@ -638,7 +657,7 @@ async def km_classify_image_content(
                             "category": category,
                             "confidence": confidence,
                             "type": "custom_category",
-                        }
+                        },
                     )
 
         # Filter by confidence and limit results
@@ -697,14 +716,14 @@ async def km_classify_image_content(
     except Exception as e:
         error_response = {
             "success": False,
-            "error": f"Image classification failed: {str(e)}",
+            "error": f"Image classification failed: {e!s}",
             "error_code": "CLASSIFICATION_ERROR",
             "processing_time_ms": (datetime.now(UTC) - start_time).total_seconds()
             * 1000,
         }
 
         # Note: ctx logging would be handled by FastMCP framework
-        logging.error(f"Image classification error: {str(e)}")
+        logging.error(f"Image classification error: {e!s}")
 
         return error_response
 
@@ -712,30 +731,35 @@ async def km_classify_image_content(
 @mcp.tool()
 async def km_extract_text_from_image(
     image_data: Annotated[
-        str, Field(description="Base64 encoded image data", min_length=100)
+        str,
+        Field(description="Base64 encoded image data", min_length=100),
     ],
     language: Annotated[
-        str, Field(description="Expected text language (en|es|fr|de|auto)")
+        str,
+        Field(description="Expected text language (en|es|fr|de|auto)"),
     ] = "auto",
     ocr_mode: Annotated[
-        str, Field(description="OCR mode (fast|accurate|comprehensive)")
+        str,
+        Field(description="OCR mode (fast|accurate|comprehensive)"),
     ] = "accurate",
     confidence_threshold: Annotated[
         float,
         Field(description="Confidence threshold for text detection", ge=0.1, le=1.0),
     ] = 0.7,
     include_bounding_boxes: Annotated[
-        bool, Field(description="Include text bounding boxes")
+        bool,
+        Field(description="Include text bounding boxes"),
     ] = True,
     preserve_layout: Annotated[
-        bool, Field(description="Preserve original text layout")
+        bool,
+        Field(description="Preserve original text layout"),
     ] = True,
     filter_noise: Annotated[
-        bool, Field(description="Filter out low-confidence text")
+        bool,
+        Field(description="Filter out low-confidence text"),
     ] = True,
 ) -> dict[str, Any]:
-    """
-    Extract text from images using advanced OCR and text detection capabilities.
+    """Extract text from images using advanced OCR and text detection capabilities.
 
     FastMCP Tool for text extraction through Claude Desktop.
     Detects and extracts text from images, documents, screenshots, and UI elements.
@@ -754,14 +778,14 @@ async def km_extract_text_from_image(
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Image processing failed: {str(e)}",
+                "error": f"Image processing failed: {e!s}",
                 "error_code": "IMAGE_PROCESSING_ERROR",
             }
 
         # Detect text objects first
         detection_result = await object_detector.detect_objects(image_content)
         detected_objects = (
-            detection_result.right_value if detection_result.is_right() else []
+            detection_result.value if detection_result.is_right() else []
         )
 
         # Filter for text objects
@@ -821,7 +845,7 @@ async def km_extract_text_from_image(
                     "language": language if language != "auto" else "en",
                     "reading_order": 1,
                     "source": "full_image_ocr",
-                }
+                },
             )
 
         # Apply noise filtering if requested
@@ -835,7 +859,8 @@ async def km_extract_text_from_image(
         # Calculate response time
         response_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
         _update_performance_metrics(
-            "classification", response_time
+            "classification",
+            response_time,
         )  # OCR is a type of classification
 
         # Build response
@@ -889,7 +914,8 @@ async def km_extract_text_from_image(
                 "clarity_score": sum(r["confidence"] for r in extracted_text_regions)
                 / len(extracted_text_regions),
                 "completeness_score": min(
-                    1.0, len(extracted_text_regions) / 5.0
+                    1.0,
+                    len(extracted_text_regions) / 5.0,
                 ),  # Assume 5 regions is "complete"
             }
 
@@ -898,22 +924,21 @@ async def km_extract_text_from_image(
     except Exception as e:
         error_response = {
             "success": False,
-            "error": f"Text extraction failed: {str(e)}",
+            "error": f"Text extraction failed: {e!s}",
             "error_code": "OCR_ERROR",
             "processing_time_ms": (datetime.now(UTC) - start_time).total_seconds()
             * 1000,
         }
 
         # Note: ctx logging would be handled by FastMCP framework
-        logging.error(f"Text extraction error: {str(e)}")
+        logging.error(f"Text extraction error: {e!s}")
 
         return error_response
 
 
 @mcp.tool()
 async def km_computer_vision_metrics() -> dict[str, Any]:
-    """
-    Get performance metrics and statistics for computer vision system.
+    """Get performance metrics and statistics for computer vision system.
 
     FastMCP Tool for computer vision performance monitoring through Claude Desktop.
     Returns comprehensive performance statistics and system health metrics.
@@ -939,7 +964,8 @@ async def km_computer_vision_metrics() -> dict[str, Any]:
                     "average_detection_time"
                 ],
                 "detection_accuracy": detection_stats["performance_metrics"].get(
-                    "detection_accuracy", 0.85
+                    "detection_accuracy",
+                    0.85,
                 ),
                 "active_tracks": detection_stats.get("active_tracks", 0),
                 "supported_classes": detection_stats["supported_classes"],
@@ -952,7 +978,8 @@ async def km_computer_vision_metrics() -> dict[str, Any]:
                     "average_analysis_time"
                 ],
                 "scene_type_distribution": scene_stats.get(
-                    "scene_type_distribution", {}
+                    "scene_type_distribution",
+                    {},
                 ),
                 "supported_scene_types": scene_stats["supported_scene_types"],
                 "supported_patterns": scene_stats["supported_patterns"],
@@ -987,7 +1014,7 @@ async def km_computer_vision_metrics() -> dict[str, Any]:
     except Exception as e:
         return {
             "success": False,
-            "error": f"Failed to get computer vision metrics: {str(e)}",
+            "error": f"Failed to get computer vision metrics: {e!s}",
             "error_code": "METRICS_ERROR",
         }
 

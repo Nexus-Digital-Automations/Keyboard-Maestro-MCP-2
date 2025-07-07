@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for Quantum Ready Tools module using systematic MCP tool test pattern.
+"""Comprehensive tests for Quantum Ready Tools module using systematic MCP tool test pattern.
 
 Tests cover quantum readiness analysis, post-quantum cryptography upgrade, quantum interface
 preparation, security management, and algorithm simulation with property-based testing and
@@ -7,6 +6,9 @@ comprehensive enterprise-grade validation using the proven pattern that achieved
 across 24+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -26,88 +28,88 @@ km_simulate_quantum_algorithms = quantum_tools.km_simulate_quantum_algorithms.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def analysis_scope_strategy(draw):
+def analysis_scope_strategy(draw) -> Any:
     """Generate valid analysis scopes."""
     scopes = ["system", "application", "cryptography", "protocols"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def security_level_strategy(draw):
+def security_level_strategy(draw) -> Any:
     """Generate valid security levels."""
     levels = ["current", "post_quantum", "quantum_safe"]
     return draw(st.sampled_from(levels))
 
 
 @st.composite
-def upgrade_scope_strategy(draw):
+def upgrade_scope_strategy(draw) -> Any:
     """Generate valid upgrade scopes."""
     scopes = ["selective", "comprehensive", "critical_only"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def migration_strategy_strategy(draw):
+def migration_strategy_strategy(draw) -> Any:
     """Generate valid migration strategies."""
     strategies = ["hybrid", "full_replacement", "gradual"]
     return draw(st.sampled_from(strategies))
 
 
 @st.composite
-def interface_type_strategy(draw):
+def interface_type_strategy(draw) -> Any:
     """Generate valid interface types."""
     types = ["computing", "communication", "simulation", "hybrid"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def quantum_platform_strategy(draw):
+def quantum_platform_strategy(draw) -> Any:
     """Generate valid quantum platforms."""
     platforms = ["ibm", "google", "amazon", "microsoft", "universal"]
     return draw(st.sampled_from(platforms))
 
 
 @st.composite
-def security_operation_strategy(draw):
+def security_operation_strategy(draw) -> Any:
     """Generate valid security operations."""
     operations = ["policy", "keys", "protocols", "monitoring"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def key_management_strategy(draw):
+def key_management_strategy(draw) -> Any:
     """Generate valid key management modes."""
     modes = ["classical", "quantum", "hybrid"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def algorithm_type_strategy(draw):
+def algorithm_type_strategy(draw) -> Any:
     """Generate valid algorithm types."""
     types = ["shor", "grover", "quantum_ml", "optimization", "custom"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def simulation_mode_strategy(draw):
+def simulation_mode_strategy(draw) -> Any:
     """Generate valid simulation modes."""
     modes = ["ideal", "noisy", "hardware_accurate"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def post_quantum_algorithm_strategy(draw):
+def post_quantum_algorithm_strategy(draw) -> None:
     """Generate valid post-quantum algorithms."""
     algorithms = ["kyber", "dilithium", "falcon", "sphincs", "ntru"]
     return draw(
-        st.lists(st.sampled_from(algorithms), min_size=1, max_size=3, unique=True)
+        st.lists(st.sampled_from(algorithms), min_size=1, max_size=3, unique=True),
     )
 
 
 class TestQuantumReadyDependencies:
     """Test quantum ready module dependencies and imports."""
 
-    def test_quantum_ready_imports(self):
+    def test_quantum_ready_imports(self) -> None:
         """Test that quantum ready tools can be imported."""
         assert km_analyze_quantum_readiness is not None
         assert callable(km_analyze_quantum_readiness)
@@ -125,43 +127,43 @@ class TestQuantumReadyParameterValidation:
     """Test parameter validation for quantum ready operations."""
 
     @given(analysis_scope_strategy())
-    def test_valid_analysis_scopes(self, scope):
+    def test_valid_analysis_scopes(self, scope) -> None:
         """Test that analysis scopes are properly validated."""
         valid_scopes = ["system", "application", "cryptography", "protocols"]
         assert scope in valid_scopes
 
     @given(security_level_strategy())
-    def test_valid_security_levels(self, level):
+    def test_valid_security_levels(self, level) -> None:
         """Test that security levels are properly validated."""
         valid_levels = ["current", "post_quantum", "quantum_safe"]
         assert level in valid_levels
 
     @given(upgrade_scope_strategy())
-    def test_valid_upgrade_scopes(self, scope):
+    def test_valid_upgrade_scopes(self, scope) -> None:
         """Test that upgrade scopes are properly validated."""
         valid_scopes = ["selective", "comprehensive", "critical_only"]
         assert scope in valid_scopes
 
     @given(migration_strategy_strategy())
-    def test_valid_migration_strategies(self, strategy):
+    def test_valid_migration_strategies(self, strategy) -> None:
         """Test that migration strategies are properly validated."""
         valid_strategies = ["hybrid", "full_replacement", "gradual"]
         assert strategy in valid_strategies
 
     @given(interface_type_strategy())
-    def test_valid_interface_types(self, interface_type):
+    def test_valid_interface_types(self, interface_type) -> None:
         """Test that interface types are properly validated."""
         valid_types = ["computing", "communication", "simulation", "hybrid"]
         assert interface_type in valid_types
 
     @given(quantum_platform_strategy())
-    def test_valid_quantum_platforms(self, platform):
+    def test_valid_quantum_platforms(self, platform) -> None:
         """Test that quantum platforms are properly validated."""
         valid_platforms = ["ibm", "google", "amazon", "microsoft", "universal"]
         assert platform in valid_platforms
 
     @given(post_quantum_algorithm_strategy())
-    def test_valid_post_quantum_algorithms(self, algorithms):
+    def test_valid_post_quantum_algorithms(self, algorithms) -> None:
         """Test that post-quantum algorithms are properly validated."""
         valid_algorithms = ["kyber", "dilithium", "falcon", "sphincs", "ntru"]
         assert all(alg in valid_algorithms for alg in algorithms)
@@ -173,18 +175,21 @@ class TestKMAnalyzeQuantumReadinessMocked:
     """Test km_analyze_quantum_readiness function with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_quantum_readiness_analysis_success(self):
+    async def test_quantum_readiness_analysis_success(self) -> None:
         """Test successful quantum readiness analysis."""
         # Mock dependencies using proper async mocking
         with (
             patch.object(
-                quantum_tools.cryptography_migrator, "analyze_quantum_readiness"
+                quantum_tools.cryptography_migrator,
+                "analyze_quantum_readiness",
             ) as mock_analyze,
             patch.object(
-                quantum_tools.algorithm_analyzer, "assess_system_vulnerabilities"
+                quantum_tools.algorithm_analyzer,
+                "assess_system_vulnerabilities",
             ) as mock_assess,
             patch.object(
-                quantum_tools.cryptography_migrator, "create_migration_plan"
+                quantum_tools.cryptography_migrator,
+                "create_migration_plan",
             ) as mock_migrate,
         ):
             # Configure quantum readiness analysis mock
@@ -294,10 +299,11 @@ class TestKMAnalyzeQuantumReadinessMocked:
             assert summary["migration_required"] is True
 
     @pytest.mark.asyncio
-    async def test_quantum_readiness_invalid_scope(self):
+    async def test_quantum_readiness_invalid_scope(self) -> None:
         """Test handling of invalid analysis scope."""
         result = await km_analyze_quantum_readiness(
-            analysis_scope="invalid_scope", security_level="current"
+            analysis_scope="invalid_scope",
+            security_level="current",
         )
 
         assert result["success"] is False
@@ -306,7 +312,7 @@ class TestKMAnalyzeQuantumReadinessMocked:
         assert result["scope"] == "invalid_scope"
 
     @pytest.mark.asyncio
-    async def test_quantum_readiness_minimal_analysis(self):
+    async def test_quantum_readiness_minimal_analysis(self) -> None:
         """Test quantum readiness analysis with minimal options."""
         result = await km_analyze_quantum_readiness(
             analysis_scope="cryptography",
@@ -334,7 +340,7 @@ class TestKMUpgradeToPostQuantumMocked:
     """Test km_upgrade_to_post_quantum function with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_post_quantum_upgrade_success(self):
+    async def test_post_quantum_upgrade_success(self) -> None:
         """Test successful post-quantum upgrade operation."""
         # Mock dependencies
         with patch.object(quantum_tools, "security_upgrader") as mock_upgrader:
@@ -343,7 +349,7 @@ class TestKMUpgradeToPostQuantumMocked:
             mock_policy_result.is_success.return_value = True
             mock_policy_result.value = "policy_123"
             mock_upgrader.create_security_policy = AsyncMock(
-                return_value=mock_policy_result
+                return_value=mock_policy_result,
             )
 
             # Configure upgrade execution
@@ -362,7 +368,7 @@ class TestKMUpgradeToPostQuantumMocked:
             mock_upgrade_result.is_success.return_value = True
             mock_upgrade_result.value = mock_upgrade_data
             mock_upgrader.upgrade_security_algorithms = AsyncMock(
-                return_value=mock_upgrade_result
+                return_value=mock_upgrade_result,
             )
 
             # Configure compatibility validation
@@ -379,7 +385,7 @@ class TestKMUpgradeToPostQuantumMocked:
             mock_compat_result.is_success.return_value = True
             mock_compat_result.value = mock_compat_data
             mock_upgrader.validate_algorithm_compatibility = AsyncMock(
-                return_value=mock_compat_result
+                return_value=mock_compat_result,
             )
 
             # Execute function
@@ -439,10 +445,11 @@ class TestKMUpgradeToPostQuantumMocked:
             assert summary["validation_passed"] is True
 
     @pytest.mark.asyncio
-    async def test_post_quantum_upgrade_invalid_scope(self):
+    async def test_post_quantum_upgrade_invalid_scope(self) -> None:
         """Test handling of invalid upgrade scope."""
         result = await km_upgrade_to_post_quantum(
-            upgrade_scope="invalid_scope", target_algorithms=["kyber"]
+            upgrade_scope="invalid_scope",
+            target_algorithms=["kyber"],
         )
 
         assert result["success"] is False
@@ -451,7 +458,7 @@ class TestKMUpgradeToPostQuantumMocked:
         assert result["scope"] == "invalid_scope"
 
     @pytest.mark.asyncio
-    async def test_post_quantum_upgrade_critical_only(self):
+    async def test_post_quantum_upgrade_critical_only(self) -> None:
         """Test post-quantum upgrade with critical assets only."""
         # Mock dependencies with proper async configuration
         with patch.object(quantum_tools, "security_upgrader") as mock_upgrader:
@@ -505,7 +512,7 @@ class TestKMPrepareQuantumInterfaceMocked:
     """Test km_prepare_quantum_interface function with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_quantum_interface_preparation_success(self):
+    async def test_quantum_interface_preparation_success(self) -> None:
         """Test successful quantum interface preparation."""
         # Mock dependencies
         with patch.object(quantum_tools, "quantum_interface_manager") as mock_manager:
@@ -514,7 +521,7 @@ class TestKMPrepareQuantumInterfaceMocked:
             mock_interface_result.is_success.return_value = True
             mock_interface_result.value = "quantum_interface_001"
             mock_manager.create_quantum_interface = AsyncMock(
-                return_value=mock_interface_result
+                return_value=mock_interface_result,
             )
 
             # Configure session start
@@ -522,7 +529,7 @@ class TestKMPrepareQuantumInterfaceMocked:
             mock_session_result.is_success.return_value = True
             mock_session_result.value = "quantum_session_001"
             mock_manager.start_quantum_session = AsyncMock(
-                return_value=mock_session_result
+                return_value=mock_session_result,
             )
 
             # Execute function
@@ -597,10 +604,11 @@ class TestKMPrepareQuantumInterfaceMocked:
             assert summary["error_correction"] is True
 
     @pytest.mark.asyncio
-    async def test_quantum_interface_invalid_type(self):
+    async def test_quantum_interface_invalid_type(self) -> None:
         """Test handling of invalid interface type."""
         result = await km_prepare_quantum_interface(
-            interface_type="invalid_type", quantum_platform="universal"
+            interface_type="invalid_type",
+            quantum_platform="universal",
         )
 
         assert result["success"] is False
@@ -609,10 +617,11 @@ class TestKMPrepareQuantumInterfaceMocked:
         assert result["interface_type"] == "invalid_type"
 
     @pytest.mark.asyncio
-    async def test_quantum_interface_invalid_platform(self):
+    async def test_quantum_interface_invalid_platform(self) -> None:
         """Test handling of invalid quantum platform."""
         result = await km_prepare_quantum_interface(
-            interface_type="computing", quantum_platform="invalid_platform"
+            interface_type="computing",
+            quantum_platform="invalid_platform",
         )
 
         assert result["success"] is False
@@ -621,7 +630,7 @@ class TestKMPrepareQuantumInterfaceMocked:
         assert result["platform"] == "invalid_platform"
 
     @pytest.mark.asyncio
-    async def test_quantum_interface_communication_type(self):
+    async def test_quantum_interface_communication_type(self) -> None:
         """Test quantum interface preparation for communication."""
         # Mock dependencies
         with patch.object(quantum_tools, "quantum_interface_manager") as mock_manager:
@@ -629,14 +638,14 @@ class TestKMPrepareQuantumInterfaceMocked:
             mock_interface_result.is_success.return_value = True
             mock_interface_result.value = "quantum_comm_interface_001"
             mock_manager.create_quantum_interface = AsyncMock(
-                return_value=mock_interface_result
+                return_value=mock_interface_result,
             )
 
             mock_session_result = Mock()
             mock_session_result.is_success.return_value = True
             mock_session_result.value = "quantum_comm_session_001"
             mock_manager.start_quantum_session = AsyncMock(
-                return_value=mock_session_result
+                return_value=mock_session_result,
             )
 
             # Execute function
@@ -664,7 +673,7 @@ class TestKMManageQuantumSecurityMocked:
     """Test km_manage_quantum_security function with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_quantum_security_policy_management(self):
+    async def test_quantum_security_policy_management(self) -> None:
         """Test quantum security policy management."""
         # Mock dependencies
         with patch.object(quantum_tools, "security_upgrader") as mock_upgrader:
@@ -673,7 +682,7 @@ class TestKMManageQuantumSecurityMocked:
             mock_policy_result.is_success.return_value = True
             mock_policy_result.value = "quantum_security_policy_001"
             mock_upgrader.create_security_policy = AsyncMock(
-                return_value=mock_policy_result
+                return_value=mock_policy_result,
             )
 
             # Execute function
@@ -757,10 +766,10 @@ class TestKMManageQuantumSecurityMocked:
             assert compliance["compliance_score"] == 0.95
 
     @pytest.mark.asyncio
-    async def test_quantum_security_invalid_operation(self):
+    async def test_quantum_security_invalid_operation(self) -> None:
         """Test handling of invalid security operation."""
         result = await km_manage_quantum_security(
-            security_operation="invalid_operation"
+            security_operation="invalid_operation",
         )
 
         assert result["success"] is False
@@ -769,7 +778,7 @@ class TestKMManageQuantumSecurityMocked:
         assert result["operation"] == "invalid_operation"
 
     @pytest.mark.asyncio
-    async def test_quantum_security_keys_management(self):
+    async def test_quantum_security_keys_management(self) -> None:
         """Test quantum key management operations."""
         result = await km_manage_quantum_security(
             security_operation="keys",
@@ -790,7 +799,7 @@ class TestKMManageQuantumSecurityMocked:
         assert key_mgmt["qkd_configuration"]["quantum_channel"] == "fiber_optic"
 
     @pytest.mark.asyncio
-    async def test_quantum_security_monitoring_only(self):
+    async def test_quantum_security_monitoring_only(self) -> None:
         """Test quantum security monitoring operations."""
         result = await km_manage_quantum_security(
             security_operation="monitoring",
@@ -813,7 +822,7 @@ class TestKMSimulateQuantumAlgorithmsMocked:
     """Test km_simulate_quantum_algorithms function with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_quantum_algorithm_simulation_success(self):
+    async def test_quantum_algorithm_simulation_success(self) -> None:
         """Test successful quantum algorithm simulation."""
         # Mock dependencies
         with patch.object(quantum_tools, "quantum_interface_manager") as mock_manager:
@@ -822,7 +831,7 @@ class TestKMSimulateQuantumAlgorithmsMocked:
             mock_sim_result.is_success.return_value = True
             mock_sim_result.value = "simulation_result_001"
             mock_manager.simulate_quantum_algorithm = AsyncMock(
-                return_value=mock_sim_result
+                return_value=mock_sim_result,
             )
 
             # Configure interface status
@@ -835,7 +844,7 @@ class TestKMSimulateQuantumAlgorithmsMocked:
             mock_status_result.is_success.return_value = True
             mock_status_result.value = mock_status_data
             mock_manager.get_interface_status = AsyncMock(
-                return_value=mock_status_result
+                return_value=mock_status_result,
             )
 
             # Execute function
@@ -918,10 +927,11 @@ class TestKMSimulateQuantumAlgorithmsMocked:
             assert summary["quantum_advantage"] is True
 
     @pytest.mark.asyncio
-    async def test_quantum_algorithm_simulation_invalid_type(self):
+    async def test_quantum_algorithm_simulation_invalid_type(self) -> None:
         """Test handling of invalid algorithm type."""
         result = await km_simulate_quantum_algorithms(
-            algorithm_type="invalid_algorithm", simulation_mode="ideal"
+            algorithm_type="invalid_algorithm",
+            simulation_mode="ideal",
         )
 
         assert result["success"] is False
@@ -930,10 +940,11 @@ class TestKMSimulateQuantumAlgorithmsMocked:
         assert result["algorithm_type"] == "invalid_algorithm"
 
     @pytest.mark.asyncio
-    async def test_quantum_algorithm_simulation_invalid_mode(self):
+    async def test_quantum_algorithm_simulation_invalid_mode(self) -> None:
         """Test handling of invalid simulation mode."""
         result = await km_simulate_quantum_algorithms(
-            algorithm_type="grover", simulation_mode="invalid_mode"
+            algorithm_type="grover",
+            simulation_mode="invalid_mode",
         )
 
         assert result["success"] is False
@@ -942,7 +953,7 @@ class TestKMSimulateQuantumAlgorithmsMocked:
         assert result["simulation_mode"] == "invalid_mode"
 
     @pytest.mark.asyncio
-    async def test_quantum_algorithm_grover_simulation(self):
+    async def test_quantum_algorithm_grover_simulation(self) -> None:
         """Test Grover's algorithm simulation."""
         # Mock dependencies
         with patch.object(quantum_tools, "quantum_interface_manager") as mock_manager:
@@ -950,14 +961,14 @@ class TestKMSimulateQuantumAlgorithmsMocked:
             mock_sim_result.is_success.return_value = True
             mock_sim_result.value = "grover_sim_001"
             mock_manager.simulate_quantum_algorithm = AsyncMock(
-                return_value=mock_sim_result
+                return_value=mock_sim_result,
             )
 
             mock_status_result = Mock()
             mock_status_result.is_success.return_value = True
             mock_status_result.value = {"simulation_complete": True}
             mock_manager.get_interface_status = AsyncMock(
-                return_value=mock_status_result
+                return_value=mock_status_result,
             )
 
             # Execute function
@@ -988,7 +999,7 @@ class TestKMSimulateQuantumAlgorithmsMocked:
             assert advantage["advantage_type"] == "quadratic"
 
     @pytest.mark.asyncio
-    async def test_quantum_algorithm_ml_simulation(self):
+    async def test_quantum_algorithm_ml_simulation(self) -> None:
         """Test quantum machine learning algorithm simulation."""
         # Mock dependencies
         with patch.object(quantum_tools, "quantum_interface_manager") as mock_manager:
@@ -996,14 +1007,14 @@ class TestKMSimulateQuantumAlgorithmsMocked:
             mock_sim_result.is_success.return_value = True
             mock_sim_result.value = "qml_sim_001"
             mock_manager.simulate_quantum_algorithm = AsyncMock(
-                return_value=mock_sim_result
+                return_value=mock_sim_result,
             )
 
             mock_status_result = Mock()
             mock_status_result.is_success.return_value = True
             mock_status_result.value = {"simulation_complete": True}
             mock_manager.get_interface_status = AsyncMock(
-                return_value=mock_status_result
+                return_value=mock_status_result,
             )
 
             # Execute function
@@ -1039,16 +1050,17 @@ class TestQuantumReadyErrorHandling:
     """Test error handling and edge cases for quantum ready operations."""
 
     @pytest.mark.asyncio
-    async def test_quantum_readiness_analysis_exception(self):
+    async def test_quantum_readiness_analysis_exception(self) -> None:
         """Test handling of analysis exceptions."""
         # Mock to raise exception
         with patch.object(quantum_tools, "cryptography_migrator") as mock_migrator:
             mock_migrator.analyze_quantum_readiness = AsyncMock(
-                side_effect=Exception("Analysis failed")
+                side_effect=Exception("Analysis failed"),
             )
 
             result = await km_analyze_quantum_readiness(
-                analysis_scope="system", include_vulnerabilities=True
+                analysis_scope="system",
+                include_vulnerabilities=True,
             )
 
             assert result["success"] is False
@@ -1057,16 +1069,17 @@ class TestQuantumReadyErrorHandling:
             assert result["scope"] == "system"
 
     @pytest.mark.asyncio
-    async def test_post_quantum_upgrade_exception(self):
+    async def test_post_quantum_upgrade_exception(self) -> None:
         """Test handling of upgrade exceptions."""
         # Mock to raise exception
         with patch.object(quantum_tools, "security_upgrader") as mock_upgrader:
             mock_upgrader.create_security_policy = AsyncMock(
-                side_effect=Exception("Policy creation failed")
+                side_effect=Exception("Policy creation failed"),
             )
 
             result = await km_upgrade_to_post_quantum(
-                upgrade_scope="selective", target_algorithms=["kyber"]
+                upgrade_scope="selective",
+                target_algorithms=["kyber"],
             )
 
             assert result["success"] is False
@@ -1075,16 +1088,17 @@ class TestQuantumReadyErrorHandling:
             assert result["scope"] == "selective"
 
     @pytest.mark.asyncio
-    async def test_quantum_interface_exception(self):
+    async def test_quantum_interface_exception(self) -> None:
         """Test handling of interface preparation exceptions."""
         # Mock to raise exception
         with patch.object(quantum_tools, "quantum_interface_manager") as mock_manager:
             mock_manager.create_quantum_interface = AsyncMock(
-                side_effect=Exception("Interface creation failed")
+                side_effect=Exception("Interface creation failed"),
             )
 
             result = await km_prepare_quantum_interface(
-                interface_type="computing", quantum_platform="universal"
+                interface_type="computing",
+                quantum_platform="universal",
             )
 
             assert result["success"] is False
@@ -1093,12 +1107,12 @@ class TestQuantumReadyErrorHandling:
             assert result["interface_type"] == "computing"
 
     @pytest.mark.asyncio
-    async def test_quantum_security_exception(self):
+    async def test_quantum_security_exception(self) -> None:
         """Test handling of security management exceptions."""
         # Mock to raise exception
         with patch.object(quantum_tools, "security_upgrader") as mock_upgrader:
             mock_upgrader.create_security_policy = AsyncMock(
-                side_effect=Exception("Security policy failed")
+                side_effect=Exception("Security policy failed"),
             )
 
             result = await km_manage_quantum_security(
@@ -1112,16 +1126,17 @@ class TestQuantumReadyErrorHandling:
             assert result["operation"] == "policy"
 
     @pytest.mark.asyncio
-    async def test_quantum_simulation_exception(self):
+    async def test_quantum_simulation_exception(self) -> None:
         """Test handling of simulation exceptions."""
         # Mock to raise exception
         with patch.object(quantum_tools, "quantum_interface_manager") as mock_manager:
             mock_manager.simulate_quantum_algorithm = AsyncMock(
-                side_effect=Exception("Simulation failed")
+                side_effect=Exception("Simulation failed"),
             )
 
             result = await km_simulate_quantum_algorithms(
-                algorithm_type="shor", simulation_mode="ideal"
+                algorithm_type="shor",
+                simulation_mode="ideal",
             )
 
             assert result["success"] is False
@@ -1134,7 +1149,7 @@ class TestQuantumReadyIntegration:
     """Test integration scenarios for quantum ready operations."""
 
     @pytest.mark.asyncio
-    async def test_complete_quantum_readiness_workflow(self):
+    async def test_complete_quantum_readiness_workflow(self) -> None:
         """Test complete quantum readiness assessment and upgrade workflow."""
         # Mock all dependencies
         with (
@@ -1167,7 +1182,7 @@ class TestQuantumReadyIntegration:
             mock_result.is_success.return_value = True
             mock_result.value = mock_assessment
             mock_migrator.analyze_quantum_readiness = AsyncMock(
-                return_value=mock_result
+                return_value=mock_result,
             )
 
             # Configure vulnerability assessment
@@ -1189,7 +1204,7 @@ class TestQuantumReadyIntegration:
             mock_vuln_result.is_success.return_value = True
             mock_vuln_result.value = mock_vuln
             mock_analyzer.assess_system_vulnerabilities = AsyncMock(
-                return_value=mock_vuln_result
+                return_value=mock_vuln_result,
             )
 
             # Configure migration planning
@@ -1212,7 +1227,7 @@ class TestQuantumReadyIntegration:
             mock_migration_result.is_success.return_value = True
             mock_migration_result.value = mock_migration_plan
             mock_migrator.create_migration_plan = AsyncMock(
-                return_value=mock_migration_result
+                return_value=mock_migration_result,
             )
 
             # Configure upgrade mocks
@@ -1220,7 +1235,7 @@ class TestQuantumReadyIntegration:
             mock_policy_result.is_success.return_value = True
             mock_policy_result.value = "comprehensive_policy_001"
             mock_upgrader.create_security_policy = AsyncMock(
-                return_value=mock_policy_result
+                return_value=mock_policy_result,
             )
 
             mock_upgrade_data = {
@@ -1241,7 +1256,7 @@ class TestQuantumReadyIntegration:
             mock_upgrade_result.is_success.return_value = True
             mock_upgrade_result.value = mock_upgrade_data
             mock_upgrader.upgrade_security_algorithms = AsyncMock(
-                return_value=mock_upgrade_result
+                return_value=mock_upgrade_result,
             )
 
             # Step 1: Analyze quantum readiness
@@ -1297,7 +1312,7 @@ class TestQuantumReadyProperties:
 
     @given(analysis_scope_strategy(), security_level_strategy())
     @pytest.mark.asyncio
-    async def test_quantum_readiness_analysis_properties(self, scope, security_level):
+    async def test_quantum_readiness_analysis_properties(self, scope, security_level) -> None:
         """Test properties of quantum readiness analysis."""
         # Mock basic dependencies to avoid exceptions
         with (
@@ -1308,10 +1323,10 @@ class TestQuantumReadyProperties:
             mock_result = Mock()
             mock_result.is_success.return_value = False
             mock_migrator.analyze_quantum_readiness = AsyncMock(
-                return_value=mock_result
+                return_value=mock_result,
             )
             mock_analyzer.assess_system_vulnerabilities = AsyncMock(
-                return_value=mock_result
+                return_value=mock_result,
             )
 
             result = await km_analyze_quantum_readiness(
@@ -1334,7 +1349,7 @@ class TestQuantumReadyProperties:
 
     @given(upgrade_scope_strategy(), migration_strategy_strategy())
     @pytest.mark.asyncio
-    async def test_post_quantum_upgrade_properties(self, scope, strategy):
+    async def test_post_quantum_upgrade_properties(self, scope, strategy) -> None:
         """Test properties of post-quantum upgrade operations."""
         # Mock basic dependencies
         with patch.object(quantum_tools, "security_upgrader") as mock_upgrader:
@@ -1360,7 +1375,7 @@ class TestQuantumReadyProperties:
 
     @given(interface_type_strategy(), quantum_platform_strategy())
     @pytest.mark.asyncio
-    async def test_quantum_interface_properties(self, interface_type, platform):
+    async def test_quantum_interface_properties(self, interface_type, platform) -> None:
         """Test properties of quantum interface preparation."""
         # Mock basic dependencies
         with patch.object(quantum_tools, "quantum_interface_manager") as mock_manager:
@@ -1388,10 +1403,11 @@ class TestQuantumReadyProperties:
 
     @given(algorithm_type_strategy(), simulation_mode_strategy())
     @pytest.mark.asyncio
-    async def test_quantum_simulation_properties(self, algorithm_type, simulation_mode):
+    async def test_quantum_simulation_properties(self, algorithm_type, simulation_mode) -> None:
         """Test properties of quantum algorithm simulation."""
         assume(
-            algorithm_type in ["shor", "grover", "quantum_ml", "optimization", "custom"]
+            algorithm_type
+            in ["shor", "grover", "quantum_ml", "optimization", "custom"],
         )
         assume(simulation_mode in ["ideal", "noisy", "hardware_accurate"])
 
@@ -1400,7 +1416,7 @@ class TestQuantumReadyProperties:
             mock_result = Mock()
             mock_result.is_success.return_value = False
             mock_manager.simulate_quantum_algorithm = AsyncMock(
-                return_value=mock_result
+                return_value=mock_result,
             )
             mock_manager.get_interface_status = AsyncMock(return_value=mock_result)
 

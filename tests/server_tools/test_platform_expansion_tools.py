@@ -1,21 +1,26 @@
-"""
-Comprehensive Test Suite for Platform Expansion Tools (TASK_32-39).
+"""Comprehensive Test Suite for Platform Expansion Tools (TASK_32-39).
 
 This module provides systematic testing for communication, visual, and plugin system MCP tools
 including messaging systems, notification frameworks, screen capture, visual automation,
 plugin management, and extension frameworks with comprehensive integration patterns.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+
+logger = logging.getLogger(__name__)
 
 
 class TestPlatformExpansionFoundation:
     """Test foundation for platform expansion MCP tools from TASK_32-39."""
 
     @pytest.fixture
-    def execution_context(self):
+    def execution_context(self) -> Any:
         """Create mock execution context for testing."""
         context = AsyncMock()
         context.session_id = "test-session-platform-expansion"
@@ -25,7 +30,7 @@ class TestPlatformExpansionFoundation:
         return context
 
     @pytest.fixture
-    def sample_communication_data(self):
+    def sample_communication_data(self) -> Any:
         """Sample communication data for testing."""
         return {
             "message_type": "notification",
@@ -38,7 +43,7 @@ class TestPlatformExpansionFoundation:
         }
 
     @pytest.fixture
-    def sample_visual_data(self):
+    def sample_visual_data(self) -> Any:
         """Sample visual automation data for testing."""
         return {
             "capture_region": {"x": 100, "y": 100, "width": 800, "height": 600},
@@ -55,7 +60,7 @@ class TestPlatformExpansionFoundation:
         }
 
     @pytest.fixture
-    def sample_plugin_data(self):
+    def sample_plugin_data(self) -> Any:
         """Sample plugin system data for testing."""
         return {
             "plugin_id": "test-plugin-v1",
@@ -76,7 +81,7 @@ class TestPlatformExpansionFoundation:
 class TestCommunicationTools:
     """Test communication tools from TASK_32-33: messaging and notifications."""
 
-    def test_communication_tools_import(self):
+    def test_communication_tools_import(self) -> None:
         """Test that communication tools can be imported successfully."""
         try:
             from src.server.tools import communication_tools
@@ -95,15 +100,17 @@ class TestCommunicationTools:
 
     @pytest.mark.asyncio
     async def test_notification_sending(
-        self, execution_context, sample_communication_data
-    ):
+        self,
+        execution_context,
+        sample_communication_data,
+    ) -> None:
         """Test notification sending functionality."""
         try:
             from src.server.tools.communication_tools import km_send_notification
 
             # Mock notification system
             with patch(
-                "src.server.tools.communication_tools.NotificationManager"
+                "src.server.tools.communication_tools.NotificationManager",
             ) as mock_manager_class:
                 mock_manager = Mock()
                 mock_delivery_result = {
@@ -135,14 +142,14 @@ class TestCommunicationTools:
             pytest.skip("Notification tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_message_routing(self, execution_context):
+    async def test_message_routing(self, execution_context) -> None:
         """Test message routing and delivery functionality."""
         try:
             from src.server.tools.communication_tools import km_send_message
 
             # Mock message router
             with patch(
-                "src.server.tools.communication_tools.MessageRouter"
+                "src.server.tools.communication_tools.MessageRouter",
             ) as mock_router_class:
                 mock_router = Mock()
                 mock_routing_result = {
@@ -173,14 +180,14 @@ class TestCommunicationTools:
             pytest.skip("Message routing tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_alert_configuration(self, execution_context):
+    async def test_alert_configuration(self, execution_context) -> None:
         """Test alert configuration and management."""
         try:
             from src.server.tools.communication_tools import km_configure_alerts
 
             # Mock alert manager
             with patch(
-                "src.server.tools.communication_tools.AlertManager"
+                "src.server.tools.communication_tools.AlertManager",
             ) as mock_alert_class:
                 mock_alert_manager = Mock()
                 mock_config_result = {
@@ -216,7 +223,7 @@ class TestCommunicationTools:
 class TestVisualAutomationTools:
     """Test visual automation tools from TASK_34-35: screen capture and visual recognition."""
 
-    def test_visual_tools_import(self):
+    def test_visual_tools_import(self) -> None:
         """Test that visual automation tools can be imported."""
         try:
             from src.server.tools import visual_tools
@@ -234,56 +241,64 @@ class TestVisualAutomationTools:
 
     @pytest.mark.asyncio
     async def test_screen_capture_functionality(
-        self, execution_context, sample_visual_data
-    ):
+        self,
+        execution_context,
+        sample_visual_data,
+    ) -> None:
         """Test screen capture and image processing."""
         try:
+            # S108 fix: Use secure temporary file for screen capture testing
+            import tempfile
+
             from src.server.tools.visual_tools import km_capture_screen
 
             # Mock screen capture system
             with patch(
-                "src.server.tools.visual_tools.ScreenCapture"
+                "src.server.tools.visual_tools.ScreenCapture",
             ) as mock_capture_class:
                 mock_capture = Mock()
-                mock_image_data = {
-                    "image_id": "capture-123",
-                    "file_path": "/tmp/screen_capture_123.png",
-                    "dimensions": {"width": 800, "height": 600},
-                    "format": "png",
-                    "size_bytes": 245760,
-                    "capture_timestamp": "2025-07-04T23:32:00Z",
-                }
+                with tempfile.NamedTemporaryFile(suffix=".png") as temp_file:
+                    mock_image_data = {
+                        "image_id": "capture-123",
+                        "file_path": temp_file.name,
+                        "dimensions": {"width": 800, "height": 600},
+                        "format": "png",
+                        "size_bytes": 245760,
+                        "capture_timestamp": "2025-07-04T23:32:00Z",
+                    }
 
-                mock_capture.capture_region.return_value = Mock(
-                    is_left=Mock(return_value=False),
-                    get_right=Mock(return_value=mock_image_data),
-                )
-                mock_capture_class.return_value = mock_capture
+                    mock_capture.capture_region.return_value = Mock(
+                        is_left=Mock(return_value=False),
+                        get_right=Mock(return_value=mock_image_data),
+                    )
+                    mock_capture_class.return_value = mock_capture
 
-                result = await km_capture_screen(
-                    region=sample_visual_data["capture_region"],
-                    image_format=sample_visual_data["image_format"],
-                    quality=sample_visual_data["quality"],
-                    ctx=execution_context,
-                )
+                    result = await km_capture_screen(
+                        region=sample_visual_data["capture_region"],
+                        image_format=sample_visual_data["image_format"],
+                        quality=sample_visual_data["quality"],
+                        ctx=execution_context,
+                    )
 
-                assert isinstance(result, dict)
-                assert "success" in result
+                    assert isinstance(result, dict)
+                    assert "success" in result
 
         except ImportError:
             pytest.skip("Screen capture tools not available for testing")
 
     @pytest.mark.asyncio
     async def test_visual_element_recognition(
-        self, execution_context, sample_visual_data
-    ):
+        self,
+        execution_context,
+        sample_visual_data,
+    ) -> None:
         """Test visual element recognition and matching."""
         try:
             from src.server.tools.visual_tools import km_find_visual_elements
 
             # Mock visual recognition system
             with patch(
-                "src.server.tools.visual_tools.VisualRecognition"
+                "src.server.tools.visual_tools.VisualRecognition",
             ) as mock_recognition_class:
                 mock_recognition = Mock()
                 mock_recognition_results = {
@@ -332,15 +347,17 @@ class TestVisualAutomationTools:
 
     @pytest.mark.asyncio
     async def test_visual_automation_workflow(
-        self, execution_context, sample_visual_data
-    ):
+        self,
+        execution_context,
+        sample_visual_data,
+    ) -> None:
         """Test complete visual automation workflow."""
         try:
             from src.server.tools.visual_tools import km_visual_automation
 
             # Mock visual automation engine
             with patch(
-                "src.server.tools.visual_tools.VisualAutomationEngine"
+                "src.server.tools.visual_tools.VisualAutomationEngine",
             ) as mock_engine_class:
                 mock_engine = Mock()
                 mock_automation_result = {
@@ -384,7 +401,7 @@ class TestVisualAutomationTools:
 class TestPluginSystemTools:
     """Test plugin system tools from TASK_36-39: plugin management and extensions."""
 
-    def test_plugin_system_import(self):
+    def test_plugin_system_import(self) -> None:
         """Test that plugin system components can be imported."""
         try:
             from src.server.tools import plugin_tools
@@ -401,14 +418,14 @@ class TestPluginSystemTools:
             pytest.skip(f"Plugin system not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_plugin_installation(self, execution_context, sample_plugin_data):
+    async def test_plugin_installation(self, execution_context, sample_plugin_data) -> None:
         """Test plugin installation and validation."""
         try:
             from src.server.tools.plugin_tools import km_install_plugin
 
             # Mock plugin installer
             with patch(
-                "src.server.tools.plugin_tools.PluginInstaller"
+                "src.server.tools.plugin_tools.PluginInstaller",
             ) as mock_installer_class:
                 mock_installer = Mock()
                 mock_install_result = {
@@ -440,14 +457,14 @@ class TestPluginSystemTools:
             pytest.skip("Plugin installation tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_plugin_management(self, execution_context):
+    async def test_plugin_management(self, execution_context) -> None:
         """Test plugin lifecycle management."""
         try:
             from src.server.tools.plugin_tools import km_manage_plugins
 
             # Mock plugin manager
             with patch(
-                "src.server.tools.plugin_tools.PluginManager"
+                "src.server.tools.plugin_tools.PluginManager",
             ) as mock_manager_class:
                 mock_manager = Mock()
                 mock_management_result = {
@@ -488,14 +505,14 @@ class TestPluginSystemTools:
             pytest.skip("Plugin management tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_plugin_registry_operations(self, execution_context):
+    async def test_plugin_registry_operations(self, execution_context) -> None:
         """Test plugin registry and discovery functionality."""
         try:
             from src.server.tools.plugin_tools import km_plugin_registry
 
             # Mock plugin registry
             with patch(
-                "src.server.tools.plugin_tools.PluginRegistry"
+                "src.server.tools.plugin_tools.PluginRegistry",
             ) as mock_registry_class:
                 mock_registry = Mock()
                 mock_registry_result = {
@@ -509,7 +526,7 @@ class TestPluginSystemTools:
                             "rating": 4.8,
                             "downloads": 1250,
                             "compatibility": ["km-2024", "mcp-1.0"],
-                        }
+                        },
                     ],
                     "search_time_ms": 75,
                 }
@@ -538,7 +555,7 @@ class TestPlatformExpansionIntegration:
     """Test integration patterns across platform expansion tools."""
 
     @pytest.mark.asyncio
-    async def test_communication_visual_integration(self, execution_context):
+    async def test_communication_visual_integration(self, execution_context) -> None:
         """Test integration between communication and visual tools."""
         platform_tools = [
             ("src.server.tools.communication_tools", "km_send_notification"),
@@ -565,7 +582,7 @@ class TestPlatformExpansionIntegration:
                 continue
 
     @pytest.mark.asyncio
-    async def test_platform_tool_response_consistency(self, execution_context):
+    async def test_platform_tool_response_consistency(self, execution_context) -> None:
         """Test that all platform tools return consistent response structure."""
         platform_tools = [
             (
@@ -597,7 +614,8 @@ class TestPlatformExpansionIntegration:
                 # Verify basic function structure
                 assert callable(tool_func)
                 assert hasattr(tool_func, "__annotations__") or hasattr(
-                    tool_func, "__doc__"
+                    tool_func,
+                    "__doc__",
                 )
 
                 # For async functions, check they're properly defined
@@ -614,7 +632,7 @@ class TestPlatformExpansionIntegration:
                 print(f"Warning: {tool_name} had issue: {e}")
 
     @pytest.mark.asyncio
-    async def test_platform_security_patterns(self, execution_context):
+    async def test_platform_security_patterns(self, execution_context) -> None:
         """Test that platform tools implement security patterns."""
         try:
             from src.server.tools.plugin_tools import km_install_plugin
@@ -638,7 +656,7 @@ class TestPropertyBasedPlatformTesting:
     """Property-based testing for platform expansion tools using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_communication_properties(self, execution_context):
+    async def test_communication_properties(self, execution_context) -> None:
         """Property: Communication tools should handle various message types securely."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -648,7 +666,7 @@ class TestPropertyBasedPlatformTesting:
             priority=st.sampled_from(["low", "normal", "high", "urgent"]),
             channel_count=st.integers(min_value=1, max_value=5),
         )
-        async def test_communication_properties(message_type, priority, channel_count):
+        async def test_communication_properties(message_type, priority, channel_count) -> None:
             """Test communication properties."""
             try:
                 from src.server.tools.communication_tools import km_send_notification
@@ -676,15 +694,13 @@ class TestPropertyBasedPlatformTesting:
                         assert isinstance(data["notification_id"], str)
                         assert len(data["notification_id"]) > 0
 
-            except Exception:
-                # Tools may fail with invalid combinations, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
-        # Run a test case
         await test_communication_properties("info", "normal", 2)
 
     @pytest.mark.asyncio
-    async def test_visual_automation_properties(self, execution_context):
+    async def test_visual_automation_properties(self, execution_context) -> None:
         """Property: Visual automation should maintain coordinate bounds."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -695,7 +711,7 @@ class TestPropertyBasedPlatformTesting:
             width=st.integers(min_value=1, max_value=800),
             height=st.integers(min_value=1, max_value=600),
         )
-        async def test_visual_properties(x, y, width, height):
+        async def test_visual_properties(x, y, width, height) -> None:
             """Test visual automation properties."""
             try:
                 from src.server.tools.visual_tools import km_capture_screen
@@ -722,9 +738,7 @@ class TestPropertyBasedPlatformTesting:
                         assert dims["width"] > 0
                         assert dims["height"] > 0
 
-            except Exception:
-                # Tools may fail with invalid combinations, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
-        # Run a test case
         await test_visual_properties(100, 100, 400, 300)

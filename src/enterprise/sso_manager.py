@@ -1,5 +1,4 @@
-"""
-Single Sign-On (SSO) management for enterprise identity providers.
+"""Single Sign-On (SSO) management for enterprise identity providers.
 
 This module provides comprehensive SSO integration supporting SAML 2.0, OAuth 2.0,
 and OpenID Connect with enterprise identity providers including Azure AD, Okta,
@@ -40,14 +39,15 @@ class SSOManager:
         self.pending_requests: dict[str, dict[str, Any]] = {}
         self.security_validator = EnterpriseSecurityValidator()
 
-    @require(lambda self, provider_config: isinstance(provider_config, dict))
+    @require(lambda __self, provider_config: isinstance(provider_config, dict))
     async def configure_saml_provider(
-        self, provider_config: dict[str, Any]
+        self,
+        provider_config: dict[str, Any],
     ) -> Either[EnterpriseError, str]:
         """Configure SAML 2.0 SSO provider with comprehensive validation."""
         try:
             logger.info(
-                f"Configuring SAML provider: {provider_config.get('provider_name', 'Unknown')}"
+                f"Configuring SAML provider: {provider_config.get('provider_name', 'Unknown')}",
             )
 
             # Validate required fields
@@ -80,7 +80,7 @@ class SSOManager:
 
             # Validate certificate
             cert_validation = self._validate_saml_certificate(
-                provider_config["certificate"]
+                provider_config["certificate"],
             )
             if cert_validation.is_left():
                 return cert_validation
@@ -101,10 +101,10 @@ class SSOManager:
                 "metadata": {
                     "supports_slo": bool(provider_config.get("slo_url")),
                     "certificate_expiry": self._get_certificate_expiry(
-                        provider_config["certificate"]
+                        provider_config["certificate"],
                     ),
                     "entity_id_hash": hashlib.sha256(
-                        provider_config["entity_id"].encode()
+                        provider_config["entity_id"].encode(),
                     ).hexdigest()[:16],
                 },
             }
@@ -113,17 +113,18 @@ class SSOManager:
             return Either.right(provider_id)
 
         except Exception as e:
-            logger.error(f"SAML provider configuration failed: {str(e)}")
+            logger.error(f"SAML provider configuration failed: {e!s}")
             return Either.left(EnterpriseError.sso_configuration_failed(str(e)))
 
-    @require(lambda self, provider_config: isinstance(provider_config, dict))
+    @require(lambda __self, provider_config: isinstance(provider_config, dict))
     async def configure_oauth_provider(
-        self, provider_config: dict[str, Any]
+        self,
+        provider_config: dict[str, Any],
     ) -> Either[EnterpriseError, str]:
         """Configure OAuth 2.0/OIDC provider with enterprise security."""
         try:
             logger.info(
-                f"Configuring OAuth provider: {provider_config.get('provider_name', 'Unknown')}"
+                f"Configuring OAuth provider: {provider_config.get('provider_name', 'Unknown')}",
             )
 
             # Validate required fields
@@ -168,7 +169,7 @@ class SSOManager:
 
             # Check if this is OIDC (has issuer or userinfo_url)
             is_oidc = bool(
-                provider_config.get("issuer") or provider_config.get("userinfo_url")
+                provider_config.get("issuer") or provider_config.get("userinfo_url"),
             )
 
             # Store provider configuration
@@ -185,29 +186,32 @@ class SSOManager:
                     "supports_pkce": True,  # Assume PKCE support for security
                     "supports_refresh": bool(provider_config.get("token_url")),
                     "client_id_hash": hashlib.sha256(
-                        provider_config["client_id"].encode()
+                        provider_config["client_id"].encode(),
                     ).hexdigest()[:16],
                 },
             }
 
             logger.info(
-                f"OAuth provider configured successfully: {provider_id} (OIDC: {is_oidc})"
+                f"OAuth provider configured successfully: {provider_id} (OIDC: {is_oidc})",
             )
             return Either.right(provider_id)
 
         except Exception as e:
-            logger.error(f"OAuth provider configuration failed: {str(e)}")
+            logger.error(f"OAuth provider configuration failed: {e!s}")
             return Either.left(EnterpriseError.sso_configuration_failed(str(e)))
 
     @require(
-        lambda self, provider_id: isinstance(provider_id, str) and len(provider_id) > 0
+        lambda _self, provider_id: isinstance(provider_id, str) and len(provider_id) > 0,
     )
     @require(
-        lambda self, redirect_url: isinstance(redirect_url, str)
-        and len(redirect_url) > 0
+        lambda _self, redirect_url: isinstance(redirect_url, str)
+        and len(redirect_url) > 0,
     )
     async def initiate_sso_login(
-        self, provider_id: str, redirect_url: str, user_context: dict[str, Any] = None
+        self,
+        provider_id: str,
+        redirect_url: str,
+        user_context: dict[str, Any] = None,
     ) -> Either[EnterpriseError, dict[str, str]]:
         """Initiate SSO login flow with comprehensive security."""
         try:
@@ -220,8 +224,9 @@ class SSOManager:
             if not self._validate_redirect_url(redirect_url):
                 return Either.left(
                     EnterpriseError(
-                        "INVALID_REDIRECT_URL", "Invalid or unsafe redirect URL"
-                    )
+                        "INVALID_REDIRECT_URL",
+                        "Invalid or unsafe redirect URL",
+                    ),
                 )
 
             # Generate request ID for tracking
@@ -240,15 +245,19 @@ class SSOManager:
 
             if provider["type"] == "saml":
                 result = await self._initiate_saml_login(
-                    provider["config"], redirect_url, request_id
+                    provider["config"],
+                    redirect_url,
+                    request_id,
                 )
             elif provider["type"] == "oauth":
                 result = await self._initiate_oauth_login(
-                    provider["config"], redirect_url, request_id
+                    provider["config"],
+                    redirect_url,
+                    request_id,
                 )
             else:
                 return Either.left(
-                    EnterpriseError.unsupported_sso_type(provider["type"])
+                    EnterpriseError.unsupported_sso_type(provider["type"]),
                 )
 
             if result.is_right():
@@ -259,22 +268,25 @@ class SSOManager:
             return result
 
         except Exception as e:
-            logger.error(f"SSO login initiation failed: {str(e)}")
+            logger.error(f"SSO login initiation failed: {e!s}")
             return Either.left(EnterpriseError.sso_initiation_failed(str(e)))
 
     @require(
-        lambda self, request_id: isinstance(request_id, str) and len(request_id) > 0
+        lambda _self, request_id: isinstance(request_id, str) and len(request_id) > 0,
     )
     async def handle_sso_callback(
-        self, request_id: str, callback_data: dict[str, Any]
+        self,
+        request_id: str,
+        callback_data: dict[str, Any],
     ) -> Either[EnterpriseError, dict[str, Any]]:
         """Handle SSO callback and establish session."""
         try:
             if request_id not in self.pending_requests:
                 return Either.left(
                     EnterpriseError(
-                        "REQUEST_NOT_FOUND", "SSO request not found or expired"
-                    )
+                        "REQUEST_NOT_FOUND",
+                        "SSO request not found or expired",
+                    ),
                 )
 
             request_info = self.pending_requests[request_id]
@@ -283,7 +295,7 @@ class SSOManager:
             if datetime.now(UTC) > request_info["expires_at"]:
                 del self.pending_requests[request_id]
                 return Either.left(
-                    EnterpriseError("REQUEST_EXPIRED", "SSO request has expired")
+                    EnterpriseError("REQUEST_EXPIRED", "SSO request has expired"),
                 )
 
             provider_id = request_info["provider_id"]
@@ -298,21 +310,23 @@ class SSOManager:
                     EnterpriseError(
                         "INVALID_STATE",
                         "Invalid state parameter - possible CSRF attack",
-                    )
+                    ),
                 )
 
             # Process callback based on provider type
             if provider["type"] == "saml":
                 auth_result = await self._process_saml_callback(
-                    provider["config"], callback_data
+                    provider["config"],
+                    callback_data,
                 )
             elif provider["type"] == "oauth":
                 auth_result = await self._process_oauth_callback(
-                    provider["config"], callback_data
+                    provider["config"],
+                    callback_data,
                 )
             else:
                 return Either.left(
-                    EnterpriseError.unsupported_sso_type(provider["type"])
+                    EnterpriseError.unsupported_sso_type(provider["type"]),
                 )
 
             if auth_result.is_left():
@@ -339,7 +353,7 @@ class SSOManager:
             del self.pending_requests[request_id]
 
             logger.info(
-                f"SSO authentication successful: {user_info.get('username', 'unknown')} via {provider_id}"
+                f"SSO authentication successful: {user_info.get('username', 'unknown')} via {provider_id}",
             )
 
             return Either.right(
@@ -349,11 +363,11 @@ class SSOManager:
                     "provider_id": provider_id,
                     "expires_at": session_data["expires_at"].isoformat(),
                     "redirect_url": request_info["redirect_url"],
-                }
+                },
             )
 
         except Exception as e:
-            logger.error(f"SSO callback handling failed: {str(e)}")
+            logger.error(f"SSO callback handling failed: {e!s}")
             return Either.left(EnterpriseError("CALLBACK_PROCESSING_FAILED", str(e)))
 
     def get_session_info(self, session_id: str) -> dict[str, Any] | None:
@@ -385,7 +399,7 @@ class SSOManager:
         try:
             if session_id not in self.active_sessions:
                 return Either.left(
-                    EnterpriseError("SESSION_NOT_FOUND", "Session not found")
+                    EnterpriseError("SESSION_NOT_FOUND", "Session not found"),
                 )
 
             session = self.active_sessions[session_id]
@@ -406,7 +420,7 @@ class SSOManager:
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Session logout failed: {str(e)}")
+            logger.error(f"Session logout failed: {e!s}")
             return Either.left(EnterpriseError("LOGOUT_FAILED", str(e)))
 
     def get_provider_status(self, provider_id: str) -> dict[str, Any]:
@@ -437,7 +451,8 @@ class SSOManager:
         }
 
     def _validate_saml_certificate(
-        self, certificate: str
+        self,
+        certificate: str,
     ) -> Either[EnterpriseError, None]:
         """Validate SAML certificate with comprehensive checks."""
         try:
@@ -463,8 +478,9 @@ class SSOManager:
             if cert.not_valid_before > datetime.now(UTC):
                 return Either.left(
                     EnterpriseError(
-                        "CERTIFICATE_NOT_YET_VALID", "Certificate is not yet valid"
-                    )
+                        "CERTIFICATE_NOT_YET_VALID",
+                        "Certificate is not yet valid",
+                    ),
                 )
 
             # Check certificate validity period (warn if expires soon)
@@ -478,7 +494,8 @@ class SSOManager:
             return Either.left(EnterpriseError.invalid_certificate(str(e)))
 
     def _validate_saml_urls(
-        self, config: dict[str, Any]
+        self,
+        config: dict[str, Any],
     ) -> Either[EnterpriseError, None]:
         """Validate SAML URLs for security."""
         urls_to_check = ["sso_url", "slo_url"]
@@ -487,13 +504,14 @@ class SSOManager:
             url = config.get(url_field)
             if url and not self._validate_redirect_url(url):
                 return Either.left(
-                    EnterpriseError("INVALID_SAML_URL", f"Invalid {url_field}: {url}")
+                    EnterpriseError("INVALID_SAML_URL", f"Invalid {url_field}: {url}"),
                 )
 
         return Either.right(None)
 
     def _validate_oauth_config(
-        self, config: dict[str, Any]
+        self,
+        config: dict[str, Any],
     ) -> Either[EnterpriseError, None]:
         """Validate OAuth 2.0 configuration."""
         # Validate URLs
@@ -502,20 +520,20 @@ class SSOManager:
             url = config.get(url_field)
             if url and not self._validate_redirect_url(url):
                 return Either.left(
-                    EnterpriseError("INVALID_OAUTH_URL", f"Invalid {url_field}: {url}")
+                    EnterpriseError("INVALID_OAUTH_URL", f"Invalid {url_field}: {url}"),
                 )
 
         # Validate client credentials
         client_id = config.get("client_id", "")
         if len(client_id) < 10:
             return Either.left(
-                EnterpriseError("INVALID_CLIENT_ID", "Client ID too short")
+                EnterpriseError("INVALID_CLIENT_ID", "Client ID too short"),
             )
 
         client_secret = config.get("client_secret", "")
         if len(client_secret) < 16:
             return Either.left(
-                EnterpriseError("WEAK_CLIENT_SECRET", "Client secret too short")
+                EnterpriseError("WEAK_CLIENT_SECRET", "Client secret too short"),
             )
 
         return Either.right(None)
@@ -530,7 +548,7 @@ class SSOManager:
                 return False
 
             # Block dangerous hosts
-            dangerous_hosts = ["localhost", "127.0.0.1", "0.0.0.0", "::1"]
+            dangerous_hosts = ["localhost", "127.0.0.1", "0.0.0.0", "::1"]  # noqa: S104 - This is a security blacklist preventing redirect to all-interface binding
             if parsed.hostname in dangerous_hosts:
                 # Allow for development - in production this should return False
                 pass
@@ -562,7 +580,10 @@ class SSOManager:
             return None
 
     async def _initiate_saml_login(
-        self, config: dict[str, Any], redirect_url: str, request_id: str
+        self,
+        config: dict[str, Any],
+        redirect_url: str,
+        request_id: str,
     ) -> Either[EnterpriseError, dict[str, str]]:
         """Initiate SAML authentication request."""
         try:
@@ -575,11 +596,12 @@ class SSOManager:
             # Build authentication URL with parameters
             auth_params = {
                 "SAMLRequest": base64.b64encode(
-                    f"<AuthnRequest ID='{request_id_saml}' IssueInstant='{timestamp}'/>".encode()
+                    f"<AuthnRequest ID='{request_id_saml}' IssueInstant='{timestamp}'/>".encode(),
                 ).decode(),
                 "RelayState": request_id,
                 "SigAlg": config.get(
-                    "signature_algorithm", "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
+                    "signature_algorithm",
+                    "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
                 ),
             }
 
@@ -590,14 +612,21 @@ class SSOManager:
                 auth_url = f"{sso_url}?{urlencode(auth_params)}"
 
             return Either.right(
-                {"auth_url": auth_url, "method": "GET", "request_id": request_id}
+                {
+                    "auth_url": auth_url,
+                    "method": "GET",
+                    "request_id": request_id,
+                },
             )
 
         except Exception as e:
             return Either.left(EnterpriseError("SAML_REQUEST_FAILED", str(e)))
 
     async def _initiate_oauth_login(
-        self, config: dict[str, Any], redirect_url: str, request_id: str
+        self,
+        config: dict[str, Any],
+        redirect_url: str,
+        request_id: str,
     ) -> Either[EnterpriseError, dict[str, str]]:
         """Initiate OAuth 2.0/OIDC authentication request."""
         try:
@@ -609,7 +638,7 @@ class SSOManager:
             )
             code_challenge = (
                 base64.urlsafe_b64encode(
-                    hashlib.sha256(code_verifier.encode()).digest()
+                    hashlib.sha256(code_verifier.encode()).digest(),
                 )
                 .decode("utf-8")
                 .rstrip("=")
@@ -638,14 +667,20 @@ class SSOManager:
                 auth_url = f"{authorization_url}?{urlencode(auth_params)}"
 
             return Either.right(
-                {"auth_url": auth_url, "method": "GET", "request_id": request_id}
+                {
+                    "auth_url": auth_url,
+                    "method": "GET",
+                    "request_id": request_id,
+                },
             )
 
         except Exception as e:
             return Either.left(EnterpriseError("OAUTH_REQUEST_FAILED", str(e)))
 
     async def _process_saml_callback(
-        self, config: dict[str, Any], callback_data: dict[str, Any]
+        self,
+        config: dict[str, Any],
+        callback_data: dict[str, Any],
     ) -> Either[EnterpriseError, dict[str, Any]]:
         """Process SAML authentication response."""
         try:
@@ -656,8 +691,9 @@ class SSOManager:
             if not saml_response:
                 return Either.left(
                     EnterpriseError(
-                        "MISSING_SAML_RESPONSE", "No SAML response received"
-                    )
+                        "MISSING_SAML_RESPONSE",
+                        "No SAML response received",
+                    ),
                 )
 
             # Decode and parse SAML response (simplified)
@@ -666,8 +702,9 @@ class SSOManager:
             except Exception:
                 return Either.left(
                     EnterpriseError(
-                        "INVALID_SAML_RESPONSE", "Could not decode SAML response"
-                    )
+                        "INVALID_SAML_RESPONSE",
+                        "Could not decode SAML response",
+                    ),
                 )
 
             # Extract user information (simplified - real implementation would parse XML)
@@ -687,7 +724,9 @@ class SSOManager:
             return Either.left(EnterpriseError("SAML_PROCESSING_FAILED", str(e)))
 
     async def _process_oauth_callback(
-        self, config: dict[str, Any], callback_data: dict[str, Any]
+        self,
+        config: dict[str, Any],
+        callback_data: dict[str, Any],
     ) -> Either[EnterpriseError, dict[str, Any]]:
         """Process OAuth 2.0/OIDC callback and exchange code for tokens."""
         try:
@@ -696,12 +735,14 @@ class SSOManager:
             if not auth_code:
                 error = callback_data.get("error", "unknown_error")
                 error_description = callback_data.get(
-                    "error_description", "OAuth authorization failed"
+                    "error_description",
+                    "OAuth authorization failed",
                 )
                 return Either.left(
                     EnterpriseError(
-                        "OAUTH_AUTHORIZATION_FAILED", f"{error}: {error_description}"
-                    )
+                        "OAUTH_AUTHORIZATION_FAILED",
+                        f"{error}: {error_description}",
+                    ),
                 )
 
             # In a real implementation, would exchange code for tokens via HTTP request

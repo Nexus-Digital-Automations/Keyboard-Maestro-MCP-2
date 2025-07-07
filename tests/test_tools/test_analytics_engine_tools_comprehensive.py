@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for analytics engine tools module using systematic MCP tool test pattern.
+"""Comprehensive tests for analytics engine tools module using systematic MCP tool test pattern.
 
 Tests cover comprehensive analytics capabilities including metrics collection, ML insights,
 ROI analysis, dashboard generation, and enterprise reporting with property-based testing
@@ -7,6 +6,10 @@ and comprehensive enterprise-grade validation using the proven pattern that achi
 100% success across 20+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -17,62 +20,64 @@ import src.server.tools.analytics_engine_tools as analytics_tools
 from hypothesis import given
 from hypothesis import strategies as st
 
+logger = logging.getLogger(__name__)
+
 # Extract underlying functions from FastMCP tool objects (systematic pattern)
 km_analytics_engine = analytics_tools.km_analytics_engine.fn
 
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def operation_strategy(draw):
+def operation_strategy(draw) -> Any:
     """Generate valid analytics operations."""
     operations = ["collect", "analyze", "report", "predict", "dashboard", "optimize"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def analytics_scope_strategy(draw):
+def analytics_scope_strategy(draw) -> Any:
     """Generate valid analytics scopes."""
     scopes = ["tool", "category", "ecosystem", "enterprise"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def time_range_strategy(draw):
+def time_range_strategy(draw) -> Any:
     """Generate valid time ranges."""
     ranges = ["1h", "24h", "7d", "30d", "90d", "1y", "all"]
     return draw(st.sampled_from(ranges))
 
 
 @st.composite
-def analysis_depth_strategy(draw):
+def analysis_depth_strategy(draw) -> Any:
     """Generate valid analysis depths."""
     depths = ["basic", "standard", "detailed", "comprehensive", "ml_enhanced"]
     return draw(st.sampled_from(depths))
 
 
 @st.composite
-def visualization_format_strategy(draw):
+def visualization_format_strategy(draw) -> Any:
     """Generate valid visualization formats."""
     formats = ["raw", "table", "chart", "dashboard", "report", "executive_summary"]
     return draw(st.sampled_from(formats))
 
 
 @st.composite
-def privacy_mode_strategy(draw):
+def privacy_mode_strategy(draw) -> Any:
     """Generate valid privacy modes."""
     modes = ["none", "basic", "compliant", "strict"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def metrics_types_strategy(draw):
+def metrics_types_strategy(draw) -> Any:
     """Generate valid metrics types."""
     types = ["performance", "usage", "roi", "efficiency", "quality", "security"]
     return draw(st.lists(st.sampled_from(types), min_size=1, max_size=4, unique=True))
 
 
 @st.composite
-def export_format_strategy(draw):
+def export_format_strategy(draw) -> Any:
     """Generate valid export formats."""
     formats = ["json", "csv", "pdf", "xlsx", "api"]
     return draw(st.sampled_from(formats))
@@ -81,7 +86,7 @@ def export_format_strategy(draw):
 class TestAnalyticsEngineDependencies:
     """Test analytics engine module dependencies and imports."""
 
-    def test_analytics_engine_imports(self):
+    def test_analytics_engine_imports(self) -> None:
         """Test that analytics engine tools can be imported."""
         assert km_analytics_engine is not None
         assert callable(km_analytics_engine)
@@ -93,7 +98,7 @@ class TestAnalyticsEngineParameterValidation:
     """Test parameter validation for analytics engine functions."""
 
     @given(operation_strategy())
-    def test_valid_operations(self, operation):
+    def test_valid_operations(self, operation) -> None:
         """Test that valid operations are accepted."""
         valid_operations = [
             "collect",
@@ -106,25 +111,25 @@ class TestAnalyticsEngineParameterValidation:
         assert operation in valid_operations
 
     @given(analytics_scope_strategy())
-    def test_valid_analytics_scopes(self, scope):
+    def test_valid_analytics_scopes(self, scope) -> None:
         """Test that valid analytics scopes are accepted."""
         valid_scopes = ["tool", "category", "ecosystem", "enterprise"]
         assert scope in valid_scopes
 
     @given(time_range_strategy())
-    def test_valid_time_ranges(self, time_range):
+    def test_valid_time_ranges(self, time_range) -> None:
         """Test that valid time ranges are accepted."""
         valid_ranges = ["1h", "24h", "7d", "30d", "90d", "1y", "all"]
         assert time_range in valid_ranges
 
     @given(analysis_depth_strategy())
-    def test_valid_analysis_depths(self, depth):
+    def test_valid_analysis_depths(self, depth) -> None:
         """Test that valid analysis depths are accepted."""
         valid_depths = ["basic", "standard", "detailed", "comprehensive", "ml_enhanced"]
         assert depth in valid_depths
 
     @given(visualization_format_strategy())
-    def test_valid_visualization_formats(self, viz_format):
+    def test_valid_visualization_formats(self, viz_format) -> None:
         """Test that valid visualization formats are accepted."""
         valid_formats = [
             "raw",
@@ -137,7 +142,7 @@ class TestAnalyticsEngineParameterValidation:
         assert viz_format in valid_formats
 
     @given(metrics_types_strategy())
-    def test_valid_metrics_types(self, metrics_types):
+    def test_valid_metrics_types(self, metrics_types) -> None:
         """Test that valid metrics types are accepted."""
         valid_types = [
             "performance",
@@ -154,10 +159,10 @@ class TestAnalyticsEngineCollectMocked:
     """Test analytics engine collect operation with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_analytics_engine_collect_success(self):
+    async def test_km_analytics_engine_collect_success(self) -> None:
         """Test successful analytics engine collect operation."""
         with patch(
-            "src.server.tools.analytics_engine_tools.analytics_engine"
+            "src.server.tools.analytics_engine_tools.analytics_engine",
         ) as mock_engine:
             # Setup comprehensive mocks for analytics engine
             mock_metrics = {
@@ -208,7 +213,7 @@ class TestAnalyticsEngineCollectMocked:
 
             mock_engine.collect_ecosystem_metrics = AsyncMock(return_value=mock_metrics)
             mock_engine.metrics_collector.get_collection_statistics = AsyncMock(
-                return_value=mock_collection_stats
+                return_value=mock_collection_stats,
             )
 
             # Execute analytics engine collect operation
@@ -233,11 +238,12 @@ class TestAnalyticsEngineCollectMocked:
             assert result["metadata"]["analytics_scope"] == "ecosystem"
 
     @pytest.mark.asyncio
-    async def test_km_analytics_engine_collect_invalid_operation(self):
+    async def test_km_analytics_engine_collect_invalid_operation(self) -> None:
         """Test analytics engine with invalid operation."""
         # Execute with invalid operation
         result = await km_analytics_engine(
-            operation="invalid_operation", analytics_scope="ecosystem"
+            operation="invalid_operation",
+            analytics_scope="ecosystem",
         )
 
         # Verify error handling - the function should raise ToolError
@@ -250,10 +256,10 @@ class TestAnalyticsEngineAnalyzeMocked:
     """Test analytics engine analyze operation with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_analytics_engine_analyze_success(self):
+    async def test_km_analytics_engine_analyze_success(self) -> None:
         """Test successful analytics engine analyze operation."""
         with patch(
-            "src.server.tools.analytics_engine_tools.analytics_engine"
+            "src.server.tools.analytics_engine_tools.analytics_engine",
         ) as mock_engine:
             # Setup comprehensive analysis mocks
             mock_metrics = {
@@ -265,7 +271,7 @@ class TestAnalyticsEngineAnalyzeMocked:
                         "success_rate": 0.97,
                         "error_count": 3,
                         "throughput": 95.8,
-                    }
+                    },
                 },
                 "roi": {
                     "km_app_control": {
@@ -273,7 +279,7 @@ class TestAnalyticsEngineAnalyzeMocked:
                         "cost_saved_dollars": 102.50,
                         "efficiency_gain_percent": 35.0,
                         "calculated_roi": 0.68,
-                    }
+                    },
                 },
                 "timestamp": datetime.now(UTC),
             }
@@ -288,7 +294,7 @@ class TestAnalyticsEngineAnalyzeMocked:
                         "roi": 0.68,
                         "time_saved": 4.1,
                         "cost_saved": 102.50,
-                    }
+                    },
                 ],
                 "improvement_opportunities": [],
                 "roi_by_category": {},
@@ -302,12 +308,12 @@ class TestAnalyticsEngineAnalyzeMocked:
                     "impact_score": 0.72,
                     "recommendation": "Optimize execution sequence for better performance",
                     "affected_tools": ["km_app_control"],
-                }
+                },
             ]
 
             mock_engine.collect_ecosystem_metrics = AsyncMock(return_value=mock_metrics)
             mock_engine.calculate_ecosystem_roi = AsyncMock(
-                return_value=mock_roi_analysis
+                return_value=mock_roi_analysis,
             )
             mock_engine.generate_ml_insights = AsyncMock(return_value=mock_ml_insights)
 
@@ -332,10 +338,10 @@ class TestAnalyticsEngineAnalyzeMocked:
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_km_analytics_engine_analyze_no_ml_insights(self):
+    async def test_km_analytics_engine_analyze_no_ml_insights(self) -> None:
         """Test analytics engine analyze operation without ML insights."""
         with patch(
-            "src.server.tools.analytics_engine_tools.analytics_engine"
+            "src.server.tools.analytics_engine_tools.analytics_engine",
         ) as mock_engine:
             mock_metrics = {
                 "performance": {"km_test_tool": {"execution_time_ms": 100}},
@@ -347,7 +353,7 @@ class TestAnalyticsEngineAnalyzeMocked:
 
             mock_engine.collect_ecosystem_metrics = AsyncMock(return_value=mock_metrics)
             mock_engine.calculate_ecosystem_roi = AsyncMock(
-                return_value=mock_roi_analysis
+                return_value=mock_roi_analysis,
             )
 
             # Execute without ML insights
@@ -374,10 +380,10 @@ class TestAnalyticsEngineDashboardMocked:
     """Test analytics engine dashboard operation with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_analytics_engine_dashboard_success(self):
+    async def test_km_analytics_engine_dashboard_success(self) -> None:
         """Test successful analytics engine dashboard generation."""
         with patch(
-            "src.server.tools.analytics_engine_tools.analytics_engine"
+            "src.server.tools.analytics_engine_tools.analytics_engine",
         ) as mock_engine:
             # Setup dashboard generation mocks
             mock_dashboard_data = {
@@ -413,7 +419,7 @@ class TestAnalyticsEngineDashboardMocked:
             }
 
             mock_engine.generate_dashboard_data = AsyncMock(
-                return_value=mock_dashboard_data
+                return_value=mock_dashboard_data,
             )
 
             # Execute dashboard generation
@@ -436,10 +442,10 @@ class TestAnalyticsEngineDashboardMocked:
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_km_analytics_engine_dashboard_executive_summary(self):
+    async def test_km_analytics_engine_dashboard_executive_summary(self) -> None:
         """Test analytics engine dashboard with executive summary format."""
         with patch(
-            "src.server.tools.analytics_engine_tools.analytics_engine"
+            "src.server.tools.analytics_engine_tools.analytics_engine",
         ) as mock_engine:
             mock_executive_data = {
                 "scope": "enterprise",
@@ -464,7 +470,7 @@ class TestAnalyticsEngineDashboardMocked:
             }
 
             mock_engine.generate_dashboard_data = AsyncMock(
-                return_value=mock_executive_data
+                return_value=mock_executive_data,
             )
 
             # Execute executive summary generation
@@ -487,10 +493,10 @@ class TestAnalyticsEngineReportMocked:
     """Test analytics engine report operation with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_analytics_engine_report_success(self):
+    async def test_km_analytics_engine_report_success(self) -> None:
         """Test successful analytics engine report generation."""
         with patch(
-            "src.server.tools.analytics_engine_tools.analytics_engine"
+            "src.server.tools.analytics_engine_tools.analytics_engine",
         ) as mock_engine:
             # Setup comprehensive report mocks
             mock_metrics = {
@@ -498,7 +504,7 @@ class TestAnalyticsEngineReportMocked:
                     "km_notifications": {
                         "execution_time_ms": 89.4,
                         "success_rate": 0.99,
-                    }
+                    },
                 },
                 "roi": {"km_notifications": {"calculated_roi": 0.85}},
             }
@@ -507,7 +513,7 @@ class TestAnalyticsEngineReportMocked:
                 {
                     "insight_id": "insight_001",
                     "recommendation": "Optimize notification delivery timing",
-                }
+                },
             ]
 
             mock_roi_analysis = {"average_roi": 0.85, "total_cost_saved_dollars": 350.0}
@@ -527,18 +533,18 @@ class TestAnalyticsEngineReportMocked:
             mock_engine.collect_ecosystem_metrics = AsyncMock(return_value=mock_metrics)
             mock_engine.generate_ml_insights = AsyncMock(return_value=mock_insights)
             mock_engine.calculate_ecosystem_roi = AsyncMock(
-                return_value=mock_roi_analysis
+                return_value=mock_roi_analysis,
             )
             mock_engine._get_system_health_indicators = AsyncMock(
-                return_value=mock_system_health
+                return_value=mock_system_health,
             )
             mock_engine._format_executive_summary = AsyncMock(
-                return_value=mock_executive_summary
+                return_value=mock_executive_summary,
             )
             mock_engine._calculate_average_metric = Mock(
                 side_effect=lambda metrics, metric: 89.4
                 if metric == "execution_time_ms"
-                else 0.99
+                else 0.99,
             )
 
             # Execute report generation
@@ -566,10 +572,10 @@ class TestAnalyticsEngineOptimizeMocked:
     """Test analytics engine optimize operation with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_analytics_engine_optimize_success(self):
+    async def test_km_analytics_engine_optimize_success(self) -> None:
         """Test successful analytics engine optimization recommendations."""
         with patch(
-            "src.server.tools.analytics_engine_tools.analytics_engine"
+            "src.server.tools.analytics_engine_tools.analytics_engine",
         ) as mock_engine:
             # Setup optimization mocks with performance issues
             mock_metrics = {
@@ -595,7 +601,7 @@ class TestAnalyticsEngineOptimizeMocked:
                     "confidence": 0.88,
                     "recommendation": "Implement caching for database queries",
                     "model_type": "performance_optimization",
-                }
+                },
             ]
 
             mock_roi_analysis = {
@@ -604,24 +610,26 @@ class TestAnalyticsEngineOptimizeMocked:
             }
 
             mock_system_health = {
-                "health_score": 65  # Moderate health score
+                "health_score": 65,  # Moderate health score
             }
 
             mock_engine.collect_ecosystem_metrics = AsyncMock(return_value=mock_metrics)
             mock_engine.generate_ml_insights = AsyncMock(return_value=mock_insights)
             mock_engine.calculate_ecosystem_roi = AsyncMock(
-                return_value=mock_roi_analysis
+                return_value=mock_roi_analysis,
             )
             mock_engine._get_system_health_indicators = AsyncMock(
-                return_value=mock_system_health
+                return_value=mock_system_health,
             )
             mock_engine._calculate_average_metric = Mock(
-                return_value=447.85
+                return_value=447.85,
             )  # Average of 850.5 and 45.2
 
             # Execute optimization
             result = await km_analytics_engine(
-                operation="optimize", analytics_scope="ecosystem", ml_insights=True
+                operation="optimize",
+                analytics_scope="ecosystem",
+                ml_insights=True,
             )
 
             # Verify successful optimization
@@ -649,21 +657,22 @@ class TestAnalyticsEngineErrorHandling:
     """Test error handling for analytics engine operations."""
 
     @pytest.mark.asyncio
-    async def test_analytics_engine_system_error(self):
+    async def test_analytics_engine_system_error(self) -> None:
         """Test handling of system errors during analytics operations."""
         with patch(
-            "src.server.tools.analytics_engine_tools.analytics_engine"
+            "src.server.tools.analytics_engine_tools.analytics_engine",
         ) as mock_engine:
             # Mock system error
             mock_engine.collect_ecosystem_metrics = AsyncMock(
-                side_effect=Exception("System error")
+                side_effect=Exception("System error"),
             )
 
             # The function should handle the exception and return an error result or raise ToolError
             # Let's test that it doesn't crash unexpectedly
             try:
                 result = await km_analytics_engine(
-                    operation="collect", analytics_scope="ecosystem"
+                    operation="collect",
+                    analytics_scope="ecosystem",
                 )
                 # If it returns a result, it should indicate failure
                 if isinstance(result, dict):
@@ -677,10 +686,10 @@ class TestAnalyticsEngineIntegration:
     """Test complete analytics engine workflow integration."""
 
     @pytest.mark.asyncio
-    async def test_complete_analytics_workflow(self):
+    async def test_complete_analytics_workflow(self) -> None:
         """Test complete analytics workflow integration."""
         with patch(
-            "src.server.tools.analytics_engine_tools.analytics_engine"
+            "src.server.tools.analytics_engine_tools.analytics_engine",
         ) as mock_engine:
             # Setup comprehensive mocks for full workflow
             mock_metrics = {
@@ -688,13 +697,13 @@ class TestAnalyticsEngineIntegration:
                     "km_test_workflow": {
                         "execution_time_ms": 125.0,
                         "success_rate": 0.95,
-                    }
+                    },
                 },
                 "roi": {
                     "km_test_workflow": {
                         "calculated_roi": 0.75,
                         "cost_saved_dollars": 200.0,
-                    }
+                    },
                 },
             }
 
@@ -705,7 +714,7 @@ class TestAnalyticsEngineIntegration:
             }
 
             mock_insights = [
-                {"recommendation": "Workflow is performing well", "confidence": 0.92}
+                {"recommendation": "Workflow is performing well", "confidence": 0.92},
             ]
 
             mock_dashboard_data = {
@@ -720,30 +729,33 @@ class TestAnalyticsEngineIntegration:
             # Configure all mocks
             mock_engine.collect_ecosystem_metrics = AsyncMock(return_value=mock_metrics)
             mock_engine.calculate_ecosystem_roi = AsyncMock(
-                return_value=mock_roi_analysis
+                return_value=mock_roi_analysis,
             )
             mock_engine.generate_ml_insights = AsyncMock(return_value=mock_insights)
             mock_engine.generate_dashboard_data = AsyncMock(
-                return_value=mock_dashboard_data
+                return_value=mock_dashboard_data,
             )
             mock_engine.metrics_collector.get_collection_statistics = AsyncMock(
-                return_value={"total_tools_analyzed": 1}
+                return_value={"total_tools_analyzed": 1},
             )
             mock_engine._calculate_average_metric = Mock(return_value=125.0)
             mock_engine._get_system_health_indicators = AsyncMock(
-                return_value={"status": "good", "health_score": 85}
+                return_value={"status": "good", "health_score": 85},
             )
             mock_engine._format_executive_summary = AsyncMock(
-                return_value={"key_metrics": {}}
+                return_value={"key_metrics": {}},
             )
 
             # Execute complete workflow
             collect_result = await km_analytics_engine(
-                operation="collect", analytics_scope="ecosystem"
+                operation="collect",
+                analytics_scope="ecosystem",
             )
 
             analyze_result = await km_analytics_engine(
-                operation="analyze", analytics_scope="ecosystem", ml_insights=True
+                operation="analyze",
+                analytics_scope="ecosystem",
+                ml_insights=True,
             )
 
             dashboard_result = await km_analytics_engine(
@@ -753,7 +765,8 @@ class TestAnalyticsEngineIntegration:
             )
 
             report_result = await km_analytics_engine(
-                operation="report", analytics_scope="ecosystem"
+                operation="report",
+                analytics_scope="ecosystem",
             )
 
             # Verify integration workflow
@@ -781,10 +794,10 @@ class TestAnalyticsEngineProperties:
 
     @given(operation_strategy(), analytics_scope_strategy())
     @pytest.mark.asyncio
-    async def test_analytics_engine_operation_properties(self, operation, scope):
+    async def test_analytics_engine_operation_properties(self, operation, scope) -> None:
         """Test properties of analytics engine operations."""
         with patch(
-            "src.server.tools.analytics_engine_tools.analytics_engine"
+            "src.server.tools.analytics_engine_tools.analytics_engine",
         ) as mock_engine:
             # Setup property-based mocks
             mock_data = {
@@ -794,26 +807,27 @@ class TestAnalyticsEngineProperties:
 
             mock_engine.collect_ecosystem_metrics = AsyncMock(return_value=mock_data)
             mock_engine.calculate_ecosystem_roi = AsyncMock(
-                return_value={"average_roi": 0.5}
+                return_value={"average_roi": 0.5},
             )
             mock_engine.generate_ml_insights = AsyncMock(return_value=[])
             mock_engine.generate_dashboard_data = AsyncMock(
-                return_value={"scope": scope, "data": {}}
+                return_value={"scope": scope, "data": {}},
             )
             mock_engine.metrics_collector.get_collection_statistics = AsyncMock(
-                return_value={"total_tools_analyzed": 1}
+                return_value={"total_tools_analyzed": 1},
             )
             mock_engine._calculate_average_metric = Mock(return_value=100.0)
             mock_engine._get_system_health_indicators = AsyncMock(
-                return_value={"status": "good", "health_score": 75}
+                return_value={"status": "good", "health_score": 75},
             )
             mock_engine._format_executive_summary = AsyncMock(
-                return_value={"key_metrics": {}}
+                return_value={"key_metrics": {}},
             )
 
             try:
                 result = await km_analytics_engine(
-                    operation=operation, analytics_scope=scope
+                    operation=operation,
+                    analytics_scope=scope,
                 )
 
                 # Verify properties
@@ -821,16 +835,15 @@ class TestAnalyticsEngineProperties:
                     assert result["operation"] == operation
                     assert "metadata" in result
                     assert result["metadata"]["analytics_scope"] == scope
-            except Exception:
-                # Some combinations might not be valid, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
     @given(time_range_strategy(), visualization_format_strategy())
     @pytest.mark.asyncio
-    async def test_dashboard_format_properties(self, time_range, viz_format):
+    async def test_dashboard_format_properties(self, time_range, viz_format) -> None:
         """Test properties of dashboard generation with different formats."""
         with patch(
-            "src.server.tools.analytics_engine_tools.analytics_engine"
+            "src.server.tools.analytics_engine_tools.analytics_engine",
         ) as mock_engine:
             mock_dashboard_data = {
                 "scope": "ecosystem",
@@ -840,7 +853,7 @@ class TestAnalyticsEngineProperties:
             }
 
             mock_engine.generate_dashboard_data = AsyncMock(
-                return_value=mock_dashboard_data
+                return_value=mock_dashboard_data,
             )
 
             try:
@@ -855,6 +868,5 @@ class TestAnalyticsEngineProperties:
                     assert result["operation"] == "dashboard"
                     assert result["data"]["time_range"] == time_range
                     assert result["data"]["format"] == viz_format
-            except Exception:
-                # Some combinations might not be valid, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")

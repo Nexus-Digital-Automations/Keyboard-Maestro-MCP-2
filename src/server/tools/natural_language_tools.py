@@ -1,5 +1,4 @@
-"""
-Natural Language MCP Tools - TASK_60 Phase 1&3 FastMCP Implementation
+"""Natural Language MCP Tools - TASK_60 Phase 1&3 FastMCP Implementation.
 
 FastMCP tools for natural language processing and command interpretation.
 Provides comprehensive NLP capabilities accessible through Claude Desktop interface.
@@ -58,19 +57,19 @@ async def initialize_nlp_tools():
         return True
 
     except Exception as e:
-        logging.error(f"Failed to initialize NLP components: {str(e)}")
+        logging.error(f"Failed to initialize NLP components: {e!s}")
         return False
 
 
-def _validate_components():
+def _validate_components() -> None:
     """Validate that all components are initialized."""
     if not all([intent_classifier, command_processor, conversation_manager]):
         raise RuntimeError(
-            "NLP components not initialized. Call initialize_nlp_tools() first."
+            "NLP components not initialized. Call initialize_nlp_tools() first.",
         )
 
 
-def _update_performance_metrics(operation: str, response_time: float):
+def _update_performance_metrics(operation: str, response_time: float) -> None:
     """Update performance tracking metrics."""
     global tool_performance_metrics
 
@@ -106,33 +105,40 @@ async def km_process_natural_command(
         Field(description="Natural language command", min_length=1, max_length=1000),
     ],
     context: Annotated[
-        str | None, Field(description="Command context or domain")
+        str | None,
+        Field(description="Command context or domain"),
     ] = None,
     language: Annotated[
-        str, Field(description="Input language code (ISO 639-1)")
+        str,
+        Field(description="Input language code (ISO 639-1)"),
     ] = "en",
     confidence_threshold: Annotated[
-        float, Field(description="Confidence threshold for processing", ge=0.1, le=1.0)
+        float,
+        Field(description="Confidence threshold for processing", ge=0.1, le=1.0),
     ] = 0.7,
     include_alternatives: Annotated[
-        bool, Field(description="Include alternative interpretations")
+        bool,
+        Field(description="Include alternative interpretations"),
     ] = True,
     auto_execute: Annotated[
-        bool, Field(description="Automatically execute if confidence is high")
+        bool,
+        Field(description="Automatically execute if confidence is high"),
     ] = False,
     validate_before_execution: Annotated[
-        bool, Field(description="Validate command before execution")
+        bool,
+        Field(description="Validate command before execution"),
     ] = True,
     return_explanation: Annotated[
-        bool, Field(description="Return explanation of interpretation")
+        bool,
+        Field(description="Return explanation of interpretation"),
     ] = True,
     learn_from_interaction: Annotated[
-        bool, Field(description="Learn from user interactions")
+        bool,
+        Field(description="Learn from user interactions"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Process natural language commands and convert them to executable automation workflows.
+    """Process natural language commands and convert them to executable automation workflows.
 
     FastMCP Tool for natural language command processing through Claude Desktop.
     Interprets natural language commands and converts them to structured automation actions.
@@ -239,8 +245,8 @@ async def km_process_natural_command(
         if return_explanation:
             response["explanation"] = (
                 f"Interpreted as '{processed_command.recognized_intent.intent}' "
-                + f"with {processed_command.confidence_score:.1%} confidence. "
-                + f"Found {len(processed_command.extracted_entities)} entities."
+                f"with {processed_command.confidence_score:.1%} confidence. "
+                f"Found {len(processed_command.extracted_entities)} entities."
             )
 
         return response
@@ -248,14 +254,14 @@ async def km_process_natural_command(
     except Exception as e:
         error_response = {
             "success": False,
-            "error": f"Command processing failed: {str(e)}",
+            "error": f"Command processing failed: {e!s}",
             "error_code": "PROCESSING_ERROR",
             "processing_time_ms": (datetime.now(UTC) - start_time).total_seconds()
             * 1000,
         }
 
         if ctx:
-            await ctx.log_error(f"Natural command processing error: {str(e)}")
+            await ctx.log_error(f"Natural command processing error: {e!s}")
 
         return error_response
 
@@ -263,33 +269,40 @@ async def km_process_natural_command(
 @mcp.tool()
 async def km_recognize_intent(
     user_input: Annotated[
-        str, Field(description="User input text", min_length=1, max_length=1000)
+        str,
+        Field(description="User input text", min_length=1, max_length=1000),
     ],
     domain: Annotated[
-        str | None, Field(description="Domain or category for intent recognition")
+        str | None,
+        Field(description="Domain or category for intent recognition"),
     ] = None,
     include_entities: Annotated[
-        bool, Field(description="Extract entities from input")
+        bool,
+        Field(description="Extract entities from input"),
     ] = True,
     include_sentiment: Annotated[
-        bool, Field(description="Include sentiment analysis")
+        bool,
+        Field(description="Include sentiment analysis"),
     ] = False,
     confidence_threshold: Annotated[
-        float, Field(description="Minimum confidence for intent", ge=0.1, le=1.0)
+        float,
+        Field(description="Minimum confidence for intent", ge=0.1, le=1.0),
     ] = 0.6,
     max_intents: Annotated[
-        int, Field(description="Maximum number of intents to return", ge=1, le=10)
+        int,
+        Field(description="Maximum number of intents to return", ge=1, le=10),
     ] = 3,
     context_history: Annotated[
-        list[str] | None, Field(description="Previous conversation context")
+        list[str] | None,
+        Field(description="Previous conversation context"),
     ] = None,
     learn_from_feedback: Annotated[
-        bool, Field(description="Learn from user feedback")
+        bool,
+        Field(description="Learn from user feedback"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Recognize user intent from natural language input with entity extraction and sentiment analysis.
+    """Recognize user intent from natural language input with entity extraction and sentiment analysis.
 
     FastMCP Tool for intent recognition through Claude Desktop.
     Analyzes natural language input to identify user intent, entities, and sentiment.
@@ -368,7 +381,7 @@ async def km_recognize_intent(
                             "value": entity.value,
                             "confidence": entity.confidence,
                             "context": entity.context,
-                        }
+                        },
                     )
                     seen_entities.add(entity_key)
 
@@ -397,14 +410,14 @@ async def km_recognize_intent(
     except Exception as e:
         error_response = {
             "success": False,
-            "error": f"Intent recognition failed: {str(e)}",
+            "error": f"Intent recognition failed: {e!s}",
             "error_code": "RECOGNITION_ERROR",
             "processing_time_ms": (datetime.now(UTC) - start_time).total_seconds()
             * 1000,
         }
 
         if ctx:
-            await ctx.log_error(f"Intent recognition error: {str(e)}")
+            await ctx.log_error(f"Intent recognition error: {e!s}")
 
         return error_response
 
@@ -420,33 +433,40 @@ async def km_generate_from_description(
         ),
     ],
     workflow_type: Annotated[
-        str, Field(description="Workflow type (macro|automation|script)")
+        str,
+        Field(description="Workflow type (macro|automation|script)"),
     ] = "macro",
     complexity_level: Annotated[
-        str, Field(description="Complexity level (simple|intermediate|advanced)")
+        str,
+        Field(description="Complexity level (simple|intermediate|advanced)"),
     ] = "intermediate",
     include_error_handling: Annotated[
-        bool, Field(description="Include error handling in generated workflow")
+        bool,
+        Field(description="Include error handling in generated workflow"),
     ] = True,
     optimize_for_performance: Annotated[
-        bool, Field(description="Optimize generated workflow for performance")
+        bool,
+        Field(description="Optimize generated workflow for performance"),
     ] = True,
     validate_workflow: Annotated[
-        bool, Field(description="Validate generated workflow")
+        bool,
+        Field(description="Validate generated workflow"),
     ] = True,
     generate_documentation: Annotated[
-        bool, Field(description="Generate workflow documentation")
+        bool,
+        Field(description="Generate workflow documentation"),
     ] = True,
     suggest_improvements: Annotated[
-        bool, Field(description="Suggest workflow improvements")
+        bool,
+        Field(description="Suggest workflow improvements"),
     ] = True,
     export_format: Annotated[
-        str, Field(description="Export format (visual|code|template)")
+        str,
+        Field(description="Export format (visual|code|template)"),
     ] = "visual",
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Generate automation workflows from natural language descriptions with optimization and validation.
+    """Generate automation workflows from natural language descriptions with optimization and validation.
 
     FastMCP Tool for workflow generation through Claude Desktop.
     Creates complete automation workflows from natural language descriptions.
@@ -507,7 +527,7 @@ async def km_generate_from_description(
                 "validation_score": 0.9,
                 "issues": [],
                 "recommendations": [
-                    "Consider adding error handling for network operations"
+                    "Consider adding error handling for network operations",
                 ],
             }
 
@@ -568,14 +588,14 @@ async def km_generate_from_description(
     except Exception as e:
         error_response = {
             "success": False,
-            "error": f"Workflow generation failed: {str(e)}",
+            "error": f"Workflow generation failed: {e!s}",
             "error_code": "GENERATION_ERROR",
             "processing_time_ms": (datetime.now(UTC) - start_time).total_seconds()
             * 1000,
         }
 
         if ctx:
-            await ctx.log_error(f"Workflow generation error: {str(e)}")
+            await ctx.log_error(f"Workflow generation error: {e!s}")
 
         return error_response
 
@@ -585,37 +605,44 @@ async def km_conversational_interface(
     conversation_mode: Annotated[
         str,
         Field(
-            description="Conversation mode (creation|modification|troubleshooting|guidance)"
+            description="Conversation mode (creation|modification|troubleshooting|guidance)",
         ),
     ],
     user_message: Annotated[
-        str, Field(description="User message or query", min_length=1, max_length=1000)
+        str,
+        Field(description="User message or query", min_length=1, max_length=1000),
     ],
     conversation_id: Annotated[
-        str | None, Field(description="Conversation ID for context")
+        str | None,
+        Field(description="Conversation ID for context"),
     ] = None,
     automation_context: Annotated[
-        str | None, Field(description="Current automation context")
+        str | None,
+        Field(description="Current automation context"),
     ] = None,
     include_suggestions: Annotated[
-        bool, Field(description="Include proactive suggestions")
+        bool,
+        Field(description="Include proactive suggestions"),
     ] = True,
     provide_examples: Annotated[
-        bool, Field(description="Provide relevant examples")
+        bool,
+        Field(description="Provide relevant examples"),
     ] = True,
     explain_concepts: Annotated[
-        bool, Field(description="Explain automation concepts when needed")
+        bool,
+        Field(description="Explain automation concepts when needed"),
     ] = True,
     adapt_to_skill_level: Annotated[
-        bool, Field(description="Adapt responses to user skill level")
+        bool,
+        Field(description="Adapt responses to user skill level"),
     ] = True,
     maintain_context: Annotated[
-        bool, Field(description="Maintain conversation context")
+        bool,
+        Field(description="Maintain conversation context"),
     ] = True,
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Provide conversational automation interface with context-aware responses and guidance.
+    """Provide conversational automation interface with context-aware responses and guidance.
 
     FastMCP Tool for conversational automation through Claude Desktop.
     Enables natural conversation for automation creation, modification, and troubleshooting.
@@ -719,22 +746,21 @@ async def km_conversational_interface(
     except Exception as e:
         error_response = {
             "success": False,
-            "error": f"Conversation processing failed: {str(e)}",
+            "error": f"Conversation processing failed: {e!s}",
             "error_code": "CONVERSATION_ERROR",
             "processing_time_ms": (datetime.now(UTC) - start_time).total_seconds()
             * 1000,
         }
 
         if ctx:
-            await ctx.log_error(f"Conversation processing error: {str(e)}")
+            await ctx.log_error(f"Conversation processing error: {e!s}")
 
         return error_response
 
 
 @mcp.tool()
 async def km_nlp_performance_metrics(ctx=None) -> dict[str, Any]:
-    """
-    Get performance metrics for natural language processing system.
+    """Get performance metrics for natural language processing system.
 
     FastMCP Tool for NLP performance monitoring through Claude Desktop.
     Returns comprehensive performance statistics and system health metrics.
@@ -768,7 +794,7 @@ async def km_nlp_performance_metrics(ctx=None) -> dict[str, Any]:
     except Exception as e:
         return {
             "success": False,
-            "error": f"Failed to get metrics: {str(e)}",
+            "error": f"Failed to get metrics: {e!s}",
             "error_code": "METRICS_ERROR",
         }
 

@@ -1,5 +1,4 @@
-"""
-Plugin ecosystem MCP tools for custom action creation and plugin management.
+"""Plugin ecosystem MCP tools for custom action creation and plugin management.
 
 This module provides comprehensive plugin ecosystem capabilities through
 MCP tools, enabling plugin installation, management, and custom action execution.
@@ -38,7 +37,7 @@ class PluginEcosystemTools:
             init_result = await self.plugin_manager.initialize()
             if init_result.is_left():
                 raise Exception(
-                    f"Plugin manager initialization failed: {init_result.get_left()}"
+                    f"Plugin manager initialization failed: {init_result.get_left()}",
                 )
             self._initialized = True
 
@@ -58,8 +57,7 @@ class PluginEcosystemTools:
         timeout: int = 60,
         ctx=None,
     ) -> dict[str, Any]:
-        """
-        Comprehensive plugin ecosystem management tool.
+        """Comprehensive plugin ecosystem management tool.
 
         Operations:
         - install: Install plugin from source
@@ -90,6 +88,7 @@ class PluginEcosystemTools:
 
         Returns:
             Operation result with status and data
+
         """
         try:
             await self._ensure_initialized()
@@ -126,27 +125,30 @@ class PluginEcosystemTools:
                     validation_level,
                     timeout,
                 )
-            elif operation == "uninstall":
+            if operation == "uninstall":
                 return await self._handle_uninstall(plugin_identifier, timeout)
-            elif operation == "list":
+            if operation == "list":
                 return await self._handle_list(parameters or {})
-            elif operation == "activate":
+            if operation == "activate":
                 return await self._handle_activate(plugin_identifier, timeout)
-            elif operation == "deactivate":
+            if operation == "deactivate":
                 return await self._handle_deactivate(plugin_identifier, timeout)
-            elif operation == "execute":
+            if operation == "execute":
                 return await self._handle_execute(
-                    action_name, parameters or {}, timeout
+                    action_name,
+                    parameters or {},
+                    timeout,
                 )
-            elif operation == "configure":
+            if operation == "configure":
                 return await self._handle_configure(
-                    plugin_identifier, plugin_config or {}
+                    plugin_identifier,
+                    plugin_config or {},
                 )
-            elif operation == "status":
+            if operation == "status":
                 return await self._handle_status(plugin_identifier)
-            elif operation == "actions":
+            if operation == "actions":
                 return await self._handle_actions(plugin_identifier)
-            elif operation == "marketplace":
+            if operation == "marketplace":
                 return await self._handle_marketplace(parameters or {})
 
         except Exception as e:
@@ -251,7 +253,9 @@ class PluginEcosystemTools:
             }
 
     async def _handle_uninstall(
-        self, plugin_identifier: str | None, timeout: int
+        self,
+        plugin_identifier: str | None,
+        timeout: int,
     ) -> dict[str, Any]:
         """Handle plugin uninstallation."""
         try:
@@ -273,7 +277,8 @@ class PluginEcosystemTools:
 
             # Uninstall plugin
             uninstall_result = await asyncio.wait_for(
-                self.plugin_manager.uninstall_plugin(plugin_id), timeout=timeout
+                self.plugin_manager.uninstall_plugin(plugin_id),
+                timeout=timeout,
             )
 
             if uninstall_result.is_left():
@@ -370,7 +375,9 @@ class PluginEcosystemTools:
             }
 
     async def _handle_activate(
-        self, plugin_identifier: str | None, timeout: int
+        self,
+        plugin_identifier: str | None,
+        timeout: int,
     ) -> dict[str, Any]:
         """Handle plugin activation."""
         try:
@@ -384,7 +391,8 @@ class PluginEcosystemTools:
 
             # Activate plugin
             activate_result = await asyncio.wait_for(
-                self.plugin_manager.activate_plugin(plugin_id), timeout=timeout
+                self.plugin_manager.activate_plugin(plugin_id),
+                timeout=timeout,
             )
 
             if activate_result.is_left():
@@ -436,7 +444,9 @@ class PluginEcosystemTools:
             }
 
     async def _handle_deactivate(
-        self, plugin_identifier: str | None, timeout: int
+        self,
+        plugin_identifier: str | None,
+        timeout: int,
     ) -> dict[str, Any]:
         """Handle plugin deactivation."""
         try:
@@ -458,7 +468,8 @@ class PluginEcosystemTools:
 
             # Deactivate plugin
             deactivate_result = await asyncio.wait_for(
-                self.plugin_manager.deactivate_plugin(plugin_id), timeout=timeout
+                self.plugin_manager.deactivate_plugin(plugin_id),
+                timeout=timeout,
             )
 
             if deactivate_result.is_left():
@@ -493,7 +504,10 @@ class PluginEcosystemTools:
             }
 
     async def _handle_execute(
-        self, action_name: str | None, parameters: dict[str, Any], timeout: int
+        self,
+        action_name: str | None,
+        parameters: dict[str, Any],
+        timeout: int,
     ) -> dict[str, Any]:
         """Handle custom action execution."""
         try:
@@ -548,7 +562,9 @@ class PluginEcosystemTools:
             }
 
     async def _handle_configure(
-        self, plugin_identifier: str | None, plugin_config: dict[str, Any]
+        self,
+        plugin_identifier: str | None,
+        plugin_config: dict[str, Any],
     ) -> dict[str, Any]:
         """Handle plugin configuration update."""
         try:
@@ -576,7 +592,8 @@ class PluginEcosystemTools:
                     new_settings = current_config.settings.copy()
                     new_settings.update(value if isinstance(value, dict) else {})
                     updated_config = updated_config.update_setting(
-                        "_all_settings", new_settings
+                        "_all_settings",
+                        new_settings,
                     )
                 elif key == "security_profile":
                     try:
@@ -669,35 +686,34 @@ class PluginEcosystemTools:
                     "usage_stats": usage_stats,
                     "timestamp": datetime.now().isoformat(),
                 }
-            else:
-                # System-wide status
-                plugins = self.plugin_manager.list_plugins()
-                custom_actions = self.plugin_manager.get_custom_actions()
+            # System-wide status
+            plugins = self.plugin_manager.list_plugins()
+            custom_actions = self.plugin_manager.get_custom_actions()
 
-                status_summary = {"installed": 0, "loaded": 0, "active": 0, "error": 0}
+            status_summary = {"installed": 0, "loaded": 0, "active": 0, "error": 0}
 
-                for plugin in plugins:
-                    status = plugin.get("status", "unknown")
-                    if status == "installed":
-                        status_summary["installed"] += 1
-                    elif status == "loaded":
-                        status_summary["loaded"] += 1
-                        status_summary["installed"] += 1
-                    elif status == "active":
-                        status_summary["active"] += 1
-                        status_summary["loaded"] += 1
-                        status_summary["installed"] += 1
-                    elif status == "error":
-                        status_summary["error"] += 1
+            for plugin in plugins:
+                status = plugin.get("status", "unknown")
+                if status == "installed":
+                    status_summary["installed"] += 1
+                elif status == "loaded":
+                    status_summary["loaded"] += 1
+                    status_summary["installed"] += 1
+                elif status == "active":
+                    status_summary["active"] += 1
+                    status_summary["loaded"] += 1
+                    status_summary["installed"] += 1
+                elif status == "error":
+                    status_summary["error"] += 1
 
-                return {
-                    "success": True,
-                    "operation": "status",
-                    "system_status": status_summary,
-                    "total_plugins": len(plugins),
-                    "total_actions": len(custom_actions),
-                    "timestamp": datetime.now().isoformat(),
-                }
+            return {
+                "success": True,
+                "operation": "status",
+                "system_status": status_summary,
+                "total_plugins": len(plugins),
+                "total_actions": len(custom_actions),
+                "timestamp": datetime.now().isoformat(),
+            }
 
         except Exception as e:
             return {
@@ -727,23 +743,22 @@ class PluginEcosystemTools:
                     "action_count": len(plugin_actions),
                     "timestamp": datetime.now().isoformat(),
                 }
-            else:
-                # All actions grouped by plugin
-                actions_by_plugin = {}
-                for action in custom_actions:
-                    plugin_id = action["plugin_id"]
-                    if plugin_id not in actions_by_plugin:
-                        actions_by_plugin[plugin_id] = []
-                    actions_by_plugin[plugin_id].append(action)
+            # All actions grouped by plugin
+            actions_by_plugin = {}
+            for action in custom_actions:
+                plugin_id = action["plugin_id"]
+                if plugin_id not in actions_by_plugin:
+                    actions_by_plugin[plugin_id] = []
+                actions_by_plugin[plugin_id].append(action)
 
-                return {
-                    "success": True,
-                    "operation": "actions",
-                    "actions_by_plugin": actions_by_plugin,
-                    "total_actions": len(custom_actions),
-                    "plugin_count": len(actions_by_plugin),
-                    "timestamp": datetime.now().isoformat(),
-                }
+            return {
+                "success": True,
+                "operation": "actions",
+                "actions_by_plugin": actions_by_plugin,
+                "total_actions": len(custom_actions),
+                "plugin_count": len(actions_by_plugin),
+                "timestamp": datetime.now().isoformat(),
+            }
 
         except Exception as e:
             return {
@@ -774,7 +789,7 @@ class PluginEcosystemTools:
                         "download_url": "https://example.com/plugin1.zip",
                         "rating": 4.5,
                         "downloads": 1000,
-                    }
+                    },
                 ]
 
                 return {
@@ -788,7 +803,7 @@ class PluginEcosystemTools:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-            elif marketplace_operation == "info":
+            if marketplace_operation == "info":
                 # Get plugin info from marketplace
                 plugin_id = parameters.get("plugin_id")
                 if not plugin_id:
@@ -820,12 +835,11 @@ class PluginEcosystemTools:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-            else:
-                return {
-                    "success": False,
-                    "error": f"Unknown marketplace operation: {marketplace_operation}",
-                    "valid_operations": ["search", "info"],
-                }
+            return {
+                "success": False,
+                "error": f"Unknown marketplace operation: {marketplace_operation}",
+                "valid_operations": ["search", "info"],
+            }
 
         except Exception as e:
             return {
@@ -854,8 +868,7 @@ async def km_plugin_ecosystem(
     timeout: int = 60,
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Standalone wrapper for plugin ecosystem operations.
+    """Standalone wrapper for plugin ecosystem operations.
 
     This function provides a standalone interface to the PluginEcosystemTools class
     for integration with test suites and other modules.

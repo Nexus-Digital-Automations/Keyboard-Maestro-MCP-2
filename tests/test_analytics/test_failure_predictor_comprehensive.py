@@ -1,11 +1,13 @@
-"""
-Comprehensive tests for Failure Predictor with systematic coverage.
+"""Comprehensive tests for Failure Predictor with systematic coverage.
 
 Tests cover FailureType, FailureSeverity, MitigationStrategy enums,
 FailureIndicator, FailurePrediction, MitigationPlan, EarlyWarningAlert,
 FailurePattern, PredictionModel, and complete FailurePredictor functionality.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
@@ -32,31 +34,31 @@ from src.core.predictive_modeling import (
 
 # Test data generators
 @st.composite
-def failure_type_strategy(draw):
+def failure_type_strategy(draw) -> Any:
     """Generate valid failure types."""
     return draw(st.sampled_from(list(FailureType)))
 
 
 @st.composite
-def failure_severity_strategy(draw):
+def failure_severity_strategy(draw) -> Any:
     """Generate valid failure severities."""
     return draw(st.sampled_from(list(FailureSeverity)))
 
 
 @st.composite
-def mitigation_strategy_strategy(draw):
+def mitigation_strategy_strategy(draw) -> Any:
     """Generate valid mitigation strategies."""
     return draw(st.sampled_from(list(MitigationStrategy)))
 
 
 @st.composite
-def confidence_level_strategy(draw):
+def confidence_level_strategy(draw) -> Any:
     """Generate valid confidence levels."""
     return draw(st.sampled_from(list(ConfidenceLevel)))
 
 
 @st.composite
-def failure_indicator_strategy(draw):
+def failure_indicator_strategy(draw) -> Any:
     """Generate valid failure indicators."""
     return FailureIndicator(
         indicator_id=draw(
@@ -64,7 +66,7 @@ def failure_indicator_strategy(draw):
                 min_size=1,
                 max_size=20,
                 alphabet=st.characters(whitelist_categories=["Lu", "Ll", "Nd"]),
-            )
+            ),
         ),
         failure_type=draw(st.sampled_from(list(FailureType))),
         indicator_name=draw(
@@ -72,26 +74,35 @@ def failure_indicator_strategy(draw):
                 min_size=1,
                 max_size=30,
                 alphabet=st.characters(whitelist_categories=["Lu", "Ll"]),
-            )
+            ),
         ),
         current_value=draw(
             st.floats(
-                min_value=0.0, max_value=100.0, allow_nan=False, allow_infinity=False
-            )
+                min_value=0.0,
+                max_value=100.0,
+                allow_nan=False,
+                allow_infinity=False,
+            ),
         ),
         threshold_value=draw(
             st.floats(
-                min_value=0.0, max_value=100.0, allow_nan=False, allow_infinity=False
-            )
+                min_value=0.0,
+                max_value=100.0,
+                allow_nan=False,
+                allow_infinity=False,
+            ),
         ),
         severity=draw(st.sampled_from(list(FailureSeverity))),
         confidence=draw(
             st.floats(
-                min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False
-            )
+                min_value=0.0,
+                max_value=1.0,
+                allow_nan=False,
+                allow_infinity=False,
+            ),
         ),
         trend_direction=draw(
-            st.sampled_from(["increasing", "decreasing", "stable", "volatile"])
+            st.sampled_from(["increasing", "decreasing", "stable", "volatile"]),
         ),
     )
 
@@ -99,7 +110,7 @@ def failure_indicator_strategy(draw):
 class TestFailureType:
     """Test FailureType enum and related functionality."""
 
-    def test_failure_type_enum_values(self):
+    def test_failure_type_enum_values(self) -> None:
         """Test FailureType enum has expected values."""
         assert FailureType.EXECUTION_FAILURE.value == "execution_failure"
         assert FailureType.PERFORMANCE_DEGRADATION.value == "performance_degradation"
@@ -112,7 +123,7 @@ class TestFailureType:
         assert FailureType.NETWORK_FAILURE.value == "network_failure"
         assert FailureType.SYSTEM_OVERLOAD.value == "system_overload"
 
-    def test_failure_type_enumeration(self):
+    def test_failure_type_enumeration(self) -> None:
         """Test FailureType enum can be enumerated."""
         failure_types = list(FailureType)
         assert len(failure_types) == 10
@@ -138,7 +149,7 @@ class TestFailureType:
 class TestFailureSeverity:
     """Test FailureSeverity enum and related functionality."""
 
-    def test_failure_severity_enum_values(self):
+    def test_failure_severity_enum_values(self) -> None:
         """Test FailureSeverity enum has expected values."""
         assert FailureSeverity.LOW.value == "low"
         assert FailureSeverity.MEDIUM.value == "medium"
@@ -146,7 +157,7 @@ class TestFailureSeverity:
         assert FailureSeverity.CRITICAL.value == "critical"
         assert FailureSeverity.CATASTROPHIC.value == "catastrophic"
 
-    def test_failure_severity_enumeration(self):
+    def test_failure_severity_enumeration(self) -> None:
         """Test FailureSeverity enum can be enumerated."""
         severities = list(FailureSeverity)
         assert len(severities) == 5
@@ -161,7 +172,7 @@ class TestFailureSeverity:
 class TestMitigationStrategy:
     """Test MitigationStrategy enum and related functionality."""
 
-    def test_mitigation_strategy_enum_values(self):
+    def test_mitigation_strategy_enum_values(self) -> None:
         """Test MitigationStrategy enum has expected values."""
         strategies = list(MitigationStrategy)
         assert len(strategies) > 0
@@ -170,7 +181,7 @@ class TestMitigationStrategy:
         strategy_values = [s.value for s in strategies]
         assert len(strategy_values) == len(set(strategy_values))  # All unique
 
-    def test_mitigation_strategy_enumeration(self):
+    def test_mitigation_strategy_enumeration(self) -> None:
         """Test MitigationStrategy enum can be enumerated."""
         strategies = list(MitigationStrategy)
 
@@ -198,7 +209,7 @@ class TestMitigationStrategy:
 class TestFailureIndicator:
     """Test FailureIndicator creation and validation."""
 
-    def test_failure_indicator_creation_valid(self):
+    def test_failure_indicator_creation_valid(self) -> None:
         """Test creating valid FailureIndicator instances."""
         indicator = FailureIndicator(
             indicator_id="system_001_cpu",
@@ -222,7 +233,7 @@ class TestFailureIndicator:
         assert indicator.trend_direction == "increasing"
         assert indicator.time_to_threshold == timedelta(hours=2)
 
-    def test_failure_indicator_invalid_confidence(self):
+    def test_failure_indicator_invalid_confidence(self) -> None:
         """Test FailureIndicator with invalid confidence raises ValueError."""
         with pytest.raises(ValueError, match="Confidence must be between 0.0 and 1.0"):
             FailureIndicator(
@@ -237,7 +248,7 @@ class TestFailureIndicator:
             )
 
     @given(failure_indicator_strategy())
-    def test_failure_indicator_property_based_creation(self, indicator):
+    def test_failure_indicator_property_based_creation(self, indicator) -> None:
         """Property-based test for FailureIndicator creation."""
         assert indicator.indicator_id is not None
         assert isinstance(indicator.failure_type, FailureType)
@@ -257,7 +268,7 @@ class TestFailureIndicator:
 class TestFailurePrediction:
     """Test FailurePrediction creation and validation."""
 
-    def test_failure_prediction_creation_valid(self):
+    def test_failure_prediction_creation_valid(self) -> None:
         """Test creating valid FailurePrediction instances."""
         prediction_id = create_prediction_id()
         indicators = [
@@ -270,7 +281,7 @@ class TestFailurePrediction:
                 severity=FailureSeverity.HIGH,
                 confidence=0.8,
                 trend_direction="increasing",
-            )
+            ),
         ]
         prediction = FailurePrediction(
             prediction_id=prediction_id,
@@ -299,7 +310,7 @@ class TestFailurePrediction:
         assert prediction.indicators[0].indicator_name == "cpu_usage"
         assert "cpu_usage_high" in prediction.early_warning_triggers
 
-    def test_failure_prediction_invalid_probability(self):
+    def test_failure_prediction_invalid_probability(self) -> None:
         """Test FailurePrediction with invalid probability raises ValueError."""
         prediction_id = create_prediction_id()
         with pytest.raises(ValueError, match="Probability must be between 0.0 and 1.0"):
@@ -320,7 +331,7 @@ class TestFailurePrediction:
 class TestMitigationPlan:
     """Test MitigationPlan creation and validation."""
 
-    def test_mitigation_plan_creation_valid(self):
+    def test_mitigation_plan_creation_valid(self) -> None:
         """Test creating valid MitigationPlan instances."""
         plan = MitigationPlan(
             plan_id="plan_001",
@@ -349,10 +360,11 @@ class TestMitigationPlan:
         assert plan.cost_estimate == 500.0
         assert "admin_access" in plan.prerequisites
 
-    def test_mitigation_plan_invalid_success_probability(self):
+    def test_mitigation_plan_invalid_success_probability(self) -> None:
         """Test MitigationPlan with invalid success probability raises ValueError."""
         with pytest.raises(
-            ValueError, match="Success probability must be between 0.0 and 1.0"
+            ValueError,
+            match="Success probability must be between 0.0 and 1.0",
         ):
             MitigationPlan(
                 plan_id="plan_001",
@@ -369,7 +381,7 @@ class TestMitigationPlan:
 class TestEarlyWarningAlert:
     """Test EarlyWarningAlert creation and validation."""
 
-    def test_early_warning_alert_creation_valid(self):
+    def test_early_warning_alert_creation_valid(self) -> None:
         """Test creating valid EarlyWarningAlert instances."""
         prediction_id = create_prediction_id()
         alert = EarlyWarningAlert(
@@ -398,7 +410,7 @@ class TestEarlyWarningAlert:
 class TestFailurePattern:
     """Test FailurePattern creation and validation."""
 
-    def test_failure_pattern_creation_valid(self):
+    def test_failure_pattern_creation_valid(self) -> None:
         """Test creating valid FailurePattern instances."""
         indicators = [
             FailureIndicator(
@@ -410,7 +422,7 @@ class TestFailurePattern:
                 severity=FailureSeverity.HIGH,
                 confidence=0.8,
                 trend_direction="increasing",
-            )
+            ),
         ]
         pattern = FailurePattern(
             pattern_id="pattern_001",
@@ -433,7 +445,7 @@ class TestFailurePattern:
 class TestPredictionModel:
     """Test PredictionModel creation and validation."""
 
-    def test_prediction_model_creation_valid(self):
+    def test_prediction_model_creation_valid(self) -> None:
         """Test creating valid PredictionModel instances."""
         model = PredictionModel(
             model_id="model_123",
@@ -455,7 +467,7 @@ class TestPredictionModel:
         assert FailureType.TIMEOUT_FAILURE in model.failure_types
         assert FailureType.PERFORMANCE_DEGRADATION in model.failure_types
 
-    def test_prediction_model_invalid_accuracy(self):
+    def test_prediction_model_invalid_accuracy(self) -> None:
         """Test PredictionModel with invalid accuracy raises ValueError."""
         with pytest.raises(ValueError, match="Accuracy must be between 0.0 and 1.0"):
             PredictionModel(
@@ -471,11 +483,11 @@ class TestPredictionModel:
 class TestFailurePredictor:
     """Test FailurePredictor functionality."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.predictor = FailurePredictor()
 
-    def test_failure_predictor_initialization(self):
+    def test_failure_predictor_initialization(self) -> None:
         """Test FailurePredictor initialization."""
         predictor = FailurePredictor()
 
@@ -489,11 +501,12 @@ class TestFailurePredictor:
         assert hasattr(predictor, "early_warning_config")
 
     @pytest.mark.asyncio
-    async def test_failure_predictor_predict_failures_success(self):
+    async def test_failure_predictor_predict_failures_success(self) -> None:
         """Test successful failure prediction."""
         # Mock internal methods to return predictable results
         with patch.object(
-            self.predictor, "_analyze_failure_indicators"
+            self.predictor,
+            "_analyze_failure_indicators",
         ) as mock_analyze:
             mock_indicators = [
                 FailureIndicator(
@@ -506,7 +519,7 @@ class TestFailurePredictor:
                     confidence=0.8,
                     trend_direction="increasing",
                     time_to_threshold=timedelta(hours=2),
-                )
+                ),
             ]
             mock_analyze.return_value = mock_indicators
 
@@ -524,11 +537,12 @@ class TestFailurePredictor:
             mock_analyze.assert_called()
 
     @pytest.mark.asyncio
-    async def test_failure_predictor_empty_indicators(self):
+    async def test_failure_predictor_empty_indicators(self) -> None:
         """Test failure prediction with empty indicators."""
         # Mock _analyze_failure_indicators to return empty list
         with patch.object(
-            self.predictor, "_analyze_failure_indicators"
+            self.predictor,
+            "_analyze_failure_indicators",
         ) as mock_analyze:
             mock_analyze.return_value = []
 
@@ -543,7 +557,7 @@ class TestFailurePredictor:
             assert len(predictions) == 0
 
     @pytest.mark.asyncio
-    async def test_failure_predictor_generate_early_warning_success(self):
+    async def test_failure_predictor_generate_early_warning_success(self) -> None:
         """Test early warning generation."""
         prediction_id = create_prediction_id()
 
@@ -567,7 +581,8 @@ class TestFailurePredictor:
         self.predictor.active_predictions[str(prediction_id)] = prediction
 
         result = await self.predictor.generate_early_warning(
-            str(prediction_id), "critical"
+            str(prediction_id),
+            "critical",
         )
 
         assert result.is_right()
@@ -577,7 +592,7 @@ class TestFailurePredictor:
         assert alert.alert_level == "critical"
         assert "resource_exhaustion" in alert.message.lower()
 
-    def test_failure_predictor_calculate_failure_probability(self):
+    def test_failure_predictor_calculate_failure_probability(self) -> None:
         """Test failure probability calculation."""
         indicators = [
             FailureIndicator(
@@ -590,12 +605,13 @@ class TestFailurePredictor:
                 confidence=0.9,
                 trend_direction="increasing",
                 time_to_threshold=timedelta(hours=1),
-            )
+            ),
         ]
 
         failure_type = FailureType.RESOURCE_EXHAUSTION
         probability = self.predictor._calculate_failure_probability(
-            indicators, failure_type
+            indicators,
+            failure_type,
         )
 
         assert isinstance(probability, float)
@@ -603,7 +619,7 @@ class TestFailurePredictor:
         # High current value above threshold should result in high probability
         assert probability > 0.5
 
-    def test_failure_predictor_determine_confidence_level(self):
+    def test_failure_predictor_determine_confidence_level(self) -> None:
         """Test confidence level determination."""
         # High probability should result in high confidence
         confidence_high = self.predictor._determine_confidence_level(0.9)
@@ -624,7 +640,7 @@ class TestFailurePredictor:
             ConfidenceLevel.HIGH,
         ]
 
-    def test_failure_predictor_assess_failure_severity(self):
+    def test_failure_predictor_assess_failure_severity(self) -> None:
         """Test failure severity assessment."""
         # Critical indicators should result in high severity
         indicators_critical = [
@@ -637,11 +653,12 @@ class TestFailurePredictor:
                 severity=FailureSeverity.CRITICAL,
                 confidence=1.0,
                 trend_direction="increasing",
-            )
+            ),
         ]
 
         severity = self.predictor._assess_failure_severity(
-            indicators_critical, FailureType.RESOURCE_EXHAUSTION
+            indicators_critical,
+            FailureType.RESOURCE_EXHAUSTION,
         )
         assert severity in [
             FailureSeverity.HIGH,
@@ -660,15 +677,16 @@ class TestFailurePredictor:
                 severity=FailureSeverity.LOW,
                 confidence=0.3,
                 trend_direction="stable",
-            )
+            ),
         ]
 
         severity_low = self.predictor._assess_failure_severity(
-            indicators_low, FailureType.PERFORMANCE_DEGRADATION
+            indicators_low,
+            FailureType.PERFORMANCE_DEGRADATION,
         )
         assert severity_low in [FailureSeverity.LOW, FailureSeverity.MEDIUM]
 
-    def test_failure_predictor_generate_mitigation_strategies(self):
+    def test_failure_predictor_generate_mitigation_strategies(self) -> None:
         """Test mitigation strategy generation."""
         failure_type = FailureType.RESOURCE_EXHAUSTION
         indicators = [
@@ -681,11 +699,12 @@ class TestFailurePredictor:
                 severity=FailureSeverity.HIGH,
                 confidence=0.8,
                 trend_direction="increasing",
-            )
+            ),
         ]
 
         strategies = self.predictor._generate_mitigation_strategies(
-            failure_type, indicators
+            failure_type,
+            indicators,
         )
 
         assert isinstance(strategies, list)
@@ -693,7 +712,7 @@ class TestFailurePredictor:
         assert all(isinstance(strategy, MitigationPlan) for strategy in strategies)
 
     @pytest.mark.asyncio
-    async def test_failure_predictor_prediction_accuracy_metrics(self):
+    async def test_failure_predictor_prediction_accuracy_metrics(self) -> None:
         """Test prediction accuracy metrics."""
         # Add some mock prediction history
         self.predictor.prediction_history.extend(
@@ -702,7 +721,7 @@ class TestFailurePredictor:
                 {"actual_failure": False, "predicted_probability": 0.2},
                 {"actual_failure": True, "predicted_probability": 0.9},
                 {"actual_failure": False, "predicted_probability": 0.1},
-            ]
+            ],
         )
 
         metrics = await self.predictor.get_prediction_accuracy_metrics()
@@ -738,7 +757,7 @@ class TestFailurePredictor:
                     f"{metric_name} should be non-negative integer, got {value}"
                 )
 
-    def test_failure_predictor_estimate_failure_time(self):
+    def test_failure_predictor_estimate_failure_time(self) -> None:
         """Test failure time estimation."""
         indicators = [
             FailureIndicator(
@@ -751,11 +770,12 @@ class TestFailurePredictor:
                 confidence=0.7,
                 trend_direction="increasing",
                 time_to_threshold=timedelta(hours=12),
-            )
+            ),
         ]
 
         estimated_time = self.predictor._estimate_failure_time(
-            indicators, timedelta(hours=24)
+            indicators,
+            timedelta(hours=24),
         )
 
         assert isinstance(estimated_time, datetime)
@@ -764,16 +784,19 @@ class TestFailurePredictor:
         # Should be reasonable (within a week for this example)
         assert estimated_time < datetime.now(UTC) + timedelta(days=7)
 
-    def test_failure_predictor_get_indicator_weight(self):
+    def test_failure_predictor_get_indicator_weight(self) -> None:
         """Test indicator weight calculation."""
         weight_cpu = self.predictor._get_indicator_weight(
-            "cpu_usage", FailureType.RESOURCE_EXHAUSTION
+            "cpu_usage",
+            FailureType.RESOURCE_EXHAUSTION,
         )
         weight_response_time = self.predictor._get_indicator_weight(
-            "response_time", FailureType.PERFORMANCE_DEGRADATION
+            "response_time",
+            FailureType.PERFORMANCE_DEGRADATION,
         )
         weight_unknown = self.predictor._get_indicator_weight(
-            "unknown_indicator", FailureType.NETWORK_FAILURE
+            "unknown_indicator",
+            FailureType.NETWORK_FAILURE,
         )
 
         assert isinstance(weight_cpu, float)

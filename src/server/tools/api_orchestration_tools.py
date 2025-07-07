@@ -1,5 +1,4 @@
-"""
-API Orchestration Tools - TASK_64 Phase 3 MCP Tools Implementation
+"""API Orchestration Tools - TASK_64 Phase 3 MCP Tools Implementation.
 
 FastMCP tools for advanced API management, service orchestration, and microservices coordination.
 Provides Claude Desktop integration for complex multi-API workflows and service mesh management.
@@ -47,33 +46,38 @@ api_gateway = APIGateway()
 async def km_orchestrate_apis(
     workflow_name: Annotated[str, Field(description="API workflow name")],
     api_sequence: Annotated[
-        list[dict[str, Any]], Field(description="Sequence of API calls to orchestrate")
+        list[dict[str, Any]],
+        Field(description="Sequence of API calls to orchestrate"),
     ],
     orchestration_type: Annotated[
         str,
         Field(
-            description="Orchestration type (sequential|parallel|conditional|pipeline|scatter_gather)"
+            description="Orchestration type (sequential|parallel|conditional|pipeline|scatter_gather)",
         ),
     ] = "sequential",
     error_handling: Annotated[
-        str, Field(description="Error handling strategy (fail_fast|continue|retry)")
+        str,
+        Field(description="Error handling strategy (fail_fast|continue|retry)"),
     ] = "retry",
     timeout_settings: Annotated[
-        dict[str, int] | None, Field(description="Timeout settings for each API")
+        dict[str, int] | None,
+        Field(description="Timeout settings for each API"),
     ] = None,
     data_transformation: Annotated[
-        bool, Field(description="Enable data transformation between APIs")
+        bool,
+        Field(description="Enable data transformation between APIs"),
     ] = True,
     circuit_breaker: Annotated[
-        bool, Field(description="Enable circuit breaker pattern")
+        bool,
+        Field(description="Enable circuit breaker pattern"),
     ] = True,
     monitoring: Annotated[
-        bool, Field(description="Enable workflow monitoring and metrics")
+        bool,
+        Field(description="Enable workflow monitoring and metrics"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Orchestrate complex multi-API workflows with advanced error handling and monitoring.
+    """Orchestrate complex multi-API workflows with advanced error handling and monitoring.
 
     FastMCP Tool for API orchestration through Claude Desktop.
     Coordinates multiple API calls with dependency management and fault tolerance.
@@ -155,15 +159,15 @@ async def km_orchestrate_apis(
 
         # Generate execution summary
         successful_steps = len(
-            [s for s in result.step_results if s.get("status") == "success"]
+            [s for s in result.step_results if s.get("status") == "success"],
         )
         failed_steps = len(
-            [s for s in result.step_results if s.get("status") == "failure"]
+            [s for s in result.step_results if s.get("status") == "failure"],
         )
 
         if ctx:
             await ctx.info(
-                f"Workflow completed - Success: {successful_steps}, Failed: {failed_steps}"
+                f"Workflow completed - Success: {successful_steps}, Failed: {failed_steps}",
             )
 
         return {
@@ -188,7 +192,7 @@ async def km_orchestrate_apis(
         }
 
     except Exception as e:
-        error_msg = f"API orchestration error: {str(e)}"
+        error_msg = f"API orchestration error: {e!s}"
         if ctx:
             await ctx.error(error_msg)
         return {"success": False, "error": error_msg, "workflow_name": workflow_name}
@@ -197,28 +201,33 @@ async def km_orchestrate_apis(
 @mcp.tool()
 async def km_manage_service_mesh(
     operation: Annotated[
-        str, Field(description="Operation (configure|monitor|route|secure)")
+        str,
+        Field(description="Operation (configure|monitor|route|secure)"),
     ],
     service_name: Annotated[str, Field(description="Service name in the mesh")],
     mesh_configuration: Annotated[
-        dict[str, Any] | None, Field(description="Service mesh configuration")
+        dict[str, Any] | None,
+        Field(description="Service mesh configuration"),
     ] = None,
     routing_rules: Annotated[
-        list[dict[str, Any]] | None, Field(description="Traffic routing rules")
+        list[dict[str, Any]] | None,
+        Field(description="Traffic routing rules"),
     ] = None,
     security_policies: Annotated[
-        dict[str, Any] | None, Field(description="Service security policies")
+        dict[str, Any] | None,
+        Field(description="Service security policies"),
     ] = None,
     observability: Annotated[
-        bool, Field(description="Enable observability and tracing")
+        bool,
+        Field(description="Enable observability and tracing"),
     ] = True,
     load_balancing: Annotated[
-        str | None, Field(description="Load balancing strategy")
+        str | None,
+        Field(description="Load balancing strategy"),
     ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Manage service mesh configuration, routing, and security for microservices architecture.
+    """Manage service mesh configuration, routing, and security for microservices architecture.
 
     FastMCP Tool for service mesh management through Claude Desktop.
     Configures service mesh with routing, security, and observability features.
@@ -228,7 +237,7 @@ async def km_manage_service_mesh(
     try:
         if ctx:
             await ctx.info(
-                f"Managing service mesh operation: {operation} for service: {service_name}"
+                f"Managing service mesh operation: {operation} for service: {service_name}",
             )
 
         # Validate operation
@@ -271,7 +280,7 @@ async def km_manage_service_mesh(
                 "configuration_applied": True,
                 "routing_rules_count": len(routing_rules or []),
                 "security_policies_count": len(
-                    [security_policies] if security_policies else []
+                    [security_policies] if security_policies else [],
                 ),
                 "observability_enabled": observability,
                 "load_balancing_strategy": load_balancing or "round_robin",
@@ -310,10 +319,10 @@ async def km_manage_service_mesh(
             routing_config = {
                 "path_based_routing": True,
                 "header_based_routing": bool(
-                    routing_rules and any("header" in rule for rule in routing_rules)
+                    routing_rules and any("header" in rule for rule in routing_rules),
                 ),
                 "weight_based_routing": bool(
-                    routing_rules and any("weight" in rule for rule in routing_rules)
+                    routing_rules and any("weight" in rule for rule in routing_rules),
                 ),
                 "canary_deployment": False,
                 "blue_green_deployment": False,
@@ -360,7 +369,7 @@ async def km_manage_service_mesh(
                 "observability_enabled": observability,
                 "timestamp": datetime.now(UTC).isoformat(),
                 "mesh_version": "1.0.0",
-            }
+            },
         )
 
         if ctx:
@@ -369,7 +378,7 @@ async def km_manage_service_mesh(
         return result
 
     except Exception as e:
-        error_msg = f"Service mesh management error: {str(e)}"
+        error_msg = f"Service mesh management error: {e!s}"
         if ctx:
             await ctx.error(error_msg)
         return {
@@ -385,20 +394,24 @@ async def km_coordinate_microservices(
     coordination_type: Annotated[
         str,
         Field(
-            description="Coordination type (discovery|communication|dependency|health)"
+            description="Coordination type (discovery|communication|dependency|health)",
         ),
     ],
     services: Annotated[
-        list[str], Field(description="List of service names to coordinate")
+        list[str],
+        Field(description="List of service names to coordinate"),
     ],
     coordination_config: Annotated[
-        dict[str, Any] | None, Field(description="Coordination configuration")
+        dict[str, Any] | None,
+        Field(description="Coordination configuration"),
     ] = None,
     dependency_mapping: Annotated[
-        dict[str, list[str]] | None, Field(description="Service dependency mapping")
+        dict[str, list[str]] | None,
+        Field(description="Service dependency mapping"),
     ] = None,
     health_monitoring: Annotated[
-        bool, Field(description="Enable health monitoring")
+        bool,
+        Field(description="Enable health monitoring"),
     ] = True,
     failover_strategy: Annotated[
         str,
@@ -406,8 +419,7 @@ async def km_coordinate_microservices(
     ] = "circuit_breaker",
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Coordinate microservices communication, dependencies, and health monitoring.
+    """Coordinate microservices communication, dependencies, and health monitoring.
 
     FastMCP Tool for microservices coordination through Claude Desktop.
     Manages service discovery, communication patterns, and dependency resolution.
@@ -417,7 +429,7 @@ async def km_coordinate_microservices(
     try:
         if ctx:
             await ctx.info(
-                f"Coordinating microservices: {coordination_type} for {len(services)} services"
+                f"Coordinating microservices: {coordination_type} for {len(services)} services",
             )
 
         # Validate coordination type
@@ -592,7 +604,7 @@ async def km_coordinate_microservices(
                 "failover_strategy": failover_strategy,
                 "coordination_config": coordination_config or {},
                 "monitoring_enabled": health_monitoring,
-            }
+            },
         )
 
         if ctx:
@@ -601,7 +613,7 @@ async def km_coordinate_microservices(
         return result
 
     except Exception as e:
-        error_msg = f"Microservices coordination error: {str(e)}"
+        error_msg = f"Microservices coordination error: {e!s}"
         if ctx:
             await ctx.error(error_msg)
         return {
@@ -619,27 +631,32 @@ async def km_monitor_api_health(
         Field(description="Monitoring scope (gateway|services|endpoints|workflows)"),
     ],
     target_services: Annotated[
-        list[str] | None, Field(description="Specific services to monitor")
+        list[str] | None,
+        Field(description="Specific services to monitor"),
     ] = None,
     health_metrics: Annotated[
-        list[str], Field(description="Health metrics to collect")
+        list[str],
+        Field(description="Health metrics to collect"),
     ] = None,
     monitoring_duration: Annotated[
-        int, Field(description="Monitoring duration in minutes")
+        int,
+        Field(description="Monitoring duration in minutes"),
     ] = 5,
     alert_thresholds: Annotated[
-        dict[str, float] | None, Field(description="Alert thresholds for metrics")
+        dict[str, float] | None,
+        Field(description="Alert thresholds for metrics"),
     ] = None,
     include_performance: Annotated[
-        bool, Field(description="Include performance analytics")
+        bool,
+        Field(description="Include performance analytics"),
     ] = True,
     real_time_updates: Annotated[
-        bool, Field(description="Provide real-time health updates")
+        bool,
+        Field(description="Provide real-time health updates"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Monitor API health with comprehensive metrics, alerting, and performance tracking.
+    """Monitor API health with comprehensive metrics, alerting, and performance tracking.
 
     FastMCP Tool for API health monitoring through Claude Desktop.
     Provides real-time health status, performance metrics, and intelligent alerting.
@@ -651,7 +668,7 @@ async def km_monitor_api_health(
     try:
         if ctx:
             await ctx.info(
-                f"Starting API health monitoring: {monitoring_scope} for {monitoring_duration} minutes"
+                f"Starting API health monitoring: {monitoring_scope} for {monitoring_duration} minutes",
             )
 
         # Validate monitoring scope
@@ -703,7 +720,7 @@ async def km_monitor_api_health(
                         "current_value": health_status["average_response_time"],
                         "threshold": thresholds["response_time"],
                         "message": "Gateway response time above threshold",
-                    }
+                    },
                 )
 
             result = {
@@ -753,7 +770,7 @@ async def km_monitor_api_health(
                             "metric": "response_time",
                             "current_value": service_metrics["response_time"],
                             "threshold": thresholds["response_time"],
-                        }
+                        },
                     )
 
                 if service_metrics["error_rate"] > thresholds["error_rate"]:
@@ -764,7 +781,7 @@ async def km_monitor_api_health(
                             "metric": "error_rate",
                             "current_value": service_metrics["error_rate"],
                             "threshold": thresholds["error_rate"],
-                        }
+                        },
                     )
 
                 service_metrics["alerts"] = service_alerts
@@ -865,18 +882,18 @@ async def km_monitor_api_health(
                 "alert_thresholds": thresholds,
                 "real_time_monitoring": real_time_updates,
                 "monitoring_completed_at": datetime.now(UTC).isoformat(),
-            }
+            },
         )
 
         if ctx:
             await ctx.info(
-                f"API health monitoring completed for scope: {monitoring_scope}"
+                f"API health monitoring completed for scope: {monitoring_scope}",
             )
 
         return result
 
     except Exception as e:
-        error_msg = f"API health monitoring error: {str(e)}"
+        error_msg = f"API health monitoring error: {e!s}"
         if ctx:
             await ctx.error(error_msg)
         return {

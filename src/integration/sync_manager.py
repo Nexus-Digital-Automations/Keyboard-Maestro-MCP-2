@@ -1,5 +1,4 @@
-"""
-Real-time Macro State Synchronization Manager
+"""Real-time Macro State Synchronization Manager.
 
 Provides real-time monitoring and synchronization of Keyboard Maestro
 macro library state with intelligent caching and change detection.
@@ -82,19 +81,19 @@ class SyncConfiguration:
 
     # Polling intervals
     base_poll_interval: Duration = field(
-        default_factory=lambda: Duration.from_seconds(30)
+        default_factory=lambda: Duration.from_seconds(30),
     )
     fast_poll_interval: Duration = field(
-        default_factory=lambda: Duration.from_seconds(5)
+        default_factory=lambda: Duration.from_seconds(5),
     )
     slow_poll_interval: Duration = field(
-        default_factory=lambda: Duration.from_seconds(120)
+        default_factory=lambda: Duration.from_seconds(120),
     )
 
     # Change detection
     change_batch_size: int = 10
     change_batch_timeout: Duration = field(
-        default_factory=lambda: Duration.from_seconds(2)
+        default_factory=lambda: Duration.from_seconds(2),
     )
 
     # Performance limits
@@ -104,7 +103,7 @@ class SyncConfiguration:
 
     # Health monitoring
     health_check_interval: Duration = field(
-        default_factory=lambda: Duration.from_minutes(5)
+        default_factory=lambda: Duration.from_minutes(5),
     )
     max_consecutive_errors: int = 3
 
@@ -119,7 +118,7 @@ class SyncState:
     total_changes_processed: int = 0
     consecutive_errors: int = 0
     current_poll_interval: Duration = field(
-        default_factory=lambda: Duration.from_seconds(30)
+        default_factory=lambda: Duration.from_seconds(30),
     )
     active_listeners: set[str] = field(default_factory=set)
     performance_metrics: dict[str, float] = field(default_factory=dict)
@@ -176,7 +175,7 @@ class MacroSyncManager:
         except Exception as e:
             logger.exception("Failed to start synchronization manager")
             self.sync_state.status = SyncStatus.ERROR
-            return Either.left(KMError.execution_error(f"Sync start failed: {str(e)}"))
+            return Either.left(KMError.execution_error(f"Sync start failed: {e!s}"))
 
     async def stop_sync(self):
         """Stop real-time synchronization."""
@@ -206,7 +205,7 @@ class MacroSyncManager:
         logger.info(f"Registered change listener: {listener_id}")
         return listener_id
 
-    def unregister_change_listener(self, listener: Callable[[MacroChange], None]):
+    def unregister_change_listener(self, listener: Callable[[MacroChange], None]) -> bool:
         """Unregister a change listener."""
         if listener in self._change_listeners:
             self._change_listeners.remove(listener)
@@ -247,7 +246,7 @@ class MacroSyncManager:
             try:
                 await self._perform_incremental_sync()
                 await asyncio.sleep(
-                    self.sync_state.current_poll_interval.total_seconds()
+                    self.sync_state.current_poll_interval.total_seconds(),
                 )
 
             except asyncio.CancelledError:
@@ -264,7 +263,7 @@ class MacroSyncManager:
                     await asyncio.sleep(60)  # Back off on persistent errors
                 else:
                     await asyncio.sleep(
-                        self.sync_state.current_poll_interval.total_seconds()
+                        self.sync_state.current_poll_interval.total_seconds(),
                     )
 
     async def _perform_full_sync(self) -> Either[KMError, int]:
@@ -294,7 +293,7 @@ class MacroSyncManager:
                 else:
                     metadata_result = (
                         await self.metadata_extractor.extract_enhanced_metadata(
-                            macro_id
+                            macro_id,
                         )
                     )
                     if metadata_result.is_right():
@@ -323,13 +322,13 @@ class MacroSyncManager:
                 self._sync_times.pop(0)
 
             logger.info(
-                f"Full sync completed: {len(enhanced_macros)} macros in {sync_time:.2f}s"
+                f"Full sync completed: {len(enhanced_macros)} macros in {sync_time:.2f}s",
             )
             return Either.right(len(enhanced_macros))
 
         except Exception as e:
             logger.exception(f"Full sync failed: {e}")
-            return Either.left(KMError.execution_error(f"Full sync failed: {str(e)}"))
+            return Either.left(KMError.execution_error(f"Full sync failed: {e!s}"))
 
     async def _perform_incremental_sync(self):
         """Perform incremental synchronization to detect changes."""
@@ -393,7 +392,7 @@ class MacroSyncManager:
                 max_interval = self.config.slow_poll_interval.total_seconds()
                 new_interval = min(current_interval * 1.2, max_interval)
                 self.sync_state.current_poll_interval = Duration.from_seconds(
-                    new_interval
+                    new_interval,
                 )
 
             # Reset error count on successful sync
@@ -411,7 +410,7 @@ class MacroSyncManager:
         """Process a newly added macro."""
         try:
             metadata_result = await self.metadata_extractor.extract_enhanced_metadata(
-                macro_id
+                macro_id,
             )
             if metadata_result.is_right():
                 macro = metadata_result.get_right()
@@ -453,7 +452,7 @@ class MacroSyncManager:
         """Check if a macro has been modified."""
         try:
             metadata_result = await self.metadata_extractor.extract_enhanced_metadata(
-                macro_id
+                macro_id,
             )
             if metadata_result.is_left():
                 return False
@@ -534,7 +533,8 @@ class MacroSyncManager:
                 try:
                     timeout = self.config.change_batch_timeout.total_seconds()
                     change = await asyncio.wait_for(
-                        self._change_queue.get(), timeout=timeout
+                        self._change_queue.get(),
+                        timeout=timeout,
                     )
                     change_batch.append(change)
 
@@ -542,7 +542,8 @@ class MacroSyncManager:
                     while len(change_batch) < self.config.change_batch_size:
                         try:
                             change = await asyncio.wait_for(
-                                self._change_queue.get(), timeout=0.1
+                                self._change_queue.get(),
+                                timeout=0.1,
                             )
                             change_batch.append(change)
                         except asyncio.TimeoutError:
@@ -585,7 +586,7 @@ class MacroSyncManager:
             "action_count": len(macro.actions),
         }
         state_json = json.dumps(state_data, sort_keys=True)
-        return hashlib.md5(state_json.encode()).hexdigest()
+        return hashlib.sha256(state_json.encode()).hexdigest()[:16]
 
     def _is_cache_valid(self, macro: EnhancedMacroMetadata) -> bool:
         """Check if cached macro metadata is still valid."""

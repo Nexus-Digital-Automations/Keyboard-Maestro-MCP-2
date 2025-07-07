@@ -1,5 +1,4 @@
-"""
-Base Command Contracts and Implementation
+"""Base Command Contracts and Implementation.
 
 Provides the foundational contracts and base implementation for all macro commands
 with design by contract validation, security boundaries, and type safety.
@@ -31,8 +30,7 @@ MAX_LOOP_ITERATIONS = 1000  # Prevent infinite loops
 
 
 class CommandContract(Protocol):
-    """
-    Protocol defining the contract for all macro commands.
+    """Protocol defining the contract for all macro commands.
 
     All command implementations must satisfy this contract with:
     - Pre/post condition validation
@@ -42,8 +40,7 @@ class CommandContract(Protocol):
     """
 
     def execute(self, context: ExecutionContext) -> CommandResult:
-        """
-        Execute the command in the given execution context.
+        """Execute the command in the given execution context.
 
         Preconditions:
         - context must be valid with required permissions
@@ -56,37 +53,36 @@ class CommandContract(Protocol):
         ...
 
     def validate(self) -> bool:
-        """
-        Validate command parameters and configuration.
+        """Validate command parameters and configuration.
 
         Returns:
             True if command is valid and safe to execute
+
         """
         ...
 
     def get_required_permissions(self) -> frozenset[Permission]:
-        """
-        Get the set of permissions required to execute this command.
+        """Get the set of permissions required to execute this command.
 
         Returns:
             Frozen set of required permissions
+
         """
         ...
 
     def get_security_risk_level(self) -> str:
-        """
-        Get the security risk level of this command.
+        """Get the security risk level of this command.
 
         Returns:
             One of: 'low', 'medium', 'high', 'critical'
+
         """
         ...
 
 
 @dataclass(frozen=True)
 class BaseCommand(ABC):
-    """
-    Base implementation for all macro commands.
+    """Base implementation for all macro commands.
 
     Provides common functionality including:
     - Contract enforcement
@@ -101,27 +97,22 @@ class BaseCommand(ABC):
 
     @abstractmethod
     def _execute_impl(self, context: ExecutionContext) -> CommandResult:
-        """
-        Implementation-specific execution logic.
+        """Implementation-specific execution logic.
 
         This method is called by execute() after all validation
         and security checks have passed.
         """
-        pass
 
     @abstractmethod
     def _validate_impl(self) -> bool:
-        """
-        Implementation-specific validation logic.
+        """Implementation-specific validation logic.
 
         Should validate parameters specific to this command type.
         """
-        pass
 
     @abstractmethod
     def get_required_permissions(self) -> frozenset[Permission]:
         """Get required permissions for this command."""
-        pass
 
     def get_security_risk_level(self) -> str:
         """Default to medium risk - override for specific commands."""
@@ -130,8 +121,7 @@ class BaseCommand(ABC):
     # @require(lambda self, context: self.validate() and context.has_permissions(self.get_required_permissions()))
     # @ensure(lambda result: result.execution_time is None or result.execution_time <= MAX_COMMAND_DURATION)
     def execute(self, context: ExecutionContext) -> CommandResult:
-        """
-        Execute command with full contract enforcement.
+        """Execute command with full contract enforcement.
 
         Handles validation, security checks, performance monitoring,
         and error recovery.
@@ -177,19 +167,18 @@ class BaseCommand(ABC):
         except SecurityViolationError as e:
             return CommandResult(
                 success=False,
-                error_message=f"Security violation: {str(e)}",
+                error_message=f"Security violation: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
         except Exception as e:
             return CommandResult(
                 success=False,
-                error_message=f"Command execution failed: {str(e)}",
+                error_message=f"Command execution failed: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 
     def validate(self) -> bool:
-        """
-        Validate command with security checks.
+        """Validate command with security checks.
 
         Performs both base validation and implementation-specific validation.
         """
@@ -210,8 +199,7 @@ class BaseCommand(ABC):
 
 @dataclass(frozen=True)
 class NoOpCommand(BaseCommand):
-    """
-    No-operation command for testing and placeholders.
+    """No-operation command for testing and placeholders.
 
     Always succeeds and performs no actions.
     Safe to execute with minimal permissions.
@@ -242,8 +230,7 @@ class NoOpCommand(BaseCommand):
 
 
 def is_safe_text_content(text: str) -> bool:
-    """
-    Check if text content is safe for execution.
+    """Check if text content is safe for execution.
 
     Validates against script injection, system commands,
     and other security threats.
@@ -281,8 +268,7 @@ def create_command_result(
     error_message: str | None = None,
     **metadata,
 ) -> CommandResult:
-    """
-    Helper function to create standardized command results.
+    """Helper function to create standardized command results.
 
     Args:
         success: Whether command succeeded
@@ -292,7 +278,11 @@ def create_command_result(
 
     Returns:
         Properly formatted CommandResult
+
     """
     return CommandResult(
-        success=success, output=output, error_message=error_message, metadata=metadata
+        success=success,
+        output=output,
+        error_message=error_message,
+        metadata=metadata,
     )

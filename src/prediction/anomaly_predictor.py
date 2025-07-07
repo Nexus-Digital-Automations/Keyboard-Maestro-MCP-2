@@ -1,6 +1,4 @@
-"""
-Anomaly prediction for proactive issue detection and prevention.
-"""
+"""Anomaly prediction for proactive issue detection and prevention."""
 
 import logging
 from datetime import timedelta
@@ -27,7 +25,8 @@ class AnomalyPredictor:
         self.logger = logging.getLogger(__name__)
 
     async def predict_anomalies(
-        self, metrics_data: list[dict[str, Any]]
+        self,
+        metrics_data: list[dict[str, Any]],
     ) -> Either[Exception, list[AnomalyPrediction]]:
         """Predict potential anomalies in system behavior."""
         try:

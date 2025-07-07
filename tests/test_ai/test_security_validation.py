@@ -1,5 +1,4 @@
-"""
-Security validation tests for AI infrastructure components.
+"""Security validation tests for AI infrastructure components.
 
 This module provides comprehensive security testing for the AI infrastructure
 including API key protection, data encryption, secure communication, audit
@@ -28,13 +27,16 @@ from src.ai.caching_system import CacheKey, IntelligentCacheManager
 from src.ai.config.ai_config import AIConfigManager
 from src.ai.providers.openai_client import OpenAIClient
 from src.ai.security.api_key_manager import APIKeyManager
-from src.core.ai_integration import AIOperation, AIRequest
+from src.core.ai_integration import (
+    AIOperation,
+    create_ai_request,
+)
 
 
 class TestAPIKeySecurityValidation:
     """Security validation tests for API key management."""
 
-    def test_api_key_encryption_at_rest(self):
+    def test_api_key_encryption_at_rest(self) -> None:
         """Test API keys are encrypted when stored."""
         api_key_manager = APIKeyManager()
         test_key = "sk-test-key-for-encryption-validation"
@@ -52,7 +54,7 @@ class TestAPIKeySecurityValidation:
             assert test_key not in str(stored_data)
             assert "sk-test-key" not in str(stored_data)
 
-    def test_api_key_validation_security(self):
+    def test_api_key_validation_security(self) -> None:
         """Test API key validation prevents injection attacks."""
         api_key_manager = APIKeyManager()
 
@@ -71,7 +73,7 @@ class TestAPIKeySecurityValidation:
             # Should reject malicious inputs
             assert result.is_left()
 
-    def test_key_rotation_security(self):
+    def test_key_rotation_security(self) -> None:
         """Test secure key rotation functionality."""
         api_key_manager = APIKeyManager()
         provider = "rotation_security_test"
@@ -90,11 +92,11 @@ class TestAPIKeySecurityValidation:
         if current_key.is_right():
             # In environment mode, might still be old key
             # In secure storage mode, should be new key
-            retrieved_key = current_key.right_value
+            retrieved_key = current_key.value
             # At minimum, ensure rotation was recorded
             assert retrieved_key in [old_key, new_key]
 
-    def test_key_metadata_security(self):
+    def test_key_metadata_security(self) -> None:
         """Test key metadata doesn't leak sensitive information."""
         api_key_manager = APIKeyManager()
         provider = "metadata_test"
@@ -117,7 +119,7 @@ class TestAPIKeySecurityValidation:
             assert key not in metadata_str
             assert "sk-metadata-test" not in metadata_str
 
-    def test_concurrent_key_access_security(self):
+    def test_concurrent_key_access_security(self) -> None:
         """Test secure concurrent access to keys."""
         import threading
         import time
@@ -132,13 +134,13 @@ class TestAPIKeySecurityValidation:
         results = []
         errors = []
 
-        def access_key(thread_id: int):
+        def access_key(thread_id: int) -> None:
             """Thread worker for concurrent key access."""
             try:
                 for i in range(10):
                     result = api_key_manager.retrieve_key(provider)
                     if result.is_right():
-                        results.append((thread_id, i, result.right_value))
+                        results.append((thread_id, i, result.value))
                     else:
                         errors.append((thread_id, i, result.left_value))
                     time.sleep(0.001)  # Small delay
@@ -165,7 +167,7 @@ class TestAPIKeySecurityValidation:
 class TestDataSecurityValidation:
     """Security validation tests for data protection."""
 
-    def test_request_data_sanitization(self):
+    def test_request_data_sanitization(self) -> None:
         """Test input data sanitization for security."""
         client = OpenAIClient(api_key="test-key-sanitization", model="gpt-3.5-turbo")
 
@@ -179,11 +181,13 @@ class TestDataSecurityValidation:
         ]
 
         for malicious_input in malicious_inputs:
-            request = AIRequest(
+            request_result = create_ai_request(
                 operation=AIOperation.ANALYZE,
                 input_data=malicious_input,
-                processing_parameters={"temperature": 0.7},
+                temperature=0.7,
             )
+            assert request_result.is_right()
+            request = request_result.value
 
             # Build payload (should sanitize input)
             payload = client._build_request_payload(request)
@@ -195,7 +199,7 @@ class TestDataSecurityValidation:
                 "script" not in payload_str.lower() or "&lt;script&gt;" in payload_str
             )
 
-    def test_cache_data_security(self):
+    def test_cache_data_security(self) -> None:
         """Test cached data security and isolation."""
         cache_manager = IntelligentCacheManager()
 
@@ -208,27 +212,31 @@ class TestDataSecurityValidation:
 
         # Store in different namespaces
         cache_manager.cache.l1_cache.put(
-            sensitive_key, sensitive_data, namespace="classified"
+            sensitive_key,
+            sensitive_data,
+            namespace="classified",
         )
         cache_manager.cache.l1_cache.put(public_key, public_data, namespace="public")
 
         # Verify namespace isolation
         # Should not be able to access sensitive data from public namespace
         cross_access = cache_manager.cache.l1_cache.get(
-            sensitive_key, namespace="public"
+            sensitive_key,
+            namespace="public",
         )
         assert cross_access is None
 
         # Should be able to access appropriate data
         sensitive_result = cache_manager.cache.l1_cache.get(
-            sensitive_key, namespace="classified"
+            sensitive_key,
+            namespace="classified",
         )
         public_result = cache_manager.cache.l1_cache.get(public_key, namespace="public")
 
         assert sensitive_result == sensitive_data
         assert public_result == public_data
 
-    def test_data_anonymization(self):
+    def test_data_anonymization(self) -> None:
         """Test data anonymization for privacy protection."""
         # Test PII detection and anonymization
         test_data = {
@@ -255,11 +263,15 @@ class TestDataSecurityValidation:
                     )
                     # SSN pattern
                     anonymized_value = re.sub(
-                        r"\b\d{3}-\d{2}-\d{4}\b", "[SSN_REDACTED]", anonymized_value
+                        r"\b\d{3}-\d{2}-\d{4}\b",
+                        "[SSN_REDACTED]",
+                        anonymized_value,
                     )
                     # Phone pattern
                     anonymized_value = re.sub(
-                        r"\b\d{3}-\d{3}-\d{4}\b", "[PHONE_REDACTED]", anonymized_value
+                        r"\b\d{3}-\d{3}-\d{4}\b",
+                        "[PHONE_REDACTED]",
+                        anonymized_value,
                     )
                     # Credit card pattern
                     anonymized_value = re.sub(
@@ -288,11 +300,13 @@ class TestDataSecurityValidation:
 class TestAuditSecurityValidation:
     """Security validation tests for audit logging."""
 
-    def test_audit_log_integrity(self):
+    def test_audit_log_integrity(self) -> None:
         """Test audit log integrity and tamper resistance."""
         # Create temporary audit log
         with tempfile.NamedTemporaryFile(
-            mode="w+", suffix=".log", delete=False
+            mode="w+",
+            suffix=".log",
+            delete=False,
         ) as log_file:
             log_path = Path(log_file.name)
 
@@ -337,7 +351,7 @@ class TestAuditSecurityValidation:
             # Clean up
             log_path.unlink()
 
-    def test_audit_log_security_events(self):
+    def test_audit_log_security_events(self) -> None:
         """Test security events are properly logged."""
         api_key_manager = APIKeyManager()
 
@@ -347,7 +361,7 @@ class TestAuditSecurityValidation:
         security_events = []
 
         # Mock audit logging
-        def mock_audit_log(event: str, details: dict[str, Any]):
+        def mock_audit_log(event: str, details: dict[str, Any]) -> None:
             security_events.append({"event": event, "details": details})
 
         # Test security events
@@ -375,7 +389,7 @@ class TestAuditSecurityValidation:
 class TestRateLimitingSecurityValidation:
     """Security validation tests for rate limiting and abuse prevention."""
 
-    def test_api_rate_limiting(self):
+    def test_api_rate_limiting(self) -> bool:
         """Test API rate limiting prevents abuse."""
         client = OpenAIClient(
             api_key="test-key-rate-limit",
@@ -388,7 +402,7 @@ class TestRateLimitingSecurityValidation:
         rate_limited_count = 0
 
         # Mock rate limiting check
-        def mock_check_rate_limit():
+        def mock_check_rate_limit() -> bool:
             nonlocal request_count, rate_limited_count
             request_count += 1
             if request_count > 10:  # Simulate rate limit at 10 requests
@@ -403,11 +417,13 @@ class TestRateLimitingSecurityValidation:
                 continue
 
             # Create request
-            request = AIRequest(
+            request_result = create_ai_request(
                 operation=AIOperation.ANALYZE,
                 input_data=f"Test request {i}",
-                processing_parameters={"temperature": 0.7},
+                temperature=0.7,
             )
+            assert request_result.is_right()
+            request = request_result.value
 
             # Build payload (this would normally make API call)
             payload = client._build_request_payload(request)
@@ -417,18 +433,20 @@ class TestRateLimitingSecurityValidation:
         assert rate_limited_count > 0
         assert request_count == 15
 
-    def test_request_size_limits(self):
+    def test_request_size_limits(self) -> None:
         """Test request size limits prevent DoS attacks."""
         client = OpenAIClient(api_key="test-key-size-limit", model="gpt-3.5-turbo")
 
         # Test oversized request
         large_input = "x" * 1000000  # 1MB of text
 
-        request = AIRequest(
+        request_result = create_ai_request(
             operation=AIOperation.ANALYZE,
             input_data=large_input,
-            processing_parameters={"temperature": 0.7},
+            temperature=0.7,
         )
+        assert request_result.is_right()
+        request = request_result.value
 
         # Should handle large requests gracefully
         # In real implementation, this might truncate or reject
@@ -442,7 +460,7 @@ class TestRateLimitingSecurityValidation:
 class TestConfigurationSecurityValidation:
     """Security validation tests for configuration security."""
 
-    def test_secure_configuration_loading(self):
+    def test_secure_configuration_loading(self) -> None:
         """Test secure configuration loading prevents injection."""
         # Create temporary config with potentially malicious content
         malicious_config = {
@@ -453,12 +471,14 @@ class TestConfigurationSecurityValidation:
                 "openai": {
                     "api_key_env_var": "OPENAI_API_KEY$(evil_command)",
                     "base_url": "https://api.openai.com/v1'; DROP TABLE configs; --",
-                }
+                },
             },
         }
 
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
+            mode="w",
+            suffix=".json",
+            delete=False,
         ) as config_file:
             json.dump(malicious_config, config_file)
             config_path = Path(config_file.name)
@@ -468,7 +488,7 @@ class TestConfigurationSecurityValidation:
             result = config_manager.load_config()
 
             if result.is_right():
-                config = result.right_value
+                config = result.value
                 # Verify malicious content is not executed
                 assert config.debug_mode in [
                     True,
@@ -482,7 +502,7 @@ class TestConfigurationSecurityValidation:
         finally:
             config_path.unlink()
 
-    def test_environment_variable_security(self):
+    def test_environment_variable_security(self) -> None:
         """Test environment variable handling security."""
         config_manager = AIConfigManager()
 
@@ -498,12 +518,12 @@ class TestConfigurationSecurityValidation:
             result = config_manager.load_config()
 
             if result.is_right():
-                config = result.right_value
+                config = result.value
                 # Verify environment variables are properly sanitized
                 assert config.debug_mode in [True, False]
                 assert "$(malicious)" not in config.default_provider
 
-    def test_configuration_validation_security(self):
+    def test_configuration_validation_security(self) -> None:
         """Test configuration validation prevents security issues."""
         config_manager = AIConfigManager()
 
@@ -520,7 +540,7 @@ class TestConfigurationSecurityValidation:
 class TestEncryptionSecurityValidation:
     """Security validation tests for encryption systems."""
 
-    def test_encryption_key_security(self):
+    def test_encryption_key_security(self) -> None:
         """Test encryption key generation and management security."""
         # Test key generation
         key = Fernet.generate_key()
@@ -538,14 +558,14 @@ class TestEncryptionSecurityValidation:
         decrypted_data = fernet.decrypt(encrypted_data).decode()
         assert decrypted_data == sensitive_data
 
-    def test_key_derivation_security(self):
+    def test_key_derivation_security(self) -> None:
         """Test secure key derivation from passwords."""
         import base64
 
         from cryptography.hazmat.primitives import hashes
         from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-        password = "test_password_123"
+        password = "test_password_123"  # noqa: S105 # Test fixture password
         salt = os.urandom(16)
 
         # Test PBKDF2 key derivation

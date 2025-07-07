@@ -1,5 +1,4 @@
-"""
-Git integration and version control automation for developer toolkit.
+"""Git integration and version control automation for developer toolkit.
 
 This module provides comprehensive Git operations including:
 - Repository management and authentication
@@ -13,6 +12,7 @@ Type Safety: Complete type system with contracts and validation.
 """
 
 import asyncio
+import contextlib
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -45,10 +45,10 @@ class AuthenticationType(Enum):
     """Git authentication methods."""
 
     SSH_KEY = "ssh_key"
-    HTTPS_TOKEN = "https_token"
-    USERNAME_PASSWORD = "username_password"
-    GITHUB_TOKEN = "github_token"
-    GITLAB_TOKEN = "gitlab_token"
+    HTTPS_TOKEN = "https_token"  # noqa: S105 - Type identifier, not a secret
+    USERNAME_PASSWORD = "username_password"  # noqa: S105 - Type identifier, not a secret
+    GITHUB_TOKEN = "github_token"  # noqa: S105 - Type identifier, not a secret
+    GITLAB_TOKEN = "gitlab_token"  # noqa: S105 - Type identifier, not a secret
 
 
 class MergeStrategy(Enum):
@@ -73,11 +73,11 @@ class GitCredentials:
 
     @require(
         lambda self: self.auth_type != AuthenticationType.SSH_KEY
-        or self.ssh_key_path is not None
+        or self.ssh_key_path is not None,
     )
     @require(
         lambda self: self.auth_type != AuthenticationType.HTTPS_TOKEN
-        or self.token is not None
+        or self.token is not None,
     )
     def __post_init__(self):
         pass
@@ -184,8 +184,8 @@ class GitConnector:
         self.logger.info(f"Set repository path to {path}")
 
     @require(
-        lambda self, url: url.startswith(("http://", "https://", "git://", "ssh://"))
-        or "@" in url
+        lambda _self, url: url.startswith(("http://", "https://", "git://", "ssh://"))
+        or "@" in url,
     )
     async def clone_repository(
         self,
@@ -196,7 +196,6 @@ class GitConnector:
         include_submodules: bool = False,
     ) -> Either[OrchestrationError, GitOperationResult]:
         """Clone a Git repository."""
-
         try:
             datetime.now(UTC)
 
@@ -231,32 +230,39 @@ class GitConnector:
     @require(lambda self: self.repository_path is not None)
     async def get_status(self) -> Either[OrchestrationError, GitStatus]:
         """Get Git repository status."""
-
         try:
             # Get current branch
             branch_result = await self._execute_git_command(
-                [self.git_executable, "branch", "--show-current"]
+                [
+                    self.git_executable,
+                    "branch",
+                    "--show-current",
+                ],
             )
 
             if not branch_result.success:
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        "Failed to get current branch"
-                    )
+                        "Failed to get current branch",
+                    ),
                 )
 
             current_branch = branch_result.output.strip()
 
             # Get status information
             status_result = await self._execute_git_command(
-                [self.git_executable, "status", "--porcelain"]
+                [
+                    self.git_executable,
+                    "status",
+                    "--porcelain",
+                ],
             )
 
             if not status_result.success:
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        "Failed to get repository status"
-                    )
+                        "Failed to get repository status",
+                    ),
                 )
 
             # Parse status output
@@ -287,7 +293,7 @@ class GitConnector:
             status = GitStatus(
                 current_branch=current_branch,
                 is_clean=len(
-                    staged_files + modified_files + untracked_files + deleted_files
+                    staged_files + modified_files + untracked_files + deleted_files,
                 )
                 == 0,
                 staged_files=staged_files,
@@ -307,7 +313,6 @@ class GitConnector:
 
     async def _get_ahead_behind_count(self) -> tuple[int, int]:
         """Get ahead/behind commit count."""
-
         try:
             result = await self._execute_git_command(
                 [
@@ -316,7 +321,7 @@ class GitConnector:
                     "--count",
                     "--left-right",
                     "HEAD...@{upstream}",
-                ]
+                ],
             )
 
             if result.success and result.output.strip():
@@ -338,29 +343,36 @@ class GitConnector:
         author: str | None = None,
     ) -> Either[OrchestrationError, GitOperationResult]:
         """Commit changes to the repository."""
-
         try:
             # Add files to staging area
             if add_all:
                 add_result = await self._execute_git_command(
-                    [self.git_executable, "add", "."]
+                    [
+                        self.git_executable,
+                        "add",
+                        ".",
+                    ],
                 )
                 if not add_result.success:
                     return Either.left(
                         OrchestrationError.workflow_execution_failed(
-                            "Failed to add files to staging area"
-                        )
+                            "Failed to add files to staging area",
+                        ),
                     )
             elif files:
                 for file_path in files:
                     add_result = await self._execute_git_command(
-                        [self.git_executable, "add", file_path]
+                        [
+                            self.git_executable,
+                            "add",
+                            file_path,
+                        ],
                     )
                     if not add_result.success:
                         return Either.left(
                             OrchestrationError.workflow_execution_failed(
-                                f"Failed to add file {file_path}"
-                            )
+                                f"Failed to add file {file_path}",
+                            ),
                         )
 
             # Build commit command
@@ -387,10 +399,13 @@ class GitConnector:
 
     async def _get_latest_commit_hash(self) -> str | None:
         """Get the latest commit hash."""
-
         try:
             result = await self._execute_git_command(
-                [self.git_executable, "rev-parse", "HEAD"]
+                [
+                    self.git_executable,
+                    "rev-parse",
+                    "HEAD",
+                ],
             )
             if result.success:
                 return result.output.strip()
@@ -400,10 +415,12 @@ class GitConnector:
 
     @require(lambda self: self.repository_path is not None)
     async def create_branch(
-        self, branch_name: str, checkout: bool = True, from_branch: str | None = None
+        self,
+        branch_name: str,
+        checkout: bool = True,
+        from_branch: str | None = None,
     ) -> Either[OrchestrationError, GitOperationResult]:
         """Create a new Git branch."""
-
         try:
             # Build branch creation command
             cmd = [self.git_executable, "branch", branch_name]
@@ -417,21 +434,25 @@ class GitConnector:
             if not result.success:
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        f"Failed to create branch {branch_name}"
-                    )
+                        f"Failed to create branch {branch_name}",
+                    ),
                 )
 
             # Checkout branch if requested
             if checkout:
                 checkout_result = await self._execute_git_command(
-                    [self.git_executable, "checkout", branch_name]
+                    [
+                        self.git_executable,
+                        "checkout",
+                        branch_name,
+                    ],
                 )
 
                 if not checkout_result.success:
                     return Either.left(
                         OrchestrationError.workflow_execution_failed(
-                            f"Failed to checkout branch {branch_name}"
-                        )
+                            f"Failed to checkout branch {branch_name}",
+                        ),
                     )
 
                 result.message += " and checked out"
@@ -452,7 +473,6 @@ class GitConnector:
         commit_message: str | None = None,
     ) -> Either[OrchestrationError, GitOperationResult]:
         """Merge a branch into the current branch."""
-
         try:
             # Build merge command
             cmd = [self.git_executable, "merge"]
@@ -484,10 +504,10 @@ class GitConnector:
 
     @require(lambda self: self.repository_path is not None)
     async def get_branches(
-        self, include_remote: bool = True
+        self,
+        include_remote: bool = True,
     ) -> Either[OrchestrationError, list[BranchInfo]]:
         """Get all branches in the repository."""
-
         try:
             # Get local branches
             cmd = [self.git_executable, "branch", "-v"]
@@ -499,8 +519,8 @@ class GitConnector:
             if not result.success:
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        "Failed to get branch information"
-                    )
+                        "Failed to get branch information",
+                    ),
                 )
 
             branches = []
@@ -526,7 +546,7 @@ class GitConnector:
 
                     # Get commit date (simplified)
                     commit_date = datetime.now(
-                        UTC
+                        UTC,
                     )  # Would need separate command for actual date
 
                     branch_info = BranchInfo(
@@ -547,10 +567,12 @@ class GitConnector:
             return Either.left(OrchestrationError.workflow_execution_failed(error_msg))
 
     async def _execute_git_command(
-        self, cmd: list[str], cwd: str | None = None, timeout: int | None = None
+        self,
+        cmd: list[str],
+        cwd: str | None = None,
+        timeout: int | None = None,
     ) -> GitOperationResult:
         """Execute a Git command and return the result."""
-
         start_time = datetime.now(UTC)
         operation = GitOperation.STATUS  # Default, would need to parse from cmd
 
@@ -558,10 +580,8 @@ class GitConnector:
             # Determine operation type from command
             if len(cmd) > 1:
                 cmd_name = cmd[1].lower()
-                try:
+                with contextlib.suppress(ValueError):
                     operation = GitOperation(cmd_name)
-                except ValueError:
-                    pass  # Keep default
 
             # Set working directory
             working_dir = cwd or (
@@ -578,14 +598,15 @@ class GitConnector:
 
             try:
                 stdout, stderr = await asyncio.wait_for(
-                    process.communicate(), timeout=timeout or self.default_timeout
+                    process.communicate(),
+                    timeout=timeout or self.default_timeout,
                 )
-            except asyncio.TimeoutError:
+            except asyncio.TimeoutError as e:
                 process.kill()
                 await process.wait()
                 raise Exception(
-                    f"Git command timed out after {timeout or self.default_timeout} seconds"
-                )
+                    f"Git command timed out after {timeout or self.default_timeout} seconds",
+                ) from e
 
             # Decode output
             stdout_text = stdout.decode("utf-8", errors="replace")

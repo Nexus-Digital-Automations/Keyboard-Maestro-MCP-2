@@ -1,5 +1,4 @@
-"""
-API management and documentation automation for comprehensive DevOps integration.
+"""API management and documentation automation for comprehensive DevOps integration.
 
 This module provides API lifecycle management including:
 - Automatic API endpoint discovery and cataloging
@@ -213,28 +212,27 @@ class APIManager:
         discovery_config: dict[str, Any] = None,
     ) -> Either[OrchestrationError, APISpecification]:
         """Discover APIs from various sources."""
-
         try:
             self.logger.info(
-                f"Discovering APIs from {source_type.value}: {source_location}"
+                f"Discovering APIs from {source_type.value}: {source_location}",
             )
 
             if source_type == APISourceType.CODE:
                 return await self._discover_from_code(
-                    source_location, discovery_config or {}
+                    source_location,
+                    discovery_config or {},
                 )
-            elif source_type == APISourceType.OPENAPI:
+            if source_type == APISourceType.OPENAPI:
                 return await self._discover_from_openapi(source_location)
-            elif source_type == APISourceType.POSTMAN:
+            if source_type == APISourceType.POSTMAN:
                 return await self._discover_from_postman(source_location)
-            elif source_type == APISourceType.SWAGGER:
+            if source_type == APISourceType.SWAGGER:
                 return await self._discover_from_swagger(source_location)
-            else:
-                return Either.left(
-                    OrchestrationError.workflow_execution_failed(
-                        f"Unsupported source type: {source_type}"
-                    )
-                )
+            return Either.left(
+                OrchestrationError.workflow_execution_failed(
+                    f"Unsupported source type: {source_type}",
+                ),
+            )
 
         except Exception as e:
             error_msg = f"API discovery failed: {e}"
@@ -242,17 +240,18 @@ class APIManager:
             return Either.left(OrchestrationError.workflow_execution_failed(error_msg))
 
     async def _discover_from_code(
-        self, code_path: str, config: dict[str, Any]
+        self,
+        code_path: str,
+        config: dict[str, Any],
     ) -> Either[OrchestrationError, APISpecification]:
         """Discover APIs from code analysis."""
-
         try:
             code_dir = Path(code_path)
             if not code_dir.exists():
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        f"Code path not found: {code_path}"
-                    )
+                        f"Code path not found: {code_path}",
+                    ),
                 )
 
             endpoints = []
@@ -272,8 +271,8 @@ class APIManager:
             if not endpoints:
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        "No API endpoints found in code"
-                    )
+                        "No API endpoints found in code",
+                    ),
                 )
 
             # Create API specification
@@ -281,7 +280,8 @@ class APIManager:
                 title=config.get("title", "Discovered API"),
                 version=config.get("version", "1.0.0"),
                 description=config.get(
-                    "description", "API discovered from code analysis"
+                    "description",
+                    "API discovered from code analysis",
                 ),
                 base_url=config.get("base_url", "http://localhost:8000"),
                 endpoints=endpoints,
@@ -299,7 +299,6 @@ class APIManager:
 
     async def _extract_python_endpoints(self, file_path: Path) -> list[APIEndpoint]:
         """Extract API endpoints from Python files."""
-
         endpoints = []
 
         try:
@@ -349,7 +348,6 @@ class APIManager:
 
     async def _extract_js_endpoints(self, file_path: Path) -> list[APIEndpoint]:
         """Extract API endpoints from JavaScript files."""
-
         endpoints = []
 
         try:
@@ -381,7 +379,6 @@ class APIManager:
 
     async def _extract_ts_endpoints(self, file_path: Path) -> list[APIEndpoint]:
         """Extract API endpoints from TypeScript files."""
-
         endpoints = []
 
         try:
@@ -412,16 +409,17 @@ class APIManager:
         return endpoints
 
     async def _discover_from_openapi(
-        self, spec_location: str
+        self,
+        spec_location: str,
     ) -> Either[OrchestrationError, APISpecification]:
         """Discover APIs from OpenAPI specification."""
-
         try:
             # Load OpenAPI spec (file or URL)
             if spec_location.startswith(("http://", "https://")):
                 async with httpx.AsyncClient() as client:
                     response = await client.get(
-                        spec_location, timeout=self.discovery_timeout
+                        spec_location,
+                        timeout=self.discovery_timeout,
                     )
                     response.raise_for_status()
                     spec_data = response.json()
@@ -430,8 +428,8 @@ class APIManager:
                 if not spec_path.exists():
                     return Either.left(
                         OrchestrationError.workflow_execution_failed(
-                            f"OpenAPI spec not found: {spec_location}"
-                        )
+                            f"OpenAPI spec not found: {spec_location}",
+                        ),
                     )
 
                 if spec_path.suffix.lower() in [".yaml", ".yml"]:
@@ -450,7 +448,8 @@ class APIManager:
                             path=path,
                             method=APIMethod(method.upper()),
                             summary=operation.get(
-                                "summary", f"{method.upper()} {path}"
+                                "summary",
+                                f"{method.upper()} {path}",
                             ),
                             description=operation.get("description", ""),
                             parameters=operation.get("parameters", []),
@@ -475,7 +474,8 @@ class APIManager:
                 endpoints=endpoints,
                 servers=servers,
                 security_schemes=spec_data.get("components", {}).get(
-                    "securitySchemes", {}
+                    "securitySchemes",
+                    {},
                 ),
                 components=spec_data.get("components", {}),
                 tags=spec_data.get("tags", []),
@@ -492,16 +492,17 @@ class APIManager:
             return Either.left(OrchestrationError.workflow_execution_failed(str(e)))
 
     async def _discover_from_postman(
-        self, collection_location: str
+        self,
+        collection_location: str,
     ) -> Either[OrchestrationError, APISpecification]:
         """Discover APIs from Postman collection."""
-
         try:
             # Load Postman collection
             if collection_location.startswith(("http://", "https://")):
                 async with httpx.AsyncClient() as client:
                     response = await client.get(
-                        collection_location, timeout=self.discovery_timeout
+                        collection_location,
+                        timeout=self.discovery_timeout,
                     )
                     response.raise_for_status()
                     collection_data = response.json()
@@ -510,15 +511,15 @@ class APIManager:
                 if not collection_path.exists():
                     return Either.left(
                         OrchestrationError.workflow_execution_failed(
-                            f"Postman collection not found: {collection_location}"
-                        )
+                            f"Postman collection not found: {collection_location}",
+                        ),
                     )
                 collection_data = json.loads(collection_path.read_text())
 
             # Parse Postman collection
             endpoints = []
 
-            def extract_requests(items):
+            def extract_requests(items) -> Any:
                 for item in items:
                     if "request" in item:
                         request = item["request"]
@@ -561,7 +562,7 @@ class APIManager:
             self.discovered_apis[api_id] = api_spec
 
             self.logger.info(
-                f"Discovered {len(endpoints)} endpoints from Postman collection"
+                f"Discovered {len(endpoints)} endpoints from Postman collection",
             )
             return Either.right(api_spec)
 
@@ -569,7 +570,8 @@ class APIManager:
             return Either.left(OrchestrationError.workflow_execution_failed(str(e)))
 
     async def _discover_from_swagger(
-        self, spec_location: str
+        self,
+        spec_location: str,
     ) -> Either[OrchestrationError, APISpecification]:
         """Discover APIs from Swagger specification."""
         # Swagger 2.0 is similar to OpenAPI but with different structure
@@ -583,10 +585,9 @@ class APIManager:
         output_path: str | None = None,
     ) -> Either[OrchestrationError, str]:
         """Generate API documentation in specified format."""
-
         try:
             self.logger.info(
-                f"Generating {format.value} documentation for {api_spec.title}"
+                f"Generating {format.value} documentation for {api_spec.title}",
             )
 
             output_dir = (
@@ -596,18 +597,17 @@ class APIManager:
 
             if format == DocumentationFormat.OPENAPI:
                 return await self._generate_openapi_spec(api_spec, output_dir)
-            elif format == DocumentationFormat.MARKDOWN:
+            if format == DocumentationFormat.MARKDOWN:
                 return await self._generate_markdown_docs(api_spec, output_dir)
-            elif format == DocumentationFormat.HTML:
+            if format == DocumentationFormat.HTML:
                 return await self._generate_html_docs(api_spec, output_dir)
-            elif format == DocumentationFormat.POSTMAN:
+            if format == DocumentationFormat.POSTMAN:
                 return await self._generate_postman_collection(api_spec, output_dir)
-            else:
-                return Either.left(
-                    OrchestrationError.workflow_execution_failed(
-                        f"Unsupported documentation format: {format}"
-                    )
-                )
+            return Either.left(
+                OrchestrationError.workflow_execution_failed(
+                    f"Unsupported documentation format: {format}",
+                ),
+            )
 
         except Exception as e:
             error_msg = f"Documentation generation failed: {e}"
@@ -615,10 +615,11 @@ class APIManager:
             return Either.left(OrchestrationError.workflow_execution_failed(error_msg))
 
     async def _generate_openapi_spec(
-        self, api_spec: APISpecification, output_dir: Path
+        self,
+        api_spec: APISpecification,
+        output_dir: Path,
     ) -> Either[OrchestrationError, str]:
         """Generate OpenAPI 3.0 specification."""
-
         try:
             openapi_spec = {
                 "openapi": "3.0.0",
@@ -678,10 +679,11 @@ class APIManager:
             return Either.left(OrchestrationError.workflow_execution_failed(str(e)))
 
     async def _generate_markdown_docs(
-        self, api_spec: APISpecification, output_dir: Path
+        self,
+        api_spec: APISpecification,
+        output_dir: Path,
     ) -> Either[OrchestrationError, str]:
         """Generate Markdown documentation."""
-
         try:
             markdown_content = f"""# {api_spec.title}
 
@@ -734,7 +736,6 @@ class APIManager:
 
     def _format_endpoint_markdown(self, endpoint: APIEndpoint) -> str:
         """Format an endpoint for Markdown documentation."""
-
         deprecated_badge = " **(DEPRECATED)**" if endpoint.deprecated else ""
 
         content = f"""#### {endpoint.method.value} {endpoint.path}{deprecated_badge}
@@ -766,10 +767,11 @@ class APIManager:
         return content
 
     async def _generate_html_docs(
-        self, api_spec: APISpecification, output_dir: Path
+        self,
+        api_spec: APISpecification,
+        output_dir: Path,
     ) -> Either[OrchestrationError, str]:
         """Generate HTML documentation."""
-
         try:
             # Simple HTML template
             html_content = f"""<!DOCTYPE html>
@@ -848,10 +850,11 @@ class APIManager:
             return Either.left(OrchestrationError.workflow_execution_failed(str(e)))
 
     async def _generate_postman_collection(
-        self, api_spec: APISpecification, output_dir: Path
+        self,
+        api_spec: APISpecification,
+        output_dir: Path,
     ) -> Either[OrchestrationError, str]:
         """Generate Postman collection."""
-
         try:
             collection = {
                 "info": {
@@ -861,7 +864,7 @@ class APIManager:
                 },
                 "item": [],
                 "variable": [
-                    {"key": "baseUrl", "value": api_spec.base_url, "type": "string"}
+                    {"key": "baseUrl", "value": api_spec.base_url, "type": "string"},
                 ],
             }
 
@@ -891,7 +894,7 @@ class APIManager:
                                     "key": param.get("name"),
                                     "value": "",
                                     "description": param.get("description", ""),
-                                }
+                                },
                             )
                     if query_params:
                         request_item["request"]["url"]["query"] = query_params

@@ -1,5 +1,4 @@
-"""
-Model Manager - TASK_59 Phase 2 Core Implementation
+"""Model Manager - TASK_59 Phase 2 Core Implementation.
 
 ML model training, validation, and deployment system for predictive analytics.
 Provides comprehensive model lifecycle management with automated training, validation, and deployment.
@@ -176,7 +175,7 @@ class DeploymentInfo:
     def __post_init__(self):
         if self.deployment_environment not in ["development", "staging", "production"]:
             raise ValueError(
-                "Deployment environment must be development, staging, or production"
+                "Deployment environment must be development, staging, or production",
             )
 
 
@@ -221,8 +220,7 @@ class ModelState:
 
 
 class ModelManager:
-    """
-    Comprehensive ML model training, validation, and deployment system.
+    """Comprehensive ML model training, validation, and deployment system.
 
     Provides complete model lifecycle management including training pipelines,
     validation frameworks, deployment automation, and performance monitoring.
@@ -236,7 +234,7 @@ class ModelManager:
         self.model_artifacts: dict[ModelId, ModelArtifact] = {}
         self.model_performance: dict[ModelId, ModelPerformance] = {}
         self.validation_results: dict[ModelId, list[ValidationResult]] = defaultdict(
-            list
+            list,
         )
         self.deployment_info: dict[ModelId, DeploymentInfo] = {}
         self.training_history: dict[ModelId, list[dict[str, Any]]] = defaultdict(list)
@@ -249,7 +247,7 @@ class ModelManager:
         self._initialize_model_factories()
         self._initialize_validation_strategies()
 
-    def _initialize_model_factories(self):
+    def _initialize_model_factories(self) -> None:
         """Initialize model factory functions for different model types."""
         self.model_factories = {
             ModelType.LINEAR_REGRESSION: self._create_linear_regression_model,
@@ -263,7 +261,7 @@ class ModelManager:
             ModelType.PROPHET: self._create_prophet_model,
         }
 
-    def _initialize_validation_strategies(self):
+    def _initialize_validation_strategies(self) -> None:
         """Initialize validation strategy functions."""
         self.validation_strategies = {
             ValidationMethod.TRAIN_TEST_SPLIT: self._validate_train_test_split,
@@ -272,12 +270,12 @@ class ModelManager:
             ValidationMethod.HOLDOUT_VALIDATION: self._validate_holdout,
         }
 
-    @require(lambda self, config: isinstance(config, ModelConfiguration))
+    @require(lambda __self, config: isinstance(config, ModelConfiguration))
     async def create_model(
-        self, config: ModelConfiguration
+        self,
+        config: ModelConfiguration,
     ) -> Either[ModelTrainingError, ModelId]:
-        """
-        Create a new machine learning model with specified configuration.
+        """Create a new machine learning model with specified configuration.
 
         Initializes model structure, validates configuration, and prepares
         for training with appropriate model type and parameters.
@@ -289,7 +287,7 @@ class ModelManager:
                     ModelTrainingError(
                         f"Unsupported model type: {config.model_type}",
                         "UNSUPPORTED_MODEL_TYPE",
-                    )
+                    ),
                 )
 
             # Register model configuration
@@ -303,18 +301,20 @@ class ModelManager:
         except Exception as e:
             return Either.left(
                 ModelTrainingError(
-                    f"Model creation failed: {str(e)}", "MODEL_CREATION_ERROR"
-                )
+                    f"Model creation failed: {e!s}",
+                    "MODEL_CREATION_ERROR",
+                ),
             )
 
     @require(
         lambda self, model_id, dataset, validation_method=None: isinstance(
-            dataset, TrainingDataset
-        )
+            dataset,
+            TrainingDataset,
+        ),
     )
     @require(
         lambda self, model_id, dataset, validation_method=None: len(dataset.target_data)
-        >= 10
+        >= 10,
     )
     async def train_model(
         self,
@@ -322,8 +322,7 @@ class ModelManager:
         dataset: TrainingDataset,
         validation_method: ValidationMethod = ValidationMethod.TRAIN_TEST_SPLIT,
     ) -> Either[ModelTrainingError, ModelPerformance]:
-        """
-        Train machine learning model with provided dataset.
+        """Train machine learning model with provided dataset.
 
         Executes complete training pipeline including data preparation,
         model training, validation, and performance evaluation.
@@ -332,8 +331,9 @@ class ModelManager:
             if model_id not in self.model_registry:
                 return Either.left(
                     ModelTrainingError.training_failed(
-                        "unknown", f"Model {model_id} not found in registry"
-                    )
+                        "unknown",
+                        f"Model {model_id} not found in registry",
+                    ),
                 )
 
             config = self.model_registry[model_id]
@@ -361,7 +361,11 @@ class ModelManager:
 
             # Validate model
             validation_result = await self._validate_model(
-                model_instance, val_data, test_data, validation_method, config
+                model_instance,
+                val_data,
+                test_data,
+                validation_method,
+                config,
             )
 
             if validation_result.is_left():
@@ -380,14 +384,17 @@ class ModelManager:
                 mae=validation.validation_details.get("mae"),
                 training_time_seconds=training_time,
                 inference_time_ms=validation.validation_details.get(
-                    "inference_time_ms", 0.0
+                    "inference_time_ms",
+                    0.0,
                 ),
                 model_size_mb=0.0,  # Will be calculated when saved
             )
 
             # Save model artifact
             save_result = await self._save_model_artifact(
-                model_instance, config, performance
+                model_instance,
+                config,
+                performance,
             )
             if save_result.is_left():
                 return save_result
@@ -407,7 +414,7 @@ class ModelManager:
                     },
                     "validation_method": validation_method.value,
                     "status": "completed",
-                }
+                },
             )
 
             return Either.right(performance)
@@ -421,7 +428,7 @@ class ModelManager:
                         "dataset_id": dataset.dataset_id,
                         "status": "failed",
                         "error": str(e),
-                    }
+                    },
                 )
 
             return Either.left(
@@ -430,13 +437,16 @@ class ModelManager:
                     if model_id in self.model_registry
                     else "unknown",
                     str(e),
-                )
+                ),
             )
 
     async def _prepare_training_data(
-        self, dataset: TrainingDataset, config: ModelConfiguration
+        self,
+        dataset: TrainingDataset,
+        config: ModelConfiguration,
     ) -> Either[
-        ModelTrainingError, tuple[dict[str, Any], dict[str, Any], dict[str, Any]]
+        ModelTrainingError,
+        tuple[dict[str, Any], dict[str, Any], dict[str, Any]],
     ]:
         """Prepare and split training data."""
         try:
@@ -449,7 +459,7 @@ class ModelManager:
                     ModelTrainingError(
                         f"Missing feature columns: {missing_features}",
                         "MISSING_FEATURES",
-                    )
+                    ),
                 )
 
             # Extract relevant features
@@ -497,12 +507,16 @@ class ModelManager:
         except Exception as e:
             return Either.left(
                 ModelTrainingError(
-                    f"Data preparation failed: {str(e)}", "DATA_PREPARATION_ERROR"
-                )
+                    f"Data preparation failed: {e!s}",
+                    "DATA_PREPARATION_ERROR",
+                ),
             )
 
     async def _execute_training(
-        self, model: Any, train_data: dict[str, Any], config: ModelConfiguration
+        self,
+        model: Any,
+        train_data: dict[str, Any],
+        config: ModelConfiguration,
     ) -> Either[ModelTrainingError, Any]:
         """Execute model training process."""
         try:
@@ -547,9 +561,9 @@ class ModelManager:
         except Exception as e:
             return Either.left(
                 ModelTrainingError(
-                    f"Model training execution failed: {str(e)}",
+                    f"Model training execution failed: {e!s}",
                     "TRAINING_EXECUTION_ERROR",
-                )
+                ),
             )
 
     async def _validate_model(
@@ -574,8 +588,9 @@ class ModelManager:
         except Exception as e:
             return Either.left(
                 ModelTrainingError(
-                    f"Model validation failed: {str(e)}", "VALIDATION_ERROR"
-                )
+                    f"Model validation failed: {e!s}",
+                    "VALIDATION_ERROR",
+                ),
             )
 
     async def _validate_train_test_split(
@@ -590,15 +605,19 @@ class ModelManager:
             # Simulate model predictions on validation data
             val_predictions = await self._simulate_predictions(model, val_data, config)
             test_predictions = await self._simulate_predictions(
-                model, test_data, config
+                model,
+                test_data,
+                config,
             )
 
             # Calculate validation metrics
             val_accuracy = self._calculate_accuracy(
-                val_data["targets"], val_predictions
+                val_data["targets"],
+                val_predictions,
             )
             test_accuracy = self._calculate_accuracy(
-                test_data["targets"], test_predictions
+                test_data["targets"],
+                test_predictions,
             )
 
             # Calculate additional metrics
@@ -616,7 +635,7 @@ class ModelManager:
             failure_reasons = []
             if not is_passed:
                 failure_reasons.append(
-                    f"Validation score {validation_score:.3f} below threshold 0.7"
+                    f"Validation score {validation_score:.3f} below threshold 0.7",
                 )
 
             validation_result = ValidationResult(
@@ -655,9 +674,9 @@ class ModelManager:
         except Exception as e:
             return Either.left(
                 ModelTrainingError(
-                    f"Train-test split validation failed: {str(e)}",
+                    f"Train-test split validation failed: {e!s}",
                     "TRAIN_TEST_VALIDATION_ERROR",
-                )
+                ),
             )
 
     async def _validate_cross_validation(
@@ -680,7 +699,9 @@ class ModelManager:
             for fold in range(k_folds):
                 # Simulate fold validation
                 fold_predictions = await self._simulate_fold_predictions(
-                    model, fold_size, config
+                    model,
+                    fold_size,
+                    config,
                 )
                 fold_targets = all_targets[fold * fold_size : (fold + 1) * fold_size]
 
@@ -700,11 +721,11 @@ class ModelManager:
             failure_reasons = []
             if cv_mean < 0.7:
                 failure_reasons.append(
-                    f"Cross-validation mean {cv_mean:.3f} below threshold 0.7"
+                    f"Cross-validation mean {cv_mean:.3f} below threshold 0.7",
                 )
             if cv_std > 0.1:
                 failure_reasons.append(
-                    f"Cross-validation std {cv_std:.3f} too high (>0.1)"
+                    f"Cross-validation std {cv_std:.3f} too high (>0.1)",
                 )
 
             validation_result = ValidationResult(
@@ -739,8 +760,9 @@ class ModelManager:
         except Exception as e:
             return Either.left(
                 ModelTrainingError(
-                    f"Cross-validation failed: {str(e)}", "CROSS_VALIDATION_ERROR"
-                )
+                    f"Cross-validation failed: {e!s}",
+                    "CROSS_VALIDATION_ERROR",
+                ),
             )
 
     async def _validate_time_series_split(
@@ -756,26 +778,34 @@ class ModelManager:
             # Use validation data for parameter tuning, test data for final evaluation
 
             val_predictions = await self._simulate_time_series_predictions(
-                model, val_data, config
+                model,
+                val_data,
+                config,
             )
             test_predictions = await self._simulate_time_series_predictions(
-                model, test_data, config
+                model,
+                test_data,
+                config,
             )
 
             # Calculate time series specific metrics
             val_accuracy = self._calculate_accuracy(
-                val_data["targets"], val_predictions
+                val_data["targets"],
+                val_predictions,
             )
             test_accuracy = self._calculate_accuracy(
-                test_data["targets"], test_predictions
+                test_data["targets"],
+                test_predictions,
             )
 
             # Time series specific metrics
             mape = self._calculate_mape(
-                test_data["targets"], test_predictions
+                test_data["targets"],
+                test_predictions,
             )  # Mean Absolute Percentage Error
             directional_accuracy = self._calculate_directional_accuracy(
-                test_data["targets"], test_predictions
+                test_data["targets"],
+                test_predictions,
             )
 
             # Overall validation score
@@ -787,7 +817,7 @@ class ModelManager:
             failure_reasons = []
             if validation_score < 0.65:
                 failure_reasons.append(
-                    f"Time series validation score {validation_score:.3f} below threshold 0.65"
+                    f"Time series validation score {validation_score:.3f} below threshold 0.65",
                 )
             if mape > 15.0:
                 failure_reasons.append(f"MAPE {mape:.2f}% above threshold 15%")
@@ -825,9 +855,9 @@ class ModelManager:
         except Exception as e:
             return Either.left(
                 ModelTrainingError(
-                    f"Time series validation failed: {str(e)}",
+                    f"Time series validation failed: {e!s}",
                     "TIME_SERIES_VALIDATION_ERROR",
-                )
+                ),
             )
 
     async def _validate_holdout(
@@ -841,13 +871,16 @@ class ModelManager:
         try:
             # Simple holdout validation - use test data only
             test_predictions = await self._simulate_predictions(
-                model, test_data, config
+                model,
+                test_data,
+                config,
             )
 
             # Calculate holdout metrics
             accuracy = self._calculate_accuracy(test_data["targets"], test_predictions)
             precision = self._calculate_precision(
-                test_data["targets"], test_predictions
+                test_data["targets"],
+                test_predictions,
             )
             recall = self._calculate_recall(test_data["targets"], test_predictions)
             f1_score = self._calculate_f1_score(precision, recall)
@@ -857,7 +890,7 @@ class ModelManager:
             failure_reasons = []
             if not is_passed:
                 failure_reasons.append(
-                    f"Holdout accuracy {accuracy:.3f} below threshold 0.75"
+                    f"Holdout accuracy {accuracy:.3f} below threshold 0.75",
                 )
 
             validation_result = ValidationResult(
@@ -892,14 +925,16 @@ class ModelManager:
         except Exception as e:
             return Either.left(
                 ModelTrainingError(
-                    f"Holdout validation failed: {str(e)}", "HOLDOUT_VALIDATION_ERROR"
-                )
+                    f"Holdout validation failed: {e!s}",
+                    "HOLDOUT_VALIDATION_ERROR",
+                ),
             )
 
     # Model factory methods (simplified implementations)
 
     async def _create_linear_regression_model(
-        self, config: ModelConfiguration
+        self,
+        config: ModelConfiguration,
     ) -> dict[str, Any]:
         """Create linear regression model."""
         return {
@@ -921,7 +956,8 @@ class ModelManager:
         }
 
     async def _create_seasonal_arima_model(
-        self, config: ModelConfiguration
+        self,
+        config: ModelConfiguration,
     ) -> dict[str, Any]:
         """Create Seasonal ARIMA model."""
         return {
@@ -930,7 +966,8 @@ class ModelManager:
             "target": config.target_variable,
             "order": config.hyperparameters.get("order", (1, 1, 1)),
             "seasonal_order": config.hyperparameters.get(
-                "seasonal_order", (1, 1, 1, 12)
+                "seasonal_order",
+                (1, 1, 1, 12),
             ),
             "trained": False,
         }
@@ -947,7 +984,8 @@ class ModelManager:
         }
 
     async def _create_random_forest_model(
-        self, config: ModelConfiguration
+        self,
+        config: ModelConfiguration,
     ) -> dict[str, Any]:
         """Create Random Forest model."""
         return {
@@ -960,7 +998,8 @@ class ModelManager:
         }
 
     async def _create_gradient_boosting_model(
-        self, config: ModelConfiguration
+        self,
+        config: ModelConfiguration,
     ) -> dict[str, Any]:
         """Create Gradient Boosting model."""
         return {
@@ -973,7 +1012,8 @@ class ModelManager:
         }
 
     async def _create_neural_network_model(
-        self, config: ModelConfiguration
+        self,
+        config: ModelConfiguration,
     ) -> dict[str, Any]:
         """Create Neural Network model."""
         return {
@@ -986,7 +1026,8 @@ class ModelManager:
         }
 
     async def _create_anomaly_detection_model(
-        self, config: ModelConfiguration
+        self,
+        config: ModelConfiguration,
     ) -> dict[str, Any]:
         """Create Anomaly Detection model."""
         return {
@@ -1003,10 +1044,12 @@ class ModelManager:
             "features": config.feature_columns,
             "target": config.target_variable,
             "seasonality_mode": config.hyperparameters.get(
-                "seasonality_mode", "additive"
+                "seasonality_mode",
+                "additive",
             ),
             "yearly_seasonality": config.hyperparameters.get(
-                "yearly_seasonality", True
+                "yearly_seasonality",
+                True,
             ),
             "trained": False,
         }
@@ -1014,7 +1057,10 @@ class ModelManager:
     # Utility methods for predictions and metrics calculation
 
     async def _simulate_predictions(
-        self, model: Any, data: dict[str, Any], config: ModelConfiguration
+        self,
+        model: Any,
+        data: dict[str, Any],
+        config: ModelConfiguration,
     ) -> list[float]:
         """Simulate model predictions for validation."""
         targets = data["targets"]
@@ -1034,13 +1080,16 @@ class ModelManager:
                 predictions.append(
                     target
                     if i % 4 != 0
-                    else (1 - target if target in [0, 1] else target)
+                    else (1 - target if target in [0, 1] else target),
                 )
 
         return predictions
 
     async def _simulate_fold_predictions(
-        self, model: Any, fold_size: int, config: ModelConfiguration
+        self,
+        model: Any,
+        fold_size: int,
+        config: ModelConfiguration,
     ) -> list[float]:
         """Simulate predictions for cross-validation fold."""
         # Generate synthetic predictions for fold
@@ -1053,7 +1102,10 @@ class ModelManager:
         return predictions
 
     async def _simulate_time_series_predictions(
-        self, model: Any, data: dict[str, Any], config: ModelConfiguration
+        self,
+        model: Any,
+        data: dict[str, Any],
+        config: ModelConfiguration,
     ) -> list[float]:
         """Simulate time series predictions."""
         targets = data["targets"]
@@ -1086,10 +1138,9 @@ class ModelManager:
                 relative_error = abs(target - pred) / max(abs(target), 1.0)
                 if relative_error <= 0.1:  # Within 10%
                     correct += 1
-            else:
-                # For classification, exact match
-                if target == pred:
-                    correct += 1
+            # For classification, exact match
+            elif target == pred:
+                correct += 1
 
         return correct / len(targets)
 
@@ -1112,7 +1163,9 @@ class ModelManager:
         return 2 * (precision * recall) / (precision + recall)
 
     def _calculate_rmse(
-        self, targets: list[Any], predictions: list[Any]
+        self,
+        targets: list[Any],
+        predictions: list[Any],
     ) -> float | None:
         """Calculate Root Mean Square Error."""
         numeric_pairs = [
@@ -1128,7 +1181,9 @@ class ModelManager:
         return mse**0.5
 
     def _calculate_mae(
-        self, targets: list[Any], predictions: list[Any]
+        self,
+        targets: list[Any],
+        predictions: list[Any],
     ) -> float | None:
         """Calculate Mean Absolute Error."""
         numeric_pairs = [
@@ -1157,7 +1212,9 @@ class ModelManager:
         return (ape_sum / len(numeric_pairs)) * 100
 
     def _calculate_directional_accuracy(
-        self, targets: list[Any], predictions: list[Any]
+        self,
+        targets: list[Any],
+        predictions: list[Any],
     ) -> float:
         """Calculate directional accuracy for time series."""
         if len(targets) < 2 or len(predictions) < 2:
@@ -1168,7 +1225,8 @@ class ModelManager:
 
         for i in range(1, min(len(targets), len(predictions))):
             if isinstance(targets[i], int | float) and isinstance(
-                targets[i - 1], int | float
+                targets[i - 1],
+                int | float,
             ):
                 target_direction = 1 if targets[i] > targets[i - 1] else 0
                 pred_direction = 1 if predictions[i] > predictions[i - 1] else 0
@@ -1180,7 +1238,10 @@ class ModelManager:
         return correct_directions / total_directions if total_directions > 0 else 0.5
 
     async def _save_model_artifact(
-        self, model: Any, config: ModelConfiguration, performance: ModelPerformance
+        self,
+        model: Any,
+        config: ModelConfiguration,
+        performance: ModelPerformance,
     ) -> Either[ModelTrainingError, ModelArtifact]:
         """Save trained model as artifact."""
         try:
@@ -1251,8 +1312,9 @@ class ModelManager:
         except Exception as e:
             return Either.left(
                 ModelTrainingError(
-                    f"Model artifact saving failed: {str(e)}", "ARTIFACT_SAVE_ERROR"
-                )
+                    f"Model artifact saving failed: {e!s}",
+                    "ARTIFACT_SAVE_ERROR",
+                ),
             )
 
     async def get_model_status(self, model_id: ModelId) -> dict[str, Any]:
@@ -1318,7 +1380,7 @@ class ModelManager:
 
         except Exception as e:
             return {
-                "error": f"Failed to get model status: {str(e)}",
+                "error": f"Failed to get model status: {e!s}",
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
@@ -1337,10 +1399,10 @@ class ModelManager:
             # Average performance metrics
             if self.model_performance:
                 avg_accuracy = statistics.mean(
-                    [p.accuracy for p in self.model_performance.values()]
+                    [p.accuracy for p in self.model_performance.values()],
                 )
                 avg_training_time = statistics.mean(
-                    [p.training_time_seconds for p in self.model_performance.values()]
+                    [p.training_time_seconds for p in self.model_performance.values()],
                 )
             else:
                 avg_accuracy = 0.0
@@ -1374,6 +1436,6 @@ class ModelManager:
 
         except Exception as e:
             return {
-                "error": f"Failed to generate model manager summary: {str(e)}",
+                "error": f"Failed to generate model manager summary: {e!s}",
                 "timestamp": datetime.now(UTC).isoformat(),
             }

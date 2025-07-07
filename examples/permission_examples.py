@@ -1,5 +1,4 @@
-"""
-Examples of how to set up execution contexts with different permission levels.
+"""Examples of how to set up execution contexts with different permission levels.
 
 This file demonstrates practical permission configurations for various use cases.
 """
@@ -37,7 +36,7 @@ class PermissionProfiles:
                 Permission.APPLICATION_CONTROL,
                 Permission.SYSTEM_CONTROL,
                 Permission.FLOW_CONTROL,
-            ]
+            ],
         )
 
     @staticmethod
@@ -50,7 +49,7 @@ class PermissionProfiles:
                 Permission.AUDIO_OUTPUT,
                 Permission.SCREEN_CAPTURE,
                 Permission.FILE_ACCESS,
-            ]
+            ],
         )
 
     @staticmethod
@@ -65,10 +64,10 @@ class PermissionProfiles:
 
 
 def create_context_with_permissions(
-    permission_profile: str, timeout_seconds: int = 30
+    permission_profile: str,
+    timeout_seconds: int = 30,
 ) -> ExecutionContext:
-    """
-    Create an execution context with a predefined permission profile.
+    """Create an execution context with a predefined permission profile.
 
     Args:
         permission_profile: One of 'minimal', 'basic', 'automation', 'media', 'admin'
@@ -76,6 +75,7 @@ def create_context_with_permissions(
 
     Returns:
         ExecutionContext with the specified permissions
+
     """
     profiles = {
         "minimal": PermissionProfiles.minimal(),
@@ -87,7 +87,7 @@ def create_context_with_permissions(
 
     if permission_profile not in profiles:
         raise ValueError(
-            f"Unknown profile: {permission_profile}. Available: {list(profiles.keys())}"
+            f"Unknown profile: {permission_profile}. Available: {list(profiles.keys())}",
         )
 
     return ExecutionContext.create_test_context(
@@ -97,7 +97,7 @@ def create_context_with_permissions(
 
 
 # Example usage functions
-def example_basic_usage():
+def example_basic_usage() -> None:
     """Example: Basic macro execution with different permission levels."""
     engine = MacroEngine()
 
@@ -117,7 +117,7 @@ def example_basic_usage():
     print(f"Minimal context result: {result.status}")  # Should be FAILED
 
 
-def example_custom_permissions():
+def example_custom_permissions() -> None:
     """Example: Creating custom permission sets."""
     MacroEngine()
 
@@ -134,14 +134,14 @@ def example_custom_permissions():
     )
 
     print(
-        f"Custom context has TEXT_INPUT: {custom_context.has_permission(Permission.TEXT_INPUT)}"
+        f"Custom context has TEXT_INPUT: {custom_context.has_permission(Permission.TEXT_INPUT)}",
     )
     print(
-        f"Custom context has SYSTEM_SOUND: {custom_context.has_permission(Permission.SYSTEM_SOUND)}"
+        f"Custom context has SYSTEM_SOUND: {custom_context.has_permission(Permission.SYSTEM_SOUND)}",
     )
 
 
-def example_checking_permissions():
+def example_checking_permissions() -> None:
     """Example: How to check what permissions are available."""
     context = create_context_with_permissions("automation")
 
@@ -162,7 +162,7 @@ def example_checking_permissions():
         print(f"Has {permission.value}: {'✅' if has_perm else '❌'}")
 
 
-def example_runtime_permission_upgrade():
+def example_runtime_permission_upgrade() -> None:
     """Example: How to add permissions at runtime (by creating new context)."""
     print("=== Runtime Permission Upgrade Example ===")
 
@@ -176,7 +176,8 @@ def example_runtime_permission_upgrade():
         Permission.NETWORK_ACCESS,
     }
     upgraded_context = ExecutionContext.create_test_context(
-        permissions=upgraded_permissions, timeout=basic_context.timeout
+        permissions=upgraded_permissions,
+        timeout=basic_context.timeout,
     )
 
     print(f"Upgraded permissions: {[p.value for p in upgraded_context.permissions]}")

@@ -1,5 +1,4 @@
-"""
-Comprehensive Integration Module Tests - Coverage Expansion
+"""Comprehensive Integration Module Tests - Coverage Expansion.
 
 Tests for integration modules including KM client, triggers, security, file monitoring, and protocols.
 Focuses on achieving high coverage for integration infrastructure.
@@ -8,6 +7,9 @@ Architecture: Property-Based Testing + Type Safety + Contract Validation + Secur
 Performance: <200ms per test, parallel execution, comprehensive edge case coverage
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import patch
 
@@ -18,7 +20,6 @@ from hypothesis import strategies as st
 # Test imports with graceful fallbacks
 try:
     from src.core.either import Either
-    from src.core.types import CommandId, MacroId
     from src.integration.file_monitor import (
         FileEvent,
         FileEventType,
@@ -28,7 +29,6 @@ try:
     from src.integration.km_client import (
         ConnectionState,
         KMClient,
-        KMConnection,
         KMError,
     )
     from src.integration.protocol import (
@@ -71,7 +71,7 @@ except ImportError:
 class TestKMClient:
     """Test Keyboard Maestro client functionality."""
 
-    def test_client_creation(self):
+    def test_client_creation(self) -> None:
         """Test KM client creation."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -81,7 +81,7 @@ class TestKMClient:
         assert client.connection_state == ConnectionState.DISCONNECTED
 
     @pytest.mark.asyncio
-    async def test_client_connection(self):
+    async def test_client_connection(self) -> None:
         """Test KM client connection."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -89,7 +89,7 @@ class TestKMClient:
         client = KMClient()
 
         with patch(
-            "src.integration.km_client.connect_to_keyboard_maestro"
+            "src.integration.km_client.connect_to_keyboard_maestro",
         ) as mock_connect:
             mock_connect.return_value = Either.right({"status": "connected"})
 
@@ -98,7 +98,7 @@ class TestKMClient:
             assert client.connection_state == ConnectionState.CONNECTED
 
     @pytest.mark.asyncio
-    async def test_client_connection_failure(self):
+    async def test_client_connection_failure(self) -> None:
         """Test KM client connection failure."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -106,10 +106,10 @@ class TestKMClient:
         client = KMClient()
 
         with patch(
-            "src.integration.km_client.connect_to_keyboard_maestro"
+            "src.integration.km_client.connect_to_keyboard_maestro",
         ) as mock_connect:
             mock_connect.return_value = Either.left(
-                KMError("Connection failed", "CONNECT_FAILED")
+                KMError("Connection failed", "CONNECT_FAILED"),
             )
 
             result = await client.connect()
@@ -117,7 +117,7 @@ class TestKMClient:
             assert client.connection_state == ConnectionState.DISCONNECTED
 
     @pytest.mark.asyncio
-    async def test_execute_macro(self):
+    async def test_execute_macro(self) -> None:
         """Test macro execution through client."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -127,7 +127,10 @@ class TestKMClient:
 
         with patch("src.integration.km_client.execute_km_macro") as mock_execute:
             mock_execute.return_value = Either.right(
-                {"result": "success", "output": "macro completed"}
+                {
+                    "result": "success",
+                    "output": "macro completed",
+                },
             )
 
             result = await client.execute_macro("test_macro", {"param": "value"})
@@ -135,7 +138,7 @@ class TestKMClient:
             assert result.get_right()["result"] == "success"
 
     @pytest.mark.asyncio
-    async def test_execute_macro_disconnected(self):
+    async def test_execute_macro_disconnected(self) -> None:
         """Test macro execution when disconnected."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -148,7 +151,7 @@ class TestKMClient:
         assert "not connected" in result.get_left().message.lower()
 
     @pytest.mark.asyncio
-    async def test_get_macro_list(self):
+    async def test_get_macro_list(self) -> None:
         """Test getting macro list from KM."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -171,7 +174,7 @@ class TestKMClient:
             assert macros[0]["name"] == "Test Macro 1"
 
     @pytest.mark.asyncio
-    async def test_get_variable_value(self):
+    async def test_get_variable_value(self) -> None:
         """Test getting variable value from KM."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -187,7 +190,7 @@ class TestKMClient:
             assert result.get_right()["value"] == "test_value"
 
     @pytest.mark.asyncio
-    async def test_set_variable_value(self):
+    async def test_set_variable_value(self) -> None:
         """Test setting variable value in KM."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -202,7 +205,7 @@ class TestKMClient:
             assert result.is_right()
             assert result.get_right()["status"] == "set"
 
-    def test_connection_state_transitions(self):
+    def test_connection_state_transitions(self) -> None:
         """Test connection state transitions."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -226,7 +229,7 @@ class TestKMClient:
 class TestTriggerManager:
     """Test trigger management functionality."""
 
-    def test_trigger_manager_creation(self):
+    def test_trigger_manager_creation(self) -> None:
         """Test trigger manager creation."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -235,7 +238,7 @@ class TestTriggerManager:
         assert manager is not None
         assert len(manager.get_all_triggers()) == 0
 
-    def test_register_trigger(self):
+    def test_register_trigger(self) -> None:
         """Test trigger registration."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -258,7 +261,7 @@ class TestTriggerManager:
         assert len(triggers) == 1
         assert triggers[0].trigger_id == "test_trigger"
 
-    def test_unregister_trigger(self):
+    def test_unregister_trigger(self) -> None:
         """Test trigger unregistration."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -280,7 +283,7 @@ class TestTriggerManager:
         manager.unregister_trigger("test_trigger")
         assert len(manager.get_all_triggers()) == 0
 
-    def test_trigger_types(self):
+    def test_trigger_types(self) -> None:
         """Test different trigger types."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -331,7 +334,7 @@ class TestTriggerManager:
         assert hotkey_triggers[0].trigger_id == "hotkey_trigger"
 
     @pytest.mark.asyncio
-    async def test_trigger_execution(self):
+    async def test_trigger_execution(self) -> None:
         """Test trigger execution."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -354,7 +357,7 @@ class TestTriggerManager:
             assert result.is_right()
             assert result.get_right()["result"] == "executed"
 
-    def test_trigger_condition_matching(self):
+    def test_trigger_condition_matching(self) -> None:
         """Test trigger condition matching."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -363,7 +366,8 @@ class TestTriggerManager:
 
         # Create trigger with specific condition
         condition = TriggerCondition(
-            "hotkey", {"key": "cmd+shift+t", "modifiers": ["cmd", "shift"]}
+            "hotkey",
+            {"key": "cmd+shift+t", "modifiers": ["cmd", "shift"]},
         )
         trigger = TriggerEvent(
             trigger_id="test_trigger",
@@ -390,7 +394,7 @@ class TestTriggerManager:
 class TestSecurityManager:
     """Test security management functionality."""
 
-    def test_security_manager_creation(self):
+    def test_security_manager_creation(self) -> None:
         """Test security manager creation."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -398,7 +402,7 @@ class TestSecurityManager:
         manager = SecurityManager()
         assert manager is not None
 
-    def test_security_policy_management(self):
+    def test_security_policy_management(self) -> None:
         """Test security policy management."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -421,7 +425,7 @@ class TestSecurityManager:
         assert retrieved_policy is not None
         assert retrieved_policy.security_level == SecurityLevel.HIGH
 
-    def test_access_control_validation(self):
+    def test_access_control_validation(self) -> None:
         """Test access control validation."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -441,7 +445,7 @@ class TestSecurityManager:
         assert manager.validate_access(access_control, "execute")
         assert not manager.validate_access(access_control, "write")
 
-    def test_security_level_enforcement(self):
+    def test_security_level_enforcement(self) -> None:
         """Test security level enforcement."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -475,7 +479,7 @@ class TestSecurityManager:
             if level in [SecurityLevel.HIGH, SecurityLevel.MAXIMUM]:
                 assert enforcement["audit_required"] is True
 
-    def test_path_security_validation(self):
+    def test_path_security_validation(self) -> None:
         """Test path security validation."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -496,7 +500,7 @@ class TestSecurityManager:
         manager.add_policy(policy)
 
         # Test path validation
-        safe_paths = ["/Users/test", "/Documents/file.txt", "/tmp/temp"]
+        safe_paths = ["/Users/test", "/Documents/file.txt", "temp"]
         restricted_test_paths = ["/system/config", "/private/data", "/etc/passwd"]
 
         for path in safe_paths:
@@ -506,7 +510,7 @@ class TestSecurityManager:
             assert not manager.validate_path_access(path, "path_policy")
 
     @pytest.mark.asyncio
-    async def test_security_audit_logging(self):
+    async def test_security_audit_logging(self) -> None:
         """Test security audit logging."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -531,7 +535,7 @@ class TestSecurityManager:
 class TestFileMonitor:
     """Test file monitoring functionality."""
 
-    def test_file_monitor_creation(self):
+    def test_file_monitor_creation(self) -> None:
         """Test file monitor creation."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -540,7 +544,7 @@ class TestFileMonitor:
         assert monitor is not None
         assert not monitor.is_monitoring()
 
-    def test_monitor_configuration(self):
+    def test_monitor_configuration(self) -> None:
         """Test file monitor configuration."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -563,7 +567,7 @@ class TestFileMonitor:
         assert current_config.recursive is True
 
     @pytest.mark.asyncio
-    async def test_file_monitoring_lifecycle(self):
+    async def test_file_monitoring_lifecycle(self) -> None:
         """Test file monitoring lifecycle."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -572,7 +576,9 @@ class TestFileMonitor:
 
         # Configure monitor
         config = MonitorConfig(
-            watch_paths=["/tmp"], event_types=[FileEventType.CREATED], recursive=False
+            watch_paths=["./"],
+            event_types=[FileEventType.CREATED],
+            recursive=False,
         )
         monitor.configure(config)
 
@@ -588,7 +594,7 @@ class TestFileMonitor:
             assert result.is_right()
             assert not monitor.is_monitoring()
 
-    def test_file_event_handling(self):
+    def test_file_event_handling(self) -> None:
         """Test file event handling."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -596,7 +602,7 @@ class TestFileMonitor:
         monitor = FileMonitor()
         events_received = []
 
-        def event_handler(event: FileEvent):
+        def event_handler(event: FileEvent) -> None:
             events_received.append(event)
 
         monitor.set_event_handler(event_handler)
@@ -623,7 +629,7 @@ class TestFileMonitor:
         assert events_received[0].event_type == FileEventType.CREATED
         assert events_received[1].event_type == FileEventType.MODIFIED
 
-    def test_file_event_filtering(self):
+    def test_file_event_filtering(self) -> None:
         """Test file event filtering."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -643,7 +649,9 @@ class TestFileMonitor:
             FileEvent(FileEventType.CREATED, "/test/temp.tmp", datetime.now(UTC)),
             FileEvent(FileEventType.CREATED, "/test/error.log", datetime.now(UTC)),
             FileEvent(
-                FileEventType.MODIFIED, "/test/document.txt", datetime.now(UTC)
+                FileEventType.MODIFIED,
+                "/test/document.txt",
+                datetime.now(UTC),
             ),  # Wrong type
         ]
 
@@ -657,7 +665,7 @@ class TestFileMonitor:
         assert filtered_events[0].file_path == "/test/document.txt"
 
     @pytest.mark.asyncio
-    async def test_file_monitor_error_handling(self):
+    async def test_file_monitor_error_handling(self) -> None:
         """Test file monitor error handling."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -666,7 +674,8 @@ class TestFileMonitor:
 
         # Configure with invalid path
         config = MonitorConfig(
-            watch_paths=["/nonexistent/path"], event_types=[FileEventType.CREATED]
+            watch_paths=["/nonexistent/path"],
+            event_types=[FileEventType.CREATED],
         )
         monitor.configure(config)
 
@@ -682,7 +691,7 @@ class TestFileMonitor:
 class TestProtocolHandler:
     """Test protocol handling functionality."""
 
-    def test_protocol_handler_creation(self):
+    def test_protocol_handler_creation(self) -> None:
         """Test protocol handler creation."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -690,7 +699,7 @@ class TestProtocolHandler:
         handler = ProtocolHandler()
         assert handler is not None
 
-    def test_message_creation(self):
+    def test_message_creation(self) -> None:
         """Test protocol message creation."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -706,7 +715,7 @@ class TestProtocolHandler:
         assert message.message_id == "test_001"
         assert message.payload["action"] == "execute_macro"
 
-    def test_message_serialization(self):
+    def test_message_serialization(self) -> None:
         """Test protocol message serialization."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -730,7 +739,7 @@ class TestProtocolHandler:
         assert deserialized.message_id == "test_002"
         assert deserialized.payload["result"] == "success"
 
-    def test_message_validation(self):
+    def test_message_validation(self) -> None:
         """Test protocol message validation."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -758,7 +767,7 @@ class TestProtocolHandler:
         assert not handler.validate_message(invalid_message)
 
     @pytest.mark.asyncio
-    async def test_message_processing(self):
+    async def test_message_processing(self) -> None:
         """Test protocol message processing."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -774,14 +783,17 @@ class TestProtocolHandler:
 
         with patch("src.integration.protocol.process_request") as mock_process:
             mock_process.return_value = Either.right(
-                {"status": "active", "uptime": 3600}
+                {
+                    "status": "active",
+                    "uptime": 3600,
+                },
             )
 
             response = await handler.process_message(request_message)
             assert response.message_type == MessageType.RESPONSE
             assert response.payload["status"] == "active"
 
-    def test_error_message_handling(self):
+    def test_error_message_handling(self) -> None:
         """Test error message handling."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -798,7 +810,7 @@ class TestProtocolHandler:
 
     @given(st.text(min_size=1, max_size=20), st.dictionaries(st.text(), st.text()))
     @settings(max_examples=10)
-    def test_message_property_based(self, message_id, payload):
+    def test_message_property_based(self, message_id, payload) -> None:
         """Property-based test for message handling."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -825,7 +837,7 @@ class TestIntegrationScenarios:
     """Test integration scenarios across modules."""
 
     @pytest.mark.asyncio
-    async def test_trigger_to_km_execution(self):
+    async def test_trigger_to_km_execution(self) -> None:
         """Test trigger to KM execution workflow."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -860,14 +872,15 @@ class TestIntegrationScenarios:
 
             # Execute the triggered action
             result = await km_client.execute_macro(
-                matching_triggers[0].action_parameters["macro_id"], {}
+                matching_triggers[0].action_parameters["macro_id"],
+                {},
             )
 
             assert result.is_right()
             assert result.get_right()["result"] == "completed"
 
     @pytest.mark.asyncio
-    async def test_file_monitor_to_trigger_workflow(self):
+    async def test_file_monitor_to_trigger_workflow(self) -> None:
         """Test file monitor to trigger workflow."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -878,7 +891,8 @@ class TestIntegrationScenarios:
 
         # Configure file monitor
         config = MonitorConfig(
-            watch_paths=["/test/watch"], event_types=[FileEventType.CREATED]
+            watch_paths=["/test/watch"],
+            event_types=[FileEventType.CREATED],
         )
         file_monitor.configure(config)
 
@@ -896,12 +910,12 @@ class TestIntegrationScenarios:
         # Setup event handler to bridge file monitor and trigger manager
         triggered_actions = []
 
-        def file_event_handler(event: FileEvent):
+        def file_event_handler(event: FileEvent) -> Any:
             if event.file_path.endswith(".txt"):
                 # Convert file event to trigger event
                 trigger_event = {"type": "file_created", "path": event.file_path}
                 matching_triggers = trigger_manager.find_matching_triggers(
-                    trigger_event
+                    trigger_event,
                 )
                 triggered_actions.extend(matching_triggers)
 
@@ -921,7 +935,7 @@ class TestIntegrationScenarios:
         assert triggered_actions[0].trigger_id == "file_trigger"
 
     @pytest.mark.asyncio
-    async def test_security_protocol_integration(self):
+    async def test_security_protocol_integration(self) -> None:
         """Test security and protocol integration."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -963,7 +977,7 @@ class TestIntegrationScenarios:
         if security_valid:
             with patch("src.integration.protocol.process_request") as mock_process:
                 mock_process.return_value = Either.right(
-                    {"result": "executed securely"}
+                    {"result": "executed securely"},
                 )
 
                 response = await protocol_handler.process_message(request)
@@ -977,7 +991,7 @@ class TestIntegrationProperties:
 
     @given(st.text(min_size=1, max_size=20))
     @settings(max_examples=10)
-    def test_trigger_id_uniqueness(self, trigger_id):
+    def test_trigger_id_uniqueness(self, trigger_id) -> None:
         """Test trigger ID uniqueness property."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")

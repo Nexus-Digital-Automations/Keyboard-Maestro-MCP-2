@@ -1,5 +1,4 @@
-"""
-Phase 10 Strategic Domain Systems Test Coverage Expansion for Keyboard Maestro MCP.
+"""Phase 10 Strategic Domain Systems Test Coverage Expansion for Keyboard Maestro MCP.
 
 This module targets strategic domain systems with the highest impact for coverage expansion,
 focusing on accessibility engine tools (780 lines), plugin management (777 lines),
@@ -8,16 +7,22 @@ developer toolkit tools (748 lines), and other strategic 400-800 line modules
 for maximum coverage gain toward the 95% target.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_accessibility_engine_tools_comprehensive_systematic_import():
+def test_accessibility_engine_tools_comprehensive_systematic_import() -> None:
     """Test import of accessibility engine tools (780 lines - accessibility infrastructure)."""
     try:
         from src.server.tools import accessibility_engine_tools
@@ -48,19 +53,17 @@ def test_accessibility_engine_tools_comprehensive_systematic_import():
             try:
                 engine = accessibility_engine_tools.AccessibilityEngine()
                 assert engine is not None
-            except Exception:
-                pass  # Skip if instantiation requires configuration
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test compliance checking if available
         if hasattr(accessibility_engine_tools, "check_wcag_compliance"):
             try:
                 result = accessibility_engine_tools.check_wcag_compliance(
-                    "test_element"
+                    "test_element",
                 )
                 assert result is not None or isinstance(result, dict)
-            except Exception:
-                pass  # Method may require DOM element
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Basic import success is sufficient for coverage
         assert True  # Module imported successfully
 
@@ -68,7 +71,7 @@ def test_accessibility_engine_tools_comprehensive_systematic_import():
         pytest.skip(f"Accessibility engine tools import failed: {e}")
 
 
-def test_plugin_management_comprehensive_systematic_import():
+def test_plugin_management_comprehensive_systematic_import() -> None:
     """Test import of plugin management (777 lines - plugin infrastructure)."""
     try:
         from src.tools import plugin_management
@@ -80,46 +83,41 @@ def test_plugin_management_comprehensive_systematic_import():
             try:
                 manager = plugin_management.PluginManager()
                 assert manager is not None
-            except Exception:
-                pass  # Skip if instantiation requires plugin system
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test plugin loading functionality if available
         if hasattr(plugin_management, "load_plugin"):
             try:
                 result = plugin_management.load_plugin("test_plugin")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require plugin files
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test plugin validation if available
         if hasattr(plugin_management, "validate_plugin"):
             try:
                 result = plugin_management.validate_plugin("plugin_id")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require plugin data
-
+            except (OSError, FileNotFoundError, PermissionError) as e:
+                logger.debug(f"File operation failed during operation: {e}")
         # Test plugin registry if available
         if hasattr(plugin_management, "register_plugin"):
             try:
                 result = plugin_management.register_plugin("test_plugin", {})
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require plugin metadata
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test plugin discovery if available
         if hasattr(plugin_management, "discover_plugins"):
             try:
                 plugins = plugin_management.discover_plugins()
                 assert plugins is not None or plugins == []
-            except Exception:
-                pass  # Method may require plugin directory
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Plugin management import failed: {e}")
 
 
-def test_analytics_usage_forecaster_systematic_import():
+def test_analytics_usage_forecaster_systematic_import() -> None:
     """Test import of analytics usage forecaster (770 lines - analytics infrastructure)."""
     try:
         from src.analytics import usage_forecaster
@@ -131,40 +129,37 @@ def test_analytics_usage_forecaster_systematic_import():
             try:
                 forecaster = usage_forecaster.UsageForecaster()
                 assert forecaster is not None
-            except Exception:
-                pass  # Skip if instantiation requires analytics dependencies
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test usage forecasting functionality if available
         if hasattr(usage_forecaster, "forecast_usage"):
             try:
                 forecast = usage_forecaster.forecast_usage("resource_type", 30)
                 assert forecast is not None or forecast == {}
-            except Exception:
-                pass  # Method may require historical data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test trend analysis if available
         if hasattr(usage_forecaster, "analyze_trends"):
             try:
                 trends = usage_forecaster.analyze_trends([1, 2, 3, 4, 5])
                 assert trends is not None or trends == {}
-            except Exception:
-                pass  # Method may require trend data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test capacity planning if available
         if hasattr(usage_forecaster, "plan_capacity"):
             try:
                 plan = usage_forecaster.plan_capacity(
-                    "system_component", {"current_usage": 0.7}
+                    "system_component",
+                    {"current_usage": 0.7},
                 )
                 assert plan is not None or plan == {}
-            except Exception:
-                pass  # Method may require capacity data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics usage forecaster import failed: {e}")
 
 
-def test_security_trust_validator_systematic_import():
+def test_security_trust_validator_systematic_import() -> None:
     """Test import of security trust validator (748 lines - security infrastructure)."""
     try:
         from src.security import trust_validator
@@ -176,38 +171,34 @@ def test_security_trust_validator_systematic_import():
             try:
                 validator = trust_validator.TrustValidator()
                 assert validator is not None
-            except Exception:
-                pass  # Skip if instantiation requires security context
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test trust validation functionality if available
         if hasattr(trust_validator, "validate_trust"):
             try:
                 result = trust_validator.validate_trust("entity_id", "trust_context")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require trust data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test trust scoring if available
         if hasattr(trust_validator, "calculate_trust_score"):
             try:
                 score = trust_validator.calculate_trust_score("entity_id")
                 assert score is not None or isinstance(score, int | float)
-            except Exception:
-                pass  # Method may require trust metrics
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test trust policy enforcement if available
         if hasattr(trust_validator, "enforce_trust_policy"):
             try:
                 result = trust_validator.enforce_trust_policy("policy_id", "context")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require policy configuration
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Security trust validator import failed: {e}")
 
 
-def test_developer_toolkit_tools_comprehensive_systematic_import():
+def test_developer_toolkit_tools_comprehensive_systematic_import() -> None:
     """Test import of developer toolkit tools (748 lines - developer infrastructure)."""
     try:
         from src.server.tools import developer_toolkit_tools
@@ -238,17 +229,15 @@ def test_developer_toolkit_tools_comprehensive_systematic_import():
             try:
                 toolkit = developer_toolkit_tools.DeveloperToolkit()
                 assert toolkit is not None
-            except Exception:
-                pass  # Skip if instantiation requires development environment
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test code analysis if available
         if hasattr(developer_toolkit_tools, "analyze_code"):
             try:
                 analysis = developer_toolkit_tools.analyze_code("test_code")
                 assert analysis is not None or analysis == {}
-            except Exception:
-                pass  # Method may require code content
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Basic import success is sufficient for coverage
         assert True  # Module imported successfully
 
@@ -256,7 +245,7 @@ def test_developer_toolkit_tools_comprehensive_systematic_import():
         pytest.skip(f"Developer toolkit tools import failed: {e}")
 
 
-def test_analytics_optimization_modeler_systematic_import():
+def test_analytics_optimization_modeler_systematic_import() -> None:
     """Test import of analytics optimization modeler (734 lines - analytics infrastructure)."""
     try:
         from src.analytics import optimization_modeler
@@ -268,38 +257,34 @@ def test_analytics_optimization_modeler_systematic_import():
             try:
                 modeler = optimization_modeler.OptimizationModeler()
                 assert modeler is not None
-            except Exception:
-                pass  # Skip if instantiation requires optimization dependencies
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test optimization modeling functionality if available
         if hasattr(optimization_modeler, "create_optimization_model"):
             try:
                 model = optimization_modeler.create_optimization_model("test_model", {})
                 assert model is not None
-            except Exception:
-                pass  # Method may require model parameters
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test optimization execution if available
         if hasattr(optimization_modeler, "execute_optimization"):
             try:
                 result = optimization_modeler.execute_optimization("model_id")
                 assert result is not None or result == {}
-            except Exception:
-                pass  # Method may require optimization model
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test optimization analysis if available
         if hasattr(optimization_modeler, "analyze_optimization"):
             try:
                 analysis = optimization_modeler.analyze_optimization("optimization_id")
                 assert analysis is not None or analysis == {}
-            except Exception:
-                pass  # Method may require optimization results
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics optimization modeler import failed: {e}")
 
 
-def test_iot_cloud_integration_systematic_import():
+def test_iot_cloud_integration_systematic_import() -> None:
     """Test import of IoT cloud integration (731 lines - IoT infrastructure)."""
     try:
         from src.iot import cloud_integration
@@ -311,38 +296,34 @@ def test_iot_cloud_integration_systematic_import():
             try:
                 integration = cloud_integration.IoTCloudIntegration()
                 assert integration is not None
-            except Exception:
-                pass  # Skip if instantiation requires cloud configuration
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test cloud integration functionality if available
         if hasattr(cloud_integration, "connect_to_cloud"):
             try:
                 result = cloud_integration.connect_to_cloud("cloud_provider")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require cloud credentials
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test device synchronization if available
         if hasattr(cloud_integration, "sync_devices"):
             try:
                 result = cloud_integration.sync_devices()
                 assert result is not None or result == []
-            except Exception:
-                pass  # Method may require device connections
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test data streaming if available
         if hasattr(cloud_integration, "stream_data"):
             try:
                 result = cloud_integration.stream_data("device_id", {"sensor": "value"})
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require streaming configuration
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"IoT cloud integration import failed: {e}")
 
 
-def test_orchestration_strategic_planner_systematic_import():
+def test_orchestration_strategic_planner_systematic_import() -> None:
     """Test import of orchestration strategic planner (726 lines - orchestration infrastructure)."""
     try:
         from src.orchestration import strategic_planner
@@ -354,38 +335,34 @@ def test_orchestration_strategic_planner_systematic_import():
             try:
                 planner = strategic_planner.StrategicPlanner()
                 assert planner is not None
-            except Exception:
-                pass  # Skip if instantiation requires planning context
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test strategic planning functionality if available
         if hasattr(strategic_planner, "create_strategic_plan"):
             try:
                 plan = strategic_planner.create_strategic_plan("objective", {})
                 assert plan is not None
-            except Exception:
-                pass  # Method may require planning parameters
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test plan execution if available
         if hasattr(strategic_planner, "execute_plan"):
             try:
                 result = strategic_planner.execute_plan("plan_id")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require plan definition
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test plan optimization if available
         if hasattr(strategic_planner, "optimize_plan"):
             try:
                 optimized = strategic_planner.optimize_plan("plan_id", {})
                 assert optimized is not None
-            except Exception:
-                pass  # Method may require optimization criteria
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Orchestration strategic planner import failed: {e}")
 
 
-def test_knowledge_template_manager_systematic_import():
+def test_knowledge_template_manager_systematic_import() -> None:
     """Test import of knowledge template manager (716 lines - knowledge infrastructure)."""
     try:
         from src.knowledge import template_manager
@@ -397,38 +374,34 @@ def test_knowledge_template_manager_systematic_import():
             try:
                 manager = template_manager.TemplateManager()
                 assert manager is not None
-            except Exception:
-                pass  # Skip if instantiation requires template storage
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test template management functionality if available
         if hasattr(template_manager, "create_template"):
             try:
                 template = template_manager.create_template("template_name", "content")
                 assert template is not None
-            except Exception:
-                pass  # Method may require template format
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test template rendering if available
         if hasattr(template_manager, "render_template"):
             try:
                 rendered = template_manager.render_template("template_id", {})
                 assert rendered is not None or isinstance(rendered, str)
-            except Exception:
-                pass  # Method may require template data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test template validation if available
         if hasattr(template_manager, "validate_template"):
             try:
                 result = template_manager.validate_template("template_content")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require template schema
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Knowledge template manager import failed: {e}")
 
 
-def test_analytics_pattern_predictor_systematic_import():
+def test_analytics_pattern_predictor_systematic_import() -> None:
     """Test import of analytics pattern predictor (711 lines - analytics infrastructure)."""
     try:
         from src.analytics import pattern_predictor
@@ -440,40 +413,35 @@ def test_analytics_pattern_predictor_systematic_import():
             try:
                 predictor = pattern_predictor.PatternPredictor()
                 assert predictor is not None
-            except Exception:
-                pass  # Skip if instantiation requires ML dependencies
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test pattern prediction functionality if available
         if hasattr(pattern_predictor, "predict_patterns"):
             try:
                 patterns = pattern_predictor.predict_patterns([1, 2, 3, 4, 5])
                 assert patterns is not None or patterns == []
-            except Exception:
-                pass  # Method may require pattern data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test pattern analysis if available
         if hasattr(pattern_predictor, "analyze_patterns"):
             try:
                 analysis = pattern_predictor.analyze_patterns("data_source")
                 assert analysis is not None or analysis == {}
-            except Exception:
-                pass  # Method may require data source
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test pattern training if available
         if hasattr(pattern_predictor, "train_predictor"):
             try:
                 result = pattern_predictor.train_predictor([], [])
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require training data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics pattern predictor import failed: {e}")
 
 
-def test_strategic_domain_systems_integration():
+def test_strategic_domain_systems_integration() -> None:
     """Test comprehensive integration across strategic domain systems."""
-
     # Test strategic domain systems integration
     domain_modules = [
         ("server.tools", "accessibility_engine_tools"),
@@ -516,9 +484,9 @@ def test_strategic_domain_systems_integration():
                                 if hasattr(instance, method):
                                     assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -526,9 +494,8 @@ def test_strategic_domain_systems_integration():
     assert domain_imports >= 3, f"Only {domain_imports} domain modules imported"
 
 
-def test_advanced_domain_systems_data_processing():
+def test_advanced_domain_systems_data_processing() -> None:
     """Test advanced data processing patterns for strategic domain systems."""
-
     # Test domain systems data processing scenarios
     domain_data = {
         "accessibility": {
@@ -649,7 +616,7 @@ def test_advanced_domain_systems_data_processing():
 
     # Test average compliance score
     avg_score = sum(c["score"] for c in accessibility_checks) / len(
-        accessibility_checks
+        accessibility_checks,
     )
     assert avg_score > 85
 
@@ -677,7 +644,7 @@ def test_advanced_domain_systems_data_processing():
     assert len(resources_increasing) == 4
 
 
-def test_domain_systems_async_functionality():
+def test_domain_systems_async_functionality() -> bool:
     """Test async functionality patterns for strategic domain systems."""
 
     @pytest.mark.asyncio
@@ -775,9 +742,8 @@ def test_domain_systems_async_functionality():
     assert result is True
 
 
-def test_domain_systems_configuration_patterns():
+def test_domain_systems_configuration_patterns() -> None:
     """Test configuration patterns for strategic domain systems."""
-
     # Test domain systems configuration scenarios
     domain_config = {
         "accessibility_engine": {

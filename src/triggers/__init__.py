@@ -1,5 +1,4 @@
-"""
-Trigger management system for Keyboard Maestro automation.
+"""Trigger management system for Keyboard Maestro automation.
 
 Provides specialized trigger implementations with comprehensive validation,
 conflict detection, and security boundaries.
@@ -15,10 +14,10 @@ from .hotkey_manager import (
 )
 
 __all__ = [
+    "ActivationMode",
+    "HotkeyConflict",
+    "HotkeyManager",
     "HotkeySpec",
     "ModifierKey",
-    "ActivationMode",
-    "HotkeyManager",
-    "HotkeyConflict",
     "create_hotkey_spec",
 ]

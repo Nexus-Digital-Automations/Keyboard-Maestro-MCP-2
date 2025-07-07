@@ -1,5 +1,4 @@
-"""
-Real-time synchronization tools.
+"""Real-time synchronization tools.
 
 Contains the TASK_7 implementation tools for real-time macro library
 synchronization, file monitoring, and change detection.
@@ -34,8 +33,7 @@ async def km_start_realtime_sync(
     ] = 30,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Start real-time macro library synchronization and monitoring.
+    """Start real-time macro library synchronization and monitoring.
 
     TASK_7 IMPLEMENTATION: Real-time state synchronization with intelligent
     polling, file monitoring, and change detection for live macro updates.
@@ -62,10 +60,10 @@ async def km_start_realtime_sync(
         # Update configuration if provided
         if poll_interval_seconds != 30:
             sync_mgr.config.base_poll_interval = Duration.from_seconds(
-                poll_interval_seconds
+                poll_interval_seconds,
             )
             sync_mgr.config.slow_poll_interval = Duration.from_seconds(
-                poll_interval_seconds * 4
+                poll_interval_seconds * 4,
             )
 
         # Start synchronization
@@ -149,8 +147,7 @@ async def km_start_realtime_sync(
 
 
 async def km_stop_realtime_sync(ctx: Context = None) -> dict[str, Any]:
-    """
-    Stop real-time macro library synchronization and monitoring.
+    """Stop real-time macro library synchronization and monitoring.
 
     TASK_7 IMPLEMENTATION: Gracefully stop all real-time sync processes.
     """
@@ -214,13 +211,14 @@ async def km_stop_realtime_sync(ctx: Context = None) -> dict[str, Any]:
 
 async def km_sync_status(
     include_performance_metrics: Annotated[
-        bool, Field(default=True, description="Include detailed performance metrics")
+        bool,
+        Field(default=True, description="Include detailed performance metrics"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Get current status of real-time macro synchronization including
-    performance metrics, change detection, and monitoring health.
+    """Get current status of real-time macro synchronization.
+
+    Including performance metrics, change detection, and monitoring health.
 
     TASK_7 IMPLEMENTATION: Comprehensive sync status with diagnostics.
     """
@@ -252,7 +250,8 @@ async def km_sync_status(
             status_data["performance"] = {
                 "average_sync_time": sync_status.get("average_sync_time_seconds", 0.0),
                 "poll_interval_seconds": sync_status.get(
-                    "current_poll_interval_seconds", 30
+                    "current_poll_interval_seconds",
+                    30,
                 ),
                 "changes_per_hour": "unknown",  # Could calculate this
                 "cache_hit_rate": "unknown",  # Could track this
@@ -274,17 +273,17 @@ async def km_sync_status(
         # Add recommendations
         if sync_status["status"] == "error":
             status_data["health"]["recommendations"].append(
-                "Check Keyboard Maestro connection"
+                "Check Keyboard Maestro connection",
             )
 
         if sync_status["consecutive_errors"] > 0:
             status_data["health"]["recommendations"].append(
-                "Monitor error logs for connection issues"
+                "Monitor error logs for connection issues",
             )
 
         if not file_status["is_monitoring"] and WATCHDOG_AVAILABLE:
             status_data["health"]["recommendations"].append(
-                "Enable file monitoring for faster change detection"
+                "Enable file monitoring for faster change detection",
             )
 
         return {
@@ -321,8 +320,7 @@ async def km_force_sync(
     ] = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Force immediate synchronization of macro library state.
+    """Force immediate synchronization of macro library state.
 
     TASK_7 IMPLEMENTATION: Manual sync trigger for immediate updates.
     """

@@ -1,5 +1,4 @@
-"""
-Performance Optimizer for Automation Intelligence Analysis.
+"""Performance Optimizer for Automation Intelligence Analysis.
 
 This module provides comprehensive performance analysis, optimization recommendations,
 and efficiency tracking for automation workflows with intelligent insights and
@@ -131,17 +130,16 @@ class PerformanceOptimizer:
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Performance optimizer initialization failed: {str(e)}")
+            logger.error(f"Performance optimizer initialization failed: {e!s}")
             return Either.left(IntelligenceError.initialization_failed(str(e)))
 
-    @require(lambda self, patterns: len(patterns) >= 1)
+    @require(lambda __self, patterns: len(patterns) >= 1)
     async def analyze_performance(
         self,
         patterns: list[UserBehaviorPattern],
         target: OptimizationTarget = OptimizationTarget.EFFICIENCY,
     ) -> Either[IntelligenceError, list[PerformanceInsight]]:
-        """
-        Analyze performance patterns and generate comprehensive insights.
+        """Analyze performance patterns and generate comprehensive insights.
 
         Performs sophisticated performance analysis on behavioral patterns to
         identify optimization opportunities, performance bottlenecks, and
@@ -158,13 +156,14 @@ class PerformanceOptimizer:
             - Privacy-protected performance analysis
             - Secure pattern processing with no sensitive data exposure
             - Validated insights with confidence scoring
+
         """
         try:
             if len(patterns) < self.min_patterns_for_analysis:
                 return Either.left(
                     IntelligenceError.optimization_failed(
-                        f"Insufficient patterns for analysis: {len(patterns)} < {self.min_patterns_for_analysis}"
-                    )
+                        f"Insufficient patterns for analysis: {len(patterns)} < {self.min_patterns_for_analysis}",
+                    ),
                 )
 
             # Check cache for recent analysis
@@ -172,7 +171,7 @@ class PerformanceOptimizer:
             if cache_key in self.performance_cache:
                 cached_insights = self.performance_cache[cache_key]["insights"]
                 logger.debug(
-                    f"Retrieved {len(cached_insights)} performance insights from cache"
+                    f"Retrieved {len(cached_insights)} performance insights from cache",
                 )
                 return Either.right(cached_insights)
 
@@ -181,25 +180,29 @@ class PerformanceOptimizer:
 
             # Execution time analysis
             execution_insights = await self._analyze_execution_performance(
-                patterns, target
+                patterns,
+                target,
             )
             insights.extend(execution_insights)
 
             # Success rate analysis
             success_insights = await self._analyze_success_rate_performance(
-                patterns, target
+                patterns,
+                target,
             )
             insights.extend(success_insights)
 
             # Efficiency analysis
             efficiency_insights = await self._analyze_efficiency_performance(
-                patterns, target
+                patterns,
+                target,
             )
             insights.extend(efficiency_insights)
 
             # Resource usage analysis
             resource_insights = await self._analyze_resource_performance(
-                patterns, target
+                patterns,
+                target,
             )
             insights.extend(resource_insights)
 
@@ -229,22 +232,21 @@ class PerformanceOptimizer:
             self._track_performance_analysis(patterns, sorted_insights, target)
 
             logger.info(
-                f"Generated {len(sorted_insights)} performance insights for {len(patterns)} patterns"
+                f"Generated {len(sorted_insights)} performance insights for {len(patterns)} patterns",
             )
             return Either.right(sorted_insights)
 
         except Exception as e:
-            logger.error(f"Performance analysis failed: {str(e)}")
+            logger.error(f"Performance analysis failed: {e!s}")
             return Either.left(IntelligenceError.optimization_failed(str(e)))
 
-    @require(lambda self, insights: len(insights) >= 1)
+    @require(lambda __self, insights: len(insights) >= 1)
     async def generate_optimization_recommendations(
         self,
         insights: list[PerformanceInsight],
         target: OptimizationTarget = OptimizationTarget.EFFICIENCY,
     ) -> Either[IntelligenceError, list[OptimizationRecommendation]]:
-        """
-        Generate detailed optimization recommendations from performance insights.
+        """Generate detailed optimization recommendations from performance insights.
 
         Converts performance insights into actionable optimization recommendations
         with implementation guidance, priority scoring, and success criteria
@@ -256,20 +258,23 @@ class PerformanceOptimizer:
 
         Returns:
             Either error or list of optimization recommendations
+
         """
         try:
             recommendations = []
 
             # Group insights by category for comprehensive recommendations
             categorized_insights = self._categorize_insights_by_performance_area(
-                insights
+                insights,
             )
 
             # Generate recommendations for each category
             for category, category_insights in categorized_insights.items():
                 category_recommendations = (
                     await self._generate_category_recommendations(
-                        category_insights, category, target
+                        category_insights,
+                        category,
+                        target,
                     )
                 )
                 recommendations.extend(category_recommendations)
@@ -282,20 +287,22 @@ class PerformanceOptimizer:
 
             # Prioritize recommendations
             prioritized_recommendations = self._prioritize_recommendations(
-                recommendations
+                recommendations,
             )
 
             logger.info(
-                f"Generated {len(prioritized_recommendations)} optimization recommendations"
+                f"Generated {len(prioritized_recommendations)} optimization recommendations",
             )
             return Either.right(prioritized_recommendations)
 
         except Exception as e:
-            logger.error(f"Optimization recommendation generation failed: {str(e)}")
+            logger.error(f"Optimization recommendation generation failed: {e!s}")
             return Either.left(IntelligenceError.optimization_failed(str(e)))
 
     async def _analyze_execution_performance(
-        self, patterns: list[UserBehaviorPattern], target: OptimizationTarget
+        self,
+        patterns: list[UserBehaviorPattern],
+        target: OptimizationTarget,
     ) -> list[PerformanceInsight]:
         """Analyze execution time performance patterns."""
         insights = []
@@ -324,7 +331,8 @@ class PerformanceOptimizer:
                 title="Slow Execution Performance Detected",
                 description=f"Found {len(slow_patterns)} patterns with execution times > {self.performance_thresholds['execution_time_slow']}s",
                 impact_level=self._calculate_impact_level(
-                    len(slow_patterns), len(patterns)
+                    len(slow_patterns),
+                    len(patterns),
                 ),
                 confidence=0.8,
                 affected_patterns=[p.pattern_id for p in slow_patterns],
@@ -375,7 +383,9 @@ class PerformanceOptimizer:
         return insights
 
     async def _analyze_success_rate_performance(
-        self, patterns: list[UserBehaviorPattern], target: OptimizationTarget
+        self,
+        patterns: list[UserBehaviorPattern],
+        target: OptimizationTarget,
     ) -> list[PerformanceInsight]:
         """Analyze success rate performance patterns."""
         insights = []
@@ -402,7 +412,8 @@ class PerformanceOptimizer:
                 title="Low Success Rate Patterns Detected",
                 description=f"Found {len(low_success_patterns)} patterns with success rates < {self.performance_thresholds['success_rate_low']:.0%}",
                 impact_level=self._calculate_impact_level(
-                    len(low_success_patterns), len(patterns)
+                    len(low_success_patterns),
+                    len(patterns),
                 ),
                 confidence=0.85,
                 affected_patterns=[p.pattern_id for p in low_success_patterns],
@@ -424,7 +435,9 @@ class PerformanceOptimizer:
         return insights
 
     async def _analyze_efficiency_performance(
-        self, patterns: list[UserBehaviorPattern], target: OptimizationTarget
+        self,
+        patterns: list[UserBehaviorPattern],
+        target: OptimizationTarget,
     ) -> list[PerformanceInsight]:
         """Analyze workflow efficiency patterns."""
         insights = []
@@ -447,7 +460,8 @@ class PerformanceOptimizer:
                 title="Low Efficiency Workflows Identified",
                 description=f"Found {len(low_efficiency_patterns)} workflows with efficiency < {self.performance_thresholds['efficiency_poor']:.0%}",
                 impact_level=self._calculate_impact_level(
-                    len(low_efficiency_patterns), len(patterns)
+                    len(low_efficiency_patterns),
+                    len(patterns),
                 ),
                 confidence=0.75,
                 affected_patterns=[p.pattern_id for p in low_efficiency_patterns],
@@ -470,7 +484,9 @@ class PerformanceOptimizer:
         return insights
 
     async def _analyze_resource_performance(
-        self, patterns: list[UserBehaviorPattern], target: OptimizationTarget
+        self,
+        patterns: list[UserBehaviorPattern],
+        target: OptimizationTarget,
     ) -> list[PerformanceInsight]:
         """Analyze resource usage performance patterns."""
         insights = []
@@ -495,7 +511,7 @@ class PerformanceOptimizer:
                     "high_frequency_patterns": len(high_frequency_patterns),
                     "total_resource_consumption": total_resource_consumption,
                     "average_frequency": statistics.mean(
-                        [p.frequency for p in high_frequency_patterns]
+                        [p.frequency for p in high_frequency_patterns],
                     ),
                 },
                 recommendations=[
@@ -516,12 +532,11 @@ class PerformanceOptimizer:
 
         if ratio >= 0.5:
             return "critical"
-        elif ratio >= 0.3:
+        if ratio >= 0.3:
             return "high"
-        elif ratio >= 0.1:
+        if ratio >= 0.1:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def _get_impact_score(self, impact_level: str) -> float:
         """Convert impact level to numerical score for sorting."""
@@ -529,7 +544,8 @@ class PerformanceOptimizer:
         return impact_scores.get(impact_level, 1.0)
 
     def _categorize_insights_by_performance_area(
-        self, insights: list[PerformanceInsight]
+        self,
+        insights: list[PerformanceInsight],
     ) -> dict[PerformanceCategory, list[PerformanceInsight]]:
         """Categorize insights by performance area."""
         categorized = {}
@@ -583,7 +599,9 @@ class PerformanceOptimizer:
         return recommendations
 
     async def _generate_cross_cutting_recommendations(
-        self, insights: list[PerformanceInsight], target: OptimizationTarget
+        self,
+        insights: list[PerformanceInsight],
+        target: OptimizationTarget,
     ) -> list[OptimizationRecommendation]:
         """Generate cross-cutting optimization recommendations."""
         recommendations = []
@@ -622,7 +640,8 @@ class PerformanceOptimizer:
         return recommendations
 
     def _prioritize_recommendations(
-        self, recommendations: list[OptimizationRecommendation]
+        self,
+        recommendations: list[OptimizationRecommendation],
     ) -> list[OptimizationRecommendation]:
         """Prioritize recommendations by impact and feasibility."""
         priority_scores = {"critical": 4.0, "high": 3.0, "medium": 2.0, "low": 1.0}
@@ -634,7 +653,9 @@ class PerformanceOptimizer:
         return sorted(recommendations, key=recommendation_score, reverse=True)
 
     def _generate_performance_cache_key(
-        self, patterns: list[UserBehaviorPattern], target: OptimizationTarget
+        self,
+        patterns: list[UserBehaviorPattern],
+        target: OptimizationTarget,
     ) -> str:
         """Generate cache key for performance analysis."""
         pattern_ids = sorted([p.pattern_id for p in patterns])
@@ -653,7 +674,7 @@ class PerformanceOptimizer:
             "insights_generated": len(insights),
             "target": target.value,
             "high_impact_insights": len(
-                [i for i in insights if i.impact_level in ["high", "critical"]]
+                [i for i in insights if i.impact_level in ["high", "critical"]],
             ),
             "average_confidence": statistics.mean([i.confidence for i in insights])
             if insights
@@ -680,41 +701,46 @@ class PerformanceOptimizer:
     def _configure_performance_analysis(self) -> None:
         """Configure performance analysis parameters."""
         # Configuration for different analysis modes
-        pass
 
     # Placeholder optimization algorithms
     def _optimize_for_efficiency(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Optimize patterns for efficiency."""
         return {}
 
     def _optimize_for_speed(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Optimize patterns for speed."""
         return {}
 
     def _optimize_for_accuracy(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Optimize patterns for accuracy."""
         return {}
 
     def _optimize_for_resource_usage(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Optimize patterns for resource usage."""
         return {}
 
     def _optimize_for_user_satisfaction(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Optimize patterns for user satisfaction."""
         return {}
 
     def _optimize_for_error_reduction(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Optimize patterns for error reduction."""
         return {}

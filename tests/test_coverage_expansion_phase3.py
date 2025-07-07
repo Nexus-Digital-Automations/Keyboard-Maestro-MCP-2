@@ -1,11 +1,14 @@
-"""
-Phase 3 Strategic Test Coverage Expansion for Keyboard Maestro MCP.
+"""Phase 3 Strategic Test Coverage Expansion for Keyboard Maestro MCP.
 
 This module targets the remaining high-impact modules with 0% coverage,
 focusing on server tools, token management, window systems, and other
 large modules to achieve maximum coverage gain efficiently.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import os
 import sys
 from pathlib import Path
@@ -13,13 +16,14 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_large_server_tools_systematic_import():
+def test_large_server_tools_systematic_import() -> None:
     """Test import of large server tools modules with high statement counts."""
-
     # Target the largest server tools modules (200+ statements each)
     large_tool_modules = [
         "testing_automation_tools",
@@ -38,7 +42,8 @@ def test_large_server_tools_systematic_import():
     for tool_module in large_tool_modules:
         try:
             module = __import__(
-                f"src.server.tools.{tool_module}", fromlist=[tool_module]
+                f"src.server.tools.{tool_module}",
+                fromlist=[tool_module],
             )
             assert module is not None
             successful_imports += 1
@@ -51,7 +56,7 @@ def test_large_server_tools_systematic_import():
     )
 
 
-def test_token_management_system():
+def test_token_management_system() -> None:
     """Test token management and processing systems."""
     try:
         # Test token integration
@@ -73,7 +78,7 @@ def test_token_management_system():
         pytest.skip(f"Token management system import failed: {e}")
 
 
-def test_window_management_system():
+def test_window_management_system() -> None:
     """Test comprehensive window management system."""
     try:
         from src.windows import window_manager
@@ -99,7 +104,7 @@ def test_window_management_system():
         pytest.skip(f"Window management system import failed: {e}")
 
 
-def test_agent_management_system():
+def test_agent_management_system() -> None:
     """Test comprehensive agent management and communication systems."""
     try:
         from src.agents import (
@@ -132,7 +137,7 @@ def test_agent_management_system():
         pytest.skip(f"Agent management system import failed: {e}")
 
 
-def test_action_system_comprehensive():
+def test_action_system_comprehensive() -> None:
     """Test comprehensive action building and registry systems."""
     try:
         from src.actions import action_builder, action_registry
@@ -154,14 +159,13 @@ def test_action_system_comprehensive():
             try:
                 action = action_builder.build_text_action("test text")
                 assert action is not None
-            except Exception:
-                pass  # Method may require additional parameters
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Action system import failed: {e}")
 
 
-def test_plugin_architecture_comprehensive():
+def test_plugin_architecture_comprehensive() -> bool:
     """Test comprehensive plugin architecture and management."""
     try:
         from src.core import plugin_architecture
@@ -186,14 +190,13 @@ def test_plugin_architecture_comprehensive():
                 assert (
                     result is not None or result is False
                 )  # May return False for missing plugin
-            except Exception:
-                pass  # Method may require actual plugin files
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Plugin architecture import failed: {e}")
 
 
-def test_triggers_and_hotkey_management():
+def test_triggers_and_hotkey_management() -> None:
     """Test trigger and hotkey management systems."""
     try:
         from src.triggers import hotkey_manager
@@ -215,14 +218,13 @@ def test_triggers_and_hotkey_management():
                 with patch("src.triggers.hotkey_manager.Quartz"):
                     result = hotkey_manager.register_hotkey("cmd+shift+t", lambda: None)
                     assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # May require system-level permissions
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Triggers and hotkey management import failed: {e}")
 
 
-def test_vision_system_comprehensive():
+def test_vision_system_comprehensive() -> None:
     """Test comprehensive computer vision system."""
     try:
         from src.vision import object_detector, scene_analyzer
@@ -246,14 +248,13 @@ def test_vision_system_comprehensive():
                     mock_image = Mock()
                     result = object_detector.detect_objects(mock_image)
                     assert result is not None
-            except Exception:
-                pass  # Method may require actual image data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Vision system import failed: {e}")
 
 
-def test_file_system_comprehensive():
+def test_file_system_comprehensive() -> None:
     """Test comprehensive file system integration."""
     try:
         from src.files import file_monitor, file_operations, file_security
@@ -276,14 +277,13 @@ def test_file_system_comprehensive():
             try:
                 content = file_operations.safe_read_file(__file__)
                 assert isinstance(content, str | bytes | type(None))
-            except Exception:
-                pass  # Method may have security restrictions
-
+            except (OSError, FileNotFoundError, PermissionError) as e:
+                logger.debug(f"File operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"File system import failed: {e}")
 
 
-def test_backup_and_alternative_servers():
+def test_backup_and_alternative_servers() -> None:
     """Test backup server implementations and alternative configurations."""
     try:
         # Test backup server implementations
@@ -306,7 +306,7 @@ def test_backup_and_alternative_servers():
         pytest.skip(f"Backup server systems import failed: {e}")
 
 
-def test_tools_base_and_extended():
+def test_tools_base_and_extended() -> None:
     """Test base tools and extended tool systems."""
     try:
         from src.tools import base, core_tools, extended_tools, plugin_management
@@ -334,9 +334,8 @@ def test_tools_base_and_extended():
         pytest.skip(f"Tools base and extended systems import failed: {e}")
 
 
-def test_comprehensive_error_handling_and_validation():
+def test_comprehensive_error_handling_and_validation() -> None:
     """Test comprehensive error handling across all importable modules."""
-
     # Test error propagation patterns
     test_cases = [
         ("ValueError", "test value error"),
@@ -362,13 +361,13 @@ def test_comprehensive_error_handling_and_validation():
             except exception_class as e:
                 assert str(e) == message
 
-        except Exception:
-            continue  # Skip individual error tests if they fail
+        except (ValueError, TypeError) as e:
+            logger.debug(f"Type conversion failed during operation: {e}")
+            continue
 
 
-def test_mock_integration_patterns():
+def test_mock_integration_patterns() -> None:
     """Test comprehensive mock integration patterns for coverage."""
-
     # Test various mock patterns used throughout the codebase
     with patch("builtins.open", mock_open_function()) as mock_file:
         # Test file operations
@@ -398,7 +397,7 @@ def test_mock_integration_patterns():
             "method1.return_value": "value1",
             "method2.side_effect": [1, 2, 3],
             "property1": "prop_value",
-        }
+        },
     )
 
     assert complex_mock.method1() == "value1"
@@ -406,7 +405,7 @@ def test_mock_integration_patterns():
     assert complex_mock.property1 == "prop_value"
 
 
-def mock_open_function():
+def mock_open_function() -> Any:
     """Create a mock open function for file operations."""
     mock = Mock()
     mock.return_value.__enter__ = Mock(return_value=mock.return_value)
@@ -414,9 +413,8 @@ def mock_open_function():
     return mock
 
 
-def test_path_and_environment_comprehensive():
+def test_path_and_environment_comprehensive() -> None:
     """Test comprehensive path and environment handling."""
-
     # Test pathlib operations
     current_file = Path(__file__)
     assert current_file.exists()
@@ -455,7 +453,7 @@ def test_path_and_environment_comprehensive():
 
 
 @pytest.mark.asyncio
-async def test_async_comprehensive_patterns():
+async def test_async_comprehensive_patterns() -> None:
     """Test comprehensive async patterns for complete coverage."""
     import asyncio
 
@@ -506,9 +504,8 @@ async def test_async_comprehensive_patterns():
     assert results == ["async_result", "async_result", "async_result"]
 
 
-def test_data_structures_and_algorithms():
+def test_data_structures_and_algorithms() -> None:
     """Test comprehensive data structures and algorithm patterns."""
-
     # Test complex nested data structures
     complex_data = {
         "users": [

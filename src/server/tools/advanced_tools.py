@@ -1,5 +1,4 @@
-"""
-Advanced macro search and metadata analysis tools.
+"""Advanced macro search and metadata analysis tools.
 
 Contains the TASK_6 implementation tools for enhanced macro discovery,
 smart filtering, and deep metadata analysis.
@@ -33,7 +32,8 @@ async def km_search_macros_advanced(
     query: Annotated[
         str | None,
         Field(
-            default=None, description="Search text for macro names, groups, or content"
+            default=None,
+            description="Search text for macro names, groups, or content",
         ),
     ] = None,
     scope: Annotated[
@@ -58,7 +58,8 @@ async def km_search_macros_advanced(
         ),
     ] = None,
     min_usage_count: Annotated[
-        int, Field(default=0, ge=0, description="Minimum execution count filter")
+        int,
+        Field(default=0, ge=0, description="Minimum execution count filter"),
     ] = 0,
     sort_by: Annotated[
         str,
@@ -68,12 +69,12 @@ async def km_search_macros_advanced(
         ),
     ] = "name",
     limit: Annotated[
-        int, Field(default=20, ge=1, le=100, description="Maximum number of results")
+        int,
+        Field(default=20, ge=1, le=100, description="Maximum number of results"),
     ] = 20,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Advanced macro search with comprehensive filtering and metadata analysis.
+    r"""Advanced macro search with comprehensive filtering and metadata analysis.
 
     TASK_6 IMPLEMENTATION: Enhanced macro discovery with rich metadata,
     smart filtering, usage analytics, and hierarchical organization.
@@ -118,7 +119,9 @@ async def km_search_macros_advanced(
 
         if ctx:
             await ctx.report_progress(
-                30, 100, f"Extracting metadata for {len(basic_macros)} macros"
+                30,
+                100,
+                f"Extracting metadata for {len(basic_macros)} macros",
             )
 
         # Extract enhanced metadata for each macro
@@ -136,7 +139,9 @@ async def km_search_macros_advanced(
             if ctx and (i + 1) % 5 == 0:
                 progress = 30 + (i + 1) / len(basic_macros) * 40
                 await ctx.report_progress(
-                    int(progress), 100, f"Processed {i + 1}/{len(basic_macros)} macros"
+                    int(progress),
+                    100,
+                    f"Processed {i + 1}/{len(basic_macros)} macros",
                 )
 
         if ctx:
@@ -172,7 +177,10 @@ async def km_search_macros_advanced(
 
         # Apply smart filtering
         filter_result = smart_filter.search_macros(
-            enhanced_macros, search_query, sort_criteria, limit
+            enhanced_macros,
+            search_query,
+            sort_criteria,
+            limit,
         )
 
         if ctx:
@@ -204,13 +212,13 @@ async def km_search_macros_advanced(
                     },
                     "optimization_suggestions": macro.optimization_suggestions,
                     "last_analyzed": macro.last_analyzed.isoformat(),
-                }
+                },
             )
 
         if ctx:
             await ctx.report_progress(100, 100, "Search complete")
             await ctx.info(
-                f"Found {len(result_macros)} matching macros with enhanced metadata"
+                f"Found {len(result_macros)} matching macros with enhanced metadata",
             )
 
         return {
@@ -252,14 +260,15 @@ async def km_analyze_macro_metadata(
     include_relationships: Annotated[
         bool,
         Field(
-            default=True, description="Include relationship analysis with other macros"
+            default=True,
+            description="Include relationship analysis with other macros",
         ),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Analyze detailed metadata for a specific macro including complexity,
-    usage patterns, optimization suggestions, and relationships.
+    """Analyze detailed metadata for a specific macro including complexity.
+
+    Usage patterns, optimization suggestions, and relationships.
 
     TASK_6 IMPLEMENTATION: Deep macro analysis for AI-driven insights.
     """
@@ -313,13 +322,15 @@ async def km_analyze_macro_metadata(
                         # Convert string to MacroId branded type
                         macro_id = MacroId(macro_id_str)
                         enhanced_result = await extractor.extract_enhanced_metadata(
-                            macro_id
+                            macro_id,
                         )
                         if enhanced_result.is_right():
                             all_enhanced.append(enhanced_result.get_right())
 
                 similar_macros_list = smart_filter.find_similar_macros(
-                    macro_metadata, all_enhanced, similarity_threshold=0.6
+                    macro_metadata,
+                    all_enhanced,
+                    similarity_threshold=0.6,
                 )
 
                 for similar in similar_macros_list[:5]:  # Top 5 similar
@@ -329,7 +340,7 @@ async def km_analyze_macro_metadata(
                             "name": similar.name,
                             "group": similar.group,
                             "similarity_reason": "Similar function and complexity",
-                        }
+                        },
                     )
 
         # Build detailed analysis
@@ -352,7 +363,7 @@ async def km_analyze_macro_metadata(
                     t.category.value for t in macro_metadata.triggers
                 ],
                 "action_categories": list(
-                    {a.category.value for a in macro_metadata.actions}
+                    {a.category.value for a in macro_metadata.actions},
                 ),
             },
             "usage_analytics": {
@@ -371,10 +382,11 @@ async def km_analyze_macro_metadata(
             "optimization": {
                 "suggestions": macro_metadata.optimization_suggestions,
                 "performance_score": max(
-                    0, min(10, int(macro_metadata.usage_stats.success_rate * 10))
+                    0,
+                    min(10, int(macro_metadata.usage_stats.success_rate * 10)),
                 ),
                 "complexity_score": ["simple", "moderate", "complex", "advanced"].index(
-                    macro_metadata.complexity.value
+                    macro_metadata.complexity.value,
                 )
                 + 1,
             },
@@ -407,7 +419,7 @@ async def km_analyze_macro_metadata(
         if ctx:
             await ctx.report_progress(100, 100, "Analysis complete")
             await ctx.info(
-                f"Generated comprehensive analysis for {macro_metadata.name}"
+                f"Generated comprehensive analysis for {macro_metadata.name}",
             )
 
         return {

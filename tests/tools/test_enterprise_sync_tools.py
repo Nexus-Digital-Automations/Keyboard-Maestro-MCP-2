@@ -1,11 +1,13 @@
-"""
-Comprehensive test suite for enterprise sync tools using systematic MCP tool test pattern.
+"""Comprehensive test suite for enterprise sync tools using systematic MCP tool test pattern.
 
 Tests the complete enterprise integration functionality including LDAP, SSO, database sync,
 and API connectivity with enterprise-grade security and audit logging.
 Tests follow the proven systematic pattern that achieved 100% success across 38+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock
 
@@ -229,7 +231,7 @@ async def mock_km_enterprise_sync(
             },
         }
 
-    elif operation == "sync":
+    if operation == "sync":
         # Sync operation validation
         if not sync_options:
             return {
@@ -297,7 +299,7 @@ async def mock_km_enterprise_sync(
             },
         }
 
-    elif operation == "query":
+    if operation == "query":
         # Query operation validation
         if not sync_options:  # sync_options used as query_options
             return {
@@ -383,7 +385,7 @@ async def mock_km_enterprise_sync(
             ]
         else:
             records = [
-                {"data": "generic_record", "timestamp": datetime.now(UTC).isoformat()}
+                {"data": "generic_record", "timestamp": datetime.now(UTC).isoformat()},
             ]
 
         # Apply filter if specified
@@ -414,7 +416,7 @@ async def mock_km_enterprise_sync(
             },
         }
 
-    elif operation == "sso_config":
+    if operation == "sso_config":
         # SSO config operation validation
         if integration_type not in ["saml_sso", "oauth_sso"]:
             return {
@@ -477,7 +479,7 @@ async def mock_km_enterprise_sync(
             },
         }
 
-    elif operation == "sso_login":
+    if operation == "sso_login":
         # SSO login operation validation
         if integration_type not in ["saml_sso", "oauth_sso"]:
             return {
@@ -548,7 +550,7 @@ async def mock_km_enterprise_sync(
             },
         }
 
-    elif operation == "status":
+    if operation == "status":
         # Status operation
         return {
             "success": True,
@@ -581,7 +583,7 @@ async def mock_km_enterprise_sync(
             },
         }
 
-    elif operation == "configure":
+    if operation == "configure":
         # Configure operation
         return {
             "success": True,
@@ -599,7 +601,7 @@ async def mock_km_enterprise_sync(
             },
         }
 
-    elif operation == "authenticate":
+    if operation == "authenticate":
         # Authenticate operation (placeholder)
         return {
             "success": False,
@@ -610,30 +612,29 @@ async def mock_km_enterprise_sync(
             },
         }
 
-    else:
-        # Fallback for unknown operations
-        return {
-            "success": False,
-            "error": {
-                "code": "unknown_operation",
-                "message": f"Unknown operation: {operation}",
-                "details": operation,
-            },
-        }
+    # Fallback for unknown operations
+    return {
+        "success": False,
+        "error": {
+            "code": "unknown_operation",
+            "message": f"Unknown operation: {operation}",
+            "details": operation,
+        },
+    }
 
 
 class TestEnterpriseSync:
     """Comprehensive test suite for enterprise sync tools using systematic MCP tool test pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create mock context for testing."""
         context = Mock()
         context.info = AsyncMock()
         return context
 
     @pytest.fixture
-    def valid_connection_config(self):
+    def valid_connection_config(self) -> Any:
         """Valid connection configuration for testing."""
         return {
             "host": "ldap.company.com",
@@ -645,7 +646,7 @@ class TestEnterpriseSync:
         }
 
     @pytest.fixture
-    def valid_authentication(self):
+    def valid_authentication(self) -> Any:
         """Valid authentication credentials for testing."""
         return {
             "method": "simple_bind",
@@ -655,7 +656,7 @@ class TestEnterpriseSync:
         }
 
     @pytest.fixture
-    def valid_sync_options(self):
+    def valid_sync_options(self) -> Any:
         """Valid sync options for testing."""
         return {
             "connection_id": "test_connection_123",
@@ -668,8 +669,11 @@ class TestEnterpriseSync:
 
     @pytest.mark.asyncio
     async def test_enterprise_sync_connect_operation_success(
-        self, mock_context, valid_connection_config, valid_authentication
-    ):
+        self,
+        mock_context,
+        valid_connection_config,
+        valid_authentication,
+    ) -> None:
         """Test successful enterprise connection establishment."""
         result = await mock_km_enterprise_sync(
             operation="connect",
@@ -690,8 +694,10 @@ class TestEnterpriseSync:
 
     @pytest.mark.asyncio
     async def test_enterprise_sync_sync_operation_success(
-        self, mock_context, valid_sync_options
-    ):
+        self,
+        mock_context,
+        valid_sync_options,
+    ) -> None:
         """Test successful enterprise data synchronization."""
         result = await mock_km_enterprise_sync(
             operation="sync",
@@ -711,7 +717,7 @@ class TestEnterpriseSync:
         assert result["metadata"]["has_errors"] is True
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_query_operation_success(self, mock_context):
+    async def test_enterprise_sync_query_operation_success(self, mock_context) -> None:
         """Test successful enterprise data querying."""
         query_options = {"connection_id": "test_connection_123"}
 
@@ -732,7 +738,7 @@ class TestEnterpriseSync:
         assert result["metadata"]["has_results"] == (len(result["data"]["records"]) > 0)
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_sso_config_operation_success(self, mock_context):
+    async def test_enterprise_sync_sso_config_operation_success(self, mock_context) -> None:
         """Test successful SSO provider configuration."""
         sso_config = {
             "provider_name": "CompanySSO",
@@ -757,7 +763,7 @@ class TestEnterpriseSync:
         assert result["metadata"]["provider_configured"] is True
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_sso_login_operation_success(self, mock_context):
+    async def test_enterprise_sync_sso_login_operation_success(self, mock_context) -> None:
         """Test successful SSO login initiation."""
         auth_options = {
             "provider_id": "sso_provider_12345",
@@ -782,10 +788,12 @@ class TestEnterpriseSync:
         assert result["metadata"]["requires_redirect"] is True
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_status_operation_success(self, mock_context):
+    async def test_enterprise_sync_status_operation_success(self, mock_context) -> None:
         """Test successful enterprise system status retrieval."""
         result = await mock_km_enterprise_sync(
-            operation="status", integration_type="enterprise_database", ctx=mock_context
+            operation="status",
+            integration_type="enterprise_database",
+            ctx=mock_context,
         )
 
         assert result["success"] is True
@@ -799,8 +807,10 @@ class TestEnterpriseSync:
 
     @pytest.mark.asyncio
     async def test_enterprise_sync_configure_operation_success(
-        self, mock_context, valid_connection_config
-    ):
+        self,
+        mock_context,
+        valid_connection_config,
+    ) -> None:
         """Test successful enterprise configuration."""
         result = await mock_km_enterprise_sync(
             operation="configure",
@@ -818,10 +828,12 @@ class TestEnterpriseSync:
     # Validation Tests
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_missing_operation(self, mock_context):
+    async def test_enterprise_sync_missing_operation(self, mock_context) -> None:
         """Test enterprise sync with missing operation."""
         result = await mock_km_enterprise_sync(
-            operation=None, integration_type="ldap", ctx=mock_context
+            operation=None,
+            integration_type="ldap",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -829,10 +841,12 @@ class TestEnterpriseSync:
         assert "Operation is required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_invalid_operation(self, mock_context):
+    async def test_enterprise_sync_invalid_operation(self, mock_context) -> None:
         """Test enterprise sync with invalid operation."""
         result = await mock_km_enterprise_sync(
-            operation="invalid_operation", integration_type="ldap", ctx=mock_context
+            operation="invalid_operation",
+            integration_type="ldap",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -841,10 +855,12 @@ class TestEnterpriseSync:
         assert "invalid_operation" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_missing_integration_type(self, mock_context):
+    async def test_enterprise_sync_missing_integration_type(self, mock_context) -> None:
         """Test enterprise sync with missing integration type."""
         result = await mock_km_enterprise_sync(
-            operation="connect", integration_type=None, ctx=mock_context
+            operation="connect",
+            integration_type=None,
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -852,10 +868,12 @@ class TestEnterpriseSync:
         assert "Integration type is required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_invalid_integration_type(self, mock_context):
+    async def test_enterprise_sync_invalid_integration_type(self, mock_context) -> None:
         """Test enterprise sync with invalid integration type."""
         result = await mock_km_enterprise_sync(
-            operation="connect", integration_type="invalid_type", ctx=mock_context
+            operation="connect",
+            integration_type="invalid_type",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -864,7 +882,7 @@ class TestEnterpriseSync:
         assert "invalid_type" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_invalid_security_level(self, mock_context):
+    async def test_enterprise_sync_invalid_security_level(self, mock_context) -> None:
         """Test enterprise sync with invalid security level."""
         result = await mock_km_enterprise_sync(
             operation="status",
@@ -879,7 +897,7 @@ class TestEnterpriseSync:
         assert "invalid_level" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_invalid_timeout(self, mock_context):
+    async def test_enterprise_sync_invalid_timeout(self, mock_context) -> None:
         """Test enterprise sync with invalid timeout."""
         result = await mock_km_enterprise_sync(
             operation="connect",
@@ -893,7 +911,7 @@ class TestEnterpriseSync:
         assert "Timeout must be between 1 and 300 seconds" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_invalid_batch_size(self, mock_context):
+    async def test_enterprise_sync_invalid_batch_size(self, mock_context) -> None:
         """Test enterprise sync with invalid batch size."""
         result = await mock_km_enterprise_sync(
             operation="sync",
@@ -910,8 +928,10 @@ class TestEnterpriseSync:
 
     @pytest.mark.asyncio
     async def test_enterprise_sync_connect_missing_connection_config(
-        self, mock_context, valid_authentication
-    ):
+        self,
+        mock_context,
+        valid_authentication,
+    ) -> None:
         """Test connect operation with missing connection config."""
         result = await mock_km_enterprise_sync(
             operation="connect",
@@ -927,8 +947,10 @@ class TestEnterpriseSync:
 
     @pytest.mark.asyncio
     async def test_enterprise_sync_connect_missing_authentication(
-        self, mock_context, valid_connection_config
-    ):
+        self,
+        mock_context,
+        valid_connection_config,
+    ) -> None:
         """Test connect operation with missing authentication."""
         result = await mock_km_enterprise_sync(
             operation="connect",
@@ -944,8 +966,10 @@ class TestEnterpriseSync:
 
     @pytest.mark.asyncio
     async def test_enterprise_sync_connect_missing_host_port(
-        self, mock_context, valid_authentication
-    ):
+        self,
+        mock_context,
+        valid_authentication,
+    ) -> None:
         """Test connect operation with missing host/port."""
         invalid_config = {"use_ssl": True}
 
@@ -963,8 +987,10 @@ class TestEnterpriseSync:
 
     @pytest.mark.asyncio
     async def test_enterprise_sync_connect_failure(
-        self, mock_context, valid_authentication
-    ):
+        self,
+        mock_context,
+        valid_authentication,
+    ) -> None:
         """Test connect operation failure."""
         invalid_config = {"host": "invalid.host.com", "port": 389, "use_ssl": True}
 
@@ -983,7 +1009,7 @@ class TestEnterpriseSync:
     # Sync Operation Specific Tests
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_sync_missing_options(self, mock_context):
+    async def test_enterprise_sync_sync_missing_options(self, mock_context) -> None:
         """Test sync operation with missing sync options."""
         result = await mock_km_enterprise_sync(
             operation="sync",
@@ -997,7 +1023,7 @@ class TestEnterpriseSync:
         assert "Sync options required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_sync_missing_connection_id(self, mock_context):
+    async def test_enterprise_sync_sync_missing_connection_id(self, mock_context) -> None:
         """Test sync operation with missing connection ID."""
         invalid_options = {"sync_scope": "users"}
 
@@ -1013,7 +1039,7 @@ class TestEnterpriseSync:
         assert "Connection ID required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_sync_failure(self, mock_context):
+    async def test_enterprise_sync_sync_failure(self, mock_context) -> None:
         """Test sync operation failure."""
         failure_options = {
             "connection_id": "test_connection_123",
@@ -1034,7 +1060,7 @@ class TestEnterpriseSync:
     # Query Operation Specific Tests
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_query_missing_options(self, mock_context):
+    async def test_enterprise_sync_query_missing_options(self, mock_context) -> None:
         """Test query operation with missing query options."""
         result = await mock_km_enterprise_sync(
             operation="query",
@@ -1048,7 +1074,7 @@ class TestEnterpriseSync:
         assert "Query options required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_query_invalid_filter(self, mock_context):
+    async def test_enterprise_sync_query_invalid_filter(self, mock_context) -> None:
         """Test query operation with invalid filter."""
         query_options = {"connection_id": "test_connection_123"}
 
@@ -1068,8 +1094,9 @@ class TestEnterpriseSync:
 
     @pytest.mark.asyncio
     async def test_enterprise_sync_sso_config_invalid_integration_type(
-        self, mock_context
-    ):
+        self,
+        mock_context,
+    ) -> None:
         """Test SSO config with invalid integration type."""
         sso_config = {"provider_name": "TestSSO"}
 
@@ -1085,7 +1112,7 @@ class TestEnterpriseSync:
         assert "SSO configuration not supported" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_sso_login_missing_auth_options(self, mock_context):
+    async def test_enterprise_sync_sso_login_missing_auth_options(self, mock_context) -> None:
         """Test SSO login with missing auth options."""
         result = await mock_km_enterprise_sync(
             operation="sso_login",
@@ -1099,7 +1126,7 @@ class TestEnterpriseSync:
         assert "Authentication options required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_sso_login_missing_parameters(self, mock_context):
+    async def test_enterprise_sync_sso_login_missing_parameters(self, mock_context) -> None:
         """Test SSO login with missing provider ID and redirect URL."""
         incomplete_auth = {"provider_id": "test_provider"}  # Missing redirect_url
 
@@ -1118,8 +1145,11 @@ class TestEnterpriseSync:
 
     @pytest.mark.asyncio
     async def test_enterprise_sync_complete_workflow(
-        self, mock_context, valid_connection_config, valid_authentication
-    ):
+        self,
+        mock_context,
+        valid_connection_config,
+        valid_authentication,
+    ) -> None:
         """Test complete enterprise sync workflow."""
         # 1. Connect
         connect_result = await mock_km_enterprise_sync(
@@ -1161,14 +1191,16 @@ class TestEnterpriseSync:
 
         # 4. Check status
         status_result = await mock_km_enterprise_sync(
-            operation="status", integration_type="ldap", ctx=mock_context
+            operation="status",
+            integration_type="ldap",
+            ctx=mock_context,
         )
 
         assert status_result["success"] is True
         assert status_result["data"]["system_status"]["status"] == "operational"
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_different_integration_types(self, mock_context):
+    async def test_enterprise_sync_different_integration_types(self, mock_context) -> None:
         """Test enterprise sync with different integration types."""
         integration_types = [
             "ldap",
@@ -1191,7 +1223,7 @@ class TestEnterpriseSync:
             assert result["metadata"]["enterprise_ready"] is True
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_security_levels(self, mock_context):
+    async def test_enterprise_sync_security_levels(self, mock_context) -> None:
         """Test enterprise sync with different security levels."""
         security_levels = ["low", "medium", "high", "critical"]
 
@@ -1210,7 +1242,7 @@ class TestEnterpriseSync:
             )
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_audit_levels(self, mock_context):
+    async def test_enterprise_sync_audit_levels(self, mock_context) -> None:
         """Test enterprise sync with different audit levels."""
         audit_levels = ["none", "basic", "detailed", "comprehensive"]
 
@@ -1229,8 +1261,10 @@ class TestEnterpriseSync:
 
     @pytest.mark.asyncio
     async def test_enterprise_sync_large_batch_size(
-        self, mock_context, valid_sync_options
-    ):
+        self,
+        mock_context,
+        valid_sync_options,
+    ) -> None:
         """Test enterprise sync with large batch size."""
         result = await mock_km_enterprise_sync(
             operation="sync",
@@ -1246,8 +1280,11 @@ class TestEnterpriseSync:
 
     @pytest.mark.asyncio
     async def test_enterprise_sync_minimum_timeout(
-        self, mock_context, valid_connection_config, valid_authentication
-    ):
+        self,
+        mock_context,
+        valid_connection_config,
+        valid_authentication,
+    ) -> None:
         """Test enterprise sync with minimum timeout."""
         result = await mock_km_enterprise_sync(
             operation="connect",
@@ -1262,7 +1299,7 @@ class TestEnterpriseSync:
         assert result["metadata"]["timeout"] == 1
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_maximum_retry_attempts(self, mock_context):
+    async def test_enterprise_sync_maximum_retry_attempts(self, mock_context) -> None:
         """Test enterprise sync with maximum retry attempts."""
         result = await mock_km_enterprise_sync(
             operation="status",
@@ -1275,10 +1312,12 @@ class TestEnterpriseSync:
         assert result["metadata"]["retry_attempts"] == 10
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_authenticate_not_implemented(self, mock_context):
+    async def test_enterprise_sync_authenticate_not_implemented(self, mock_context) -> None:
         """Test authenticate operation (not implemented)."""
         result = await mock_km_enterprise_sync(
-            operation="authenticate", integration_type="ldap", ctx=mock_context
+            operation="authenticate",
+            integration_type="ldap",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1288,7 +1327,7 @@ class TestEnterpriseSync:
     # Property-based Testing
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_operation_consistency(self, mock_context):
+    async def test_enterprise_sync_operation_consistency(self, mock_context) -> None:
         """Test that operations consistently return required fields."""
         operations = [
             "connect",
@@ -1306,7 +1345,9 @@ class TestEnterpriseSync:
                 continue
 
             result = await mock_km_enterprise_sync(
-                operation=operation, integration_type="ldap", ctx=mock_context
+                operation=operation,
+                integration_type="ldap",
+                ctx=mock_context,
             )
 
             # All operations should have these fields

@@ -1,5 +1,4 @@
-"""
-Dashboard generation system for comprehensive analytics visualization.
+"""Dashboard generation system for comprehensive analytics visualization.
 
 Creates executive dashboards, operational views, and real-time monitoring
 interfaces with ML-powered insights and interactive visualizations.
@@ -76,8 +75,7 @@ class DashboardData:
 
 
 class DashboardGenerator:
-    """
-    Advanced dashboard generation system with real-time analytics.
+    """Advanced dashboard generation system with real-time analytics.
 
     Provides comprehensive dashboard creation, visualization, and real-time
     updates with ML-powered insights and enterprise-grade security.
@@ -103,7 +101,7 @@ class DashboardGenerator:
         self._initialize_dashboard_templates()
         self._initialize_widget_registry()
 
-    def _initialize_dashboard_templates(self):
+    def _initialize_dashboard_templates(self) -> dict[str, Any]:
         """Initialize standard dashboard templates."""
         # Executive Summary Dashboard
         executive_widgets = [
@@ -242,7 +240,7 @@ class DashboardGenerator:
             theme="operational",
         )
 
-    def _initialize_widget_registry(self):
+    def _initialize_widget_registry(self) -> dict[str, Any]:
         """Initialize widget type registry with configurations."""
         self.widget_registry = {
             "metric": {
@@ -277,7 +275,7 @@ class DashboardGenerator:
             },
         }
 
-    @require(lambda self, template_name: len(template_name) > 0)
+    @require(lambda __self, template_name: len(template_name) > 0)
     @ensure(lambda result: isinstance(result, Either))
     async def create_dashboard(
         self,
@@ -292,7 +290,7 @@ class DashboardGenerator:
         try:
             if template_name not in self.dashboard_templates:
                 return Either.left(
-                    ValidationError(f"Unknown dashboard template: {template_name}")
+                    ValidationError(f"Unknown dashboard template: {template_name}"),
                 )
 
             template = self.dashboard_templates[template_name]
@@ -355,7 +353,9 @@ class DashboardGenerator:
         }
 
     def _apply_custom_config(
-        self, template: DashboardLayout, config: dict[str, Any]
+        self,
+        template: DashboardLayout,
+        config: dict[str, Any],
     ) -> DashboardLayout:
         """Apply custom configuration to dashboard template."""
         # Create a copy to avoid modifying the original template
@@ -375,7 +375,8 @@ class DashboardGenerator:
                     **widget_config.get("config", {}),
                 },
                 refresh_interval=widget_config.get(
-                    "refresh_interval", widget.refresh_interval
+                    "refresh_interval",
+                    widget.refresh_interval,
                 ),
                 size=widget_config.get("size", widget.size),
                 position=widget_config.get("position", widget.position),
@@ -394,10 +395,12 @@ class DashboardGenerator:
             responsive=config.get("responsive", template.responsive),
         )
 
-    @require(lambda self, dashboard_id: len(dashboard_id) > 0)
+    @require(lambda __self, dashboard_id: len(dashboard_id) > 0)
     @ensure(lambda result: isinstance(result, Either))
     async def generate_dashboard_data(
-        self, dashboard_id: DashboardId, analytics_data: dict[str, Any]
+        self,
+        dashboard_id: DashboardId,
+        analytics_data: dict[str, Any],
     ) -> Either[ValidationError, DashboardData]:
         """Generate dashboard data from analytics."""
         try:
@@ -413,7 +416,7 @@ class DashboardGenerator:
 
             if dashboard_id not in self.active_dashboards:
                 return Either.left(
-                    ValidationError(f"Dashboard not found: {dashboard_id}")
+                    ValidationError(f"Dashboard not found: {dashboard_id}"),
                 )
 
             dashboard = self.active_dashboards[dashboard_id]
@@ -422,7 +425,8 @@ class DashboardGenerator:
             processed_metrics = {}
             for widget_dict in dashboard.widgets:
                 widget_data = await self._process_widget_data(
-                    widget_dict, analytics_data
+                    widget_dict,
+                    analytics_data,
                 )
                 processed_metrics[widget_dict["id"]] = widget_data
 
@@ -446,11 +450,13 @@ class DashboardGenerator:
         except Exception as e:
             logger.error(f"Dashboard data generation failed: {e}")
             return Either.left(
-                ValidationError(f"Dashboard data generation failed: {e}")
+                ValidationError(f"Dashboard data generation failed: {e}"),
             )
 
     async def _process_widget_data(
-        self, widget: dict[str, Any], analytics_data: dict[str, Any]
+        self,
+        widget: dict[str, Any],
+        analytics_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Process analytics data for a specific widget."""
         widget_type = widget["type"]
@@ -459,25 +465,31 @@ class DashboardGenerator:
 
         if widget_type == "metric":
             return await self._process_metric_widget(
-                data_source, config, analytics_data
+                data_source,
+                config,
+                analytics_data,
             )
-        elif widget_type == "chart":
+        if widget_type == "chart":
             return await self._process_chart_widget(data_source, config, analytics_data)
-        elif widget_type == "table":
+        if widget_type == "table":
             return await self._process_table_widget(data_source, config, analytics_data)
-        elif widget_type == "alert":
+        if widget_type == "alert":
             return await self._process_alert_widget(data_source, config, analytics_data)
-        elif widget_type == "insight":
+        if widget_type == "insight":
             return await self._process_insight_widget(
-                data_source, config, analytics_data
+                data_source,
+                config,
+                analytics_data,
             )
-        elif widget_type == "trend":
+        if widget_type == "trend":
             return await self._process_trend_widget(data_source, config, analytics_data)
-        else:
-            return {"error": f"Unknown widget type: {widget_type}"}
+        return {"error": f"Unknown widget type: {widget_type}"}
 
     async def _process_metric_widget(
-        self, data_source: str, config: dict[str, Any], analytics_data: dict[str, Any]
+        self,
+        data_source: str,
+        config: dict[str, Any],
+        analytics_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Process data for metric widget."""
         if data_source == "system_performance":
@@ -494,14 +506,18 @@ class DashboardGenerator:
                 else "critical",
                 "unit": "%",
                 "threshold": config.get(
-                    "thresholds", {"red": 60, "yellow": 80, "green": 90}
+                    "thresholds",
+                    {"red": 60, "yellow": 80, "green": 90},
                 ),
             }
 
         return {"current_value": 0, "trend": "unknown", "status": "no_data"}
 
     async def _process_chart_widget(
-        self, data_source: str, config: dict[str, Any], analytics_data: dict[str, Any]
+        self,
+        data_source: str,
+        config: dict[str, Any],
+        analytics_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Process data for chart widget."""
         chart_type = config.get("chart_type", "line")
@@ -532,7 +548,7 @@ class DashboardGenerator:
                             "data": values,
                             "borderColor": "#2E86AB",
                             "backgroundColor": "rgba(46, 134, 171, 0.1)",
-                        }
+                        },
                     ],
                 },
                 "options": {"responsive": True, "scales": {"y": {"beginAtZero": True}}},
@@ -541,7 +557,10 @@ class DashboardGenerator:
         return {"chart_type": chart_type, "data": {"labels": [], "datasets": []}}
 
     async def _process_table_widget(
-        self, data_source: str, config: dict[str, Any], analytics_data: dict[str, Any]
+        self,
+        data_source: str,
+        config: dict[str, Any],
+        analytics_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Process data for table widget."""
         if data_source == "tool_metrics":
@@ -563,7 +582,7 @@ class DashboardGenerator:
                         "success_rate": f"{95 + hash(tool) % 5}%",
                         "throughput": f"{10 + hash(tool) % 20} ops/sec",
                         "status": "healthy",
-                    }
+                    },
                 )
 
             return {
@@ -579,7 +598,10 @@ class DashboardGenerator:
         return {"columns": [], "rows": []}
 
     async def _process_alert_widget(
-        self, data_source: str, config: dict[str, Any], analytics_data: dict[str, Any]
+        self,
+        data_source: str,
+        config: dict[str, Any],
+        analytics_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Process data for alert widget."""
         if data_source == "anomalies":
@@ -600,7 +622,7 @@ class DashboardGenerator:
                             "description": anomaly.description,
                             "timestamp": anomaly.detected_at.isoformat(),
                             "tool": anomaly.tool_id,
-                        }
+                        },
                     )
 
             return {
@@ -608,10 +630,10 @@ class DashboardGenerator:
                 "total_count": len(filtered_alerts),
                 "severity_counts": {
                     "critical": len(
-                        [a for a in filtered_alerts if a["severity"] == "critical"]
+                        [a for a in filtered_alerts if a["severity"] == "critical"],
                     ),
                     "high": len(
-                        [a for a in filtered_alerts if a["severity"] == "high"]
+                        [a for a in filtered_alerts if a["severity"] == "high"],
                     ),
                 },
             }
@@ -619,7 +641,10 @@ class DashboardGenerator:
         return {"alerts": [], "total_count": 0, "severity_counts": {}}
 
     async def _process_insight_widget(
-        self, data_source: str, config: dict[str, Any], analytics_data: dict[str, Any]
+        self,
+        data_source: str,
+        config: dict[str, Any],
+        analytics_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Process data for insight widget."""
         if data_source == "ml_insights":
@@ -644,7 +669,7 @@ class DashboardGenerator:
                                 :3
                             ],  # Top 3
                             "timestamp": insight.generated_at.isoformat(),
-                        }
+                        },
                     )
 
             return {
@@ -655,7 +680,10 @@ class DashboardGenerator:
         return {"insights": [], "total_count": 0}
 
     async def _process_trend_widget(
-        self, data_source: str, config: dict[str, Any], analytics_data: dict[str, Any]
+        self,
+        data_source: str,
+        config: dict[str, Any],
+        analytics_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Process data for trend widget."""
         if data_source == "trend_analysis":
@@ -677,7 +705,7 @@ class DashboardGenerator:
                             float(trend.confidence_interval[0]),
                             float(trend.confidence_interval[1]),
                         ],
-                    }
+                    },
                 )
 
             return {
@@ -688,7 +716,7 @@ class DashboardGenerator:
 
         return {"trends": [], "display_forecast": False}
 
-    def _update_generation_stats(self, generation_time_ms: float, widget_count: int):
+    def _update_generation_stats(self, generation_time_ms: float, widget_count: int) -> Any:
         """Update dashboard generation statistics."""
         self.generation_stats["dashboards_generated"] += 1
         self.generation_stats["widgets_created"] += widget_count
@@ -702,13 +730,15 @@ class DashboardGenerator:
         self.generation_stats["avg_generation_time_ms"] = new_avg
 
     async def export_dashboard(
-        self, dashboard_id: DashboardId, format: str = "json"
+        self,
+        dashboard_id: DashboardId,
+        format: str = "json",
     ) -> Either[ValidationError, dict[str, Any]]:
         """Export dashboard configuration and data."""
         try:
             if dashboard_id not in self.active_dashboards:
                 return Either.left(
-                    ValidationError(f"Dashboard not found: {dashboard_id}")
+                    ValidationError(f"Dashboard not found: {dashboard_id}"),
                 )
 
             dashboard = self.active_dashboards[dashboard_id]
@@ -745,7 +775,7 @@ class DashboardGenerator:
                     "widget_count": len(template.widgets),
                     "theme": template.theme,
                     "grid_size": f"{template.grid_columns}x{template.grid_rows}",
-                }
+                },
             )
 
         return templates

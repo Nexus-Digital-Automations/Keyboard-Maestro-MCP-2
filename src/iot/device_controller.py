@@ -1,5 +1,4 @@
-"""
-Device Controller - TASK_65 Phase 2 Core IoT Engine
+"""Device Controller - TASK_65 Phase 2 Core IoT Engine.
 
 IoT device discovery, connection, and control management with multi-protocol support.
 Provides comprehensive device lifecycle management and real-time control capabilities.
@@ -14,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import hashlib
+import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
@@ -32,6 +32,8 @@ from src.core.iot_architecture import (
     ProtocolAddress,
     validate_device_configuration,
 )
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -98,7 +100,7 @@ class DeviceConnection:
             ConnectionState.AUTHENTICATED,
         ]
 
-    def update_performance(self, response_time: float, success: bool):
+    def update_performance(self, response_time: float, success: bool) -> None:
         """Update connection performance metrics."""
         self.response_time_ms = (self.response_time_ms + response_time) / 2
 
@@ -202,7 +204,8 @@ class DeviceController:
 
     @require(lambda device: isinstance(device, IoTDevice))
     async def register_device(
-        self, device: IoTDevice
+        self,
+        device: IoTDevice,
     ) -> Either[IoTIntegrationError, bool]:
         """Register a new IoT device."""
         try:
@@ -215,8 +218,8 @@ class DeviceController:
             if device.device_id in self.devices:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Device already registered: {device.device_id}"
-                    )
+                        f"Device already registered: {device.device_id}",
+                    ),
                 )
 
             # Register device
@@ -245,12 +248,14 @@ class DeviceController:
         except Exception as e:
             return Either.error(
                 IoTIntegrationError(
-                    f"Device registration failed: {str(e)}", device.device_id
-                )
+                    f"Device registration failed: {e!s}",
+                    device.device_id,
+                ),
             )
 
     async def discover_devices(
-        self, methods: set[DiscoveryMethod] | None = None
+        self,
+        methods: set[DiscoveryMethod] | None = None,
     ) -> Either[IoTIntegrationError, list[DiscoveryResult]]:
         """Discover IoT devices using specified methods."""
         try:
@@ -289,25 +294,28 @@ class DeviceController:
                 for handler in self.device_discovered_handlers:
                     try:
                         handler(result)
-                    except Exception:
-                        pass  # Don't let handler errors affect discovery
+                    except Exception as e:
+                        # SIM105/S110 fix: Proper error handling instead of silent pass
+                        logger.warning(f"Device discovery handler error: {e}")
+                        # Continue processing other handlers without failing
 
             return Either.success(all_results)
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Device discovery failed: {str(e)}")
+                IoTIntegrationError(f"Device discovery failed: {e!s}"),
             )
 
     @require(lambda device_id: isinstance(device_id, DeviceId))
     async def connect_device(
-        self, device_id: DeviceId
+        self,
+        device_id: DeviceId,
     ) -> Either[IoTIntegrationError, bool]:
         """Connect to an IoT device."""
         try:
             if device_id not in self.devices:
                 return Either.error(
-                    IoTIntegrationError(f"Device not registered: {device_id}")
+                    IoTIntegrationError(f"Device not registered: {device_id}"),
                 )
 
             device = self.devices[device_id]
@@ -334,8 +342,9 @@ class DeviceController:
             else:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Unsupported protocol: {device.protocol}", device_id
-                    )
+                        f"Unsupported protocol: {device.protocol}",
+                        device_id,
+                    ),
                 )
 
             if success:
@@ -361,17 +370,16 @@ class DeviceController:
                         handler(device_id)
 
                 return Either.success(True)
-            else:
-                connection.connection_state = ConnectionState.ERROR
-                return Either.error(
-                    IoTIntegrationError(f"Connection failed: {device_id}")
-                )
+            connection.connection_state = ConnectionState.ERROR
+            return Either.error(
+                IoTIntegrationError(f"Connection failed: {device_id}"),
+            )
 
         except Exception as e:
             if device_id in self.connections:
                 self.connections[device_id].connection_state = ConnectionState.ERROR
             return Either.error(
-                IoTIntegrationError(f"Connection error: {str(e)}", device_id)
+                IoTIntegrationError(f"Connection error: {e!s}", device_id),
             )
 
     @require(lambda device_id: isinstance(device_id, DeviceId))
@@ -386,7 +394,7 @@ class DeviceController:
         try:
             if device_id not in self.devices:
                 return Either.error(
-                    IoTIntegrationError(f"Device not registered: {device_id}")
+                    IoTIntegrationError(f"Device not registered: {device_id}"),
                 )
 
             device = self.devices[device_id]
@@ -397,15 +405,16 @@ class DeviceController:
                 connect_result = await self.connect_device(device_id)
                 if connect_result.is_error():
                     return Either.error(
-                        IoTIntegrationError(f"Cannot connect to device: {device_id}")
+                        IoTIntegrationError(f"Cannot connect to device: {device_id}"),
                     )
 
             # Check if device supports action
             if not device.supports_action(action):
                 return Either.error(
                     IoTIntegrationError(
-                        f"Device does not support action {action.value}", device_id
-                    )
+                        f"Device does not support action {action.value}",
+                        device_id,
+                    ),
                 )
 
             # Prepare command parameters
@@ -425,7 +434,7 @@ class DeviceController:
                     IoTIntegrationError(
                         f"Unsupported protocol for action execution: {device.protocol}",
                         device_id,
-                    )
+                    ),
                 )
 
             execution_time = (
@@ -456,23 +465,23 @@ class DeviceController:
                         handler(device_id, action, result.value)
 
                 return result
-            else:
-                connection.update_performance(execution_time, False)
-                return result
+            connection.update_performance(execution_time, False)
+            return result
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Action execution failed: {str(e)}", device_id)
+                IoTIntegrationError(f"Action execution failed: {e!s}", device_id),
             )
 
     async def get_device_status(
-        self, device_id: DeviceId
+        self,
+        device_id: DeviceId,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Get comprehensive device status."""
         try:
             if device_id not in self.devices:
                 return Either.error(
-                    IoTIntegrationError(f"Device not registered: {device_id}")
+                    IoTIntegrationError(f"Device not registered: {device_id}"),
                 )
 
             device = self.devices[device_id]
@@ -515,17 +524,18 @@ class DeviceController:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Failed to get device status: {str(e)}", device_id)
+                IoTIntegrationError(f"Failed to get device status: {e!s}", device_id),
             )
 
     async def disconnect_device(
-        self, device_id: DeviceId
+        self,
+        device_id: DeviceId,
     ) -> Either[IoTIntegrationError, bool]:
         """Disconnect from an IoT device."""
         try:
             if device_id not in self.connections:
                 return Either.error(
-                    IoTIntegrationError(f"Device not found: {device_id}")
+                    IoTIntegrationError(f"Device not found: {device_id}"),
                 )
 
             connection = self.connections[device_id]
@@ -556,7 +566,7 @@ class DeviceController:
 
         except Exception as e:
             return Either.error(
-                IoTIntegrationError(f"Disconnection failed: {str(e)}", device_id)
+                IoTIntegrationError(f"Disconnection failed: {e!s}", device_id),
             )
 
     # Background services
@@ -602,7 +612,9 @@ class DeviceController:
     # Protocol-specific implementations (placeholders)
 
     async def _connect_http(
-        self, device: IoTDevice, connection: DeviceConnection
+        self,
+        device: IoTDevice,
+        connection: DeviceConnection,
     ) -> bool:
         """Connect via HTTP protocol."""
         # Placeholder implementation
@@ -610,7 +622,9 @@ class DeviceController:
         return True
 
     async def _connect_https(
-        self, device: IoTDevice, connection: DeviceConnection
+        self,
+        device: IoTDevice,
+        connection: DeviceConnection,
     ) -> bool:
         """Connect via HTTPS protocol."""
         # Placeholder implementation
@@ -619,7 +633,9 @@ class DeviceController:
         return True
 
     async def _connect_mqtt(
-        self, device: IoTDevice, connection: DeviceConnection
+        self,
+        device: IoTDevice,
+        connection: DeviceConnection,
     ) -> bool:
         """Connect via MQTT protocol."""
         # Placeholder implementation
@@ -627,7 +643,9 @@ class DeviceController:
         return True
 
     async def _connect_coap(
-        self, device: IoTDevice, connection: DeviceConnection
+        self,
+        device: IoTDevice,
+        connection: DeviceConnection,
     ) -> bool:
         """Connect via CoAP protocol."""
         # Placeholder implementation
@@ -635,7 +653,9 @@ class DeviceController:
         return True
 
     async def _authenticate_device(
-        self, device: IoTDevice, connection: DeviceConnection
+        self,
+        device: IoTDevice,
+        connection: DeviceConnection,
     ) -> Either[IoTIntegrationError, bool]:
         """Authenticate device connection."""
         try:
@@ -643,7 +663,7 @@ class DeviceController:
             if device.authentication:
                 # Generate or use provided authentication token
                 token = hashlib.sha256(
-                    f"{device.device_id}_{datetime.now(UTC).isoformat()}".encode()
+                    f"{device.device_id}_{datetime.now(UTC).isoformat()}".encode(),
                 ).hexdigest()
                 connection.authentication_token = token
 
@@ -652,12 +672,16 @@ class DeviceController:
         except Exception as e:
             return Either.error(
                 IoTIntegrationError(
-                    f"Authentication failed: {str(e)}", device.device_id
-                )
+                    f"Authentication failed: {e!s}",
+                    device.device_id,
+                ),
             )
 
     async def _execute_http_action(
-        self, device: IoTDevice, action: DeviceAction, parameters: dict[str, Any]
+        self,
+        device: IoTDevice,
+        action: DeviceAction,
+        parameters: dict[str, Any],
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Execute action via HTTP."""
         # Placeholder implementation
@@ -675,7 +699,10 @@ class DeviceController:
         return Either.success(result)
 
     async def _execute_mqtt_action(
-        self, device: IoTDevice, action: DeviceAction, parameters: dict[str, Any]
+        self,
+        device: IoTDevice,
+        action: DeviceAction,
+        parameters: dict[str, Any],
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Execute action via MQTT."""
         # Placeholder implementation
@@ -693,7 +720,10 @@ class DeviceController:
         return Either.success(result)
 
     async def _execute_coap_action(
-        self, device: IoTDevice, action: DeviceAction, parameters: dict[str, Any]
+        self,
+        device: IoTDevice,
+        action: DeviceAction,
+        parameters: dict[str, Any],
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Execute action via CoAP."""
         # Placeholder implementation
@@ -739,20 +769,18 @@ class DeviceController:
     async def _disconnect_http(self, device: IoTDevice, connection: DeviceConnection):
         """Disconnect HTTP connection."""
         # Placeholder implementation
-        pass
 
     async def _disconnect_mqtt(self, device: IoTDevice, connection: DeviceConnection):
         """Disconnect MQTT connection."""
         # Placeholder implementation
-        pass
 
     async def _disconnect_coap(self, device: IoTDevice, connection: DeviceConnection):
         """Disconnect CoAP connection."""
         # Placeholder implementation
-        pass
 
     async def _ping_device(
-        self, device_id: DeviceId
+        self,
+        device_id: DeviceId,
     ) -> Either[IoTIntegrationError, bool]:
         """Ping device to check connectivity."""
         # Placeholder implementation
@@ -761,21 +789,22 @@ class DeviceController:
 
     # Event handler management
 
-    def add_device_discovered_handler(self, handler: Callable[[DiscoveryResult], None]):
+    def add_device_discovered_handler(self, handler: Callable[[DiscoveryResult], None]) -> bool:
         """Add device discovered event handler."""
         self.device_discovered_handlers.append(handler)
 
-    def add_device_connected_handler(self, handler: Callable[[DeviceId], None]):
+    def add_device_connected_handler(self, handler: Callable[[DeviceId], None]) -> bool:
         """Add device connected event handler."""
         self.device_connected_handlers.append(handler)
 
-    def add_device_disconnected_handler(self, handler: Callable[[DeviceId], None]):
+    def add_device_disconnected_handler(self, handler: Callable[[DeviceId], None]) -> bool:
         """Add device disconnected event handler."""
         self.device_disconnected_handlers.append(handler)
 
     def add_command_executed_handler(
-        self, handler: Callable[[DeviceId, DeviceAction, dict[str, Any]], None]
-    ):
+        self,
+        handler: Callable[[DeviceId, DeviceAction, dict[str, Any]], None],
+    ) -> bool:
         """Add command executed event handler."""
         self.command_executed_handlers.append(handler)
 
@@ -807,20 +836,20 @@ class DeviceController:
             "discovery_results": len(self.discovery_history),
             "command_metrics": self.command_metrics,
             "protocols_in_use": list(
-                {device.protocol.value for device in self.devices.values()}
+                {device.protocol.value for device in self.devices.values()},
             ),
             "device_types": list(
-                {device.device_type.value for device in self.devices.values()}
+                {device.device_type.value for device in self.devices.values()},
             ),
         }
 
 
 # Export the device controller
 __all__ = [
-    "DeviceController",
-    "DiscoveryResult",
-    "DeviceConnection",
-    "DeviceCapability",
-    "DiscoveryMethod",
     "ConnectionState",
+    "DeviceCapability",
+    "DeviceConnection",
+    "DeviceController",
+    "DiscoveryMethod",
+    "DiscoveryResult",
 ]

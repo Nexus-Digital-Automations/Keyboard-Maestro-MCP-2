@@ -1,5 +1,4 @@
-"""
-Calculator Tools - MCP Tool Implementation
+"""Calculator Tools - MCP Tool Implementation.
 
 Provides mathematical calculation capabilities with comprehensive security validation,
 KM token support, and multiple result formatting options.
@@ -30,7 +29,9 @@ async def km_calculate_expression(expression: str, ctx=None) -> dict[str, Any]:
 
 
 async def km_calculate_math_function(
-    function: str, value: float, ctx=None
+    function: str,
+    value: float,
+    ctx=None,
 ) -> dict[str, Any]:
     """Calculate a mathematical function like sin, cos, etc."""
     expression = f"{function}({value})"
@@ -46,7 +47,10 @@ async def km_calculate_math_function(
 
 
 async def km_convert_number_format(
-    value: float, from_format: str, to_format: str, ctx=None
+    value: float,
+    from_format: str,
+    to_format: str,
+    ctx=None,
 ) -> dict[str, Any]:
     """Convert a number between different formats."""
     return await km_calculator(
@@ -61,7 +65,9 @@ async def km_convert_number_format(
 
 
 async def km_evaluate_formula(
-    formula: str, variables: dict[str, float], ctx=None
+    formula: str,
+    variables: dict[str, float],
+    ctx=None,
 ) -> dict[str, Any]:
     """Evaluate a formula with variables."""
     return await km_calculator(
@@ -84,8 +90,7 @@ async def km_calculator(
     validate_only: bool,
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Evaluate mathematical expressions with comprehensive security and token support.
+    """Evaluate mathematical expressions with comprehensive security and token support.
 
     Features:
     - Secure expression evaluation using AST parsing (no eval())
@@ -122,14 +127,15 @@ async def km_calculator(
         # Create calculation expression with validation
         try:
             calc_expression = CalculationExpression(
-                expression=expression.strip(), variables=variables
+                expression=expression.strip(),
+                variables=variables,
             )
         except Exception as e:
             return {
                 "success": False,
                 "error": {
                     "code": "EXPRESSION_VALIDATION_ERROR",
-                    "message": f"Expression validation failed: {str(e)}",
+                    "message": f"Expression validation failed: {e!s}",
                     "details": {"expression": expression},
                 },
                 "metadata": {"timestamp": datetime.now(UTC).isoformat()},
@@ -160,7 +166,8 @@ async def km_calculator(
 
             km_calculator = KMTokenCalculator()
             km_result = await km_calculator.calculate_with_tokens(
-                expression, "calculation"
+                expression,
+                "calculation",
             )
 
             if km_result.is_left():
@@ -186,7 +193,7 @@ async def km_calculator(
                             expression=expression,
                             variables_used=variables,
                             execution_time=0.0,
-                        )
+                        ),
                     )
                 except ValueError:
                     # KM returned non-numeric result, treat as error
@@ -194,8 +201,8 @@ async def km_calculator(
 
                     calc_result = Either.left(
                         KMError.execution_error(
-                            f"KM returned non-numeric result: {km_value}"
-                        )
+                            f"KM returned non-numeric result: {km_value}",
+                        ),
                     )
         else:
             # Use local calculator

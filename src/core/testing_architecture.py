@@ -1,5 +1,4 @@
-"""
-Testing Architecture - TASK_58 Phase 1 Implementation
+"""Testing Architecture - TASK_58 Phase 1 Implementation.
 
 Comprehensive testing type definitions, test orchestration patterns, and quality assurance frameworks.
 Extends the existing macro testing framework with advanced automation testing capabilities.
@@ -173,7 +172,7 @@ class TestCriteria:
         for metric, threshold in self.quality_gates.items():
             if not (0.0 <= threshold <= 100.0):
                 raise ValueError(
-                    f"Quality gate threshold for {metric} must be between 0.0 and 100.0"
+                    f"Quality gate threshold for {metric} must be between 0.0 and 100.0",
                 )
 
 
@@ -360,13 +359,15 @@ class TestExecutionError(TestingArchitectureError):
     @classmethod
     def timeout_exceeded(cls, test_id: str, timeout: int) -> TestExecutionError:
         return cls(
-            f"Test {test_id} exceeded timeout of {timeout} seconds", "TEST_TIMEOUT"
+            f"Test {test_id} exceeded timeout of {timeout} seconds",
+            "TEST_TIMEOUT",
         )
 
     @classmethod
     def assertion_failed(cls, test_id: str, assertion: str) -> TestExecutionError:
         return cls(
-            f"Assertion failed in test {test_id}: {assertion}", "ASSERTION_FAILED"
+            f"Assertion failed in test {test_id}: {assertion}",
+            "ASSERTION_FAILED",
         )
 
     @classmethod
@@ -379,7 +380,10 @@ class QualityGateError(TestingArchitectureError):
 
     @classmethod
     def gate_failed(
-        cls, gate_name: str, actual: float, expected: float
+        cls,
+        gate_name: str,
+        actual: float,
+        expected: float,
     ) -> QualityGateError:
         return cls(
             f"Quality gate '{gate_name}' failed: {actual} does not meet threshold {expected}",
@@ -438,7 +442,7 @@ def create_simple_test(
                 expected_value="success",
                 actual_value_path="$.status",
                 description="Verify successful execution",
-            )
+            ),
         ],
     )
 
@@ -550,9 +554,8 @@ def determine_risk_level(quality_score: float, failed_gates: list[QualityGate]) 
     """Determine risk level based on quality score and failed gates."""
     if quality_score >= 90.0 and not failed_gates:
         return "low"
-    elif quality_score >= 75.0 and len(failed_gates) <= 1:
+    if quality_score >= 75.0 and len(failed_gates) <= 1:
         return "medium"
-    elif quality_score >= 50.0 or any(gate.is_mandatory for gate in failed_gates):
+    if quality_score >= 50.0 or any(gate.is_mandatory for gate in failed_gates):
         return "high"
-    else:
-        return "critical"
+    return "critical"

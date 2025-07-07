@@ -1,5 +1,4 @@
-"""
-Intelligent automation system for AI-powered adaptive workflows.
+"""Intelligent automation system for AI-powered adaptive workflows.
 
 This module provides intelligent automation capabilities including smart triggers,
 adaptive workflows, context awareness, and AI-powered decision engines that
@@ -13,6 +12,7 @@ Type Safety: Complete integration with AI processing architecture.
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
@@ -29,6 +29,8 @@ from ..core.ai_integration import (
 from ..core.contracts import require
 from ..core.either import Either
 from ..core.errors import ValidationError
+
+logger = logging.getLogger(__name__)
 
 # Branded Types for Intelligent Automation
 AutomationRuleId = NewType("AutomationRuleId", str)
@@ -89,7 +91,6 @@ class ContextState:
     @require(lambda self: len(self.dimensions) > 0)
     def __post_init__(self):
         """Validate context state."""
-        pass
 
     def get_dimension_value(self, dimension: ContextDimension) -> Any | None:
         """Get value for specific context dimension."""
@@ -149,10 +150,11 @@ class SmartTrigger:
     @require(lambda self: self.cooldown_period.total_seconds() >= 0)
     def __post_init__(self):
         """Validate smart trigger configuration."""
-        pass
 
     def should_trigger(
-        self, context: ContextState, analysis_result: dict | None = None
+        self,
+        context: ContextState,
+        analysis_result: dict | None = None,
     ) -> bool:
         """Determine if trigger should fire based on context and analysis."""
         # Check context requirements
@@ -173,7 +175,9 @@ class SmartTrigger:
         return self._evaluate_conditions(context, analysis_result)
 
     def _evaluate_conditions(
-        self, context: ContextState, analysis_result: dict | None
+        self,
+        context: ContextState,
+        analysis_result: dict | None,
     ) -> bool:
         """Evaluate trigger conditions against context and analysis."""
         for condition_key, condition_value in self.conditions.items():
@@ -210,13 +214,13 @@ class SmartTrigger:
 
             if operator == "equals":
                 return actual == value
-            elif operator == "contains" and isinstance(actual, str):
+            if operator == "contains" and isinstance(actual, str):
                 return str(value).lower() in actual.lower()
-            elif operator == "greater_than" and isinstance(actual, int | float):
+            if operator == "greater_than" and isinstance(actual, int | float):
                 return actual > value
-            elif operator == "less_than" and isinstance(actual, int | float):
+            if operator == "less_than" and isinstance(actual, int | float):
                 return actual < value
-            elif operator == "in_list":
+            if operator == "in_list":
                 return actual in value if isinstance(value, list) else False
 
         return actual == expected
@@ -250,7 +254,6 @@ class AdaptiveWorkflow:
     @require(lambda self: 0.0 <= self.adaptation_score <= 1.0)
     def __post_init__(self):
         """Validate adaptive workflow configuration."""
-        pass
 
     def get_optimized_steps(self, context: ContextState) -> list[dict[str, Any]]:
         """Get workflow steps optimized for current context."""
@@ -259,7 +262,10 @@ class AdaptiveWorkflow:
         # Apply current adaptations
         for adaptation_type, adaptation_data in self.current_adaptations.items():
             steps = self._apply_adaptation(
-                steps, adaptation_type, adaptation_data, context
+                steps,
+                adaptation_type,
+                adaptation_data,
+                context,
             )
 
         return steps
@@ -274,11 +280,11 @@ class AdaptiveWorkflow:
         """Apply specific adaptation to workflow steps."""
         if adaptation_type == "parameter_optimization":
             return self._optimize_parameters(steps, adaptation_data, context)
-        elif adaptation_type == "step_reordering":
+        if adaptation_type == "step_reordering":
             return self._reorder_steps(steps, adaptation_data)
-        elif adaptation_type == "conditional_addition":
+        if adaptation_type == "conditional_addition":
             return self._add_conditions(steps, adaptation_data, context)
-        elif adaptation_type == "efficiency_improvement":
+        if adaptation_type == "efficiency_improvement":
             return self._improve_efficiency(steps, adaptation_data)
 
         return steps
@@ -299,7 +305,9 @@ class AdaptiveWorkflow:
                 optimizations = optimization_data[step_id]
                 for param_name, param_value in optimizations.items():
                     if self._should_apply_optimization(
-                        param_name, param_value, context
+                        param_name,
+                        param_value,
+                        context,
                     ):
                         optimized_step[param_name] = param_value
 
@@ -308,15 +316,19 @@ class AdaptiveWorkflow:
         return optimized_steps
 
     def _should_apply_optimization(
-        self, param_name: str, param_value: Any, context: ContextState
+        self,
+        param_name: str,
+        param_value: Any,
+        context: ContextState,
     ) -> bool:
         """Determine if optimization should be applied in current context."""
         # Context-aware optimization application
         if param_name == "timeout" and context.get_dimension_value(
-            ContextDimension.SYSTEM_STATE
+            ContextDimension.SYSTEM_STATE,
         ):
             system_load = context.dimensions.get(ContextDimension.SYSTEM_STATE, {}).get(
-                "cpu_usage", 0
+                "cpu_usage",
+                0,
             )
             if system_load > 80:  # High system load
                 return (
@@ -326,7 +338,9 @@ class AdaptiveWorkflow:
         return True
 
     def _reorder_steps(
-        self, steps: list[dict[str, Any]], reorder_data: dict[str, Any]
+        self,
+        steps: list[dict[str, Any]],
+        reorder_data: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Reorder workflow steps for efficiency."""
         if "optimal_order" not in reorder_data:
@@ -362,7 +376,9 @@ class AdaptiveWorkflow:
         return enhanced_steps
 
     def _should_add_condition(
-        self, condition: dict[str, Any], context: ContextState
+        self,
+        condition: dict[str, Any],
+        context: ContextState,
     ) -> bool:
         """Determine if condition should be added based on context."""
         condition_type = condition.get("type", "")
@@ -372,7 +388,7 @@ class AdaptiveWorkflow:
             current_app = context.get_dimension_value(ContextDimension.APPLICATION)
             return current_app and app_name in str(current_app)
 
-        elif condition_type == "time_based":
+        if condition_type == "time_based":
             return self._check_time_condition(condition)
 
         return True
@@ -384,7 +400,9 @@ class AdaptiveWorkflow:
         return hour_range[0] <= now.hour <= hour_range[1]
 
     def _improve_efficiency(
-        self, steps: list[dict[str, Any]], efficiency_data: dict[str, Any]
+        self,
+        steps: list[dict[str, Any]],
+        efficiency_data: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Apply efficiency improvements to workflow steps."""
         improved_steps = []
@@ -393,7 +411,8 @@ class AdaptiveWorkflow:
 
             # Apply parallel execution where possible
             if efficiency_data.get("enable_parallel") and step.get(
-                "parallelizable", False
+                "parallelizable",
+                False,
             ):
                 improved_step["execution_mode"] = "parallel"
 
@@ -402,7 +421,8 @@ class AdaptiveWorkflow:
                 timeout_factor = efficiency_data["timeout_optimization"]
                 if "timeout" in improved_step:
                     improved_step["timeout"] = max(
-                        1, int(improved_step["timeout"] * timeout_factor)
+                        1,
+                        int(improved_step["timeout"] * timeout_factor),
                     )
 
             improved_steps.append(improved_step)
@@ -456,7 +476,7 @@ class AdaptiveWorkflow:
                 "total_runs": total_runs,
                 "successful_runs": successful_runs,
                 "success_rate": successful_runs / total_runs if total_runs > 0 else 0.0,
-            }
+            },
         )
 
         # Update timing metrics
@@ -496,10 +516,12 @@ class DecisionNode:
     @require(lambda self: 0.0 <= self.confidence_threshold <= 1.0)
     def __post_init__(self):
         """Validate decision node configuration."""
-        pass
 
     async def make_decision(
-        self, input_data: Any, context: ContextState, ai_processor: AIProcessingManager
+        self,
+        input_data: Any,
+        context: ContextState,
+        ai_processor: AIProcessingManager,
     ) -> Either[ValidationError, str]:
         """Make AI-powered decision based on input and context."""
         try:
@@ -546,7 +568,7 @@ class DecisionNode:
             return Either.right(decision)
 
         except Exception as e:
-            return Either.left(ValidationError("decision_failed", str(e)))
+            return Either.left(ValidationError("decision_failed", str(e), "Automation decision failed"))
 
     def _prepare_decision_prompt(self, input_data: Any, context: ContextState) -> str:
         """Prepare AI prompt for decision making."""
@@ -603,10 +625,9 @@ class DecisionNode:
             # Take first word or first few words if short
             if len(words[0]) > 3:
                 return words[0]
-            elif len(words) > 1 and len(" ".join(words[:2])) <= 50:
+            if len(words) > 1 and len(" ".join(words[:2])) <= 50:
                 return " ".join(words[:2])
-            else:
-                return words[0]
+            return words[0]
 
         return self.fallback_decision
 
@@ -623,7 +644,9 @@ class IntelligentAutomationEngine:
         self.learning_enabled = True
 
     async def evaluate_triggers(
-        self, context: ContextState, ai_processor: AIProcessingManager | None = None
+        self,
+        context: ContextState,
+        ai_processor: AIProcessingManager | None = None,
     ) -> list[str]:
         """Evaluate all smart triggers and return triggered automation IDs."""
         triggered_automations = []
@@ -635,18 +658,22 @@ class IntelligentAutomationEngine:
                 # Perform AI analysis if required
                 if trigger.ai_analysis_required and ai_processor:
                     analysis_result = await self._perform_trigger_analysis(
-                        trigger, context, ai_processor
+                        trigger,
+                        context,
+                        ai_processor,
                     )
 
-                # Check if trigger should fire
-                if trigger.should_trigger(context, analysis_result):
-                    # Check cooldown period
-                    if self._check_trigger_cooldown(trigger_id):
-                        triggered_automations.append(trigger_id)
-                        self._record_trigger_activation(trigger_id)
+                # Check if trigger should fire and cooldown period
+                if trigger.should_trigger(
+                    context,
+                    analysis_result,
+                ) and self._check_trigger_cooldown(trigger_id):
+                    triggered_automations.append(trigger_id)
+                    self._record_trigger_activation(trigger_id)
 
-            except Exception:
+            except Exception as e:
                 # Log error but continue processing other triggers
+                logger.warning(f"Trigger processing failed: {e}")
                 continue
 
         return triggered_automations
@@ -713,7 +740,9 @@ class IntelligentAutomationEngine:
         )
 
     def execute_adaptive_workflow(
-        self, workflow_id: WorkflowInstanceId, context: ContextState
+        self,
+        workflow_id: WorkflowInstanceId,
+        context: ContextState,
     ) -> Either[ValidationError, list[dict[str, Any]]]:
         """Execute adaptive workflow with context-aware optimization."""
         try:
@@ -721,8 +750,9 @@ class IntelligentAutomationEngine:
             if not workflow:
                 return Either.left(
                     ValidationError(
-                        "workflow_not_found", f"Workflow {workflow_id} not found"
-                    )
+                        "workflow_not_found",
+                        f"Workflow {workflow_id} not found",
+                    ),
                 )
 
             # Get optimized steps for current context
@@ -734,10 +764,12 @@ class IntelligentAutomationEngine:
             return Either.right(optimized_steps)
 
         except Exception as e:
-            return Either.left(ValidationError("workflow_execution_failed", str(e)))
+            return Either.left(ValidationError("workflow_execution_failed", str(e), "Workflow execution failed"))
 
     def _record_context_for_learning(
-        self, workflow_id: WorkflowInstanceId, context: ContextState
+        self,
+        workflow_id: WorkflowInstanceId,
+        context: ContextState,
     ) -> None:
         """Record context for workflow learning and adaptation."""
         # Add to context history (keep last 1000 entries)
@@ -756,7 +788,7 @@ class IntelligentAutomationEngine:
                 "timestamp": context.timestamp.isoformat(),
                 "dimensions": {k.value: v for k, v in context.dimensions.items()},
                 "confidence": float(context.confidence),
-            }
+            },
         )
 
         # Keep only recent contexts
@@ -791,7 +823,9 @@ class IntelligentAutomationEngine:
             self._identify_adaptation_opportunities(current_context, similar_contexts)
 
     def _identify_adaptation_opportunities(
-        self, current_context: ContextState, similar_contexts: list[tuple]
+        self,
+        current_context: ContextState,
+        similar_contexts: list[tuple],
     ) -> None:
         """Identify opportunities for workflow adaptation based on patterns."""
         # This is a simplified implementation - in practice would use more

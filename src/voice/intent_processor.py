@@ -1,5 +1,4 @@
-"""
-Voice Command Intent Processor - TASK_66 Phase 2 Core Voice Engine
+"""Voice Command Intent Processor - TASK_66 Phase 2 Core Voice Engine.
 
 Voice command intent recognition, action mapping, and parameter extraction
 with natural language understanding and automation workflow integration.
@@ -147,8 +146,7 @@ class EntityExtractor:
 
 
 class IntentProcessor:
-    """
-    Voice command intent recognition and processing system.
+    """Voice command intent recognition and processing system.
 
     Contracts:
         Preconditions:
@@ -182,9 +180,8 @@ class IntentProcessor:
         # Initialize default intent patterns
         self._initialize_default_patterns()
 
-    def _initialize_default_patterns(self):
+    def _initialize_default_patterns(self) -> bool:
         """Initialize default voice command intent patterns."""
-
         # Automation trigger patterns
         self.intent_patterns.extend(
             [
@@ -221,7 +218,7 @@ class IntentProcessor:
                         "make automation to backup files",
                     ],
                 ),
-            ]
+            ],
         )
 
         # Application control patterns
@@ -250,7 +247,7 @@ class IntentProcessor:
                     required_entities=["application"],
                     examples=["close safari", "quit mail", "exit finder"],
                 ),
-            ]
+            ],
         )
 
         # System control patterns
@@ -284,7 +281,7 @@ class IntentProcessor:
                         "lock screen",
                     ],
                 ),
-            ]
+            ],
         )
 
         # Text input patterns
@@ -306,7 +303,7 @@ class IntentProcessor:
                         "dictate this message",
                     ],
                 ),
-            ]
+            ],
         )
 
         # Navigation patterns
@@ -324,7 +321,7 @@ class IntentProcessor:
                     required_entities=["direction"],
                     examples=["go up", "scroll down", "next page"],
                 ),
-            ]
+            ],
         )
 
         # File operations patterns
@@ -347,21 +344,20 @@ class IntentProcessor:
                         "create new file meeting.doc",
                     ],
                 ),
-            ]
+            ],
         )
 
         logger.info(f"Initialized {len(self.intent_patterns)} default intent patterns")
 
-    @require(lambda self, recognized_text: len(recognized_text.strip()) > 0)
-    @ensure(lambda self, result: result.is_success() or result.error_value)
+    @require(lambda __self, recognized_text: len(recognized_text.strip()) > 0)
+    @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def process_intent(
         self,
         recognized_text: str,
         speaker_id: SpeakerId | None = None,
         context: dict[str, Any] | None = None,
     ) -> Either[VoiceCommandError, VoiceCommand]:
-        """
-        Process recognized speech text to extract intent and create voice command.
+        """Process recognized speech text to extract intent and create voice command.
 
         Performance:
             - <100ms intent pattern matching
@@ -375,7 +371,7 @@ class IntentProcessor:
             cleaned_text = self._clean_text(recognized_text)
             if not cleaned_text:
                 return Either.error(
-                    VoiceCommandError.intent_not_recognized(recognized_text)
+                    VoiceCommandError.intent_not_recognized(recognized_text),
                 )
 
             # Find matching intent pattern
@@ -392,13 +388,14 @@ class IntentProcessor:
 
             # Validate required entities
             missing_entities = self._validate_required_entities(
-                intent_pattern, entities
+                intent_pattern,
+                entities,
             )
             if missing_entities:
                 return Either.error(
                     VoiceCommandError.intent_not_recognized(
-                        f"Missing required entities: {missing_entities}"
-                    )
+                        f"Missing required entities: {missing_entities}",
+                    ),
                 )
 
             # Create voice command
@@ -419,7 +416,7 @@ class IntentProcessor:
             security_result = validate_voice_command_security(voice_command)
             if security_result.is_error():
                 return Either.error(
-                    VoiceCommandError.unsafe_command_detected(voice_command.intent)
+                    VoiceCommandError.unsafe_command_detected(voice_command.intent),
                 )
 
             # Update processing statistics
@@ -428,14 +425,14 @@ class IntentProcessor:
 
             logger.info(
                 f"Intent processed successfully: '{intent_pattern.intent_name}' "
-                f"(confidence: {confidence:.2f}, time: {processing_time:.0f}ms)"
+                f"(confidence: {confidence:.2f}, time: {processing_time:.0f}ms)",
             )
 
             return Either.success(voice_command)
 
         except Exception as e:
             self._update_processing_stats("unknown", 0.0, False)
-            error_msg = f"Intent processing failed: {str(e)}"
+            error_msg = f"Intent processing failed: {e!s}"
             logger.error(error_msg)
             return Either.error(VoiceCommandError.intent_not_recognized(str(e)))
 
@@ -452,7 +449,8 @@ class IntentProcessor:
         return " ".join(filtered_words)
 
     def _match_intent_pattern(
-        self, text: str
+        self,
+        text: str,
     ) -> Either[VoiceCommandError, tuple[IntentPattern, float]]:
         """Match text against intent patterns and return best match with confidence."""
         matches = []
@@ -507,7 +505,9 @@ class IntentProcessor:
         return max(0.0, min(1.0, confidence))
 
     def _validate_required_entities(
-        self, pattern: IntentPattern, entities: dict[str, Any]
+        self,
+        pattern: IntentPattern,
+        entities: dict[str, Any],
     ) -> list[str]:
         """Validate that all required entities are present."""
         missing = []
@@ -517,8 +517,11 @@ class IntentProcessor:
         return missing
 
     def _update_processing_stats(
-        self, intent_name: str, confidence: float, success: bool
-    ):
+        self,
+        intent_name: str,
+        confidence: float,
+        success: bool,
+    ) -> Any:
         """Update intent processing statistics."""
         self.processing_stats["total_processed"] += 1
 
@@ -541,7 +544,9 @@ class IntentProcessor:
             self.processing_stats["failed_intents"] += 1
 
     async def add_custom_pattern(
-        self, pattern_id: str, intent_pattern: IntentPattern
+        self,
+        pattern_id: str,
+        intent_pattern: IntentPattern,
     ) -> Either[VoiceCommandError, None]:
         """Add custom intent pattern for personalized commands."""
         try:
@@ -549,8 +554,8 @@ class IntentProcessor:
             if not intent_pattern.patterns:
                 return Either.error(
                     VoiceCommandError.intent_not_recognized(
-                        "Intent pattern must have at least one pattern"
-                    )
+                        "Intent pattern must have at least one pattern",
+                    ),
                 )
 
             # Test pattern compilation
@@ -560,8 +565,8 @@ class IntentProcessor:
                 except re.error as e:
                     return Either.error(
                         VoiceCommandError.intent_not_recognized(
-                            f"Invalid regex pattern: {str(e)}"
-                        )
+                            f"Invalid regex pattern: {e!s}",
+                        ),
                     )
 
             self.custom_patterns[pattern_id] = intent_pattern
@@ -572,20 +577,21 @@ class IntentProcessor:
         except Exception as e:
             return Either.error(
                 VoiceCommandError.intent_not_recognized(
-                    f"Failed to add custom pattern: {str(e)}"
-                )
+                    f"Failed to add custom pattern: {e!s}",
+                ),
             )
 
     async def remove_custom_pattern(
-        self, pattern_id: str
+        self,
+        pattern_id: str,
     ) -> Either[VoiceCommandError, None]:
         """Remove custom intent pattern."""
         try:
             if pattern_id not in self.custom_patterns:
                 return Either.error(
                     VoiceCommandError.intent_not_recognized(
-                        f"Custom pattern not found: {pattern_id}"
-                    )
+                        f"Custom pattern not found: {pattern_id}",
+                    ),
                 )
 
             del self.custom_patterns[pattern_id]
@@ -596,8 +602,8 @@ class IntentProcessor:
         except Exception as e:
             return Either.error(
                 VoiceCommandError.intent_not_recognized(
-                    f"Failed to remove custom pattern: {str(e)}"
-                )
+                    f"Failed to remove custom pattern: {e!s}",
+                ),
             )
 
     async def get_available_intents(self) -> list[dict[str, Any]]:
@@ -615,7 +621,7 @@ class IntentProcessor:
                     "priority": pattern.priority.value,
                     "requires_confirmation": pattern.requires_confirmation,
                     "examples": pattern.examples,
-                }
+                },
             )
 
         for pattern_id, pattern in self.custom_patterns.items():
@@ -630,7 +636,7 @@ class IntentProcessor:
                     "requires_confirmation": pattern.requires_confirmation,
                     "examples": pattern.examples,
                     "custom_pattern_id": pattern_id,
-                }
+                },
             )
 
         return intents
@@ -644,7 +650,8 @@ class IntentProcessor:
         return stats
 
     async def configure_commands(
-        self, configuration
+        self,
+        configuration,
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Configure command mappings."""
         try:
@@ -670,8 +677,8 @@ class IntentProcessor:
         except Exception as e:
             return Either.error(
                 VoiceCommandError.intent_not_recognized(
-                    f"Command configuration failed: {str(e)}"
-                )
+                    f"Command configuration failed: {e!s}",
+                ),
             )
 
 

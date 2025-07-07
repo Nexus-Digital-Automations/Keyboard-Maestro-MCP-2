@@ -1,5 +1,4 @@
-"""
-Accessibility Testing Framework - TASK_57 Phase 2 Implementation
+"""Accessibility Testing Framework - TASK_57 Phase 2 Implementation.
 
 Automated accessibility testing and validation system with comprehensive test execution.
 Provides systematic accessibility testing, validation, and reporting capabilities.
@@ -92,23 +91,25 @@ class AccessibilityTestRunner:
         self.rule_validators: dict[AccessibilityRuleId, Callable] = {}
         self._initialize_default_validators()
 
-    def _initialize_default_validators(self):
+    def _initialize_default_validators(self) -> str:
         """Initialize default accessibility rule validators."""
         self.rule_validators.update(
             {
                 AccessibilityRuleId("alt_text_missing"): self._validate_alt_text,
                 AccessibilityRuleId(
-                    "heading_structure"
+                    "heading_structure",
                 ): self._validate_heading_structure,
                 AccessibilityRuleId("keyboard_focus"): self._validate_keyboard_focus,
                 AccessibilityRuleId("color_contrast"): self._validate_color_contrast,
                 AccessibilityRuleId("form_labels"): self._validate_form_labels,
-            }
+            },
         )
 
-    @require(lambda self, test: test.name.strip() != "")
+    @require(lambda __self, test: test.name.strip() != "")
     async def execute_test(
-        self, test: AccessibilityTest, context: TestExecutionContext = None
+        self,
+        test: AccessibilityTest,
+        context: TestExecutionContext = None,
     ) -> Either[TestExecutionError, TestResult]:
         """Execute a comprehensive accessibility test."""
         try:
@@ -120,7 +121,7 @@ class AccessibilityTestRunner:
                 current_status = self.active_tests[test.test_id]
                 if current_status in [TestStatus.RUNNING, TestStatus.PENDING]:
                     return Either.left(
-                        TestExecutionError(f"Test {test.test_id} is already running")
+                        TestExecutionError(f"Test {test.test_id} is already running"),
                     )
 
             # Mark test as running
@@ -147,10 +148,12 @@ class AccessibilityTestRunner:
 
         except Exception as e:
             self.active_tests[test.test_id] = TestStatus.FAILED
-            return Either.left(TestExecutionError(f"Test execution failed: {str(e)}"))
+            return Either.left(TestExecutionError(f"Test execution failed: {e!s}"))
 
     async def _execute_test_internal(
-        self, test: AccessibilityTest, context: TestExecutionContext
+        self,
+        test: AccessibilityTest,
+        context: TestExecutionContext,
     ) -> Either[TestExecutionError, TestResult]:
         """Internal test execution logic."""
         try:
@@ -176,7 +179,9 @@ class AccessibilityTestRunner:
                     failed_checks += 1
                     # Create issue for failed rule
                     issue = self._create_issue_from_rule_failure(
-                        rule, rule_result.get_left(), context
+                        rule,
+                        rule_result.get_left(),
+                        context,
                     )
                     issues.append(issue)
                 else:
@@ -248,11 +253,12 @@ class AccessibilityTestRunner:
 
         except Exception as e:
             return Either.left(
-                TestExecutionError(f"Internal test execution failed: {str(e)}")
+                TestExecutionError(f"Internal test execution failed: {e!s}"),
             )
 
     async def _get_rules_for_test(
-        self, test: AccessibilityTest
+        self,
+        test: AccessibilityTest,
     ) -> list[AccessibilityRule]:
         """Get accessibility rules to execute for a test."""
         from src.accessibility.compliance_validator import ComplianceValidator
@@ -272,7 +278,9 @@ class AccessibilityTestRunner:
         return all_rules
 
     async def _execute_rule(
-        self, rule: AccessibilityRule, context: TestExecutionContext
+        self,
+        rule: AccessibilityRule,
+        context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Execute a specific accessibility rule."""
         try:
@@ -280,15 +288,16 @@ class AccessibilityTestRunner:
             if rule.rule_id in self.rule_validators:
                 validator_func = self.rule_validators[rule.rule_id]
                 return await validator_func(rule, context)
-            else:
-                # Generic rule execution
-                return await self._execute_generic_rule(rule, context)
+            # Generic rule execution
+            return await self._execute_generic_rule(rule, context)
 
         except Exception as e:
-            return Either.left(TestExecutionError(f"Rule execution failed: {str(e)}"))
+            return Either.left(TestExecutionError(f"Rule execution failed: {e!s}"))
 
     async def _validate_alt_text(
-        self, rule: AccessibilityRule, context: TestExecutionContext
+        self,
+        rule: AccessibilityRule,
+        context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Validate alt text implementation."""
         try:
@@ -320,16 +329,18 @@ class AccessibilityTestRunner:
                     "images_without_alt": images_without_alt,
                     "issues": issues,
                     "passed": images_without_alt == 0,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
-                TestExecutionError(f"Alt text validation failed: {str(e)}")
+                TestExecutionError(f"Alt text validation failed: {e!s}"),
             )
 
     async def _validate_heading_structure(
-        self, rule: AccessibilityRule, context: TestExecutionContext
+        self,
+        rule: AccessibilityRule,
+        context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Validate heading structure implementation."""
         try:
@@ -358,16 +369,18 @@ class AccessibilityTestRunner:
                     "structure_issues": heading_issues,
                     "issues": issues,
                     "passed": heading_issues == 0,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
-                TestExecutionError(f"Heading structure validation failed: {str(e)}")
+                TestExecutionError(f"Heading structure validation failed: {e!s}"),
             )
 
     async def _validate_keyboard_focus(
-        self, rule: AccessibilityRule, context: TestExecutionContext
+        self,
+        rule: AccessibilityRule,
+        context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Validate keyboard focus implementation."""
         try:
@@ -396,16 +409,18 @@ class AccessibilityTestRunner:
                     "elements_without_focus": elements_without_focus,
                     "issues": issues,
                     "passed": elements_without_focus == 0,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
-                TestExecutionError(f"Keyboard focus validation failed: {str(e)}")
+                TestExecutionError(f"Keyboard focus validation failed: {e!s}"),
             )
 
     async def _validate_color_contrast(
-        self, rule: AccessibilityRule, context: TestExecutionContext
+        self,
+        rule: AccessibilityRule,
+        context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Validate color contrast implementation."""
         try:
@@ -434,16 +449,18 @@ class AccessibilityTestRunner:
                     "low_contrast_elements": low_contrast_elements,
                     "issues": issues,
                     "passed": low_contrast_elements == 0,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
-                TestExecutionError(f"Color contrast validation failed: {str(e)}")
+                TestExecutionError(f"Color contrast validation failed: {e!s}"),
             )
 
     async def _validate_form_labels(
-        self, rule: AccessibilityRule, context: TestExecutionContext
+        self,
+        rule: AccessibilityRule,
+        context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Validate form label implementation."""
         try:
@@ -472,16 +489,18 @@ class AccessibilityTestRunner:
                     "unlabeled_inputs": unlabeled_inputs,
                     "issues": issues,
                     "passed": unlabeled_inputs == 0,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
-                TestExecutionError(f"Form label validation failed: {str(e)}")
+                TestExecutionError(f"Form label validation failed: {e!s}"),
             )
 
     async def _execute_generic_rule(
-        self, rule: AccessibilityRule, context: TestExecutionContext
+        self,
+        rule: AccessibilityRule,
+        context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Execute generic accessibility rule."""
         try:
@@ -516,12 +535,12 @@ class AccessibilityTestRunner:
                     "violations_found": violations_found,
                     "issues": issues,
                     "passed": violations_found == 0,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
-                TestExecutionError(f"Generic rule execution failed: {str(e)}")
+                TestExecutionError(f"Generic rule execution failed: {e!s}"),
             )
 
     def _create_issue_from_rule_failure(
@@ -535,14 +554,16 @@ class AccessibilityTestRunner:
             issue_id=f"failure_{rule.rule_id}_{datetime.now(UTC).timestamp()}",
             rule_id=rule.rule_id,
             element_selector=context.target_element or "*",
-            description=f"Rule execution failed: {rule.name} - {str(error)}",
+            description=f"Rule execution failed: {rule.name} - {error!s}",
             severity=SeverityLevel.HIGH,
             wcag_criteria=rule.wcag_criteria,
             suggested_fix="Review rule implementation and test configuration",
         )
 
     def _generate_cache_key(
-        self, test: AccessibilityTest, context: TestExecutionContext
+        self,
+        test: AccessibilityTest,
+        context: TestExecutionContext,
     ) -> str:
         """Generate cache key for test result."""
         key_components = [
@@ -555,7 +576,9 @@ class AccessibilityTestRunner:
         return "_".join(key_components)
 
     async def execute_test_suite(
-        self, tests: list[AccessibilityTest], max_concurrent: int | None = None
+        self,
+        tests: list[AccessibilityTest],
+        max_concurrent: int | None = None,
     ) -> Either[TestExecutionError, list[TestResult]]:
         """Execute multiple accessibility tests concurrently."""
         try:
@@ -584,7 +607,7 @@ class AccessibilityTestRunner:
                     failed_result = self._create_failed_test_result(
                         tests[i],
                         TestExecutionError(
-                            f"Test suite execution failed: {str(result)}"
+                            f"Test suite execution failed: {result!s}",
                         ),
                     )
                     test_results.append(failed_result)
@@ -595,11 +618,13 @@ class AccessibilityTestRunner:
 
         except Exception as e:
             return Either.left(
-                TestExecutionError(f"Test suite execution failed: {str(e)}")
+                TestExecutionError(f"Test suite execution failed: {e!s}"),
             )
 
     def _create_failed_test_result(
-        self, test: AccessibilityTest, error: TestExecutionError
+        self,
+        test: AccessibilityTest,
+        error: TestExecutionError,
     ) -> TestResult:
         """Create a failed test result from an error."""
         return TestResult(
@@ -616,10 +641,10 @@ class AccessibilityTestRunner:
                     issue_id=f"test_failure_{datetime.now(UTC).timestamp()}",
                     rule_id=AccessibilityRuleId("test_execution"),
                     element_selector="*",
-                    description=f"Test execution failed: {str(error)}",
+                    description=f"Test execution failed: {error!s}",
                     severity=SeverityLevel.CRITICAL,
                     suggested_fix="Review test configuration and target accessibility",
-                )
+                ),
             ],
             compliance_score=0.0,
             details={"error": str(error), "test_name": test.name},
@@ -630,13 +655,15 @@ class AccessibilityTestRunner:
         return self.active_tests.get(test_id)
 
     def get_cached_result(
-        self, test: AccessibilityTest, context: TestExecutionContext
+        self,
+        test: AccessibilityTest,
+        context: TestExecutionContext,
     ) -> TestResult | None:
         """Get cached test result if available."""
         cache_key = self._generate_cache_key(test, context)
         return self.test_cache.get(cache_key)
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """Clear test result cache."""
         self.test_cache.clear()
 
@@ -653,13 +680,15 @@ class AccessibilityTestSuite:
         self.test_suites: dict[str, list[AccessibilityTest]] = {}
 
     def create_test_suite(
-        self, suite_name: str, tests: list[AccessibilityTest]
+        self,
+        suite_name: str,
+        tests: list[AccessibilityTest],
     ) -> Either[TestExecutionError, None]:
         """Create a named test suite."""
         try:
             if suite_name in self.test_suites:
                 return Either.left(
-                    TestExecutionError(f"Test suite '{suite_name}' already exists")
+                    TestExecutionError(f"Test suite '{suite_name}' already exists"),
                 )
 
             self.test_suites[suite_name] = tests
@@ -667,17 +696,18 @@ class AccessibilityTestSuite:
 
         except Exception as e:
             return Either.left(
-                TestExecutionError(f"Failed to create test suite: {str(e)}")
+                TestExecutionError(f"Failed to create test suite: {e!s}"),
             )
 
     async def execute_test_suite(
-        self, suite_name: str
+        self,
+        suite_name: str,
     ) -> Either[TestExecutionError, list[TestResult]]:
         """Execute a named test suite."""
         try:
             if suite_name not in self.test_suites:
                 return Either.left(
-                    TestExecutionError(f"Test suite '{suite_name}' not found")
+                    TestExecutionError(f"Test suite '{suite_name}' not found"),
                 )
 
             tests = self.test_suites[suite_name]
@@ -685,7 +715,7 @@ class AccessibilityTestSuite:
 
         except Exception as e:
             return Either.left(
-                TestExecutionError(f"Test suite execution failed: {str(e)}")
+                TestExecutionError(f"Test suite execution failed: {e!s}"),
             )
 
     def get_test_suites(self) -> list[str]:

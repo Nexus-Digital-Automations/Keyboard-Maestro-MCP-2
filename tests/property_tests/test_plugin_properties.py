@@ -1,5 +1,4 @@
-"""
-Property-based tests for the plugin ecosystem.
+"""Property-based tests for the plugin ecosystem.
 
 This module provides comprehensive property-based testing using Hypothesis
 to validate plugin system behavior across input ranges and edge cases.
@@ -34,24 +33,24 @@ from src.plugins.security_sandbox import SecurityLimits
 
 
 @st.composite
-def plugin_identifier_strategy(draw):
+def plugin_identifier_strategy(draw) -> bool:
     """Generate valid plugin identifiers."""
     # Valid identifier: starts with letter, contains alphanumeric/underscore/hyphen/dot
     first_char = draw(
-        st.sampled_from("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        st.sampled_from("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"),
     )
     rest_chars = draw(
         st.text(
             alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-",
             min_size=0,
             max_size=50,
-        )
+        ),
     )
     return PluginId(first_char + rest_chars)
 
 
 @st.composite
-def version_strategy(draw):
+def version_strategy(draw) -> Any:
     """Generate valid semantic version strings."""
     major = draw(st.integers(min_value=0, max_value=99))
     minor = draw(st.integers(min_value=0, max_value=99))
@@ -62,9 +61,11 @@ def version_strategy(draw):
         st.one_of(
             st.none(),
             st.text(
-                alphabet="abcdefghijklmnopqrstuvwxyz0123456789", min_size=1, max_size=10
+                alphabet="abcdefghijklmnopqrstuvwxyz0123456789",
+                min_size=1,
+                max_size=10,
             ),
-        )
+        ),
     )
 
     version = f"{major}.{minor}.{patch}"
@@ -75,7 +76,7 @@ def version_strategy(draw):
 
 
 @st.composite
-def plugin_permissions_strategy(draw):
+def plugin_permissions_strategy(draw) -> bool:
     """Generate plugin permissions configurations."""
     permissions = draw(
         st.sets(
@@ -87,11 +88,11 @@ def plugin_permissions_strategy(draw):
                     PermissionId("file_access"),
                     PermissionId("network_access"),
                     PermissionId("system_access"),
-                ]
+                ],
             ),
             min_size=0,
             max_size=6,
-        )
+        ),
     )
 
     return PluginPermissions(
@@ -102,7 +103,7 @@ def plugin_permissions_strategy(draw):
                 st.integers(min_value=1, max_value=1000),
                 min_size=0,
                 max_size=3,
-            )
+            ),
         ),
         network_access=draw(st.booleans()),
         file_system_access=draw(st.booleans()),
@@ -111,7 +112,7 @@ def plugin_permissions_strategy(draw):
 
 
 @st.composite
-def plugin_metadata_strategy(draw):
+def plugin_metadata_strategy(draw) -> bool:
     """Generate valid plugin metadata."""
     return PluginMetadata(
         identifier=draw(plugin_identifier_strategy()),
@@ -120,7 +121,7 @@ def plugin_metadata_strategy(draw):
                 min_size=1,
                 max_size=100,
                 alphabet=st.characters(blacklist_categories=["Cc", "Cs"]),
-            ).filter(lambda x: len(x.strip()) > 0)
+            ).filter(lambda x: len(x.strip()) > 0),
         ),
         version=draw(version_strategy()),
         description=draw(
@@ -128,34 +129,36 @@ def plugin_metadata_strategy(draw):
                 min_size=0,
                 max_size=500,
                 alphabet=st.characters(blacklist_categories=["Cc", "Cs"]),
-            )
+            ),
         ),
         author=draw(
             st.text(
                 min_size=1,
                 max_size=100,
                 alphabet=st.characters(blacklist_categories=["Cc", "Cs"]),
-            ).filter(lambda x: len(x.strip()) > 0)
+            ).filter(lambda x: len(x.strip()) > 0),
         ),
         plugin_type=draw(st.sampled_from(list(PluginType))),
         api_version=draw(st.sampled_from(list(ApiVersion))),
         permissions=draw(plugin_permissions_strategy()),
         entry_point=draw(
             st.text(
-                min_size=1, max_size=50, alphabet="abcdefghijklmnopqrstuvwxyz_"
-            ).filter(lambda x: len(x.replace("_", "")) > 0)
+                min_size=1,
+                max_size=50,
+                alphabet="abcdefghijklmnopqrstuvwxyz_",
+            ).filter(lambda x: len(x.replace("_", "")) > 0),
         ),
     )
 
 
 @st.composite
-def security_profile_strategy(draw):
+def security_profile_strategy(draw) -> Any:
     """Generate security profiles."""
     return draw(st.sampled_from(list(SecurityProfile)))
 
 
 @st.composite
-def action_parameter_strategy(draw):
+def action_parameter_strategy(draw) -> Any:
     """Generate custom action parameters."""
     # Generate valid parameter name: starts with letter, then letters/numbers/underscores
     first_char = draw(
@@ -163,14 +166,14 @@ def action_parameter_strategy(draw):
             min_size=1,
             max_size=1,
             alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        )
+        ),
     )
     rest_chars = draw(
         st.text(
             min_size=0,
             max_size=20,
             alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_",
-        )
+        ),
     )
     param_name = first_char + rest_chars
 
@@ -182,7 +185,7 @@ def action_parameter_strategy(draw):
                 min_size=0,
                 max_size=200,
                 alphabet=st.characters(blacklist_categories=["Cc"]),
-            )
+            ),
         ),
         required=draw(st.booleans()),
         default_value=draw(
@@ -197,7 +200,7 @@ def action_parameter_strategy(draw):
                     allow_infinity=False,
                 ),
                 st.booleans(),
-            )
+            ),
         ),
     )
 
@@ -207,7 +210,7 @@ class TestPluginMetadataProperties:
 
     @given(plugin_metadata_strategy())
     @settings(max_examples=100)
-    def test_metadata_creation_invariants(self, metadata: PluginMetadata):
+    def test_metadata_creation_invariants(self, metadata: PluginMetadata) -> None:
         """Test that valid metadata always satisfies invariants."""
         # Identifier invariants
         assert metadata.identifier
@@ -239,8 +242,13 @@ class TestPluginMetadataProperties:
         author=st.text(min_size=1, max_size=100),
     )
     def test_invalid_identifier_rejected(
-        self, identifier, name, version, description, author
-    ):
+        self,
+        identifier,
+        name,
+        version,
+        description,
+        author,
+    ) -> None:
         """Test that invalid identifiers are rejected."""
         assume(len(identifier) == 0)  # Empty identifier should be invalid
 
@@ -256,7 +264,7 @@ class TestPluginMetadataProperties:
             )
 
     @given(st.text(min_size=1, max_size=3))
-    def test_invalid_version_rejected(self, invalid_version):
+    def test_invalid_version_rejected(self, invalid_version) -> None:
         """Test that invalid version formats are rejected."""
         assume(not invalid_version.replace(".", "").replace("-", "").isalnum())
 
@@ -277,7 +285,7 @@ class TestPluginPermissionsProperties:
 
     @given(plugin_permissions_strategy())
     @settings(max_examples=50)
-    def test_permissions_consistency(self, permissions: PluginPermissions):
+    def test_permissions_consistency(self, permissions: PluginPermissions) -> None:
         """Test that permission settings are internally consistent."""
         # Elevated access should be true if any elevated permission is granted
         elevated_permissions = {
@@ -301,18 +309,18 @@ class TestPluginPermissionsProperties:
                     PermissionId("macro_read"),
                     PermissionId("macro_write"),
                     PermissionId("dangerous_operation"),
-                ]
-            )
+                ],
+            ),
         ),
         permission_to_check=st.sampled_from(
             [
                 PermissionId("macro_read"),
                 PermissionId("macro_write"),
                 PermissionId("nonexistent"),
-            ]
+            ],
         ),
     )
-    def test_permission_checking(self, permissions, permission_to_check):
+    def test_permission_checking(self, permissions, permission_to_check) -> None:
         """Test permission checking behavior."""
         plugin_perms = PluginPermissions(permissions=permissions)
 
@@ -325,7 +333,7 @@ class TestSecurityLimitsProperties:
 
     @given(security_profile_strategy())
     @settings(max_examples=20)
-    def test_security_limits_scaling(self, profile: SecurityProfile):
+    def test_security_limits_scaling(self, profile: SecurityProfile) -> None:
         """Test that security limits scale appropriately with profile."""
         limits = SecurityLimits(profile)
 
@@ -349,7 +357,7 @@ class TestPluginRegistryProperties:
     """Property-based tests for plugin registry operations."""
 
     @pytest.fixture
-    def temp_registry(self):
+    def temp_registry(self) -> None:
         """Create temporary registry for testing."""
         with tempfile.TemporaryDirectory() as temp_dir:
             registry_path = Path(temp_dir) / "test_registry.json"
@@ -361,15 +369,18 @@ class TestPluginRegistryProperties:
             min_size=0,
             max_size=10,
             unique_by=lambda x: x.identifier,
-        )
+        ),
     )
     @settings(
-        max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture]
+        max_examples=20,
+        suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
     async def test_registry_persistence(
-        self, temp_registry, plugin_list: list[PluginMetadata]
-    ):
+        self,
+        temp_registry,
+        plugin_list: list[PluginMetadata],
+    ) -> None:
         """Test that registry persists and loads data correctly."""
         # Clear registry state to ensure isolation between examples
         temp_registry.plugins.clear()
@@ -401,11 +412,14 @@ class TestPluginRegistryProperties:
 
     @given(plugin_metadata_strategy())
     @settings(
-        max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture]
+        max_examples=20,
+        suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     def test_registry_operations_idempotent(
-        self, temp_registry, metadata: PluginMetadata
-    ):
+        self,
+        temp_registry,
+        metadata: PluginMetadata,
+    ) -> None:
         """Test that registry operations are idempotent."""
         # Clear registry state to ensure isolation between examples
         temp_registry.plugins.clear()
@@ -431,14 +445,18 @@ class TestPluginRegistryProperties:
 class TestAPIBridgeProperties:
     """Property-based tests for API bridge security and functionality."""
 
-    def create_api_bridge(self):
+    def create_api_bridge(self) -> bool:
         """Create API bridge for testing - not a fixture to avoid Hypothesis issues."""
         return PluginAPIBridge()
 
     @given(
         plugin_id=plugin_identifier_strategy(),
         tool_name=st.sampled_from(
-            ["km_variable_manager", "km_execute_macro", "nonexistent_tool"]
+            [
+                "km_variable_manager",
+                "km_execute_macro",
+                "nonexistent_tool",
+            ],
         ),
         parameters=st.dictionaries(
             st.text(min_size=1, max_size=20, alphabet="abcdefghijklmnopqrstuvwxyz_"),
@@ -448,12 +466,16 @@ class TestAPIBridgeProperties:
         ),
     )
     @settings(
-        max_examples=30, suppress_health_check=[HealthCheck.function_scoped_fixture]
+        max_examples=30,
+        suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
     async def test_api_bridge_security_boundaries(
-        self, plugin_id, tool_name, parameters
-    ):
+        self,
+        plugin_id,
+        tool_name,
+        parameters,
+    ) -> None:
         """Test API bridge enforces security boundaries."""
         # Create API bridge for this test
         api_bridge = self.create_api_bridge()
@@ -467,7 +489,10 @@ class TestAPIBridgeProperties:
 
         # Call tool
         result = await api_bridge.call_tool(
-            plugin_id, permissions, tool_name, parameters
+            plugin_id,
+            permissions,
+            tool_name,
+            parameters,
         )
 
         if tool_name == "nonexistent_tool":
@@ -486,10 +511,11 @@ class TestAPIBridgeProperties:
 
     @given(plugin_id=plugin_identifier_strategy())
     @settings(
-        max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture]
+        max_examples=20,
+        suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
-    async def test_api_bridge_authorization_required(self, plugin_id):
+    async def test_api_bridge_authorization_required(self, plugin_id) -> None:
         """Test that API bridge requires plugin authorization."""
         # Create API bridge for this test
         api_bridge = self.create_api_bridge()
@@ -499,7 +525,10 @@ class TestAPIBridgeProperties:
 
         # Try to call tool without authorization
         result = await api_bridge.call_tool(
-            plugin_id, permissions, "km_variable_manager", {"operation": "list"}
+            plugin_id,
+            permissions,
+            "km_variable_manager",
+            {"operation": "list"},
         )
 
         assert result.is_left()
@@ -511,10 +540,11 @@ class TestAPIBridgeProperties:
         call_count=st.integers(min_value=5, max_value=15),
     )
     @settings(
-        max_examples=5, suppress_health_check=[HealthCheck.function_scoped_fixture]
+        max_examples=5,
+        suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
-    async def test_rate_limiting_enforcement(self, plugin_id, call_count):
+    async def test_rate_limiting_enforcement(self, plugin_id, call_count) -> None:
         """Test that rate limiting is properly enforced."""
         # Create API bridge for this test
         api_bridge = self.create_api_bridge()
@@ -557,13 +587,20 @@ class TestAPIBridgeProperties:
             # Mock the tool execution to always succeed
             original_call = api_bridge._execute_tool
 
-            async def mock_execute_tool(tool_name, parameters):
-                return Either.right({"success": True, "call_number": i})
+            # B023 fix: Properly capture loop variable in closure
+            def create_mock_execute_tool(call_number) -> None:
+                async def mock_execute_tool(tool_name, parameters):
+                    return Either.right({"success": True, "call_number": call_number})
 
-            api_bridge._execute_tool = mock_execute_tool
+                return mock_execute_tool
+
+            api_bridge._execute_tool = create_mock_execute_tool(i)
 
             result = await api_bridge.call_tool(
-                plugin_id, permissions, "test_rate_limit_tool", {"operation": "test"}
+                plugin_id,
+                permissions,
+                "test_rate_limit_tool",
+                {"operation": "test"},
             )
 
             # Restore original method
@@ -572,7 +609,7 @@ class TestAPIBridgeProperties:
             if result.is_left() and "rate limit" in result.get_left().message.lower():
                 rate_limited = True
                 break
-            elif result.is_right():
+            if result.is_right():
                 successful_calls += 1
 
         # For call counts above the rate limit (3), should hit rate limit
@@ -599,12 +636,12 @@ class TestMarketplaceProperties:
         offset=st.integers(min_value=0, max_value=20),
     )
     @settings(
-        max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture]
+        max_examples=20,
+        suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
-    async def test_search_result_bounds(self, marketplace, query_text, limit, offset):
+    async def test_search_result_bounds(self, marketplace, query_text, limit, offset) -> None:
         """Test that search results respect pagination bounds."""
-
         query = SearchQuery(query=query_text, limit=limit, offset=offset)
 
         result = await marketplace.search_plugins(query)
@@ -620,10 +657,11 @@ class TestMarketplaceProperties:
 
     @given(st.text(min_size=1, max_size=20, alphabet="abcdefghijklmnopqrstuvwxyz-"))
     @settings(
-        max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture]
+        max_examples=20,
+        suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
-    async def test_plugin_details_consistency(self, marketplace, plugin_id_str):
+    async def test_plugin_details_consistency(self, marketplace, plugin_id_str) -> None:
         """Test plugin details retrieval consistency."""
         plugin_id = PluginId(plugin_id_str)
 
@@ -650,7 +688,7 @@ class TestPluginLifecycleProperties:
     @given(plugin_metadata_strategy())
     @settings(max_examples=20)
     @pytest.mark.asyncio
-    async def test_plugin_lifecycle_state_transitions(self, metadata: PluginMetadata):
+    async def test_plugin_lifecycle_state_transitions(self, metadata: PluginMetadata) -> None:
         """Test plugin lifecycle state transitions are valid."""
         from src.plugins.plugin_sdk import BasePlugin
 
@@ -709,8 +747,10 @@ class TestPluginLifecycleProperties:
     )
     @settings(max_examples=30)
     def test_action_parameter_validation(
-        self, action_params: list[CustomActionParameter], test_values: dict[str, Any]
-    ):
+        self,
+        action_params: list[CustomActionParameter],
+        test_values: dict[str, Any],
+    ) -> str:
         """Test custom action parameter validation."""
 
         # Create mock action
@@ -752,7 +792,7 @@ class TestPluginLifecycleProperties:
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_plugin_system_properties():
+async def test_end_to_end_plugin_system_properties() -> None:
     """End-to-end property test of the entire plugin system."""
     with tempfile.TemporaryDirectory() as temp_dir:
         plugins_dir = Path(temp_dir)

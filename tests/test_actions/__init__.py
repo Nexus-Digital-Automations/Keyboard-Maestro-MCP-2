@@ -1,5 +1,4 @@
-"""
-Test package for action building functionality.
+"""Test package for action building functionality.
 
 Contains comprehensive test suites for:
 - ActionBuilder with fluent interface

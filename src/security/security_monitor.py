@@ -1,5 +1,4 @@
-"""
-Security Monitor - TASK_62 Phase 2 Core Security Engine
+"""Security Monitor - TASK_62 Phase 2 Core Security Engine.
 
 Real-time security monitoring and threat detection for zero trust security.
 Provides continuous security monitoring, threat detection, incident response, and security analytics.
@@ -13,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import logging
 import statistics
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -30,6 +30,8 @@ from src.core.zero_trust_architecture import (
     ThreatSeverity,
     create_risk_score,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class MonitoringStatus(Enum):
@@ -202,13 +204,14 @@ class SecurityMonitor:
         for scope in MonitoringScope:
             self.monitoring_status[scope] = MonitoringStatus.INACTIVE
 
-    @require(lambda self, rule: isinstance(rule, MonitoringRule))
+    @require(lambda __self, rule: isinstance(rule, MonitoringRule))
     @ensure(
-        lambda self, result: result.is_right()
-        or isinstance(result.get_left(), SecurityMonitoringError)
+        lambda _self, result: result.is_right()
+        or isinstance(result.get_left(), SecurityMonitoringError),
     )
     async def register_monitoring_rule(
-        self, rule: MonitoringRule
+        self,
+        rule: MonitoringRule,
     ) -> Either[SecurityMonitoringError, str]:
         """Register a new security monitoring rule."""
         try:
@@ -230,22 +233,23 @@ class SecurityMonitor:
                 await self._start_rule_monitoring(rule)
 
             return Either.right(
-                f"Monitoring rule {rule.rule_id} registered successfully"
+                f"Monitoring rule {rule.rule_id} registered successfully",
             )
 
         except Exception as e:
             return Either.left(
                 SecurityMonitoringError(
-                    f"Failed to register monitoring rule: {str(e)}",
+                    f"Failed to register monitoring rule: {e!s}",
                     "RULE_REGISTRATION_ERROR",
                     SecurityOperation.MONITOR,
                     {"rule_id": rule.rule_id},
-                )
+                ),
             )
 
-    @require(lambda self, event: isinstance(event, SecurityEvent))
+    @require(lambda __self, event: isinstance(event, SecurityEvent))
     async def process_security_event(
-        self, event: SecurityEvent
+        self,
+        event: SecurityEvent,
     ) -> Either[SecurityMonitoringError, list[SecurityAlert]]:
         """Process security event and generate alerts if needed."""
         try:
@@ -265,7 +269,8 @@ class SecurityMonitor:
 
                     if len(matching_events) >= rule.alert_threshold:
                         alert = await self._generate_alert_from_rule(
-                            rule, matching_events
+                            rule,
+                            matching_events,
                         )
                         if alert.is_right():
                             generated_alerts.append(alert.get_right())
@@ -293,15 +298,16 @@ class SecurityMonitor:
         except Exception as e:
             return Either.left(
                 SecurityMonitoringError(
-                    f"Failed to process security event: {str(e)}",
+                    f"Failed to process security event: {e!s}",
                     "EVENT_PROCESSING_ERROR",
                     SecurityOperation.MONITOR,
                     {"event_id": event.event_id},
-                )
+                ),
             )
 
     async def start_monitoring(
-        self, scope: MonitoringScope
+        self,
+        scope: MonitoringScope,
     ) -> Either[SecurityMonitoringError, str]:
         """Start security monitoring for specified scope."""
         try:
@@ -314,12 +320,12 @@ class SecurityMonitor:
                         f"Monitoring already active for scope {scope.value}",
                         "MONITORING_ALREADY_ACTIVE",
                         SecurityOperation.MONITOR,
-                    )
+                    ),
                 )
 
             # Start monitoring task
             self.monitoring_tasks[scope] = asyncio.create_task(
-                self._run_continuous_monitoring(scope)
+                self._run_continuous_monitoring(scope),
             )
 
             self.monitoring_status[scope] = MonitoringStatus.ACTIVE
@@ -329,15 +335,16 @@ class SecurityMonitor:
         except Exception as e:
             return Either.left(
                 SecurityMonitoringError(
-                    f"Failed to start monitoring: {str(e)}",
+                    f"Failed to start monitoring: {e!s}",
                     "MONITORING_START_ERROR",
                     SecurityOperation.MONITOR,
                     {"scope": scope.value},
-                )
+                ),
             )
 
     async def stop_monitoring(
-        self, scope: MonitoringScope
+        self,
+        scope: MonitoringScope,
     ) -> Either[SecurityMonitoringError, str]:
         """Stop security monitoring for specified scope."""
         try:
@@ -357,11 +364,11 @@ class SecurityMonitor:
         except Exception as e:
             return Either.left(
                 SecurityMonitoringError(
-                    f"Failed to stop monitoring: {str(e)}",
+                    f"Failed to stop monitoring: {e!s}",
                     "MONITORING_STOP_ERROR",
                     SecurityOperation.MONITOR,
                     {"scope": scope.value},
-                )
+                ),
             )
 
     async def create_incident(
@@ -395,7 +402,7 @@ class SecurityMonitor:
                         "action": "incident_created",
                         "description": "Security incident created",
                         "actor": "security_monitor",
-                    }
+                    },
                 ],
             )
 
@@ -415,14 +422,17 @@ class SecurityMonitor:
         except Exception as e:
             return Either.left(
                 SecurityMonitoringError(
-                    f"Failed to create incident: {str(e)}",
+                    f"Failed to create incident: {e!s}",
                     "INCIDENT_CREATION_ERROR",
                     SecurityOperation.RESPOND,
-                )
+                ),
             )
 
     async def update_incident_status(
-        self, incident_id: str, new_status: IncidentStatus, notes: str | None = None
+        self,
+        incident_id: str,
+        new_status: IncidentStatus,
+        notes: str | None = None,
     ) -> Either[SecurityMonitoringError, SecurityIncident]:
         """Update security incident status."""
         try:
@@ -433,7 +443,7 @@ class SecurityMonitor:
                         "INCIDENT_NOT_FOUND",
                         SecurityOperation.RESPOND,
                         {"incident_id": incident_id},
-                    )
+                    ),
                 )
 
             old_incident = self.active_incidents[incident_id]
@@ -483,15 +493,16 @@ class SecurityMonitor:
         except Exception as e:
             return Either.left(
                 SecurityMonitoringError(
-                    f"Failed to update incident status: {str(e)}",
+                    f"Failed to update incident status: {e!s}",
                     "INCIDENT_UPDATE_ERROR",
                     SecurityOperation.RESPOND,
                     {"incident_id": incident_id},
-                )
+                ),
             )
 
     async def get_security_metrics(
-        self, time_range: timedelta = timedelta(hours=24)
+        self,
+        time_range: timedelta = timedelta(hours=24),
     ) -> Either[SecurityMonitoringError, SecurityMetrics]:
         """Get security monitoring metrics."""
         try:
@@ -520,7 +531,7 @@ class SecurityMonitor:
                     incident
                     for incident in self.active_incidents.values()
                     if start_time <= incident.detected_at <= end_time
-                ]
+                ],
             )
 
             # Calculate average response times
@@ -534,7 +545,7 @@ class SecurityMonitor:
 
                 if alert_processing_times:
                     response_times["alert_processing"] = statistics.mean(
-                        alert_processing_times
+                        alert_processing_times,
                     )
 
             # Calculate compliance scores (placeholder)
@@ -554,7 +565,7 @@ class SecurityMonitor:
                         event
                         for event in recent_events
                         if event.event_type == "policy_violation"
-                    ]
+                    ],
                 ),
                 threats_detected=total_alerts,
                 incidents_resolved=len(
@@ -562,7 +573,7 @@ class SecurityMonitor:
                         incident
                         for incident in self.active_incidents.values()
                         if incident.status == IncidentStatus.RESOLVED
-                    ]
+                    ],
                 ),
                 average_trust_score=0.8,  # Would be calculated from trust scores
                 average_risk_score=0.3,  # Would be calculated from risk assessments
@@ -577,7 +588,7 @@ class SecurityMonitor:
                             scope
                             for scope, status in self.monitoring_status.items()
                             if status == MonitoringStatus.ACTIVE
-                        ]
+                        ],
                     ),
                 },
             )
@@ -587,10 +598,10 @@ class SecurityMonitor:
         except Exception as e:
             return Either.left(
                 SecurityMonitoringError(
-                    f"Failed to get security metrics: {str(e)}",
+                    f"Failed to get security metrics: {e!s}",
                     "METRICS_ERROR",
                     SecurityOperation.MONITOR,
-                )
+                ),
             )
 
     def register_alert_callback(self, callback: callable) -> None:
@@ -602,7 +613,8 @@ class SecurityMonitor:
         self.incident_callbacks.append(callback)
 
     def _validate_monitoring_rule(
-        self, rule: MonitoringRule
+        self,
+        rule: MonitoringRule,
     ) -> Either[SecurityMonitoringError, None]:
         """Validate monitoring rule configuration."""
         # Check required fields
@@ -612,7 +624,7 @@ class SecurityMonitor:
                     "Monitoring rule must have conditions",
                     "MISSING_CONDITIONS",
                     SecurityOperation.MONITOR,
-                )
+                ),
             )
 
         if not rule.actions:
@@ -621,37 +633,40 @@ class SecurityMonitor:
                     "Monitoring rule must have actions",
                     "MISSING_ACTIONS",
                     SecurityOperation.MONITOR,
-                )
+                ),
             )
 
         return Either.right(None)
 
     def _check_rule_conflicts(
-        self, new_rule: MonitoringRule
+        self,
+        new_rule: MonitoringRule,
     ) -> Either[SecurityMonitoringError, None]:
         """Check for conflicts with existing monitoring rules."""
         for existing_rule in self.monitoring_rules.values():
+            # SIM102 fix: Combine nested if statements
             if (
                 existing_rule.scope == new_rule.scope
                 and existing_rule.priority == new_rule.priority
                 and existing_rule.enabled
                 and new_rule.enabled
+                and self._rules_have_overlapping_conditions(existing_rule, new_rule)
             ):
-                # Check for overlapping conditions
-                if self._rules_have_overlapping_conditions(existing_rule, new_rule):
-                    return Either.left(
-                        SecurityMonitoringError(
-                            f"Rule conflict with existing rule {existing_rule.rule_id}",
-                            "RULE_CONFLICT",
-                            SecurityOperation.MONITOR,
-                            {"conflicting_rule": existing_rule.rule_id},
-                        )
-                    )
+                return Either.left(
+                    SecurityMonitoringError(
+                        f"Rule conflict with existing rule {existing_rule.rule_id}",
+                        "RULE_CONFLICT",
+                        SecurityOperation.MONITOR,
+                        {"conflicting_rule": existing_rule.rule_id},
+                    ),
+                )
 
         return Either.right(None)
 
     def _rules_have_overlapping_conditions(
-        self, rule1: MonitoringRule, rule2: MonitoringRule
+        self,
+        rule1: MonitoringRule,
+        rule2: MonitoringRule,
     ) -> bool:
         """Check if two rules have overlapping conditions."""
         # Simplified overlap detection
@@ -664,7 +679,6 @@ class SecurityMonitor:
         """Start monitoring for a specific rule."""
         # This would start rule-specific monitoring logic
         # For now, just mark as active
-        pass
 
     def _event_matches_rule(self, event: SecurityEvent, rule: MonitoringRule) -> bool:
         """Check if event matches monitoring rule conditions."""
@@ -688,7 +702,8 @@ class SecurityMonitor:
                 }
 
                 if severity_levels.get(event.severity, 0) < severity_levels.get(
-                    min_severity, 0
+                    min_severity,
+                    0,
                 ):
                     return False
 
@@ -713,7 +728,8 @@ class SecurityMonitor:
             return False  # Fail safe
 
     def _get_matching_events_in_window(
-        self, rule: MonitoringRule
+        self,
+        rule: MonitoringRule,
     ) -> list[SecurityEvent]:
         """Get events matching rule within time window."""
         current_time = datetime.now(UTC)
@@ -731,7 +747,9 @@ class SecurityMonitor:
         return matching_events
 
     async def _generate_alert_from_rule(
-        self, rule: MonitoringRule, matching_events: list[SecurityEvent]
+        self,
+        rule: MonitoringRule,
+        matching_events: list[SecurityEvent],
     ) -> Either[SecurityMonitoringError, SecurityAlert]:
         """Generate security alert from monitoring rule and events."""
         try:
@@ -766,7 +784,10 @@ class SecurityMonitor:
                     for indicator in event.risk_indicators
                 ],
                 affected_resources=list(
-                    {event.data.get("resource", "unknown") for event in matching_events}
+                    {
+                        event.data.get("resource", "unknown")
+                        for event in matching_events
+                    },
                 ),
                 confidence=min(1.0, len(matching_events) / rule.alert_threshold),
                 risk_score=create_risk_score(avg_risk_score),
@@ -784,15 +805,16 @@ class SecurityMonitor:
         except Exception as e:
             return Either.left(
                 SecurityMonitoringError(
-                    f"Failed to generate alert: {str(e)}",
+                    f"Failed to generate alert: {e!s}",
                     "ALERT_GENERATION_ERROR",
                     SecurityOperation.MONITOR,
                     {"rule_id": rule.rule_id},
-                )
+                ),
             )
 
     async def _check_threat_indicators(
-        self, event: SecurityEvent
+        self,
+        event: SecurityEvent,
     ) -> Either[SecurityMonitoringError, list[SecurityAlert]]:
         """Check event against known threat indicators."""
         try:
@@ -810,10 +832,10 @@ class SecurityMonitor:
         except Exception as e:
             return Either.left(
                 SecurityMonitoringError(
-                    f"Failed to check threat indicators: {str(e)}",
+                    f"Failed to check threat indicators: {e!s}",
                     "THREAT_CHECK_ERROR",
                     SecurityOperation.DETECT,
-                )
+                ),
             )
 
     def _is_known_threat_indicator(self, indicator: str) -> bool:
@@ -830,7 +852,9 @@ class SecurityMonitor:
         return indicator in known_threats
 
     async def _create_threat_alert(
-        self, event: SecurityEvent, threat_indicator: str
+        self,
+        event: SecurityEvent,
+        threat_indicator: str,
     ) -> Either[SecurityMonitoringError, SecurityAlert]:
         """Create alert for detected threat."""
         try:
@@ -867,10 +891,10 @@ class SecurityMonitor:
         except Exception as e:
             return Either.left(
                 SecurityMonitoringError(
-                    f"Failed to create threat alert: {str(e)}",
+                    f"Failed to create threat alert: {e!s}",
                     "THREAT_ALERT_ERROR",
                     SecurityOperation.DETECT,
-                )
+                ),
             )
 
     async def _handle_new_alert(self, alert: SecurityAlert) -> None:
@@ -893,26 +917,23 @@ class SecurityMonitor:
 
             # Notify alert callbacks
             for callback in self.alert_callbacks:
-                try:
+                # SIM105 fix: Use contextlib.suppress instead of try-except-pass
+                with contextlib.suppress(Exception):
                     await callback(alert)
-                except Exception:
-                    pass  # Don't fail on callback errors
 
-        except Exception:
-            pass  # Don't fail on alert handling errors
+        except Exception as e:
+            logger.error(f"Alert handling failed: {e!s}", exc_info=True)
 
     async def _handle_new_incident(self, incident: SecurityIncident) -> None:
         """Handle new security incident."""
         try:
             # Notify incident callbacks
             for callback in self.incident_callbacks:
-                try:
+                with contextlib.suppress(Exception):
                     await callback(incident)
-                except Exception:
-                    pass  # Don't fail on callback errors
 
-        except Exception:
-            pass  # Don't fail on incident handling errors
+        except Exception as e:
+            logger.error(f"Incident handling failed: {e!s}", exc_info=True)
 
     async def _run_continuous_monitoring(self, scope: MonitoringScope) -> None:
         """Run continuous monitoring for scope."""
@@ -950,49 +971,44 @@ class SecurityMonitor:
             elif scope == MonitoringScope.COMPLIANCE:
                 await self._monitor_compliance()
 
-        except Exception:
+        except Exception as e:
             # Log error but continue monitoring
-            pass
+            logger.error(
+                f"Scope monitoring failed for {scope}: {e!s}",
+                exc_info=True,
+            )
 
     async def _monitor_user_activity(self) -> None:
         """Monitor user activity for anomalies."""
         # Placeholder for user activity monitoring
-        pass
 
     async def _monitor_system_access(self) -> None:
         """Monitor system access patterns."""
         # Placeholder for system access monitoring
-        pass
 
     async def _monitor_network_traffic(self) -> None:
         """Monitor network traffic for threats."""
         # Placeholder for network traffic monitoring
-        pass
 
     async def _monitor_data_access(self) -> None:
         """Monitor data access patterns."""
         # Placeholder for data access monitoring
-        pass
 
     async def _monitor_authentication(self) -> None:
         """Monitor authentication events."""
         # Placeholder for authentication monitoring
-        pass
 
     async def _monitor_policy_violations(self) -> None:
         """Monitor for policy violations."""
         # Placeholder for policy violation monitoring
-        pass
 
     async def _monitor_threat_indicators(self) -> None:
         """Monitor for threat indicators."""
         # Placeholder for threat indicator monitoring
-        pass
 
     async def _monitor_compliance(self) -> None:
         """Monitor compliance status."""
         # Placeholder for compliance monitoring
-        pass
 
     def _update_monitoring_metrics(self, processing_time: float) -> None:
         """Update monitoring performance metrics."""
@@ -1022,17 +1038,17 @@ class SecurityMonitor:
             and self.alert_callbacks
         ):
             for callback in self.alert_callbacks:
-                try:
+                with contextlib.suppress(Exception):
                     callback(event)
-                except Exception:
-                    pass  # Don't fail on callback errors
 
     def get_events(self, limit: int = 100) -> list[SecurityEvent]:
         """Get recent security events (simple interface for test compatibility)."""
         return self.security_events[-limit:] if limit > 0 else self.security_events
 
     def detect_threats(
-        self, user_id: str = None, time_window: timedelta = timedelta(hours=1)
+        self,
+        user_id: str = None,
+        time_window: timedelta = timedelta(hours=1),
     ) -> list[SecurityEvent]:
         """Detect threats for user (simple interface for test compatibility)."""
         current_time = datetime.now(UTC)
@@ -1073,7 +1089,9 @@ class SecurityMonitor:
         return threat_events
 
     def detect_anomalies(
-        self, user_id: str = None, time_window: timedelta = timedelta(hours=1)
+        self,
+        user_id: str = None,
+        time_window: timedelta = timedelta(hours=1),
     ) -> list[SecurityEvent]:
         """Detect anomalies for user (simple interface for test compatibility)."""
         current_time = datetime.now(UTC)
@@ -1124,7 +1142,9 @@ class SecurityMonitor:
         return len(self.alert_callbacks) > 0
 
     def get_threat_summary(
-        self, user_id: str = None, time_window: timedelta = timedelta(hours=1)
+        self,
+        user_id: str = None,
+        time_window: timedelta = timedelta(hours=1),
     ) -> ThreatSummary:
         """Get threat summary for user (simple interface for test compatibility)."""
         current_time = datetime.now(UTC)
@@ -1146,7 +1166,7 @@ class SecurityMonitor:
             if event.severity.value == "critical":
                 max_severity = AlertSeverity.CRITICAL
             elif event.severity.value == "high" and max_severity.value not in [
-                "critical"
+                "critical",
             ]:
                 max_severity = AlertSeverity.HIGH
             elif event.severity.value == "medium" and max_severity.value not in [
@@ -1165,7 +1185,9 @@ class SecurityMonitor:
         )
 
     def get_events_for_user(
-        self, user_id: str, time_window: timedelta = timedelta(hours=1)
+        self,
+        user_id: str,
+        time_window: timedelta = timedelta(hours=1),
     ) -> list[SecurityEvent]:
         """Get events for specific user (simple interface for test compatibility)."""
         current_time = datetime.now(UTC)

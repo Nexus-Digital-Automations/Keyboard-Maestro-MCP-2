@@ -1,5 +1,4 @@
-"""
-Command parsing and validation for the Keyboard Maestro MCP macro engine.
+"""Command parsing and validation for the Keyboard Maestro MCP macro engine.
 
 This module provides robust parsing of macro definitions with comprehensive
 type validation, security checks, and contract-based validation.
@@ -105,20 +104,25 @@ class InputSanitizer:
 
     @classmethod
     def sanitize_text_input(
-        cls, text: str, max_length: int = 10000, strict_mode: bool = True
+        cls,
+        text: str,
+        max_length: int = 10000,
+        strict_mode: bool = True,
     ) -> str:
-        """
-        Sanitize text input for security.
+        """Sanitize text input for security.
 
         Args:
             text: Input text to sanitize
             max_length: Maximum allowed length
             strict_mode: If True, raises SecurityViolationError for dangerous content.
                         If False, removes dangerous content and returns cleaned text.
+
         """
         if not isinstance(text, str):
             raise ValidationError(
-                field_name="text_input", value=text, constraint="must be string type"
+                field_name="text_input",
+                value=text,
+                constraint="must be string type",
             )
 
         if len(text) > max_length:
@@ -155,27 +159,28 @@ class InputSanitizer:
                 )
 
             return sanitized
-        else:
-            # Sanitization mode: Remove dangerous content
-            # Remove script injection patterns
-            for pattern in cls.SCRIPT_INJECTION_PATTERNS:
-                sanitized = re.sub(pattern, "", sanitized, flags=re.IGNORECASE)
+        # Sanitization mode: Remove dangerous content
+        # Remove script injection patterns
+        for pattern in cls.SCRIPT_INJECTION_PATTERNS:
+            sanitized = re.sub(pattern, "", sanitized, flags=re.IGNORECASE)
 
-            # Remove path traversal patterns
-            for pattern in cls.PATH_TRAVERSAL_PATTERNS:
-                sanitized = re.sub(pattern, "", sanitized, flags=re.IGNORECASE)
+        # Remove path traversal patterns
+        for pattern in cls.PATH_TRAVERSAL_PATTERNS:
+            sanitized = re.sub(pattern, "", sanitized, flags=re.IGNORECASE)
 
-            # Remove dangerous characters
-            sanitized = re.sub(r'[<>"\'\&;]', "", sanitized)
+        # Remove dangerous characters
+        sanitized = re.sub(r'[<>"\'\&;]', "", sanitized)
 
-            return sanitized
+        return sanitized
 
     @classmethod
     def validate_file_path(cls, path: str) -> str:
         """Validate and sanitize file paths."""
         if not isinstance(path, str):
             raise ValidationError(
-                field_name="file_path", value=path, constraint="must be string type"
+                field_name="file_path",
+                value=path,
+                constraint="must be string type",
             )
 
         # Check for path traversal
@@ -248,17 +253,19 @@ class CommandValidator:
         """Validate and convert command type string."""
         try:
             return CommandType(command_type)
-        except ValueError:
+        except ValueError as e:
             valid_types = [ct.value for ct in CommandType]
             raise ValidationError(
                 field_name="command_type",
                 value=command_type,
                 constraint=f"must be one of: {valid_types}",
-            )
+            ) from e
 
     @classmethod
     def validate_command_parameters(
-        cls, command_type: CommandType, parameters: dict[str, Any]
+        cls,
+        command_type: CommandType,
+        parameters: dict[str, Any],
     ) -> CommandParameters:
         """Validate command parameters based on type."""
         validated_params = {}
@@ -319,12 +326,12 @@ class CommandValidator:
                     value=duration_value,
                     constraint="must be between 0.1 and 300 seconds",
                 )
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as e:
             raise ValidationError(
                 field_name="duration",
                 value=params["duration"],
                 constraint="must be a numeric value",
-            )
+            ) from e
 
         return {"duration": duration_value}
 
@@ -373,12 +380,12 @@ class CommandValidator:
                     value=volume,
                     constraint="must be between 0 and 100",
                 )
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as e:
             raise ValidationError(
                 field_name="volume",
                 value=params.get("volume"),
                 constraint="must be an integer",
-            )
+            ) from e
 
         return {"sound_name": sound_name, "volume": volume}
 
@@ -414,7 +421,8 @@ class CommandValidator:
 
     @classmethod
     def get_required_permissions(
-        cls, command_type: CommandType
+        cls,
+        command_type: CommandType,
     ) -> frozenset[Permission]:
         """Get required permissions for command type."""
         return frozenset(cls.REQUIRED_PERMISSIONS.get(command_type, set()))
@@ -424,10 +432,11 @@ class MacroParser:
     """Main parser for macro definitions with comprehensive validation."""
 
     @require(
-        lambda self, macro_data: macro_data is not None, "macro_data cannot be None"
+        lambda _self, macro_data: macro_data is not None,
+        "macro_data cannot be None",
     )
     @ensure(
-        lambda self, macro_data, result: isinstance(result, ParseResult),
+        lambda _self, _macro_data, result: isinstance(result, ParseResult),
         "must return ParseResult",
     )
     def parse_macro(self, macro_data: dict[str, Any]) -> ParseResult:
@@ -457,7 +466,7 @@ class MacroParser:
                         field_name="macro_definition",
                         value="invalid",
                         constraint="macro definition failed validation",
-                    )
+                    ),
                 )
 
             if errors:
@@ -481,7 +490,9 @@ class MacroParser:
         # Validate name
         if "name" not in macro_data:
             raise ValidationError(
-                field_name="name", value="missing", constraint="macro name is required"
+                field_name="name",
+                value="missing",
+                constraint="macro name is required",
             )
 
         name = InputSanitizer.validate_identifier(macro_data["name"])
@@ -493,7 +504,8 @@ class MacroParser:
         return macro_id, name
 
     def _parse_commands(
-        self, commands_data: list[dict[str, Any]]
+        self,
+        commands_data: list[dict[str, Any]],
     ) -> list[MacroCommand]:
         """Parse and validate command list."""
         if not commands_data:
@@ -520,7 +532,9 @@ class MacroParser:
         return commands
 
     def _parse_single_command(
-        self, cmd_data: dict[str, Any], index: int
+        self,
+        cmd_data: dict[str, Any],
+        index: int,
     ) -> MacroCommand:
         """Parse a single command definition."""
         # This would return an actual command instance
@@ -536,7 +550,8 @@ class MacroParser:
 
         command_type = CommandValidator.validate_command_type(cmd_data["type"])
         parameters = CommandValidator.validate_command_parameters(
-            command_type, cmd_data.get("parameters", {})
+            command_type,
+            cmd_data.get("parameters", {}),
         )
 
         return PlaceholderCommand(
@@ -554,7 +569,9 @@ def parse_macro_from_json(json_string: str) -> ParseResult:
         return parser.parse_macro(data)
     except json.JSONDecodeError as e:
         error = ValidationError(
-            field_name="json", value=str(e), constraint="must be valid JSON"
+            field_name="json",
+            value=str(e),
+            constraint="must be valid JSON",
         )
         return ParseResult.failure_result([error])
 
@@ -569,7 +586,7 @@ def validate_macro_definition(macro_def: MacroDefinition) -> list[ValidationErro
                 field_name="macro_definition",
                 value="invalid",
                 constraint="failed basic validation",
-            )
+            ),
         )
 
     # Additional validation logic would go here

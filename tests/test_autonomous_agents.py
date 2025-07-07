@@ -1,10 +1,12 @@
-"""
-Comprehensive tests for autonomous agent system.
+"""Comprehensive tests for autonomous agent system.
 
 Tests agent lifecycle, goal management, learning system, resource optimization,
 communication hub, and safety validation with property-based testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
 from datetime import UTC, datetime, timedelta
 
@@ -45,7 +47,7 @@ class TestAgentManager:
     """Test agent lifecycle management."""
 
     @pytest.mark.asyncio
-    async def test_create_agent(self):
+    async def test_create_agent(self) -> None:
         """Test agent creation and initialization."""
         manager = AgentManager()
 
@@ -65,7 +67,7 @@ class TestAgentManager:
             assert agent.state.configuration.agent_type == agent_type
 
     @pytest.mark.asyncio
-    async def test_agent_lifecycle(self):
+    async def test_agent_lifecycle(self) -> None:
         """Test complete agent lifecycle."""
         manager = AgentManager()
 
@@ -105,7 +107,7 @@ class TestAgentManager:
         assert agent_id not in manager.active_agents
 
     @pytest.mark.asyncio
-    async def test_multi_agent_coordination(self):
+    async def test_multi_agent_coordination(self) -> None:
         """Test multiple agents working together."""
         manager = AgentManager()
 
@@ -133,7 +135,7 @@ class TestAgentManager:
         # Verify agent coordination without calling problematic sync methods from async context
         assert len(manager.agents) == 2
         assert len(manager.active_agents) == 2
-        
+
         # Verify agent statuses individually (avoids asyncio.run() in get_system_status)
         agent_list = manager.list_agents()
         assert len(agent_list) == 2
@@ -143,7 +145,7 @@ class TestGoalManager:
     """Test goal management system."""
 
     @pytest.mark.asyncio
-    async def test_goal_decomposition(self):
+    async def test_goal_decomposition(self) -> None:
         """Test complex goal decomposition."""
         agent_id = create_agent_id()
         goal_manager = GoalManager(agent_id)
@@ -182,7 +184,7 @@ class TestGoalManager:
         assert len(decomposition.dependency_graph) == 3
 
     @pytest.mark.asyncio
-    async def test_goal_prioritization(self):
+    async def test_goal_prioritization(self) -> None:
         """Test goal priority management."""
         agent_id = create_agent_id()
         goal_manager = GoalManager(agent_id)
@@ -218,7 +220,7 @@ class TestGoalManager:
         assert priority_goals[1].priority == GoalPriority.HIGH
 
     @pytest.mark.asyncio
-    async def test_goal_completion_tracking(self):
+    async def test_goal_completion_tracking(self) -> None:
         """Test goal completion and metrics."""
         agent_id = create_agent_id()
         goal_manager = GoalManager(agent_id)
@@ -260,7 +262,7 @@ class TestLearningSystem:
     """Test machine learning and adaptation."""
 
     @pytest.mark.asyncio
-    async def test_experience_processing(self):
+    async def test_experience_processing(self) -> None:
         """Test learning from experiences."""
         agent_id = create_agent_id()
         learning_system = LearningSystem(agent_id, privacy_level="medium")
@@ -295,7 +297,7 @@ class TestLearningSystem:
         assert learning_system.learning_metrics["total_experiences"] == 1
 
     @pytest.mark.asyncio
-    async def test_pattern_recognition(self):
+    async def test_pattern_recognition(self) -> None:
         """Test pattern extraction and recognition."""
         agent_id = create_agent_id()
         learning_system = LearningSystem(agent_id)
@@ -328,14 +330,18 @@ class TestLearningSystem:
         # The system may need more experiences or explicit pattern detection trigger
         # Verify learning system is processing experiences correctly
         assert learning_system.learning_metrics["total_experiences"] == 5
-        
+
         # Test pattern discovery functionality directly if patterns not auto-discovered
         if len(learning_system.patterns) == 0:
             # Manually trigger pattern analysis on accumulated experiences
             # This validates the learning system's pattern detection capabilities
-            test_experience = learning_system.experiences[-1] if learning_system.experiences else None
+            test_experience = (
+                learning_system.experiences[-1] if learning_system.experiences else None
+            )
             if test_experience:
-                extracted_patterns = await learning_system._extract_patterns(test_experience)
+                extracted_patterns = await learning_system._extract_patterns(
+                    test_experience,
+                )
                 # Patterns may not be auto-discovered but extraction capability exists
                 assert isinstance(extracted_patterns, list)
         else:
@@ -346,7 +352,7 @@ class TestLearningSystem:
             assert pattern.confidence > 0.0
 
     @pytest.mark.asyncio
-    async def test_adaptive_behavior(self):
+    async def test_adaptive_behavior(self) -> None:
         """Test behavior adaptation based on performance."""
         agent_id = create_agent_id()
         learning_system = LearningSystem(agent_id)
@@ -373,7 +379,7 @@ class TestResourceOptimizer:
     """Test resource management and optimization."""
 
     @pytest.mark.asyncio
-    async def test_resource_allocation(self):
+    async def test_resource_allocation(self) -> None:
         """Test resource allocation and limits."""
         total_resources = {
             ResourceType.CPU: 100.0,
@@ -401,7 +407,7 @@ class TestResourceOptimizer:
         assert status["available_resources"]["memory"] == 60.0
 
     @pytest.mark.asyncio
-    async def test_resource_optimization(self):
+    async def test_resource_optimization(self) -> None:
         """Test resource optimization and rebalancing."""
         total_resources = {ResourceType.CPU: 100.0, ResourceType.MEMORY: 100.0}
 
@@ -425,7 +431,7 @@ class TestResourceOptimizer:
         assert optimization_result["underutilized_reclaimed"] >= 0
 
     @pytest.mark.asyncio
-    async def test_resource_prediction(self):
+    async def test_resource_prediction(self) -> None:
         """Test resource requirement prediction."""
         optimizer = ResourceOptimizer({ResourceType.CPU: 100.0})
         agent_id = create_agent_id()
@@ -433,7 +439,9 @@ class TestResourceOptimizer:
         # Report usage history
         for i in range(10):
             await optimizer.report_usage(
-                agent_id, {ResourceType.CPU: 10.0 + i}, action_id=create_action_id()
+                agent_id,
+                {ResourceType.CPU: 10.0 + i},
+                action_id=create_action_id(),
             )
 
         # Predict future requirements
@@ -450,7 +458,7 @@ class TestCommunicationHub:
     """Test inter-agent communication."""
 
     @pytest.mark.asyncio
-    async def test_message_routing(self):
+    async def test_message_routing(self) -> None:
         """Test message sending and receiving."""
         hub = CommunicationHub()
 
@@ -481,7 +489,7 @@ class TestCommunicationHub:
         assert messages[0].message_id == "msg_001"
 
     @pytest.mark.asyncio
-    async def test_broadcast_messages(self):
+    async def test_broadcast_messages(self) -> None:
         """Test broadcast messaging."""
         hub = CommunicationHub()
 
@@ -510,7 +518,7 @@ class TestCommunicationHub:
             assert messages[0].message_id == "broadcast_001"
 
     @pytest.mark.asyncio
-    async def test_consensus_mechanism(self):
+    async def test_consensus_mechanism(self) -> None:
         """Test distributed consensus."""
         hub = CommunicationHub()
 
@@ -543,7 +551,7 @@ class TestSafetyValidator:
     """Test safety validation and constraints."""
 
     @pytest.mark.asyncio
-    async def test_goal_safety_validation(self):
+    async def test_goal_safety_validation(self) -> None:
         """Test goal safety checks."""
         validator = SafetyValidator(SafetyLevel.STANDARD)
 
@@ -577,7 +585,7 @@ class TestSafetyValidator:
         assert validator.safety_metrics["violations_detected"] > 0
 
     @pytest.mark.asyncio
-    async def test_action_safety_validation(self):
+    async def test_action_safety_validation(self) -> None:
         """Test action safety constraints."""
         validator = SafetyValidator(SafetyLevel.ENHANCED)
 
@@ -615,7 +623,7 @@ class TestSafetyValidator:
         result = await validator.validate_action_safety(agent, forbidden_action)
         assert result.is_left()
 
-    def test_risk_assessment(self):
+    def test_risk_assessment(self) -> None:
         """Test system risk assessment."""
         validator = SafetyValidator()
 
@@ -645,7 +653,7 @@ class TestSafetyValidator:
 
 # Property-based tests
 @given(st.sampled_from(list(AgentType)))
-def test_agent_type_properties(agent_type):
+def test_agent_type_properties(agent_type) -> None:
     """Property: All agent types should have valid configurations."""
     config = get_default_config(agent_type)
 
@@ -657,7 +665,7 @@ def test_agent_type_properties(agent_type):
 
 
 @given(st.floats(min_value=0.0, max_value=1.0), st.floats(min_value=0.0, max_value=1.0))
-def test_confidence_impact_properties(confidence, impact):
+def test_confidence_impact_properties(confidence, impact) -> None:
     """Property: Action risk calculation should be bounded."""
     action = AgentAction(
         action_id=create_action_id(),
@@ -673,7 +681,7 @@ def test_confidence_impact_properties(confidence, impact):
 
 
 @given(st.sampled_from(list(GoalPriority)))
-def test_goal_priority_ordering(priority):
+def test_goal_priority_ordering(priority) -> None:
     """Property: Goal priorities should maintain proper ordering."""
     goal = AgentGoal(
         goal_id=create_goal_id(),
@@ -699,9 +707,9 @@ def test_goal_priority_ordering(priority):
         st.floats(min_value=0.0, max_value=100.0),
         min_size=1,
         max_size=4,
-    )
+    ),
 )
-def test_resource_allocation_properties(requirements):
+def test_resource_allocation_properties(requirements) -> None:
     """Property: Resource allocation should never exceed limits."""
     # Convert string keys to ResourceType
     typed_requirements = {ResourceType(k): v for k, v in requirements.items()}
@@ -711,7 +719,7 @@ def test_resource_allocation_properties(requirements):
 
     # Try to allocate
     result = asyncio.run(
-        optimizer.request_resources(create_agent_id(), typed_requirements)
+        optimizer.request_resources(create_agent_id(), typed_requirements),
     )
 
     if result.is_right():

@@ -1,5 +1,4 @@
-"""
-Comprehensive analytics engine MCP tools for automation insights and business intelligence.
+"""Comprehensive analytics engine MCP tools for automation insights and business intelligence.
 
 This module provides the main km_analytics_engine tool with complete analytics
 capabilities including metrics collection, ML insights, ROI analysis, and dashboards.
@@ -86,7 +85,8 @@ class AnalyticsEngine:
         ]
 
     async def collect_ecosystem_metrics(
-        self, tools_subset: list[str] | None = None
+        self,
+        tools_subset: list[str] | None = None,
     ) -> dict[str, Any]:
         """Collect comprehensive metrics from ecosystem tools."""
         tools_to_analyze = tools_subset or self.ecosystem_tools
@@ -103,7 +103,8 @@ class AnalyticsEngine:
             try:
                 # Collect performance metrics
                 perf_result = await self.metrics_collector.collect_performance_metrics(
-                    tool, "standard_operation"
+                    tool,
+                    "standard_operation",
                 )
                 if perf_result.is_right():
                     performance_data = perf_result.right()
@@ -118,12 +119,15 @@ class AnalyticsEngine:
 
                 # Collect ROI metrics
                 time_saved = max(
-                    0.1, performance_data.execution_time_ms / 1000 * 0.5
+                    0.1,
+                    performance_data.execution_time_ms / 1000 * 0.5,
                 )  # Simplified calculation
                 cost_saved = time_saved * 25.0  # $25/hour saved
 
                 roi_result = await self.metrics_collector.collect_roi_metrics(
-                    tool, time_saved, cost_saved
+                    tool,
+                    time_saved,
+                    cost_saved,
                 )
                 if roi_result.is_right():
                     roi_data = roi_result.right()
@@ -141,7 +145,8 @@ class AnalyticsEngine:
         return ecosystem_metrics
 
     async def generate_ml_insights(
-        self, metrics_data: dict[str, Any]
+        self,
+        metrics_data: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Generate ML-powered insights from collected metrics."""
         # Convert metrics to MetricValue objects for ML processing
@@ -166,7 +171,8 @@ class AnalyticsEngine:
         return []
 
     async def calculate_ecosystem_roi(
-        self, metrics_data: dict[str, Any]
+        self,
+        metrics_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Calculate comprehensive ROI analysis for the ecosystem."""
         roi_analysis = {
@@ -181,10 +187,12 @@ class AnalyticsEngine:
         tool_rois = []
         for tool, roi_data in metrics_data.get("roi", {}).items():
             roi_analysis["total_time_saved_hours"] += roi_data.get(
-                "time_saved_hours", 0
+                "time_saved_hours",
+                0,
             )
             roi_analysis["total_cost_saved_dollars"] += roi_data.get(
-                "cost_saved_dollars", 0
+                "cost_saved_dollars",
+                0,
             )
 
             tool_roi = roi_data.get("calculated_roi", 0)
@@ -194,13 +202,13 @@ class AnalyticsEngine:
                     "roi": tool_roi,
                     "time_saved": roi_data.get("time_saved_hours", 0),
                     "cost_saved": roi_data.get("cost_saved_dollars", 0),
-                }
+                },
             )
 
         # Calculate average ROI
         if tool_rois:
             roi_analysis["average_roi"] = sum(tr["roi"] for tr in tool_rois) / len(
-                tool_rois
+                tool_rois,
             )
 
             # Identify top performing tools
@@ -238,13 +246,16 @@ class AnalyticsEngine:
                 "metrics_summary": {
                     "total_tools_analyzed": len(metrics.get("performance", {})),
                     "average_response_time": self._calculate_average_metric(
-                        metrics, "execution_time_ms"
+                        metrics,
+                        "execution_time_ms",
                     ),
                     "total_memory_usage": self._calculate_total_metric(
-                        metrics, "memory_usage_mb"
+                        metrics,
+                        "memory_usage_mb",
                     ),
                     "ecosystem_success_rate": self._calculate_average_metric(
-                        metrics, "success_rate"
+                        metrics,
+                        "success_rate",
                     ),
                 },
                 "performance_overview": metrics.get("performance", {}),
@@ -256,13 +267,15 @@ class AnalyticsEngine:
         # Format data based on visualization format
         if visualization_format == VisualizationFormat.EXECUTIVE_SUMMARY:
             dashboard_data["data"] = await self._format_executive_summary(
-                dashboard_data["data"]
+                dashboard_data["data"],
             )
 
         return dashboard_data
 
     def _calculate_average_metric(
-        self, metrics: dict[str, Any], metric_name: str
+        self,
+        metrics: dict[str, Any],
+        metric_name: str,
     ) -> float:
         """Calculate average value for a metric across all tools."""
         values = []
@@ -273,7 +286,9 @@ class AnalyticsEngine:
         return sum(values) / len(values) if values else 0.0
 
     def _calculate_total_metric(
-        self, metrics: dict[str, Any], metric_name: str
+        self,
+        metrics: dict[str, Any],
+        metric_name: str,
     ) -> float:
         """Calculate total value for a metric across all tools."""
         total = 0.0
@@ -284,7 +299,8 @@ class AnalyticsEngine:
         return total
 
     async def _get_system_health_indicators(
-        self, metrics: dict[str, Any]
+        self,
+        metrics: dict[str, Any],
     ) -> dict[str, Any]:
         """Calculate system health indicators."""
         performance_metrics = metrics.get("performance", {})
@@ -347,7 +363,8 @@ class AnalyticsEngine:
         summary = {
             "key_metrics": {
                 "tools_monitored": data.get("metrics_summary", {}).get(
-                    "total_tools_analyzed", 0
+                    "total_tools_analyzed",
+                    0,
                 ),
                 "average_response_time": f"{data.get('metrics_summary', {}).get('average_response_time', 0):.1f}ms",
                 "system_success_rate": f"{data.get('metrics_summary', {}).get('ecosystem_success_rate', 0):.1%}",
@@ -359,7 +376,8 @@ class AnalyticsEngine:
                 "average_roi": f"{data.get('roi_analysis', {}).get('average_roi', 0):.1%}",
                 "time_saved": f"{data.get('roi_analysis', {}).get('total_time_saved_hours', 0):.1f} hours",
                 "top_performers": data.get("roi_analysis", {}).get(
-                    "top_performing_tools", []
+                    "top_performing_tools",
+                    [],
                 )[:3],
             },
         }
@@ -379,60 +397,71 @@ async def km_analytics_engine(
     operation: Annotated[
         str,
         Field(
-            description="Analytics operation (collect|analyze|report|predict|dashboard|optimize)"
+            description="Analytics operation (collect|analyze|report|predict|dashboard|optimize)",
         ),
     ],
     analytics_scope: Annotated[
-        str, Field(description="Analysis scope (tool|category|ecosystem|enterprise)")
+        str,
+        Field(description="Analysis scope (tool|category|ecosystem|enterprise)"),
     ] = "ecosystem",
     time_range: Annotated[
-        str, Field(description="Time range for analysis (1h|24h|7d|30d|90d|1y|all)")
+        str,
+        Field(description="Time range for analysis (1h|24h|7d|30d|90d|1y|all)"),
     ] = "24h",
     metrics_types: Annotated[
-        list[str] | None, Field(description="Types of metrics to collect")
+        list[str] | None,
+        Field(description="Types of metrics to collect"),
     ] = None,
     analysis_depth: Annotated[
         str,
         Field(
-            description="Depth of analysis (basic|standard|detailed|comprehensive|ml_enhanced)"
+            description="Depth of analysis (basic|standard|detailed|comprehensive|ml_enhanced)",
         ),
     ] = "comprehensive",
     visualization_format: Annotated[
         str,
         Field(
-            description="Output format (raw|table|chart|dashboard|report|executive_summary)"
+            description="Output format (raw|table|chart|dashboard|report|executive_summary)",
         ),
     ] = "dashboard",
     ml_insights: Annotated[
-        bool, Field(description="Enable machine learning insights")
+        bool,
+        Field(description="Enable machine learning insights"),
     ] = True,
     real_time_monitoring: Annotated[
-        bool, Field(description="Enable real-time metrics collection")
+        bool,
+        Field(description="Enable real-time metrics collection"),
     ] = True,
     anomaly_detection: Annotated[
-        bool, Field(description="Enable anomaly detection")
+        bool,
+        Field(description="Enable anomaly detection"),
     ] = True,
     predictive_analytics: Annotated[
-        bool, Field(description="Enable predictive modeling")
+        bool,
+        Field(description="Enable predictive modeling"),
     ] = True,
     roi_calculation: Annotated[
-        bool, Field(description="Enable ROI and cost-benefit analysis")
+        bool,
+        Field(description="Enable ROI and cost-benefit analysis"),
     ] = True,
     privacy_mode: Annotated[
-        str, Field(description="Privacy protection level (none|basic|compliant|strict)")
+        str,
+        Field(description="Privacy protection level (none|basic|compliant|strict)"),
     ] = "compliant",
     export_format: Annotated[
-        str, Field(description="Export format (json|csv|pdf|xlsx|api)")
+        str,
+        Field(description="Export format (json|csv|pdf|xlsx|api)"),
     ] = "json",
     alert_thresholds: Annotated[
-        dict | None, Field(description="Custom alert thresholds")
+        dict | None,
+        Field(description="Custom alert thresholds"),
     ] = None,
     enterprise_integration: Annotated[
-        bool, Field(description="Enable enterprise system integration")
+        bool,
+        Field(description="Enable enterprise system integration"),
     ] = True,
 ) -> dict[str, Any]:
-    """
-    Comprehensive analytics engine for automation insights and business intelligence.
+    """Comprehensive analytics engine for automation insights and business intelligence.
 
     Provides advanced analytics capabilities including metrics collection, ML insights,
     ROI analysis, performance monitoring, and executive dashboards.
@@ -457,8 +486,8 @@ async def km_analytics_engine(
 
     Returns:
         Comprehensive analytics results with insights, metrics, and recommendations
-    """
 
+    """
     # Validate required fields
     if not operation:
         return {
@@ -565,7 +594,7 @@ async def km_analytics_engine(
                             i
                             for i in analysis_result.get("ml_insights", [])
                             if i.get("model_type") == "anomaly_detection"
-                        ]
+                        ],
                     ),
                 }
 
@@ -578,7 +607,9 @@ async def km_analytics_engine(
         elif operation == "dashboard":
             # Generate interactive dashboard
             dashboard_data = await analytics_engine.generate_dashboard_data(
-                scope, time_range, viz_format
+                scope,
+                time_range,
+                viz_format,
             )
 
             result = {
@@ -599,18 +630,20 @@ async def km_analytics_engine(
                         "metrics_summary": {
                             "total_tools_analyzed": len(metrics.get("performance", {})),
                             "average_response_time": analytics_engine._calculate_average_metric(
-                                metrics, "execution_time_ms"
+                                metrics,
+                                "execution_time_ms",
                             ),
                             "ecosystem_success_rate": analytics_engine._calculate_average_metric(
-                                metrics, "success_rate"
+                                metrics,
+                                "success_rate",
                             ),
                         },
                         "roi_analysis": roi_analysis,
                         "ml_insights": insights,
                         "system_health": await analytics_engine._get_system_health_indicators(
-                            metrics
+                            metrics,
                         ),
-                    }
+                    },
                 ),
                 "detailed_metrics": metrics,
                 "insights_summary": insights,
@@ -678,7 +711,8 @@ async def km_analytics_engine(
 
             # Performance optimization
             avg_response_time = analytics_engine._calculate_average_metric(
-                metrics, "execution_time_ms"
+                metrics,
+                "execution_time_ms",
             )
             if avg_response_time > 200:
                 optimization_recommendations.append(
@@ -692,7 +726,7 @@ async def km_analytics_engine(
                             for tool, tm in metrics.get("performance", {}).items()
                             if tm.get("execution_time_ms", 0) > 300
                         ],
-                    }
+                    },
                 )
 
             # ROI optimization
@@ -705,7 +739,7 @@ async def km_analytics_engine(
                         "recommendation": "Improve ROI for underperforming tools",
                         "impact": f"Potential to improve ROI for {len(low_roi_tools)} tools",
                         "tools_affected": [t["tool"] for t in low_roi_tools],
-                    }
+                    },
                 )
 
             # ML insights based optimization
@@ -720,7 +754,7 @@ async def km_analytics_engine(
                             "recommendation": insight.get("recommendation", ""),
                             "impact": f"Confidence: {insight.get('confidence', 0):.1%}",
                             "model_type": insight.get("model_type", ""),
-                        }
+                        },
                     )
 
             result = {
@@ -733,7 +767,7 @@ async def km_analytics_engine(
                         "average_roi": roi_analysis.get("average_roi", 0),
                         "system_health_score": (
                             await analytics_engine._get_system_health_indicators(
-                                metrics
+                                metrics,
                             )
                         ).get("health_score", 0),
                     },
@@ -763,6 +797,6 @@ async def km_analytics_engine(
         analytics_engine.logger.error(f"Analytics engine error: {e}")
         return {
             "success": False,
-            "error": f"Analytics operation failed: {str(e)}",
+            "error": f"Analytics operation failed: {e!s}",
             "error_type": "system_error",
         }

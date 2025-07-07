@@ -1,5 +1,4 @@
-"""
-Test suite for visual workflow composer.
+"""Test suite for visual workflow composer.
 
 Comprehensive testing for visual workflow creation, editing, and validation
 with property-based testing and contract verification.
@@ -9,6 +8,9 @@ Performance: Validate sub-second response times for all operations.
 Type Safety: Verify complete contract compliance and type validation.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 
 import pytest
@@ -29,15 +31,16 @@ class TestVisualComposer:
     """Test visual workflow composer functionality."""
 
     @pytest.fixture
-    def composer(self):
+    def composer(self) -> bool:
         """Create fresh composer instance for each test."""
         return VisualComposer()
 
     @pytest.mark.asyncio
-    async def test_create_workflow_basic(self, composer):
+    async def test_create_workflow_basic(self, composer) -> None:
         """Test basic workflow creation."""
         result = await composer.create_workflow(
-            name="Test Workflow", description="Test workflow description"
+            name="Test Workflow",
+            description="Test workflow description",
         )
 
         assert result.is_right()
@@ -50,7 +53,7 @@ class TestVisualComposer:
         assert workflow.version == 1
 
     @pytest.mark.asyncio
-    async def test_create_workflow_with_canvas_config(self, composer):
+    async def test_create_workflow_with_canvas_config(self, composer) -> None:
         """Test workflow creation with custom canvas configuration."""
         canvas_config = {
             "width": 1600,
@@ -61,7 +64,8 @@ class TestVisualComposer:
         }
 
         result = await composer.create_workflow(
-            name="Custom Canvas Workflow", canvas_config=canvas_config
+            name="Custom Canvas Workflow",
+            canvas_config=canvas_config,
         )
 
         assert result.is_right()
@@ -74,7 +78,7 @@ class TestVisualComposer:
         assert not workflow.canvas.grid_enabled
 
     @pytest.mark.asyncio
-    async def test_add_component_basic(self, composer):
+    async def test_add_component_basic(self, composer) -> None:
         """Test adding component to workflow."""
         # Create workflow first
         workflow_result = await composer.create_workflow("Test Workflow")
@@ -84,7 +88,8 @@ class TestVisualComposer:
         # Add component
         position = CanvasPosition(x=100, y=200)
         properties = ComponentProperties(
-            title="Test Action", description="Test description"
+            title="Test Action",
+            description="Test description",
         )
 
         result = await composer.add_component(
@@ -108,7 +113,7 @@ class TestVisualComposer:
         assert component.component_id in updated_workflow.components
 
     @pytest.mark.asyncio
-    async def test_add_component_auto_connect(self, composer):
+    async def test_add_component_auto_connect(self, composer) -> None:
         """Test auto-connecting components."""
         # Create workflow and add first component
         workflow_result = await composer.create_workflow("Auto Connect Test")
@@ -139,7 +144,7 @@ class TestVisualComposer:
         assert len(updated_workflow.connections) == 1
 
     @pytest.mark.asyncio
-    async def test_connect_components(self, composer):
+    async def test_connect_components(self, composer) -> None:
         """Test connecting workflow components."""
         # Create workflow and components
         workflow_result = await composer.create_workflow("Connect Test")
@@ -182,7 +187,7 @@ class TestVisualComposer:
         assert len(updated_workflow.connections) == 1
 
     @pytest.mark.asyncio
-    async def test_update_component(self, composer):
+    async def test_update_component(self, composer) -> None:
         """Test updating component properties and position."""
         # Create workflow and component
         workflow_result = await composer.create_workflow("Update Test")
@@ -221,7 +226,7 @@ class TestVisualComposer:
         assert updated_component.properties.properties["new_prop"] == "value"
 
     @pytest.mark.asyncio
-    async def test_remove_component(self, composer):
+    async def test_remove_component(self, composer) -> None:
         """Test removing component and its connections."""
         # Create workflow with connected components
         workflow_result = await composer.create_workflow("Remove Test")
@@ -258,7 +263,8 @@ class TestVisualComposer:
 
         # Remove component
         remove_result = await composer.remove_component(
-            workflow_id=workflow.workflow_id, component_id=comp1.component_id
+            workflow_id=workflow.workflow_id,
+            component_id=comp1.component_id,
         )
 
         assert remove_result.is_right()
@@ -272,7 +278,7 @@ class TestVisualComposer:
         assert comp2.component_id in updated_workflow.components
 
     @pytest.mark.asyncio
-    async def test_validate_workflow(self, composer):
+    async def test_validate_workflow(self, composer) -> None:
         """Test workflow validation."""
         # Create valid workflow
         workflow_result = await composer.create_workflow("Validation Test")
@@ -309,7 +315,7 @@ class TestVisualComposer:
         assert len(errors) == 0  # Should be valid
 
     @pytest.mark.asyncio
-    async def test_validate_workflow_with_errors(self, composer):
+    async def test_validate_workflow_with_errors(self, composer) -> None:
         """Test workflow validation with errors."""
         # Create workflow with orphaned component
         workflow_result = await composer.create_workflow("Error Test")
@@ -332,7 +338,7 @@ class TestVisualComposer:
         assert any("no connections" in error.lower() for error in errors)
 
     @pytest.mark.asyncio
-    async def test_workflow_not_found_errors(self, composer):
+    async def test_workflow_not_found_errors(self, composer) -> None:
         """Test error handling for non-existent workflows."""
         fake_workflow_id = WorkflowId("nonexistent_workflow")
 
@@ -351,7 +357,7 @@ class TestVisualComposer:
         get_result = await composer.get_workflow(fake_workflow_id)
         assert get_result.is_left()
 
-    def test_get_performance_stats(self, composer):
+    def test_get_performance_stats(self, composer) -> None:
         """Test performance statistics retrieval."""
         stats = composer.get_performance_stats()
 
@@ -362,7 +368,7 @@ class TestVisualComposer:
         assert isinstance(stats["total_workflows"], int)
 
     @pytest.mark.asyncio
-    async def test_list_workflows(self, composer):
+    async def test_list_workflows(self, composer) -> None:
         """Test listing all workflows."""
         # Create multiple workflows
         await composer.create_workflow("Workflow 1", "First workflow")
@@ -385,7 +391,7 @@ class TestVisualComposerPropertyBased:
 
     @given(name=st.text(min_size=1, max_size=100), description=st.text(max_size=500))
     @pytest.mark.asyncio
-    async def test_create_workflow_with_valid_inputs(self, name, description):
+    async def test_create_workflow_with_valid_inputs(self, name, description) -> None:
         """Property: Valid inputs should always create successful workflows."""
         composer = VisualComposer()
 
@@ -402,7 +408,7 @@ class TestVisualComposerPropertyBased:
         title=st.text(min_size=1, max_size=100),
     )
     @pytest.mark.asyncio
-    async def test_add_component_position_bounds(self, x, y, title):
+    async def test_add_component_position_bounds(self, x, y, title) -> None:
         """Property: Components should be addable at any valid position."""
         composer = VisualComposer()
 
@@ -428,7 +434,7 @@ class TestVisualComposerPropertyBased:
 
     @given(component_count=st.integers(min_value=0, max_value=10))
     @pytest.mark.asyncio
-    async def test_workflow_component_count_invariant(self, component_count):
+    async def test_workflow_component_count_invariant(self, component_count) -> None:
         """Property: Workflow component count should match actual components."""
         composer = VisualComposer()
 
@@ -454,7 +460,7 @@ class TestVisualComposerPropertyBased:
         canvas_height=st.integers(min_value=600, max_value=4000),
     )
     @pytest.mark.asyncio
-    async def test_canvas_dimensions_validation(self, canvas_width, canvas_height):
+    async def test_canvas_dimensions_validation(self, canvas_width, canvas_height) -> None:
         """Property: Canvas dimensions should be validated and stored correctly."""
         composer = VisualComposer()
 
@@ -465,7 +471,8 @@ class TestVisualComposerPropertyBased:
         }
 
         result = await composer.create_workflow(
-            name="Canvas Test", canvas_config=canvas_config
+            name="Canvas Test",
+            canvas_config=canvas_config,
         )
 
         assert result.is_right()
@@ -474,7 +481,7 @@ class TestVisualComposerPropertyBased:
         assert workflow.canvas.dimensions.height == canvas_height
 
 
-def test_global_composer_singleton():
+def test_global_composer_singleton() -> None:
     """Test global composer singleton pattern."""
     composer1 = get_visual_composer()
     composer2 = get_visual_composer()
@@ -488,7 +495,7 @@ class TestVisualComposerPerformance:
     """Performance tests for visual composer operations."""
 
     @pytest.mark.asyncio
-    async def test_workflow_creation_performance(self):
+    async def test_workflow_creation_performance(self) -> None:
         """Test workflow creation performance."""
         composer = VisualComposer()
 
@@ -503,7 +510,7 @@ class TestVisualComposerPerformance:
         assert duration < 0.1  # Should complete within 100ms
 
     @pytest.mark.asyncio
-    async def test_component_addition_performance(self):
+    async def test_component_addition_performance(self) -> None:
         """Test component addition performance."""
         composer = VisualComposer()
 
@@ -528,7 +535,7 @@ class TestVisualComposerPerformance:
         assert duration < 0.1  # Should complete within 100ms
 
     @pytest.mark.asyncio
-    async def test_large_workflow_validation_performance(self):
+    async def test_large_workflow_validation_performance(self) -> None:
         """Test validation performance with large workflows."""
         composer = VisualComposer()
 

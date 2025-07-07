@@ -1,5 +1,4 @@
-"""
-Phase 25 Cloud-Native Architecture & Microservices Orchestration Testing for Keyboard Maestro MCP.
+"""Phase 25 Cloud-Native Architecture & Microservices Orchestration Testing for Keyboard Maestro MCP.
 
 This module targets cloud-native architectures and microservices orchestration testing,
 focusing on cloud-native architecture patterns, container orchestration, service mesh technologies,
@@ -7,18 +6,23 @@ serverless computing, and cloud platform integrations for continued systematic p
 8%+ coverage milestone through comprehensive cloud-native testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_cloud_native_architecture_patterns():
+def test_cloud_native_architecture_patterns() -> None:
     """Test comprehensive coverage of cloud-native architecture patterns."""
-
     # Target cloud-native architecture pattern modules
     cloud_native_modules = [
         ("cloud_native", "container_orchestration"),  # Container orchestration patterns
@@ -78,9 +82,9 @@ def test_cloud_native_architecture_patterns():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -90,9 +94,8 @@ def test_cloud_native_architecture_patterns():
     )
 
 
-def test_microservices_orchestration():
+def test_microservices_orchestration() -> None:
     """Test comprehensive coverage of microservices orchestration."""
-
     # Target microservices orchestration modules
     microservices_modules = [
         ("microservices", "service_discovery"),  # Service discovery systems
@@ -153,9 +156,9 @@ def test_microservices_orchestration():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -165,9 +168,8 @@ def test_microservices_orchestration():
     )
 
 
-def test_container_kubernetes_systems():
+def test_container_kubernetes_systems() -> None:
     """Test comprehensive coverage of container and Kubernetes systems."""
-
     # Target container and Kubernetes system modules
     container_k8s_modules = [
         ("kubernetes", "pod_manager"),  # Kubernetes pod management
@@ -220,9 +222,9 @@ def test_container_kubernetes_systems():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -232,9 +234,8 @@ def test_container_kubernetes_systems():
     )
 
 
-def test_serverless_computing():
+def test_serverless_computing() -> None:
     """Test comprehensive coverage of serverless computing."""
-
     # Target serverless computing modules
     serverless_modules = [
         ("serverless", "function_manager"),  # Function-as-a-Service management
@@ -289,9 +290,9 @@ def test_serverless_computing():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -301,9 +302,8 @@ def test_serverless_computing():
     )
 
 
-def test_cloud_platform_integrations():
+def test_cloud_platform_integrations() -> None:
     """Test comprehensive coverage of cloud platform integrations."""
-
     # Target cloud platform integration modules
     cloud_platform_modules = [
         ("cloud_platforms", "aws_integration"),  # AWS cloud platform integration
@@ -363,9 +363,9 @@ def test_cloud_platform_integrations():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -375,9 +375,8 @@ def test_cloud_platform_integrations():
     )
 
 
-def test_comprehensive_cloud_native_functionality_patterns():
+def test_comprehensive_cloud_native_functionality_patterns() -> None:
     """Test comprehensive functionality patterns across cloud-native domains."""
-
     # Test cloud-native functionality patterns
     cloud_native_functionality_data = {
         "cloud_native_architecture": {
@@ -534,7 +533,7 @@ def test_comprehensive_cloud_native_functionality_patterns():
     assert serverless_metrics["resource_optimization"] > 0.995
 
 
-def test_advanced_cloud_native_async_functionality():
+def test_advanced_cloud_native_async_functionality() -> bool:
     """Test advanced async functionality for Phase 25 cloud-native modules."""
 
     @pytest.mark.asyncio
@@ -667,9 +666,8 @@ def test_advanced_cloud_native_async_functionality():
     assert result is True
 
 
-def test_strategic_cloud_native_coverage_optimization():
+def test_strategic_cloud_native_coverage_optimization() -> None:
     """Test strategic patterns for cloud-native coverage optimization in Phase 25."""
-
     # Test strategic cloud-native coverage optimization scenarios
     cloud_native_coverage_optimization = {
         "cloud_native_domain_targeting": {
@@ -824,9 +822,8 @@ def test_strategic_cloud_native_coverage_optimization():
     assert remaining_to_target < 0.90  # Should be making progress toward 95%
 
 
-def test_phase_25_completion_validation():
+def test_phase_25_completion_validation() -> None:
     """Test Phase 25 completion validation for cloud-native coverage optimization."""
-
     # Test Phase 25 completion validation scenarios
     phase_25_validation = {
         "completion_criteria": {

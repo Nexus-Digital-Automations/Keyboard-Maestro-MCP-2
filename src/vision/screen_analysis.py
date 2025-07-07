@@ -1,5 +1,4 @@
-"""
-Advanced screen analysis and capture engine for visual automation.
+"""Advanced screen analysis and capture engine for visual automation.
 
 This module implements sophisticated screen capture, analysis, and monitoring
 capabilities. Provides secure screenshot capture, window analysis, and real-time
@@ -185,10 +184,9 @@ class PermissionManager:
                 if datetime.now() - timestamp < self._cache_duration:
                     if result:
                         return Either.right(None)
-                    else:
-                        return Either.left(
-                            PermissionError("Screen recording permission denied")
-                        )
+                    return Either.left(
+                        PermissionError("Screen recording permission denied"),
+                    )
 
             # Simulate permission check (in real implementation, use macOS APIs)
             await asyncio.sleep(0.05)  # Simulate API call
@@ -202,20 +200,20 @@ class PermissionManager:
             if permission_granted:
                 logger.debug("Screen recording permission verified")
                 return Either.right(None)
-            else:
-                logger.warning("Screen recording permission denied")
-                return Either.left(
-                    PermissionError(
-                        "Screen recording permission required. Please grant permission in System Preferences > Security & Privacy > Privacy > Screen Recording"
-                    )
-                )
+            logger.warning("Screen recording permission denied")
+            return Either.left(
+                PermissionError(
+                    "Screen recording permission required. Please grant permission in System Preferences > Security & Privacy > Privacy > Screen Recording",
+                ),
+            )
 
         except Exception as e:
-            logger.error(f"Permission check failed: {str(e)}")
-            return Either.left(PermissionError(f"Permission check failed: {str(e)}"))
+            logger.error(f"Permission check failed: {e!s}")
+            return Either.left(PermissionError(f"Permission check failed: {e!s}"))
 
     async def check_window_access_permission(
-        self, bundle_id: str
+        self,
+        bundle_id: str,
     ) -> Either[PermissionError, None]:
         """Check if window access is permitted for specific application."""
         try:
@@ -229,7 +227,9 @@ class PermissionManager:
 
             if bundle_id in restricted_apps:
                 return Either.left(
-                    PermissionError(f"Access to {bundle_id} is restricted for security")
+                    PermissionError(
+                        f"Access to {bundle_id} is restricted for security"
+                    ),
                 )
 
             # Simulate permission check
@@ -237,13 +237,12 @@ class PermissionManager:
 
             if permission_granted:
                 return Either.right(None)
-            else:
-                return Either.left(
-                    PermissionError(f"Window access denied for {bundle_id}")
-                )
+            return Either.left(
+                PermissionError(f"Window access denied for {bundle_id}"),
+            )
 
         except Exception as e:
-            return Either.left(PermissionError(f"Window access check failed: {str(e)}"))
+            return Either.left(PermissionError(f"Window access check failed: {e!s}"))
 
 
 class PrivacyProtection:
@@ -294,13 +293,15 @@ class PrivacyProtection:
 
     @classmethod
     def filter_sensitive_region(
-        cls, region: ScreenRegion, windows: list[WindowInfo]
+        cls,
+        region: ScreenRegion,
+        windows: list[WindowInfo],
     ) -> ScreenRegion:
         """Filter region if it overlaps with sensitive windows."""
         for window in windows:
             if cls.should_filter_window(window) and region.overlaps_with(window.bounds):
                 logger.info(
-                    f"Privacy filtering applied to region overlapping {window.title}"
+                    f"Privacy filtering applied to region overlapping {window.title}",
                 )
                 # Return empty region to indicate content should be blocked
                 return ScreenRegion(0, 0, 0, 0)
@@ -309,20 +310,21 @@ class PrivacyProtection:
 
     @classmethod
     def create_privacy_mask(
-        cls, image_data: ImageData, sensitive_regions: list[ScreenRegion]
+        cls,
+        image_data: ImageData,
+        sensitive_regions: list[ScreenRegion],
     ) -> ImageData:
         """Create privacy mask over sensitive regions (simulation)."""
         # In real implementation, this would modify the image data
         # to blur or black out sensitive regions
         logger.info(
-            f"Applied privacy mask to {len(sensitive_regions)} sensitive regions"
+            f"Applied privacy mask to {len(sensitive_regions)} sensitive regions",
         )
         return image_data
 
 
 class ScreenAnalysisEngine:
-    """
-    Advanced screen analysis engine with secure capture and comprehensive monitoring.
+    """Advanced screen analysis engine with secure capture and comprehensive monitoring.
 
     Provides sophisticated screen capture, window analysis, and change detection
     with comprehensive privacy protection and permission management.
@@ -343,12 +345,12 @@ class ScreenAnalysisEngine:
             "average_capture_time": 0.0,
         }
         logger.info(
-            f"Screen Analysis Engine initialized with privacy protection {'enabled' if enable_privacy_protection else 'disabled'}"
+            f"Screen Analysis Engine initialized with privacy protection {'enabled' if enable_privacy_protection else 'disabled'}",
         )
 
     @require(lambda region: region.width > 0 and region.height > 0)
     @ensure(
-        lambda result: result.is_right() or isinstance(result.get_left(), VisualError)
+        lambda result: result.is_right() or isinstance(result.get_left(), VisualError),
     )
     async def capture_screen_region(
         self,
@@ -357,8 +359,7 @@ class ScreenAnalysisEngine:
         privacy_mode: bool = True,
         cache_duration_seconds: int = 5,
     ) -> Either[VisualError, ScreenCapture]:
-        """
-        Capture screen region with advanced privacy protection and caching.
+        """Capture screen region with advanced privacy protection and caching.
 
         Args:
             region: Screen region to capture
@@ -368,11 +369,12 @@ class ScreenAnalysisEngine:
 
         Returns:
             Either screen capture result or processing error
+
         """
         try:
             start_time = time.time()
             logger.info(
-                f"Starting screen capture: region {region.to_dict()}, mode: {mode.value}"
+                f"Starting screen capture: region {region.to_dict()}, mode: {mode.value}",
             )
 
             # Check permissions
@@ -390,8 +392,7 @@ class ScreenAnalysisEngine:
                     logger.debug(f"Using cached screen capture: {cache_key}")
                     self.analysis_stats["cache_hits"] += 1
                     return Either.right(cached_capture)
-                else:
-                    del self.capture_cache[cache_key]
+                del self.capture_cache[cache_key]
 
             # Get current windows for privacy filtering
             windows_result = await self.get_window_list()
@@ -401,13 +402,14 @@ class ScreenAnalysisEngine:
             filtered_region = region
             if privacy_mode and self.privacy_protection:
                 filtered_region = self.privacy_protection.filter_sensitive_region(
-                    region, windows
+                    region,
+                    windows,
                 )
                 if filtered_region.area == 0:
                     return Either.left(
                         PrivacyError(
-                            "Capture blocked due to privacy protection - region contains sensitive content"
-                        )
+                            "Capture blocked due to privacy protection - region contains sensitive content",
+                        ),
                     )
 
             # Perform screen capture
@@ -428,7 +430,8 @@ class ScreenAnalysisEngine:
 
                 if sensitive_regions:
                     masked_data = self.privacy_protection.create_privacy_mask(
-                        capture.image_data, sensitive_regions
+                        capture.image_data,
+                        sensitive_regions,
                     )
                     capture = ScreenCapture(
                         image_data=masked_data,
@@ -456,16 +459,18 @@ class ScreenAnalysisEngine:
             ) / total
 
             logger.info(
-                f"Screen capture completed in {processing_time:.1f}ms, size: {capture.file_size_mb:.2f}MB"
+                f"Screen capture completed in {processing_time:.1f}ms, size: {capture.file_size_mb:.2f}MB",
             )
             return Either.right(capture)
 
         except Exception as e:
-            logger.error(f"Screen capture failed: {str(e)}")
-            return Either.left(ProcessingError(f"Screen capture failed: {str(e)}"))
+            logger.error(f"Screen capture failed: {e!s}")
+            return Either.left(ProcessingError(f"Screen capture failed: {e!s}"))
 
     async def _perform_screen_capture(
-        self, region: ScreenRegion, mode: CaptureMode
+        self,
+        region: ScreenRegion,
+        mode: CaptureMode,
     ) -> Either[VisualError, ScreenCapture]:
         """Perform the actual screen capture (simulation)."""
         try:
@@ -496,7 +501,8 @@ class ScreenAnalysisEngine:
 
             # Create simulated image data
             simulated_data = b"simulated_image_data" + b"x" * max(
-                0, simulated_size - 20
+                0,
+                simulated_size - 20,
             )
 
             capture = ScreenCapture(
@@ -520,14 +526,15 @@ class ScreenAnalysisEngine:
 
         except Exception as e:
             return Either.left(
-                ProcessingError(f"Screen capture processing failed: {str(e)}")
+                ProcessingError(f"Screen capture processing failed: {e!s}"),
             )
 
     async def get_window_list(
-        self, include_hidden: bool = False, cache_duration_seconds: int = 2
+        self,
+        include_hidden: bool = False,
+        cache_duration_seconds: int = 2,
     ) -> Either[VisualError, list[WindowInfo]]:
-        """
-        Get list of all windows with comprehensive information.
+        """Get list of all windows with comprehensive information.
 
         Args:
             include_hidden: Include hidden/minimized windows
@@ -535,6 +542,7 @@ class ScreenAnalysisEngine:
 
         Returns:
             Either list of windows or processing error
+
         """
         try:
             # Check cache
@@ -610,9 +618,9 @@ class ScreenAnalysisEngine:
             return Either.right(simulated_windows)
 
         except Exception as e:
-            logger.error(f"Window list retrieval failed: {str(e)}")
+            logger.error(f"Window list retrieval failed: {e!s}")
             return Either.left(
-                ProcessingError(f"Window list retrieval failed: {str(e)}")
+                ProcessingError(f"Window list retrieval failed: {e!s}"),
             )
 
     async def detect_screen_changes(
@@ -621,8 +629,7 @@ class ScreenAnalysisEngine:
         mode: ChangeDetectionMode = ChangeDetectionMode.CONTENT_AWARE,
         sensitivity: float = 0.1,
     ) -> Either[VisualError, ChangeDetectionResult]:
-        """
-        Detect changes in screen region since last baseline.
+        """Detect changes in screen region since last baseline.
 
         Args:
             region: Region to monitor for changes
@@ -631,15 +638,17 @@ class ScreenAnalysisEngine:
 
         Returns:
             Either change detection result or processing error
+
         """
         try:
             logger.info(
-                f"Detecting screen changes in region {region.to_dict()}, mode: {mode.value}"
+                f"Detecting screen changes in region {region.to_dict()}, mode: {mode.value}",
             )
 
             # Capture current screen state
             current_capture = await self.capture_screen_region(
-                region, CaptureMode.PERFORMANCE
+                region,
+                CaptureMode.PERFORMANCE,
             )
             if current_capture.is_left():
                 return Either.left(current_capture.get_left())
@@ -658,7 +667,7 @@ class ScreenAnalysisEngine:
                         confidence=1.0,
                         timestamp=datetime.now(),
                         metadata={"baseline_set": True},
-                    )
+                    ),
                 )
 
             # Simulate change detection based on mode and sensitivity
@@ -688,7 +697,10 @@ class ScreenAnalysisEngine:
                 region_count = 2 if adjusted_change < 10 else 3
                 for i in range(region_count):
                     changed_region = ScreenRegion(
-                        x=region.x + i * 100, y=region.y + i * 50, width=80, height=40
+                        x=region.x + i * 100,
+                        y=region.y + i * 50,
+                        width=80,
+                        height=40,
                     )
                     changed_regions.append(changed_region)
 
@@ -712,29 +724,35 @@ class ScreenAnalysisEngine:
             )
 
             logger.info(
-                f"Change detection completed: {'changed' if changed else 'no change'} ({adjusted_change:.1f}%)"
+                f"Change detection completed: {'changed' if changed else 'no change'} ({adjusted_change:.1f}%)",
             )
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Change detection failed: {str(e)}")
-            return Either.left(ProcessingError(f"Change detection failed: {str(e)}"))
+            logger.error(f"Change detection failed: {e!s}")
+            return Either.left(ProcessingError(f"Change detection failed: {e!s}"))
 
     def _generate_capture_cache_key(
-        self, region: ScreenRegion, mode: CaptureMode
+        self,
+        region: ScreenRegion,
+        mode: CaptureMode,
     ) -> str:
         """Generate cache key for screen capture."""
         region_str = f"{region.x},{region.y},{region.width},{region.height}"
-        return hashlib.md5(f"{region_str}_{mode.value}".encode()).hexdigest()[:16]
+        return hashlib.sha256(f"{region_str}_{mode.value}".encode()).hexdigest()[
+            :16
+        ]  # Truncated for compatibility
 
     async def analyze_color_distribution(
-        self, region: ScreenRegion
+        self,
+        region: ScreenRegion,
     ) -> Either[VisualError, ColorInfo]:
         """Analyze color distribution in screen region."""
         try:
             # Capture region
             capture_result = await self.capture_screen_region(
-                region, CaptureMode.BALANCED
+                region,
+                CaptureMode.BALANCED,
             )
             if capture_result.is_left():
                 return Either.left(capture_result.get_left())
@@ -765,20 +783,21 @@ class ScreenAnalysisEngine:
             return Either.right(color_info)
 
         except Exception as e:
-            logger.error(f"Color analysis failed: {str(e)}")
-            return Either.left(ProcessingError(f"Color analysis failed: {str(e)}"))
+            logger.error(f"Color analysis failed: {e!s}")
+            return Either.left(ProcessingError(f"Color analysis failed: {e!s}"))
 
     def set_change_detection_baseline(self, region: ScreenRegion) -> None:
         """Set new baseline for change detection."""
 
         async def _set_baseline():
             capture_result = await self.capture_screen_region(
-                region, CaptureMode.PERFORMANCE
+                region,
+                CaptureMode.PERFORMANCE,
             )
             if capture_result.is_right():
                 self.change_detection_baseline = capture_result.get_right()
                 logger.info(
-                    f"Change detection baseline set for region {region.to_dict()}"
+                    f"Change detection baseline set for region {region.to_dict()}",
                 )
 
         asyncio.create_task(_set_baseline())
@@ -792,7 +811,7 @@ class ScreenAnalysisEngine:
                 "window_cache_size": len(self.window_cache),
                 "baseline_set": self.change_detection_baseline is not None,
                 "privacy_protection_enabled": self.privacy_protection is not None,
-            }
+            },
         )
         return stats
 
@@ -806,7 +825,8 @@ class ScreenAnalysisEngine:
 
 # Convenience functions for common screen analysis operations
 async def capture_full_screen(
-    display_id: int = 1, privacy_mode: bool = True
+    display_id: int = 1,
+    privacy_mode: bool = True,
 ) -> Either[VisualError, ScreenCapture]:
     """Capture full screen with privacy protection."""
     # Simulate full screen dimensions
@@ -814,7 +834,9 @@ async def capture_full_screen(
 
     engine = ScreenAnalysisEngine(enable_privacy_protection=privacy_mode)
     return await engine.capture_screen_region(
-        full_screen_region, CaptureMode.BALANCED, privacy_mode
+        full_screen_region,
+        CaptureMode.BALANCED,
+        privacy_mode,
     )
 
 
@@ -833,7 +855,9 @@ async def find_active_window() -> Either[VisualError, WindowInfo | None]:
 
 
 async def monitor_region_for_changes(
-    region: ScreenRegion, duration_seconds: int = 10, sensitivity: float = 0.2
+    region: ScreenRegion,
+    duration_seconds: int = 10,
+    sensitivity: float = 0.2,
 ) -> Either[VisualError, list[ChangeDetectionResult]]:
     """Monitor screen region for changes over time."""
     engine = ScreenAnalysisEngine()
@@ -847,7 +871,8 @@ async def monitor_region_for_changes(
     end_time = time.time() + duration_seconds
     while time.time() < end_time:
         change_result = await engine.detect_screen_changes(
-            region, sensitivity=sensitivity
+            region,
+            sensitivity=sensitivity,
         )
         if change_result.is_right():
             change = change_result.get_right()

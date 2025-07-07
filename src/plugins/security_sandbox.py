@@ -1,5 +1,4 @@
-"""
-Plugin security sandbox and validation system.
+"""Plugin security sandbox and validation system.
 
 This module provides comprehensive security management for plugin execution
 including sandboxing, resource monitoring, and threat detection.
@@ -87,7 +86,8 @@ class SecurityLimits:
         }
 
         return profile_limits.get(
-            self.security_profile, profile_limits[SecurityProfile.STANDARD]
+            self.security_profile,
+            profile_limits[SecurityProfile.STANDARD],
         )
 
     def get_memory_limit_bytes(self) -> int:
@@ -181,7 +181,8 @@ class SecurityScanner:
     ]
 
     def scan_plugin_code(
-        self, plugin_path: Path
+        self,
+        plugin_path: Path,
     ) -> Either[PluginError, dict[str, Any]]:
         """Perform comprehensive security scan of plugin code."""
         try:
@@ -219,17 +220,17 @@ class SecurityScanner:
 
             # Determine security rating
             scan_results["security_rating"] = self._calculate_security_rating(
-                scan_results
+                scan_results,
             )
             scan_results["recommendations"] = self._generate_recommendations(
-                scan_results
+                scan_results,
             )
 
             return Either.right(scan_results)
 
         except Exception as e:
             return Either.left(
-                PluginError.security_violation(f"Security scan failed: {str(e)}")
+                PluginError.security_violation(f"Security scan failed: {e!s}"),
             )
 
     def _scan_file(self, file_path: Path) -> Either[PluginError, dict[str, Any]]:
@@ -265,7 +266,7 @@ class SecurityScanner:
 
         except Exception as e:
             return Either.left(
-                PluginError.security_violation(f"File scan failed: {str(e)}")
+                PluginError.security_violation(f"File scan failed: {e!s}"),
             )
 
     def _analyze_ast(self, tree: ast.AST) -> dict[str, list[str]]:
@@ -347,16 +348,15 @@ class SecurityScanner:
     def _calculate_security_rating(self, scan_results: dict[str, Any]) -> str:
         """Calculate overall security rating based on scan results."""
         dangerous_count = len(scan_results["dangerous_functions"]) + len(
-            scan_results["dangerous_modules"]
+            scan_results["dangerous_modules"],
         )
         suspicious_count = len(scan_results["suspicious_patterns"])
 
         if dangerous_count > 5 or suspicious_count > 10:
             return "DANGEROUS"
-        elif dangerous_count > 2 or suspicious_count > 5:
+        if dangerous_count > 2 or suspicious_count > 5:
             return "WARNING"
-        else:
-            return "SAFE"
+        return "SAFE"
 
     def _generate_recommendations(self, scan_results: dict[str, Any]) -> list[str]:
         """Generate security recommendations based on scan results."""
@@ -364,27 +364,27 @@ class SecurityScanner:
 
         if scan_results["dangerous_functions"]:
             recommendations.append(
-                "Consider removing dangerous function calls or using safer alternatives"
+                "Consider removing dangerous function calls or using safer alternatives",
             )
 
         if scan_results["dangerous_modules"]:
             recommendations.append(
-                "Dangerous modules detected - ensure they are necessary and used safely"
+                "Dangerous modules detected - ensure they are necessary and used safely",
             )
 
         if scan_results["file_operations"]:
             recommendations.append(
-                "File operations detected - ensure proper path validation and permissions"
+                "File operations detected - ensure proper path validation and permissions",
             )
 
         if scan_results["network_operations"]:
             recommendations.append(
-                "Network operations detected - ensure proper input validation and HTTPS usage"
+                "Network operations detected - ensure proper input validation and HTTPS usage",
             )
 
         if scan_results["security_rating"] == "DANGEROUS":
             recommendations.append(
-                "Plugin contains high-risk code - manual review strongly recommended"
+                "Plugin contains high-risk code - manual review strongly recommended",
             )
 
         return recommendations
@@ -401,7 +401,7 @@ class ResourceMonitor:
         self.file_operations: int = 0
         self.network_requests: int = 0
 
-    def start_monitoring(self):
+    def start_monitoring(self) -> None:
         """Start resource monitoring."""
         self.start_time = datetime.now()
         process = psutil.Process()
@@ -421,7 +421,7 @@ class ResourceMonitor:
                     PluginError(
                         f"Execution timeout exceeded: {elapsed}s > {self.limits.get_execution_timeout()}s",
                         "EXECUTION_TIMEOUT",
-                    )
+                    ),
                 )
 
             # Check memory usage
@@ -435,7 +435,7 @@ class ResourceMonitor:
                     PluginError(
                         f"Memory limit exceeded: {memory_used / 1024 / 1024:.1f}MB > {self.limits.limits['memory_mb']}MB",
                         "MEMORY_LIMIT_EXCEEDED",
-                    )
+                    ),
                 )
 
             # Check file operations
@@ -444,7 +444,7 @@ class ResourceMonitor:
                     PluginError(
                         f"File operation limit exceeded: {self.file_operations} > {self.limits.limits['file_operations']}",
                         "FILE_OPERATIONS_EXCEEDED",
-                    )
+                    ),
                 )
 
             # Check network requests
@@ -453,21 +453,21 @@ class ResourceMonitor:
                     PluginError(
                         f"Network request limit exceeded: {self.network_requests} > {self.limits.limits['network_requests']}",
                         "NETWORK_REQUESTS_EXCEEDED",
-                    )
+                    ),
                 )
 
             return Either.right(None)
 
         except Exception as e:
             return Either.left(
-                PluginError.security_violation(f"Resource monitoring failed: {str(e)}")
+                PluginError.security_violation(f"Resource monitoring failed: {e!s}"),
             )
 
-    def record_file_operation(self):
+    def record_file_operation(self) -> Any:
         """Record a file operation."""
         self.file_operations += 1
 
-    def record_network_request(self):
+    def record_network_request(self) -> Any:
         """Record a network request."""
         self.network_requests += 1
 
@@ -534,7 +534,8 @@ class PluginSandbox:
             # Reset resource limits
             if hasattr(resource, "RLIMIT_AS"):
                 resource.setrlimit(
-                    resource.RLIMIT_AS, (resource.RLIM_INFINITY, resource.RLIM_INFINITY)
+                    resource.RLIMIT_AS,
+                    (resource.RLIM_INFINITY, resource.RLIM_INFINITY),
                 )
             if hasattr(resource, "RLIMIT_CPU"):
                 resource.setrlimit(
@@ -543,7 +544,9 @@ class PluginSandbox:
                 )
 
     async def execute_action(
-        self, action: CustomAction, parameters: dict[str, Any]
+        self,
+        action: CustomAction,
+        parameters: dict[str, Any],
     ) -> Either[PluginError, Any]:
         """Execute custom action within security sandbox."""
         try:
@@ -578,22 +581,23 @@ class PluginSandbox:
                         return result
 
                     # Check if monitor detected violation
-                    elif monitor_task in done:
+                    if monitor_task in done:
                         monitor_result = await monitor_task
                         return monitor_result
 
-                    else:
-                        # Timeout
-                        return Either.left(
-                            PluginError(
-                                f"Action execution timeout: {self.limits.get_execution_timeout()}s",
-                                "EXECUTION_TIMEOUT",
-                            )
-                        )
+                    # Timeout
+                    return Either.left(
+                        PluginError(
+                            f"Action execution timeout: {self.limits.get_execution_timeout()}s",
+                            "EXECUTION_TIMEOUT",
+                        ),
+                    )
 
                 except asyncio.CancelledError:
                     return Either.left(
-                        PluginError("Action execution cancelled", "EXECUTION_CANCELLED")
+                        PluginError(
+                            "Action execution cancelled", "EXECUTION_CANCELLED"
+                        ),
                     )
 
         except Exception as e:
@@ -606,7 +610,8 @@ class PluginSandbox:
             return Either.left(PluginError.execution_error(str(e), context))
 
     async def _monitor_execution(
-        self, monitor: ResourceMonitor
+        self,
+        monitor: ResourceMonitor,
     ) -> Either[PluginError, None]:
         """Continuously monitor execution for resource violations."""
         try:
@@ -631,7 +636,9 @@ class PluginSecurityManager:
         self.blocked_plugins: set[str] = set()
 
     async def validate_plugin(
-        self, plugin_path: Path, metadata: PluginMetadata
+        self,
+        plugin_path: Path,
+        metadata: PluginMetadata,
     ) -> Either[PluginError, None]:
         """Comprehensive plugin security validation."""
         try:
@@ -639,8 +646,8 @@ class PluginSecurityManager:
             if metadata.identifier in self.blocked_plugins:
                 return Either.left(
                     PluginError.security_violation(
-                        f"Plugin is blocked: {metadata.identifier}"
-                    )
+                        f"Plugin is blocked: {metadata.identifier}",
+                    ),
                 )
 
             # Skip validation for pre-approved plugins
@@ -663,29 +670,31 @@ class PluginSecurityManager:
             if scan_data["security_rating"] == "DANGEROUS":
                 return Either.left(
                     PluginError.security_violation(
-                        f"Plugin contains dangerous code: {', '.join(scan_data['recommendations'])}"
-                    )
+                        f"Plugin contains dangerous code: {', '.join(scan_data['recommendations'])}",
+                    ),
                 )
 
             # Validate permissions against capabilities
             permissions_result = self._validate_permissions(
-                metadata.permissions, scan_data
+                metadata.permissions,
+                scan_data,
             )
             if permissions_result.is_left():
                 return permissions_result
 
             logger.info(
-                f"Plugin security validation passed: {metadata.identifier} (rating: {scan_data['security_rating']})"
+                f"Plugin security validation passed: {metadata.identifier} (rating: {scan_data['security_rating']})",
             )
             return Either.right(None)
 
         except Exception as e:
             return Either.left(
-                PluginError.security_violation(f"Security validation failed: {str(e)}")
+                PluginError.security_violation(f"Security validation failed: {e!s}"),
             )
 
     def _validate_metadata_security(
-        self, metadata: PluginMetadata
+        self,
+        metadata: PluginMetadata,
     ) -> Either[PluginError, None]:
         """Validate plugin metadata for security constraints."""
         try:
@@ -701,43 +710,44 @@ class PluginSecurityManager:
             if any(sus in metadata.name.lower() for sus in suspicious_names):
                 return Either.left(
                     PluginError.security_violation(
-                        f"Suspicious plugin name: {metadata.name}"
-                    )
+                        f"Suspicious plugin name: {metadata.name}",
+                    ),
                 )
 
             # Validate permissions don't exceed security profile
-            if metadata.permissions.requires_elevated_access():
-                # Additional validation for elevated permissions
-                if (
-                    not metadata.permissions.network_access
-                    and not metadata.permissions.file_system_access
-                ):
-                    # System integration without network/file access is suspicious
-                    if metadata.permissions.system_integration:
-                        return Either.left(
-                            PluginError.security_violation(
-                                "System integration without network/file access is not allowed"
-                            )
-                        )
+            # SIM102 fix: Combine nested if statements
+            if (
+                metadata.permissions.requires_elevated_access()
+                and not metadata.permissions.network_access
+                and not metadata.permissions.file_system_access
+                and metadata.permissions.system_integration
+            ):
+                return Either.left(
+                    PluginError.security_violation(
+                        "System integration without network/file access is not allowed",
+                    ),
+                )
 
             # Check dependency security
             for dependency in metadata.dependencies:
                 if dependency.plugin_id in self.blocked_plugins:
                     return Either.left(
                         PluginError.security_violation(
-                            f"Plugin depends on blocked plugin: {dependency.plugin_id}"
-                        )
+                            f"Plugin depends on blocked plugin: {dependency.plugin_id}",
+                        ),
                     )
 
             return Either.right(None)
 
         except Exception as e:
             return Either.left(
-                PluginError.security_violation(f"Metadata validation failed: {str(e)}")
+                PluginError.security_violation(f"Metadata validation failed: {e!s}"),
             )
 
     def _validate_permissions(
-        self, permissions: PluginPermissions, scan_data: dict[str, Any]
+        self,
+        permissions: PluginPermissions,
+        scan_data: dict[str, Any],
     ) -> Either[PluginError, None]:
         """Validate that requested permissions match code capabilities."""
         try:
@@ -745,16 +755,16 @@ class PluginSecurityManager:
             if scan_data["network_operations"] and not permissions.network_access:
                 return Either.left(
                     PluginError.security_violation(
-                        "Plugin contains network operations but lacks network permission"
-                    )
+                        "Plugin contains network operations but lacks network permission",
+                    ),
                 )
 
             # Check if code contains file operations but lacks file system permission
             if scan_data["file_operations"] and not permissions.file_system_access:
                 return Either.left(
                     PluginError.security_violation(
-                        "Plugin contains file operations but lacks file system permission"
-                    )
+                        "Plugin contains file operations but lacks file system permission",
+                    ),
                 )
 
             # Check for over-permissive requests
@@ -769,22 +779,23 @@ class PluginSecurityManager:
         except Exception as e:
             return Either.left(
                 PluginError.security_violation(
-                    f"Permission validation failed: {str(e)}"
-                )
+                    f"Permission validation failed: {e!s}",
+                ),
             )
 
-    def approve_plugin(self, plugin_id: str):
+    def approve_plugin(self, plugin_id: str) -> Any:
         """Add plugin to approved list (bypasses security scanning)."""
         self.approved_plugins.add(plugin_id)
         self.blocked_plugins.discard(plugin_id)
 
-    def block_plugin(self, plugin_id: str):
+    def block_plugin(self, plugin_id: str) -> Any:
         """Add plugin to blocked list."""
         self.blocked_plugins.add(plugin_id)
         self.approved_plugins.discard(plugin_id)
 
     def get_security_report(
-        self, plugin_path: Path
+        self,
+        plugin_path: Path,
     ) -> Either[PluginError, dict[str, Any]]:
         """Generate comprehensive security report for plugin."""
         try:
@@ -807,6 +818,6 @@ class PluginSecurityManager:
         except Exception as e:
             return Either.left(
                 PluginError.security_violation(
-                    f"Security report generation failed: {str(e)}"
-                )
+                    f"Security report generation failed: {e!s}",
+                ),
             )

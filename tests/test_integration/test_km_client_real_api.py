@@ -1,9 +1,11 @@
-"""
-Coverage expansion tests for actual Keyboard Maestro client functionality.
+"""Coverage expansion tests for actual Keyboard Maestro client functionality.
 
 Tests focus on real API available in km_client.py to maximize coverage.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import pytest
 from src.core.types import Duration, MacroId, TriggerId
 from src.integration.km_client import (
@@ -21,7 +23,7 @@ from src.integration.km_client import (
 class TestEitherMonad:
     """Test Either monad functionality."""
 
-    def test_either_left_creation(self):
+    def test_either_left_creation(self) -> None:
         """Test creating Left (error) values."""
         error_msg = "Something went wrong"
         result = Either.left(error_msg)
@@ -31,7 +33,7 @@ class TestEitherMonad:
         assert result.get_left() == error_msg
         assert result.get_right() is None
 
-    def test_either_right_creation(self):
+    def test_either_right_creation(self) -> None:
         """Test creating Right (success) values."""
         value = "Success!"
         result = Either.right(value)
@@ -41,7 +43,7 @@ class TestEitherMonad:
         assert result.get_right() == value
         assert result.get_left() is None
 
-    def test_either_map_functionality(self):
+    def test_either_map_functionality(self) -> None:
         """Test mapping over Either values."""
         # Map over Right value
         right_result = Either.right(10)
@@ -55,14 +57,13 @@ class TestEitherMonad:
         assert mapped_left.is_left()
         assert mapped_left.get_left() == "error"
 
-    def test_either_flat_map(self):
+    def test_either_flat_map(self) -> None:
         """Test flat mapping for chaining operations."""
 
-        def double_if_positive(x):
+        def double_if_positive(x) -> Any:
             if x > 0:
                 return Either.right(x * 2)
-            else:
-                return Either.left("negative or zero")
+            return Either.left("negative or zero")
 
         # Test with positive number
         result = Either.right(5).flat_map(double_if_positive)
@@ -79,7 +80,7 @@ class TestEitherMonad:
         assert result.is_left()
         assert result.get_left() == "initial error"
 
-    def test_either_get_or_else(self):
+    def test_either_get_or_else(self) -> None:
         """Test get_or_else functionality."""
         right_result = Either.right("success")
         assert right_result.get_or_else("default") == "success"
@@ -91,14 +92,14 @@ class TestEitherMonad:
 class TestConnectionMethod:
     """Test connection method enumeration."""
 
-    def test_connection_method_values(self):
+    def test_connection_method_values(self) -> None:
         """Test all connection method values exist."""
         assert ConnectionMethod.APPLESCRIPT.value == "applescript"
         assert ConnectionMethod.URL_SCHEME.value == "url_scheme"
         assert ConnectionMethod.WEB_API.value == "web_api"
         assert ConnectionMethod.REMOTE_TRIGGER.value == "remote_trigger"
 
-    def test_connection_method_enum_behavior(self):
+    def test_connection_method_enum_behavior(self) -> None:
         """Test enum behavior and comparisons."""
         method1 = ConnectionMethod.APPLESCRIPT
         method2 = ConnectionMethod.APPLESCRIPT
@@ -112,7 +113,7 @@ class TestConnectionMethod:
 class TestKMError:
     """Test KM error creation and handling."""
 
-    def test_basic_error_creation(self):
+    def test_basic_error_creation(self) -> None:
         """Test basic error instantiation."""
         error = KMError(code="TEST_ERROR", message="Test message")
 
@@ -121,18 +122,20 @@ class TestKMError:
         assert error.details is None
         assert error.retry_after is None
 
-    def test_error_with_details(self):
+    def test_error_with_details(self) -> None:
         """Test error with additional details."""
         details = {"macro_id": "test-123", "step": 5}
         error = KMError(
-            code="EXECUTION_ERROR", message="Macro execution failed", details=details
+            code="EXECUTION_ERROR",
+            message="Macro execution failed",
+            details=details,
         )
 
         assert error.code == "EXECUTION_ERROR"
         assert error.message == "Macro execution failed"
         assert error.details == details
 
-    def test_connection_error_factory(self):
+    def test_connection_error_factory(self) -> None:
         """Test connection error factory method."""
         error = KMError.connection_error("Failed to connect to KM")
 
@@ -140,7 +143,7 @@ class TestKMError:
         assert error.message == "Failed to connect to KM"
         assert error.details is None
 
-    def test_execution_error_factory(self):
+    def test_execution_error_factory(self) -> None:
         """Test execution error factory method."""
         details = {"command": "type_text", "input": "hello"}
         error = KMError.execution_error("Command failed", details)
@@ -149,7 +152,7 @@ class TestKMError:
         assert error.message == "Command failed"
         assert error.details == details
 
-    def test_timeout_error_factory(self):
+    def test_timeout_error_factory(self) -> None:
         """Test timeout error factory method."""
         timeout = Duration.from_seconds(30)
         error = KMError.timeout_error(timeout)
@@ -159,21 +162,21 @@ class TestKMError:
         assert error.retry_after is not None
         assert error.retry_after.total_seconds() == 1.0
 
-    def test_validation_error_factory(self):
+    def test_validation_error_factory(self) -> None:
         """Test validation error factory method."""
         error = KMError.validation_error("Invalid macro format")
 
         assert error.code == "VALIDATION_ERROR"
         assert error.message == "Invalid macro format"
 
-    def test_not_found_error_factory(self):
+    def test_not_found_error_factory(self) -> None:
         """Test not found error factory method."""
         error = KMError.not_found_error("Macro not found")
 
         assert error.code == "NOT_FOUND_ERROR"
         assert error.message == "Macro not found"
 
-    def test_security_error_factory(self):
+    def test_security_error_factory(self) -> None:
         """Test security error factory method."""
         error = KMError.security_error("Permission denied")
 
@@ -184,7 +187,7 @@ class TestKMError:
 class TestConnectionConfig:
     """Test connection configuration."""
 
-    def test_default_config_creation(self):
+    def test_default_config_creation(self) -> None:
         """Test creating config with defaults."""
         config = ConnectionConfig()
 
@@ -195,7 +198,7 @@ class TestConnectionConfig:
         assert config.max_retries == 3
         assert config.retry_delay.total_seconds() == 0.5
 
-    def test_config_with_specific_values(self):
+    def test_config_with_specific_values(self) -> None:
         """Test creating config with specific values."""
         timeout = Duration.from_seconds(60)
         retry_delay = Duration.from_seconds(1.0)
@@ -216,7 +219,7 @@ class TestConnectionConfig:
         assert config.max_retries == 5
         assert config.retry_delay.total_seconds() == 1.0
 
-    def test_config_with_timeout_modification(self):
+    def test_config_with_timeout_modification(self) -> None:
         """Test modifying config timeout."""
         original_config = ConnectionConfig()
         new_timeout = Duration.from_seconds(120)
@@ -230,7 +233,7 @@ class TestConnectionConfig:
         assert new_config.method == original_config.method
         assert new_config.web_api_port == original_config.web_api_port
 
-    def test_config_with_method_modification(self):
+    def test_config_with_method_modification(self) -> None:
         """Test modifying config method."""
         original_config = ConnectionConfig(method=ConnectionMethod.APPLESCRIPT)
         new_config = original_config.with_method(ConnectionMethod.URL_SCHEME)
@@ -247,7 +250,7 @@ class TestConnectionConfig:
 class TestTriggerDefinition:
     """Test trigger definition functionality."""
 
-    def test_trigger_creation_basic(self):
+    def test_trigger_creation_basic(self) -> None:
         """Test basic trigger creation."""
         trigger = TriggerDefinition(
             trigger_id=TriggerId("test-trigger"),
@@ -261,7 +264,7 @@ class TestTriggerDefinition:
         assert trigger.configuration["key"] == "F1"
         assert trigger.macro_id == MacroId("test-macro")
 
-    def test_trigger_creation_complex(self):
+    def test_trigger_creation_complex(self) -> None:
         """Test complex trigger with multiple configuration options."""
         config = {
             "key": "F2",
@@ -283,7 +286,7 @@ class TestTriggerDefinition:
         assert trigger.configuration["scope"] == "global"
         assert trigger.configuration["enabled"] is True
 
-    def test_trigger_types_variety(self):
+    def test_trigger_types_variety(self) -> None:
         """Test various trigger types."""
         trigger_types = [
             ("hotkey", {"key": "a"}),
@@ -308,7 +311,7 @@ class TestTriggerDefinition:
 class TestKMClient:
     """Test KM client functionality with available methods."""
 
-    def test_km_client_properties(self):
+    def test_km_client_properties(self) -> None:
         """Test basic KM client properties and attributes."""
         # We can't easily test full initialization without mocking,
         # but we can test that the class exists and has expected attributes
@@ -324,7 +327,7 @@ class TestKMClient:
 class TestUtilityFunctions:
     """Test utility functions available in the module."""
 
-    def test_create_client_with_fallback_function_exists(self):
+    def test_create_client_with_fallback_function_exists(self) -> None:
         """Test that fallback function exists and is callable."""
         assert callable(create_client_with_fallback)
 
@@ -339,7 +342,7 @@ class TestUtilityFunctions:
             # Expected when calling with None
             pass
 
-    def test_retry_with_backoff_function_exists(self):
+    def test_retry_with_backoff_function_exists(self) -> None:
         """Test that retry function exists and is callable."""
         assert callable(retry_with_backoff)
 
@@ -352,7 +355,7 @@ class TestUtilityFunctions:
 class TestDurationIntegration:
     """Test Duration integration with KM client components."""
 
-    def test_duration_with_config(self):
+    def test_duration_with_config(self) -> None:
         """Test using Duration in configuration."""
         short_timeout = Duration.from_seconds(5)
         long_timeout = Duration.from_seconds(300)
@@ -368,7 +371,7 @@ class TestDurationIntegration:
         assert config1.timeout.total_seconds() == 5  # Original unchanged
         assert config3.timeout.total_seconds() == 300  # New config updated
 
-    def test_duration_in_errors(self):
+    def test_duration_in_errors(self) -> None:
         """Test Duration usage in error handling."""
         timeout_duration = Duration.from_seconds(45)
         error = KMError.timeout_error(timeout_duration)
@@ -381,7 +384,7 @@ class TestDurationIntegration:
 class TestTypeIntegration:
     """Test integration with core types."""
 
-    def test_macro_id_usage(self):
+    def test_macro_id_usage(self) -> None:
         """Test MacroId usage throughout the system."""
         macro_id = MacroId("test-macro-123")
 
@@ -396,7 +399,7 @@ class TestTypeIntegration:
         assert trigger.macro_id == macro_id
         assert str(trigger.macro_id) == "test-macro-123"
 
-    def test_trigger_id_usage(self):
+    def test_trigger_id_usage(self) -> None:
         """Test TriggerId usage in system."""
         trigger_id = TriggerId("trigger-456")
 
@@ -414,7 +417,7 @@ class TestTypeIntegration:
 class TestErrorPropagation:
     """Test error handling and propagation patterns."""
 
-    def test_either_error_chain(self):
+    def test_either_error_chain(self) -> None:
         """Test chaining operations with errors."""
         # Start with success
         result = Either.right(10)
@@ -430,14 +433,14 @@ class TestErrorPropagation:
         result = Either.right(10)
         result = result.map(lambda x: x * 2)  # Success: 20
         result = result.flat_map(
-            lambda x: Either.left("error occurred")
+            lambda x: Either.left("error occurred"),
         )  # Inject error
         result = result.map(lambda x: x + 100)  # Should not execute due to error
 
         assert result.is_left()
         assert result.get_left() == "error occurred"
 
-    def test_error_context_preservation(self):
+    def test_error_context_preservation(self) -> None:
         """Test that error context is preserved through operations."""
         initial_error = KMError.validation_error("Invalid input")
         either_error = Either.left(initial_error)

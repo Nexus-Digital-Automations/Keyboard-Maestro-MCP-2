@@ -1,5 +1,4 @@
-"""
-Hotkey Trigger Tools for FastMCP Integration
+"""Hotkey Trigger Tools for FastMCP Integration.
 
 Provides comprehensive hotkey trigger creation with conflict detection,
 validation, and security boundaries for Keyboard Maestro automation.
@@ -84,8 +83,7 @@ async def km_create_hotkey_trigger(
     ] = True,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """
-    Create hotkey trigger for macro with comprehensive validation and conflict detection.
+    """Create hotkey trigger for macro with comprehensive validation and conflict detection.
 
     This tool enables AI assistants to assign keyboard shortcuts to macros with:
     - Support for all standard keys (a-z, 0-9) and special keys (F1-F12, space, tab, etc.)
@@ -115,7 +113,7 @@ async def km_create_hotkey_trigger(
     try:
         if ctx:
             await ctx.info(
-                f"Creating hotkey trigger for macro '{macro_id}' with key '{key}' and modifiers {modifiers}"
+                f"Creating hotkey trigger for macro '{macro_id}' with key '{key}' and modifiers {modifiers}",
             )
 
         # Input validation and sanitization
@@ -161,7 +159,7 @@ async def km_create_hotkey_trigger(
 
         if ctx:
             await ctx.info(
-                f"Hotkey specification created: {hotkey_spec.to_display_string()}"
+                f"Hotkey specification created: {hotkey_spec.to_display_string()}",
             )
 
         # Conflict detection
@@ -209,7 +207,8 @@ async def km_create_hotkey_trigger(
                         await ctx.info("Generating alternative hotkey suggestions...")
 
                     alternatives = hotkey_manager.suggest_alternatives(
-                        hotkey_spec, max_suggestions=3
+                        hotkey_spec,
+                        max_suggestions=3,
                     )
                     alternative_details = [
                         {
@@ -290,16 +289,16 @@ async def km_create_hotkey_trigger(
         }
 
     except Exception as e:
-        logger.error(f"Unexpected error in km_create_hotkey_trigger: {str(e)}")
+        logger.error(f"Unexpected error in km_create_hotkey_trigger: {e!s}")
 
         if ctx:
-            await ctx.error(f"Hotkey trigger creation failed: {str(e)}")
+            await ctx.error(f"Hotkey trigger creation failed: {e!s}")
 
         return {
             "success": False,
             "error": {
                 "code": "SYSTEM_ERROR",
-                "message": f"Unexpected error during hotkey trigger creation: {str(e)}",
+                "message": f"Unexpected error during hotkey trigger creation: {e!s}",
                 "details": {
                     "error_type": type(e).__name__,
                     "macro_id": macro_id if "macro_id" in locals() else None,
@@ -328,13 +327,13 @@ async def km_list_hotkey_triggers(
     include_conflicts: Annotated[
         bool,
         Field(
-            default=False, description="Include conflict information for each hotkey"
+            default=False,
+            description="Include conflict information for each hotkey",
         ),
     ] = False,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """
-    List all registered hotkey triggers with optional filtering and conflict information.
+    """List all registered hotkey triggers with optional filtering and conflict information.
 
     Provides comprehensive overview of all hotkey assignments with:
     - Hotkey specifications and display strings
@@ -410,16 +409,16 @@ async def km_list_hotkey_triggers(
         }
 
     except Exception as e:
-        logger.error(f"Error listing hotkey triggers: {str(e)}")
+        logger.error(f"Error listing hotkey triggers: {e!s}")
 
         if ctx:
-            await ctx.error(f"Failed to list hotkey triggers: {str(e)}")
+            await ctx.error(f"Failed to list hotkey triggers: {e!s}")
 
         return {
             "success": False,
             "error": {
                 "code": "SYSTEM_ERROR",
-                "message": f"Failed to retrieve hotkey triggers: {str(e)}",
+                "message": f"Failed to retrieve hotkey triggers: {e!s}",
                 "details": {"error_type": type(e).__name__},
                 "recovery_suggestion": "Check system status and retry operation",
             },

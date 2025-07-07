@@ -1,10 +1,12 @@
-"""
-Unit tests for control flow types and AST representation.
+"""Unit tests for control flow types and AST representation.
 
 Tests the core control flow functionality including type safety, security validation,
 and builder patterns with comprehensive edge case coverage.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import pytest
 from src.core.control_flow import (
     ActionBlock,
@@ -32,7 +34,7 @@ from src.core.errors import ContractViolationError
 class TestSecurityLimits:
     """Test security limits validation."""
 
-    def test_valid_security_limits(self):
+    def test_valid_security_limits(self) -> None:
         """Test valid security limits creation."""
         limits = SecurityLimits(
             max_iterations=5000,
@@ -48,7 +50,7 @@ class TestSecurityLimits:
         assert limits.max_action_count == 50
         assert limits.max_condition_length == 200
 
-    def test_invalid_security_limits(self):
+    def test_invalid_security_limits(self) -> None:
         """Test invalid security limits rejection."""
         with pytest.raises(ContractViolationError):
             SecurityLimits(max_iterations=0)
@@ -66,7 +68,7 @@ class TestSecurityLimits:
 class TestConditionExpression:
     """Test condition expression validation and creation."""
 
-    def test_valid_condition_creation(self):
+    def test_valid_condition_creation(self) -> None:
         """Test valid condition expression creation."""
         condition = ConditionExpression.create_safe(
             expression="variable_name",
@@ -81,7 +83,7 @@ class TestConditionExpression:
         assert condition.negate is False
         assert condition.timeout_seconds == 10
 
-    def test_condition_with_options(self):
+    def test_condition_with_options(self) -> None:
         """Test condition creation with custom options."""
         condition = ConditionExpression.create_safe(
             expression="clipboard_content",
@@ -99,7 +101,7 @@ class TestConditionExpression:
         assert condition.negate is True
         assert condition.timeout_seconds == 30
 
-    def test_condition_input_sanitization(self):
+    def test_condition_input_sanitization(self) -> None:
         """Test condition input sanitization."""
         condition = ConditionExpression.create_safe(
             expression="  whitespace_test  ",
@@ -110,11 +112,13 @@ class TestConditionExpression:
         assert condition.expression == "whitespace_test"
         assert len(condition.operand) == 1000  # Should be truncated
 
-    def test_invalid_condition_parameters(self):
+    def test_invalid_condition_parameters(self) -> None:
         """Test invalid condition parameter rejection."""
         with pytest.raises(ContractViolationError):
             ConditionExpression(
-                expression="", operator=ComparisonOperator.EQUALS, operand="test"
+                expression="",
+                operator=ComparisonOperator.EQUALS,
+                operand="test",
             )
 
         with pytest.raises(ContractViolationError):
@@ -136,7 +140,7 @@ class TestConditionExpression:
 class TestActionBlock:
     """Test action block validation and creation."""
 
-    def test_valid_action_block(self):
+    def test_valid_action_block(self) -> None:
         """Test valid action block creation."""
         actions = [
             {"type": "type_text", "text": "Hello World"},
@@ -151,26 +155,29 @@ class TestActionBlock:
         assert block.parallel is False
         assert block.timeout_seconds == 30
 
-    def test_action_block_with_options(self):
+    def test_action_block_with_options(self) -> None:
         """Test action block with custom options."""
         actions = [{"type": "test_action", "param": "value"}]
 
         block = ActionBlock.from_actions(
-            actions, parallel=True, error_handling="continue", timeout_seconds=60
+            actions,
+            parallel=True,
+            error_handling="continue",
+            timeout_seconds=60,
         )
 
         assert block.parallel is True
         assert block.error_handling == "continue"
         assert block.timeout_seconds == 60
 
-    def test_empty_action_block(self):
+    def test_empty_action_block(self) -> None:
         """Test empty action block creation."""
         block = ActionBlock.empty()
 
         assert len(block.actions) == 1
         assert block.actions[0]["type"] == "noop"
 
-    def test_action_count_limit(self):
+    def test_action_count_limit(self) -> None:
         """Test action count security limit."""
         actions = [{"type": "test", "id": i} for i in range(150)]
 
@@ -179,7 +186,7 @@ class TestActionBlock:
         # Should be limited to 100 actions
         assert len(block.actions) == 100
 
-    def test_invalid_action_block(self):
+    def test_invalid_action_block(self) -> None:
         """Test invalid action block rejection."""
         with pytest.raises(ContractViolationError):
             ActionBlock(actions=[])  # Empty actions
@@ -191,7 +198,7 @@ class TestActionBlock:
 class TestLoopConfiguration:
     """Test loop configuration validation."""
 
-    def test_valid_loop_config(self):
+    def test_valid_loop_config(self) -> None:
         """Test valid loop configuration."""
         config = LoopConfiguration(
             iterator_variable=IteratorVariable("item"),
@@ -206,16 +213,18 @@ class TestLoopConfiguration:
         assert config.timeout_seconds == 30
         assert config.break_on_error is True
 
-    def test_invalid_loop_config(self):
+    def test_invalid_loop_config(self) -> None:
         """Test invalid loop configuration rejection."""
         with pytest.raises(ContractViolationError):
             LoopConfiguration(
-                iterator_variable=IteratorVariable(""), collection_expression="test"
+                iterator_variable=IteratorVariable(""),
+                collection_expression="test",
             )
 
         with pytest.raises(ContractViolationError):
             LoopConfiguration(
-                iterator_variable=IteratorVariable("test"), collection_expression=""
+                iterator_variable=IteratorVariable("test"),
+                collection_expression="",
             )
 
         with pytest.raises(ContractViolationError):
@@ -229,7 +238,7 @@ class TestLoopConfiguration:
 class TestSwitchCase:
     """Test switch case validation."""
 
-    def test_valid_switch_case(self):
+    def test_valid_switch_case(self) -> None:
         """Test valid switch case creation."""
         actions = ActionBlock.from_actions([{"type": "test_action"}])
         case = SwitchCase(case_value="option1", actions=actions)
@@ -239,7 +248,7 @@ class TestSwitchCase:
         assert case.is_default is False
         assert case.case_id is not None
 
-    def test_default_switch_case(self):
+    def test_default_switch_case(self) -> None:
         """Test default switch case creation."""
         actions = ActionBlock.from_actions([{"type": "default_action"}])
         case = SwitchCase(
@@ -251,7 +260,7 @@ class TestSwitchCase:
         assert case.case_value == ""
         assert case.is_default is True
 
-    def test_invalid_switch_case(self):
+    def test_invalid_switch_case(self) -> None:
         """Test invalid switch case rejection."""
         actions = ActionBlock.from_actions([{"type": "test"}])
 
@@ -266,18 +275,20 @@ class TestSwitchCase:
 class TestControlFlowValidator:
     """Test control flow security validator."""
 
-    def setup_method(self):
+    def setup_method(self) -> bool:
         """Setup test validator."""
         self.validator = ControlFlowValidator()
 
-    def test_nesting_depth_validation(self):
+    def test_nesting_depth_validation(self) -> bool:
         """Test nesting depth validation."""
         nodes = []
         for depth in range(5):
             node = IfThenElseNode(
                 flow_type=ControlFlowType.IF_THEN_ELSE,
                 condition=ConditionExpression.create_safe(
-                    "test", ComparisonOperator.EQUALS, "value"
+                    "test",
+                    ComparisonOperator.EQUALS,
+                    "value",
                 ),
                 then_actions=ActionBlock.empty(),
                 depth=depth,
@@ -290,7 +301,9 @@ class TestControlFlowValidator:
         deep_node = IfThenElseNode(
             flow_type=ControlFlowType.IF_THEN_ELSE,
             condition=ConditionExpression.create_safe(
-                "test", ComparisonOperator.EQUALS, "value"
+                "test",
+                ComparisonOperator.EQUALS,
+                "value",
             ),
             then_actions=ActionBlock.empty(),
             depth=15,
@@ -299,7 +312,7 @@ class TestControlFlowValidator:
 
         assert self.validator.validate_nesting_depth(nodes) is False
 
-    def test_loop_bounds_validation(self):
+    def test_loop_bounds_validation(self) -> bool:
         """Test loop bounds validation."""
         # Valid for loop
         for_loop = ForLoopNode(
@@ -326,7 +339,9 @@ class TestControlFlowValidator:
         while_loop = WhileLoopNode(
             flow_type=ControlFlowType.WHILE_LOOP,
             condition=ConditionExpression.create_safe(
-                "test", ComparisonOperator.EQUALS, "value"
+                "test",
+                ComparisonOperator.EQUALS,
+                "value",
             ),
             loop_actions=ActionBlock.empty(),
             max_iterations=800,
@@ -339,13 +354,15 @@ class TestControlFlowValidator:
             WhileLoopNode(
                 flow_type=ControlFlowType.WHILE_LOOP,
                 condition=ConditionExpression.create_safe(
-                    "test", ComparisonOperator.EQUALS, "value"
+                    "test",
+                    ComparisonOperator.EQUALS,
+                    "value",
                 ),
                 loop_actions=ActionBlock.empty(),
                 max_iterations=15000,  # This should violate security contract
             )
 
-    def test_action_count_validation(self):
+    def test_action_count_validation(self) -> bool:
         """Test action count validation."""
         # Create node with acceptable action count
         actions = [{"type": "test", "id": i} for i in range(50)]
@@ -354,7 +371,9 @@ class TestControlFlowValidator:
         if_node = IfThenElseNode(
             flow_type=ControlFlowType.IF_THEN_ELSE,
             condition=ConditionExpression.create_safe(
-                "test", ComparisonOperator.EQUALS, "value"
+                "test",
+                ComparisonOperator.EQUALS,
+                "value",
             ),
             then_actions=action_block,
         )
@@ -371,7 +390,9 @@ class TestControlFlowValidator:
         large_if_node = IfThenElseNode(
             flow_type=ControlFlowType.IF_THEN_ELSE,
             condition=ConditionExpression.create_safe(
-                "test", ComparisonOperator.EQUALS, "value"
+                "test",
+                ComparisonOperator.EQUALS,
+                "value",
             ),
             then_actions=large_action_block,
         )
@@ -379,30 +400,36 @@ class TestControlFlowValidator:
         # Validator should return True because ActionBlock already enforced the limit
         assert self.validator.validate_action_count(large_if_node) is True
 
-    def test_condition_security_validation(self):
+    def test_condition_security_validation(self) -> None:
         """Test condition security validation."""
         # Safe condition
         safe_condition = ConditionExpression.create_safe(
-            "variable_name", ComparisonOperator.EQUALS, "safe_value"
+            "variable_name",
+            ComparisonOperator.EQUALS,
+            "safe_value",
         )
 
         assert self.validator.validate_condition_security(safe_condition) is True
 
         # Dangerous condition - command injection
         dangerous_condition = ConditionExpression.create_safe(
-            "rm -rf /", ComparisonOperator.EQUALS, "dangerous"
+            "rm -rf /",
+            ComparisonOperator.EQUALS,
+            "dangerous",
         )
 
         assert self.validator.validate_condition_security(dangerous_condition) is False
 
         # Dangerous condition - script execution
         script_condition = ConditionExpression.create_safe(
-            "exec('malicious code')", ComparisonOperator.EQUALS, "value"
+            "exec('malicious code')",
+            ComparisonOperator.EQUALS,
+            "value",
         )
 
         assert self.validator.validate_condition_security(script_condition) is False
 
-    def test_regex_security_validation(self):
+    def test_regex_security_validation(self) -> None:
         """Test regex pattern security validation."""
         # Safe regex
         safe_regex = ConditionExpression.create_safe(
@@ -426,17 +453,19 @@ class TestControlFlowValidator:
 class TestControlFlowBuilder:
     """Test control flow builder functionality."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Setup test builder."""
         self.builder = ControlFlowBuilder()
 
-    def test_simple_if_then_else(self):
+    def test_simple_if_then_else(self) -> None:
         """Test simple if/then/else construction."""
         then_actions = [{"type": "type_text", "text": "True"}]
         else_actions = [{"type": "type_text", "text": "False"}]
 
         self.builder.if_condition(
-            "clipboard_content", ComparisonOperator.CONTAINS, "password"
+            "clipboard_content",
+            ComparisonOperator.CONTAINS,
+            "password",
         ).then_actions(then_actions).else_actions(else_actions)
 
         nodes = self.builder.build()
@@ -451,7 +480,7 @@ class TestControlFlowBuilder:
         assert len(if_node.then_actions.actions) == 1
         assert len(if_node.else_actions.actions) == 1
 
-    def test_for_each_loop(self):
+    def test_for_each_loop(self) -> None:
         """Test for-each loop construction."""
         loop_actions = [
             {"type": "open_file", "file": "%Variable%file%"},
@@ -459,7 +488,10 @@ class TestControlFlowBuilder:
         ]
 
         self.builder.for_each(
-            "file", "selected_files_in_finder", loop_actions, max_iterations=50
+            "file",
+            "selected_files_in_finder",
+            loop_actions,
+            max_iterations=50,
         )
 
         nodes = self.builder.build()
@@ -473,7 +505,7 @@ class TestControlFlowBuilder:
         assert for_node.loop_config.max_iterations == 50
         assert len(for_node.loop_actions.actions) == 2
 
-    def test_while_loop(self):
+    def test_while_loop(self) -> None:
         """Test while loop construction."""
         loop_actions = [{"type": "check_condition"}, {"type": "update_variable"}]
 
@@ -497,7 +529,7 @@ class TestControlFlowBuilder:
         assert while_node.max_iterations == 20
         assert len(while_node.loop_actions.actions) == 2
 
-    def test_switch_case(self):
+    def test_switch_case(self) -> None:
         """Test switch/case construction."""
         cases = [
             ("Safari", [{"type": "screenshot"}]),
@@ -523,7 +555,7 @@ class TestControlFlowBuilder:
         assert switch_node.cases[1].case_value == "Chrome"
         assert switch_node.cases[2].case_value == "Firefox"
 
-    def test_try_catch(self):
+    def test_try_catch(self) -> None:
         """Test try/catch construction."""
         try_actions = [{"type": "risky_operation"}]
         catch_actions = [{"type": "error_handler"}]
@@ -542,12 +574,14 @@ class TestControlFlowBuilder:
         assert try_node.finally_actions is not None
         assert len(try_node.finally_actions.actions) == 1
 
-    def test_builder_security_validation(self):
+    def test_builder_security_validation(self) -> None:
         """Test builder security validation."""
         # Test dangerous condition rejection
         with pytest.raises(ValueError, match="security validation"):
             self.builder.if_condition(
-                "exec('rm -rf /')", ComparisonOperator.EQUALS, "dangerous"
+                "exec('rm -rf /')",
+                ComparisonOperator.EQUALS,
+                "dangerous",
             )
 
         # Test excessive loop iterations rejection (caught by contract validation)
@@ -560,7 +594,7 @@ class TestControlFlowBuilder:
                 max_iterations=20000,
             )
 
-    def test_builder_reset(self):
+    def test_builder_reset(self) -> None:
         """Test builder reset functionality."""
         self.builder.if_condition("test", ComparisonOperator.EQUALS, "value")
         nodes = self.builder.build()
@@ -576,20 +610,24 @@ class TestControlFlowBuilder:
 class TestHelperFunctions:
     """Test helper functions for common patterns."""
 
-    def test_create_simple_if(self):
+    def test_create_simple_if(self) -> None:
         """Test simple if creation helper."""
         then_actions = [{"type": "action_true"}]
         else_actions = [{"type": "action_false"}]
 
         if_node = create_simple_if(
-            "variable", ComparisonOperator.EQUALS, "value", then_actions, else_actions
+            "variable",
+            ComparisonOperator.EQUALS,
+            "value",
+            then_actions,
+            else_actions,
         )
 
         assert isinstance(if_node, IfThenElseNode)
         assert if_node.condition.expression == "variable"
         assert if_node.has_else_branch() is True
 
-    def test_create_for_loop(self):
+    def test_create_for_loop(self) -> None:
         """Test for loop creation helper."""
         actions = [{"type": "process_item"}]
 
@@ -599,12 +637,16 @@ class TestHelperFunctions:
         assert for_node.loop_config.iterator_variable == "item"
         assert for_node.loop_config.max_iterations == 100
 
-    def test_create_while_loop(self):
+    def test_create_while_loop(self) -> None:
         """Test while loop creation helper."""
         actions = [{"type": "loop_action"}]
 
         while_node = create_while_loop(
-            "counter", ComparisonOperator.LESS_THAN, "10", actions, max_iterations=50
+            "counter",
+            ComparisonOperator.LESS_THAN,
+            "10",
+            actions,
+            max_iterations=50,
         )
 
         assert isinstance(while_node, WhileLoopNode)

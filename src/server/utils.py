@@ -1,5 +1,4 @@
-"""
-Utility functions for the Keyboard Maestro MCP server.
+"""Utility functions for the Keyboard Maestro MCP server.
 
 Contains shared parsing functions, helper utilities, and common operations
 used across multiple server modules.
@@ -141,7 +140,7 @@ def parse_variable_records(applescript_output: str) -> list[dict[str, Any]]:
                             "name": current_record.get("varName", ""),
                             "scope": current_record.get("varScope", "unknown"),
                             "type": current_record.get("varType", "string"),
-                        }
+                        },
                     )
                 current_record = {}
 
@@ -154,7 +153,7 @@ def parse_variable_records(applescript_output: str) -> list[dict[str, Any]]:
                 "name": current_record.get("varName", ""),
                 "scope": current_record.get("varScope", "unknown"),
                 "type": current_record.get("varType", "string"),
-            }
+            },
         )
 
     return records
@@ -174,19 +173,24 @@ def sanitize_output(data: Any) -> Any:
         import re
 
         sanitized = re.sub(
-            r"<script[^>]*>.*?</script>", "", data, flags=re.IGNORECASE | re.DOTALL
+            r"<script[^>]*>.*?</script>",
+            "",
+            data,
+            flags=re.IGNORECASE | re.DOTALL,
         )
         sanitized = re.sub(
-            r"<img[^>]*onerror[^>]*>", "", sanitized, flags=re.IGNORECASE
+            r"<img[^>]*onerror[^>]*>",
+            "",
+            sanitized,
+            flags=re.IGNORECASE,
         )
         sanitized = re.sub(r"javascript:", "", sanitized, flags=re.IGNORECASE)
         return sanitized
-    elif isinstance(data, dict):
+    if isinstance(data, dict):
         return {key: sanitize_output(value) for key, value in data.items()}
-    elif isinstance(data, list):
+    if isinstance(data, list):
         return [sanitize_output(item) for item in data]
-    else:
-        return data
+    return data
 
 
 def validate_input_schema(data: dict, schema: dict) -> dict:
@@ -218,30 +222,30 @@ def validate_input_schema(data: dict, schema: dict) -> dict:
         if not isinstance(value, field_type):
             result["valid"] = False
             result["errors"].append(
-                f"Field '{field_name}' must be of type {field_type.__name__}"
+                f"Field '{field_name}' must be of type {field_type.__name__}",
             )
             continue
 
         # String length validation
-        if field_type == str and max_length and len(value) > max_length:
+        if field_type is str and max_length and len(value) > max_length:
             result["valid"] = False
             result["errors"].append(
-                f"Field '{field_name}' exceeds maximum length of {max_length}"
+                f"Field '{field_name}' exceeds maximum length of {max_length}",
             )
             continue
 
         # Numeric range validation
-        if field_type == int and min_value is not None and value < min_value:
+        if field_type is int and min_value is not None and value < min_value:
             result["valid"] = False
             result["errors"].append(
-                f"Field '{field_name}' is below minimum value of {min_value}"
+                f"Field '{field_name}' is below minimum value of {min_value}",
             )
             continue
 
-        if field_type == int and max_value is not None and value > max_value:
+        if field_type is int and max_value is not None and value > max_value:
             result["valid"] = False
             result["errors"].append(
-                f"Field '{field_name}' exceeds maximum value of {max_value}"
+                f"Field '{field_name}' exceeds maximum value of {max_value}",
             )
             continue
 

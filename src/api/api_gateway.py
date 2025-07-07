@@ -1,5 +1,4 @@
-"""
-API Gateway - TASK_64 Phase 2 Core Orchestration Engine
+"""API Gateway - TASK_64 Phase 2 Core Orchestration Engine.
 
 API gateway functionality with routing, load balancing, and traffic management.
 Provides intelligent API routing with security, rate limiting, and performance optimization.
@@ -53,7 +52,7 @@ class AuthenticationType(Enum):
 
     NONE = "none"  # No authentication
     API_KEY = "api_key"  # API key authentication
-    BEARER_TOKEN = "bearer_token"  # Bearer token
+    BEARER_TOKEN = "bearer_token"  # noqa: S105 - This is a type identifier, not a password
     BASIC_AUTH = "basic_auth"  # Basic authentication
     OAUTH2 = "oauth2"  # OAuth 2.0
     JWT = "jwt"  # JSON Web Token
@@ -216,23 +215,23 @@ class LoadBalancer:
 
         if self.config.strategy == LoadBalancingStrategy.ROUND_ROBIN:
             return self._round_robin_selection(healthy_targets)
-        elif self.config.strategy == LoadBalancingStrategy.WEIGHTED_ROUND_ROBIN:
+        if self.config.strategy == LoadBalancingStrategy.WEIGHTED_ROUND_ROBIN:
             return self._weighted_round_robin_selection(healthy_targets)
-        elif self.config.strategy == LoadBalancingStrategy.LEAST_CONNECTIONS:
+        if self.config.strategy == LoadBalancingStrategy.LEAST_CONNECTIONS:
             return self._least_connections_selection(healthy_targets)
-        elif self.config.strategy == LoadBalancingStrategy.LEAST_RESPONSE_TIME:
+        if self.config.strategy == LoadBalancingStrategy.LEAST_RESPONSE_TIME:
             return self._least_response_time_selection(healthy_targets)
-        elif self.config.strategy == LoadBalancingStrategy.CONSISTENT_HASH:
+        if self.config.strategy == LoadBalancingStrategy.CONSISTENT_HASH:
             return self._consistent_hash_selection(healthy_targets, request)
-        elif self.config.strategy == LoadBalancingStrategy.RANDOM:
+        if self.config.strategy == LoadBalancingStrategy.RANDOM:
             return self._random_selection(healthy_targets)
-        elif self.config.strategy == LoadBalancingStrategy.HEALTH_BASED:
+        if self.config.strategy == LoadBalancingStrategy.HEALTH_BASED:
             return self._health_based_selection(healthy_targets)
-        else:
-            return healthy_targets[0]  # Default to first healthy target
+        return healthy_targets[0]  # Default to first healthy target
 
     def _round_robin_selection(
-        self, targets: list[LoadBalancerTarget]
+        self,
+        targets: list[LoadBalancerTarget],
     ) -> LoadBalancerTarget:
         """Round robin target selection."""
         target = targets[self.current_index % len(targets)]
@@ -240,7 +239,8 @@ class LoadBalancer:
         return target
 
     def _weighted_round_robin_selection(
-        self, targets: list[LoadBalancerTarget]
+        self,
+        targets: list[LoadBalancerTarget],
     ) -> LoadBalancerTarget:
         """Weighted round robin selection."""
         total_weight = sum(t.weight for t in targets)
@@ -260,41 +260,49 @@ class LoadBalancer:
         return targets[-1]  # Fallback
 
     def _least_connections_selection(
-        self, targets: list[LoadBalancerTarget]
+        self,
+        targets: list[LoadBalancerTarget],
     ) -> LoadBalancerTarget:
         """Least connections selection."""
         return min(targets, key=lambda t: t.current_connections)
 
     def _least_response_time_selection(
-        self, targets: list[LoadBalancerTarget]
+        self,
+        targets: list[LoadBalancerTarget],
     ) -> LoadBalancerTarget:
         """Least response time selection."""
         return min(targets, key=lambda t: t.response_time_ms)
 
     def _consistent_hash_selection(
-        self, targets: list[LoadBalancerTarget], request: GatewayRequest
+        self,
+        targets: list[LoadBalancerTarget],
+        request: GatewayRequest,
     ) -> LoadBalancerTarget:
         """Consistent hash selection based on client IP."""
         hash_input = f"{request.client_ip}:{request.path}"
-        hash_value = int(hashlib.md5(hash_input.encode()).hexdigest(), 16)
+        hash_value = int(hashlib.sha256(hash_input.encode()).hexdigest()[:8], 16)
         target_index = hash_value % len(targets)
         return targets[target_index]
 
     def _random_selection(
-        self, targets: list[LoadBalancerTarget]
+        self,
+        targets: list[LoadBalancerTarget],
     ) -> LoadBalancerTarget:
-        """Random target selection."""
-        import random
+        """Random target selection with cryptographic security."""
+        import secrets
 
-        return random.choice(targets)
+        secure_random = secrets.SystemRandom()
+        return secure_random.choice(targets)
 
     def _health_based_selection(
-        self, targets: list[LoadBalancerTarget]
+        self,
+        targets: list[LoadBalancerTarget],
     ) -> LoadBalancerTarget:
         """Health-based selection prioritizing healthiest targets."""
         # Sort by health status and response time
         sorted_targets = sorted(
-            targets, key=lambda t: (t.health_status.value, t.response_time_ms)
+            targets,
+            key=lambda t: (t.health_status.value, t.response_time_ms),
         )
         return sorted_targets[0]
 
@@ -323,14 +331,15 @@ class APIGateway:
 
     @require(lambda route: isinstance(route, GatewayRoute))
     def register_route(
-        self, route: GatewayRoute
+        self,
+        route: GatewayRoute,
     ) -> Either[APIOrchestrationError, bool]:
         """Register a new route in the gateway."""
         try:
             # Validate route configuration
             if route.route_id in self.routes:
                 return Either.error(
-                    APIOrchestrationError(f"Route {route.route_id} already exists")
+                    APIOrchestrationError(f"Route {route.route_id} already exists"),
                 )
 
             # Register route
@@ -341,7 +350,7 @@ class APIGateway:
                 lb_config = LoadBalancerConfig(
                     balancer_id=create_load_balancer_id(route.target_service_id),
                     strategy=LoadBalancingStrategy(
-                        route.load_balancer_config.get("strategy", "round_robin")
+                        route.load_balancer_config.get("strategy", "round_robin"),
                     ),
                     targets=route.load_balancer_config.get("targets", []),
                 )
@@ -351,22 +360,23 @@ class APIGateway:
 
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Route registration failed: {str(e)}")
+                APIOrchestrationError(f"Route registration failed: {e!s}"),
             )
 
     @require(lambda request: isinstance(request, GatewayRequest))
     @ensure(lambda result: result.is_success() or result.is_error())
     async def process_request(
-        self, request: GatewayRequest
+        self,
+        request: GatewayRequest,
     ) -> Either[APIOrchestrationError, GatewayResponse]:
-        """
-        Process incoming gateway request with routing and load balancing.
+        """Process incoming gateway request with routing and load balancing.
 
         Args:
             request: Incoming gateway request
 
         Returns:
             Either API orchestration error or gateway response
+
         """
         try:
             start_time = time.time()
@@ -463,7 +473,7 @@ class APIGateway:
         except Exception as e:
             self.metrics["failed_requests"] += 1
             return Either.error(
-                APIOrchestrationError(f"Request processing failed: {str(e)}")
+                APIOrchestrationError(f"Request processing failed: {e!s}"),
             )
 
     def _find_matching_route(self, request: GatewayRequest) -> GatewayRoute | None:
@@ -489,7 +499,9 @@ class APIGateway:
         return bool(pattern.endswith("/*") and request_path.startswith(pattern[:-2]))
 
     async def _authenticate_request(
-        self, request: GatewayRequest, route: GatewayRoute
+        self,
+        request: GatewayRequest,
+        route: GatewayRoute,
     ) -> bool:
         """Authenticate request based on route configuration."""
         if route.authentication == AuthenticationType.NONE:
@@ -498,10 +510,10 @@ class APIGateway:
         # Simple authentication check - in production would validate tokens/keys
         if route.authentication == AuthenticationType.API_KEY:
             return "X-API-Key" in request.headers
-        elif route.authentication == AuthenticationType.BEARER_TOKEN:
+        if route.authentication == AuthenticationType.BEARER_TOKEN:
             auth_header = request.headers.get("Authorization", "")
             return auth_header.startswith("Bearer ")
-        elif route.authentication == AuthenticationType.BASIC_AUTH:
+        if route.authentication == AuthenticationType.BASIC_AUTH:
             auth_header = request.headers.get("Authorization", "")
             return auth_header.startswith("Basic ")
 
@@ -537,7 +549,7 @@ class APIGateway:
                     method=RequestMethod.GET,
                     path=route.path_pattern,
                     headers={},
-                )
+                ),
             )
 
         # Default target (single service)
@@ -549,7 +561,9 @@ class APIGateway:
         )
 
     async def _transform_request(
-        self, request: GatewayRequest, route: GatewayRoute
+        self,
+        request: GatewayRequest,
+        route: GatewayRoute,
     ) -> GatewayRequest:
         """Transform request based on route transformation rules."""
         if not route.transformation_rules:
@@ -581,7 +595,10 @@ class APIGateway:
         )
 
     async def _forward_request(
-        self, request: GatewayRequest, target: LoadBalancerTarget, route: GatewayRoute
+        self,
+        request: GatewayRequest,
+        target: LoadBalancerTarget,
+        route: GatewayRoute,
     ) -> GatewayResponse:
         """Forward request to target service."""
         # Simulate request forwarding
@@ -598,7 +615,9 @@ class APIGateway:
         )
 
     async def _transform_response(
-        self, response: GatewayResponse, route: GatewayRoute
+        self,
+        response: GatewayResponse,
+        route: GatewayRoute,
     ) -> GatewayResponse:
         """Transform response based on route transformation rules."""
         if not route.transformation_rules:
@@ -610,7 +629,7 @@ class APIGateway:
         # Add response headers
         if "add_response_headers" in route.transformation_rules:
             transformed_headers.update(
-                route.transformation_rules["add_response_headers"]
+                route.transformation_rules["add_response_headers"],
             )
 
         return GatewayResponse(
@@ -635,15 +654,18 @@ class APIGateway:
             request.path,
             str(sorted(request.query_params.items())),
         ]
-        return hashlib.md5(":".join(key_parts).encode()).hexdigest()
+        return hashlib.sha256(":".join(key_parts).encode()).hexdigest()[:16]
 
     def _get_cached_response(self, cache_key: str) -> GatewayResponse | None:
         """Get cached response if available."""
         return self.request_cache.get(cache_key)
 
     def _cache_response(
-        self, cache_key: str, response: GatewayResponse, cache_config: dict[str, Any]
-    ):
+        self,
+        cache_key: str,
+        response: GatewayResponse,
+        cache_config: dict[str, Any],
+    ) -> Any:
         """Cache response based on configuration."""
         cache_config.get("ttl_seconds", 300)  # 5 minutes default
 
@@ -672,13 +694,13 @@ class APIGateway:
 # Export the API gateway class
 __all__ = [
     "APIGateway",
-    "GatewayRoute",
+    "AuthenticationType",
     "GatewayRequest",
     "GatewayResponse",
+    "GatewayRoute",
     "LoadBalancer",
     "LoadBalancerTarget",
     "RateLimitBucket",
-    "RequestMethod",
-    "AuthenticationType",
     "RateLimitWindow",
+    "RequestMethod",
 ]

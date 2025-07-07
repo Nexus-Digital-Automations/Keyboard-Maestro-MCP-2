@@ -1,5 +1,4 @@
-"""
-Comprehensive test coverage for high-impact server tools - TASK_69 Coverage Expansion.
+"""Comprehensive test coverage for high-impact server tools - TASK_69 Coverage Expansion.
 
 This module systematically tests the Foundation Tools (TASK_1-9), High-Impact Tools (TASK_10-20),
 and core MCP tool implementations to achieve near-100% test coverage as requested.
@@ -7,7 +6,9 @@ and core MCP tool implementations to achieve near-100% test coverage as requeste
 Targeting 0% coverage modules with comprehensive functional tests, not shortcuts.
 """
 
+import logging
 import uuid
+from typing import Any
 
 import pytest
 from src.core.errors import ExecutionError, ValidationError
@@ -23,12 +24,14 @@ from src.server.tools.core_tools import (
     km_variable_manager,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class TestFoundationTools:
     """Test Foundation Tools (TASK_1-9) - Core macro engine components."""
 
     @pytest.mark.asyncio
-    async def test_km_list_macros_basic_functionality(self):
+    async def test_km_list_macros_basic_functionality(self) -> None:
         """Test basic macro listing functionality."""
         macros = await km_list_macros()
 
@@ -36,7 +39,7 @@ class TestFoundationTools:
         assert isinstance(macros, list | dict)
 
     @pytest.mark.asyncio
-    async def test_km_execute_macro_security(self):
+    async def test_km_execute_macro_security(self) -> None:
         """Test macro execution with security validation."""
         # Test with valid UUID format
         test_uuid = str(uuid.uuid4())
@@ -51,7 +54,7 @@ class TestFoundationTools:
             assert isinstance(e, ValidationError | ExecutionError | Exception)
 
     @pytest.mark.asyncio
-    async def test_km_variable_manager_operations(self):
+    async def test_km_variable_manager_operations(self) -> None:
         """Test variable manager functionality."""
         # Test getting variables
         try:
@@ -66,7 +69,7 @@ class TestHighImpactTools:
     """Test High-Impact Tools (TASK_10-20) - Primary MCP tools."""
 
     @pytest.mark.asyncio
-    async def test_km_clipboard_manager_operations(self):
+    async def test_km_clipboard_manager_operations(self) -> None:
         """Test clipboard operations functionality."""
         # Test clipboard manager with basic operations
         try:
@@ -77,7 +80,7 @@ class TestHighImpactTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_calculator_operations(self):
+    async def test_km_calculator_operations(self) -> None:
         """Test calculator functionality with various expressions."""
         # Test basic arithmetic with calculate expression
         try:
@@ -104,7 +107,7 @@ class TestToolIntegration:
     """Test tool integration and cross-tool functionality."""
 
     @pytest.mark.asyncio
-    async def test_tool_error_handling(self):
+    async def test_tool_error_handling(self) -> None:
         """Test that all tools handle errors gracefully."""
         # Test with invalid parameters
         invalid_results = []
@@ -132,7 +135,7 @@ class TestToolIntegration:
         assert len(invalid_results) >= 3
 
     @pytest.mark.asyncio
-    async def test_tool_parameter_validation(self):
+    async def test_tool_parameter_validation(self) -> None:
         """Test parameter validation across tools."""
         # Test empty string parameters
         empty_results = []
@@ -154,23 +157,22 @@ class TestToolIntegration:
         assert len(empty_results) >= 2
 
     @pytest.mark.asyncio
-    async def test_tool_return_types(self):
+    async def test_tool_return_types(self) -> None:
         """Test that tools return expected data types."""
         # Test various tool return types
         try:
             macros = await km_list_macros()
             assert isinstance(macros, list | dict | str)
-        except Exception:
-            pass  # Tool may not work without KM connection
-
+        except (ValueError, TypeError) as e:
+            logger.debug(f"Type conversion failed during operation: {e}")
         try:
             calc_result = await km_calculate_expression("1 + 1")
             assert isinstance(calc_result, int | float | str | dict)
-        except Exception:
-            pass  # Tool may not work in test environment
+        except Exception as e:
+            logger.debug(f"Operation failed during operation: {e}")
 
     @pytest.mark.asyncio
-    async def test_tool_async_compatibility(self):
+    async def test_tool_async_compatibility(self) -> None:
         """Test tools work in async contexts."""
         # Tools should work in async contexts
         results = []
@@ -195,7 +197,7 @@ class TestToolPerformance:
     """Test tool performance and efficiency."""
 
     @pytest.mark.asyncio
-    async def test_tool_response_times(self):
+    async def test_tool_response_times(self) -> None:
         """Test that tools respond within reasonable time limits."""
         import time
 
@@ -220,7 +222,7 @@ class TestToolPerformance:
             assert time2 < 5.0
 
     @pytest.mark.asyncio
-    async def test_tool_memory_efficiency(self):
+    async def test_tool_memory_efficiency(self) -> None:
         """Test tools don't consume excessive memory."""
         import gc
 
@@ -233,9 +235,8 @@ class TestToolPerformance:
                 await km_list_macros()
                 await km_calculate_expression(f"{i} + {i}")
                 await km_clipboard_manager("get", content="test")
-            except Exception:
-                pass  # Continue testing even if tools fail
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Should complete without memory issues
         gc.collect()
         assert True  # If we reach here, no memory issues occurred

@@ -1,5 +1,4 @@
-"""
-Comprehensive Command Module Tests - Coverage Expansion
+"""Comprehensive Command Module Tests - Coverage Expansion.
 
 Tests for command modules including base commands, validation, registry, and specific command types.
 Focuses on achieving high coverage for core command infrastructure.
@@ -26,8 +25,7 @@ try:
     from src.commands.text import TextCommand
     from src.commands.validation import CommandValidator, ValidationResult
     from src.core.either import Either
-    from src.core.errors import ValidationError
-    from src.core.types import CommandId, MacroId
+    # F401 fix: Removed unused imports ValidationError, CommandId, MacroId
 
     COMMANDS_AVAILABLE = True
 except ImportError:
@@ -52,7 +50,7 @@ except ImportError:
 class TestBaseCommand:
     """Test base command functionality."""
 
-    def test_base_command_creation(self):
+    def test_base_command_creation(self) -> bool:
         """Test base command creation with valid parameters."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -61,7 +59,7 @@ class TestBaseCommand:
         assert command.command_id == "test_cmd"
         assert command.name == "Test Command"
 
-    def test_base_command_validation_required(self):
+    def test_base_command_validation_required(self) -> bool:
         """Test base command requires validation implementation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -74,7 +72,7 @@ class TestBaseCommand:
             cmd = InvalidCommand("invalid", "Invalid")
             cmd.validate({})
 
-    def test_base_command_execution_required(self):
+    def test_base_command_execution_required(self) -> bool:
         """Test base command requires execution implementation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -89,7 +87,7 @@ class TestBaseCommand:
             asyncio.run(cmd.execute({}))
 
     @pytest.mark.asyncio
-    async def test_complete_command_implementation(self):
+    async def test_complete_command_implementation(self) -> None:
         """Test complete command implementation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -114,7 +112,7 @@ class TestBaseCommand:
         assert result.success
         assert result.data["result"] == "test_value"
 
-    def test_command_error_handling(self):
+    def test_command_error_handling(self) -> None:
         """Test command error handling."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -123,7 +121,7 @@ class TestBaseCommand:
         assert str(error) == "Test error"
         assert error.error_code == "TEST_ERROR"
 
-    def test_command_result_types(self):
+    def test_command_result_types(self) -> None:
         """Test command result types."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -144,7 +142,7 @@ class TestBaseCommand:
 class TestCommandValidator:
     """Test command validation functionality."""
 
-    def test_validator_creation(self):
+    def test_validator_creation(self) -> None:
         """Test command validator creation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -152,7 +150,7 @@ class TestCommandValidator:
         validator = CommandValidator()
         assert validator is not None
 
-    def test_parameter_validation(self):
+    def test_parameter_validation(self) -> None:
         """Test parameter validation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -167,7 +165,8 @@ class TestCommandValidator:
 
         # Valid parameters
         result = validator.validate_parameters(
-            {"required_param": "value", "optional_param": 42}, schema
+            {"required_param": "value", "optional_param": 42},
+            schema,
         )
         assert result.is_valid
 
@@ -176,7 +175,7 @@ class TestCommandValidator:
         assert not result.is_valid
         assert "required_param" in result.error_message
 
-    def test_type_validation(self):
+    def test_type_validation(self) -> None:
         """Test parameter type validation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -191,7 +190,8 @@ class TestCommandValidator:
 
         # Valid types
         result = validator.validate_parameters(
-            {"string_param": "test", "int_param": 42, "bool_param": True}, schema
+            {"string_param": "test", "int_param": 42, "bool_param": True},
+            schema,
         )
         assert result.is_valid
 
@@ -206,7 +206,7 @@ class TestCommandValidator:
         )
         assert not result.is_valid
 
-    def test_validation_result_structure(self):
+    def test_validation_result_structure(self) -> None:
         """Test validation result structure."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -223,10 +223,10 @@ class TestCommandValidator:
         assert invalid_result.error_message == "Validation failed"
 
     @given(
-        st.dictionaries(st.text(), st.one_of(st.text(), st.integers(), st.booleans()))
+        st.dictionaries(st.text(), st.one_of(st.text(), st.integers(), st.booleans())),
     )
     @settings(max_examples=20)
-    def test_validation_property_based(self, parameters):
+    def test_validation_property_based(self, parameters) -> None:
         """Property-based test for validation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -248,7 +248,7 @@ class TestCommandValidator:
 class TestCommandRegistry:
     """Test command registry functionality."""
 
-    def test_registry_creation(self):
+    def test_registry_creation(self) -> bool:
         """Test command registry creation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -257,7 +257,7 @@ class TestCommandRegistry:
         assert registry is not None
         assert len(registry.list_commands()) == 0
 
-    def test_command_registration(self):
+    def test_command_registration(self) -> bool:
         """Test command registration."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -281,7 +281,7 @@ class TestCommandRegistry:
         assert len(registry.list_commands()) == 1
         assert registry.get_command("test") == command
 
-    def test_command_registration_duplicate_prevention(self):
+    def test_command_registration_duplicate_prevention(self) -> bool:
         """Test prevention of duplicate command registration."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -303,11 +303,12 @@ class TestCommandRegistry:
 
         # Attempt to register duplicate
         with pytest.raises(
-            ValueError, match="Command with ID 'test' already registered"
+            ValueError,
+            match="Command with ID 'test' already registered",
         ):
             registry.register_command(command2)
 
-    def test_command_unregistration(self):
+    def test_command_unregistration(self) -> bool:
         """Test command unregistration."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -331,7 +332,7 @@ class TestCommandRegistry:
         assert len(registry.list_commands()) == 0
         assert registry.get_command("test") is None
 
-    def test_command_categories(self):
+    def test_command_categories(self) -> bool:
         """Test command categorization."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -365,7 +366,7 @@ class TestCommandRegistry:
 class TestTextCommand:
     """Test text command functionality."""
 
-    def test_text_command_creation(self):
+    def test_text_command_creation(self) -> None:
         """Test text command creation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -374,7 +375,7 @@ class TestTextCommand:
         assert text_cmd.command_id == "insert_text"
         assert text_cmd.name == "Insert Text"
 
-    def test_text_command_validation(self):
+    def test_text_command_validation(self) -> None:
         """Test text command validation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -391,7 +392,7 @@ class TestTextCommand:
         assert "text" in result.error_message
 
     @pytest.mark.asyncio
-    async def test_text_command_execution(self):
+    async def test_text_command_execution(self) -> None:
         """Test text command execution."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -405,7 +406,7 @@ class TestTextCommand:
             assert result.success
             mock_insert.assert_called_once_with("Hello World")
 
-    def test_text_command_special_characters(self):
+    def test_text_command_special_characters(self) -> None:
         """Test text command with special characters."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -422,7 +423,7 @@ class TestTextCommand:
 class TestSystemCommand:
     """Test system command functionality."""
 
-    def test_system_command_creation(self):
+    def test_system_command_creation(self) -> None:
         """Test system command creation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -431,7 +432,7 @@ class TestSystemCommand:
         assert sys_cmd.command_id == "execute_script"
         assert sys_cmd.name == "Execute Script"
 
-    def test_system_command_validation(self):
+    def test_system_command_validation(self) -> None:
         """Test system command validation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -447,7 +448,7 @@ class TestSystemCommand:
         assert not result.is_valid
 
     @pytest.mark.asyncio
-    async def test_system_command_execution(self):
+    async def test_system_command_execution(self) -> None:
         """Test system command execution."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -461,7 +462,7 @@ class TestSystemCommand:
             assert result.success
             assert result.data["output"] == "Hello"
 
-    def test_system_command_security_validation(self):
+    def test_system_command_security_validation(self) -> None:
         """Test system command security validation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -485,7 +486,7 @@ class TestSystemCommand:
 class TestApplicationCommand:
     """Test application command functionality."""
 
-    def test_application_command_creation(self):
+    def test_application_command_creation(self) -> None:
         """Test application command creation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -494,7 +495,7 @@ class TestApplicationCommand:
         assert app_cmd.command_id == "activate_app"
         assert app_cmd.name == "Activate Application"
 
-    def test_application_command_validation(self):
+    def test_application_command_validation(self) -> None:
         """Test application command validation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -510,7 +511,7 @@ class TestApplicationCommand:
         assert not result.is_valid
 
     @pytest.mark.asyncio
-    async def test_application_command_execution(self):
+    async def test_application_command_execution(self) -> None:
         """Test application command execution."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -528,7 +529,7 @@ class TestApplicationCommand:
 class TestFlowCommand:
     """Test flow command functionality."""
 
-    def test_flow_command_creation(self):
+    def test_flow_command_creation(self) -> None:
         """Test flow command creation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -537,7 +538,7 @@ class TestFlowCommand:
         assert flow_cmd.command_id == "if_condition"
         assert flow_cmd.name == "If Condition"
 
-    def test_flow_command_validation(self):
+    def test_flow_command_validation(self) -> None:
         """Test flow command validation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -546,7 +547,10 @@ class TestFlowCommand:
 
         # Valid parameters
         result = flow_cmd.validate(
-            {"condition": "variable == 'value'", "then_actions": ["action1", "action2"]}
+            {
+                "condition": "variable == 'value'",
+                "then_actions": ["action1", "action2"],
+            },
         )
         assert result.is_valid
 
@@ -555,7 +559,7 @@ class TestFlowCommand:
         assert not result.is_valid
 
     @pytest.mark.asyncio
-    async def test_flow_command_execution(self):
+    async def test_flow_command_execution(self) -> None:
         """Test flow command execution."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -566,11 +570,14 @@ class TestFlowCommand:
             mock_evaluate.return_value = Either.right(True)
 
             result = await flow_cmd.execute(
-                {"condition": "variable == 'value'", "then_actions": ["action1"]}
+                {
+                    "condition": "variable == 'value'",
+                    "then_actions": ["action1"],
+                },
             )
             assert result.success
 
-    def test_flow_command_condition_parsing(self):
+    def test_flow_command_condition_parsing(self) -> None:
         """Test flow command condition parsing."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -587,7 +594,10 @@ class TestFlowCommand:
 
         for condition in conditions:
             result = flow_cmd.validate(
-                {"condition": condition, "then_actions": ["action1"]}
+                {
+                    "condition": condition,
+                    "then_actions": ["action1"],
+                },
             )
             assert result.is_valid
 
@@ -595,7 +605,7 @@ class TestFlowCommand:
 class TestCommandIntegration:
     """Test command integration scenarios."""
 
-    def test_command_chaining(self):
+    def test_command_chaining(self) -> bool:
         """Test command chaining functionality."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -613,7 +623,8 @@ class TestCommandIntegration:
 
             async def execute(self, parameters: dict[str, Any]) -> CommandResult:
                 return CommandResult(
-                    True, {self.output_key: f"result_{self.command_id}"}
+                    True,
+                    {self.output_key: f"result_{self.command_id}"},
                 )
 
         # Register commands
@@ -629,7 +640,7 @@ class TestCommandIntegration:
         assert all(cmd.command_id in ["cmd1", "cmd2"] for cmd in available_commands)
 
     @pytest.mark.asyncio
-    async def test_command_error_propagation(self):
+    async def test_command_error_propagation(self) -> None:
         """Test command error propagation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -649,7 +660,7 @@ class TestCommandIntegration:
         assert exc_info.value.error_code == "TEST_ERROR"
         assert "Intentional failure" in str(exc_info.value)
 
-    def test_command_metadata_preservation(self):
+    def test_command_metadata_preservation(self) -> bool:
         """Test command metadata preservation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -684,7 +695,7 @@ class TestCommandProperties:
 
     @given(st.text(min_size=1, max_size=50), st.text(min_size=1, max_size=100))
     @settings(max_examples=20)
-    def test_command_creation_properties(self, command_id, name):
+    def test_command_creation_properties(self, command_id, name) -> bool:
         """Test command creation properties."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -701,10 +712,10 @@ class TestCommandProperties:
         assert cmd.name == name
 
     @given(
-        st.dictionaries(st.text(), st.one_of(st.text(), st.integers(), st.booleans()))
+        st.dictionaries(st.text(), st.one_of(st.text(), st.integers(), st.booleans())),
     )
     @settings(max_examples=10)
-    def test_validation_result_properties(self, parameters):
+    def test_validation_result_properties(self, parameters) -> None:
         """Test validation result properties."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")

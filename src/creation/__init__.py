@@ -1,5 +1,4 @@
-"""
-Macro Creation Engine
+"""Macro Creation Engine.
 
 This module provides comprehensive macro creation capabilities for Keyboard Maestro,
 including template-based creation, security validation, and builder patterns.
@@ -16,13 +15,13 @@ from .templates import (
 )
 
 __all__ = [
+    "AppLauncherTemplate",
+    "FileProcessorTemplate",
+    "HotkeyActionTemplate",
     "MacroBuilder",
     "MacroCreationRequest",
     "MacroTemplate",
     "MacroTemplateGenerator",
-    "HotkeyActionTemplate",
-    "AppLauncherTemplate",
     "TextExpansionTemplate",
-    "FileProcessorTemplate",
     "WindowManagerTemplate",
 ]

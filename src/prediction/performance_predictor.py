@@ -1,5 +1,4 @@
-"""
-System performance forecasting and capacity planning with ML-powered predictions.
+"""System performance forecasting and capacity planning with ML-powered predictions.
 
 This module provides comprehensive performance prediction capabilities including
 resource forecasting, bottleneck prediction, and capacity planning recommendations.
@@ -97,10 +96,14 @@ class PerformancePredictor:
         self,
         metric_name: str,
         forecast_horizon: timedelta = timedelta(hours=24),
-        confidence_level: ConfidenceLevel = create_confidence_level(0.8),
+        confidence_level: ConfidenceLevel | None = None,
     ) -> Either[PerformancePredictionError, PerformanceForecast]:
         """Generate performance forecast for a specific metric."""
         try:
+            # B008 fix: Move function call from default argument to function body
+            if confidence_level is None:
+                confidence_level = create_confidence_level(0.8)
+
             # Check cache first
             cache_key = (
                 f"{metric_name}_{forecast_horizon.total_seconds()}_{confidence_level}"
@@ -113,12 +116,15 @@ class PerformancePredictor:
             performance_data = await self._collect_performance_data(metric_name)
             if len(performance_data) < 10:  # Minimum data points for forecasting
                 return Either.left(
-                    PerformancePredictionError.insufficient_data(metric_name)
+                    PerformancePredictionError.insufficient_data(metric_name),
                 )
 
             # Generate forecast using ML model
             forecast_result = await self._generate_ml_forecast(
-                metric_name, performance_data, forecast_horizon, confidence_level
+                metric_name,
+                performance_data,
+                forecast_horizon,
+                confidence_level,
             )
 
             if forecast_result.is_left():
@@ -139,7 +145,8 @@ class PerformancePredictor:
             return Either.left(PerformancePredictionError.prediction_failed(str(e)))
 
     async def _collect_performance_data(
-        self, metric_name: str
+        self,
+        metric_name: str,
     ) -> list[tuple[datetime, float]]:
         """Collect performance data for the specified metric."""
         try:
@@ -168,29 +175,32 @@ class PerformancePredictor:
 
         except Exception as e:
             self.logger.error(
-                f"Failed to collect performance data for {metric_name}: {e}"
+                f"Failed to collect performance data for {metric_name}: {e}",
             )
             return []
 
     def _extract_metric_value(
-        self, metrics: PerformanceMetrics, metric_name: str
+        self,
+        metrics: PerformanceMetrics,
+        metric_name: str,
     ) -> float | None:
         """Extract specific metric value from performance metrics."""
         if metric_name == "response_time":
             return metrics.response_time
-        elif metric_name == "throughput":
+        if metric_name == "throughput":
             return metrics.throughput
-        elif metric_name == "error_rate":
+        if metric_name == "error_rate":
             return metrics.error_rate
-        elif metric_name == "health_score":
+        if metric_name == "health_score":
             return metrics.health_score
-        elif metric_name in metrics.resource_usage:
+        if metric_name in metrics.resource_usage:
             return metrics.resource_usage[metric_name]
-        else:
-            return None
+        return None
 
     def _generate_synthetic_data(
-        self, metric_name: str, count: int
+        self,
+        metric_name: str,
+        count: int,
     ) -> list[tuple[datetime, float]]:
         """Generate synthetic historical data for testing and bootstrapping."""
         import math
@@ -203,28 +213,28 @@ class PerformancePredictor:
         if metric_name == "response_time":
             base_value = 250.0  # milliseconds
 
-            def daily_pattern(hour):
+            def daily_pattern(hour) -> None:
                 return 1.0 + 0.3 * math.sin(2 * math.pi * hour / 24)
 
             noise_factor = 0.2
         elif metric_name == "throughput":
             base_value = 50.0  # requests per second
 
-            def daily_pattern(hour):
+            def daily_pattern(hour) -> None:
                 return 1.0 + 0.4 * math.sin(2 * math.pi * (hour - 6) / 24)
 
             noise_factor = 0.3
         elif metric_name == "error_rate":
             base_value = 0.02  # 2% error rate
 
-            def daily_pattern(hour):
+            def daily_pattern(hour) -> None:
                 return 1.0 + 0.1 * math.sin(2 * math.pi * hour / 24)
 
             noise_factor = 0.5
         elif metric_name == "health_score":
             base_value = 85.0  # Health score out of 100
 
-            def daily_pattern(hour):
+            def daily_pattern(hour) -> None:
                 return 1.0 + 0.1 * math.sin(2 * math.pi * (hour - 12) / 24)
 
             noise_factor = 0.1
@@ -232,7 +242,7 @@ class PerformancePredictor:
             # Generic CPU/memory usage
             base_value = 0.6  # 60% utilization
 
-            def daily_pattern(hour):
+            def daily_pattern(hour) -> None:
                 return 1.0 + 0.2 * math.sin(2 * math.pi * hour / 24)
 
             noise_factor = 0.2
@@ -243,7 +253,7 @@ class PerformancePredictor:
 
             # Apply daily pattern and noise
             pattern_multiplier = daily_pattern(hour)
-            noise = random.uniform(1 - noise_factor, 1 + noise_factor)
+            noise = random.uniform(1 - noise_factor, 1 + noise_factor)  # noqa: S311
             value = base_value * pattern_multiplier * noise
 
             # Ensure reasonable bounds
@@ -277,14 +287,15 @@ class PerformancePredictor:
 
             # Select best model for performance prediction
             model_result = self.model_manager.select_best_model(
-                PredictionType.PERFORMANCE, required_confidence=confidence_level
+                PredictionType.PERFORMANCE,
+                required_confidence=confidence_level,
             )
 
             if model_result.is_left():
                 return Either.left(
                     PerformancePredictionError.prediction_failed(
-                        "No suitable model found"
-                    )
+                        "No suitable model found",
+                    ),
                 )
 
             model = model_result.right()
@@ -315,7 +326,9 @@ class PerformancePredictor:
 
             if prediction_result.is_left():
                 return Either.left(
-                    PerformancePredictionError.prediction_failed("ML prediction failed")
+                    PerformancePredictionError.prediction_failed(
+                        "ML prediction failed"
+                    ),
                 )
 
             prediction_data = prediction_result.right()
@@ -343,7 +356,6 @@ class PerformancePredictor:
         model_id: str,
     ) -> PerformanceForecast:
         """Process ML prediction results into forecast format."""
-
         current_value = historical_data[-1][1] if historical_data else 0.0
         confidence = prediction_data.get("confidence", 0.75)
 
@@ -362,13 +374,15 @@ class PerformancePredictor:
                     timestamp = datetime.fromisoformat(point["timestamp"])
                     value = point["predicted_value"]
                     point_confidence = create_confidence_level(
-                        point.get("confidence", confidence)
+                        point.get("confidence", confidence),
                     )
                     predicted_values.append((timestamp, value, point_confidence))
         else:
             # Generate forecast points based on trend analysis
             predicted_values = self._generate_forecast_points(
-                historical_data, forecast_horizon, confidence
+                historical_data,
+                forecast_horizon,
+                confidence,
             )
 
         # Determine trend
@@ -376,7 +390,7 @@ class PerformancePredictor:
             recent_values = [val for _, val in historical_data[-10:]]
             if len(recent_values) >= 2:
                 trend_slope = (recent_values[-1] - recent_values[0]) / len(
-                    recent_values
+                    recent_values,
                 )
                 if abs(trend_slope) < current_value * 0.05:  # Less than 5% change
                     trend = "stable"
@@ -411,7 +425,10 @@ class PerformancePredictor:
 
         # Generate recommendation
         recommendation = self._generate_performance_recommendation(
-            metric_name, current_value, trend, confidence
+            metric_name,
+            current_value,
+            trend,
+            confidence,
         )
 
         forecast = PerformanceForecast(
@@ -436,7 +453,6 @@ class PerformancePredictor:
         base_confidence: float,
     ) -> list[tuple[datetime, float, ConfidenceLevel]]:
         """Generate forecast points using trend analysis."""
-
         if len(historical_data) < 2:
             return []
 
@@ -476,59 +492,58 @@ class PerformancePredictor:
                     future_timestamp,
                     max(0, predicted_value),  # Ensure non-negative
                     create_confidence_level(confidence),
-                )
+                ),
             )
 
         return forecast_points
 
     def _generate_performance_recommendation(
-        self, metric_name: str, current_value: float, trend: str, confidence: float
+        self,
+        metric_name: str,
+        current_value: float,
+        trend: str,
+        confidence: float,
     ) -> str:
         """Generate performance recommendation based on forecast."""
-
         if metric_name == "response_time":
             if current_value > 1000:  # > 1 second
                 return "Consider optimizing response time through caching or async processing"
-            elif trend == "increasing":
+            if trend == "increasing":
                 return "Monitor response time trend - consider proactive optimization"
-            else:
-                return "Response time within acceptable range"
+            return "Response time within acceptable range"
 
-        elif metric_name == "throughput":
+        if metric_name == "throughput":
             if current_value < 10:  # Low throughput
                 return "Consider scaling resources or optimizing bottlenecks"
-            elif trend == "decreasing":
+            if trend == "decreasing":
                 return "Investigate throughput decline - check for bottlenecks"
-            else:
-                return "Throughput performance is satisfactory"
+            return "Throughput performance is satisfactory"
 
-        elif metric_name == "error_rate":
+        if metric_name == "error_rate":
             if current_value > 0.05:  # > 5% error rate
                 return "High error rate detected - implement better error handling"
-            elif trend == "increasing":
+            if trend == "increasing":
                 return "Error rate trending up - investigate root causes"
-            else:
-                return "Error rate within acceptable limits"
+            return "Error rate within acceptable limits"
 
-        elif metric_name == "health_score":
+        if metric_name == "health_score":
             if current_value < 70:
                 return "System health below optimal - investigate and address issues"
-            elif trend == "decreasing":
+            if trend == "decreasing":
                 return "Health score declining - proactive monitoring recommended"
-            else:
-                return "System health is good"
+            return "System health is good"
 
-        else:
-            # Generic resource metric
-            if current_value > 0.9:  # > 90% utilization
-                return f"High {metric_name} utilization - consider scaling resources"
-            elif trend == "increasing":
-                return f"{metric_name} trending up - monitor for capacity needs"
-            else:
-                return f"{metric_name} utilization within normal range"
+        # Generic resource metric
+        if current_value > 0.9:  # > 90% utilization
+            return f"High {metric_name} utilization - consider scaling resources"
+        if trend == "increasing":
+            return f"{metric_name} trending up - monitor for capacity needs"
+        return f"{metric_name} utilization within normal range"
 
     async def predict_resource_needs(
-        self, resource_type: str, planning_horizon: timedelta = timedelta(days=30)
+        self,
+        resource_type: str,
+        planning_horizon: timedelta = timedelta(days=30),
     ) -> Either[PerformancePredictionError, ResourcePrediction]:
         """Predict future resource needs and usage patterns."""
         try:
@@ -537,13 +552,14 @@ class PerformancePredictor:
 
             if len(usage_data) < 5:
                 return Either.left(
-                    PerformancePredictionError.insufficient_data(resource_type)
+                    PerformancePredictionError.insufficient_data(resource_type),
                 )
 
             # Generate resource usage forecast
             current_usage = usage_data[-1][1] if usage_data else 0.0
             predicted_usage = await self._predict_resource_usage(
-                usage_data, planning_horizon
+                usage_data,
+                planning_horizon,
             )
 
             # Determine capacity threshold (typically 80% for most resources)
@@ -551,17 +567,23 @@ class PerformancePredictor:
 
             # Predict when shortage might occur
             expected_shortage = self._predict_resource_shortage(
-                predicted_usage, capacity_threshold
+                predicted_usage,
+                capacity_threshold,
             )
 
             # Generate optimization opportunities
             optimization_opportunities = self._identify_resource_optimizations(
-                resource_type, current_usage, predicted_usage
+                resource_type,
+                current_usage,
+                predicted_usage,
             )
 
             # Generate scaling recommendation
             scaling_recommendation = self._generate_scaling_recommendation(
-                resource_type, current_usage, predicted_usage, expected_shortage
+                resource_type,
+                current_usage,
+                predicted_usage,
+                expected_shortage,
             )
 
             prediction = ResourcePrediction(
@@ -582,7 +604,8 @@ class PerformancePredictor:
             return Either.left(PerformancePredictionError.prediction_failed(str(e)))
 
     async def _collect_resource_usage_data(
-        self, resource_type: str
+        self,
+        resource_type: str,
     ) -> list[tuple[datetime, float]]:
         """Collect resource usage data."""
         try:
@@ -595,7 +618,8 @@ class PerformancePredictor:
 
                 if resource_type in pools:
                     current_utilization = pools[resource_type].get(
-                        "utilization_rate", 0.0
+                        "utilization_rate",
+                        0.0,
                     )
                     data_points.append((datetime.now(UTC), current_utilization))
 
@@ -603,7 +627,10 @@ class PerformancePredictor:
             for metrics in self.performance_history[-50:]:
                 if resource_type in metrics.resource_usage:
                     data_points.append(
-                        (metrics.timestamp, metrics.resource_usage[resource_type])
+                        (
+                            metrics.timestamp,
+                            metrics.resource_usage[resource_type],
+                        ),
                     )
 
             # Generate synthetic data if insufficient
@@ -614,15 +641,16 @@ class PerformancePredictor:
 
         except Exception as e:
             self.logger.error(
-                f"Failed to collect resource data for {resource_type}: {e}"
+                f"Failed to collect resource data for {resource_type}: {e}",
             )
             return self._generate_synthetic_data(resource_type, 20)
 
     async def _predict_resource_usage(
-        self, usage_data: list[tuple[datetime, float]], horizon: timedelta
+        self,
+        usage_data: list[tuple[datetime, float]],
+        horizon: timedelta,
     ) -> list[tuple[datetime, ResourceUtilization, ConfidenceLevel]]:
         """Predict future resource usage."""
-
         predicted_usage = []
 
         if len(usage_data) >= 2:
@@ -649,7 +677,7 @@ class PerformancePredictor:
                         future_timestamp,
                         create_resource_utilization(predicted_value),
                         create_confidence_level(confidence),
-                    )
+                    ),
                 )
 
         return predicted_usage
@@ -660,7 +688,6 @@ class PerformancePredictor:
         threshold: ResourceUtilization,
     ) -> datetime | None:
         """Predict when resource shortage might occur."""
-
         for timestamp, usage, confidence in predicted_usage:
             if usage >= threshold and confidence >= 0.6:
                 return timestamp
@@ -674,12 +701,11 @@ class PerformancePredictor:
         predicted_usage: list[tuple[datetime, ResourceUtilization, ConfidenceLevel]],
     ) -> list[str]:
         """Identify resource optimization opportunities."""
-
         optimizations = []
 
         if current_usage > 0.8:
             optimizations.append(
-                f"Current {resource_type} usage is high - consider immediate optimization"
+                f"Current {resource_type} usage is high - consider immediate optimization",
             )
 
         # Check for future high usage
@@ -691,7 +717,7 @@ class PerformancePredictor:
 
         if high_usage_periods:
             optimizations.append(
-                f"High {resource_type} usage predicted - plan capacity increases"
+                f"High {resource_type} usage predicted - plan capacity increases",
             )
 
         # Check for optimization opportunities
@@ -712,21 +738,18 @@ class PerformancePredictor:
         expected_shortage: datetime | None,
     ) -> str:
         """Generate scaling recommendation."""
-
         if expected_shortage:
             days_until_shortage = (expected_shortage - datetime.now(UTC)).days
             if days_until_shortage <= 7:
                 return f"Immediate {resource_type} scaling required - shortage predicted in {days_until_shortage} days"
-            elif days_until_shortage <= 30:
+            if days_until_shortage <= 30:
                 return f"Plan {resource_type} scaling within {days_until_shortage} days"
-            else:
-                return f"Monitor {resource_type} usage - scaling needed in ~{days_until_shortage} days"
+            return f"Monitor {resource_type} usage - scaling needed in ~{days_until_shortage} days"
 
-        elif current_usage > 0.8:
+        if current_usage > 0.8:
             return f"Consider proactive {resource_type} scaling"
 
-        else:
-            return f"Current {resource_type} capacity appears sufficient"
+        return f"Current {resource_type} capacity appears sufficient"
 
     def _get_cached_forecast(self, cache_key: str) -> PerformanceForecast | None:
         """Get cached forecast if still valid."""

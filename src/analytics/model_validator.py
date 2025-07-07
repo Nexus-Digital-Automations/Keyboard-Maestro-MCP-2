@@ -1,5 +1,4 @@
-"""
-Model Validator - TASK_59 Phase 5 Integration & Validation Implementation
+"""Model Validator - TASK_59 Phase 5 Integration & Validation Implementation.
 
 Comprehensive model validation and accuracy testing for predictive analytics models.
 Provides systematic validation, cross-validation, performance metrics, and accuracy assessment.
@@ -12,7 +11,7 @@ Security: Safe validation execution, validated test data, comprehensive audit lo
 from __future__ import annotations
 
 import math
-import random
+import secrets
 import statistics
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
@@ -192,7 +191,7 @@ class ValidationMetrics:
         for metric in [self.accuracy, self.precision, self.recall, self.f1_score]:
             if not (0.0 <= metric <= 1.0):
                 raise ValueError(
-                    f"Core metrics must be between 0.0 and 1.0, got {metric}"
+                    f"Core metrics must be between 0.0 and 1.0, got {metric}",
                 )
 
 
@@ -209,7 +208,7 @@ class ModelValidator:
         self._initialize_validation_templates()
         self._initialize_benchmark_models()
 
-    def _initialize_metric_calculators(self):
+    def _initialize_metric_calculators(self) -> None:
         """Initialize metric calculation functions."""
         self.metric_calculators = {
             ValidationMetric.MEAN_ABSOLUTE_ERROR: self._calculate_mae,
@@ -227,7 +226,7 @@ class ModelValidator:
             ValidationMetric.MODEL_CONFIDENCE: self._calculate_model_confidence,
         }
 
-    def _initialize_validation_templates(self):
+    def _initialize_validation_templates(self) -> None:
         """Initialize validation templates for different model types."""
         self.validation_templates[ModelType.REGRESSION] = ValidationConfiguration(
             config_id="regression_default",
@@ -268,7 +267,7 @@ class ModelValidator:
             )
         )
 
-    def _initialize_benchmark_models(self):
+    def _initialize_benchmark_models(self) -> None:
         """Initialize benchmark performance metrics."""
         self.benchmark_models[ModelType.REGRESSION] = {
             "mae": 10.0,
@@ -295,7 +294,7 @@ class ModelValidator:
     @require(lambda dataset: len(dataset.features) > 10)
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.left_value, ModelValidationError)
+        or isinstance(result.left_value, ModelValidationError),
     )
     async def validate_model(
         self,
@@ -319,43 +318,54 @@ class ModelValidator:
 
             for method in config.validation_methods:
                 result = await self._run_validation_method(
-                    method, config, dataset, model_predictor
+                    method,
+                    config,
+                    dataset,
+                    model_predictor,
                 )
                 if result:
                     individual_results.append(result)
 
             # Aggregate metrics across all validation runs
             aggregated_metrics = self._aggregate_validation_metrics(
-                individual_results, config.validation_metrics
+                individual_results,
+                config.validation_metrics,
             )
 
             # Perform cross-validation if enabled
             cross_validation_scores = {}
             if config.enable_cross_validation:
                 cross_validation_scores = await self._perform_cross_validation(
-                    config, dataset, model_predictor
+                    config,
+                    dataset,
+                    model_predictor,
                 )
 
             # Perform statistical significance tests
             statistical_significance = {}
             if config.enable_statistical_tests:
                 statistical_significance = await self._perform_statistical_tests(
-                    individual_results, config
+                    individual_results,
+                    config,
                 )
 
             # Analyze model stability
             stability_analysis = self._analyze_model_stability(
-                individual_results, config
+                individual_results,
+                config,
             )
 
             # Generate recommendations
             recommendations = self._generate_validation_recommendations(
-                aggregated_metrics, cross_validation_scores, config
+                aggregated_metrics,
+                cross_validation_scores,
+                config,
             )
 
             # Calculate overall score
             overall_score = self._calculate_overall_validation_score(
-                aggregated_metrics, config.model_type
+                aggregated_metrics,
+                config.model_type,
             )
 
             # Create validation report
@@ -387,14 +397,14 @@ class ModelValidator:
                     ],
                     "overall_score": overall_score,
                     "processing_time": processing_time,
-                }
+                },
             )
 
             return Either.right(report)
 
         except Exception as e:
             return Either.left(
-                ModelValidationError(f"Model validation failed: {str(e)}")
+                ModelValidationError(f"Model validation failed: {e!s}"),
             )
 
     async def _run_validation_method(
@@ -408,23 +418,28 @@ class ModelValidator:
         try:
             if method == ValidationMethod.HOLDOUT_VALIDATION:
                 return await self._holdout_validation(config, dataset, model_predictor)
-            elif method == ValidationMethod.K_FOLD_CROSS_VALIDATION:
+            if method == ValidationMethod.K_FOLD_CROSS_VALIDATION:
                 return await self._k_fold_validation(config, dataset, model_predictor)
-            elif method == ValidationMethod.TIME_SERIES_SPLIT:
+            if method == ValidationMethod.TIME_SERIES_SPLIT:
                 return await self._time_series_split_validation(
-                    config, dataset, model_predictor
+                    config,
+                    dataset,
+                    model_predictor,
                 )
-            elif method == ValidationMethod.BOOTSTRAP_VALIDATION:
+            if method == ValidationMethod.BOOTSTRAP_VALIDATION:
                 return await self._bootstrap_validation(
-                    config, dataset, model_predictor
+                    config,
+                    dataset,
+                    model_predictor,
                 )
-            elif method == ValidationMethod.WALK_FORWARD:
+            if method == ValidationMethod.WALK_FORWARD:
                 return await self._walk_forward_validation(
-                    config, dataset, model_predictor
+                    config,
+                    dataset,
+                    model_predictor,
                 )
-            else:
-                # Default to holdout validation
-                return await self._holdout_validation(config, dataset, model_predictor)
+            # Default to holdout validation
+            return await self._holdout_validation(config, dataset, model_predictor)
         except Exception:
             return None
 
@@ -440,10 +455,10 @@ class ModelValidator:
         n_test = int(n_samples * config.test_size)
         n_train = n_samples - n_test
 
-        # Use random state for reproducibility
-        random.seed(config.random_state)
+        # Use cryptographically secure random for enterprise security
+        secure_random = secrets.SystemRandom()
         indices = list(range(n_samples))
-        random.shuffle(indices)
+        secure_random.shuffle(indices)
 
         indices[:n_train]
         test_indices = indices[n_train:]
@@ -471,7 +486,8 @@ class ModelValidator:
 
         # Calculate confidence intervals
         confidence_intervals = self._calculate_confidence_intervals(
-            residuals, config.confidence_level
+            residuals,
+            config.confidence_level,
         )
 
         return ValidationResult(
@@ -504,9 +520,10 @@ class ModelValidator:
         all_actuals = []
         fold_metrics = defaultdict(list)
 
-        random.seed(config.random_state)
+        # Use cryptographically secure random for enterprise security
+        secure_random = secrets.SystemRandom()
         indices = list(range(n_samples))
-        random.shuffle(indices)
+        secure_random.shuffle(indices)
 
         for fold in range(config.k_folds):
             # Create fold split
@@ -547,7 +564,8 @@ class ModelValidator:
 
         # Calculate confidence intervals
         confidence_intervals = self._calculate_confidence_intervals(
-            residuals, config.confidence_level
+            residuals,
+            config.confidence_level,
         )
 
         return ValidationResult(
@@ -602,7 +620,8 @@ class ModelValidator:
 
         # Calculate confidence intervals
         confidence_intervals = self._calculate_confidence_intervals(
-            residuals, config.confidence_level
+            residuals,
+            config.confidence_level,
         )
 
         return ValidationResult(
@@ -635,12 +654,13 @@ class ModelValidator:
         all_actuals = []
         bootstrap_metrics = defaultdict(list)
 
-        random.seed(config.random_state)
+        # Use cryptographically secure random for enterprise security
+        secure_random = secrets.SystemRandom()
 
         for _ in range(n_bootstrap):
-            # Create bootstrap sample
+            # Create bootstrap sample with secure random
             bootstrap_indices = [
-                random.randint(0, n_samples - 1) for _ in range(n_samples)
+                secure_random.randint(0, n_samples - 1) for _ in range(n_samples)
             ]
             out_of_bag_indices = [
                 i for i in range(n_samples) if i not in bootstrap_indices
@@ -680,7 +700,8 @@ class ModelValidator:
 
         # Calculate confidence intervals
         confidence_intervals = self._calculate_confidence_intervals(
-            residuals, config.confidence_level
+            residuals,
+            config.confidence_level,
         )
 
         return ValidationResult(
@@ -742,7 +763,8 @@ class ModelValidator:
 
         # Calculate confidence intervals
         confidence_intervals = self._calculate_confidence_intervals(
-            residuals, config.confidence_level
+            residuals,
+            config.confidence_level,
         )
 
         return ValidationResult(
@@ -761,7 +783,9 @@ class ModelValidator:
         )
 
     def _aggregate_validation_metrics(
-        self, results: list[ValidationResult], metrics: list[ValidationMetric]
+        self,
+        results: list[ValidationResult],
+        metrics: list[ValidationMetric],
     ) -> dict[ValidationMetric, dict[str, float]]:
         """Aggregate metrics across validation results."""
         aggregated = {}
@@ -813,7 +837,9 @@ class ModelValidator:
                     )
 
                     result = await self._k_fold_validation(
-                        temp_config, dataset, model_predictor
+                        temp_config,
+                        dataset,
+                        model_predictor,
                     )
                     if result:
                         for metric, value in result.validation_metrics.items():
@@ -824,7 +850,9 @@ class ModelValidator:
         return cv_scores
 
     async def _perform_statistical_tests(
-        self, results: list[ValidationResult], config: ValidationConfiguration
+        self,
+        results: list[ValidationResult],
+        config: ValidationConfiguration,
     ) -> dict[str, Any]:
         """Perform statistical significance tests."""
         statistical_tests = {}
@@ -876,7 +904,9 @@ class ModelValidator:
         return statistical_tests
 
     def _analyze_model_stability(
-        self, results: list[ValidationResult], config: ValidationConfiguration
+        self,
+        results: list[ValidationResult],
+        config: ValidationConfiguration,
     ) -> dict[str, Any]:
         """Analyze model stability across validation runs."""
         stability_analysis = {}
@@ -919,7 +949,8 @@ class ModelValidator:
         self,
         aggregated_metrics: dict[ValidationMetric, dict[str, float]],
         cross_validation_scores: dict[
-            ValidationMethod, dict[ValidationMetric, list[float]]
+            ValidationMethod,
+            dict[ValidationMetric, list[float]],
         ],
         config: ValidationConfiguration,
     ) -> list[str]:
@@ -945,30 +976,29 @@ class ModelValidator:
                     # Higher is better for accuracy
                     if metric_value >= benchmark_value:
                         recommendations.append(
-                            f"EXCELLENT: {primary_metric.value} ({metric_value:.3f}) exceeds benchmark ({benchmark_value:.3f})"
+                            f"EXCELLENT: {primary_metric.value} ({metric_value:.3f}) exceeds benchmark ({benchmark_value:.3f})",
                         )
                     elif metric_value >= benchmark_value * 0.9:
                         recommendations.append(
-                            f"GOOD: {primary_metric.value} ({metric_value:.3f}) is close to benchmark ({benchmark_value:.3f})"
+                            f"GOOD: {primary_metric.value} ({metric_value:.3f}) is close to benchmark ({benchmark_value:.3f})",
                         )
                     else:
                         recommendations.append(
-                            f"NEEDS IMPROVEMENT: {primary_metric.value} ({metric_value:.3f}) is below benchmark ({benchmark_value:.3f})"
+                            f"NEEDS IMPROVEMENT: {primary_metric.value} ({metric_value:.3f}) is below benchmark ({benchmark_value:.3f})",
                         )
+                # Lower is better for error metrics
+                elif metric_value <= benchmark_value:
+                    recommendations.append(
+                        f"EXCELLENT: {primary_metric.value} ({metric_value:.3f}) is better than benchmark ({benchmark_value:.3f})",
+                    )
+                elif metric_value <= benchmark_value * 1.1:
+                    recommendations.append(
+                        f"GOOD: {primary_metric.value} ({metric_value:.3f}) is close to benchmark ({benchmark_value:.3f})",
+                    )
                 else:
-                    # Lower is better for error metrics
-                    if metric_value <= benchmark_value:
-                        recommendations.append(
-                            f"EXCELLENT: {primary_metric.value} ({metric_value:.3f}) is better than benchmark ({benchmark_value:.3f})"
-                        )
-                    elif metric_value <= benchmark_value * 1.1:
-                        recommendations.append(
-                            f"GOOD: {primary_metric.value} ({metric_value:.3f}) is close to benchmark ({benchmark_value:.3f})"
-                        )
-                    else:
-                        recommendations.append(
-                            f"NEEDS IMPROVEMENT: {primary_metric.value} ({metric_value:.3f}) exceeds benchmark ({benchmark_value:.3f})"
-                        )
+                    recommendations.append(
+                        f"NEEDS IMPROVEMENT: {primary_metric.value} ({metric_value:.3f}) exceeds benchmark ({benchmark_value:.3f})",
+                    )
 
         # Stability recommendations
         metric_stds = [metrics["std"] for metrics in aggregated_metrics.values()]
@@ -976,15 +1006,15 @@ class ModelValidator:
             avg_std = statistics.mean(metric_stds)
             if avg_std < 0.1:
                 recommendations.append(
-                    "STABLE: Model shows consistent performance across validation methods"
+                    "STABLE: Model shows consistent performance across validation methods",
                 )
             elif avg_std < 0.2:
                 recommendations.append(
-                    "MODERATELY STABLE: Some variation in performance across validation methods"
+                    "MODERATELY STABLE: Some variation in performance across validation methods",
                 )
             else:
                 recommendations.append(
-                    "UNSTABLE: High variation in performance - consider model refinement"
+                    "UNSTABLE: High variation in performance - consider model refinement",
                 )
 
         # Cross-validation recommendations
@@ -1000,23 +1030,23 @@ class ModelValidator:
 
                         if cv_coefficient < 0.05:
                             recommendations.append(
-                                f"ROBUST: {method.value} shows excellent consistency (CV: {cv_coefficient:.3f})"
+                                f"ROBUST: {method.value} shows excellent consistency (CV: {cv_coefficient:.3f})",
                             )
                         elif cv_coefficient > 0.2:
                             recommendations.append(
-                                f"VARIABLE: {method.value} shows high variability (CV: {cv_coefficient:.3f}) - investigate further"
+                                f"VARIABLE: {method.value} shows high variability (CV: {cv_coefficient:.3f}) - investigate further",
                             )
 
         # General recommendations
-        if config.model_type == ModelType.TIME_SERIES_FORECASTING:
-            if ValidationMetric.DIRECTIONAL_ACCURACY in aggregated_metrics:
-                dir_acc = aggregated_metrics[ValidationMetric.DIRECTIONAL_ACCURACY][
-                    "mean"
-                ]
-                if dir_acc < 0.6:
-                    recommendations.append(
-                        "DIRECTIONAL ACCURACY LOW: Model struggles with trend prediction"
-                    )
+        if (
+            config.model_type == ModelType.TIME_SERIES_FORECASTING
+            and ValidationMetric.DIRECTIONAL_ACCURACY in aggregated_metrics
+        ):
+            dir_acc = aggregated_metrics[ValidationMetric.DIRECTIONAL_ACCURACY]["mean"]
+            if dir_acc < 0.6:
+                recommendations.append(
+                    "DIRECTIONAL ACCURACY LOW: Model struggles with trend prediction",
+                )
 
         return recommendations
 
@@ -1080,7 +1110,8 @@ class ModelValidator:
                     # Assume reasonable range for normalization
                     max_acceptable_error = 100.0  # Adjust based on domain
                     normalized_score = 1.0 - min(
-                        1.0, metric_value / max_acceptable_error
+                        1.0,
+                        metric_value / max_acceptable_error,
                     )
 
                 scores.append(normalized_score * weight)
@@ -1088,7 +1119,9 @@ class ModelValidator:
         return sum(scores) if scores else 0.5
 
     def _calculate_confidence_intervals(
-        self, residuals: list[float], confidence_level: float
+        self,
+        residuals: list[float],
+        confidence_level: float,
     ) -> dict[str, tuple[float, float]]:
         """Calculate confidence intervals for residuals."""
         if len(residuals) < 2:
@@ -1138,7 +1171,9 @@ class ModelValidator:
         return math.sqrt(mse) if mse != float("inf") else float("inf")
 
     def _calculate_r_squared(
-        self, actuals: list[float], predictions: list[float]
+        self,
+        actuals: list[float],
+        predictions: list[float],
     ) -> float:
         """Calculate R-squared coefficient of determination."""
         if len(actuals) < 2:
@@ -1163,7 +1198,9 @@ class ModelValidator:
         return statistics.mean(percentage_errors) if percentage_errors else float("inf")
 
     def _calculate_accuracy(
-        self, actuals: list[float], predictions: list[float]
+        self,
+        actuals: list[float],
+        predictions: list[float],
     ) -> float:
         """Calculate classification accuracy."""
         if len(actuals) != len(predictions) or len(actuals) == 0:
@@ -1177,7 +1214,9 @@ class ModelValidator:
         return correct / len(actuals)
 
     def _calculate_precision(
-        self, actuals: list[float], predictions: list[float]
+        self,
+        actuals: list[float],
+        predictions: list[float],
     ) -> float:
         """Calculate precision for binary classification."""
         if len(actuals) != len(predictions) or len(actuals) == 0:
@@ -1193,7 +1232,9 @@ class ModelValidator:
         return true_positives / predicted_positives if predicted_positives > 0 else 0.0
 
     def _calculate_recall(
-        self, actuals: list[float], predictions: list[float]
+        self,
+        actuals: list[float],
+        predictions: list[float],
     ) -> float:
         """Calculate recall for binary classification."""
         if len(actuals) != len(predictions) or len(actuals) == 0:
@@ -1209,7 +1250,9 @@ class ModelValidator:
         return true_positives / actual_positives if actual_positives > 0 else 0.0
 
     def _calculate_f1_score(
-        self, actuals: list[float], predictions: list[float]
+        self,
+        actuals: list[float],
+        predictions: list[float],
     ) -> float:
         """Calculate F1 score."""
         precision = self._calculate_precision(actuals, predictions)
@@ -1222,7 +1265,9 @@ class ModelValidator:
         )
 
     def _calculate_directional_accuracy(
-        self, actuals: list[float], predictions: list[float]
+        self,
+        actuals: list[float],
+        predictions: list[float],
     ) -> float:
         """Calculate directional accuracy for time series."""
         if len(actuals) < 2 or len(predictions) < 2:
@@ -1242,7 +1287,9 @@ class ModelValidator:
         return correct_directions / total_directions if total_directions > 0 else 0.0
 
     def _calculate_forecast_bias(
-        self, actuals: list[float], predictions: list[float]
+        self,
+        actuals: list[float],
+        predictions: list[float],
     ) -> float:
         """Calculate forecast bias."""
         if len(actuals) != len(predictions) or len(actuals) == 0:
@@ -1252,7 +1299,9 @@ class ModelValidator:
         return statistics.mean(errors)
 
     def _calculate_prediction_stability(
-        self, actuals: list[float], predictions: list[float]
+        self,
+        actuals: list[float],
+        predictions: list[float],
     ) -> float:
         """Calculate prediction stability."""
         if len(predictions) < 2:
@@ -1279,7 +1328,9 @@ class ModelValidator:
         return max(0.0, min(1.0, stability))
 
     def _calculate_model_confidence(
-        self, actuals: list[float], predictions: list[float]
+        self,
+        actuals: list[float],
+        predictions: list[float],
     ) -> float:
         """Calculate model confidence based on prediction consistency."""
         if len(predictions) < 2:

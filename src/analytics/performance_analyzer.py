@@ -1,5 +1,4 @@
-"""
-Performance analysis engine for comprehensive automation insights.
+"""Performance analysis engine for comprehensive automation insights.
 
 Provides ML-powered performance analysis, trend detection, anomaly identification,
 and optimization recommendations across the complete 48-tool ecosystem.
@@ -66,13 +65,14 @@ class AnalysisResult:
     def __post_init__(self):
         if not (0 <= self.performance_score <= 100):
             raise ValidationError(
-                "performance_score", self.performance_score, "must be between 0 and 100"
+                "performance_score",
+                self.performance_score,
+                "must be between 0 and 100",
             )
 
 
 class PerformanceAnalyzer:
-    """
-    Advanced performance analysis engine with ML-powered insights.
+    """Advanced performance analysis engine with ML-powered insights.
 
     Provides comprehensive performance analysis, trend detection, anomaly identification,
     and optimization recommendations with enterprise-grade analytics capabilities.
@@ -83,10 +83,11 @@ class PerformanceAnalyzer:
         self.baselines: dict[MetricId, PerformanceBaseline] = {}
         self.analysis_cache: dict[str, AnalysisResult] = {}
         self.trend_history: dict[MetricId, deque] = defaultdict(
-            lambda: deque(maxlen=1000)
+            lambda: deque(maxlen=1000),
         )
         self.anomaly_threshold = self.config.get(
-            "anomaly_threshold", 2.5
+            "anomaly_threshold",
+            2.5,
         )  # Standard deviations
 
         # ML models for analysis
@@ -107,7 +108,7 @@ class PerformanceAnalyzer:
             "avg_analysis_time_ms": 0.0,
         }
 
-    @require(lambda self, metrics: len(metrics) > 0)
+    @require(lambda __self, metrics: len(metrics) > 0)
     @ensure(lambda result: isinstance(result, Either))
     async def analyze_performance(
         self,
@@ -126,7 +127,7 @@ class PerformanceAnalyzer:
 
             if not filtered_metrics:
                 return Either.left(
-                    ValidationError("No metrics found within specified time range")
+                    ValidationError("No metrics found within specified time range"),
                 )
 
             # Generate baselines if not exist
@@ -137,10 +138,12 @@ class PerformanceAnalyzer:
             trends = await self._analyze_trends(filtered_metrics)
             anomalies = await self._detect_anomalies(filtered_metrics)
             performance_score = await self._calculate_performance_score(
-                filtered_metrics
+                filtered_metrics,
             )
             recommendations = await self._generate_recommendations(
-                insights, trends, anomalies
+                insights,
+                trends,
+                anomalies,
             )
 
             # Create analysis result
@@ -180,7 +183,9 @@ class PerformanceAnalyzer:
             return Either.left(ValidationError(f"Analysis failed: {e}"))
 
     def _filter_metrics_by_time(
-        self, metrics: dict[MetricId, list[MetricValue]], time_range: timedelta | None
+        self,
+        metrics: dict[MetricId, list[MetricValue]],
+        time_range: timedelta | None,
     ) -> dict[MetricId, list[MetricValue]]:
         """Filter metrics by time range."""
         if not time_range:
@@ -204,7 +209,9 @@ class PerformanceAnalyzer:
                 self.baselines[metric_id] = baseline
 
     async def _calculate_baseline(
-        self, metric_id: MetricId, values: list[MetricValue]
+        self,
+        metric_id: MetricId,
+        values: list[MetricValue],
     ) -> PerformanceBaseline:
         """Calculate performance baseline from historical data."""
         numeric_values = []
@@ -239,7 +246,9 @@ class PerformanceAnalyzer:
         )
 
     async def _generate_ml_insights(
-        self, metrics: dict[MetricId, list[MetricValue]], scope: AnalyticsScope
+        self,
+        metrics: dict[MetricId, list[MetricValue]],
+        scope: AnalyticsScope,
     ) -> list[MLInsight]:
         """Generate ML-powered insights from metrics data."""
         insights = []
@@ -298,7 +307,8 @@ class PerformanceAnalyzer:
         return insights
 
     async def _detect_patterns(
-        self, metrics: dict[MetricId, list[MetricValue]]
+        self,
+        metrics: dict[MetricId, list[MetricValue]],
     ) -> list[dict[str, Any]]:
         """Detect performance patterns using ML algorithms."""
         patterns = []
@@ -334,7 +344,7 @@ class PerformanceAnalyzer:
                             "metric_id": metric_id,
                             "period": cyclical_pattern["period"],
                         },
-                    }
+                    },
                 )
 
             # Detect performance degradation
@@ -355,13 +365,15 @@ class PerformanceAnalyzer:
                             "metric_id": metric_id,
                             "degradation_rate": degradation["rate"],
                         },
-                    }
+                    },
                 )
 
         return patterns
 
     def _detect_cyclical_pattern(
-        self, timestamps: list[datetime], values: list[float]
+        self,
+        timestamps: list[datetime],
+        values: list[float],
     ) -> dict[str, Any] | None:
         """Detect cyclical patterns in time series data."""
         if len(values) < 24:  # Need at least 24 data points
@@ -431,7 +443,8 @@ class PerformanceAnalyzer:
         return None
 
     async def _identify_optimizations(
-        self, metrics: dict[MetricId, list[MetricValue]]
+        self,
+        metrics: dict[MetricId, list[MetricValue]],
     ) -> list[dict[str, Any]]:
         """Identify performance optimization opportunities."""
         optimizations = []
@@ -469,7 +482,7 @@ class PerformanceAnalyzer:
                                 "variance": variance,
                                 "mean": mean_val,
                             },
-                        }
+                        },
                     )
 
             # Check for resource utilization optimization
@@ -490,13 +503,14 @@ class PerformanceAnalyzer:
                                 "metric_id": metric_id,
                                 "utilization": mean_utilization,
                             },
-                        }
+                        },
                     )
 
         return optimizations
 
     async def _generate_predictions(
-        self, metrics: dict[MetricId, list[MetricValue]]
+        self,
+        metrics: dict[MetricId, list[MetricValue]],
     ) -> list[dict[str, Any]]:
         """Generate performance predictions."""
         predictions = []
@@ -539,7 +553,7 @@ class PerformanceAnalyzer:
                             "predicted_value": predicted_value,
                             "trend_slope": trend_slope,
                         },
-                    }
+                    },
                 )
 
         return predictions
@@ -562,7 +576,8 @@ class PerformanceAnalyzer:
         return numerator / denominator if denominator != 0 else 0.0
 
     async def _analyze_trends(
-        self, metrics: dict[MetricId, list[MetricValue]]
+        self,
+        metrics: dict[MetricId, list[MetricValue]],
     ) -> list[TrendAnalysis]:
         """Analyze trends in metrics data."""
         trends = []
@@ -629,13 +644,14 @@ class PerformanceAnalyzer:
                     "timestamp": datetime.now(UTC),
                     "direction": direction,
                     "magnitude": float(trend.magnitude),
-                }
+                },
             )
 
         return trends
 
     async def _detect_anomalies(
-        self, metrics: dict[MetricId, list[MetricValue]]
+        self,
+        metrics: dict[MetricId, list[MetricValue]],
     ) -> list[AnomalyDetection]:
         """Detect anomalies in metrics data."""
         anomalies = []
@@ -697,7 +713,8 @@ class PerformanceAnalyzer:
         return anomalies
 
     async def _calculate_performance_score(
-        self, metrics: dict[MetricId, list[MetricValue]]
+        self,
+        metrics: dict[MetricId, list[MetricValue]],
     ) -> Decimal:
         """Calculate overall performance score."""
         if not metrics:
@@ -718,7 +735,7 @@ class PerformanceAnalyzer:
 
                 if recent_values:
                     avg_recent = statistics.mean(
-                        [float(v.value) for v in recent_values]
+                        [float(v.value) for v in recent_values],
                     )
                     baseline_val = float(baseline.baseline_value)
 
@@ -726,7 +743,8 @@ class PerformanceAnalyzer:
                     if baseline_val != 0:
                         deviation = abs(avg_recent - baseline_val) / baseline_val
                         score = max(
-                            0, 100 - (deviation * 50)
+                            0,
+                            100 - (deviation * 50),
                         )  # Score decreases with deviation
                     else:
                         score = 100 if avg_recent == 0 else 50
@@ -755,16 +773,16 @@ class PerformanceAnalyzer:
             ]
             if critical_anomalies:
                 recommendations.append(
-                    "URGENT: Investigate critical performance anomalies immediately"
+                    "URGENT: Investigate critical performance anomalies immediately",
                 )
                 recommendations.append(
-                    "Consider implementing emergency rollback procedures"
+                    "Consider implementing emergency rollback procedures",
                 )
 
             high_anomalies = [a for a in anomalies if a.severity == AlertSeverity.HIGH]
             if high_anomalies:
                 recommendations.append(
-                    "Review recent changes that may have caused performance issues"
+                    "Review recent changes that may have caused performance issues",
                 )
 
         # Recommendations based on trends
@@ -774,24 +792,24 @@ class PerformanceAnalyzer:
                 and trend.magnitude > Decimal("0.5")
             ):
                 recommendations.append(
-                    f"Performance declining in {trend.metric_id} - implement improvement measures"
+                    f"Performance declining in {trend.metric_id} - implement improvement measures",
                 )
             elif trend.direction == TrendDirection.VOLATILE:
                 recommendations.append(
-                    f"High volatility in {trend.metric_id} - investigate consistency issues"
+                    f"High volatility in {trend.metric_id} - investigate consistency issues",
                 )
 
         # Recommendations based on insights
         for insight in insights:
             if insight.impact_level == "high":
                 recommendations.extend(
-                    insight.actionable_recommendations[:2]
+                    insight.actionable_recommendations[:2],
                 )  # Take top 2
 
         # General recommendations
         if len(anomalies) > 5:
             recommendations.append(
-                "Consider implementing automated alerting for performance issues"
+                "Consider implementing automated alerting for performance issues",
             )
 
         if not recommendations:
@@ -800,8 +818,11 @@ class PerformanceAnalyzer:
         return list(set(recommendations))  # Remove duplicates
 
     def _update_analysis_stats(
-        self, analysis_time_ms: float, insights_count: int, anomalies_count: int
-    ):
+        self,
+        analysis_time_ms: float,
+        insights_count: int,
+        anomalies_count: int,
+    ) -> Any:
         """Update analysis performance statistics."""
         self.analysis_stats["total_analyses"] += 1
         self.analysis_stats["insights_generated"] += insights_count

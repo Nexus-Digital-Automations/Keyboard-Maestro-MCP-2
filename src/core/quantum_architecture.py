@@ -1,5 +1,4 @@
-"""
-Quantum Architecture - TASK_68 Phase 1 Architecture & Design
+"""Quantum Architecture - TASK_68 Phase 1 Architecture & Design.
 
 Type-safe quantum computing types with post-quantum cryptography, quantum interface preparation,
 and future-proof security architecture for enterprise automation systems.
@@ -193,10 +192,10 @@ class PostQuantumMigrationPlan:
                     "phase": 1,
                     "description": "Critical asset migration",
                     "asset_count": len(
-                        [a for a in self.target_assets if self._is_critical_asset(a)]
+                        [a for a in self.target_assets if self._is_critical_asset(a)],
                     ),
                     "estimated_duration": self.estimated_duration * 0.3,
-                }
+                },
             )
 
             # Phase 2: Medium-priority assets
@@ -209,10 +208,10 @@ class PostQuantumMigrationPlan:
                             a
                             for a in self.target_assets
                             if self._is_medium_priority_asset(a)
-                        ]
+                        ],
                     ),
                     "estimated_duration": self.estimated_duration * 0.5,
-                }
+                },
             )
 
             # Phase 3: Low-priority assets
@@ -225,10 +224,10 @@ class PostQuantumMigrationPlan:
                             a
                             for a in self.target_assets
                             if self._is_low_priority_asset(a)
-                        ]
+                        ],
                     ),
                     "estimated_duration": self.estimated_duration * 0.2,
-                }
+                },
             )
 
         elif self.migration_strategy == "hybrid":
@@ -239,7 +238,7 @@ class PostQuantumMigrationPlan:
                     "description": "Hybrid classical-quantum deployment",
                     "asset_count": len(self.target_assets),
                     "estimated_duration": self.estimated_duration,
-                }
+                },
             )
 
         else:  # full_replacement
@@ -250,7 +249,7 @@ class PostQuantumMigrationPlan:
                     "description": "Complete post-quantum replacement",
                     "asset_count": len(self.target_assets),
                     "estimated_duration": self.estimated_duration,
-                }
+                },
             )
 
         return phases
@@ -286,7 +285,7 @@ class QuantumReadinessAssessment:
 
     @require(lambda self: 0.0 <= self.overall_readiness_score <= 1.0)
     @require(
-        lambda self: all(0.0 <= risk <= 1.0 for risk in self.risk_factors.values())
+        lambda self: all(0.0 <= risk <= 1.0 for risk in self.risk_factors.values()),
     )
     def __post_init__(self):
         pass
@@ -295,14 +294,13 @@ class QuantumReadinessAssessment:
         """Get categorical readiness level."""
         if self.overall_readiness_score >= 0.8:
             return "quantum_ready"
-        elif self.overall_readiness_score >= 0.6:
+        if self.overall_readiness_score >= 0.6:
             return "mostly_ready"
-        elif self.overall_readiness_score >= 0.4:
+        if self.overall_readiness_score >= 0.4:
             return "partially_ready"
-        elif self.overall_readiness_score >= 0.2:
+        if self.overall_readiness_score >= 0.2:
             return "minimal_readiness"
-        else:
-            return "not_ready"
+        return "not_ready"
 
     def get_critical_vulnerabilities(self) -> list[CryptographicAsset]:
         """Get assets with critical quantum vulnerabilities."""
@@ -319,13 +317,16 @@ class QuantumReadinessAssessment:
 
         return {
             "cryptographically_relevant_quantum_computer": max(
-                2030 - current_year, 1
+                2030 - current_year,
+                1,
             ),  # Conservative estimate
             "large_scale_quantum_attacks": max(
-                2035 - current_year, 2
+                2035 - current_year,
+                2,
             ),  # More conservative
             "quantum_supremacy_in_cryptography": max(
-                2040 - current_year, 5
+                2040 - current_year,
+                5,
             ),  # Long-term estimate
         }
 
@@ -349,13 +350,15 @@ class QuantumInterface:
     @require(lambda self: len(self.supported_operations) > 0)
     @require(lambda self: self.qubit_capacity is None or self.qubit_capacity > 0)
     @require(
-        lambda self: self.gate_fidelity is None or 0.0 <= self.gate_fidelity <= 1.0
+        lambda self: self.gate_fidelity is None or 0.0 <= self.gate_fidelity <= 1.0,
     )
     def __post_init__(self):
         pass
 
     def is_suitable_for_algorithm(
-        self, algorithm_type: str, required_qubits: int
+        self,
+        algorithm_type: str,
+        required_qubits: int,
     ) -> bool:
         """Check if interface is suitable for specific quantum algorithm."""
         if self.qubit_capacity and required_qubits > self.qubit_capacity:
@@ -392,7 +395,7 @@ class QuantumSimulationResult:
     @require(lambda self: 0.0 <= self.success_probability <= 1.0)
     @require(
         lambda self: self.fidelity_estimate is None
-        or 0.0 <= self.fidelity_estimate <= 1.0
+        or 0.0 <= self.fidelity_estimate <= 1.0,
     )
     def __post_init__(self):
         pass
@@ -447,14 +450,13 @@ class QuantumSecurityConfiguration:
         """Get overall cryptographic strength level."""
         if self.security_policy == QuantumSecurityPolicy.LEGACY:
             return CryptographicStrength.CLASSICAL_ONLY
-        elif self.security_policy == QuantumSecurityPolicy.HYBRID:
+        if self.security_policy == QuantumSecurityPolicy.HYBRID:
             return CryptographicStrength.QUANTUM_SAFE
-        elif self.security_policy == QuantumSecurityPolicy.POST_QUANTUM:
+        if self.security_policy == QuantumSecurityPolicy.POST_QUANTUM:
             return CryptographicStrength.QUANTUM_RESISTANT
-        elif self.security_policy == QuantumSecurityPolicy.QUANTUM_READY:
+        if self.security_policy == QuantumSecurityPolicy.QUANTUM_READY:
             return CryptographicStrength.QUANTUM_NATIVE
-        else:
-            return CryptographicStrength.CLASSICAL_ONLY
+        return CryptographicStrength.CLASSICAL_ONLY
 
 
 # Utility functions for quantum operations
@@ -474,7 +476,8 @@ def generate_circuit_id() -> QuantumCircuitId:
 
 
 def assess_algorithm_quantum_vulnerability(
-    algorithm: str, key_size: int
+    algorithm: str,
+    key_size: int,
 ) -> tuple[bool, QuantumThreatLevel]:
     """Assess quantum vulnerability of cryptographic algorithm."""
     vulnerable_algorithms = {
@@ -547,10 +550,10 @@ def calculate_migration_priority(asset: CryptographicAsset) -> int:
 
 
 def recommend_post_quantum_algorithm(
-    classical_algorithm: str, use_case: str
+    classical_algorithm: str,
+    use_case: str,
 ) -> PostQuantumAlgorithm | None:
     """Recommend appropriate post-quantum algorithm replacement."""
-
     use_case_lower = use_case.lower()
 
     # Check for encryption-related use cases
@@ -562,13 +565,12 @@ def recommend_post_quantum_algorithm(
         # Key Encapsulation Mechanisms
         if "high_security" in use_case_lower:
             return PostQuantumAlgorithm.KYBER_1024
-        elif "performance" in use_case_lower:
+        if "performance" in use_case_lower:
             return PostQuantumAlgorithm.KYBER_512
-        else:
-            return PostQuantumAlgorithm.KYBER_768
+        return PostQuantumAlgorithm.KYBER_768
 
     # Check for signature/authentication-related use cases
-    elif (
+    if (
         use_case_lower in ["signature", "authentication", "digital_signature"]
         or "authentication" in use_case_lower
         or "signing" in use_case_lower
@@ -578,15 +580,14 @@ def recommend_post_quantum_algorithm(
         # Digital Signatures
         if "performance" in use_case_lower:
             return PostQuantumAlgorithm.FALCON_512
-        elif "compatibility" in use_case_lower:
+        if "compatibility" in use_case_lower:
             return PostQuantumAlgorithm.DILITHIUM_2
-        elif "high_security" in use_case_lower:
+        if "high_security" in use_case_lower:
             return PostQuantumAlgorithm.DILITHIUM_5
-        else:
-            return PostQuantumAlgorithm.DILITHIUM_3
+        return PostQuantumAlgorithm.DILITHIUM_3
 
     # Check for hash/integrity use cases
-    elif (
+    if (
         use_case_lower in ["hash", "integrity", "long_term"]
         or "message_authentication" in use_case_lower
         or "hmac" in use_case_lower
@@ -598,7 +599,7 @@ def recommend_post_quantum_algorithm(
     if classical_algorithm.lower() in ["rsa", "ecdsa", "dsa"]:
         # Signature algorithms get signature recommendations
         return PostQuantumAlgorithm.DILITHIUM_3
-    elif classical_algorithm.lower() in ["aes", "des"]:
+    if classical_algorithm.lower() in ["aes", "des"]:
         # Symmetric algorithms get KEM recommendations
         return PostQuantumAlgorithm.KYBER_768
 

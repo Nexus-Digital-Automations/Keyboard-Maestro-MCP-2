@@ -1,5 +1,4 @@
-"""
-Functional Event System for Keyboard Maestro Integration
+"""Functional Event System for Keyboard Maestro Integration.
 
 Implements immutable event handling with functional composition patterns
 for processing Keyboard Maestro triggers and system events.
@@ -81,8 +80,8 @@ class KMEvent:
             priority=priority,
         )
 
-    @require(lambda self, transformer: callable(transformer))
-    @ensure(lambda self, transformer, result: isinstance(result, KMEvent))
+    @require(lambda __self, transformer: callable(transformer))
+    @ensure(lambda __self, transformer, result: isinstance(result, KMEvent))
     def transform(self, transformer: EventHandler) -> KMEvent:
         """Pure transformation of event data."""
         return transformer(self)
@@ -136,7 +135,10 @@ class EventProcessingResult:
 
     @classmethod
     def failure_result(
-        cls, error_message: str, duration_ms: float | None = None, **metadata
+        cls,
+        error_message: str,
+        duration_ms: float | None = None,
+        **metadata,
     ) -> EventProcessingResult:
         """Create failed processing result."""
         return cls(
@@ -165,7 +167,8 @@ def compose_event_handlers(*handlers: EventHandler) -> EventHandler:
 
 
 def create_payload_transformer(
-    key: str, transformer: Callable[[Any], Any]
+    key: str,
+    transformer: Callable[[Any], Any],
 ) -> EventHandler:
     """Create event handler that transforms a specific payload field."""
 
@@ -179,7 +182,8 @@ def create_payload_transformer(
 
 
 def create_conditional_handler(
-    condition: Callable[[KMEvent], bool], handler: EventHandler
+    condition: Callable[[KMEvent], bool],
+    handler: EventHandler,
 ) -> EventHandler:
     """Create event handler that only applies if condition is met."""
 
@@ -267,7 +271,9 @@ def normalize_trigger_data(event: KMEvent) -> KMEvent:
 def get_default_event_pipeline() -> EventHandler:
     """Get the default event processing pipeline."""
     return compose_event_handlers(
-        sanitize_event_payload, normalize_trigger_data, add_processing_timestamp
+        sanitize_event_payload,
+        normalize_trigger_data,
+        add_processing_timestamp,
     )
 
 

@@ -1,5 +1,4 @@
-"""
-Phase 23 Systematic Infrastructure & Advanced Component Testing for Keyboard Maestro MCP.
+"""Phase 23 Systematic Infrastructure & Advanced Component Testing for Keyboard Maestro MCP.
 
 This module targets systematic infrastructure systems and advanced component testing,
 focusing on advanced infrastructure management, enterprise service components, specialized tool categories,
@@ -7,18 +6,23 @@ advanced integration patterns, and remaining high-value components for systemati
 20%+ coverage milestone through comprehensive infrastructure testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_advanced_infrastructure_management_systems():
+def test_advanced_infrastructure_management_systems() -> None:
     """Test comprehensive coverage of advanced infrastructure management systems."""
-
     # Target advanced infrastructure management modules
     infrastructure_mgmt_modules = [
         ("infrastructure", "system_monitor"),  # Advanced system monitoring
@@ -78,9 +82,9 @@ def test_advanced_infrastructure_management_systems():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -90,9 +94,8 @@ def test_advanced_infrastructure_management_systems():
     )
 
 
-def test_enterprise_service_components():
+def test_enterprise_service_components() -> None:
     """Test comprehensive coverage of enterprise service components."""
-
     # Target enterprise service component modules
     enterprise_service_modules = [
         ("services", "service_bus"),  # Enterprise service bus
@@ -158,9 +161,9 @@ def test_enterprise_service_components():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -170,9 +173,8 @@ def test_enterprise_service_components():
     )
 
 
-def test_specialized_tool_categories_advanced():
+def test_specialized_tool_categories_advanced() -> None:
     """Test comprehensive coverage of specialized tool categories with advanced functionality."""
-
     # Target specialized tool category modules
     specialized_tool_modules = [
         ("tools", "quantum_processing"),  # Quantum processing tools
@@ -230,9 +232,9 @@ def test_specialized_tool_categories_advanced():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -242,9 +244,8 @@ def test_specialized_tool_categories_advanced():
     )
 
 
-def test_advanced_integration_patterns():
+def test_advanced_integration_patterns() -> None:
     """Test comprehensive coverage of advanced integration patterns."""
-
     # Target advanced integration pattern modules
     integration_pattern_modules = [
         ("integration", "api_gateway"),  # API gateway systems
@@ -304,9 +305,9 @@ def test_advanced_integration_patterns():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -316,9 +317,8 @@ def test_advanced_integration_patterns():
     )
 
 
-def test_remaining_high_value_components():
+def test_remaining_high_value_components() -> None:
     """Test comprehensive coverage of remaining high-value components."""
-
     # Target remaining high-value component modules
     high_value_modules = [
         ("plugins", "plugin_system"),  # Plugin system architecture
@@ -373,9 +373,9 @@ def test_remaining_high_value_components():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -385,9 +385,8 @@ def test_remaining_high_value_components():
     )
 
 
-def test_comprehensive_infrastructure_functionality_patterns():
+def test_comprehensive_infrastructure_functionality_patterns() -> None:
     """Test comprehensive functionality patterns across infrastructure domains."""
-
     # Test infrastructure functionality patterns
     infrastructure_functionality_data = {
         "infrastructure_management": {
@@ -515,7 +514,8 @@ def test_comprehensive_infrastructure_functionality_patterns():
         if op.get(
             "throughput",
             op.get(
-                "delivery_rate", op.get("processing_rate", op.get("completion_rate", 0))
+                "delivery_rate",
+                op.get("processing_rate", op.get("completion_rate", 0)),
             ),
         )
         > 0.99
@@ -549,7 +549,7 @@ def test_comprehensive_infrastructure_functionality_patterns():
     assert component_metrics["specialized_effectiveness"] > 0.99
 
 
-def test_advanced_infrastructure_async_functionality():
+def test_advanced_infrastructure_async_functionality() -> bool:
     """Test advanced async functionality for Phase 23 infrastructure modules."""
 
     @pytest.mark.asyncio
@@ -678,9 +678,8 @@ def test_advanced_infrastructure_async_functionality():
     assert result is True
 
 
-def test_strategic_infrastructure_coverage_optimization():
+def test_strategic_infrastructure_coverage_optimization() -> None:
     """Test strategic patterns for infrastructure coverage optimization in Phase 23."""
-
     # Test strategic infrastructure coverage optimization scenarios
     infrastructure_coverage_optimization = {
         "infrastructure_domain_targeting": {
@@ -841,9 +840,8 @@ def test_strategic_infrastructure_coverage_optimization():
     assert remaining_to_target < 0.82  # Should be making progress toward 95%
 
 
-def test_phase_23_completion_validation():
+def test_phase_23_completion_validation() -> None:
     """Test Phase 23 completion validation for infrastructure coverage optimization."""
-
     # Test Phase 23 completion validation scenarios
     phase_23_validation = {
         "completion_criteria": {

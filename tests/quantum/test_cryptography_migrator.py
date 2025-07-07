@@ -1,5 +1,4 @@
-"""
-Test Cryptography Migrator - Post-Quantum Migration System Testing
+"""Test Cryptography Migrator - Post-Quantum Migration System Testing.
 
 Comprehensive tests for post-quantum cryptography migration, algorithm analysis,
 and secure transition management for enterprise cryptographic assets.
@@ -9,6 +8,9 @@ Performance: <500ms test execution, comprehensive migration testing, security co
 Security: Post-quantum migration validation, secure key transition testing, rollback mechanism validation
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
 from datetime import timedelta
 from unittest.mock import patch
@@ -27,7 +29,7 @@ from src.quantum.cryptography_migrator import CryptographyMigrator
 class TestCryptographyMigrator:
     """Test cryptography migrator initialization and basic functionality."""
 
-    def test_migrator_initialization(self):
+    def test_migrator_initialization(self) -> None:
         """Test cryptography migrator proper initialization."""
         migrator = CryptographyMigrator()
 
@@ -39,7 +41,7 @@ class TestCryptographyMigrator:
         assert "successful_migrations" in migrator.migration_metrics
         assert migrator.migration_metrics["total_assets_analyzed"] == 0
 
-    def test_migrator_quantum_config(self):
+    def test_migrator_quantum_config(self) -> None:
         """Test migrator has valid quantum configuration."""
         migrator = CryptographyMigrator()
 
@@ -53,12 +55,14 @@ class TestQuantumReadinessAnalysis:
     """Test quantum readiness analysis functionality."""
 
     @pytest.mark.asyncio
-    async def test_analyze_quantum_readiness_system_scope(self):
+    async def test_analyze_quantum_readiness_system_scope(self) -> None:
         """Test quantum readiness analysis with system scope."""
         migrator = CryptographyMigrator()
 
         result = await migrator.analyze_quantum_readiness(
-            scope="system", include_vulnerabilities=True, deep_analysis=True
+            scope="system",
+            include_vulnerabilities=True,
+            deep_analysis=True,
         )
 
         assert result.is_success()
@@ -72,12 +76,14 @@ class TestQuantumReadinessAnalysis:
         assert len(assessment.migration_recommendations) > 0
 
     @pytest.mark.asyncio
-    async def test_analyze_quantum_readiness_application_scope(self):
+    async def test_analyze_quantum_readiness_application_scope(self) -> None:
         """Test quantum readiness analysis with application scope."""
         migrator = CryptographyMigrator()
 
         result = await migrator.analyze_quantum_readiness(
-            scope="application", include_vulnerabilities=True, deep_analysis=False
+            scope="application",
+            include_vulnerabilities=True,
+            deep_analysis=False,
         )
 
         assert result.is_success()
@@ -90,12 +96,14 @@ class TestQuantumReadinessAnalysis:
         )
 
     @pytest.mark.asyncio
-    async def test_analyze_quantum_readiness_cryptography_scope(self):
+    async def test_analyze_quantum_readiness_cryptography_scope(self) -> None:
         """Test quantum readiness analysis with cryptography scope."""
         migrator = CryptographyMigrator()
 
         result = await migrator.analyze_quantum_readiness(
-            scope="cryptography", include_vulnerabilities=True, deep_analysis=True
+            scope="cryptography",
+            include_vulnerabilities=True,
+            deep_analysis=True,
         )
 
         assert result.is_success()
@@ -111,12 +119,14 @@ class TestQuantumReadinessAnalysis:
         assert "cryptographically_relevant_quantum_computer" in timeline
 
     @pytest.mark.asyncio
-    async def test_analyze_quantum_readiness_protocols_scope(self):
+    async def test_analyze_quantum_readiness_protocols_scope(self) -> None:
         """Test quantum readiness analysis with protocols scope."""
         migrator = CryptographyMigrator()
 
         result = await migrator.analyze_quantum_readiness(
-            scope="protocols", include_vulnerabilities=True, deep_analysis=True
+            scope="protocols",
+            include_vulnerabilities=True,
+            deep_analysis=True,
         )
 
         assert result.is_success()
@@ -127,7 +137,7 @@ class TestQuantumReadinessAnalysis:
         assert isinstance(assessment.risk_factors, dict)
 
     @pytest.mark.asyncio
-    async def test_analyze_quantum_readiness_invalid_scope(self):
+    async def test_analyze_quantum_readiness_invalid_scope(self) -> None:
         """Test quantum readiness analysis with invalid scope."""
         migrator = CryptographyMigrator()
 
@@ -136,11 +146,12 @@ class TestQuantumReadinessAnalysis:
 
         with pytest.raises(ContractViolationError):
             await migrator.analyze_quantum_readiness(
-                scope="invalid_scope", include_vulnerabilities=True
+                scope="invalid_scope",
+                include_vulnerabilities=True,
             )
 
     @pytest.mark.asyncio
-    async def test_analyze_quantum_readiness_metrics_update(self):
+    async def test_analyze_quantum_readiness_metrics_update(self) -> None:
         """Test that analysis updates metrics correctly."""
         migrator = CryptographyMigrator()
 
@@ -148,7 +159,8 @@ class TestQuantumReadinessAnalysis:
         migrator.migration_metrics["vulnerable_assets_found"]
 
         result = await migrator.analyze_quantum_readiness(
-            scope="system", include_vulnerabilities=True
+            scope="system",
+            include_vulnerabilities=True,
         )
 
         assert result.is_success()
@@ -160,7 +172,7 @@ class TestMigrationPlanCreation:
     """Test migration plan creation functionality."""
 
     @pytest.mark.asyncio
-    async def test_create_migration_plan_basic(self):
+    async def test_create_migration_plan_basic(self) -> None:
         """Test basic migration plan creation."""
         migrator = CryptographyMigrator()
 
@@ -191,7 +203,7 @@ class TestMigrationPlanCreation:
         assert len(plan.validation_criteria) > 0
 
     @pytest.mark.asyncio
-    async def test_create_migration_plan_full_replacement(self):
+    async def test_create_migration_plan_full_replacement(self) -> None:
         """Test migration plan creation with full replacement strategy."""
         migrator = CryptographyMigrator()
 
@@ -218,7 +230,7 @@ class TestMigrationPlanCreation:
         assert "post_quantum_compliance_verified" in plan.validation_criteria
 
     @pytest.mark.asyncio
-    async def test_create_migration_plan_gradual(self):
+    async def test_create_migration_plan_gradual(self) -> None:
         """Test migration plan creation with gradual strategy."""
         migrator = CryptographyMigrator()
 
@@ -247,7 +259,7 @@ class TestMigrationPlanCreation:
         assert len(phases) == 3  # Critical, medium, low priority phases
 
     @pytest.mark.asyncio
-    async def test_create_migration_plan_missing_assets(self):
+    async def test_create_migration_plan_missing_assets(self) -> None:
         """Test migration plan creation with missing assets."""
         migrator = CryptographyMigrator()
 
@@ -255,14 +267,15 @@ class TestMigrationPlanCreation:
         target_assets = [CryptographicAssetId("nonexistent_asset")]
 
         result = await migrator.create_migration_plan(
-            target_assets=target_assets, migration_strategy="hybrid"
+            target_assets=target_assets,
+            migration_strategy="hybrid",
         )
 
         assert result.is_error()
         assert "Assets not found" in result.error_value.args[0]
 
     @pytest.mark.asyncio
-    async def test_create_migration_plan_empty_assets(self):
+    async def test_create_migration_plan_empty_assets(self) -> None:
         """Test migration plan creation with empty asset list."""
         migrator = CryptographyMigrator()
 
@@ -271,11 +284,12 @@ class TestMigrationPlanCreation:
 
         with pytest.raises(ContractViolationError):
             await migrator.create_migration_plan(
-                target_assets=[], migration_strategy="hybrid"
+                target_assets=[],
+                migration_strategy="hybrid",
             )
 
     @pytest.mark.asyncio
-    async def test_create_migration_plan_storage(self):
+    async def test_create_migration_plan_storage(self) -> None:
         """Test that migration plans are properly stored."""
         migrator = CryptographyMigrator()
 
@@ -291,7 +305,8 @@ class TestMigrationPlanCreation:
         initial_plan_count = len(migrator.migration_plans)
 
         result = await migrator.create_migration_plan(
-            target_assets=target_assets, migration_strategy="hybrid"
+            target_assets=target_assets,
+            migration_strategy="hybrid",
         )
 
         assert result.is_success()
@@ -306,7 +321,7 @@ class TestMigrationPlanExecution:
     """Test migration plan execution functionality."""
 
     @pytest.mark.asyncio
-    async def test_execute_migration_plan_basic(self):
+    async def test_execute_migration_plan_basic(self) -> None:
         """Test basic migration plan execution."""
         migrator = CryptographyMigrator()
 
@@ -320,14 +335,17 @@ class TestMigrationPlanExecution:
         target_assets = [all_asset_ids[0]]  # Use first asset
 
         plan_result = await migrator.create_migration_plan(
-            target_assets=target_assets, migration_strategy="hybrid"
+            target_assets=target_assets,
+            migration_strategy="hybrid",
         )
         assert plan_result.is_success()
         plan_id = plan_result.value.plan_id
 
         # Execute the plan
         result = await migrator.execute_migration_plan(
-            plan_id=plan_id, dry_run=False, validation_mode=True
+            plan_id=plan_id,
+            dry_run=False,
+            validation_mode=True,
         )
 
         assert result.is_success()
@@ -341,7 +359,7 @@ class TestMigrationPlanExecution:
         assert isinstance(execution_data["execution_duration_seconds"], float)
 
     @pytest.mark.asyncio
-    async def test_execute_migration_plan_dry_run(self):
+    async def test_execute_migration_plan_dry_run(self) -> None:
         """Test migration plan execution in dry run mode."""
         migrator = CryptographyMigrator()
 
@@ -359,7 +377,9 @@ class TestMigrationPlanExecution:
         plan_id = plan_result.value.plan_id
 
         result = await migrator.execute_migration_plan(
-            plan_id=plan_id, dry_run=True, validation_mode=False
+            plan_id=plan_id,
+            dry_run=True,
+            validation_mode=False,
         )
 
         assert result.is_success()
@@ -370,19 +390,20 @@ class TestMigrationPlanExecution:
         assert execution_data["validation_results"] == {}
 
     @pytest.mark.asyncio
-    async def test_execute_migration_plan_nonexistent(self):
+    async def test_execute_migration_plan_nonexistent(self) -> None:
         """Test execution of nonexistent migration plan."""
         migrator = CryptographyMigrator()
 
         result = await migrator.execute_migration_plan(
-            plan_id="nonexistent_plan_id", dry_run=False
+            plan_id="nonexistent_plan_id",
+            dry_run=False,
         )
 
         assert result.is_error()
         assert "Migration plan not found" in result.error_value.args[0]
 
     @pytest.mark.asyncio
-    async def test_execute_migration_plan_validation(self):
+    async def test_execute_migration_plan_validation(self) -> None:
         """Test migration plan execution with validation."""
         migrator = CryptographyMigrator()
 
@@ -400,7 +421,8 @@ class TestMigrationPlanExecution:
         plan_id = plan_result.value.plan_id
 
         result = await migrator.execute_migration_plan(
-            plan_id=plan_id, validation_mode=True
+            plan_id=plan_id,
+            validation_mode=True,
         )
 
         assert result.is_success()
@@ -410,7 +432,7 @@ class TestMigrationPlanExecution:
         # Should have validation results if validation mode enabled
 
     @pytest.mark.asyncio
-    async def test_execute_migration_plan_metrics_update(self):
+    async def test_execute_migration_plan_metrics_update(self) -> None:
         """Test that plan execution updates metrics correctly."""
         migrator = CryptographyMigrator()
 
@@ -441,7 +463,7 @@ class TestMigrationPlanExecution:
         )
 
     @pytest.mark.asyncio
-    async def test_execute_migration_plan_history_tracking(self):
+    async def test_execute_migration_plan_history_tracking(self) -> None:
         """Test that plan execution is tracked in history."""
         migrator = CryptographyMigrator()
 
@@ -473,7 +495,7 @@ class TestMigrationStatus:
     """Test migration status retrieval functionality."""
 
     @pytest.mark.asyncio
-    async def test_get_migration_status_overall(self):
+    async def test_get_migration_status_overall(self) -> None:
         """Test getting overall migration status."""
         migrator = CryptographyMigrator()
 
@@ -494,7 +516,7 @@ class TestMigrationStatus:
         assert "failed_migrations" in metrics
 
     @pytest.mark.asyncio
-    async def test_get_migration_status_specific_plan(self):
+    async def test_get_migration_status_specific_plan(self) -> None:
         """Test getting status for specific migration plan."""
         migrator = CryptographyMigrator()
 
@@ -530,7 +552,7 @@ class TestMigrationStatus:
         assert plan_details["execution_count"] >= 1
 
     @pytest.mark.asyncio
-    async def test_get_migration_status_nonexistent_plan(self):
+    async def test_get_migration_status_nonexistent_plan(self) -> None:
         """Test getting status for nonexistent plan."""
         migrator = CryptographyMigrator()
 
@@ -540,7 +562,7 @@ class TestMigrationStatus:
         assert "Migration plan not found" in result.error_value.args[0]
 
     @pytest.mark.asyncio
-    async def test_get_migration_status_quantum_config(self):
+    async def test_get_migration_status_quantum_config(self) -> None:
         """Test that migration status includes quantum configuration."""
         migrator = CryptographyMigrator()
 
@@ -558,7 +580,7 @@ class TestMigrationErrorHandling:
     """Test error handling in migration operations."""
 
     @pytest.mark.asyncio
-    async def test_analyze_quantum_readiness_error_handling(self):
+    async def test_analyze_quantum_readiness_error_handling(self) -> None:
         """Test error handling in quantum readiness analysis."""
         migrator = CryptographyMigrator()
 
@@ -572,13 +594,13 @@ class TestMigrationErrorHandling:
             assert "Discovery failed" in str(result.error_value)
 
     @pytest.mark.asyncio
-    async def test_create_migration_plan_error_handling(self):
+    async def test_create_migration_plan_error_handling(self) -> None:
         """Test error handling in migration plan creation."""
         migrator = CryptographyMigrator()
 
         # This should trigger the missing assets error
         result = await migrator.create_migration_plan(
-            target_assets=[CryptographicAssetId("definitely_missing_asset")]
+            target_assets=[CryptographicAssetId("definitely_missing_asset")],
         )
 
         assert result.is_error()
@@ -587,7 +609,7 @@ class TestMigrationErrorHandling:
         assert "Assets not found" in str(error)
 
     @pytest.mark.asyncio
-    async def test_execute_migration_plan_error_handling(self):
+    async def test_execute_migration_plan_error_handling(self) -> None:
         """Test error handling in migration plan execution."""
         migrator = CryptographyMigrator()
 
@@ -602,13 +624,15 @@ class TestMigrationIntegration:
     """Test end-to-end migration workflows."""
 
     @pytest.mark.asyncio
-    async def test_full_migration_workflow(self):
+    async def test_full_migration_workflow(self) -> None:
         """Test complete migration workflow from analysis to execution."""
         migrator = CryptographyMigrator()
 
         # Step 1: Analyze quantum readiness
         analysis_result = await migrator.analyze_quantum_readiness(
-            scope="system", include_vulnerabilities=True, deep_analysis=True
+            scope="system",
+            include_vulnerabilities=True,
+            deep_analysis=True,
         )
         assert analysis_result.is_success()
         assessment = analysis_result.value
@@ -627,14 +651,17 @@ class TestMigrationIntegration:
             target_assets = [all_asset_ids[0]]
 
         plan_result = await migrator.create_migration_plan(
-            target_assets=target_assets, migration_strategy="hybrid"
+            target_assets=target_assets,
+            migration_strategy="hybrid",
         )
         assert plan_result.is_success()
         plan = plan_result.value
 
         # Step 3: Execute migration plan
         execution_result = await migrator.execute_migration_plan(
-            plan_id=plan.plan_id, dry_run=False, validation_mode=True
+            plan_id=plan.plan_id,
+            dry_run=False,
+            validation_mode=True,
         )
         assert execution_result.is_success()
         execution_data = execution_result.value
@@ -649,7 +676,7 @@ class TestMigrationIntegration:
         assert "execution_duration_seconds" in execution_data
 
     @pytest.mark.asyncio
-    async def test_multiple_scope_analysis_consistency(self):
+    async def test_multiple_scope_analysis_consistency(self) -> None:
         """Test that multiple scope analyses provide consistent results."""
         migrator = CryptographyMigrator()
 
@@ -676,7 +703,7 @@ class TestMigrationIntegration:
         assert total_assets > 0  # Should have found some assets across all scopes
 
     @pytest.mark.asyncio
-    async def test_migration_strategy_variations(self):
+    async def test_migration_strategy_variations(self) -> None:
         """Test different migration strategies produce valid plans."""
         migrator = CryptographyMigrator()
 
@@ -693,7 +720,8 @@ class TestMigrationIntegration:
 
         for strategy in strategies:
             result = await migrator.create_migration_plan(
-                target_assets=target_assets, migration_strategy=strategy
+                target_assets=target_assets,
+                migration_strategy=strategy,
             )
 
             assert result.is_success()
@@ -708,7 +736,7 @@ class TestMigrationIntegration:
                 assert len(phases) == 1  # Single phase
 
     @pytest.mark.asyncio
-    async def test_concurrent_migration_operations(self):
+    async def test_concurrent_migration_operations(self) -> None:
         """Test concurrent migration operations don't interfere."""
         migrator = CryptographyMigrator()
 
@@ -752,7 +780,7 @@ class TestMigrationPerformance:
     """Test migration performance characteristics."""
 
     @pytest.mark.asyncio
-    async def test_analysis_performance(self):
+    async def test_analysis_performance(self) -> None:
         """Test quantum readiness analysis performance."""
         migrator = CryptographyMigrator()
 
@@ -761,7 +789,9 @@ class TestMigrationPerformance:
         start_time = time.time()
 
         result = await migrator.analyze_quantum_readiness(
-            scope="system", include_vulnerabilities=True, deep_analysis=True
+            scope="system",
+            include_vulnerabilities=True,
+            deep_analysis=True,
         )
 
         execution_time = time.time() - start_time
@@ -770,7 +800,7 @@ class TestMigrationPerformance:
         assert execution_time < 1.0  # Should complete within 1 second
 
     @pytest.mark.asyncio
-    async def test_migration_plan_creation_performance(self):
+    async def test_migration_plan_creation_performance(self) -> None:
         """Test migration plan creation performance."""
         migrator = CryptographyMigrator()
 
@@ -790,7 +820,7 @@ class TestMigrationPerformance:
         assert execution_time < 0.5  # Should complete within 500ms
 
     @pytest.mark.asyncio
-    async def test_large_asset_analysis_performance(self):
+    async def test_large_asset_analysis_performance(self) -> None:
         """Test analysis performance with larger asset sets."""
         migrator = CryptographyMigrator()
 

@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for security modules and validation.
+"""Comprehensive tests for security modules and validation.
 
 Tests cover access control, policy enforcement, security monitoring,
 input validation, and threat detection with property-based testing.
@@ -27,7 +26,7 @@ AccessLevel = AccessResult
 
 # Security test data generators
 @st.composite
-def security_event_data(draw):
+def security_event_data(draw) -> Any:
     """Generate test security event data."""
     event_types = [
         "access_attempt",
@@ -52,7 +51,7 @@ def security_event_data(draw):
 
 
 @st.composite
-def malicious_input_data(draw):
+def malicious_input_data(draw) -> Any:
     """Generate potentially malicious input data for testing."""
     injection_patterns = [
         "'; DROP TABLE users; --",
@@ -75,7 +74,7 @@ def malicious_input_data(draw):
 class TestAccessController:
     """Test access control functionality."""
 
-    def test_access_controller_creation(self):
+    def test_access_controller_creation(self) -> None:
         """Test creating access controller."""
         controller = AccessController()
 
@@ -84,7 +83,7 @@ class TestAccessController:
         assert hasattr(controller, "grant_permission")
         assert hasattr(controller, "revoke_permission")
 
-    def test_access_level_enum(self):
+    def test_access_level_enum(self) -> None:
         """Test access level enumeration."""
         levels = list(AccessLevel)
 
@@ -104,7 +103,7 @@ class TestAccessController:
         assert AccessLevel.CONDITIONAL.value == "conditional"
         assert AccessLevel.REQUIRES_APPROVAL.value == "requires_approval"
 
-    def test_access_decision_creation(self):
+    def test_access_decision_creation(self) -> None:
         """Test access decision creation."""
         from src.core.zero_trust_architecture import (
             SecurityContext,
@@ -137,7 +136,7 @@ class TestAccessController:
         assert isinstance(decision.decided_at, datetime)
         assert decision.context.user_id == "test_user"
 
-    def test_permission_granting_and_checking(self):
+    def test_permission_granting_and_checking(self) -> None:
         """Test permission granting and access checking."""
         controller = AccessController()
         user_id = "test_user"
@@ -162,7 +161,7 @@ class TestAccessController:
         assert isinstance(decision, AccessDecision)
         assert decision.context.user_id == user_id
 
-    def test_permission_revocation(self):
+    def test_permission_revocation(self) -> None:
         """Test permission revocation."""
         controller = AccessController()
         user_id = "test_user"
@@ -187,8 +186,11 @@ class TestAccessController:
         st.sampled_from(list(Permission)),
     )
     def test_access_controller_property_validation(
-        self, user_id: str, resource: str, permission: Permission
-    ):
+        self,
+        user_id: str,
+        resource: str,
+        permission: Permission,
+    ) -> None:
         """Property test for access controller."""
         assume(len(user_id.strip()) > 0)
         assume(len(resource.strip()) > 0)
@@ -201,7 +203,9 @@ class TestAccessController:
 
         # Check access
         decision = controller.check_access(
-            user_id=user, resource=resource.strip(), required_permission=permission
+            user_id=user,
+            resource=resource.strip(),
+            required_permission=permission,
         )
 
         # Properties that should always hold
@@ -215,7 +219,7 @@ class TestAccessController:
 class TestPolicyEnforcer:
     """Test security policy enforcement."""
 
-    def test_security_policy_creation(self):
+    def test_security_policy_creation(self) -> None:
         """Test creating security policy."""
         policy = SecurityPolicy(
             policy_id="test_policy",
@@ -236,7 +240,7 @@ class TestPolicyEnforcer:
         assert policy.rules["max_execution_time"] == 300
         assert "read" in policy.rules["allowed_operations"]
 
-    def test_policy_violation_creation(self):
+    def test_policy_violation_creation(self) -> None:
         """Test creating policy violation."""
         violation = PolicyViolation(
             violation_id="viol_001",
@@ -256,7 +260,7 @@ class TestPolicyEnforcer:
         assert violation.severity == "high"
         assert violation.remediation_action == "block_access"
 
-    def test_policy_enforcer_validation(self):
+    def test_policy_enforcer_validation(self) -> None:
         """Test policy enforcement validation."""
         enforcer = PolicyEnforcer()
 
@@ -288,7 +292,7 @@ class TestPolicyEnforcer:
         assert not result.is_valid
         assert len(result.violations) > 0
 
-    def test_policy_enforcement_blocking(self):
+    def test_policy_enforcement_blocking(self) -> None:
         """Test that policy violations are properly blocked."""
         enforcer = PolicyEnforcer()
 
@@ -316,7 +320,7 @@ class TestPolicyEnforcer:
             enforcer.enforce_policies(blocked_request)
 
     @given(malicious_input_data())
-    def test_policy_enforcement_injection_protection(self, malicious_input: str):
+    def test_policy_enforcement_injection_protection(self, malicious_input: str) -> None:
         """Property test for injection attack protection."""
         enforcer = PolicyEnforcer()
 
@@ -331,7 +335,7 @@ class TestPolicyEnforcer:
                     r"<script.*>",  # XSS
                     r"\$\(.*\)",  # Command injection
                     r"\.\./.*",  # Path traversal
-                ]
+                ],
             },
         )
 
@@ -353,7 +357,7 @@ class TestPolicyEnforcer:
 class TestSecurityMonitor:
     """Test security monitoring functionality."""
 
-    def test_security_event_creation(self):
+    def test_security_event_creation(self) -> None:
         """Test creating security event."""
         event = SecurityEvent(
             event_id="evt_001",
@@ -377,7 +381,7 @@ class TestSecurityMonitor:
         assert event.severity == AlertSeverity.MEDIUM
         assert isinstance(event.timestamp, datetime)
 
-    def test_threat_level_enum(self):
+    def test_threat_level_enum(self) -> None:
         """Test threat level enumeration."""
         levels = list(AlertSeverity)
 
@@ -397,7 +401,7 @@ class TestSecurityMonitor:
         assert AlertSeverity.HIGH.value == "high"
         assert AlertSeverity.CRITICAL.value == "critical"
 
-    def test_security_monitor_event_logging(self):
+    def test_security_monitor_event_logging(self) -> None:
         """Test security event logging."""
         monitor = SecurityMonitor()
 
@@ -426,7 +430,7 @@ class TestSecurityMonitor:
         assert logged_event.event_id == "log_test"
         assert logged_event.data["user_id"] == str(UserId("monitor_test_user"))
 
-    def test_security_monitor_threat_detection(self):
+    def test_security_monitor_threat_detection(self) -> None:
         """Test threat detection functionality."""
         monitor = SecurityMonitor()
 
@@ -451,13 +455,14 @@ class TestSecurityMonitor:
 
         # Check if threat was detected
         threats = monitor.detect_threats(
-            user_id=str(user_id), time_window=timedelta(minutes=5)
+            user_id=str(user_id),
+            time_window=timedelta(minutes=5),
         )
 
         assert len(threats) > 0
         assert any(threat.severity == AlertSeverity.HIGH for threat in threats)
 
-    def test_security_monitor_anomaly_detection(self):
+    def test_security_monitor_anomaly_detection(self) -> None:
         """Test anomaly detection."""
         monitor = SecurityMonitor()
 
@@ -498,19 +503,20 @@ class TestSecurityMonitor:
 
         # Detect anomalies
         anomalies = monitor.detect_anomalies(
-            user_id=str(normal_user), time_window=timedelta(hours=1)
+            user_id=str(normal_user),
+            time_window=timedelta(hours=1),
         )
 
         assert len(anomalies) >= 0  # May or may not detect based on implementation
 
-    def test_security_monitor_real_time_alerts(self):
+    def test_security_monitor_real_time_alerts(self) -> None:
         """Test real-time security alerts."""
         monitor = SecurityMonitor()
 
         alert_triggered = False
         alert_event = None
 
-        def alert_handler(event):
+        def alert_handler(event) -> None:
             nonlocal alert_triggered, alert_event
             alert_triggered = True
             alert_event = event
@@ -546,7 +552,7 @@ class TestSecurityMonitor:
             assert events[-1].severity == AlertSeverity.CRITICAL
 
     @given(security_event_data())
-    def test_security_monitor_property_validation(self, event_data: dict[str, Any]):
+    def test_security_monitor_property_validation(self, event_data: dict[str, Any]) -> None:
         """Property test for security monitor."""
         monitor = SecurityMonitor()
 
@@ -571,7 +577,8 @@ class TestSecurityMonitor:
             },
             risk_indicators=[event_data["event_type"]],
             severity=severity_mapping.get(
-                event_data["threat_level"], AlertSeverity.INFO
+                event_data["threat_level"],
+                AlertSeverity.INFO,
             ),
         )
 
@@ -585,7 +592,8 @@ class TestSecurityMonitor:
         logged_event = logged_events[-1]
         assert logged_event.event_type == event_data["event_type"]
         assert logged_event.severity == severity_mapping.get(
-            event_data["threat_level"], AlertSeverity.INFO
+            event_data["threat_level"],
+            AlertSeverity.INFO,
         )
         assert logged_event.data["user_id"] == str(UserId(event_data["user_id"]))
 
@@ -593,7 +601,7 @@ class TestSecurityMonitor:
 class TestInputValidation:
     """Test comprehensive input validation and sanitization."""
 
-    def test_sql_injection_detection(self):
+    def test_sql_injection_detection(self) -> None:
         """Test SQL injection detection."""
         from src.security.input_validator import InputValidator
 
@@ -624,7 +632,7 @@ class TestInputValidation:
             assert not result.is_safe
             assert "SQL injection" in result.threat_description
 
-    def test_xss_injection_detection(self):
+    def test_xss_injection_detection(self) -> None:
         """Test XSS injection detection."""
         from src.security.input_validator import InputValidator
 
@@ -658,7 +666,7 @@ class TestInputValidation:
                 or "script" in result.threat_description
             )
 
-    def test_command_injection_detection(self):
+    def test_command_injection_detection(self) -> None:
         """Test command injection detection."""
         from src.security.input_validator import InputValidator
 
@@ -689,7 +697,7 @@ class TestInputValidation:
             assert not result.is_safe
             assert "command injection" in result.threat_description.lower()
 
-    def test_path_traversal_detection(self):
+    def test_path_traversal_detection(self) -> None:
         """Test path traversal detection."""
         from src.security.input_validator import InputValidator
 
@@ -721,7 +729,7 @@ class TestInputValidation:
             assert "path traversal" in result.threat_description.lower()
 
     @given(malicious_input_data())
-    def test_comprehensive_input_validation(self, malicious_input: str):
+    def test_comprehensive_input_validation(self, malicious_input: str) -> None:
         """Property test for comprehensive input validation."""
         from src.security.input_validator import InputValidator
 
@@ -746,7 +754,7 @@ class TestInputValidation:
 class TestSecurityIntegration:
     """Integration tests for security components."""
 
-    def test_complete_security_workflow(self):
+    def test_complete_security_workflow(self) -> None:
         """Test complete security validation workflow."""
         # 1. Initialize security components
         access_controller = AccessController()
@@ -815,7 +823,7 @@ class TestSecurityIntegration:
         events = security_monitor.get_events(limit=5)
         assert any(e.event_id == "workflow_test" for e in events)
 
-    def test_security_escalation_detection(self):
+    def test_security_escalation_detection(self) -> None:
         """Test detection of privilege escalation attempts."""
         access_controller = AccessController()
         security_monitor = SecurityMonitor()
@@ -861,7 +869,7 @@ class TestSecurityIntegration:
         # SecurityEvent uses severity, not threat_level
         assert escalation_events[0].severity == AlertSeverity.HIGH
 
-    def test_automated_threat_response(self):
+    def test_automated_threat_response(self) -> None:
         """Test automated response to security threats."""
         security_monitor = SecurityMonitor()
         policy_enforcer = PolicyEnforcer()
@@ -901,13 +909,16 @@ class TestSecurityIntegration:
 
         # Check if automated response was triggered
         threat_summary = security_monitor.get_threat_summary(
-            user_id=str(attacker_id), time_window=timedelta(minutes=10)
+            user_id=str(attacker_id),
+            time_window=timedelta(minutes=10),
         )
 
         assert threat_summary.total_events >= 5
         # ThreatSummary may use AlertSeverity instead of ThreatSeverity
         expected_level = getattr(threat_summary, "max_threat_level", None) or getattr(
-            threat_summary, "max_severity", None
+            threat_summary,
+            "max_severity",
+            None,
         )
         assert (
             expected_level == AlertSeverity.MEDIUM
@@ -924,7 +935,7 @@ class TestSecurityIntegration:
                 # Manual validation based on threshold logic
                 assert threat_summary.total_events >= 3
 
-    def test_security_audit_trail(self):
+    def test_security_audit_trail(self) -> None:
         """Test comprehensive security audit trail."""
         access_controller = AccessController()
         security_monitor = SecurityMonitor()
@@ -996,7 +1007,8 @@ class TestSecurityIntegration:
 
         # Verify complete audit trail
         audit_events = security_monitor.get_events_for_user(
-            user_id=str(user_id), time_window=timedelta(minutes=5)
+            user_id=str(user_id),
+            time_window=timedelta(minutes=5),
         )
 
         assert len(audit_events) >= len(actions)

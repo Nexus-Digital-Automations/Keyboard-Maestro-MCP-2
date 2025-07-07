@@ -1,5 +1,4 @@
-"""
-Comprehensive test coverage for Intelligent Automation Tools (TASK_21-23) - TASK_69 Coverage Expansion.
+"""Comprehensive test coverage for Intelligent Automation Tools (TASK_21-23) - TASK_69 Coverage Expansion.
 
 This module systematically tests the Intelligent Automation foundation including conditional logic,
 control flow, and advanced triggers to achieve systematic coverage expansion from 7.53% baseline.
@@ -8,6 +7,7 @@ Targeting 0% coverage modules with comprehensive functional tests, following ADD
 """
 
 import uuid
+from typing import Any
 
 import pytest
 from src.core.errors import ExecutionError, SecurityError, ValidationError
@@ -35,7 +35,7 @@ class TestConditionTools:
     """Test Conditional Logic Tools (TASK_21) - Smart adaptive workflows."""
 
     @pytest.mark.asyncio
-    async def test_km_add_condition_basic_functionality(self):
+    async def test_km_add_condition_basic_functionality(self) -> None:
         """Test basic condition addition functionality."""
         test_macro_id = str(uuid.uuid4())
         condition_config = {
@@ -53,7 +53,7 @@ class TestConditionTools:
             assert isinstance(e, ValidationError | ExecutionError | Exception)
 
     @pytest.mark.asyncio
-    async def test_km_add_condition_different_types(self):
+    async def test_km_add_condition_different_types(self) -> None:
         """Test condition addition with different condition types."""
         test_conditions = [
             {"type": "text", "operator": "contains", "operand": "test_text"},
@@ -75,7 +75,7 @@ class TestConditionTools:
                 assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_condition_security_validation(self):
+    async def test_km_condition_security_validation(self) -> None:
         """Test condition security and input validation."""
         # Test potentially dangerous conditions
         malicious_conditions = [
@@ -107,7 +107,7 @@ class TestControlFlowTools:
     """Test Control Flow Tools (TASK_22) - If/then/else, loops, switch/case."""
 
     @pytest.mark.asyncio
-    async def test_km_control_flow_operations(self):
+    async def test_km_control_flow_operations(self) -> None:
         """Test basic control flow functionality."""
         control_flow_config = {
             "type": "if_then_else",
@@ -124,7 +124,7 @@ class TestControlFlowTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_control_flow_nested_logic(self):
+    async def test_km_control_flow_nested_logic(self) -> None:
         """Test nested control flow logic."""
         control_flow_config = {
             "type": "nested_if",
@@ -147,7 +147,7 @@ class TestAdvancedSearchTools:
     """Test Advanced Search Tools - Macro discovery and analysis."""
 
     @pytest.mark.asyncio
-    async def test_km_search_macros_advanced_functionality(self):
+    async def test_km_search_macros_advanced_functionality(self) -> None:
         """Test advanced macro search functionality."""
         search_config = {
             "query": "automation",
@@ -163,7 +163,7 @@ class TestAdvancedSearchTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_analyze_macro_metadata_functionality(self):
+    async def test_km_analyze_macro_metadata_functionality(self) -> None:
         """Test macro metadata analysis functionality."""
         analysis_config = {
             "macro_id": "test_macro",
@@ -183,7 +183,7 @@ class TestSyncTools:
     """Test Real-time Synchronization Tools - Live state management."""
 
     @pytest.mark.asyncio
-    async def test_km_start_realtime_sync_functionality(self):
+    async def test_km_start_realtime_sync_functionality(self) -> None:
         """Test real-time sync initiation."""
         sync_config = {
             "target": "local_macros",
@@ -199,7 +199,7 @@ class TestSyncTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_stop_realtime_sync_functionality(self):
+    async def test_km_stop_realtime_sync_functionality(self) -> None:
         """Test real-time sync termination."""
         try:
             result = await km_stop_realtime_sync("local_macros")
@@ -209,7 +209,7 @@ class TestSyncTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_sync_status_monitoring(self):
+    async def test_km_sync_status_monitoring(self) -> None:
         """Test sync status monitoring functionality."""
         try:
             result = await km_sync_status()
@@ -219,7 +219,7 @@ class TestSyncTools:
             assert isinstance(e, Exception)
 
     @pytest.mark.asyncio
-    async def test_km_force_sync_functionality(self):
+    async def test_km_force_sync_functionality(self) -> None:
         """Test force sync functionality."""
         try:
             result = await km_force_sync("local_macros")
@@ -233,14 +233,17 @@ class TestIntelligentAutomationIntegration:
     """Test integration between Intelligent Automation tools."""
 
     @pytest.mark.asyncio
-    async def test_condition_and_control_flow_integration(self):
+    async def test_condition_and_control_flow_integration(self) -> None:
         """Test integration between conditions and control flow."""
         integration_results = []
 
         try:
             # Create condition
             condition_result = await km_add_condition(
-                "integration_test", "variable", "equals", "trigger"
+                "integration_test",
+                "variable",
+                "equals",
+                "trigger",
             )
             integration_results.append(("condition", condition_result))
 
@@ -267,7 +270,7 @@ class TestIntelligentAutomationIntegration:
         assert len(integration_results) >= 1
 
     @pytest.mark.asyncio
-    async def test_search_and_sync_integration(self):
+    async def test_search_and_sync_integration(self) -> None:
         """Test integration between search and sync operations."""
         integration_results = []
 
@@ -278,7 +281,10 @@ class TestIntelligentAutomationIntegration:
 
             # Search for macros after sync
             search_result = await km_search_macros_advanced(
-                {"query": "test", "filters": {"enabled": True}}
+                {
+                    "query": "test",
+                    "filters": {"enabled": True},
+                },
             )
             integration_results.append(("search", search_result))
 
@@ -289,18 +295,24 @@ class TestIntelligentAutomationIntegration:
         assert len(integration_results) >= 1
 
     @pytest.mark.asyncio
-    async def test_metadata_analysis_with_search(self):
+    async def test_metadata_analysis_with_search(self) -> None:
         """Test metadata analysis integration with search."""
         try:
             # Search for macros first
             search_results = await km_search_macros_advanced(
-                {"query": "automation", "filters": {"enabled": True}}
+                {
+                    "query": "automation",
+                    "filters": {"enabled": True},
+                },
             )
 
             # Analyze metadata for found macros
             if search_results:
                 analysis = await km_analyze_macro_metadata(
-                    {"macro_id": "test_macro", "include_usage_stats": True}
+                    {
+                        "macro_id": "test_macro",
+                        "include_usage_stats": True,
+                    },
                 )
 
                 # Should return analysis or handle gracefully
@@ -315,7 +327,7 @@ class TestIntelligentAutomationPerformance:
     """Test performance characteristics of Intelligent Automation tools."""
 
     @pytest.mark.asyncio
-    async def test_tool_response_times(self):
+    async def test_tool_response_times(self) -> None:
         """Test response times for intelligent automation operations."""
         import time
 
@@ -352,7 +364,7 @@ class TestIntelligentAutomationPerformance:
         assert len(performance_results) == len(operations)
 
     @pytest.mark.asyncio
-    async def test_concurrent_intelligent_operations(self):
+    async def test_concurrent_intelligent_operations(self) -> None:
         """Test concurrent execution of intelligent automation tools."""
         import asyncio
 
@@ -373,7 +385,8 @@ class TestIntelligentAutomationPerformance:
             # Results should be valid or handled exceptions
             for result in results:
                 assert isinstance(
-                    result, dict | str | list | bool | type(None) | Exception
+                    result,
+                    dict | str | list | bool | type(None) | Exception,
                 )
 
         except Exception as e:

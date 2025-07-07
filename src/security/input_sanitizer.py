@@ -1,5 +1,4 @@
-"""
-Input sanitization and validation for security.
+"""Input sanitization and validation for security.
 
 This module provides comprehensive input sanitization to prevent injection attacks,
 validate user inputs, and ensure all data meets security requirements before processing.
@@ -13,8 +12,7 @@ from src.core.errors import SecurityError
 
 
 class InputSanitizer:
-    """
-    Security-focused input sanitization with comprehensive validation.
+    """Security-focused input sanitization with comprehensive validation.
 
     Provides defense against:
     - Script injection attacks
@@ -57,18 +55,18 @@ class InputSanitizer:
         self.strict_mode = False
 
     def sanitize_macro_identifier(self, identifier: str) -> Either[SecurityError, str]:
-        """
-        Sanitize macro identifier (name or UUID).
+        """Sanitize macro identifier (name or UUID).
 
         Args:
             identifier: Macro name or UUID string
 
         Returns:
             Either containing sanitized identifier or security error
+
         """
         if not identifier or len(identifier.strip()) == 0:
             return Either.left(
-                SecurityError("EMPTY_IDENTIFIER", "Macro identifier cannot be empty")
+                SecurityError("EMPTY_IDENTIFIER", "Macro identifier cannot be empty"),
             )
 
         # Remove leading/trailing whitespace
@@ -78,8 +76,9 @@ class InputSanitizer:
         if len(clean_id) > 255:
             return Either.left(
                 SecurityError(
-                    "IDENTIFIER_TOO_LONG", "Macro identifier exceeds 255 characters"
-                )
+                    "IDENTIFIER_TOO_LONG",
+                    "Macro identifier exceeds 255 characters",
+                ),
             )
 
         # Check for dangerous patterns
@@ -101,14 +100,15 @@ class InputSanitizer:
             SecurityError(
                 "INVALID_IDENTIFIER_FORMAT",
                 "Macro identifier contains invalid characters",
-            )
+            ),
         )
 
     def sanitize_text_content(
-        self, text: str, strict_mode: bool = False
+        self,
+        text: str,
+        strict_mode: bool = False,
     ) -> Either[SecurityError, str]:
-        """
-        Sanitize text content for safe processing.
+        """Sanitize text content for safe processing.
 
         Args:
             text: Input text to sanitize
@@ -116,6 +116,7 @@ class InputSanitizer:
 
         Returns:
             Either containing sanitized text or security error
+
         """
         if text is None:
             return Either.right("")
@@ -124,7 +125,7 @@ class InputSanitizer:
         max_length = 1000 if strict_mode else 10000
         if len(text) > max_length:
             return Either.left(
-                SecurityError("TEXT_TOO_LONG", f"Text exceeds {max_length} characters")
+                SecurityError("TEXT_TOO_LONG", f"Text exceeds {max_length} characters"),
             )
 
         # Security pattern checks
@@ -141,14 +142,14 @@ class InputSanitizer:
         return Either.right(sanitized)
 
     def sanitize_file_path(self, path: str) -> Either[SecurityError, str]:
-        """
-        Sanitize file path to prevent traversal attacks.
+        """Sanitize file path to prevent traversal attacks.
 
         Args:
             path: File path to sanitize
 
         Returns:
             Either containing sanitized path or security error
+
         """
         if not path or len(path.strip()) == 0:
             return Either.left(SecurityError("EMPTY_PATH", "File path cannot be empty"))
@@ -160,8 +161,9 @@ class InputSanitizer:
             if re.search(pattern, clean_path):
                 return Either.left(
                     SecurityError(
-                        "PATH_TRAVERSAL", f"Path traversal detected: {pattern}"
-                    )
+                        "PATH_TRAVERSAL",
+                        f"Path traversal detected: {pattern}",
+                    ),
                 )
 
         # Check for absolute paths that might be dangerous
@@ -182,8 +184,9 @@ class InputSanitizer:
             if clean_path.startswith(prefix):
                 return Either.left(
                     SecurityError(
-                        "FORBIDDEN_PATH", f"Access denied to protected path: {prefix}"
-                    )
+                        "FORBIDDEN_PATH",
+                        f"Access denied to protected path: {prefix}",
+                    ),
                 )
 
         # Additional security checks
@@ -194,26 +197,27 @@ class InputSanitizer:
         return Either.right(clean_path)
 
     def sanitize_regex_pattern(self, pattern: str) -> Either[SecurityError, str]:
-        """
-        Sanitize regex pattern to prevent ReDoS attacks.
+        """Sanitize regex pattern to prevent ReDoS attacks.
 
         Args:
             pattern: Regex pattern to sanitize
 
         Returns:
             Either containing validated pattern or security error
+
         """
         if not pattern:
             return Either.left(
-                SecurityError("EMPTY_PATTERN", "Regex pattern cannot be empty")
+                SecurityError("EMPTY_PATTERN", "Regex pattern cannot be empty"),
             )
 
         # Length check
         if len(pattern) > 500:
             return Either.left(
                 SecurityError(
-                    "PATTERN_TOO_LONG", "Regex pattern too long (max 500 chars)"
-                )
+                    "PATTERN_TOO_LONG",
+                    "Regex pattern too long (max 500 chars)",
+                ),
             )
 
         # Check for dangerous regex patterns that could cause ReDoS
@@ -233,7 +237,7 @@ class InputSanitizer:
                     SecurityError(
                         "DANGEROUS_REGEX",
                         f"Potentially dangerous regex pattern: {danger_pattern}",
-                    )
+                    ),
                 )
 
         # Test compilation
@@ -241,24 +245,24 @@ class InputSanitizer:
             re.compile(pattern)
         except re.error as e:
             return Either.left(
-                SecurityError("INVALID_REGEX", f"Invalid regex pattern: {str(e)}")
+                SecurityError("INVALID_REGEX", f"Invalid regex pattern: {e!s}"),
             )
 
         return Either.right(pattern)
 
     def sanitize_variable_name(self, name: str) -> Either[SecurityError, str]:
-        """
-        Sanitize variable name for KM variables.
+        """Sanitize variable name for KM variables.
 
         Args:
             name: Variable name to sanitize
 
         Returns:
             Either containing sanitized name or security error
+
         """
         if not name or len(name.strip()) == 0:
             return Either.left(
-                SecurityError("EMPTY_VARIABLE_NAME", "Variable name cannot be empty")
+                SecurityError("EMPTY_VARIABLE_NAME", "Variable name cannot be empty"),
             )
 
         clean_name = name.strip()
@@ -267,8 +271,9 @@ class InputSanitizer:
         if len(clean_name) > 255:
             return Either.left(
                 SecurityError(
-                    "VARIABLE_NAME_TOO_LONG", "Variable name too long (max 255 chars)"
-                )
+                    "VARIABLE_NAME_TOO_LONG",
+                    "Variable name too long (max 255 chars)",
+                ),
             )
 
         # Format validation (alphanumeric and underscores only)
@@ -277,7 +282,7 @@ class InputSanitizer:
                 SecurityError(
                     "INVALID_VARIABLE_NAME",
                     "Variable name must contain only alphanumeric characters and underscores",
-                )
+                ),
             )
 
         # Security checks
@@ -288,10 +293,11 @@ class InputSanitizer:
         return Either.right(clean_name)
 
     def _check_security_patterns(
-        self, text: str, context: str
+        self,
+        text: str,
+        context: str,
     ) -> Either[SecurityError, None]:
-        """
-        Check text for security-related patterns.
+        """Check text for security-related patterns.
 
         Args:
             text: Text to check
@@ -299,6 +305,7 @@ class InputSanitizer:
 
         Returns:
             Either indicating success or security violation
+
         """
         text_lower = text.lower()
 
@@ -309,7 +316,7 @@ class InputSanitizer:
                     SecurityError(
                         "SCRIPT_INJECTION",
                         f"Potential script injection in {context}: {pattern}",
-                    )
+                    ),
                 )
 
         # Check for command injection patterns
@@ -319,7 +326,7 @@ class InputSanitizer:
                     SecurityError(
                         "COMMAND_INJECTION",
                         f"Potential command injection in {context}: {pattern}",
-                    )
+                    ),
                 )
 
         # Check for suspicious keywords
@@ -345,20 +352,20 @@ class InputSanitizer:
                     SecurityError(
                         "SUSPICIOUS_CONTENT",
                         f"Suspicious content detected in {context}: {keyword}",
-                    )
+                    ),
                 )
 
         return Either.right(None)
 
     def validate_url(self, url: str) -> Either[SecurityError, str]:
-        """
-        Validate and sanitize URL.
+        """Validate and sanitize URL.
 
         Args:
             url: URL to validate
 
         Returns:
             Either containing validated URL or security error
+
         """
         if not url or len(url.strip()) == 0:
             return Either.left(SecurityError("EMPTY_URL", "URL cannot be empty"))
@@ -368,7 +375,7 @@ class InputSanitizer:
         # Length check
         if len(clean_url) > 2000:
             return Either.left(
-                SecurityError("URL_TOO_LONG", "URL too long (max 2000 chars)")
+                SecurityError("URL_TOO_LONG", "URL too long (max 2000 chars)"),
             )
 
         # Allowed schemes
@@ -378,15 +385,16 @@ class InputSanitizer:
         scheme_match = re.match(scheme_pattern, clean_url)
         if not scheme_match:
             return Either.left(
-                SecurityError("INVALID_URL_SCHEME", "URL must have valid scheme")
+                SecurityError("INVALID_URL_SCHEME", "URL must have valid scheme"),
             )
 
         scheme = scheme_match.group(1).lower()
         if scheme not in allowed_schemes:
             return Either.left(
                 SecurityError(
-                    "FORBIDDEN_URL_SCHEME", f"URL scheme '{scheme}' not allowed"
-                )
+                    "FORBIDDEN_URL_SCHEME",
+                    f"URL scheme '{scheme}' not allowed",
+                ),
             )
 
         # Security checks

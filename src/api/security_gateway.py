@@ -1,5 +1,4 @@
-"""
-API Security Gateway Implementation - TASK_64 Phase 4 Implementation
+"""API Security Gateway Implementation - TASK_64 Phase 4 Implementation.
 
 Advanced API security, authentication, and authorization for API orchestration with
 Design by Contract patterns, threat detection, and comprehensive protection.
@@ -36,7 +35,7 @@ class AuthenticationMethod(Enum):
     """Authentication methods."""
 
     API_KEY = "api_key"
-    JWT_TOKEN = "jwt_token"
+    JWT_TOKEN = "jwt_token"  # noqa: S105  # This is an enum identifier, not a password
     BASIC_AUTH = "basic_auth"
 
 
@@ -101,7 +100,7 @@ class SecurityGateway:
             return Either.right(None)
 
         except Exception as e:
-            error_msg = f"Failed to add security policy: {str(e)}"
+            error_msg = f"Failed to add security policy: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -117,7 +116,8 @@ class SecurityGateway:
             # Get security policy
             if policy_name not in self.security_policies:
                 error = SecurityError(
-                    "POLICY_NOT_FOUND", f"Security policy '{policy_name}' not found"
+                    "POLICY_NOT_FOUND",
+                    f"Security policy '{policy_name}' not found",
                 )
                 return Either.left(error)
 
@@ -137,12 +137,15 @@ class SecurityGateway:
 
         except Exception as e:
             error = SecurityError(
-                "VALIDATION_ERROR", f"Security validation failed: {str(e)}"
+                "VALIDATION_ERROR",
+                f"Security validation failed: {e!s}",
             )
             return Either.left(error)
 
     async def _authenticate_request(
-        self, headers: dict[str, str], policy: SecurityPolicy
+        self,
+        headers: dict[str, str],
+        policy: SecurityPolicy,
     ) -> Either[SecurityError, SecurityContext]:
         """Authenticate request based on policy methods."""
         # Try authentication methods in order
@@ -156,21 +159,24 @@ class SecurityGateway:
 
         return Either.left(
             SecurityError(
-                "AUTHENTICATION_FAILED", "No valid authentication method found"
-            )
+                "AUTHENTICATION_FAILED",
+                "No valid authentication method found",
+            ),
         )
 
     async def _authenticate_api_key(
-        self, headers: dict[str, str]
+        self,
+        headers: dict[str, str],
     ) -> Either[SecurityError, SecurityContext]:
         """Authenticate using API key."""
         api_key = headers.get("X-API-Key") or headers.get("Authorization", "").replace(
-            "Bearer ", ""
+            "Bearer ",
+            "",
         )
 
         if not api_key or api_key not in self.api_keys:
             return Either.left(
-                SecurityError("INVALID_API_KEY", "Invalid or missing API key")
+                SecurityError("INVALID_API_KEY", "Invalid or missing API key"),
             )
 
         key_data = self.api_keys[api_key]
@@ -184,7 +190,10 @@ class SecurityGateway:
         return Either.right(context)
 
     async def add_api_key(
-        self, api_key: str, user_id: str, permissions: list[str]
+        self,
+        api_key: str,
+        user_id: str,
+        permissions: list[str],
     ) -> Either[str, None]:
         """Add API key for authentication."""
         try:
@@ -199,7 +208,7 @@ class SecurityGateway:
             return Either.right(None)
 
         except Exception as e:
-            error_msg = f"Failed to add API key: {str(e)}"
+            error_msg = f"Failed to add API key: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 

@@ -1,5 +1,4 @@
-"""
-Search tools for finding actions and macros in Keyboard Maestro.
+"""Search tools for finding actions and macros in Keyboard Maestro.
 
 Provides advanced search capabilities for discovering actions within macros,
 with comprehensive filtering and pattern matching.
@@ -39,19 +38,20 @@ async def km_search_actions(
         ),
     ] = None,
     include_disabled: Annotated[
-        bool, Field(default=False, description="Include actions from disabled macros")
+        bool,
+        Field(default=False, description="Include actions from disabled macros"),
     ] = False,
     category: Annotated[
         Literal["application", "file", "text", "system", "variable", "control"] | None,
         Field(default=None, description="Filter by action category"),
     ] = None,
     limit: Annotated[
-        int, Field(default=50, ge=1, le=100, description="Maximum number of results")
+        int,
+        Field(default=50, ge=1, le=100, description="Maximum number of results"),
     ] = 50,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Search for actions within Keyboard Maestro macros by type, name, or configuration.
+    """Search for actions within Keyboard Maestro macros by type, name, or configuration.
 
     Provides comprehensive filtering capabilities to find specific actions across
     your macro library. Useful for:
@@ -64,7 +64,7 @@ async def km_search_actions(
     """
     if ctx:
         await ctx.info(
-            f"Searching for actions with filters: type={action_type}, content={content_search}"
+            f"Searching for actions with filters: type={action_type}, content={content_search}",
         )
 
     try:
@@ -106,7 +106,9 @@ async def km_search_actions(
 
         if ctx:
             await ctx.report_progress(
-                40, 100, f"Analyzing actions in {len(macros)} macros"
+                40,
+                100,
+                f"Analyzing actions in {len(macros)} macros",
             )
 
         # Category mapping for action types
@@ -167,7 +169,9 @@ async def km_search_actions(
 
         if ctx:
             await ctx.report_progress(
-                80, 100, f"Found {len(found_actions)} matching actions"
+                80,
+                100,
+                f"Found {len(found_actions)} matching actions",
             )
 
         # Sort results by relevance
@@ -176,7 +180,7 @@ async def km_search_actions(
                 not a["macro_enabled"],  # Enabled macros first
                 a["macro_name"],  # Then by macro name
                 a.get("index", 0),  # Then by position in macro
-            )
+            ),
         )
 
         if ctx:
@@ -202,7 +206,7 @@ async def km_search_actions(
     except Exception as e:
         logger.error(f"Error searching actions: {e}")
         if ctx:
-            await ctx.error(f"Action search failed: {str(e)}")
+            await ctx.error(f"Action search failed: {e!s}")
 
         return {
             "success": False,
@@ -240,7 +244,7 @@ def _generate_mock_actions(macro_name: str, macro_id: str) -> list[dict[str, Any
                     "enabled": True,
                     "config": {"text": "Pasted text content"},
                 },
-            ]
+            ],
         )
 
     elif "app" in macro_name.lower() or "application" in macro_name.lower():
@@ -252,8 +256,8 @@ def _generate_mock_actions(macro_name: str, macro_id: str) -> list[dict[str, Any
                     "index": 0,
                     "enabled": True,
                     "config": {"application": "Safari", "all_windows": True},
-                }
-            ]
+                },
+            ],
         )
 
     elif "file" in macro_name.lower():
@@ -269,8 +273,8 @@ def _generate_mock_actions(macro_name: str, macro_id: str) -> list[dict[str, Any
                         "destination": "~/Documents/",
                         "overwrite": False,
                     },
-                }
-            ]
+                },
+            ],
         )
 
     elif "script" in macro_name.lower():
@@ -285,8 +289,8 @@ def _generate_mock_actions(macro_name: str, macro_id: str) -> list[dict[str, Any
                         "script": 'tell application "System Events"\\n    display dialog "Hello"\\nend tell',
                         "timeout": 10,
                     },
-                }
-            ]
+                },
+            ],
         )
 
     # Add a control flow action to most macros
@@ -302,7 +306,7 @@ def _generate_mock_actions(macro_name: str, macro_id: str) -> list[dict[str, Any
                     "then_actions": ["Continue"],
                     "else_actions": ["Cancel Macro"],
                 },
-            }
+            },
         )
 
     # Default action if no patterns match
@@ -314,7 +318,7 @@ def _generate_mock_actions(macro_name: str, macro_id: str) -> list[dict[str, Any
                 "index": 0,
                 "enabled": True,
                 "config": {"duration": 1, "unit": "seconds"},
-            }
+            },
         )
 
     return actions

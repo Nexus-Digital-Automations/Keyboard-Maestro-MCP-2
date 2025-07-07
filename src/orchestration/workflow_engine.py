@@ -1,5 +1,4 @@
-"""
-Master workflow orchestration engine for coordinating complex multi-tool workflows.
+"""Master workflow orchestration engine for coordinating complex multi-tool workflows.
 
 This module provides comprehensive workflow execution capabilities including:
 - Sequential, parallel, adaptive, and pipeline execution modes
@@ -93,12 +92,11 @@ class WorkflowExecutionState:
         """Calculate total execution time."""
         if self.status == WorkflowExecutionStatus.RUNNING:
             return (datetime.now(UTC) - self.start_time).total_seconds()
-        else:
-            last_completion = max(
-                [result.execution_time for result in self.step_results.values()],
-                default=0.0,
-            )
-            return last_completion
+        last_completion = max(
+            [result.execution_time for result in self.step_results.values()],
+            default=0.0,
+        )
+        return last_completion
 
     @property
     def success_rate(self) -> float:
@@ -124,14 +122,13 @@ class MasterWorkflowEngine:
         self.resource_usage_threshold = 0.8
         self.step_timeout_buffer = 1.2  # 20% buffer on step timeouts
 
-    @require(lambda self, workflow: len(workflow.steps) > 0)
+    @require(lambda __self, workflow: len(workflow.steps) > 0)
     async def execute_workflow(
         self,
         workflow: EcosystemWorkflow,
         optimization_target: OptimizationTarget = OptimizationTarget.EFFICIENCY,
     ) -> Either[OrchestrationError, OrchestrationResult]:
         """Execute complete ecosystem workflow with intelligent coordination."""
-
         orchestration_id = create_orchestration_id()
 
         try:
@@ -167,8 +164,8 @@ class MasterWorkflowEngine:
             else:
                 return Either.left(
                     OrchestrationError.unsupported_execution_mode(
-                        workflow.execution_mode
-                    )
+                        workflow.execution_mode,
+                    ),
                 )
 
             if result.is_left():
@@ -181,7 +178,7 @@ class MasterWorkflowEngine:
 
             # Generate performance metrics
             performance_metrics = await self._generate_performance_metrics(
-                execution_state
+                execution_state,
             )
 
             # Create orchestration result
@@ -194,7 +191,7 @@ class MasterWorkflowEngine:
                 performance_metrics=performance_metrics,
                 optimization_applied=execution_plan.get("optimizations", []),
                 next_recommendations=await self._generate_recommendations(
-                    execution_state
+                    execution_state,
                 ),
             )
 
@@ -215,10 +212,10 @@ class MasterWorkflowEngine:
                 del self.active_workflows[workflow.workflow_id]
 
     async def _validate_workflow(
-        self, workflow: EcosystemWorkflow
+        self,
+        workflow: EcosystemWorkflow,
     ) -> Either[OrchestrationError, None]:
         """Validate workflow before execution."""
-
         # Check all tools exist in registry
         for step in workflow.steps:
             if step.tool_id not in self.tool_registry.tools:
@@ -236,17 +233,19 @@ class MasterWorkflowEngine:
                 if not satisfied:
                     return Either.left(
                         OrchestrationError.precondition_failed(
-                            step.step_id, precondition
-                        )
+                            step.step_id,
+                            precondition,
+                        ),
                     )
 
         return Either.right(None)
 
     async def _plan_execution(
-        self, workflow: EcosystemWorkflow, optimization_target: OptimizationTarget
+        self,
+        workflow: EcosystemWorkflow,
+        optimization_target: OptimizationTarget,
     ) -> dict[str, Any]:
         """Plan optimal execution strategy for workflow."""
-
         plan = {
             "execution_order": [],
             "parallel_groups": {},
@@ -263,13 +262,15 @@ class MasterWorkflowEngine:
         if optimization_target == OptimizationTarget.PERFORMANCE:
             plan["optimizations"].append("performance_optimization")
             plan["parallel_groups"] = self._optimize_for_performance(
-                workflow, parallel_groups
+                workflow,
+                parallel_groups,
             )
 
         elif optimization_target == OptimizationTarget.EFFICIENCY:
             plan["optimizations"].append("efficiency_optimization")
             plan["parallel_groups"] = self._optimize_for_efficiency(
-                workflow, parallel_groups
+                workflow,
+                parallel_groups,
             )
 
         else:  # BALANCED or others
@@ -279,7 +280,9 @@ class MasterWorkflowEngine:
         return plan
 
     def _optimize_for_performance(
-        self, workflow: EcosystemWorkflow, groups: dict[str, list[str]]
+        self,
+        workflow: EcosystemWorkflow,
+        groups: dict[str, list[str]],
     ) -> dict[str, list[str]]:
         """Optimize workflow for maximum performance."""
         optimized_groups = groups.copy()
@@ -297,7 +300,9 @@ class MasterWorkflowEngine:
         return optimized_groups
 
     def _optimize_for_efficiency(
-        self, workflow: EcosystemWorkflow, groups: dict[str, list[str]]
+        self,
+        workflow: EcosystemWorkflow,
+        groups: dict[str, list[str]],
     ) -> dict[str, list[str]]:
         """Optimize workflow for resource efficiency."""
         optimized_groups = {}
@@ -326,10 +331,11 @@ class MasterWorkflowEngine:
         return optimized_groups
 
     async def _execute_sequential(
-        self, workflow: EcosystemWorkflow, execution_state: WorkflowExecutionState
+        self,
+        workflow: EcosystemWorkflow,
+        execution_state: WorkflowExecutionState,
     ) -> Either[OrchestrationError, dict[str, Any]]:
         """Execute workflow steps sequentially."""
-
         results = {}
 
         for step in workflow.steps:
@@ -341,8 +347,9 @@ class MasterWorkflowEngine:
                 execution_state.failed_steps.add(step.step_id)
                 return Either.left(
                     OrchestrationError.step_execution_failed(
-                        step.step_id, step_result.error_message or "Unknown error"
-                    )
+                        step.step_id,
+                        step_result.error_message or "Unknown error",
+                    ),
                 )
 
             execution_state.completed_steps.add(step.step_id)
@@ -352,10 +359,11 @@ class MasterWorkflowEngine:
         return Either.right(results)
 
     async def _execute_parallel(
-        self, workflow: EcosystemWorkflow, execution_state: WorkflowExecutionState
+        self,
+        workflow: EcosystemWorkflow,
+        execution_state: WorkflowExecutionState,
     ) -> Either[OrchestrationError, dict[str, Any]]:
         """Execute workflow steps in parallel groups."""
-
         results = {}
         parallel_groups = workflow.get_parallel_groups()
 
@@ -372,7 +380,8 @@ class MasterWorkflowEngine:
             # Wait for all tasks in group to complete
             try:
                 group_results = await asyncio.gather(
-                    *group_tasks, return_exceptions=True
+                    *group_tasks,
+                    return_exceptions=True,
                 )
 
                 for i, result in enumerate(group_results):
@@ -381,10 +390,10 @@ class MasterWorkflowEngine:
                         execution_state.failed_steps.add(step_id)
                         return Either.left(
                             OrchestrationError.parallel_execution_failed(
-                                f"Step {step_id} failed: {result}"
-                            )
+                                f"Step {step_id} failed: {result}",
+                            ),
                         )
-                    elif isinstance(result, StepExecutionResult):
+                    if isinstance(result, StepExecutionResult):
                         if result.status == WorkflowStepStatus.COMPLETED:
                             execution_state.completed_steps.add(result.step_id)
                             execution_state.step_results[result.step_id] = result
@@ -395,27 +404,31 @@ class MasterWorkflowEngine:
                                 OrchestrationError.step_execution_failed(
                                     result.step_id,
                                     result.error_message or "Unknown error",
-                                )
+                                ),
                             )
 
             except Exception as e:
                 return Either.left(
                     OrchestrationError.parallel_execution_failed(
-                        f"Group {group_name} execution failed: {e}"
-                    )
+                        f"Group {group_name} execution failed: {e}",
+                    ),
                 )
 
         return Either.right(results)
 
     async def _execute_adaptive(
-        self, workflow: EcosystemWorkflow, execution_state: WorkflowExecutionState
+        self,
+        workflow: EcosystemWorkflow,
+        execution_state: WorkflowExecutionState,
     ) -> Either[OrchestrationError, dict[str, Any]]:
         """Execute workflow with adaptive optimization."""
         # For now, fall back to sequential execution with performance monitoring
         return await self._execute_sequential(workflow, execution_state)
 
     async def _execute_pipeline(
-        self, workflow: EcosystemWorkflow, execution_state: WorkflowExecutionState
+        self,
+        workflow: EcosystemWorkflow,
+        execution_state: WorkflowExecutionState,
     ) -> Either[OrchestrationError, dict[str, Any]]:
         """Execute workflow in pipeline mode with streaming data."""
         # For now, fall back to sequential execution
@@ -450,7 +463,7 @@ class MasterWorkflowEngine:
             # Simulate tool execution (in real implementation, this would call the actual tool)
             execution_time = tool.performance_characteristics.get("response_time", 1.0)
             await asyncio.sleep(
-                min(execution_time, 0.1)
+                min(execution_time, 0.1),
             )  # Simulate execution with max 100ms for testing
 
             # Calculate actual execution time
@@ -484,16 +497,18 @@ class MasterWorkflowEngine:
             )
 
     async def _execute_step_async(
-        self, step: WorkflowStep, execution_state: WorkflowExecutionState
+        self,
+        step: WorkflowStep,
+        execution_state: WorkflowExecutionState,
     ) -> StepExecutionResult:
         """Execute step asynchronously for parallel execution."""
         return await self._execute_step(step, execution_state)
 
     async def _generate_performance_metrics(
-        self, execution_state: WorkflowExecutionState
+        self,
+        execution_state: WorkflowExecutionState,
     ) -> SystemPerformanceMetrics:
         """Generate performance metrics for completed workflow."""
-
         total_tools = len(execution_state.step_results)
         len(execution_state.completed_steps)
         failed_steps = len(execution_state.failed_steps)
@@ -537,7 +552,7 @@ class MasterWorkflowEngine:
             for result in execution_state.step_results.values():
                 if result.execution_time > avg_time * 2:
                     bottlenecks.append(
-                        f"Step {result.step_id} (tool: {result.tool_id})"
+                        f"Step {result.step_id} (tool: {result.tool_id})",
                     )
 
         return SystemPerformanceMetrics(
@@ -550,12 +565,13 @@ class MasterWorkflowEngine:
             throughput=throughput,
             bottlenecks=bottlenecks,
             optimization_opportunities=await self._identify_optimization_opportunities(
-                execution_state
+                execution_state,
             ),
         )
 
     async def _identify_optimization_opportunities(
-        self, execution_state: WorkflowExecutionState
+        self,
+        execution_state: WorkflowExecutionState,
     ) -> list[str]:
         """Identify optimization opportunities based on execution results."""
         opportunities = []
@@ -573,13 +589,14 @@ class MasterWorkflowEngine:
         # Check for caching opportunities
         if execution_state.total_execution_time > 10.0:
             opportunities.append(
-                "Consider implementing result caching for long workflows"
+                "Consider implementing result caching for long workflows",
             )
 
         return opportunities
 
     async def _generate_recommendations(
-        self, execution_state: WorkflowExecutionState
+        self,
+        execution_state: WorkflowExecutionState,
     ) -> list[str]:
         """Generate recommendations for future optimizations."""
         recommendations = []
@@ -587,12 +604,12 @@ class MasterWorkflowEngine:
         # Performance recommendations
         if execution_state.success_rate < 0.9:
             recommendations.append(
-                "Implement additional error handling and retry logic"
+                "Implement additional error handling and retry logic",
             )
 
         if execution_state.total_execution_time > 30.0:
             recommendations.append(
-                "Consider breaking workflow into smaller, composable workflows"
+                "Consider breaking workflow into smaller, composable workflows",
             )
 
         return recommendations

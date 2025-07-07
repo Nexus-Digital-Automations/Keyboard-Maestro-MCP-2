@@ -1,23 +1,27 @@
-"""
-Phase 17 High-Impact Remaining Modules & Strategic Coverage Optimization for Keyboard Maestro MCP.
+"""Phase 17 High-Impact Remaining Modules & Strategic Coverage Optimization for Keyboard Maestro MCP.
 
 This module targets high-impact remaining modules and strategic coverage optimization patterns,
 focusing on server tools, utility modules, large-scale system components, and uncovered critical paths
 for maximum coverage gain toward the 95% target through systematic remaining module testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_large_server_tools_comprehensive():
+def test_large_server_tools_comprehensive() -> None:
     """Test comprehensive coverage of large server tool modules for maximum impact."""
-
     # Target high-impact server tools with significant line counts
     large_server_tools = [
         ("server.tools", "testing_automation_tools"),  # 425 lines
@@ -63,9 +67,9 @@ def test_large_server_tools_comprehensive():
                         try:
                             instance = cls()
                             assert instance is not None
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -75,9 +79,8 @@ def test_large_server_tools_comprehensive():
     )
 
 
-def test_utility_and_infrastructure_modules():
+def test_utility_and_infrastructure_modules() -> None:
     """Test coverage of utility and infrastructure modules."""
-
     # Target utility and infrastructure modules
     utility_modules = [
         ("", "server_backup"),  # 87 lines
@@ -97,7 +100,8 @@ def test_utility_and_infrastructure_modules():
         try:
             if package:
                 module = __import__(
-                    f"src.{package}.{module_name}", fromlist=[module_name]
+                    f"src.{package}.{module_name}",
+                    fromlist=[module_name],
                 )
             else:
                 module = __import__(f"src.{module_name}", fromlist=[module_name])
@@ -127,9 +131,8 @@ def test_utility_and_infrastructure_modules():
     assert utility_imports >= 6, f"Only {utility_imports} utility modules imported"
 
 
-def test_token_and_trigger_systems():
+def test_token_and_trigger_systems() -> None:
     """Test comprehensive coverage of token and trigger systems."""
-
     # Target token and trigger system modules
     token_trigger_modules = [
         ("tokens", "token_processor"),  # 241 lines
@@ -171,9 +174,9 @@ def test_token_and_trigger_systems():
                                 if hasattr(instance, method):
                                     assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -183,9 +186,8 @@ def test_token_and_trigger_systems():
     )
 
 
-def test_workflow_and_analytics_comprehensive():
+def test_workflow_and_analytics_comprehensive() -> None:
     """Test comprehensive coverage of workflow and analytics systems."""
-
     # Target workflow and analytics modules
     workflow_analytics_modules = [
         ("workflow", "visual_composer"),  # 186 lines
@@ -231,9 +233,8 @@ def test_workflow_and_analytics_comprehensive():
     )
 
 
-def test_remaining_uncovered_modules():
+def test_remaining_uncovered_modules() -> None:
     """Test coverage of remaining uncovered high-value modules."""
-
     # Target remaining high-value modules that are likely uncovered
     remaining_modules = [
         ("server.tools", "web_request_tools"),  # 208 lines
@@ -289,9 +290,8 @@ def test_remaining_uncovered_modules():
     )
 
 
-def test_comprehensive_module_functionality_patterns():
+def test_comprehensive_module_functionality_patterns() -> None:
     """Test comprehensive functionality patterns across multiple modules."""
-
     # Test comprehensive functionality patterns
     functionality_data = {
         "testing_automation": {
@@ -433,7 +433,7 @@ def test_comprehensive_module_functionality_patterns():
     assert visual_metrics["average_processing_time_ms"] < 50
 
 
-def test_advanced_high_impact_async_functionality():
+def test_advanced_high_impact_async_functionality() -> bool:
     """Test advanced async functionality for high-impact remaining modules."""
 
     @pytest.mark.asyncio
@@ -553,9 +553,8 @@ def test_advanced_high_impact_async_functionality():
     assert result is True
 
 
-def test_strategic_coverage_optimization_patterns():
+def test_strategic_coverage_optimization_patterns() -> None:
     """Test strategic patterns for coverage optimization and final push toward 95%."""
-
     # Test strategic coverage optimization scenarios
     coverage_optimization = {
         "high_impact_module_targeting": {
@@ -673,9 +672,8 @@ def test_strategic_coverage_optimization_patterns():
     assert remaining_to_target < 0.65  # Should be making significant progress
 
 
-def test_final_optimization_validation():
+def test_final_optimization_validation() -> None:
     """Test final optimization validation for Phase 17 completion."""
-
     # Test final optimization validation scenarios
     optimization_validation = {
         "phase_17_completion_criteria": {

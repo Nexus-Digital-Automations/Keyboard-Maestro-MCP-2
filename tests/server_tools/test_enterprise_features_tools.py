@@ -1,22 +1,27 @@
-"""
-Comprehensive Test Suite for Enterprise Features Tools (TASK_40-55).
+"""Comprehensive Test Suite for Enterprise Features Tools (TASK_40-55).
 
 This module provides systematic testing for AI enhancement, strategic extensions, analytics,
 workflow intelligence, and enterprise integration MCP tools with comprehensive coverage for
 advanced automation capabilities and enterprise-grade functionality.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+
+logger = logging.getLogger(__name__)
 
 
 class TestEnterpriseFoundation:
     """Test foundation for enterprise features MCP tools from TASK_40-55."""
 
     @pytest.fixture
-    def execution_context(self):
+    def execution_context(self) -> Any:
         """Create mock execution context for testing."""
         context = AsyncMock()
         context.session_id = "test-session-enterprise-features"
@@ -26,7 +31,7 @@ class TestEnterpriseFoundation:
         return context
 
     @pytest.fixture
-    def sample_ai_data(self):
+    def sample_ai_data(self) -> Any:
         """Sample AI enhancement data for testing."""
         return {
             "model_type": "predictive_automation",
@@ -45,7 +50,7 @@ class TestEnterpriseFoundation:
         }
 
     @pytest.fixture
-    def sample_analytics_data(self):
+    def sample_analytics_data(self) -> Any:
         """Sample analytics data for testing."""
         return {
             "analytics_type": "performance_analysis",
@@ -63,7 +68,7 @@ class TestEnterpriseFoundation:
         }
 
     @pytest.fixture
-    def sample_workflow_data(self):
+    def sample_workflow_data(self) -> Any:
         """Sample workflow intelligence data for testing."""
         return {
             "workflow_id": "enterprise-workflow-123",
@@ -86,7 +91,7 @@ class TestEnterpriseFoundation:
 class TestAIEnhancementTools:
     """Test AI enhancement tools from TASK_40-41, 43, 46-49."""
 
-    def test_ai_enhancement_tools_import(self):
+    def test_ai_enhancement_tools_import(self) -> None:
         """Test that AI enhancement tools can be imported successfully."""
         try:
             from src.server.tools import ai_enhancement_tools
@@ -103,14 +108,14 @@ class TestAIEnhancementTools:
             pytest.skip(f"AI enhancement tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_predictive_automation(self, execution_context, sample_ai_data):
+    async def test_predictive_automation(self, execution_context, sample_ai_data) -> None:
         """Test predictive automation functionality."""
         try:
             from src.server.tools.ai_enhancement_tools import km_ai_automation
 
             # Mock AI automation engine
             with patch(
-                "src.server.tools.ai_enhancement_tools.AIAutomationEngine"
+                "src.server.tools.ai_enhancement_tools.AIAutomationEngine",
             ) as mock_engine_class:
                 mock_engine = Mock()
                 mock_prediction_result = {
@@ -164,14 +169,14 @@ class TestAIEnhancementTools:
             pytest.skip("AI automation tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_adaptive_learning_system(self, execution_context, sample_ai_data):
+    async def test_adaptive_learning_system(self, execution_context, sample_ai_data) -> None:
         """Test adaptive learning functionality."""
         try:
             from src.server.tools.ai_enhancement_tools import km_adaptive_learning
 
             # Mock adaptive learning system
             with patch(
-                "src.server.tools.ai_enhancement_tools.AdaptiveLearningSystem"
+                "src.server.tools.ai_enhancement_tools.AdaptiveLearningSystem",
             ) as mock_learning_class:
                 mock_learning = Mock()
                 mock_learning_result = {
@@ -187,7 +192,7 @@ class TestAIEnhancementTools:
                             "macro_id": "data-processing-2",
                             "adaptation_type": "trigger_refinement",
                             "changes": {
-                                "condition_sensitivity": {"old": 0.8, "new": 0.9}
+                                "condition_sensitivity": {"old": 0.8, "new": 0.9},
                             },
                             "performance_impact": "+22% accuracy",
                         },
@@ -219,14 +224,14 @@ class TestAIEnhancementTools:
             pytest.skip("Adaptive learning tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_smart_suggestions_engine(self, execution_context):
+    async def test_smart_suggestions_engine(self, execution_context) -> None:
         """Test smart suggestions functionality."""
         try:
             from src.server.tools.ai_enhancement_tools import km_predictive_suggestions
 
             # Mock suggestions engine
             with patch(
-                "src.server.tools.ai_enhancement_tools.SmartSuggestionsEngine"
+                "src.server.tools.ai_enhancement_tools.SmartSuggestionsEngine",
             ) as mock_suggestions_class:
                 mock_suggestions = Mock()
                 mock_suggestions_result = {
@@ -279,7 +284,7 @@ class TestAIEnhancementTools:
 class TestAnalyticsTools:
     """Test analytics and reporting tools from strategic extensions."""
 
-    def test_analytics_tools_import(self):
+    def test_analytics_tools_import(self) -> None:
         """Test that analytics tools can be imported."""
         try:
             from src.server.tools import analytics_tools
@@ -297,15 +302,17 @@ class TestAnalyticsTools:
 
     @pytest.mark.asyncio
     async def test_performance_analytics(
-        self, execution_context, sample_analytics_data
-    ):
+        self,
+        execution_context,
+        sample_analytics_data,
+    ) -> None:
         """Test performance analytics functionality."""
         try:
             from src.server.tools.analytics_tools import km_performance_analysis
 
             # Mock analytics engine
             with patch(
-                "src.server.tools.analytics_tools.AnalyticsEngine"
+                "src.server.tools.analytics_tools.AnalyticsEngine",
             ) as mock_analytics_class:
                 mock_analytics = Mock()
                 mock_analytics_result = {
@@ -365,15 +372,17 @@ class TestAnalyticsTools:
 
     @pytest.mark.asyncio
     async def test_usage_insights_generation(
-        self, execution_context, sample_analytics_data
-    ):
+        self,
+        execution_context,
+        sample_analytics_data,
+    ) -> None:
         """Test usage insights generation functionality."""
         try:
             from src.server.tools.analytics_tools import km_usage_insights
 
             # Mock insights engine
             with patch(
-                "src.server.tools.analytics_tools.UsageInsightsEngine"
+                "src.server.tools.analytics_tools.UsageInsightsEngine",
             ) as mock_insights_class:
                 mock_insights = Mock()
                 mock_insights_result = {
@@ -430,7 +439,7 @@ class TestAnalyticsTools:
 class TestWorkflowIntelligenceTools:
     """Test workflow intelligence tools from strategic extensions."""
 
-    def test_workflow_intelligence_import(self):
+    def test_workflow_intelligence_import(self) -> None:
         """Test that workflow intelligence tools can be imported."""
         try:
             from src.server.tools import workflow_intelligence_tools
@@ -447,7 +456,7 @@ class TestWorkflowIntelligenceTools:
             pytest.skip(f"Workflow intelligence tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_workflow_optimization(self, execution_context, sample_workflow_data):
+    async def test_workflow_optimization(self, execution_context, sample_workflow_data) -> None:
         """Test workflow optimization functionality."""
         try:
             from src.server.tools.workflow_intelligence_tools import (
@@ -456,7 +465,7 @@ class TestWorkflowIntelligenceTools:
 
             # Mock workflow optimizer
             with patch(
-                "src.server.tools.workflow_intelligence_tools.WorkflowOptimizer"
+                "src.server.tools.workflow_intelligence_tools.WorkflowOptimizer",
             ) as mock_optimizer_class:
                 mock_optimizer = Mock()
                 mock_optimization_result = {
@@ -509,7 +518,7 @@ class TestWorkflowIntelligenceTools:
             pytest.skip("Workflow optimization tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_intelligent_routing(self, execution_context):
+    async def test_intelligent_routing(self, execution_context) -> None:
         """Test intelligent routing functionality."""
         try:
             from src.server.tools.workflow_intelligence_tools import (
@@ -518,7 +527,7 @@ class TestWorkflowIntelligenceTools:
 
             # Mock intelligent router
             with patch(
-                "src.server.tools.workflow_intelligence_tools.IntelligentRouter"
+                "src.server.tools.workflow_intelligence_tools.IntelligentRouter",
             ) as mock_router_class:
                 mock_router = Mock()
                 mock_routing_result = {
@@ -575,7 +584,7 @@ class TestWorkflowIntelligenceTools:
 class TestEnterpriseIntegrationTools:
     """Test enterprise integration and synchronization tools."""
 
-    def test_enterprise_integration_import(self):
+    def test_enterprise_integration_import(self) -> None:
         """Test that enterprise integration tools can be imported."""
         try:
             from src.server.tools import enterprise_sync_tools
@@ -592,14 +601,14 @@ class TestEnterpriseIntegrationTools:
             pytest.skip(f"Enterprise integration tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_enterprise_synchronization(self, execution_context):
+    async def test_enterprise_synchronization(self, execution_context) -> None:
         """Test enterprise synchronization functionality."""
         try:
             from src.server.tools.enterprise_sync_tools import km_enterprise_sync
 
             # Mock enterprise sync system
             with patch(
-                "src.server.tools.enterprise_sync_tools.EnterpriseSyncEngine"
+                "src.server.tools.enterprise_sync_tools.EnterpriseSyncEngine",
             ) as mock_sync_class:
                 mock_sync = Mock()
                 mock_sync_result = {
@@ -650,7 +659,7 @@ class TestEnterpriseFeaturesIntegration:
     """Test integration patterns across enterprise feature tools."""
 
     @pytest.mark.asyncio
-    async def test_ai_analytics_integration(self, execution_context):
+    async def test_ai_analytics_integration(self, execution_context) -> None:
         """Test integration between AI and analytics tools."""
         enterprise_tools = [
             ("src.server.tools.ai_enhancement_tools", "km_ai_automation"),
@@ -677,7 +686,7 @@ class TestEnterpriseFeaturesIntegration:
                 continue
 
     @pytest.mark.asyncio
-    async def test_enterprise_tool_response_consistency(self, execution_context):
+    async def test_enterprise_tool_response_consistency(self, execution_context) -> None:
         """Test that all enterprise tools return consistent response structure."""
         enterprise_tools = [
             (
@@ -711,7 +720,8 @@ class TestEnterpriseFeaturesIntegration:
                 # Verify basic function structure
                 assert callable(tool_func)
                 assert hasattr(tool_func, "__annotations__") or hasattr(
-                    tool_func, "__doc__"
+                    tool_func,
+                    "__doc__",
                 )
 
                 # For async functions, check they're properly defined
@@ -732,7 +742,7 @@ class TestPropertyBasedEnterpriseTesting:
     """Property-based testing for enterprise features using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_ai_learning_properties(self, execution_context):
+    async def test_ai_learning_properties(self, execution_context) -> None:
         """Property: AI learning should improve over time with valid data."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -743,8 +753,10 @@ class TestPropertyBasedEnterpriseTesting:
             pattern_count=st.integers(min_value=10, max_value=1000),
         )
         async def test_ai_properties(
-            confidence_threshold, learning_rate, pattern_count
-        ):
+            confidence_threshold,
+            learning_rate,
+            pattern_count,
+        ) -> None:
             """Test AI learning properties."""
             try:
                 from src.server.tools.ai_enhancement_tools import km_ai_automation
@@ -777,15 +789,13 @@ class TestPropertyBasedEnterpriseTesting:
                                 assert 0.0 <= confidence <= 1.0
                                 assert confidence >= confidence_threshold
 
-            except Exception:
-                # Tools may fail with invalid combinations, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
-        # Run a test case
         await test_ai_properties(0.8, 0.1, 100)
 
     @pytest.mark.asyncio
-    async def test_analytics_time_range_properties(self, execution_context):
+    async def test_analytics_time_range_properties(self, execution_context) -> None:
         """Property: Analytics should handle various time ranges correctly."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -794,7 +804,7 @@ class TestPropertyBasedEnterpriseTesting:
             days_back=st.integers(min_value=1, max_value=365),
             aggregation=st.sampled_from(["hourly", "daily", "weekly", "monthly"]),
         )
-        async def test_analytics_properties(days_back, aggregation):
+        async def test_analytics_properties(days_back, aggregation) -> None:
             """Test analytics time range properties."""
             try:
                 from src.server.tools.analytics_tools import km_performance_analysis
@@ -827,9 +837,7 @@ class TestPropertyBasedEnterpriseTesting:
                         assert "start" in data["time_range"]
                         assert "end" in data["time_range"]
 
-            except Exception:
-                # Tools may fail with invalid combinations, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
-        # Run a test case
         await test_analytics_properties(30, "daily")

@@ -1,5 +1,4 @@
-"""
-Command Processor - TASK_60 Phase 2 Core Implementation
+"""Command Processor - TASK_60 Phase 2 Core Implementation.
 
 Natural language command processing and interpretation for automation workflows.
 Converts natural language commands into structured automation actions and workflows.
@@ -309,13 +308,17 @@ class CommandProcessor:
     async def process_command(
         self,
         text: TextContent,
-        language: LanguageCode = LanguageCode("en"),
+        language: LanguageCode | None = None,
         confidence_threshold: float = 0.7,
         include_alternatives: bool = True,
         context_domain: str | None = None,
     ) -> Either[NLPError, ProcessedCommand]:
         """Process natural language command into structured automation workflow."""
         try:
+            # B008 fix: Move function call from default argument to function body
+            if language is None:
+                language = LanguageCode("en")
+
             start_time = datetime.now(UTC)
             command_id = create_command_id()
 
@@ -326,25 +329,27 @@ class CommandProcessor:
                         "Command does not appear to be automation-related",
                         "NOT_AUTOMATION_COMMAND",
                         context={"text": str(text)[:100]},
-                    )
+                    ),
                 )
 
             # Recognize intent using the classifier
             intent_result = await self.intent_classifier.recognize_intent(
-                text, confidence_threshold, max_intents=5
+                text,
+                confidence_threshold,
+                max_intents=5,
             )
 
             if intent_result.is_left():
                 return Either.left(intent_result.left_value)
 
-            recognized_intents = intent_result.right_value
+            recognized_intents = intent_result.value
             if not recognized_intents:
                 return Either.left(
                     NLPError(
                         "No automation intents recognized",
                         "NO_INTENT_FOUND",
                         context={"confidence_threshold": confidence_threshold},
-                    )
+                    ),
                 )
 
             # Use the highest confidence intent
@@ -360,12 +365,16 @@ class CommandProcessor:
 
             # Generate automation actions based on intent and entities
             automation_actions = await self._generate_automation_actions(
-                primary_intent, unique_entities, context_domain
+                primary_intent,
+                unique_entities,
+                context_domain,
             )
 
             # Calculate overall confidence
             confidence_score = self._calculate_command_confidence(
-                primary_intent, unique_entities, automation_actions
+                primary_intent,
+                unique_entities,
+                automation_actions,
             )
 
             # Calculate processing time
@@ -376,10 +385,14 @@ class CommandProcessor:
             if include_alternatives and len(recognized_intents) > 1:
                 for intent in recognized_intents[1:3]:  # Top 2 alternatives
                     alt_actions = await self._generate_automation_actions(
-                        intent, unique_entities, context_domain
+                        intent,
+                        unique_entities,
+                        context_domain,
                     )
                     alt_confidence = self._calculate_command_confidence(
-                        intent, unique_entities, alt_actions
+                        intent,
+                        unique_entities,
+                        alt_actions,
                     )
 
                     alternative = ProcessedCommand(
@@ -406,7 +419,7 @@ class CommandProcessor:
             )
 
             # Cache the result
-            cache_key = f"{str(text)}_{language}_{confidence_threshold}"
+            cache_key = f"{text!s}_{language}_{confidence_threshold}"
             self.processing_cache[cache_key] = processed_command
 
             # Add to command history
@@ -418,7 +431,7 @@ class CommandProcessor:
                     "confidence": confidence_score,
                     "timestamp": start_time,
                     "success": True,
-                }
+                },
             )
 
             return Either.right(processed_command)
@@ -426,10 +439,10 @@ class CommandProcessor:
         except Exception as e:
             return Either.left(
                 NLPError(
-                    f"Command processing failed: {str(e)}",
+                    f"Command processing failed: {e!s}",
                     "PROCESSING_ERROR",
                     context={"text_length": len(str(text))},
-                )
+                ),
             )
 
     async def generate_workflow_from_description(
@@ -447,7 +460,7 @@ class CommandProcessor:
             if command_result.is_left():
                 return Either.left(command_result.left_value)
 
-            processed_command = command_result.right_value
+            processed_command = command_result.value
 
             # Generate workflow structure
             workflow = {
@@ -468,7 +481,7 @@ class CommandProcessor:
                         ),
                     },
                     "triggers": [
-                        {"type": "manual", "description": "Manual execution trigger"}
+                        {"type": "manual", "description": "Manual execution trigger"},
                     ],
                     "actions": processed_command.automation_actions,
                     "error_handling": self._generate_error_handling()
@@ -480,7 +493,7 @@ class CommandProcessor:
                                 perm
                                 for action in processed_command.automation_actions
                                 for perm in action.get("required_permissions", [])
-                            }
+                            },
                         ),
                         "prerequisites": [],
                         "success_criteria": [
@@ -497,18 +510,20 @@ class CommandProcessor:
         except Exception as e:
             return Either.left(
                 NLPError(
-                    f"Workflow generation failed: {str(e)}", "WORKFLOW_GENERATION_ERROR"
-                )
+                    f"Workflow generation failed: {e!s}",
+                    "WORKFLOW_GENERATION_ERROR",
+                ),
             )
 
     def _deduplicate_entities(
-        self, entities: list[ExtractedEntity]
+        self,
+        entities: list[ExtractedEntity],
     ) -> list[ExtractedEntity]:
         """Remove duplicate entities while preserving highest confidence ones."""
         seen_entities = {}
 
         for entity in entities:
-            key = f"{entity.entity_type.value}_{str(entity.value)}"
+            key = f"{entity.entity_type.value}_{entity.value!s}"
             if (
                 key not in seen_entities
                 or entity.confidence > seen_entities[key].confidence
@@ -545,7 +560,8 @@ class CommandProcessor:
 
         # Get relevant action templates
         action_templates = intent_action_mapping.get(
-            intent.intent, ["send_notification"]
+            intent.intent,
+            ["send_notification"],
         )
 
         for template_name in action_templates:
@@ -565,11 +581,15 @@ class CommandProcessor:
                         action_params["url"] = str(entity.value)
                     elif entity.entity_type.value == "hotkey":
                         action_params["key_combination"] = str(entity.value)
-                    elif entity.entity_type.value == "number":
-                        if template.action_type == "system_control":
-                            action_params["volume_level"] = min(
-                                100, max(0, int(float(str(entity.value))))
-                            )
+                    # SIM102 fix: Combine nested if statements
+                    elif (
+                        entity.entity_type.value == "number"
+                        and template.action_type == "system_control"
+                    ):
+                        action_params["volume_level"] = min(
+                            100,
+                            max(0, int(float(str(entity.value)))),
+                        )
 
                 # Add default text if needed
                 if (
@@ -642,7 +662,7 @@ class CommandProcessor:
                             "message": "An action failed during execution",
                             "sound": True,
                         },
-                    }
+                    },
                 ],
             },
             "on_permission_denied": {
@@ -655,7 +675,7 @@ class CommandProcessor:
                             "message": "This automation requires additional permissions",
                             "sound": True,
                         },
-                    }
+                    },
                 ],
             },
             "on_timeout": {
@@ -676,7 +696,7 @@ class CommandProcessor:
             return {"total_commands": len(self.command_history), "success_rate": 0.0}
 
         avg_confidence = sum(cmd["confidence"] for cmd in successful_commands) / len(
-            successful_commands
+            successful_commands,
         )
 
         intent_distribution = {}

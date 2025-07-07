@@ -1,5 +1,4 @@
-"""
-Inter-agent communication and coordination hub.
+"""Inter-agent communication and coordination hub.
 
 This module provides secure communication channels between autonomous agents,
 enabling coordination, knowledge sharing, and collaborative decision-making.
@@ -118,7 +117,7 @@ class ConsensusProposal:
     required_votes: int
     votes: dict[AgentId, bool] = field(default_factory=dict)
     deadline: datetime = field(
-        default_factory=lambda: datetime.now(UTC) + timedelta(minutes=5)
+        default_factory=lambda: datetime.now(UTC) + timedelta(minutes=5),
     )
 
     @property
@@ -146,13 +145,13 @@ class CommunicationHub:
     def __init__(self):
         self.channels: dict[str, CommunicationChannel] = {}
         self.message_queue: dict[AgentId, deque] = defaultdict(
-            lambda: deque(maxlen=1000)
+            lambda: deque(maxlen=1000),
         )
         self.sent_messages: dict[str, Message] = {}
         self.acknowledgments: dict[str, list[MessageAcknowledgment]] = defaultdict(list)
         self.consensus_proposals: dict[str, ConsensusProposal] = {}
         self.message_handlers: dict[AgentId, dict[MessageType, Callable]] = defaultdict(
-            dict
+            dict,
         )
         self.communication_metrics = {
             "total_messages": 0,
@@ -164,7 +163,8 @@ class CommunicationHub:
         self._lock = asyncio.Lock()
 
     async def register_agent(
-        self, agent_id: AgentId
+        self,
+        agent_id: AgentId,
     ) -> Either[AutonomousAgentError, None]:
         """Register an agent with the communication hub."""
         async with self._lock:
@@ -198,8 +198,8 @@ class CommunicationHub:
             except Exception as e:
                 return Either.left(
                     AutonomousAgentError.unexpected_error(
-                        f"Agent registration failed: {str(e)}"
-                    )
+                        f"Agent registration failed: {e!s}",
+                    ),
                 )
 
     async def send_message(self, message: Message) -> Either[AutonomousAgentError, str]:
@@ -209,7 +209,9 @@ class CommunicationHub:
                 # Validate message
                 if message.is_expired:
                     return Either.left(
-                        AutonomousAgentError.unexpected_error("Message already expired")
+                        AutonomousAgentError.unexpected_error(
+                            "Message already expired"
+                        ),
                     )
 
                 # Store message
@@ -223,17 +225,16 @@ class CommunicationHub:
                     for recipient_id in recipients:
                         if recipient_id != message.sender_id:  # Don't send to self
                             self.message_queue[recipient_id].append(message)
+                # Direct message
+                elif message.recipient_id:
+                    self.message_queue[message.recipient_id].append(message)
                 else:
-                    # Direct message
-                    if message.recipient_id:
-                        self.message_queue[message.recipient_id].append(message)
-                    else:
-                        self.communication_metrics["failed_deliveries"] += 1
-                        return Either.left(
-                            AutonomousAgentError.unexpected_error(
-                                "No recipient specified"
-                            )
-                        )
+                    self.communication_metrics["failed_deliveries"] += 1
+                    return Either.left(
+                        AutonomousAgentError.unexpected_error(
+                            "No recipient specified",
+                        ),
+                    )
 
                 # Handle special message types
                 await self._handle_special_messages(message)
@@ -244,8 +245,8 @@ class CommunicationHub:
                 self.communication_metrics["failed_deliveries"] += 1
                 return Either.left(
                     AutonomousAgentError.unexpected_error(
-                        f"Message send failed: {str(e)}"
-                    )
+                        f"Message send failed: {e!s}",
+                    ),
                 )
 
     async def receive_messages(
@@ -282,14 +283,17 @@ class CommunicationHub:
             return messages
 
     async def acknowledge_message(
-        self, agent_id: AgentId, message_id: str, response: dict[str, Any] | None = None
+        self,
+        agent_id: AgentId,
+        message_id: str,
+        response: dict[str, Any] | None = None,
     ) -> Either[AutonomousAgentError, None]:
         """Acknowledge receipt of a message."""
         async with self._lock:
             try:
                 if message_id not in self.sent_messages:
                     return Either.left(
-                        AutonomousAgentError.unexpected_error("Message not found")
+                        AutonomousAgentError.unexpected_error("Message not found"),
                     )
 
                 acknowledgment = MessageAcknowledgment(
@@ -322,8 +326,8 @@ class CommunicationHub:
             except Exception as e:
                 return Either.left(
                     AutonomousAgentError.unexpected_error(
-                        f"Acknowledgment failed: {str(e)}"
-                    )
+                        f"Acknowledgment failed: {e!s}",
+                    ),
                 )
 
     async def create_consensus_proposal(
@@ -377,19 +381,22 @@ class CommunicationHub:
             except Exception as e:
                 return Either.left(
                     AutonomousAgentError.unexpected_error(
-                        f"Proposal creation failed: {str(e)}"
-                    )
+                        f"Proposal creation failed: {e!s}",
+                    ),
                 )
 
     async def vote_on_proposal(
-        self, agent_id: AgentId, proposal_id: str, vote: bool
+        self,
+        agent_id: AgentId,
+        proposal_id: str,
+        vote: bool,
     ) -> Either[AutonomousAgentError, None]:
         """Vote on a consensus proposal."""
         async with self._lock:
             try:
                 if proposal_id not in self.consensus_proposals:
                     return Either.left(
-                        AutonomousAgentError.unexpected_error("Proposal not found")
+                        AutonomousAgentError.unexpected_error("Proposal not found"),
                     )
 
                 proposal = self.consensus_proposals[proposal_id]
@@ -397,15 +404,15 @@ class CommunicationHub:
                 if proposal.is_expired:
                     return Either.left(
                         AutonomousAgentError.unexpected_error(
-                            "Proposal voting has expired"
-                        )
+                            "Proposal voting has expired",
+                        ),
                     )
 
                 if agent_id in proposal.votes:
                     return Either.left(
                         AutonomousAgentError.unexpected_error(
-                            "Already voted on this proposal"
-                        )
+                            "Already voted on this proposal",
+                        ),
                     )
 
                 proposal.votes[agent_id] = vote
@@ -418,7 +425,7 @@ class CommunicationHub:
 
             except Exception as e:
                 return Either.left(
-                    AutonomousAgentError.unexpected_error(f"Vote failed: {str(e)}")
+                    AutonomousAgentError.unexpected_error(f"Vote failed: {e!s}"),
                 )
 
     def register_message_handler(
@@ -441,7 +448,7 @@ class CommunicationHub:
             try:
                 if channel_id in self.channels:
                     return Either.left(
-                        AutonomousAgentError.unexpected_error("Channel already exists")
+                        AutonomousAgentError.unexpected_error("Channel already exists"),
                     )
 
                 channel = CommunicationChannel(
@@ -459,19 +466,20 @@ class CommunicationHub:
             except Exception as e:
                 return Either.left(
                     AutonomousAgentError.unexpected_error(
-                        f"Channel creation failed: {str(e)}"
-                    )
+                        f"Channel creation failed: {e!s}",
+                    ),
                 )
 
     def get_communication_stats(
-        self, agent_id: AgentId | None = None
+        self,
+        agent_id: AgentId | None = None,
     ) -> dict[str, Any]:
         """Get communication statistics."""
         stats = {
             "global_metrics": self.communication_metrics.copy(),
             "active_channels": len(self.channels),
             "pending_proposals": len(
-                [p for p in self.consensus_proposals.values() if not p.is_expired]
+                [p for p in self.consensus_proposals.values() if not p.is_expired],
             ),
             "message_queues": {},
         }
@@ -496,7 +504,7 @@ class CommunicationHub:
         if message.message_type == MessageType.EMERGENCY_ALERT:
             # Prioritize emergency alerts
             logging.warning(
-                f"Emergency alert from {message.sender_id}: {message.content}"
+                f"Emergency alert from {message.sender_id}: {message.content}",
             )
             # Could trigger special handling here
 

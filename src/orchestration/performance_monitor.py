@@ -1,5 +1,4 @@
-"""
-System-wide performance monitoring and optimization for the complete ecosystem.
+"""System-wide performance monitoring and optimization for the complete ecosystem.
 
 This module provides comprehensive performance monitoring capabilities including:
 - Real-time metrics collection and analysis
@@ -177,7 +176,8 @@ class EcosystemPerformanceMonitor:
             # Update resource history
             for resource_type in ResourceType:
                 usage = current_metrics.resource_utilization.get(
-                    resource_type.value, 0.0
+                    resource_type.value,
+                    0.0,
                 )
                 self.resource_history[resource_type].append(usage)
 
@@ -192,7 +192,6 @@ class EcosystemPerformanceMonitor:
 
     async def get_current_metrics(self) -> SystemPerformanceMetrics:
         """Get current system performance metrics."""
-
         # Calculate resource utilization (simulated for now)
         resource_utilization = {}
         for resource in ResourceType:
@@ -271,7 +270,6 @@ class EcosystemPerformanceMonitor:
         resource_usage: dict[str, float],
     ) -> None:
         """Record performance metrics for tool execution."""
-
         tool = self.tool_registry.tools.get(tool_id)
         if not tool:
             self.logger.warning(f"Recording metrics for unknown tool: {tool_id}")
@@ -315,7 +313,8 @@ class EcosystemPerformanceMonitor:
         actual_resources = sum(resource_usage.values())
         if expected_resources > 0:
             metrics.resource_efficiency = min(
-                1.0, expected_resources / max(0.1, actual_resources)
+                1.0,
+                expected_resources / max(0.1, actual_resources),
             )
 
         # Update performance trend
@@ -354,10 +353,9 @@ class EcosystemPerformanceMonitor:
         # Determine trend based on slope
         if slope > 0.1:
             return "degrading"
-        elif slope < -0.1:
+        if slope < -0.1:
             return "improving"
-        else:
-            return "stable"
+        return "stable"
 
     async def _update_tool_metrics(self) -> None:
         """Update tool performance metrics based on registry."""
@@ -371,10 +369,12 @@ class EcosystemPerformanceMonitor:
                     execution_count=0,
                     total_execution_time=0.0,
                     average_response_time=tool.performance_characteristics.get(
-                        "response_time", 1.0
+                        "response_time",
+                        1.0,
                     ),
                     success_rate=tool.performance_characteristics.get(
-                        "reliability", 0.95
+                        "reliability",
+                        0.95,
                     ),
                     error_rate=1.0
                     - tool.performance_characteristics.get("reliability", 0.95),
@@ -392,19 +392,19 @@ class EcosystemPerformanceMonitor:
                 avg_usage = statistics.mean(history)
                 if avg_usage > 0.8:
                     bottlenecks.append(
-                        f"High {resource_type.value} utilization ({avg_usage:.1%})"
+                        f"High {resource_type.value} utilization ({avg_usage:.1%})",
                     )
 
         # Check tool performance bottlenecks
         for _tool_id, metrics in self.tool_performance.items():
             if metrics.average_response_time > 5.0:
                 bottlenecks.append(
-                    f"Slow response from {metrics.tool_name} ({metrics.average_response_time:.1f}s)"
+                    f"Slow response from {metrics.tool_name} ({metrics.average_response_time:.1f}s)",
                 )
 
             if metrics.success_rate < 0.8:
                 bottlenecks.append(
-                    f"Low success rate for {metrics.tool_name} ({metrics.success_rate:.1%})"
+                    f"Low success rate for {metrics.tool_name} ({metrics.success_rate:.1%})",
                 )
 
         return bottlenecks
@@ -420,7 +420,7 @@ class EcosystemPerformanceMonitor:
                 avg_usage = statistics.mean(history)
                 if avg_usage < 0.3:
                     opportunities.append(
-                        f"Underutilized {resource_type.value} - consider workload increase"
+                        f"Underutilized {resource_type.value} - consider workload increase",
                     )
 
         # Check for tools with declining performance
@@ -432,7 +432,7 @@ class EcosystemPerformanceMonitor:
 
         if degrading_tools:
             opportunities.append(
-                f"Performance degradation detected in: {', '.join(degrading_tools[:3])}"
+                f"Performance degradation detected in: {', '.join(degrading_tools[:3])}",
             )
 
         # Check for load balancing opportunities
@@ -442,16 +442,17 @@ class EcosystemPerformanceMonitor:
 
         for category, response_times in category_loads.items():
             if len(response_times) > 1 and max(response_times) > 2 * min(
-                response_times
+                response_times,
             ):
                 opportunities.append(
-                    f"Load balancing opportunity in {category.value} tools"
+                    f"Load balancing opportunity in {category.value} tools",
                 )
 
         return opportunities
 
     async def _check_performance_alerts(
-        self, metrics: SystemPerformanceMetrics
+        self,
+        metrics: SystemPerformanceMetrics,
     ) -> None:
         """Check for performance alerts based on current metrics."""
         new_alerts = []
@@ -527,11 +528,12 @@ class EcosystemPerformanceMonitor:
         # Log new alerts
         for alert in new_alerts:
             self.logger.warning(
-                f"Performance Alert [{alert.severity.value}]: {alert.message}"
+                f"Performance Alert [{alert.severity.value}]: {alert.message}",
             )
 
     def _cleanup_resolved_alerts(
-        self, current_metrics: SystemPerformanceMetrics
+        self,
+        current_metrics: SystemPerformanceMetrics,
     ) -> None:
         """Remove alerts that have been resolved."""
         resolved_alerts = []
@@ -569,7 +571,6 @@ class EcosystemPerformanceMonitor:
 
     async def get_health_report(self) -> SystemHealthReport:
         """Generate comprehensive system health report."""
-
         current_metrics = await self.get_current_metrics()
 
         # Calculate overall health score
@@ -682,14 +683,15 @@ class EcosystemPerformanceMonitor:
         }
 
     async def _generate_optimization_recommendations(
-        self, health_score: float
+        self,
+        health_score: float,
     ) -> list[str]:
         """Generate optimization recommendations based on current performance."""
         recommendations = []
 
         if health_score < 0.7:
             recommendations.append(
-                "System health is below optimal - immediate attention required"
+                "System health is below optimal - immediate attention required",
             )
 
         # Check for high resource usage
@@ -702,7 +704,7 @@ class EcosystemPerformanceMonitor:
 
         if high_usage_resources:
             recommendations.append(
-                f"High resource usage detected: {', '.join(high_usage_resources)}"
+                f"High resource usage detected: {', '.join(high_usage_resources)}",
             )
 
         # Check for slow tools
@@ -714,7 +716,7 @@ class EcosystemPerformanceMonitor:
 
         if slow_tools:
             recommendations.append(
-                f"Optimize performance for slow tools: {', '.join(slow_tools[:3])}"
+                f"Optimize performance for slow tools: {', '.join(slow_tools[:3])}",
             )
 
         # Check for error-prone tools
@@ -726,13 +728,13 @@ class EcosystemPerformanceMonitor:
 
         if error_prone_tools:
             recommendations.append(
-                f"Improve error handling for: {', '.join(error_prone_tools[:3])}"
+                f"Improve error handling for: {', '.join(error_prone_tools[:3])}",
             )
 
         # General recommendations based on metrics
         if current_metrics.average_response_time > 2.0:
             recommendations.append(
-                "Consider implementing caching or parallel processing"
+                "Consider implementing caching or parallel processing",
             )
 
         if current_metrics.success_rate < 0.9:
@@ -740,7 +742,7 @@ class EcosystemPerformanceMonitor:
 
         if len(self.active_alerts) > 5:
             recommendations.append(
-                "Address active performance alerts to improve system stability"
+                "Address active performance alerts to improve system stability",
             )
 
         return recommendations

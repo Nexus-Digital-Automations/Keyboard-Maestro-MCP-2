@@ -1,5 +1,4 @@
-"""
-Base provider client for AI service integration.
+"""Base provider client for AI service integration.
 
 This module provides the abstract base class for all AI provider clients,
 establishing common patterns for authentication, error handling, rate limiting,
@@ -47,7 +46,7 @@ class AuthenticationType(Enum):
     """Authentication methods for AI providers."""
 
     API_KEY = "api_key"
-    BEARER_TOKEN = "bearer_token"
+    BEARER_TOKEN = "bearer_token"  # noqa: S105 - This is a type identifier, not a password
     OAUTH2 = "oauth2"
     SERVICE_ACCOUNT = "service_account"
 
@@ -139,10 +138,12 @@ class BaseProviderClient(ABC):
 
         # Rate limiting and health tracking
         self.rate_limit = RateLimitInfo(
-            requests_per_minute=60, tokens_per_minute=100000
+            requests_per_minute=60,
+            tokens_per_minute=100000,
         )
         self.health = ProviderHealth(
-            status=ProviderStatus.HEALTHY, last_check=datetime.now(UTC)
+            status=ProviderStatus.HEALTHY,
+            last_check=datetime.now(UTC),
         )
 
         # Request tracking for monitoring
@@ -152,38 +153,35 @@ class BaseProviderClient(ABC):
     @abstractmethod
     async def get_capabilities(self) -> ProviderCapabilities:
         """Get provider capabilities and limits."""
-        pass
 
     @abstractmethod
     async def process_request(
-        self, request: AIRequest
+        self,
+        request: AIRequest,
     ) -> Either[ValidationError, AIResponse]:
         """Process AI request with provider-specific implementation."""
-        pass
 
     @abstractmethod
     async def estimate_cost(
-        self, request: AIRequest
+        self,
+        request: AIRequest,
     ) -> Either[ValidationError, CostAmount]:
         """Estimate cost for AI request."""
-        pass
 
     @abstractmethod
     def _build_headers(self) -> dict[str, str]:
         """Build authentication headers for requests."""
-        pass
 
     @abstractmethod
     def _build_request_payload(self, request: AIRequest) -> dict[str, Any]:
         """Build provider-specific request payload."""
-        pass
 
     @abstractmethod
     def _parse_response(
-        self, response_data: dict[str, Any]
+        self,
+        response_data: dict[str, Any],
     ) -> Either[ValidationError, AIResponse]:
         """Parse provider response into standard format."""
-        pass
 
     async def check_health(self) -> ProviderHealth:
         """Check provider health status."""
@@ -219,7 +217,10 @@ class BaseProviderClient(ABC):
                 await asyncio.sleep(wait_time)
 
     def _record_request(
-        self, request: AIRequest, response: AIResponse | None, error: str | None = None
+        self,
+        request: AIRequest,
+        response: AIResponse | None,
+        error: str | None = None,
     ) -> None:
         """Record request for monitoring and analysis."""
         record = {
@@ -275,9 +276,11 @@ class BaseProviderClient(ABC):
             "uptime_percentage": self.health.uptime_percentage,
         }
 
-    @require(lambda self, retries: retries >= 0)
+    @require(lambda __self, retries: retries >= 0)
     async def _execute_with_retry(
-        self, request: AIRequest, retries: int = None
+        self,
+        request: AIRequest,
+        retries: int = None,
     ) -> Either[ValidationError, AIResponse]:
         """Execute request with retry logic and exponential backoff."""
         if retries is None:
@@ -294,13 +297,12 @@ class BaseProviderClient(ABC):
                 result = await self.process_request(request)
 
                 if result.is_right():
-                    self._record_request(request, result.right_value)
+                    self._record_request(request, result.value)
                     return result
-                else:
-                    last_error = result.left_value
+                last_error = result.left_value
 
             except Exception as e:
-                last_error = ValidationError("request_failed", str(e))
+                last_error = ValidationError("request_failed", str(e), "Request execution failed")
 
                 # Exponential backoff for retries
                 if attempt < retries:
@@ -320,7 +322,10 @@ class ProviderRegistry:
         self.fallback_order: list[str] = []
 
     def register_provider(
-        self, name: str, client: BaseProviderClient, is_fallback: bool = True
+        self,
+        name: str,
+        client: BaseProviderClient,
+        is_fallback: bool = True,
     ) -> None:
         """Register a provider client."""
         self.providers[name] = client
@@ -342,7 +347,8 @@ class ProviderRegistry:
         return None
 
     async def process_with_fallback(
-        self, request: AIRequest
+        self,
+        request: AIRequest,
     ) -> Either[ValidationError, AIResponse]:
         """Process request with automatic fallback to healthy providers."""
         last_error = None
@@ -361,10 +367,9 @@ class ProviderRegistry:
             result = await provider._execute_with_retry(request)
             if result.is_right():
                 return result
-            else:
-                last_error = result.left_value
+            last_error = result.left_value
 
         return Either.left(
             last_error
-            or ValidationError("no_providers", "No healthy providers available")
+            or ValidationError("no_providers", None, "No healthy providers available"),
         )

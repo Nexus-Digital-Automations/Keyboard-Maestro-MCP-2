@@ -1,5 +1,4 @@
-"""
-MCP tools for plugin management and ecosystem operations.
+"""MCP tools for plugin management and ecosystem operations.
 
 These tools provide the interface for managing the plugin ecosystem
 through the Model Context Protocol (MCP) server.
@@ -47,8 +46,7 @@ async def km_plugin_manager(
     configuration: dict[str, Any] | None = None,
     **kwargs,
 ) -> dict[str, Any]:
-    """
-    Comprehensive plugin management operations.
+    """Comprehensive plugin management operations.
 
     Operations:
     - list: List all installed plugins
@@ -71,7 +69,7 @@ async def km_plugin_manager(
                 "metadata": {"operation": "list", "timestamp": "now"},
             }
 
-        elif operation == "install":
+        if operation == "install":
             if not plugin_path:
                 raise ValueError("plugin_path required for install operation")
 
@@ -108,7 +106,7 @@ async def km_plugin_manager(
                 "metadata": {"operation": "install", "timestamp": "now"},
             }
 
-        elif operation == "load":
+        if operation == "load":
             if not plugin_id:
                 raise ValueError("plugin_id required for load operation")
 
@@ -125,7 +123,7 @@ async def km_plugin_manager(
                 "data": {"plugin_id": plugin_id, "status": "loaded"},
             }
 
-        elif operation == "activate":
+        if operation == "activate":
             if not plugin_id:
                 raise ValueError("plugin_id required for activate operation")
 
@@ -151,7 +149,7 @@ async def km_plugin_manager(
                 },
             }
 
-        elif operation == "status":
+        if operation == "status":
             if not plugin_id:
                 raise ValueError("plugin_id required for status operation")
 
@@ -177,11 +175,10 @@ async def km_plugin_manager(
                 "data": {"plugin_info": plugin_info, "metrics": metrics},
             }
 
-        else:
-            raise ValueError(f"Unknown operation: {operation}")
+        raise ValueError(f"Unknown operation: {operation}")
 
     except Exception as e:
-        logger.error(f"Plugin manager operation failed: {str(e)}", exc_info=True)
+        logger.error(f"Plugin manager operation failed: {e!s}", exc_info=True)
         return {
             "success": False,
             "error": {
@@ -200,8 +197,7 @@ async def km_plugin_marketplace(
     limit: int = 20,
     **kwargs,
 ) -> dict[str, Any]:
-    """
-    Plugin marketplace operations for discovery and installation.
+    """Plugin marketplace operations for discovery and installation.
 
     Operations:
     - search: Search for plugins
@@ -242,7 +238,7 @@ async def km_plugin_marketplace(
                 },
             }
 
-        elif operation == "details":
+        if operation == "details":
             if not plugin_id:
                 raise ValueError("plugin_id required for details operation")
 
@@ -257,7 +253,7 @@ async def km_plugin_marketplace(
             entry = result.get_right()
             return {"success": True, "data": _serialize_marketplace_entry(entry)}
 
-        elif operation == "featured":
+        if operation == "featured":
             result = await marketplace.get_featured_plugins()
             if result.is_left():
                 error = result.get_left()
@@ -277,7 +273,7 @@ async def km_plugin_marketplace(
                 },
             }
 
-        elif operation == "install":
+        if operation == "install":
             if not plugin_id:
                 raise ValueError("plugin_id required for install operation")
 
@@ -286,7 +282,8 @@ async def km_plugin_marketplace(
 
             # Install from marketplace
             result = await marketplace.install_plugin(
-                PluginId(plugin_id), manager.plugins_directory
+                PluginId(plugin_id),
+                manager.plugins_directory,
             )
             if result.is_left():
                 error = result.get_left()
@@ -305,11 +302,10 @@ async def km_plugin_marketplace(
                 },
             }
 
-        else:
-            raise ValueError(f"Unknown marketplace operation: {operation}")
+        raise ValueError(f"Unknown marketplace operation: {operation}")
 
     except Exception as e:
-        logger.error(f"Marketplace operation failed: {str(e)}", exc_info=True)
+        logger.error(f"Marketplace operation failed: {e!s}", exc_info=True)
         return {
             "success": False,
             "error": {
@@ -326,8 +322,7 @@ async def km_plugin_security(
     plugin_id: str | None = None,
     **kwargs,
 ) -> dict[str, Any]:
-    """
-    Plugin security operations and validation.
+    """Plugin security operations and validation.
 
     Operations:
     - scan: Security scan of plugin
@@ -360,7 +355,7 @@ async def km_plugin_security(
                 "data": {"security_report": report, "plugin_path": plugin_path},
             }
 
-        elif operation == "approve":
+        if operation == "approve":
             if not plugin_id:
                 raise ValueError("plugin_id required for approve operation")
 
@@ -370,7 +365,7 @@ async def km_plugin_security(
                 "data": {"plugin_id": plugin_id, "status": "approved"},
             }
 
-        elif operation == "block":
+        if operation == "block":
             if not plugin_id:
                 raise ValueError("plugin_id required for block operation")
 
@@ -380,11 +375,10 @@ async def km_plugin_security(
                 "data": {"plugin_id": plugin_id, "status": "blocked"},
             }
 
-        else:
-            raise ValueError(f"Unknown security operation: {operation}")
+        raise ValueError(f"Unknown security operation: {operation}")
 
     except Exception as e:
-        logger.error(f"Security operation failed: {str(e)}", exc_info=True)
+        logger.error(f"Security operation failed: {e!s}", exc_info=True)
         return {
             "success": False,
             "error": {
@@ -402,8 +396,7 @@ async def km_plugin_actions(
     parameters: dict[str, Any] | None = None,
     **kwargs,
 ) -> dict[str, Any]:
-    """
-    Execute and manage custom plugin actions.
+    """Execute and manage custom plugin actions.
 
     Operations:
     - list: List available custom actions
@@ -425,7 +418,7 @@ async def km_plugin_actions(
                 "data": {"custom_actions": actions, "total_count": len(actions)},
             }
 
-        elif operation == "execute":
+        if operation == "execute":
             if not action_id:
                 raise ValueError("action_id required for execute operation")
 
@@ -450,7 +443,7 @@ async def km_plugin_actions(
                 },
             }
 
-        elif operation == "info":
+        if operation == "info":
             if not action_id:
                 raise ValueError("action_id required for info operation")
 
@@ -468,11 +461,10 @@ async def km_plugin_actions(
 
             return {"success": True, "data": {"action_info": action_info}}
 
-        else:
-            raise ValueError(f"Unknown action operation: {operation}")
+        raise ValueError(f"Unknown action operation: {operation}")
 
     except Exception as e:
-        logger.error(f"Plugin action operation failed: {str(e)}", exc_info=True)
+        logger.error(f"Plugin action operation failed: {e!s}", exc_info=True)
         return {
             "success": False,
             "error": {
@@ -490,8 +482,7 @@ async def km_plugin_development(
     target_directory: str | None = None,
     **kwargs,
 ) -> dict[str, Any]:
-    """
-    Plugin development tools and templates.
+    """Plugin development tools and templates.
 
     Operations:
     - create_template: Create plugin template
@@ -525,7 +516,7 @@ async def km_plugin_development(
                 },
             }
 
-        elif operation == "validate":
+        if operation == "validate":
             if not target_directory:
                 raise ValueError("target_directory required for validate")
 
@@ -552,11 +543,10 @@ async def km_plugin_development(
                 },
             }
 
-        else:
-            raise ValueError(f"Unknown development operation: {operation}")
+        raise ValueError(f"Unknown development operation: {operation}")
 
     except Exception as e:
-        logger.error(f"Plugin development operation failed: {str(e)}", exc_info=True)
+        logger.error(f"Plugin development operation failed: {e!s}", exc_info=True)
         return {
             "success": False,
             "error": {
@@ -611,7 +601,9 @@ def _serialize_marketplace_entry(entry) -> dict[str, Any]:
 
 
 async def _create_plugin_template(
-    plugin_name: str, template_type: str, target_path: Path
+    plugin_name: str,
+    template_type: str,
+    target_path: Path,
 ):
     """Create plugin template files."""
     target_path.mkdir(parents=True, exist_ok=True)

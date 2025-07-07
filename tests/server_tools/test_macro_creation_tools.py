@@ -1,21 +1,26 @@
-"""
-Comprehensive Test Suite for Macro Creation/Editing Tools (TASK_28-31).
+"""Comprehensive Test Suite for Macro Creation/Editing Tools (TASK_28-31).
 
 This module provides systematic testing for macro creation and editing MCP tools including
 macro editor, template systems, creation workflows, and modification patterns with focus on
 editor functionality, template validation, and comprehensive creation scenarios.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+
+logger = logging.getLogger(__name__)
 
 
 class TestMacroCreationFoundation:
     """Test foundation for macro creation/editing MCP tools from TASK_28-31."""
 
     @pytest.fixture
-    def execution_context(self):
+    def execution_context(self) -> Any:
         """Create mock execution context for testing."""
         context = AsyncMock()
         context.session_id = "test-session-macro-creation"
@@ -25,7 +30,7 @@ class TestMacroCreationFoundation:
         return context
 
     @pytest.fixture
-    def sample_macro_editor_data(self):
+    def sample_macro_editor_data(self) -> Any:
         """Sample macro editor data for testing."""
         return {
             "macro_identifier": "TestMacro",
@@ -34,14 +39,14 @@ class TestMacroCreationFoundation:
                 "actions": [
                     {"type": "type_text", "text": "Hello World"},
                     {"type": "pause", "duration": 1.0},
-                ]
+                ],
             },
             "validation_level": "standard",
             "create_backup": True,
         }
 
     @pytest.fixture
-    def sample_template_data(self):
+    def sample_template_data(self) -> Any:
         """Sample template data for testing."""
         return {
             "template_name": "quick_text_expansion",
@@ -54,7 +59,7 @@ class TestMacroCreationFoundation:
         }
 
     @pytest.fixture
-    def sample_creation_data(self):
+    def sample_creation_data(self) -> Any:
         """Sample macro creation data for testing."""
         return {
             "name": "New Test Macro",
@@ -71,7 +76,7 @@ class TestMacroCreationFoundation:
 class TestMacroEditorTools:
     """Test macro editor tools from TASK_28: km_macro_editor."""
 
-    def test_macro_editor_tools_import(self):
+    def test_macro_editor_tools_import(self) -> None:
         """Test that macro editor tools can be imported successfully."""
         try:
             from src.server.tools import macro_editor_tools
@@ -83,8 +88,10 @@ class TestMacroEditorTools:
 
     @pytest.mark.asyncio
     async def test_macro_inspection_operation(
-        self, execution_context, sample_macro_editor_data
-    ):
+        self,
+        execution_context,
+        sample_macro_editor_data,
+    ) -> None:
         """Test macro inspection functionality."""
         try:
             from src.server.tools.macro_editor_tools import km_macro_editor
@@ -92,10 +99,10 @@ class TestMacroEditorTools:
             # Mock macro editor components
             with (
                 patch(
-                    "src.server.tools.macro_editor_tools.KMMacroEditor"
+                    "src.server.tools.macro_editor_tools.KMMacroEditor",
                 ) as mock_editor_class,
                 patch(
-                    "src.server.tools.macro_editor_tools.MacroEditorValidator"
+                    "src.server.tools.macro_editor_tools.MacroEditorValidator",
                 ) as mock_validator_class,
             ):
                 mock_editor = Mock()
@@ -115,7 +122,8 @@ class TestMacroEditorTools:
 
                 mock_validator = Mock()
                 mock_validator.validate_operation.return_value = Mock(
-                    is_left=Mock(return_value=False), get_right=Mock(return_value=True)
+                    is_left=Mock(return_value=False),
+                    get_right=Mock(return_value=True),
                 )
                 mock_validator_class.return_value = mock_validator
 
@@ -135,15 +143,17 @@ class TestMacroEditorTools:
 
     @pytest.mark.asyncio
     async def test_macro_modification_operation(
-        self, execution_context, sample_macro_editor_data
-    ):
+        self,
+        execution_context,
+        sample_macro_editor_data,
+    ) -> None:
         """Test macro modification functionality."""
         try:
             from src.server.tools.macro_editor_tools import km_macro_editor
 
             # Mock macro modification
             with patch(
-                "src.server.tools.macro_editor_tools.KMMacroEditor"
+                "src.server.tools.macro_editor_tools.KMMacroEditor",
             ) as mock_editor_class:
                 mock_editor = Mock()
                 mock_edit_result = {
@@ -174,14 +184,14 @@ class TestMacroEditorTools:
             pytest.skip("Macro editor tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_macro_debugging_operation(self, execution_context):
+    async def test_macro_debugging_operation(self, execution_context) -> None:
         """Test macro debugging functionality."""
         try:
             from src.server.tools.macro_editor_tools import km_macro_editor
 
             # Mock debugging session
             with patch(
-                "src.server.tools.macro_editor_tools.MacroDebugger"
+                "src.server.tools.macro_editor_tools.MacroDebugger",
             ) as mock_debugger_class:
                 mock_debugger = Mock()
                 mock_debug_session = {
@@ -217,14 +227,14 @@ class TestMacroEditorTools:
             pytest.skip("Macro editor tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_macro_comparison_operation(self, execution_context):
+    async def test_macro_comparison_operation(self, execution_context) -> None:
         """Test macro comparison functionality."""
         try:
             from src.server.tools.macro_editor_tools import km_macro_editor
 
             # Mock comparison operation
             with patch(
-                "src.server.tools.macro_editor_tools.KMMacroEditor"
+                "src.server.tools.macro_editor_tools.KMMacroEditor",
             ) as mock_editor_class:
                 mock_editor = Mock()
                 mock_comparison = {
@@ -269,7 +279,7 @@ class TestMacroEditorTools:
 class TestTemplateSystemTools:
     """Test template system tools from TASK_29-30."""
 
-    def test_template_system_import(self):
+    def test_template_system_import(self) -> None:
         """Test that template system components can be imported."""
         try:
             # Template system may be part of creation_tools or separate module
@@ -282,11 +292,14 @@ class TestTemplateSystemTools:
             pytest.skip(f"Template system not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_template_validation(self, execution_context, sample_template_data):
+    async def test_template_validation(self, execution_context, sample_template_data) -> None:
         """Test template validation functionality."""
         try:
-            # Test template validation patterns
-            from src.creation.templates import MacroTemplate, TemplateValidator
+            # F401 fix: Use importlib for import availability testing
+            import importlib.util
+
+            spec = importlib.util.find_spec("src.creation.templates")
+            assert spec is not None
 
             # Mock template validation
             mock_validator = Mock()
@@ -306,13 +319,19 @@ class TestTemplateSystemTools:
 
     @pytest.mark.asyncio
     async def test_template_instantiation(
-        self, execution_context, sample_template_data
-    ):
+        self,
+        execution_context,
+        sample_template_data,
+    ) -> None:
         """Test template instantiation functionality."""
         try:
-            # Mock template instantiation
-            from src.creation.templates import TemplateProcessor
+            # F401 fix: Use importlib for import availability testing
+            import importlib.util
 
+            spec = importlib.util.find_spec("src.creation.templates")
+            assert spec is not None
+
+            # Mock template instantiation
             mock_processor = Mock()
             mock_macro = {
                 "name": "Text Expansion: hworld",
@@ -340,8 +359,10 @@ class TestMacroCreationWorkflow:
 
     @pytest.mark.asyncio
     async def test_end_to_end_creation_workflow(
-        self, execution_context, sample_creation_data
-    ):
+        self,
+        execution_context,
+        sample_creation_data,
+    ) -> None:
         """Test complete macro creation workflow."""
         try:
             from src.server.tools.creation_tools import km_create_macro
@@ -349,7 +370,7 @@ class TestMacroCreationWorkflow:
             # Mock complete creation workflow
             with (
                 patch(
-                    "src.server.tools.creation_tools.MacroBuilder"
+                    "src.server.tools.creation_tools.MacroBuilder",
                 ) as mock_builder_class,
                 patch("src.server.tools.creation_tools.get_km_client") as mock_client,
             ):
@@ -364,8 +385,8 @@ class TestMacroCreationWorkflow:
                     is_left=Mock(return_value=False),
                     get_right=Mock(
                         return_value=[
-                            {"groupName": "MCP Created", "groupID": "group-123"}
-                        ]
+                            {"groupName": "MCP Created", "groupID": "group-123"},
+                        ],
                     ),
                 )
                 mock_client.return_value = mock_km_client
@@ -388,10 +409,14 @@ class TestMacroCreationWorkflow:
             pytest.skip("Creation workflow not available for testing")
 
     @pytest.mark.asyncio
-    async def test_creation_validation_pipeline(self, execution_context):
+    async def test_creation_validation_pipeline(self, execution_context) -> None:
         """Test macro creation validation pipeline."""
         try:
-            from src.creation.macro_builder import MacroBuilder, MacroCreationRequest
+            # F401 fix: Use importlib for import availability testing
+            import importlib.util
+
+            spec = importlib.util.find_spec("src.creation.macro_builder")
+            assert spec is not None
 
             # Mock validation pipeline
             mock_builder = Mock()
@@ -420,7 +445,7 @@ class TestMacroCreationIntegration:
     """Test integration patterns across macro creation tools."""
 
     @pytest.mark.asyncio
-    async def test_editor_creation_integration(self, execution_context):
+    async def test_editor_creation_integration(self, execution_context) -> None:
         """Test integration between editor and creation tools."""
         creation_tools = [
             ("src.server.tools.creation_tools", "km_create_macro"),
@@ -446,7 +471,7 @@ class TestMacroCreationIntegration:
                 continue
 
     @pytest.mark.asyncio
-    async def test_creation_tool_response_consistency(self, execution_context):
+    async def test_creation_tool_response_consistency(self, execution_context) -> None:
         """Test that all creation tools return consistent response structure."""
         creation_tools = [
             (
@@ -465,7 +490,8 @@ class TestMacroCreationIntegration:
                 # Verify basic function structure
                 assert callable(tool_func)
                 assert hasattr(tool_func, "__annotations__") or hasattr(
-                    tool_func, "__doc__"
+                    tool_func,
+                    "__doc__",
                 )
 
                 # For async functions, check they're properly defined
@@ -482,7 +508,7 @@ class TestMacroCreationIntegration:
                 print(f"Warning: {tool_name} had issue: {e}")
 
     @pytest.mark.asyncio
-    async def test_creation_security_patterns(self, execution_context):
+    async def test_creation_security_patterns(self, execution_context) -> None:
         """Test that creation tools implement security patterns."""
         try:
             from src.server.tools.creation_tools import km_create_macro
@@ -506,7 +532,7 @@ class TestPropertyBasedCreationTesting:
     """Property-based testing for macro creation tools using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_creation_validation_properties(self, execution_context):
+    async def test_creation_validation_properties(self, execution_context) -> None:
         """Property: Creation validation should be consistent and secure."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -518,17 +544,25 @@ class TestPropertyBasedCreationTesting:
                 alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd", "Zs")),
             ),
             template=st.sampled_from(
-                ["hotkey_action", "app_launcher", "text_expansion", "custom"]
+                [
+                    "hotkey_action",
+                    "app_launcher",
+                    "text_expansion",
+                    "custom",
+                ],
             ),
             enabled=st.booleans(),
         )
-        async def test_creation_properties(name, template, enabled):
+        async def test_creation_properties(name, template, enabled) -> None:
             """Test creation validation properties."""
             try:
                 from src.server.tools.creation_tools import km_create_macro
 
                 result = await km_create_macro(
-                    name=name, template=template, enabled=enabled, ctx=execution_context
+                    name=name,
+                    template=template,
+                    enabled=enabled,
+                    ctx=execution_context,
                 )
 
                 # Property: All responses must be dicts with 'success' key
@@ -543,27 +577,31 @@ class TestPropertyBasedCreationTesting:
                         assert "../" not in data["macro_name"]
                         assert "..\\" not in data["macro_name"]
 
-            except Exception:
-                # Tools may fail with invalid combinations, which is acceptable
-                pass
+            except (OSError, FileNotFoundError, PermissionError) as e:
+                logger.debug(f"File operation failed during operation: {e}")
 
-        # Run a test case
         await test_creation_properties("TestMacro", "custom", True)
 
     @pytest.mark.asyncio
-    async def test_editor_operation_properties(self, execution_context):
+    async def test_editor_operation_properties(self, execution_context) -> None:
         """Property: Editor operations should maintain macro integrity."""
         from hypothesis import given
         from hypothesis import strategies as st
 
         @given(
             operation=st.sampled_from(
-                ["inspect", "modify", "debug", "compare", "validate"]
+                [
+                    "inspect",
+                    "modify",
+                    "debug",
+                    "compare",
+                    "validate",
+                ],
             ),
             create_backup=st.booleans(),
             validation_level=st.sampled_from(["basic", "standard", "strict"]),
         )
-        async def test_editor_properties(operation, create_backup, validation_level):
+        async def test_editor_properties(operation, create_backup, validation_level) -> None:
             """Test editor operation properties."""
             try:
                 from src.server.tools.macro_editor_tools import km_macro_editor
@@ -586,9 +624,7 @@ class TestPropertyBasedCreationTesting:
                     if "backup_created" in data:
                         assert data["backup_created"] is True
 
-            except Exception:
-                # Tools may fail with invalid combinations, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
-        # Run a test case
         await test_editor_properties("inspect", True, "standard")

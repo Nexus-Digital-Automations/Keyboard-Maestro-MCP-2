@@ -1,5 +1,4 @@
-"""
-Advanced window grid management and positioning algorithms.
+"""Advanced window grid management and positioning algorithms.
 
 This module implements sophisticated grid layout calculations for systematic window
 organization across multi-monitor setups with intelligent spacing, padding, and
@@ -36,11 +35,10 @@ class WindowPosition:
 
     @require(lambda self: self.width > 0 and self.height > 0)
     @require(
-        lambda self: self.width <= 8192 and self.height <= 8192
+        lambda self: self.width <= 8192 and self.height <= 8192,
     )  # Reasonable limits
     def __post_init__(self):
         """Contract validation for window position."""
-        pass
 
     def to_tuple(self) -> tuple[int, int, int, int]:
         """Convert to (x, y, width, height) tuple."""
@@ -62,20 +60,20 @@ class GridCalculator:
     @require(lambda display: display.resolution[0] > 0 and display.resolution[1] > 0)
     @require(
         lambda pattern: pattern in GRID_PATTERN_SPECS
-        or pattern == WindowGridPattern.CUSTOM
+        or pattern == WindowGridPattern.CUSTOM,
     )
+    @require(lambda window_count: window_count > 0)
+    @require(lambda padding: padding >= 0)
     @ensure(
-        lambda result: result.is_right() or result.get_left().is_calculation_error()
+        lambda result: result.is_right() or result.get_left().is_calculation_error(),
     )
     def calculate_grid_positions(
         display: DisplayInfo,
         pattern: WindowGridPattern,
         window_count: int,
         padding: int = 10,
-        preserve_aspect_ratio: bool = False,
     ) -> Either[WindowError, list[WindowPosition]]:
-        """
-        Calculate precise window positions for grid layout.
+        """Calculate precise window positions for grid layout.
 
         Architecture: Mathematical grid system with aspect ratio preservation
         Security: Bounds validation and coordinate overflow protection
@@ -198,20 +196,20 @@ class GridCalculator:
                 )
             else:
                 return Either.left(
-                    WindowError(f"Unsupported grid pattern: {pattern.value}")
+                    WindowError(f"Unsupported grid pattern: {pattern.value}"),
                 )
 
             # Validate all positions are within display bounds
             for pos in positions:
                 if not GridCalculator._validate_position_bounds(pos, display):
                     return Either.left(
-                        WindowError("Calculated position outside display bounds")
+                        WindowError("Calculated position outside display bounds"),
                     )
 
             return Either.right(positions)
 
         except Exception as e:
-            return Either.left(WindowError(f"Grid calculation failed: {str(e)}"))
+            return Either.left(WindowError(f"Grid calculation failed: {e!s}"))
 
     @staticmethod
     def _calculate_standard_grid(
@@ -276,32 +274,33 @@ class GridCalculator:
             # Sidebar on left
             if window_count >= 1:
                 positions.append(
-                    WindowPosition(start_x, start_y, sidebar_width, total_height)
+                    WindowPosition(start_x, start_y, sidebar_width, total_height),
                 )
 
             if window_count >= 2:
                 main_x = start_x + sidebar_width + padding
                 positions.append(
-                    WindowPosition(main_x, start_y, main_width, total_height)
+                    WindowPosition(main_x, start_y, main_width, total_height),
                 )
         else:
             # Sidebar on right
             if window_count >= 1:
                 positions.append(
-                    WindowPosition(start_x, start_y, main_width, total_height)
+                    WindowPosition(start_x, start_y, main_width, total_height),
                 )
 
             if window_count >= 2:
                 sidebar_x = start_x + main_width + padding
                 positions.append(
-                    WindowPosition(sidebar_x, start_y, sidebar_width, total_height)
+                    WindowPosition(sidebar_x, start_y, sidebar_width, total_height),
                 )
 
         return positions
 
     @staticmethod
     def _validate_position_bounds(
-        position: WindowPosition, display: DisplayInfo
+        position: WindowPosition,
+        display: DisplayInfo,
     ) -> bool:
         """Validate position is within display bounds."""
         dx, dy, dw, dh = display.bounds()
@@ -322,9 +321,9 @@ class AdvancedGridManager:
         self._layout_cache: dict[str, list[WindowPosition]] = {}
         self._grid_calculator = GridCalculator()
 
-    @require(lambda self, window_ids: len(window_ids) > 0)
+    @require(lambda __self, window_ids: len(window_ids) > 0)
     @require(
-        lambda self, display: display.resolution[0] > 0 and display.resolution[1] > 0
+        lambda _self, display: display.resolution[0] > 0 and display.resolution[1] > 0,
     )
     async def arrange_windows_in_grid(
         self,
@@ -335,8 +334,7 @@ class AdvancedGridManager:
         preserve_aspect_ratios: bool = False,
         cache_layout: bool = True,
     ) -> Either[WindowError, list[dict[str, Any]]]:
-        """
-        Arrange windows in sophisticated grid layout with caching.
+        """Arrange windows in sophisticated grid layout with caching.
 
         Architecture: Grid-based positioning with intelligent caching
         Security: Window identifier validation and bounds checking
@@ -354,7 +352,11 @@ class AdvancedGridManager:
             else:
                 # Calculate new positions
                 positions_result = GridCalculator.calculate_grid_positions(
-                    display, pattern, window_count, padding, preserve_aspect_ratios
+                    display,
+                    pattern,
+                    window_count,
+                    padding,
+                    preserve_aspect_ratios,
                 )
 
                 if positions_result.is_left():
@@ -369,7 +371,7 @@ class AdvancedGridManager:
             # Create results with window assignments
             results = []
             for i, (window_id, position) in enumerate(
-                zip(window_identifiers, positions, strict=False)
+                zip(window_identifiers, positions, strict=False),
             ):
                 result = {
                     "window_identifier": window_id,
@@ -383,10 +385,13 @@ class AdvancedGridManager:
             return Either.right(results)
 
         except Exception as e:
-            return Either.left(WindowError(f"Grid arrangement failed: {str(e)}"))
+            return Either.left(WindowError(f"Grid arrangement failed: {e!s}"))
 
     async def calculate_optimal_pattern(
-        self, window_count: int, display: DisplayInfo, preference: str | None = None
+        self,
+        window_count: int,
+        display: DisplayInfo,
+        preference: str | None = None,
     ) -> Either[WindowError, WindowGridPattern]:
         """Calculate optimal grid pattern for window count and display."""
         try:
@@ -405,34 +410,30 @@ class AdvancedGridManager:
 
             if window_count == 1:
                 return Either.right(WindowGridPattern.CUSTOM)
-            elif window_count == 2:
+            if window_count == 2:
                 if display_ratio > 1.5:  # Wide display
                     return Either.right(WindowGridPattern.GRID_1X2)
-                else:
-                    return Either.right(WindowGridPattern.GRID_2X1)
-            elif window_count == 3:
+                return Either.right(WindowGridPattern.GRID_2X1)
+            if window_count == 3:
                 if display_ratio > 1.5:
                     return Either.right(WindowGridPattern.THIRDS_HORIZONTAL)
-                else:
-                    return Either.right(WindowGridPattern.THIRDS_VERTICAL)
-            elif window_count == 4:
+                return Either.right(WindowGridPattern.THIRDS_VERTICAL)
+            if window_count == 4:
                 return Either.right(WindowGridPattern.GRID_2X2)
-            elif window_count <= 6:
+            if window_count <= 6:
                 if display_ratio > 1.5:
                     return Either.right(WindowGridPattern.GRID_2X3)
-                else:
-                    return Either.right(WindowGridPattern.GRID_3X2)
-            elif window_count <= 8:
+                return Either.right(WindowGridPattern.GRID_3X2)
+            if window_count <= 8:
                 return Either.right(WindowGridPattern.GRID_4X2)
-            elif window_count <= 9:
+            if window_count <= 9:
                 return Either.right(WindowGridPattern.GRID_3X3)
-            else:
-                return Either.right(
-                    WindowGridPattern.GRID_3X3
-                )  # Default for many windows
+            return Either.right(
+                WindowGridPattern.GRID_3X3,
+            )  # Default for many windows
 
         except Exception as e:
-            return Either.left(WindowError(f"Pattern calculation failed: {str(e)}"))
+            return Either.left(WindowError(f"Pattern calculation failed: {e!s}"))
 
     def clear_cache(self) -> None:
         """Clear layout position cache."""

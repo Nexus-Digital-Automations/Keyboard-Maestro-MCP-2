@@ -1,5 +1,4 @@
-"""
-User Identity & Personalization Tools - TASK_67 MCP Implementation
+"""User Identity & Personalization Tools - TASK_67 MCP Implementation.
 
 FastMCP tools for user identity management, authentication, personalization, and adaptive automation.
 Provides comprehensive username-based identity management with privacy protection and behavioral learning.
@@ -47,40 +46,45 @@ session_manager = SessionManager()
 async def initialize_identity_system():
     """Initialize the integrated identity system."""
     # This would typically be called during server startup
-    pass
 
 
 async def km_authenticate_user(
     username: Annotated[str, Field(description="Username for authentication")],
     authentication_method: Annotated[
-        str, Field(description="Authentication method (password|token|sso|session)")
+        str,
+        Field(description="Authentication method (password|token|sso|session)"),
     ] = "password",
     password: Annotated[
         str | None,
         Field(description="Password for authentication (required for password method)"),
     ] = None,
     security_level: Annotated[
-        str, Field(description="Required security level (low|medium|high|critical)")
+        str,
+        Field(description="Required security level (low|medium|high|critical)"),
     ] = "medium",
     session_duration: Annotated[
-        int, Field(description="Session duration in hours", ge=1, le=24)
+        int,
+        Field(description="Session duration in hours", ge=1, le=24),
     ] = 8,
     remember_session: Annotated[
-        bool, Field(description="Remember session for future use")
+        bool,
+        Field(description="Remember session for future use"),
     ] = True,
     multi_factor: Annotated[
-        bool, Field(description="Enable multi-factor authentication")
+        bool,
+        Field(description="Enable multi-factor authentication"),
     ] = False,
     privacy_mode: Annotated[
-        bool, Field(description="Enable privacy-preserving authentication")
+        bool,
+        Field(description="Enable privacy-preserving authentication"),
     ] = True,
     timeout: Annotated[
-        int, Field(description="Authentication timeout in seconds", ge=5, le=300)
+        int,
+        Field(description="Authentication timeout in seconds", ge=5, le=300),
     ] = 30,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Perform username-based authentication with session management and security protection.
+    """Perform username-based authentication with session management and security protection.
 
     FastMCP Tool for user authentication through Claude Desktop.
     Supports username/password, token-based, SSO, and session-based authentication.
@@ -145,7 +149,8 @@ async def km_authenticate_user(
 
         # Perform authentication
         auth_result = await authentication_manager.authenticate_user(
-            auth_request, password
+            auth_request,
+            password,
         )
 
         processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
@@ -205,7 +210,7 @@ async def km_authenticate_user(
         logger.error(f"Authentication tool failed: {e}")
         return {
             "success": False,
-            "error": f"Authentication system error: {str(e)}",
+            "error": f"Authentication system error: {e!s}",
             "error_code": "SYSTEM_ERROR",
             "processing_time_ms": 0,
         }
@@ -213,30 +218,36 @@ async def km_authenticate_user(
 
 async def km_identify_user(
     identification_context: Annotated[
-        dict[str, Any], Field(description="Context for user identification")
+        dict[str, Any],
+        Field(description="Context for user identification"),
     ],
     create_profile: Annotated[
-        bool, Field(description="Create new profile if user not found")
+        bool,
+        Field(description="Create new profile if user not found"),
     ] = False,
     update_profile: Annotated[
-        bool, Field(description="Update existing profile with new data")
+        bool,
+        Field(description="Update existing profile with new data"),
     ] = True,
     include_preferences: Annotated[
-        bool, Field(description="Include user preferences in identification")
+        bool,
+        Field(description="Include user preferences in identification"),
     ] = True,
     load_behavioral_data: Annotated[
-        bool, Field(description="Load user behavioral patterns")
+        bool,
+        Field(description="Load user behavioral patterns"),
     ] = True,
     privacy_level: Annotated[
-        str, Field(description="Privacy level (minimal|standard|enhanced)")
+        str,
+        Field(description="Privacy level (minimal|standard|enhanced)"),
     ] = "standard",
     session_tracking: Annotated[
-        bool, Field(description="Enable session-based user tracking")
+        bool,
+        Field(description="Enable session-based user tracking"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Identify users from context and retrieve personalized profiles and preferences.
+    """Identify users from context and retrieve personalized profiles and preferences.
 
     FastMCP Tool for user identification through Claude Desktop.
     Identifies users and retrieves personalized automation preferences and settings.
@@ -248,7 +259,7 @@ async def km_identify_user(
 
         # Extract identification information
         user_identity = identification_context.get(
-            "username"
+            "username",
         ) or identification_context.get("user_id")
         if not user_identity:
             return {
@@ -273,7 +284,8 @@ async def km_identify_user(
 
         # Identify user
         identification_result = await user_profiler.identify_user(
-            user_identity=user_identity, context=identification_context
+            user_identity=user_identity,
+            context=identification_context,
         )
 
         processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
@@ -294,7 +306,7 @@ async def km_identify_user(
         behavioral_data = None
         if load_behavioral_data:
             analytics_result = await user_profiler.get_user_analytics(
-                user_profile.profile_id
+                user_profile.profile_id,
             )
             if analytics_result.is_success():
                 behavioral_data = analytics_result.value
@@ -340,7 +352,7 @@ async def km_identify_user(
         logger.error(f"User identification tool failed: {e}")
         return {
             "success": False,
-            "error": f"Identification system error: {str(e)}",
+            "error": f"Identification system error: {e!s}",
             "error_code": "SYSTEM_ERROR",
             "processing_time_ms": 0,
         }
@@ -349,30 +361,36 @@ async def km_identify_user(
 async def km_personalize_automation(
     user_identity: Annotated[str, Field(description="User identity or profile ID")],
     automation_context: Annotated[
-        str, Field(description="Automation context (macro|workflow|interface)")
+        str,
+        Field(description="Automation context (macro|workflow|interface)"),
     ],
     personalization_scope: Annotated[
-        list[str], Field(description="Personalization aspects")
+        list[str],
+        Field(description="Personalization aspects"),
     ] = None,
     adaptation_level: Annotated[
-        str, Field(description="Adaptation level (light|moderate|comprehensive)")
+        str,
+        Field(description="Adaptation level (light|moderate|comprehensive)"),
     ] = "moderate",
     learning_mode: Annotated[
-        bool, Field(description="Enable learning from user interactions")
+        bool,
+        Field(description="Enable learning from user interactions"),
     ] = True,
     real_time_adaptation: Annotated[
-        bool, Field(description="Enable real-time adaptation")
+        bool,
+        Field(description="Enable real-time adaptation"),
     ] = False,
     preserve_privacy: Annotated[
-        bool, Field(description="Preserve user privacy in personalization")
+        bool,
+        Field(description="Preserve user privacy in personalization"),
     ] = True,
     share_across_sessions: Annotated[
-        bool, Field(description="Share personalization across sessions")
+        bool,
+        Field(description="Share personalization across sessions"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Personalize automation workflows and interfaces based on user identity and preferences.
+    """Personalize automation workflows and interfaces based on user identity and preferences.
 
     FastMCP Tool for automation personalization through Claude Desktop.
     Adapts automation behavior, interfaces, and workflows to individual user preferences.
@@ -414,7 +432,8 @@ async def km_personalize_automation(
 
         # Perform personalization
         personalization_result = await personalization_engine.personalize_automation(
-            context=context, adaptation_level=adaptation_level
+            context=context,
+            adaptation_level=adaptation_level,
         )
 
         processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
@@ -456,7 +475,7 @@ async def km_personalize_automation(
         logger.error(f"Personalization tool failed: {e}")
         return {
             "success": False,
-            "error": f"Personalization system error: {str(e)}",
+            "error": f"Personalization system error: {e!s}",
             "error_code": "SYSTEM_ERROR",
             "processing_time_ms": 0,
         }
@@ -464,7 +483,8 @@ async def km_personalize_automation(
 
 async def km_manage_user_profiles(
     operation: Annotated[
-        str, Field(description="Operation (create|update|delete|backup|restore|list)")
+        str,
+        Field(description="Operation (create|update|delete|backup|restore|list)"),
     ],
     user_identity: Annotated[str, Field(description="User identity or profile ID")],
     profile_data: Annotated[
@@ -472,27 +492,32 @@ async def km_manage_user_profiles(
         Field(description="Profile data for create/update operations"),
     ] = None,
     preferences: Annotated[
-        dict[str, Any] | None, Field(description="User preferences and settings")
+        dict[str, Any] | None,
+        Field(description="User preferences and settings"),
     ] = None,
     encryption_level: Annotated[
-        str, Field(description="Encryption level (standard|high|military)")
+        str,
+        Field(description="Encryption level (standard|high|military)"),
     ] = "high",
     backup_location: Annotated[
-        str | None, Field(description="Backup location for profile data")
+        str | None,
+        Field(description="Backup location for profile data"),
     ] = None,
     data_retention: Annotated[
-        int | None, Field(description="Data retention period in days")
+        int | None,
+        Field(description="Data retention period in days"),
     ] = None,
     compliance_mode: Annotated[
-        bool, Field(description="Enable compliance mode (GDPR, CCPA)")
+        bool,
+        Field(description="Enable compliance mode (GDPR, CCPA)"),
     ] = True,
     audit_logging: Annotated[
-        bool, Field(description="Enable audit logging for profile operations")
+        bool,
+        Field(description="Enable audit logging for profile operations"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Manage user profiles with encryption, backup, and compliance features.
+    """Manage user profiles with encryption, backup, and compliance features.
 
     FastMCP Tool for user profile management through Claude Desktop.
     Securely manages user identity data with privacy protection and compliance.
@@ -528,12 +553,14 @@ async def km_manage_user_profiles(
                     {
                         "error": identification_result.error.message,
                         "error_code": identification_result.error.error_code,
-                    }
+                    },
                 )
             else:
                 user_profile = identification_result.value
                 update_result = await user_profiler.update_user_preferences(
-                    user_profile.profile_id, preferences, merge=True
+                    user_profile.profile_id,
+                    preferences,
+                    merge=True,
                 )
 
                 if update_result.is_success():
@@ -550,14 +577,14 @@ async def km_manage_user_profiles(
                             "preferences_updated": list(preferences.keys())
                             if preferences
                             else [],
-                        }
+                        },
                     )
                 else:
                     result.update(
                         {
                             "error": update_result.error.message,
                             "error_code": update_result.error.error_code,
-                        }
+                        },
                     )
 
         elif operation == "list":
@@ -577,7 +604,7 @@ async def km_manage_user_profiles(
                             "profile_id": "generated_test_id",
                         },
                     ],
-                }
+                },
             )
 
         elif operation == "delete":
@@ -588,7 +615,8 @@ async def km_manage_user_profiles(
 
                 # Trigger privacy-compliant deletion
                 deletion_result = await privacy_manager.delete_user_data(
-                    user_profile.profile_id, "user_request"
+                    user_profile.profile_id,
+                    "user_request",
                 )
 
                 if deletion_result.is_success():
@@ -598,21 +626,21 @@ async def km_manage_user_profiles(
                             "data_deleted": True,
                             "compliance_status": "GDPR_COMPLIANT",
                             "audit_logged": audit_logging,
-                        }
+                        },
                     )
                 else:
                     result.update(
                         {
                             "error": deletion_result.error.message,
                             "error_code": deletion_result.error.error_code,
-                        }
+                        },
                     )
             else:
                 result.update(
                     {
                         "error": identification_result.error.message,
                         "error_code": identification_result.error.error_code,
-                    }
+                    },
                 )
 
         else:
@@ -620,7 +648,7 @@ async def km_manage_user_profiles(
                 {
                     "error": f"Operation {operation} not yet implemented",
                     "error_code": "NOT_IMPLEMENTED",
-                }
+                },
             )
 
         processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
@@ -640,7 +668,7 @@ async def km_manage_user_profiles(
                     "audit_enabled": audit_logging,
                     "data_retention_days": data_retention or 365,
                 },
-            }
+            },
         )
 
         return result
@@ -649,7 +677,7 @@ async def km_manage_user_profiles(
         logger.error(f"Profile management tool failed: {e}")
         return {
             "success": False,
-            "error": f"Profile management system error: {str(e)}",
+            "error": f"Profile management system error: {e!s}",
             "error_code": "SYSTEM_ERROR",
             "processing_time_ms": 0,
         }
@@ -657,33 +685,40 @@ async def km_manage_user_profiles(
 
 async def km_analyze_user_behavior(
     user_identity: Annotated[
-        str, Field(description="User identity for behavior analysis")
+        str,
+        Field(description="User identity for behavior analysis"),
     ],
     analysis_period: Annotated[
-        str, Field(description="Analysis period (day|week|month|custom)")
+        str,
+        Field(description="Analysis period (day|week|month|custom)"),
     ] = "week",
     behavior_patterns: Annotated[
-        list[str], Field(description="Behavior patterns to analyze")
+        list[str],
+        Field(description="Behavior patterns to analyze"),
     ] = None,
     include_predictions: Annotated[
-        bool, Field(description="Include behavior predictions")
+        bool,
+        Field(description="Include behavior predictions"),
     ] = True,
     anomaly_detection: Annotated[
-        bool, Field(description="Enable anomaly detection")
+        bool,
+        Field(description="Enable anomaly detection"),
     ] = True,
     privacy_preserving: Annotated[
-        bool, Field(description="Use privacy-preserving analysis")
+        bool,
+        Field(description="Use privacy-preserving analysis"),
     ] = True,
     generate_insights: Annotated[
-        bool, Field(description="Generate actionable insights")
+        bool,
+        Field(description="Generate actionable insights"),
     ] = True,
     adaptive_recommendations: Annotated[
-        bool, Field(description="Provide adaptive automation recommendations")
+        bool,
+        Field(description="Provide adaptive automation recommendations"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Analyze user behavior patterns for improved personalization and automation optimization.
+    """Analyze user behavior patterns for improved personalization and automation optimization.
 
     FastMCP Tool for user behavior analysis through Claude Desktop.
     Analyzes usage patterns, preferences, and behavior for enhanced personalization.
@@ -718,7 +753,8 @@ async def km_analyze_user_behavior(
 
         # Perform behavior analysis
         analysis_result = await user_profiler.analyze_user_behavior(
-            user_profile.profile_id, analysis_period_days=period_days
+            user_profile.profile_id,
+            analysis_period_days=period_days,
         )
 
         processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
@@ -752,7 +788,7 @@ async def km_analyze_user_behavior(
         insights = []
         if generate_insights:
             insights_result = await personalization_engine.get_personalization_insights(
-                user_profile.profile_id
+                user_profile.profile_id,
             )
             if insights_result.is_success():
                 insights_data = insights_result.value
@@ -770,10 +806,12 @@ async def km_analyze_user_behavior(
             "insights": {
                 "personalization_insights": insights,
                 "behavioral_adaptations": analysis_data.get(
-                    "personalization_insights", {}
+                    "personalization_insights",
+                    {},
                 ),
                 "automation_opportunities": analysis_data.get(
-                    "personalization_insights", {}
+                    "personalization_insights",
+                    {},
                 ).get("automation_opportunities", []),
             },
             "predictions": {
@@ -791,7 +829,8 @@ async def km_analyze_user_behavior(
             "recommendations": {
                 "adaptive_enabled": adaptive_recommendations,
                 "suggestions": analysis_data.get("personalization_insights", {}).get(
-                    "recommended_adaptations", []
+                    "recommended_adaptations",
+                    [],
                 ),
             },
             "processing_time_ms": processing_time,
@@ -801,7 +840,7 @@ async def km_analyze_user_behavior(
         logger.error(f"Behavior analysis tool failed: {e}")
         return {
             "success": False,
-            "error": f"Behavior analysis system error: {str(e)}",
+            "error": f"Behavior analysis system error: {e!s}",
             "error_code": "SYSTEM_ERROR",
             "processing_time_ms": 0,
         }
@@ -810,24 +849,28 @@ async def km_analyze_user_behavior(
 async def km_switch_user_context(
     target_user: Annotated[str, Field(description="Target user identity to switch to")],
     current_user: Annotated[
-        str | None, Field(description="Current user identity")
+        str | None,
+        Field(description="Current user identity"),
     ] = None,
     preserve_session: Annotated[
-        bool, Field(description="Preserve current session data")
+        bool,
+        Field(description="Preserve current session data"),
     ] = True,
     load_preferences: Annotated[
-        bool, Field(description="Load target user preferences")
+        bool,
+        Field(description="Load target user preferences"),
     ] = True,
     security_validation: Annotated[
-        bool, Field(description="Perform security validation for switch")
+        bool,
+        Field(description="Perform security validation for switch"),
     ] = True,
     audit_switch: Annotated[
-        bool, Field(description="Audit the user context switch")
+        bool,
+        Field(description="Audit the user context switch"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Switch user context for multi-user automation environments.
+    """Switch user context for multi-user automation environments.
 
     FastMCP Tool for user context switching through Claude Desktop.
     Safely switches between user profiles with security validation and audit.
@@ -925,7 +968,7 @@ async def km_switch_user_context(
         logger.error(f"Context switch tool failed: {e}")
         return {
             "success": False,
-            "error": f"Context switch system error: {str(e)}",
+            "error": f"Context switch system error: {e!s}",
             "error_code": "SYSTEM_ERROR",
             "processing_time_ms": 0,
         }

@@ -1,5 +1,4 @@
-"""
-Keyboard Maestro macro editor integration with AppleScript generation.
+"""Keyboard Maestro macro editor integration with AppleScript generation.
 
 This module provides direct integration with Keyboard Maestro for macro editing
 operations including inspection, modification, comparison, and validation with
@@ -41,15 +40,16 @@ class KMMacroEditor:
         self._modification_cache: dict[str, list[MacroModification]] = {}
 
     @require(
-        lambda self, macro_id: isinstance(macro_id, str) and len(macro_id.strip()) > 0
+        lambda _self, macro_id: isinstance(macro_id, str) and len(macro_id.strip()) > 0,
     )
     async def inspect_macro(
-        self, macro_id: str
+        self,
+        macro_id: str,
     ) -> Either[IntegrationError, MacroInspection]:
         """Inspect macro and return comprehensive analysis."""
         try:
             # Get macro data from Keyboard Maestro
-            applescript = f'''
+            applescript = f"""
             tell application "Keyboard Maestro"
                 set macroRef to macro "{macro_id}"
                 if macroRef exists then
@@ -76,7 +76,7 @@ class KMMacroEditor:
                     return "MACRO_NOT_FOUND"
                 end if
             end tell
-            '''
+            """
 
             result = await self.km_client.execute_applescript(applescript)
             if result.is_left():
@@ -84,13 +84,15 @@ class KMMacroEditor:
                     IntegrationError(
                         "applescript_execution_failed",
                         f"Failed to inspect macro: {result.get_left().message}",
-                    )
+                    ),
                 )
 
             response = result.get_right()
             if response == "MACRO_NOT_FOUND":
                 return Either.left(
-                    IntegrationError("macro_not_found", f"Macro '{macro_id}' not found")
+                    IntegrationError(
+                        "macro_not_found", f"Macro '{macro_id}' not found"
+                    ),
                 )
 
             # Parse response
@@ -100,7 +102,7 @@ class KMMacroEditor:
                     IntegrationError(
                         "invalid_response",
                         "Invalid response format from Keyboard Maestro",
-                    )
+                    ),
                 )
 
             macro_name = parts[0]
@@ -149,22 +151,23 @@ class KMMacroEditor:
             )
 
             logger.info(
-                f"Inspected macro '{macro_id}': {len(actions)} actions, {len(triggers)} triggers"
+                f"Inspected macro '{macro_id}': {len(actions)} actions, {len(triggers)} triggers",
             )
             return Either.right(inspection)
 
         except Exception as e:
-            logger.error(f"Error inspecting macro '{macro_id}': {str(e)}")
+            logger.error(f"Error inspecting macro '{macro_id}': {e!s}")
             return Either.left(
                 IntegrationError(
-                    "inspection_failed", f"Macro inspection failed: {str(e)}"
-                )
+                    "inspection_failed",
+                    f"Macro inspection failed: {e!s}",
+                ),
             )
 
     @require(
-        lambda self, macro_id: isinstance(macro_id, str) and len(macro_id.strip()) > 0
+        lambda _self, macro_id: isinstance(macro_id, str) and len(macro_id.strip()) > 0,
     )
-    @require(lambda self, modifications: isinstance(modifications, list))
+    @require(lambda __self, modifications: isinstance(modifications, list))
     async def apply_modifications(
         self,
         macro_id: str,
@@ -176,14 +179,15 @@ class KMMacroEditor:
             # Validate permissions
             for mod in modifications:
                 perm_result = MacroEditorValidator.validate_modification_permissions(
-                    macro_id, mod.operation
+                    macro_id,
+                    mod.operation,
                 )
                 if perm_result.is_left():
                     return Either.left(
                         IntegrationError(
                             "permission_denied",
                             f"Permission denied for operation {mod.operation.value}: {perm_result.get_left().message}",
-                        )
+                        ),
                     )
 
             # Create backup if requested
@@ -195,7 +199,7 @@ class KMMacroEditor:
                         IntegrationError(
                             "backup_failed",
                             f"Failed to create backup: {backup_result.get_left().message}",
-                        )
+                        ),
                     )
                 backup_id = backup_result.get_right()
 
@@ -208,7 +212,7 @@ class KMMacroEditor:
                 if mod_result.is_left():
                     rollback_needed = True
                     logger.error(
-                        f"Failed to apply modification {mod.operation.value}: {mod_result.get_left().message}"
+                        f"Failed to apply modification {mod.operation.value}: {mod_result.get_left().message}",
                     )
                     break
 
@@ -222,7 +226,7 @@ class KMMacroEditor:
                     IntegrationError(
                         "modification_failed",
                         f"Modifications failed and were rolled back. Backup: {backup_id}",
-                    )
+                    ),
                 )
 
             # Cache successful modifications
@@ -235,29 +239,32 @@ class KMMacroEditor:
                     "backup_id": backup_id,
                     "timestamp": time.time(),
                     "success": True,
-                }
+                },
             )
 
         except Exception as e:
             logger.error(
-                f"Error applying modifications to macro '{macro_id}': {str(e)}"
+                f"Error applying modifications to macro '{macro_id}': {e!s}",
             )
             return Either.left(
                 IntegrationError(
-                    "modification_error", f"Failed to apply modifications: {str(e)}"
-                )
+                    "modification_error",
+                    f"Failed to apply modifications: {e!s}",
+                ),
             )
 
     @require(
-        lambda self, macro1_id: isinstance(macro1_id, str)
-        and len(macro1_id.strip()) > 0
+        lambda _self, macro1_id: isinstance(macro1_id, str)
+        and len(macro1_id.strip()) > 0,
     )
     @require(
-        lambda self, macro2_id: isinstance(macro2_id, str)
-        and len(macro2_id.strip()) > 0
+        lambda _self, macro2_id: isinstance(macro2_id, str)
+        and len(macro2_id.strip()) > 0,
     )
     async def compare_macros(
-        self, macro1_id: str, macro2_id: str
+        self,
+        macro1_id: str,
+        macro2_id: str,
     ) -> Either[IntegrationError, MacroComparison]:
         """Compare two macros and return detailed analysis."""
         try:
@@ -268,7 +275,7 @@ class KMMacroEditor:
                     IntegrationError(
                         "macro1_inspection_failed",
                         f"Failed to inspect macro1: {macro1_result.get_left().message}",
-                    )
+                    ),
                 )
 
             macro2_result = await self.inspect_macro(macro2_id)
@@ -277,7 +284,7 @@ class KMMacroEditor:
                     IntegrationError(
                         "macro2_inspection_failed",
                         f"Failed to inspect macro2: {macro2_result.get_left().message}",
-                    )
+                    ),
                 )
 
             macro1 = macro1_result.get_right()
@@ -293,7 +300,7 @@ class KMMacroEditor:
                         "type": "name_difference",
                         "macro1_value": macro1.macro_name,
                         "macro2_value": macro2.macro_name,
-                    }
+                    },
                 )
 
             if macro1.enabled != macro2.enabled:
@@ -302,7 +309,7 @@ class KMMacroEditor:
                         "type": "enabled_difference",
                         "macro1_value": macro1.enabled,
                         "macro2_value": macro2.enabled,
-                    }
+                    },
                 )
 
             if macro1.group_name != macro2.group_name:
@@ -311,7 +318,7 @@ class KMMacroEditor:
                         "type": "group_difference",
                         "macro1_value": macro1.group_name,
                         "macro2_value": macro2.group_name,
-                    }
+                    },
                 )
 
             # Compare action counts
@@ -321,7 +328,7 @@ class KMMacroEditor:
                         "type": "action_count_difference",
                         "macro1_value": macro1.action_count,
                         "macro2_value": macro2.action_count,
-                    }
+                    },
                 )
 
             # Compare trigger counts
@@ -331,7 +338,7 @@ class KMMacroEditor:
                         "type": "trigger_count_difference",
                         "macro1_value": macro1.trigger_count,
                         "macro2_value": macro2.trigger_count,
-                    }
+                    },
                 )
 
             # Calculate similarity score (simplified)
@@ -341,7 +348,8 @@ class KMMacroEditor:
 
             # Generate recommendation
             recommendation = self._generate_comparison_recommendation(
-                similarity_score, differences
+                similarity_score,
+                differences,
             )
 
             comparison = MacroComparison(
@@ -353,58 +361,63 @@ class KMMacroEditor:
             )
 
             logger.info(
-                f"Compared macros '{macro1_id}' and '{macro2_id}': {similarity_score:.2f} similarity"
+                f"Compared macros '{macro1_id}' and '{macro2_id}': {similarity_score:.2f} similarity",
             )
             return Either.right(comparison)
 
         except Exception as e:
             logger.error(
-                f"Error comparing macros '{macro1_id}' and '{macro2_id}': {str(e)}"
+                f"Error comparing macros '{macro1_id}' and '{macro2_id}': {e!s}",
             )
             return Either.left(
                 IntegrationError(
-                    "comparison_failed", f"Macro comparison failed: {str(e)}"
-                )
+                    "comparison_failed",
+                    f"Macro comparison failed: {e!s}",
+                ),
             )
 
     async def _apply_single_modification(
-        self, macro_id: str, modification: MacroModification
+        self,
+        macro_id: str,
+        modification: MacroModification,
     ) -> Either[IntegrationError, None]:
         """Apply a single modification to a macro."""
         try:
             if modification.operation == EditOperation.ADD_ACTION:
                 return await self._add_action_to_macro(macro_id, modification)
-            elif modification.operation == EditOperation.MODIFY_ACTION:
+            if modification.operation == EditOperation.MODIFY_ACTION:
                 return await self._modify_macro_action(macro_id, modification)
-            elif modification.operation == EditOperation.DELETE_ACTION:
+            if modification.operation == EditOperation.DELETE_ACTION:
                 return await self._delete_macro_action(macro_id, modification)
-            elif modification.operation == EditOperation.UPDATE_PROPERTIES:
+            if modification.operation == EditOperation.UPDATE_PROPERTIES:
                 return await self._update_macro_properties(macro_id, modification)
-            else:
-                return Either.left(
-                    IntegrationError(
-                        "unsupported_operation",
-                        f"Operation {modification.operation.value} not yet supported",
-                    )
-                )
+            return Either.left(
+                IntegrationError(
+                    "unsupported_operation",
+                    f"Operation {modification.operation.value} not yet supported",
+                ),
+            )
 
         except Exception as e:
             return Either.left(
                 IntegrationError(
                     "modification_execution_failed",
-                    f"Failed to execute modification: {str(e)}",
-                )
+                    f"Failed to execute modification: {e!s}",
+                ),
             )
 
     async def _add_action_to_macro(
-        self, macro_id: str, modification: MacroModification
+        self,
+        macro_id: str,
+        modification: MacroModification,
     ) -> Either[IntegrationError, None]:
         """Add action to macro via AppleScript."""
         if not modification.new_value:
             return Either.left(
                 IntegrationError(
-                    "invalid_modification", "No action configuration provided"
-                )
+                    "invalid_modification",
+                    "No action configuration provided",
+                ),
             )
 
         action_type = modification.new_value.get("type", "")
@@ -412,21 +425,21 @@ class KMMacroEditor:
 
         # Validate action configuration
         validation_result = MacroEditorValidator.validate_action_modification(
-            action_config
+            action_config,
         )
         if validation_result.is_left():
             return Either.left(
                 IntegrationError(
                     "action_validation_failed",
                     f"Action validation failed: {validation_result.get_left().message}",
-                )
+                ),
             )
 
         # Generate action XML (simplified)
         action_xml = self._generate_action_xml(action_type, action_config)
 
         # AppleScript to add action
-        applescript = f'''
+        applescript = f"""
         tell application "Keyboard Maestro"
             set macroRef to macro "{macro_id}"
             if macroRef exists then
@@ -436,7 +449,7 @@ class KMMacroEditor:
                 return "MACRO_NOT_FOUND"
             end if
         end tell
-        '''
+        """
 
         result = await self.km_client.execute_applescript(applescript)
         if result.is_left():
@@ -444,47 +457,54 @@ class KMMacroEditor:
                 IntegrationError(
                     "applescript_failed",
                     f"Failed to add action: {result.get_left().message}",
-                )
+                ),
             )
 
         response = result.get_right()
         if response != "SUCCESS":
             return Either.left(
                 IntegrationError(
-                    "action_addition_failed", f"Failed to add action: {response}"
-                )
+                    "action_addition_failed",
+                    f"Failed to add action: {response}",
+                ),
             )
 
         return Either.right(None)
 
     async def _modify_macro_action(
-        self, macro_id: str, modification: MacroModification
+        self,
+        macro_id: str,
+        modification: MacroModification,
     ) -> Either[IntegrationError, None]:
         """Modify existing action in macro."""
         # In a real implementation, this would locate the specific action and update it
         # For now, return success as a placeholder
         logger.info(
-            f"Modifying action {modification.target_element} in macro {macro_id}"
+            f"Modifying action {modification.target_element} in macro {macro_id}",
         )
         return Either.right(None)
 
     async def _delete_macro_action(
-        self, macro_id: str, modification: MacroModification
+        self,
+        macro_id: str,
+        modification: MacroModification,
     ) -> Either[IntegrationError, None]:
         """Delete action from macro."""
         # In a real implementation, this would locate and delete the specific action
         logger.info(
-            f"Deleting action {modification.target_element} from macro {macro_id}"
+            f"Deleting action {modification.target_element} from macro {macro_id}",
         )
         return Either.right(None)
 
     async def _update_macro_properties(
-        self, macro_id: str, modification: MacroModification
+        self,
+        macro_id: str,
+        modification: MacroModification,
     ) -> Either[IntegrationError, None]:
         """Update macro properties."""
         if not modification.new_value:
             return Either.left(
-                IntegrationError("invalid_modification", "No properties provided")
+                IntegrationError("invalid_modification", "No properties provided"),
             )
 
         properties = modification.new_value
@@ -495,7 +515,7 @@ class KMMacroEditor:
             property_updates.append(f'set name to "{properties["name"]}"')
         if "enabled" in properties:
             property_updates.append(
-                f"set enabled to {str(properties['enabled']).lower()}"
+                f"set enabled to {str(properties['enabled']).lower()}",
             )
 
         if not property_updates:
@@ -503,7 +523,7 @@ class KMMacroEditor:
 
         updates_script = "\n".join(property_updates)
 
-        applescript = f'''
+        applescript = f"""
         tell application "Keyboard Maestro"
             set macroRef to macro "{macro_id}"
             if macroRef exists then
@@ -515,7 +535,7 @@ class KMMacroEditor:
                 return "MACRO_NOT_FOUND"
             end if
         end tell
-        '''
+        """
 
         result = await self.km_client.execute_applescript(applescript)
         if result.is_left():
@@ -523,18 +543,19 @@ class KMMacroEditor:
                 IntegrationError(
                     "applescript_failed",
                     f"Failed to update properties: {result.get_left().message}",
-                )
+                ),
             )
 
         return Either.right(None)
 
     async def _create_macro_backup(
-        self, macro_id: str
+        self,
+        macro_id: str,
     ) -> Either[IntegrationError, str]:
         """Create backup of macro before modification."""
         backup_name = f"{macro_id}_backup_{int(time.time())}"
 
-        applescript = f'''
+        applescript = f"""
         tell application "Keyboard Maestro"
             set macroRef to macro "{macro_id}"
             if macroRef exists then
@@ -544,7 +565,7 @@ class KMMacroEditor:
                 return "MACRO_NOT_FOUND"
             end if
         end tell
-        '''
+        """
 
         result = await self.km_client.execute_applescript(applescript)
         if result.is_left():
@@ -552,21 +573,24 @@ class KMMacroEditor:
                 IntegrationError(
                     "backup_failed",
                     f"Failed to create backup: {result.get_left().message}",
-                )
+                ),
             )
 
         response = result.get_right()
         if response == "MACRO_NOT_FOUND":
             return Either.left(
                 IntegrationError(
-                    "macro_not_found", f"Macro '{macro_id}' not found for backup"
-                )
+                    "macro_not_found",
+                    f"Macro '{macro_id}' not found for backup",
+                ),
             )
 
         return Either.right(response)
 
     async def _restore_from_backup(
-        self, macro_id: str, backup_id: str
+        self,
+        macro_id: str,
+        backup_id: str,
     ) -> Either[IntegrationError, None]:
         """Restore macro from backup."""
         # In a real implementation, this would restore the macro from backup
@@ -589,7 +613,8 @@ class KMMacroEditor:
         return elements
 
     def _extract_variables_from_actions(
-        self, actions: list[dict[str, Any]]
+        self,
+        actions: list[dict[str, Any]],
     ) -> set[str]:
         """Extract variables used in actions."""
         variables = set()
@@ -609,16 +634,17 @@ class KMMacroEditor:
         return f'<action type="{action_type}" config="{config_json}"/>'
 
     def _generate_comparison_recommendation(
-        self, similarity: float, differences: list[dict]
+        self,
+        similarity: float,
+        differences: list[dict],
     ) -> str:
         """Generate recommendation based on comparison results."""
         if similarity > 0.9:
             return "Macros are very similar. Consider consolidating them."
-        elif similarity > 0.7:
+        if similarity > 0.7:
             return "Macros have significant similarities. Review for potential duplication."
-        elif similarity > 0.5:
+        if similarity > 0.5:
             return (
                 "Macros share some common elements. May benefit from template creation."
             )
-        else:
-            return "Macros are quite different. No consolidation recommended."
+        return "Macros are quite different. No consolidation recommended."

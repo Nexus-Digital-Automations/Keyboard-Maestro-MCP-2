@@ -1,5 +1,4 @@
-"""
-HTTP client infrastructure for secure web request operations.
+"""HTTP client infrastructure for secure web request operations.
 
 This module implements a comprehensive HTTP client with security-first design,
 supporting all major HTTP methods, authentication types, and response processing.
@@ -43,7 +42,7 @@ class AuthenticationType(Enum):
 
     NONE = "none"
     API_KEY = "api_key"
-    BEARER_TOKEN = "bearer_token"
+    BEARER_TOKEN = "bearer_token"  # noqa: S105 - Type identifier, not a secret
     BASIC_AUTH = "basic_auth"
     OAUTH2 = "oauth2"
     CUSTOM_HEADER = "custom_header"
@@ -157,8 +156,8 @@ class HTTPResponse:
                         ValidationError(
                             field_name="content",
                             value=str(self.content)[:100],
-                            constraint=f"Invalid JSON: {str(e)}",
-                        )
+                            constraint=f"Invalid JSON: {e!s}",
+                        ),
                     )
             else:
                 return Either.left(
@@ -166,7 +165,7 @@ class HTTPResponse:
                         field_name="content",
                         value=type(self.content).__name__,
                         constraint="Content is not JSON parseable",
-                    )
+                    ),
                 )
 
         return Either.right(self.content)
@@ -196,14 +195,15 @@ class HTTPSecurityValidator:
 
     @staticmethod
     def validate_url_security(
-        url: str, allow_localhost: bool = False
+        url: str,
+        allow_localhost: bool = False,
     ) -> Either[SecurityError, str]:
         """Comprehensive URL security validation."""
         try:
             parsed = urlparse(url.strip())
         except Exception as e:
             return Either.left(
-                SecurityError("URL_PARSE_ERROR", f"Failed to parse URL: {str(e)}")
+                SecurityError("URL_PARSE_ERROR", f"Failed to parse URL: {e!s}"),
             )
 
         # Validate scheme
@@ -212,15 +212,19 @@ class HTTPSecurityValidator:
                 SecurityError(
                     "INVALID_SCHEME",
                     f"Scheme '{parsed.scheme}' not allowed. Use http or https.",
-                )
+                ),
             )
 
         # Require HTTPS for external requests (except localhost)
-        if parsed.scheme != "https" and not allow_localhost:
-            if parsed.hostname not in ["localhost", "127.0.0.1", "::1"]:
-                return Either.left(
-                    SecurityError("INSECURE_URL", "HTTPS required for external URLs")
-                )
+        # SIM102 fix: Combine conditions in single if statement
+        if (
+            parsed.scheme != "https"
+            and not allow_localhost
+            and parsed.hostname not in ["localhost", "127.0.0.1", "::1"]
+        ):
+            return Either.left(
+                SecurityError("INSECURE_URL", "HTTPS required for external URLs"),
+            )
 
         # Check forbidden hosts
         if parsed.hostname in HTTPSecurityValidator.FORBIDDEN_HOSTS:
@@ -228,7 +232,7 @@ class HTTPSecurityValidator:
                 SecurityError(
                     "FORBIDDEN_HOST",
                     f"Access to host '{parsed.hostname}' is not allowed",
-                )
+                ),
             )
 
         # Validate against private IP ranges (SSRF protection)
@@ -240,7 +244,7 @@ class HTTPSecurityValidator:
                         SecurityError(
                             "PRIVATE_IP_ACCESS",
                             "Access to private IP addresses is not allowed",
-                        )
+                        ),
                     )
             except ValueError:
                 # Not an IP address, which is fine for domain names
@@ -250,7 +254,7 @@ class HTTPSecurityValidator:
         if parsed.port:
             if parsed.port < 1 or parsed.port > 65535:
                 return Either.left(
-                    SecurityError("INVALID_PORT", f"Port {parsed.port} is not valid")
+                    SecurityError("INVALID_PORT", f"Port {parsed.port} is not valid"),
                 )
 
             # Restrict certain ports that could enable attacks
@@ -258,8 +262,9 @@ class HTTPSecurityValidator:
             if parsed.port in dangerous_ports:
                 return Either.left(
                     SecurityError(
-                        "DANGEROUS_PORT", f"Access to port {parsed.port} is restricted"
-                    )
+                        "DANGEROUS_PORT",
+                        f"Access to port {parsed.port} is restricted",
+                    ),
                 )
 
         return Either.right(url.strip())
@@ -275,7 +280,9 @@ class HTTPSecurityValidator:
             # Check for forbidden headers
             if name.lower() in HTTPSecurityValidator.FORBIDDEN_HEADERS:
                 return Either.left(
-                    SecurityError("FORBIDDEN_HEADER", f"Header '{name}' is not allowed")
+                    SecurityError(
+                        "FORBIDDEN_HEADER", f"Header '{name}' is not allowed"
+                    ),
                 )
 
             # Validate header name
@@ -284,7 +291,7 @@ class HTTPSecurityValidator:
                     SecurityError(
                         "INVALID_HEADER_NAME",
                         f"Header name '{name}' is invalid or too long",
-                    )
+                    ),
                 )
 
             # Validate header value
@@ -296,7 +303,7 @@ class HTTPSecurityValidator:
                     SecurityError(
                         "HEADER_VALUE_TOO_LONG",
                         f"Header '{name}' value exceeds 8KB limit",
-                    )
+                    ),
                 )
 
             # Remove control characters
@@ -309,7 +316,9 @@ class HTTPSecurityValidator:
 
     @staticmethod
     def sanitize_response_data(
-        data: Any, max_depth: int = 10, max_string_length: int = 10000
+        data: Any,
+        max_depth: int = 10,
+        max_string_length: int = 10000,
     ) -> Any:
         """Recursively sanitize response data."""
         if max_depth <= 0:
@@ -318,28 +327,31 @@ class HTTPSecurityValidator:
         if isinstance(data, dict):
             return {
                 str(k)[:100]: HTTPSecurityValidator.sanitize_response_data(
-                    v, max_depth - 1, max_string_length
+                    v,
+                    max_depth - 1,
+                    max_string_length,
                 )
                 for k, v in list(data.items())[:1000]  # Limit dict size
             }
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return [
                 HTTPSecurityValidator.sanitize_response_data(
-                    item, max_depth - 1, max_string_length
+                    item,
+                    max_depth - 1,
+                    max_string_length,
                 )
                 for item in data[:1000]  # Limit list size
             ]
-        elif isinstance(data, str):
+        if isinstance(data, str):
             # Limit string length and remove null bytes
             sanitized = data[:max_string_length].replace("\x00", "").replace("\x1b", "")
             return sanitized
-        elif isinstance(data, int | float | bool):
+        if isinstance(data, int | float | bool):
             return data
-        elif data is None:
+        if data is None:
             return None
-        else:
-            # Convert unknown types to string representation
-            return str(data)[:max_string_length]
+        # Convert unknown types to string representation
+        return str(data)[:max_string_length]
 
 
 class HTTPClient:
@@ -372,13 +384,15 @@ class HTTPClient:
                 follow_redirects=False,  # We handle redirects manually for security
             )
 
-    @require(lambda self, request: isinstance(request, HTTPRequest))
+    @require(lambda __self, request: isinstance(request, HTTPRequest))
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.get_left(), SecurityError | MCPError)
+        or isinstance(result.get_left(), SecurityError | MCPError),
     )
     async def execute_request(
-        self, request: HTTPRequest, auth_headers: dict[str, str] | None = None
+        self,
+        request: HTTPRequest,
+        auth_headers: dict[str, str] | None = None,
     ) -> Either[SecurityError | MCPError, HTTPResponse]:
         """Execute HTTP request with comprehensive security validation."""
         try:
@@ -386,7 +400,8 @@ class HTTPClient:
 
             # Security validation
             url_validation = HTTPSecurityValidator.validate_url_security(
-                request.url, self.allow_localhost
+                request.url,
+                self.allow_localhost,
             )
             if url_validation.is_left():
                 return Either.left(url_validation.get_left())
@@ -439,29 +454,33 @@ class HTTPClient:
                     MCPError(
                         "REQUEST_TIMEOUT",
                         f"Request timed out after {request.timeout_seconds} seconds",
-                    )
+                    ),
                 )
             except httpx.NetworkError as e:
                 return Either.left(
-                    MCPError("NETWORK_ERROR", f"Network error: {str(e)}")
+                    MCPError("NETWORK_ERROR", f"Network error: {e!s}"),
                 )
             except httpx.HTTPStatusError as e:
                 return Either.left(
                     MCPError(
                         "HTTP_ERROR",
                         f"HTTP error {e.response.status_code}: {e.response.text}",
-                    )
+                    ),
                 )
 
         except Exception as e:
             return Either.left(
                 MCPError(
-                    "REQUEST_ERROR", f"Unexpected error executing request: {str(e)}"
-                )
+                    "REQUEST_ERROR",
+                    f"Unexpected error executing request: {e!s}",
+                ),
             )
 
     async def _process_response(
-        self, response: httpx.Response, request: HTTPRequest, duration_ms: float
+        self,
+        response: httpx.Response,
+        request: HTTPRequest,
+        duration_ms: float,
     ) -> Either[MCPError, HTTPResponse]:
         """Process HTTP response with security validation."""
         try:
@@ -472,7 +491,7 @@ class HTTPClient:
                     MCPError(
                         "RESPONSE_TOO_LARGE",
                         f"Response size {content_length} exceeds limit {request.max_response_size}",
-                    )
+                    ),
                 )
 
             # Get content type
@@ -503,14 +522,15 @@ class HTTPClient:
                     duration_ms=duration_ms,
                     content_type=content_type,
                     content_length=content_length,
-                )
+                ),
             )
 
         except Exception as e:
             return Either.left(
                 MCPError(
-                    "RESPONSE_PROCESSING_ERROR", f"Failed to process response: {str(e)}"
-                )
+                    "RESPONSE_PROCESSING_ERROR",
+                    f"Failed to process response: {e!s}",
+                ),
             )
 
 
@@ -547,7 +567,7 @@ class HTTPRateLimiter:
                     MCPError(
                         "RATE_LIMIT_EXCEEDED",
                         f"Rate limit exceeded for {host}. Max {self.max_requests_per_minute} requests per minute.",
-                    )
+                    ),
                 )
 
             # Record this request

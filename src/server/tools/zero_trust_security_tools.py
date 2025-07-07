@@ -1,5 +1,4 @@
-"""
-Zero Trust Security Tools - TASK_62 Phase 3 MCP Tools Implementation
+"""Zero Trust Security Tools - TASK_62 Phase 3 MCP Tools Implementation.
 
 FastMCP tools for zero trust security validation, policy enforcement, monitoring, and access control.
 Provides Claude Desktop integration for comprehensive zero trust security management.
@@ -49,31 +48,37 @@ access_controller = AccessController()
 @mcp.tool()
 async def km_validate_trust(
     validation_scope: Annotated[
-        str, Field(description="Validation scope (user|device|application|network)")
+        str,
+        Field(description="Validation scope (user|device|application|network)"),
     ],
     target_id: Annotated[str, Field(description="Target identifier for validation")],
     validation_criteria: Annotated[
-        list[str], Field(description="Trust validation criteria")
+        list[str],
+        Field(description="Trust validation criteria"),
     ] = None,
     trust_level_required: Annotated[
-        str, Field(description="Required trust level (low|medium|high|critical)")
+        str,
+        Field(description="Required trust level (low|medium|high|critical)"),
     ] = "medium",
     continuous_validation: Annotated[
-        bool, Field(description="Enable continuous trust validation")
+        bool,
+        Field(description="Enable continuous trust validation"),
     ] = True,
     risk_tolerance: Annotated[
-        str, Field(description="Risk tolerance level (strict|balanced|permissive)")
+        str,
+        Field(description="Risk tolerance level (strict|balanced|permissive)"),
     ] = "balanced",
     include_context: Annotated[
-        bool, Field(description="Include contextual factors in validation")
+        bool,
+        Field(description="Include contextual factors in validation"),
     ] = True,
     generate_trust_score: Annotated[
-        bool, Field(description="Generate quantitative trust score")
+        bool,
+        Field(description="Generate quantitative trust score"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Perform continuous trust validation and verification using zero trust principles.
+    """Perform continuous trust validation and verification using zero trust principles.
 
     FastMCP Tool for trust validation through Claude Desktop.
     Validates identity, device, location, and behavioral factors for zero trust security.
@@ -85,7 +90,7 @@ async def km_validate_trust(
     try:
         if ctx:
             await ctx.info(
-                f"Starting zero trust validation for {validation_scope}: {target_id}"
+                f"Starting zero trust validation for {validation_scope}: {target_id}",
             )
 
         # Parse validation scope
@@ -130,7 +135,8 @@ async def km_validate_trust(
         trust_score = None
         if generate_trust_score:
             score_result = await trust_validator.calculate_composite_trust_score(
-                target_id=target_id, factors=validation_criteria
+                target_id=target_id,
+                factors=validation_criteria,
             )
             if score_result.is_success():
                 trust_score = float(score_result.value)
@@ -147,13 +153,13 @@ async def km_validate_trust(
         recommendations = result.recommendations or []
         if not trust_sufficient:
             recommendations.append(
-                f"Trust level {result.trust_level.value} below required {required_level.value}"
+                f"Trust level {result.trust_level.value} below required {required_level.value}",
             )
             recommendations.append("Consider additional authentication factors")
 
         if ctx:
             await ctx.info(
-                f"Trust validation completed - Level: {result.trust_level.value}, Score: {trust_score}"
+                f"Trust validation completed - Level: {result.trust_level.value}, Score: {trust_score}",
             )
 
         return {
@@ -175,7 +181,7 @@ async def km_validate_trust(
         }
 
     except Exception as e:
-        error_msg = f"Trust validation error: {str(e)}"
+        error_msg = f"Trust validation error: {e!s}"
         if ctx:
             await ctx.error(error_msg)
         return {"success": False, "error": error_msg, "validation_id": None}
@@ -185,30 +191,36 @@ async def km_validate_trust(
 async def km_enforce_security_policy(
     policy_name: Annotated[str, Field(description="Security policy name or ID")],
     enforcement_scope: Annotated[
-        str, Field(description="Enforcement scope (user|group|application|system)")
+        str,
+        Field(description="Enforcement scope (user|group|application|system)"),
     ],
     target_resources: Annotated[
-        list[str], Field(description="Target resources for policy enforcement")
+        list[str],
+        Field(description="Target resources for policy enforcement"),
     ],
     enforcement_mode: Annotated[
-        str, Field(description="Enforcement mode (monitor|warn|block|remediate)")
+        str,
+        Field(description="Enforcement mode (monitor|warn|block|remediate)"),
     ] = "warn",
     policy_parameters: Annotated[
-        dict[str, Any] | None, Field(description="Policy-specific parameters")
+        dict[str, Any] | None,
+        Field(description="Policy-specific parameters"),
     ] = None,
     exceptions: Annotated[
-        list[str] | None, Field(description="Policy exceptions or exemptions")
+        list[str] | None,
+        Field(description="Policy exceptions or exemptions"),
     ] = None,
     audit_enforcement: Annotated[
-        bool, Field(description="Audit policy enforcement actions")
+        bool,
+        Field(description="Audit policy enforcement actions"),
     ] = True,
     real_time_enforcement: Annotated[
-        bool, Field(description="Enable real-time policy enforcement")
+        bool,
+        Field(description="Enable real-time policy enforcement"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Enforce dynamic security policies with real-time monitoring and compliance tracking.
+    """Enforce dynamic security policies with real-time monitoring and compliance tracking.
 
     FastMCP Tool for security policy enforcement through Claude Desktop.
     Implements and enforces security policies with configurable enforcement modes.
@@ -218,7 +230,7 @@ async def km_enforce_security_policy(
     try:
         if ctx:
             await ctx.info(
-                f"Starting policy enforcement: {policy_name} for scope: {enforcement_scope}"
+                f"Starting policy enforcement: {policy_name} for scope: {enforcement_scope}",
             )
 
         # Parse enforcement mode
@@ -285,7 +297,7 @@ async def km_enforce_security_policy(
 
         if ctx:
             await ctx.info(
-                f"Policy enforcement completed - Action: {result.enforcement_action}, Violations: {len(result.violations)}"
+                f"Policy enforcement completed - Action: {result.enforcement_action}, Violations: {len(result.violations)}",
             )
 
         return {
@@ -314,7 +326,7 @@ async def km_enforce_security_policy(
         }
 
     except Exception as e:
-        error_msg = f"Policy enforcement error: {str(e)}"
+        error_msg = f"Policy enforcement error: {e!s}"
         if ctx:
             await ctx.error(error_msg)
         return {"success": False, "error": error_msg, "policy_id": policy_name}
@@ -323,33 +335,40 @@ async def km_enforce_security_policy(
 @mcp.tool()
 async def km_monitor_security_posture(
     monitoring_scope: Annotated[
-        str, Field(description="Monitoring scope (system|application|network|user)")
+        str,
+        Field(description="Monitoring scope (system|application|network|user)"),
     ],
     monitoring_duration: Annotated[
-        int, Field(description="Monitoring duration in minutes")
+        int,
+        Field(description="Monitoring duration in minutes"),
     ] = 60,
     threat_detection: Annotated[
-        bool, Field(description="Enable threat detection and analysis")
+        bool,
+        Field(description="Enable threat detection and analysis"),
     ] = True,
     incident_response: Annotated[
-        bool, Field(description="Enable automated incident response")
+        bool,
+        Field(description="Enable automated incident response"),
     ] = False,
     compliance_monitoring: Annotated[
-        bool, Field(description="Monitor compliance status")
+        bool,
+        Field(description="Monitor compliance status"),
     ] = True,
     alert_thresholds: Annotated[
-        dict[str, Any] | None, Field(description="Custom alert thresholds")
+        dict[str, Any] | None,
+        Field(description="Custom alert thresholds"),
     ] = None,
     include_metrics: Annotated[
-        bool, Field(description="Include security metrics and analytics")
+        bool,
+        Field(description="Include security metrics and analytics"),
     ] = True,
     real_time_updates: Annotated[
-        bool, Field(description="Provide real-time security updates")
+        bool,
+        Field(description="Provide real-time security updates"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Monitor real-time security posture with threat detection and compliance tracking.
+    """Monitor real-time security posture with threat detection and compliance tracking.
 
     FastMCP Tool for security monitoring through Claude Desktop.
     Provides comprehensive security monitoring, threat detection, and incident response.
@@ -359,7 +378,7 @@ async def km_monitor_security_posture(
     try:
         if ctx:
             await ctx.info(
-                f"Starting security posture monitoring for scope: {monitoring_scope}"
+                f"Starting security posture monitoring for scope: {monitoring_scope}",
             )
 
         # Start security monitoring
@@ -393,7 +412,8 @@ async def km_monitor_security_posture(
         threats_detected = []
         if threat_detection:
             threat_result = await security_monitor.detect_threats(
-                scope=monitoring_scope, events=security_events
+                scope=monitoring_scope,
+                events=security_events,
             )
             if threat_result.is_success():
                 threats_detected = threat_result.value.get("threats", [])
@@ -412,7 +432,8 @@ async def km_monitor_security_posture(
         security_metrics = {}
         if include_metrics:
             metrics_result = await security_monitor.get_security_metrics(
-                scope=monitoring_scope, time_period_minutes=monitoring_duration
+                scope=monitoring_scope,
+                time_period_minutes=monitoring_duration,
             )
             if metrics_result.is_success():
                 security_metrics = metrics_result.value
@@ -439,7 +460,7 @@ async def km_monitor_security_posture(
 
         if ctx:
             await ctx.info(
-                f"Security monitoring completed - Score: {security_score}, Status: {overall_status}"
+                f"Security monitoring completed - Score: {security_score}, Status: {overall_status}",
             )
 
         return {
@@ -478,7 +499,7 @@ async def km_monitor_security_posture(
         }
 
     except Exception as e:
-        error_msg = f"Security monitoring error: {str(e)}"
+        error_msg = f"Security monitoring error: {e!s}"
         if ctx:
             await ctx.error(error_msg)
         return {"success": False, "error": error_msg, "monitoring_session": None}
@@ -487,38 +508,45 @@ async def km_monitor_security_posture(
 @mcp.tool()
 async def km_manage_access_control(
     operation: Annotated[
-        str, Field(description="Access control operation (grant|revoke|check|list)")
+        str,
+        Field(description="Access control operation (grant|revoke|check|list)"),
     ],
     subject_id: Annotated[
-        str, Field(description="Subject identifier (user, service, application)")
+        str,
+        Field(description="Subject identifier (user, service, application)"),
     ],
     resource_path: Annotated[str, Field(description="Resource path or identifier")],
     permission_type: Annotated[
-        str, Field(description="Permission type (read|write|execute|delete|admin)")
+        str,
+        Field(description="Permission type (read|write|execute|delete|admin)"),
     ] = "read",
     resource_type: Annotated[
         str,
         Field(description="Resource type (file|directory|application|service|macro)"),
     ] = "file",
     authorization_model: Annotated[
-        str, Field(description="Authorization model (rbac|abac|dac|mac)")
+        str,
+        Field(description="Authorization model (rbac|abac|dac|mac)"),
     ] = "rbac",
     conditions: Annotated[
-        dict[str, Any] | None, Field(description="Access conditions and constraints")
+        dict[str, Any] | None,
+        Field(description="Access conditions and constraints"),
     ] = None,
     temporary_access: Annotated[
-        bool, Field(description="Grant temporary access with expiration")
+        bool,
+        Field(description="Grant temporary access with expiration"),
     ] = False,
     access_duration_hours: Annotated[
-        int, Field(description="Access duration in hours for temporary access")
+        int,
+        Field(description="Access duration in hours for temporary access"),
     ] = 24,
     audit_access: Annotated[
-        bool, Field(description="Audit access control operations")
+        bool,
+        Field(description="Audit access control operations"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Manage granular access control with context-aware permissions and dynamic authorization.
+    """Manage granular access control with context-aware permissions and dynamic authorization.
 
     FastMCP Tool for access control management through Claude Desktop.
     Provides comprehensive access control operations with RBAC, ABAC, and context-aware authorization.
@@ -528,7 +556,7 @@ async def km_manage_access_control(
     try:
         if ctx:
             await ctx.info(
-                f"Starting access control operation: {operation} for {subject_id}"
+                f"Starting access control operation: {operation} for {subject_id}",
             )
 
         # Validate operation
@@ -641,7 +669,7 @@ async def km_manage_access_control(
 
         if ctx:
             await ctx.info(
-                f"Access control operation completed: {operation} - Result: success"
+                f"Access control operation completed: {operation} - Result: success",
             )
 
         # Format response based on operation type
@@ -660,7 +688,7 @@ async def km_manage_access_control(
                 "audit_record": audit_record,
             }
 
-        elif operation.lower() == "list":
+        if operation.lower() == "list":
             return {
                 "success": True,
                 "operation": operation,
@@ -670,24 +698,25 @@ async def km_manage_access_control(
                 "audit_record": audit_record,
             }
 
-        else:  # grant or revoke
-            return {
-                "success": True,
-                "operation": operation,
-                "subject_id": subject_id,
-                "resource_path": resource_path,
-                "permission_type": permission_type,
-                "resource_type": resource_type,
-                "temporary_access": temporary_access,
-                "expires_at": result_data.get("expires_at"),
-                "operation_timestamp": result_data.get(
-                    "timestamp", datetime.now(UTC).isoformat()
-                ),
-                "audit_record": audit_record,
-            }
+        # grant or revoke
+        return {
+            "success": True,
+            "operation": operation,
+            "subject_id": subject_id,
+            "resource_path": resource_path,
+            "permission_type": permission_type,
+            "resource_type": resource_type,
+            "temporary_access": temporary_access,
+            "expires_at": result_data.get("expires_at"),
+            "operation_timestamp": result_data.get(
+                "timestamp",
+                datetime.now(UTC).isoformat(),
+            ),
+            "audit_record": audit_record,
+        }
 
     except Exception as e:
-        error_msg = f"Access control management error: {str(e)}"
+        error_msg = f"Access control management error: {e!s}"
         if ctx:
             await ctx.error(error_msg)
         return {"success": False, "error": error_msg, "operation": operation}

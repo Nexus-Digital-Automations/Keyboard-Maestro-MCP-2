@@ -1,5 +1,4 @@
-"""
-Command Registry System
+"""Command Registry System.
 
 Provides type-safe command registration, discovery, and instantiation
 with security validation and permission management.
@@ -29,8 +28,7 @@ class CommandMetadata:
 
 
 class CommandRegistry:
-    """
-    Type-safe command registration and discovery system.
+    """Type-safe command registration and discovery system.
 
     Manages the registration of command types and provides
     safe instantiation with validation and security checks.
@@ -48,8 +46,7 @@ class CommandRegistry:
         description: str = "",
         parameter_schema: dict[str, Any] | None = None,
     ) -> None:
-        """
-        Register a new command type with validation.
+        """Register a new command type with validation.
 
         Args:
             command_type: Type identifier for the command
@@ -59,10 +56,11 @@ class CommandRegistry:
 
         Raises:
             ValueError: If command_class is not a BaseCommand subclass
+
         """
         if not issubclass(command_class, BaseCommand):
             raise ValueError(
-                f"Command class must inherit from BaseCommand: {command_class}"
+                f"Command class must inherit from BaseCommand: {command_class}",
             )
 
         # Create a temporary instance to get metadata
@@ -114,8 +112,7 @@ class CommandRegistry:
         command_id: CommandId,
         parameters: dict[str, Any],
     ) -> BaseCommand:
-        """
-        Create and validate a command instance.
+        """Create and validate a command instance.
 
         Args:
             command_type: Type of command to create
@@ -128,6 +125,7 @@ class CommandRegistry:
         Raises:
             ValueError: If command type is not registered
             CommandSecurityError: If parameters fail security validation
+
         """
         if command_type not in self._commands:
             raise ValueError(f"Command type not registered: {command_type}")
@@ -149,7 +147,8 @@ class CommandRegistry:
 
         # Instantiate command
         command_instance = metadata.command_class(
-            command_id=command_id, parameters=command_params
+            command_id=command_id,
+            parameters=command_params,
         )
 
         # Validate the complete command
@@ -163,14 +162,19 @@ class CommandRegistry:
         try:
             # Try to create with minimal parameters
             return command_class(
-                command_id=CommandId("temp"), parameters=CommandParameters.empty()
+                command_id=CommandId("temp"),
+                parameters=CommandParameters.empty(),
             )
-        except Exception:
+        except Exception as e:
             # If that fails, we can't get metadata safely
-            raise ValueError(f"Cannot create temporary instance of {command_class}")
+            raise ValueError(
+                f"Cannot create temporary instance of {command_class}",
+            ) from e
 
     def _validate_parameters(
-        self, command_type: str, parameters: dict[str, Any]
+        self,
+        command_type: str,
+        parameters: dict[str, Any],
     ) -> bool:
         """Validate command parameters using security validator."""
         try:
@@ -187,24 +191,20 @@ class CommandRegistry:
 
 
 def get_default_registry() -> CommandRegistry:
-    """
-    Get a command registry with all default commands registered.
+    """Get a command registry with all default commands registered.
 
     Returns:
         Registry with standard command implementations
+
     """
     registry = CommandRegistry()
 
     # Import and register command implementations
     try:
-        from .application import (
-            ActivateApplicationCommand,
-            LaunchApplicationCommand,
-            QuitApplicationCommand,
-        )
-        from .flow import BreakCommand, ConditionalCommand, LoopCommand
-        from .system import PauseCommand, PlaySoundCommand, SetVolumeCommand
-        from .text import FindTextCommand, ReplaceTextCommand, TypeTextCommand
+        from .application import LaunchApplicationCommand
+        from .flow import ConditionalCommand, LoopCommand
+        from .system import PauseCommand, PlaySoundCommand
+        from .text import TypeTextCommand
 
         # Register text commands
         registry.register_command(
@@ -215,7 +215,9 @@ def get_default_registry() -> CommandRegistry:
 
         # Register system commands
         registry.register_command(
-            CommandType.PAUSE, PauseCommand, "Pause execution for specified duration"
+            CommandType.PAUSE,
+            PauseCommand,
+            "Pause execution for specified duration",
         )
 
         registry.register_command(

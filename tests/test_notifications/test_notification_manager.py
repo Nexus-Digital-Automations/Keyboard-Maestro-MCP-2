@@ -1,11 +1,13 @@
-"""
-Property-based tests for the notification system.
+"""Property-based tests for the notification system.
 
 Tests comprehensive notification capabilities including system notifications,
 alerts, HUD displays, and sound notifications with security validation and
 user interaction tracking.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -25,7 +27,7 @@ class TestNotificationManager:
     """Test suite for NotificationManager with comprehensive validation."""
 
     @pytest.fixture
-    def mock_km_client(self):
+    def mock_km_client(self) -> bool:
         """Mock KM client for testing."""
         km_client = Mock()
         km_client.execute_applescript = AsyncMock()
@@ -34,7 +36,7 @@ class TestNotificationManager:
         return km_client
 
     @pytest.fixture
-    def notification_manager(self, mock_km_client):
+    def notification_manager(self, mock_km_client) -> bool:
         """NotificationManager instance with mocked dependencies."""
         return NotificationManager(mock_km_client)
 
@@ -44,8 +46,11 @@ class TestNotificationManager:
         duration=st.floats(min_value=0.1, max_value=60.0) | st.none(),
     )
     async def test_notification_spec_creation_properties(
-        self, title, message, duration
-    ):
+        self,
+        title,
+        message,
+        duration,
+    ) -> None:
         """Property test: NotificationSpec creation with valid inputs."""
         assume(len(title.strip()) > 0 and len(message.strip()) > 0)
 
@@ -65,7 +70,7 @@ class TestNotificationManager:
         title=st.text(min_size=101) | st.text(max_size=0),
         message=st.text(min_size=501) | st.text(max_size=0),
     )
-    def test_notification_spec_validation_failures(self, title, message):
+    def test_notification_spec_validation_failures(self, title, message) -> bool:
         """Property test: NotificationSpec validation with invalid inputs."""
         with pytest.raises(ValueError):
             NotificationSpec(
@@ -76,8 +81,10 @@ class TestNotificationManager:
 
     @pytest.mark.asyncio
     async def test_system_notification_display(
-        self, notification_manager, mock_km_client
-    ):
+        self,
+        notification_manager,
+        mock_km_client,
+    ) -> None:
         """Test system notification display with AppleScript execution."""
         # Setup mock response
         mock_km_client.execute_applescript.return_value = Mock(
@@ -105,12 +112,15 @@ class TestNotificationManager:
 
     @pytest.mark.asyncio
     async def test_alert_dialog_with_buttons(
-        self, notification_manager, mock_km_client
-    ):
+        self,
+        notification_manager,
+        mock_km_client,
+    ) -> None:
         """Test alert dialog with user interaction buttons."""
         # Setup mock response with button click
         mock_km_client.execute_applescript.return_value = Mock(
-            is_left=lambda: False, get_right=lambda: 'button returned:"Yes"'
+            is_left=lambda: False,
+            get_right=lambda: 'button returned:"Yes"',
         )
 
         spec = NotificationSpec(
@@ -130,12 +140,15 @@ class TestNotificationManager:
 
     @pytest.mark.asyncio
     async def test_hud_display_with_positioning(
-        self, notification_manager, mock_km_client
-    ):
+        self,
+        notification_manager,
+        mock_km_client,
+    ) -> None:
         """Test HUD display with custom positioning and duration."""
         # Setup mock response
         mock_km_client.display_hud_text.return_value = Mock(
-            is_left=lambda: False, get_right=lambda: "hud displayed"
+            is_left=lambda: False,
+            get_right=lambda: "hud displayed",
         )
 
         spec = NotificationSpec(
@@ -155,18 +168,21 @@ class TestNotificationManager:
 
         # Verify HUD display was called
         mock_km_client.display_hud_text.assert_called_once_with(
-            text="Processing\nPlease wait...", duration=2.0, position="Top"
+            text="Processing\nPlease wait...",
+            duration=2.0,
+            position="Top",
         )
 
         # Verify sleep was called for duration
         mock_sleep.assert_called_once_with(2.0)
 
     @pytest.mark.asyncio
-    async def test_sound_notification(self, notification_manager, mock_km_client):
+    async def test_sound_notification(self, notification_manager, mock_km_client) -> None:
         """Test sound notification with custom audio file."""
         # Setup mock response
         mock_km_client.play_sound.return_value = Mock(
-            is_left=lambda: False, get_right=lambda: "sound played"
+            is_left=lambda: False,
+            get_right=lambda: "sound played",
         )
 
         spec = NotificationSpec(
@@ -184,7 +200,7 @@ class TestNotificationManager:
 
         # Verify sound play was called
         mock_km_client.play_sound.assert_called_once_with(
-            "/System/Library/Sounds/Glass.aiff"
+            "/System/Library/Sounds/Glass.aiff",
         )
 
     @given(
@@ -200,10 +216,10 @@ class TestNotificationManager:
                     "$(",
                     "on",
                 ]
-            )
-        )
+            ),
+        ),
     )
-    def test_content_validation_security(self, notification_manager, content):
+    def test_content_validation_security(self, notification_manager, content) -> bool:
         """Property test: Content validation prevents dangerous patterns."""
         is_valid = notification_manager._validate_notification_content(content)
 
@@ -215,17 +231,17 @@ class TestNotificationManager:
             lambda x: not any(
                 pattern in x.lower()
                 for pattern in ["<script", "javascript:", "eval(", "system(", "`", "$("]
-            )
-        )
+            ),
+        ),
     )
-    def test_content_validation_safe_content(self, notification_manager, content):
+    def test_content_validation_safe_content(self, notification_manager, content) -> bool:
         """Property test: Safe content passes validation."""
         assume(len(content.strip()) > 0)
 
         is_valid = notification_manager._validate_notification_content(content)
         assert is_valid
 
-    def test_applescript_string_escaping(self, notification_manager):
+    def test_applescript_string_escaping(self, notification_manager) -> bool:
         """Test AppleScript string escaping for security."""
         dangerous_text = 'Text with "quotes" and \\backslashes'
         escaped = notification_manager._escape_applescript_string(dangerous_text)
@@ -233,7 +249,7 @@ class TestNotificationManager:
         assert '\\"' in escaped  # Quotes should be escaped
         assert "\\\\" in escaped  # Backslashes should be escaped
 
-    def test_hud_position_mapping(self, notification_manager):
+    def test_hud_position_mapping(self, notification_manager) -> bool:
         """Test HUD position enum to KM value mapping."""
         position_tests = [
             (NotificationPosition.CENTER, "Center"),
@@ -246,11 +262,12 @@ class TestNotificationManager:
             assert km_value == expected
 
     @pytest.mark.asyncio
-    async def test_notification_tracking(self, notification_manager, mock_km_client):
+    async def test_notification_tracking(self, notification_manager, mock_km_client) -> None:
         """Test active notification tracking and management."""
         # Setup mock response
         mock_km_client.execute_applescript.return_value = Mock(
-            is_left=lambda: False, get_right=lambda: "notification displayed"
+            is_left=lambda: False,
+            get_right=lambda: "notification displayed",
         )
 
         spec = NotificationSpec(
@@ -279,15 +296,19 @@ class TestNotificationManager:
 
     @pytest.mark.asyncio
     async def test_error_handling_km_client_failure(
-        self, notification_manager, mock_km_client
-    ):
+        self,
+        notification_manager,
+        mock_km_client,
+    ) -> None:
         """Test error handling when KM client operations fail."""
         # Setup mock to return error
         error = MacroEngineError(
-            message="AppleScript execution failed", category=ErrorCategory.EXECUTION
+            message="AppleScript execution failed",
+            category=ErrorCategory.EXECUTION,
         )
         mock_km_client.execute_applescript.return_value = Mock(
-            is_left=lambda: True, get_left=lambda: error
+            is_left=lambda: True,
+            get_left=lambda: error,
         )
 
         spec = NotificationSpec(
@@ -303,7 +324,7 @@ class TestNotificationManager:
         assert returned_error.code == "APPLESCRIPT_ERROR"
 
     @given(sound_name=st.text(min_size=1))
-    def test_sound_validation_properties(self, sound_name):
+    def test_sound_validation_properties(self, sound_name) -> None:
         """Property test: Sound validation for various inputs."""
         spec = NotificationSpec.__new__(NotificationSpec)  # Skip __post_init__
         spec.notification_type = NotificationType.SOUND
@@ -347,7 +368,7 @@ class TestNotificationManager:
             # Other patterns may or may not be valid depending on implementation
             pass
 
-    def test_notification_result_helper_methods(self):
+    def test_notification_result_helper_methods(self) -> None:
         """Test NotificationResult helper methods."""
         # Test with user response
         result_with_response = NotificationResult(
@@ -363,7 +384,9 @@ class TestNotificationManager:
 
         # Test without user response
         result_no_response = NotificationResult(
-            success=True, notification_id="test_2", display_time=1.0
+            success=True,
+            notification_id="test_2",
+            display_time=1.0,
         )
 
         assert not result_no_response.was_dismissed_by_user()
@@ -375,13 +398,13 @@ class TestNotificationIntegration:
     """Integration tests for complete notification workflows."""
 
     @pytest.mark.asyncio
-    async def test_complete_notification_workflow(self):
+    async def test_complete_notification_workflow(self) -> None:
         """Test complete notification workflow from creation to cleanup."""
         with patch("src.integration.km_client.KMClient") as mock_client_class:
             # Setup mock client
             mock_client = Mock()
             mock_client.execute_applescript = AsyncMock(
-                return_value=Mock(is_left=lambda: False, get_right=lambda: "success")
+                return_value=Mock(is_left=lambda: False, get_right=lambda: "success"),
             )
             mock_client_class.return_value = mock_client
 

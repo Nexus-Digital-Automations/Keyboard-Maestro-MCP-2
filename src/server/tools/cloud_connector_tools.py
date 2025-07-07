@@ -1,5 +1,4 @@
-"""
-Advanced cloud connector MCP tools for multi-cloud platform integration.
+"""Advanced cloud connector MCP tools for multi-cloud platform integration.
 
 This module provides comprehensive cloud integration tools enabling AI to connect,
 deploy, sync, monitor, and orchestrate across AWS, Azure, Google Cloud, and other
@@ -35,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 @require(
     lambda operation: operation
-    in ["connect", "deploy", "sync", "monitor", "optimize", "orchestrate"]
+    in ["connect", "deploy", "sync", "monitor", "optimize", "orchestrate"],
 )
 async def km_cloud_connector(
     operation: str,
@@ -53,8 +52,7 @@ async def km_cloud_connector(
     timeout: int = 300,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """
-    Advanced cloud connector for multi-cloud platform integration and orchestration.
+    """Advanced cloud connector for multi-cloud platform integration and orchestration.
 
     Operations:
     - connect: Establish cloud provider connection with secure authentication
@@ -134,44 +132,63 @@ async def km_cloud_connector(
         # Execute operation
         if operation == "connect":
             return await _handle_connect_operation(
-                cloud_manager, provider, authentication, region, ctx
+                cloud_manager,
+                provider,
+                authentication,
+                region,
+                ctx,
             )
-        elif operation == "deploy":
+        if operation == "deploy":
             return await _handle_deploy_operation(
-                cloud_manager, provider, svc_type, resource_config, region, ctx
+                cloud_manager,
+                provider,
+                svc_type,
+                resource_config,
+                region,
+                ctx,
             )
-        elif operation == "sync":
+        if operation == "sync":
             return await _handle_sync_operation(
-                cloud_manager, provider, sync_options, ctx
+                cloud_manager,
+                provider,
+                sync_options,
+                ctx,
             )
-        elif operation == "monitor":
+        if operation == "monitor":
             return await _handle_monitor_operation(
-                cloud_manager, provider, monitoring_config, ctx
+                cloud_manager,
+                provider,
+                monitoring_config,
+                ctx,
             )
-        elif operation == "optimize":
+        if operation == "optimize":
             return await _handle_optimize_operation(
-                cloud_manager, provider, cost_limits, ctx
+                cloud_manager,
+                provider,
+                cost_limits,
+                ctx,
             )
-        elif operation == "orchestrate":
+        if operation == "orchestrate":
             return await _handle_orchestrate_operation(
-                cloud_manager, orchestration_plan, ctx
+                cloud_manager,
+                orchestration_plan,
+                ctx,
             )
-        else:
-            return {
-                "success": False,
-                "error": {
-                    "code": "OPERATION_NOT_IMPLEMENTED",
-                    "message": f"Operation '{operation}' not implemented",
-                },
-            }
+        return {
+            "success": False,
+            "error": {
+                "code": "OPERATION_NOT_IMPLEMENTED",
+                "message": f"Operation '{operation}' not implemented",
+            },
+        }
 
     except Exception as e:
-        logger.error(f"Cloud connector error: {str(e)}")
+        logger.error(f"Cloud connector error: {e!s}")
         return {
             "success": False,
             "error": {
                 "code": "SYSTEM_ERROR",
-                "message": f"Cloud connector operation failed: {str(e)}",
+                "message": f"Cloud connector operation failed: {e!s}",
             },
         }
 
@@ -209,7 +226,7 @@ async def _handle_connect_operation(
 
         if ctx:
             await ctx.info(
-                f"Establishing {provider.value} connection with {auth_method.value} authentication"
+                f"Establishing {provider.value} connection with {auth_method.value} authentication",
             )
 
         # Create cloud credentials
@@ -229,7 +246,8 @@ async def _handle_connect_operation(
 
         # Establish connection
         connection_result = await cloud_manager.establish_cloud_connection(
-            provider, credentials
+            provider,
+            credentials,
         )
 
         if connection_result.is_left():
@@ -270,7 +288,7 @@ async def _handle_connect_operation(
             "success": False,
             "error": {
                 "code": "CONNECT_OPERATION_FAILED",
-                "message": f"Cloud connection failed: {str(e)}",
+                "message": f"Cloud connection failed: {e!s}",
             },
         }
 
@@ -287,7 +305,7 @@ async def _handle_deploy_operation(
     try:
         if ctx:
             await ctx.info(
-                f"Deploying {service_type.value} resource on {provider.value}"
+                f"Deploying {service_type.value} resource on {provider.value}",
             )
 
         # Get session ID from resource config
@@ -387,7 +405,7 @@ async def _handle_deploy_operation(
             "success": False,
             "error": {
                 "code": "DEPLOY_OPERATION_FAILED",
-                "message": f"Resource deployment failed: {str(e)}",
+                "message": f"Resource deployment failed: {e!s}",
             },
         }
 
@@ -439,7 +457,7 @@ async def _handle_sync_operation(
 
         if ctx:
             await ctx.info(
-                f"Sync completed: {sync_data.get('files_uploaded', 0)} files transferred"
+                f"Sync completed: {sync_data.get('files_uploaded', 0)} files transferred",
             )
 
         return {
@@ -459,7 +477,7 @@ async def _handle_sync_operation(
             "success": False,
             "error": {
                 "code": "SYNC_OPERATION_FAILED",
-                "message": f"Data synchronization failed: {str(e)}",
+                "message": f"Data synchronization failed: {e!s}",
             },
         }
 
@@ -477,7 +495,8 @@ async def _handle_monitor_operation(
 
         # Get monitoring data from cloud manager
         monitoring_result = await cloud_manager.get_monitoring_data(
-            provider, monitoring_config or {}
+            provider,
+            monitoring_config or {},
         )
 
         if monitoring_result.is_left():
@@ -494,7 +513,7 @@ async def _handle_monitor_operation(
 
         if ctx:
             await ctx.info(
-                f"Monitoring data retrieved: {len(monitoring_data.get('resources', []))} resources"
+                f"Monitoring data retrieved: {len(monitoring_data.get('resources', []))} resources",
             )
 
         return {
@@ -516,7 +535,7 @@ async def _handle_monitor_operation(
             "success": False,
             "error": {
                 "code": "MONITOR_OPERATION_FAILED",
-                "message": f"Resource monitoring failed: {str(e)}",
+                "message": f"Resource monitoring failed: {e!s}",
             },
         }
 
@@ -541,7 +560,8 @@ async def _handle_optimize_operation(
             time_range = {"start": start_date.isoformat(), "end": end_date.isoformat()}
 
         optimization_result = await cloud_manager.cost_optimizer.analyze_costs(
-            provider, time_range
+            provider,
+            time_range,
         )
 
         if optimization_result.is_left():
@@ -562,7 +582,7 @@ async def _handle_optimize_operation(
                 for opp in optimization_data.get("optimization_opportunities", [])
             )
             await ctx.info(
-                f"Cost analysis complete: ${total_savings:.2f} potential monthly savings identified"
+                f"Cost analysis complete: ${total_savings:.2f} potential monthly savings identified",
             )
 
         return {
@@ -582,13 +602,15 @@ async def _handle_optimize_operation(
             "success": False,
             "error": {
                 "code": "OPTIMIZE_OPERATION_FAILED",
-                "message": f"Cost optimization failed: {str(e)}",
+                "message": f"Cost optimization failed: {e!s}",
             },
         }
 
 
 async def _handle_orchestrate_operation(
-    cloud_manager, orchestration_plan: dict | None, ctx: Context | None
+    cloud_manager,
+    orchestration_plan: dict | None,
+    ctx: Context | None,
 ) -> dict[str, Any]:
     """Handle multi-cloud orchestration operation."""
     try:
@@ -607,7 +629,7 @@ async def _handle_orchestrate_operation(
         # Execute orchestration workflow
         orchestration_result = (
             await cloud_manager.orchestrator.orchestrate_multi_cloud_workflow(
-                orchestration_plan
+                orchestration_plan,
             )
         )
 
@@ -626,7 +648,7 @@ async def _handle_orchestrate_operation(
         if ctx:
             operations_count = len(orchestration_data.get("completed_operations", []))
             await ctx.info(
-                f"Orchestration workflow completed: {operations_count} operations executed"
+                f"Orchestration workflow completed: {operations_count} operations executed",
             )
 
         return {
@@ -645,7 +667,7 @@ async def _handle_orchestrate_operation(
             "success": False,
             "error": {
                 "code": "ORCHESTRATE_OPERATION_FAILED",
-                "message": f"Multi-cloud orchestration failed: {str(e)}",
+                "message": f"Multi-cloud orchestration failed: {e!s}",
             },
         }
 
@@ -661,15 +683,21 @@ async def _deploy_storage_resource(
     """Deploy cloud storage resource."""
     if provider == CloudProvider.AWS:
         return await cloud_manager.aws_connector.create_storage_bucket(
-            session_id, resource_name, region, config
+            session_id,
+            resource_name,
+            region,
+            config,
         )
-    elif provider == CloudProvider.AZURE:
+    if provider == CloudProvider.AZURE:
         resource_group = config.get("resource_group", "default-rg")
         return await cloud_manager.azure_connector.create_storage_account(
-            session_id, resource_name, resource_group, region, config
+            session_id,
+            resource_name,
+            resource_group,
+            region,
+            config,
         )
-    else:
-        return Either.left(CloudError.unsupported_provider_for_operation(provider))
+    return Either.left(CloudError.unsupported_provider_for_operation(provider))
 
 
 async def _deploy_compute_resource(
@@ -684,7 +712,7 @@ async def _deploy_compute_resource(
     # Placeholder for compute resource deployment
     # This would be implemented based on specific compute service requirements
     return Either.left(
-        CloudError.operation_not_implemented("compute resource deployment")
+        CloudError.operation_not_implemented("compute resource deployment"),
     )
 
 

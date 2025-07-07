@@ -1,5 +1,4 @@
-"""
-Autonomous decision-making engine for intelligent agents.
+"""Autonomous decision-making engine for intelligent agents.
 
 This module provides advanced decision-making capabilities for autonomous agents,
 including goal-based planning, context-aware decision making, and multi-criteria
@@ -149,13 +148,16 @@ class DecisionEngine:
         except Exception as e:
             return Either.left(
                 AutonomousAgentError.initialization_failed(
-                    f"Decision engine init failed: {str(e)}"
-                )
+                    f"Decision engine init failed: {e!s}",
+                ),
             )
 
-    @require(lambda self, goal, situation, patterns: isinstance(goal, AgentGoal))
+    @require(lambda __self, goal, situation, patterns: isinstance(goal, AgentGoal))
     async def plan_actions(
-        self, goal: AgentGoal, situation: dict[str, Any], patterns: dict[str, Any]
+        self,
+        goal: AgentGoal,
+        situation: dict[str, Any],
+        patterns: dict[str, Any],
     ) -> list[AgentAction]:
         """Plan actions to achieve the specified goal."""
         try:
@@ -192,7 +194,9 @@ class DecisionEngine:
             return []
 
     async def _generate_action_plan(
-        self, goal: AgentGoal, context: DecisionContext
+        self,
+        goal: AgentGoal,
+        context: DecisionContext,
     ) -> ActionPlan | None:
         """Generate comprehensive action plan using AI if available."""
         try:
@@ -215,7 +219,9 @@ class DecisionEngine:
             return None
 
     async def _ai_powered_planning(
-        self, goal: AgentGoal, context: DecisionContext
+        self,
+        goal: AgentGoal,
+        context: DecisionContext,
     ) -> ActionPlan | None:
         """Use AI to generate intelligent action plan."""
         if not self.intelligent_engine:
@@ -252,7 +258,9 @@ class DecisionEngine:
             if result.is_right():
                 suggestions = result.get_right()
                 return await self._convert_suggestions_to_plan(
-                    suggestions, goal, context
+                    suggestions,
+                    goal,
+                    context,
                 )
 
         except Exception as e:
@@ -261,7 +269,9 @@ class DecisionEngine:
         return None
 
     async def _pattern_based_planning(
-        self, goal: AgentGoal, context: DecisionContext
+        self,
+        goal: AgentGoal,
+        context: DecisionContext,
     ) -> ActionPlan | None:
         """Generate plan based on learned patterns."""
         relevant_patterns = context.get_relevant_patterns(goal)
@@ -302,7 +312,9 @@ class DecisionEngine:
         )
 
     async def _basic_planning(
-        self, goal: AgentGoal, context: DecisionContext
+        self,
+        goal: AgentGoal,
+        context: DecisionContext,
     ) -> ActionPlan:
         """Generate basic action plan."""
         actions = []
@@ -353,7 +365,9 @@ class DecisionEngine:
         )
 
     async def _rule_based_planning(
-        self, goal: AgentGoal, context: DecisionContext
+        self,
+        goal: AgentGoal,
+        context: DecisionContext,
     ) -> list[AgentAction]:
         """Simple rule-based fallback planning."""
         actions = []
@@ -374,7 +388,7 @@ class DecisionEngine:
 
         # Rule 2: Resource-constrained goals need optimization
         resource_availability = context.calculate_resource_availability(
-            goal.resource_requirements
+            goal.resource_requirements,
         )
         if resource_availability < 0.5:
             action = AgentAction(
@@ -441,20 +455,19 @@ class DecisionEngine:
 
         if "optimize" in pattern_lower:
             return ActionType.OPTIMIZE_WORKFLOW
-        elif "monitor" in pattern_lower:
+        if "monitor" in pattern_lower:
             return ActionType.MONITOR_SYSTEM
-        elif "learn" in pattern_lower:
+        if "learn" in pattern_lower:
             return ActionType.LEARN_PATTERN
-        elif "coordinate" in pattern_lower:
+        if "coordinate" in pattern_lower:
             return ActionType.COORDINATE_AGENTS
-        elif "heal" in pattern_lower:
+        if "heal" in pattern_lower:
             return ActionType.HEAL_SYSTEM
-        elif "plan" in pattern_lower:
+        if "plan" in pattern_lower:
             return ActionType.PLAN_SCHEDULE
-        elif "allocate" in pattern_lower or "resource" in pattern_lower:
+        if "allocate" in pattern_lower or "resource" in pattern_lower:
             return ActionType.ALLOCATE_RESOURCES
-        else:
-            return ActionType.EXECUTE_AUTOMATION
+        return ActionType.EXECUTE_AUTOMATION
 
     def _map_suggestion_to_action_type(self, suggestion: dict[str, Any]) -> ActionType:
         """Map AI suggestion to specific action type."""
@@ -492,7 +505,7 @@ class DecisionEngine:
             plan.estimate_success_probability() for _, plan in recent_decisions
         ]
         avg_success_probability = sum(success_probabilities) / len(
-            success_probabilities
+            success_probabilities,
         )
 
         return {
@@ -504,10 +517,12 @@ class DecisionEngine:
     async def _load_historical_patterns(self) -> None:
         """Load historical success and failure patterns."""
         # Placeholder - in production this would load from persistent storage
-        pass
 
     async def record_outcome(
-        self, plan: ActionPlan, success: bool, outcome: dict[str, Any]
+        self,
+        plan: ActionPlan,
+        success: bool,
+        outcome: dict[str, Any],
     ) -> None:
         """Record the outcome of a decision for learning."""
         pattern = {

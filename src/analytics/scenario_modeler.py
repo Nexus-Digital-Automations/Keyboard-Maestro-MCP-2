@@ -1,5 +1,4 @@
-"""
-Scenario Modeler - TASK_59 Phase 4 Advanced Modeling Implementation
+"""Scenario Modeler - TASK_59 Phase 4 Advanced Modeling Implementation.
 
 Advanced scenario modeling and simulation for automation workflows.
 Provides what-if analysis, stress testing, capacity planning, and growth modeling.
@@ -12,7 +11,7 @@ Security: Safe scenario parameters, validated simulations, comprehensive audit l
 from __future__ import annotations
 
 import math
-import random
+import secrets
 import statistics
 from collections import Counter, defaultdict, deque
 from dataclasses import dataclass, field
@@ -176,10 +175,12 @@ class ScenarioModeler:
         self.simulation_engines: dict[SimulationMethod, Callable] = {}
         self.performance_baselines: dict[str, dict[str, float]] = {}
         self.correlation_matrices: dict[str, dict[tuple[str, str], float]] = {}
+        # Use cryptographically secure random for enterprise security
+        self.secure_random = secrets.SystemRandom()
         self._initialize_parameter_templates()
         self._initialize_simulation_engines()
 
-    def _initialize_parameter_templates(self):
+    def _initialize_parameter_templates(self) -> None:
         """Initialize parameter templates for different scenario types."""
         self.parameter_templates[ScenarioType.STRESS_TEST] = [
             ScenarioParameter(
@@ -250,7 +251,7 @@ class ScenarioModeler:
             ),
         ]
 
-    def _initialize_simulation_engines(self):
+    def _initialize_simulation_engines(self) -> None:
         """Initialize simulation engines for different methods."""
         self.simulation_engines = {
             SimulationMethod.MONTE_CARLO: self._run_monte_carlo_simulation,
@@ -263,10 +264,12 @@ class ScenarioModeler:
     @require(lambda config: isinstance(config, ScenarioConfiguration))
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.left_value, ScenarioModelingError)
+        or isinstance(result.left_value, ScenarioModelingError),
     )
     async def model_scenario(
-        self, config: ScenarioConfiguration, baseline_data: dict[str, Any] | None = None
+        self,
+        config: ScenarioConfiguration,
+        baseline_data: dict[str, Any] | None = None,
     ) -> Either[ScenarioModelingError, ScenarioResults]:
         """Model a scenario with comprehensive analysis."""
         try:
@@ -282,8 +285,8 @@ class ScenarioModeler:
             if not simulation_engine:
                 return Either.left(
                     ScenarioModelingError(
-                        f"Simulation method {config.simulation_method.value} not supported"
-                    )
+                        f"Simulation method {config.simulation_method.value} not supported",
+                    ),
                 )
 
             # Run simulation
@@ -294,26 +297,29 @@ class ScenarioModeler:
 
             # Calculate confidence intervals
             confidence_intervals = self._calculate_confidence_intervals(
-                outcomes, config.confidence_level
+                outcomes,
+                config.confidence_level,
             )
 
             # Estimate probability distributions
             probability_distributions = self._estimate_probability_distributions(
-                outcomes
+                outcomes,
             )
 
             # Perform uncertainty analysis if enabled
             uncertainty_analysis = {}
             if config.enable_uncertainty_analysis:
                 uncertainty_analysis = await self._perform_uncertainty_analysis(
-                    config, outcomes
+                    config,
+                    outcomes,
                 )
 
             # Perform sensitivity analysis if enabled
             sensitivity_analysis = {}
             if config.enable_sensitivity_analysis:
                 sensitivity_analysis = await self._perform_sensitivity_analysis(
-                    config, outcomes
+                    config,
+                    outcomes,
                 )
 
             # Assess risks
@@ -321,7 +327,9 @@ class ScenarioModeler:
 
             # Generate recommendations
             recommendations = self._generate_scenario_recommendations(
-                outcomes, config, risk_assessment
+                outcomes,
+                config,
+                risk_assessment,
             )
 
             # Create results
@@ -351,18 +359,20 @@ class ScenarioModeler:
                     "simulation_method": config.simulation_method.value,
                     "iterations": config.simulation_iterations,
                     "processing_time": processing_time,
-                }
+                },
             )
 
             return Either.right(results)
 
         except Exception as e:
             return Either.left(
-                ScenarioModelingError(f"Scenario modeling failed: {str(e)}")
+                ScenarioModelingError(f"Scenario modeling failed: {e!s}"),
             )
 
     async def _run_monte_carlo_simulation(
-        self, config: ScenarioConfiguration, baseline_data: dict[str, Any] | None
+        self,
+        config: ScenarioConfiguration,
+        baseline_data: dict[str, Any] | None,
     ) -> list[ScenarioOutcome]:
         """Run Monte Carlo simulation for scenario modeling."""
         outcomes = []
@@ -376,7 +386,10 @@ class ScenarioModeler:
 
             # Simulate outcome
             outcome_metrics = await self._simulate_scenario_outcome(
-                parameter_values, config, baseline_data, iteration
+                parameter_values,
+                config,
+                baseline_data,
+                iteration,
             )
 
             # Create outcome
@@ -387,13 +400,15 @@ class ScenarioModeler:
                 parameter_values=parameter_values,
                 outcome_metrics=outcome_metrics,
                 performance_indicators=self._calculate_performance_indicators(
-                    outcome_metrics
+                    outcome_metrics,
                 ),
                 resource_utilization=self._calculate_resource_utilization(
-                    parameter_values, outcome_metrics
+                    parameter_values,
+                    outcome_metrics,
                 ),
                 cost_metrics=self._calculate_cost_metrics(
-                    parameter_values, outcome_metrics
+                    parameter_values,
+                    outcome_metrics,
                 ),
             )
 
@@ -402,20 +417,26 @@ class ScenarioModeler:
         return outcomes
 
     async def _run_deterministic_simulation(
-        self, config: ScenarioConfiguration, baseline_data: dict[str, Any] | None
+        self,
+        config: ScenarioConfiguration,
+        baseline_data: dict[str, Any] | None,
     ) -> list[ScenarioOutcome]:
         """Run deterministic simulation using parameter ranges."""
         outcomes = []
 
         # Generate parameter combinations
         parameter_combinations = self._generate_parameter_combinations(
-            config.parameters, config.simulation_iterations
+            config.parameters,
+            config.simulation_iterations,
         )
 
         for iteration, parameter_values in enumerate(parameter_combinations):
             # Simulate outcome
             outcome_metrics = await self._simulate_scenario_outcome(
-                parameter_values, config, baseline_data, iteration
+                parameter_values,
+                config,
+                baseline_data,
+                iteration,
             )
 
             # Create outcome
@@ -426,13 +447,15 @@ class ScenarioModeler:
                 parameter_values=parameter_values,
                 outcome_metrics=outcome_metrics,
                 performance_indicators=self._calculate_performance_indicators(
-                    outcome_metrics
+                    outcome_metrics,
                 ),
                 resource_utilization=self._calculate_resource_utilization(
-                    parameter_values, outcome_metrics
+                    parameter_values,
+                    outcome_metrics,
                 ),
                 cost_metrics=self._calculate_cost_metrics(
-                    parameter_values, outcome_metrics
+                    parameter_values,
+                    outcome_metrics,
                 ),
             )
 
@@ -441,7 +464,9 @@ class ScenarioModeler:
         return outcomes
 
     async def _run_statistical_simulation(
-        self, config: ScenarioConfiguration, baseline_data: dict[str, Any] | None
+        self,
+        config: ScenarioConfiguration,
+        baseline_data: dict[str, Any] | None,
     ) -> list[ScenarioOutcome]:
         """Run statistical simulation with probability distributions."""
         outcomes = []
@@ -452,12 +477,16 @@ class ScenarioModeler:
         for iteration in range(config.simulation_iterations):
             # Generate correlated parameter values
             parameter_values = self._generate_correlated_parameter_values(
-                config.parameters, correlations
+                config.parameters,
+                correlations,
             )
 
             # Simulate outcome
             outcome_metrics = await self._simulate_scenario_outcome(
-                parameter_values, config, baseline_data, iteration
+                parameter_values,
+                config,
+                baseline_data,
+                iteration,
             )
 
             # Create outcome
@@ -468,13 +497,15 @@ class ScenarioModeler:
                 parameter_values=parameter_values,
                 outcome_metrics=outcome_metrics,
                 performance_indicators=self._calculate_performance_indicators(
-                    outcome_metrics
+                    outcome_metrics,
                 ),
                 resource_utilization=self._calculate_resource_utilization(
-                    parameter_values, outcome_metrics
+                    parameter_values,
+                    outcome_metrics,
                 ),
                 cost_metrics=self._calculate_cost_metrics(
-                    parameter_values, outcome_metrics
+                    parameter_values,
+                    outcome_metrics,
                 ),
             )
 
@@ -483,7 +514,9 @@ class ScenarioModeler:
         return outcomes
 
     async def _run_discrete_event_simulation(
-        self, config: ScenarioConfiguration, baseline_data: dict[str, Any] | None
+        self,
+        config: ScenarioConfiguration,
+        baseline_data: dict[str, Any] | None,
     ) -> list[ScenarioOutcome]:
         """Run discrete event simulation for time-based scenarios."""
         outcomes = []
@@ -500,13 +533,18 @@ class ScenarioModeler:
                 # Add time dependency to parameter values
                 base_value = self._generate_random_parameter_value(param)
                 time_factor = self._calculate_time_factor(
-                    current_time, config.time_horizon, param
+                    current_time,
+                    config.time_horizon,
+                    param,
                 )
                 parameter_values[param.parameter_name] = base_value * time_factor
 
             # Simulate outcome
             outcome_metrics = await self._simulate_scenario_outcome(
-                parameter_values, config, baseline_data, iteration
+                parameter_values,
+                config,
+                baseline_data,
+                iteration,
             )
 
             # Add time-based metrics
@@ -521,13 +559,15 @@ class ScenarioModeler:
                 parameter_values=parameter_values,
                 outcome_metrics=outcome_metrics,
                 performance_indicators=self._calculate_performance_indicators(
-                    outcome_metrics
+                    outcome_metrics,
                 ),
                 resource_utilization=self._calculate_resource_utilization(
-                    parameter_values, outcome_metrics
+                    parameter_values,
+                    outcome_metrics,
                 ),
                 cost_metrics=self._calculate_cost_metrics(
-                    parameter_values, outcome_metrics
+                    parameter_values,
+                    outcome_metrics,
                 ),
             )
 
@@ -536,7 +576,9 @@ class ScenarioModeler:
         return outcomes
 
     async def _run_queue_theory_simulation(
-        self, config: ScenarioConfiguration, baseline_data: dict[str, Any] | None
+        self,
+        config: ScenarioConfiguration,
+        baseline_data: dict[str, Any] | None,
     ) -> list[ScenarioOutcome]:
         """Run queue theory simulation for capacity and performance modeling."""
         outcomes = []
@@ -569,16 +611,21 @@ class ScenarioModeler:
 
             # Simulate outcome
             outcome_metrics = await self._simulate_scenario_outcome(
-                parameter_values, config, baseline_data, iteration
+                parameter_values,
+                config,
+                baseline_data,
+                iteration,
             )
 
             # Add queue theory metrics
             outcome_metrics["queue_utilization"] = utilization
             outcome_metrics["average_queue_length"] = min(
-                1000, avg_queue_length
+                1000,
+                avg_queue_length,
             )  # Cap at reasonable value
             outcome_metrics["average_wait_time"] = min(
-                3600, avg_wait_time
+                3600,
+                avg_wait_time,
             )  # Cap at 1 hour
 
             # Create outcome
@@ -589,13 +636,15 @@ class ScenarioModeler:
                 parameter_values=parameter_values,
                 outcome_metrics=outcome_metrics,
                 performance_indicators=self._calculate_performance_indicators(
-                    outcome_metrics
+                    outcome_metrics,
                 ),
                 resource_utilization=self._calculate_resource_utilization(
-                    parameter_values, outcome_metrics
+                    parameter_values,
+                    outcome_metrics,
                 ),
                 cost_metrics=self._calculate_cost_metrics(
-                    parameter_values, outcome_metrics
+                    parameter_values,
+                    outcome_metrics,
                 ),
             )
 
@@ -606,42 +655,41 @@ class ScenarioModeler:
     def _generate_random_parameter_value(self, param: ScenarioParameter) -> Any:
         """Generate random value for a parameter based on its distribution."""
         if param.parameter_type == "boolean":
-            return random.choice([True, False])
-        elif param.parameter_type == "categorical":
+            return self.secure_random.choice([True, False])
+        if param.parameter_type == "categorical":
             if hasattr(param, "allowed_values") and param.allowed_values:
-                return random.choice(param.allowed_values)
-            else:
-                return param.base_value
-        elif param.parameter_type == "numeric":
+                return self.secure_random.choice(param.allowed_values)
+            return param.base_value
+        if param.parameter_type == "numeric":
             base = float(param.base_value) if param.base_value is not None else 1.0
             min_val = param.min_value if param.min_value is not None else base * 0.5
             max_val = param.max_value if param.max_value is not None else base * 2.0
 
             if param.distribution_type == "uniform":
-                return random.uniform(min_val, max_val)
-            elif param.distribution_type == "normal":
+                return self.secure_random.uniform(min_val, max_val)
+            if param.distribution_type == "normal":
                 std_dev = (max_val - min_val) / 6  # 99.7% within range
-                value = random.gauss(base, std_dev)
+                value = self.secure_random.gauss(base, std_dev)
                 return max(min_val, min(max_val, value))
-            elif param.distribution_type == "exponential":
+            if param.distribution_type == "exponential":
                 # Use base as the rate parameter
                 rate = 1.0 / base if base > 0 else 1.0
-                value = random.expovariate(rate)
+                value = self.secure_random.expovariate(rate)
                 return max(min_val, min(max_val, value))
-            elif param.distribution_type == "beta":
+            if param.distribution_type == "beta":
                 # Use base to determine beta distribution parameters
                 alpha = 2.0
                 beta = 2.0 * (1.0 - base) / base if base > 0 and base < 1 else 2.0
-                value = random.betavariate(alpha, beta)
+                value = self.secure_random.betavariate(alpha, beta)
                 return min_val + value * (max_val - min_val)
-            else:
-                # Default to uniform
-                return random.uniform(min_val, max_val)
-        else:
-            return param.base_value
+            # Default to uniform
+            return self.secure_random.uniform(min_val, max_val)
+        return param.base_value
 
     def _generate_parameter_combinations(
-        self, parameters: list[ScenarioParameter], num_combinations: int
+        self,
+        parameters: list[ScenarioParameter],
+        num_combinations: int,
     ) -> list[dict[str, Any]]:
         """Generate systematic parameter combinations for deterministic simulation."""
         combinations = []
@@ -701,7 +749,8 @@ class ScenarioModeler:
         return combinations[:num_combinations]
 
     def _calculate_parameter_correlations(
-        self, parameters: list[ScenarioParameter]
+        self,
+        parameters: list[ScenarioParameter],
     ) -> dict[tuple[str, str], float]:
         """Calculate correlations between parameters."""
         correlations = {}
@@ -711,7 +760,8 @@ class ScenarioModeler:
                 if i < j:
                     # Use predefined correlations if available
                     correlation = param1.correlation_factors.get(
-                        param2.parameter_name, 0.0
+                        param2.parameter_name,
+                        0.0,
                     )
                     correlations[(param1.parameter_name, param2.parameter_name)] = (
                         correlation
@@ -738,25 +788,32 @@ class ScenarioModeler:
 
         # Apply simple correlation adjustments
         for (param1_name, param2_name), correlation in correlations.items():
-            if abs(correlation) > 0.1:  # Only apply significant correlations
-                if param1_name in parameter_values and param2_name in parameter_values:
-                    # Simple correlation adjustment (simplified implementation)
-                    param1_value = parameter_values[param1_name]
-                    param2_value = parameter_values[param2_name]
+            if (
+                abs(correlation) > 0.1  # Only apply significant correlations
+                and param1_name in parameter_values
+                and param2_name in parameter_values
+            ):
+                # Simple correlation adjustment (simplified implementation)
+                param1_value = parameter_values[param1_name]
+                param2_value = parameter_values[param2_name]
 
-                    if isinstance(param1_value, int | float) and isinstance(
-                        param2_value, int | float
-                    ):
-                        # Adjust param2 based on param1 and correlation
-                        adjustment = (
-                            correlation * (param1_value - 1.0) * 0.1
-                        )  # Simplified adjustment
-                        parameter_values[param2_name] = param2_value + adjustment
+                if isinstance(param1_value, int | float) and isinstance(
+                    param2_value,
+                    int | float,
+                ):
+                    # Adjust param2 based on param1 and correlation
+                    adjustment = (
+                        correlation * (param1_value - 1.0) * 0.1
+                    )  # Simplified adjustment
+                    parameter_values[param2_name] = param2_value + adjustment
 
         return parameter_values
 
     def _calculate_time_factor(
-        self, current_time: timedelta, total_time: timedelta, param: ScenarioParameter
+        self,
+        current_time: timedelta,
+        total_time: timedelta,
+        param: ScenarioParameter,
     ) -> float:
         """Calculate time-dependent factor for parameter values."""
         progress = (
@@ -769,15 +826,14 @@ class ScenarioModeler:
         if "growth" in param.parameter_name.lower():
             # Exponential growth pattern
             return 1.0 + progress * 0.5
-        elif "load" in param.parameter_name.lower():
+        if "load" in param.parameter_name.lower():
             # Sinusoidal load pattern
             return 1.0 + 0.3 * math.sin(2 * math.pi * progress)
-        elif "efficiency" in param.parameter_name.lower():
+        if "efficiency" in param.parameter_name.lower():
             # Learning curve pattern
             return 1.0 + 0.2 * (1 - math.exp(-3 * progress))
-        else:
-            # Linear progression
-            return 1.0 + progress * 0.1
+        # Linear progression
+        return 1.0 + progress * 0.1
 
     async def _simulate_scenario_outcome(
         self,
@@ -814,7 +870,8 @@ class ScenarioModeler:
             )
             outcome_metrics["error_rate"] = 0.01 * (load_multiplier**1.5)
             outcome_metrics["resource_utilization"] = min(
-                1.0, 0.3 + 0.7 * load_multiplier
+                1.0,
+                0.3 + 0.7 * load_multiplier,
             )
 
         elif config.scenario_type == ScenarioType.CAPACITY_PLANNING:
@@ -855,19 +912,20 @@ class ScenarioModeler:
             for key, base_value in baseline.items():
                 if isinstance(base_value, int | float):
                     # Apply random variation
-                    variation = random.uniform(0.8, 1.2)
+                    variation = self.secure_random.uniform(0.8, 1.2)
                     outcome_metrics[key] = base_value * variation
 
         # Add common metrics
         outcome_metrics["simulation_success"] = (
-            1.0 if random.random() > 0.05 else 0.0
+            1.0 if self.secure_random.random() > 0.05 else 0.0
         )  # 95% success rate
         outcome_metrics["iteration_number"] = float(iteration)
 
         return outcome_metrics
 
     def _calculate_performance_indicators(
-        self, outcome_metrics: dict[str, float]
+        self,
+        outcome_metrics: dict[str, float],
     ) -> dict[str, Any]:
         """Calculate performance indicators from outcome metrics."""
         indicators = {}
@@ -878,7 +936,8 @@ class ScenarioModeler:
             and "resource_utilization" in outcome_metrics
         ):
             indicators["efficiency_ratio"] = outcome_metrics["throughput"] / max(
-                0.1, outcome_metrics["resource_utilization"]
+                0.1,
+                outcome_metrics["resource_utilization"],
             )
 
         # Calculate quality indicators
@@ -898,7 +957,9 @@ class ScenarioModeler:
         return indicators
 
     def _calculate_resource_utilization(
-        self, parameter_values: dict[str, Any], outcome_metrics: dict[str, float]
+        self,
+        parameter_values: dict[str, Any],
+        outcome_metrics: dict[str, float],
     ) -> dict[str, float]:
         """Calculate resource utilization from parameters and outcomes."""
         utilization = {}
@@ -917,7 +978,8 @@ class ScenarioModeler:
         if "throughput" in outcome_metrics:
             throughput = outcome_metrics["throughput"]
             utilization["network"] = min(
-                1.0, throughput / 500.0
+                1.0,
+                throughput / 500.0,
             )  # Assume 500 = max throughput
 
         # Storage utilization
@@ -928,7 +990,9 @@ class ScenarioModeler:
         return utilization
 
     def _calculate_cost_metrics(
-        self, parameter_values: dict[str, Any], outcome_metrics: dict[str, float]
+        self,
+        parameter_values: dict[str, Any],
+        outcome_metrics: dict[str, float],
     ) -> dict[str, float]:
         """Calculate cost metrics from parameters and outcomes."""
         cost_metrics = {}
@@ -964,7 +1028,8 @@ class ScenarioModeler:
         return cost_metrics
 
     def _calculate_statistical_summary(
-        self, outcomes: list[ScenarioOutcome]
+        self,
+        outcomes: list[ScenarioOutcome],
     ) -> dict[str, dict[str, float]]:
         """Calculate statistical summary of simulation outcomes."""
         summary = {}
@@ -1007,7 +1072,9 @@ class ScenarioModeler:
         return summary
 
     def _calculate_confidence_intervals(
-        self, outcomes: list[ScenarioOutcome], confidence_level: float
+        self,
+        outcomes: list[ScenarioOutcome],
+        confidence_level: float,
     ) -> dict[str, tuple[float, float]]:
         """Calculate confidence intervals for outcome metrics."""
         confidence_intervals = {}
@@ -1037,7 +1104,8 @@ class ScenarioModeler:
         return confidence_intervals
 
     def _estimate_probability_distributions(
-        self, outcomes: list[ScenarioOutcome]
+        self,
+        outcomes: list[ScenarioOutcome],
     ) -> dict[str, list[float]]:
         """Estimate probability distributions for outcome metrics."""
         distributions = {}
@@ -1071,7 +1139,9 @@ class ScenarioModeler:
         return distributions
 
     async def _perform_uncertainty_analysis(
-        self, config: ScenarioConfiguration, outcomes: list[ScenarioOutcome]
+        self,
+        config: ScenarioConfiguration,
+        outcomes: list[ScenarioOutcome],
     ) -> dict[str, Any]:
         """Perform uncertainty analysis on scenario results."""
         uncertainty_analysis = {}
@@ -1107,7 +1177,9 @@ class ScenarioModeler:
         return uncertainty_analysis
 
     async def _perform_sensitivity_analysis(
-        self, config: ScenarioConfiguration, outcomes: list[ScenarioOutcome]
+        self,
+        config: ScenarioConfiguration,
+        outcomes: list[ScenarioOutcome],
     ) -> dict[str, dict[str, float]]:
         """Perform sensitivity analysis on scenario parameters."""
         sensitivity_analysis = {}
@@ -1139,7 +1211,8 @@ class ScenarioModeler:
                 if len(metric_values) == len(param_values):
                     # Calculate correlation as sensitivity measure
                     sensitivity = self._calculate_correlation(
-                        param_values, metric_values
+                        param_values,
+                        metric_values,
                     )
                     param_sensitivities[metric_name] = abs(sensitivity)
 
@@ -1149,7 +1222,9 @@ class ScenarioModeler:
         return sensitivity_analysis
 
     def _calculate_correlation(
-        self, x_values: list[float], y_values: list[float]
+        self,
+        x_values: list[float],
+        y_values: list[float],
     ) -> float:
         """Calculate Pearson correlation coefficient."""
         if len(x_values) != len(y_values) or len(x_values) < 2:
@@ -1174,7 +1249,9 @@ class ScenarioModeler:
         return numerator / denominator
 
     def _assess_scenario_risks(
-        self, outcomes: list[ScenarioOutcome], config: ScenarioConfiguration
+        self,
+        outcomes: list[ScenarioOutcome],
+        config: ScenarioConfiguration,
     ) -> dict[str, float]:
         """Assess risks associated with scenario outcomes."""
         risk_assessment = {}
@@ -1194,7 +1271,7 @@ class ScenarioModeler:
         # Calculate risk metrics
         if success_rates:
             risk_assessment["failure_probability"] = 1.0 - statistics.mean(
-                success_rates
+                success_rates,
             )
 
         if error_rates:
@@ -1206,7 +1283,8 @@ class ScenarioModeler:
                 statistics.variance(cost_metrics) if len(cost_metrics) > 1 else 0.0
             )
             risk_assessment["cost_volatility"] = math.sqrt(cost_variance) / max(
-                1.0, statistics.mean(cost_metrics)
+                1.0,
+                statistics.mean(cost_metrics),
             )
 
         # Overall risk score
@@ -1233,18 +1311,18 @@ class ScenarioModeler:
 
         if overall_risk > 0.7:
             recommendations.append(
-                "HIGH RISK: Consider risk mitigation strategies before implementation"
+                "HIGH RISK: Consider risk mitigation strategies before implementation",
             )
             recommendations.append("Implement comprehensive monitoring and alerting")
             recommendations.append("Develop detailed rollback procedures")
         elif overall_risk > 0.4:
             recommendations.append(
-                "MEDIUM RISK: Proceed with caution and enhanced monitoring"
+                "MEDIUM RISK: Proceed with caution and enhanced monitoring",
             )
             recommendations.append("Consider phased implementation approach")
         else:
             recommendations.append(
-                "LOW RISK: Scenario appears viable for implementation"
+                "LOW RISK: Scenario appears viable for implementation",
             )
 
         # Performance-based recommendations
@@ -1255,11 +1333,11 @@ class ScenarioModeler:
             avg_throughput = statistics.mean(throughput_values)
             if avg_throughput < 50.0:
                 recommendations.append(
-                    "Consider performance optimization before scaling"
+                    "Consider performance optimization before scaling",
                 )
             elif avg_throughput > 200.0:
                 recommendations.append(
-                    "Excellent throughput - consider expanding capacity"
+                    "Excellent throughput - consider expanding capacity",
                 )
 
         # Cost-based recommendations
@@ -1274,11 +1352,11 @@ class ScenarioModeler:
 
             if cost_variance > avg_cost:
                 recommendations.append(
-                    "High cost variability - implement cost controls"
+                    "High cost variability - implement cost controls",
                 )
             if avg_cost > 1000.0:
                 recommendations.append(
-                    "High costs detected - evaluate cost optimization opportunities"
+                    "High costs detected - evaluate cost optimization opportunities",
                 )
 
         # Scenario-specific recommendations
@@ -1288,7 +1366,7 @@ class ScenarioModeler:
             ]
             if error_rates and max(error_rates) > 0.1:
                 recommendations.append(
-                    "High error rates under stress - improve error handling"
+                    "High error rates under stress - improve error handling",
                 )
 
         elif config.scenario_type == ScenarioType.CAPACITY_PLANNING:
@@ -1297,7 +1375,7 @@ class ScenarioModeler:
             ]
             if utilization_values and max(utilization_values) > 0.9:
                 recommendations.append(
-                    "Plan for additional capacity - utilization approaching limits"
+                    "Plan for additional capacity - utilization approaching limits",
                 )
 
         return recommendations
@@ -1305,7 +1383,7 @@ class ScenarioModeler:
     @require(lambda scenario_results_list: len(scenario_results_list) >= 2)
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.left_value, ScenarioModelingError)
+        or isinstance(result.left_value, ScenarioModelingError),
     )
     async def compare_scenarios(
         self,
@@ -1325,27 +1403,32 @@ class ScenarioModeler:
 
             # Perform comparative analysis
             comparative_analysis = self._perform_comparative_analysis(
-                scenario_results_list, comparison_criteria
+                scenario_results_list,
+                comparison_criteria,
             )
 
             # Rank scenarios
             ranking_analysis = self._rank_scenarios(
-                scenario_results_list, comparison_criteria
+                scenario_results_list,
+                comparison_criteria,
             )
 
             # Analyze trade-offs
             trade_off_analysis = self._analyze_scenario_trade_offs(
-                scenario_results_list, comparison_criteria
+                scenario_results_list,
+                comparison_criteria,
             )
 
             # Build decision matrix
             decision_matrix = self._build_scenario_decision_matrix(
-                scenario_results_list, comparison_criteria
+                scenario_results_list,
+                comparison_criteria,
             )
 
             # Recommend best scenario
             recommended_scenario = self._recommend_best_scenario(
-                scenario_results_list, decision_matrix
+                scenario_results_list,
+                decision_matrix,
             )
 
             comparison = ScenarioComparison(
@@ -1362,7 +1445,7 @@ class ScenarioModeler:
 
         except Exception as e:
             return Either.left(
-                ScenarioModelingError(f"Scenario comparison failed: {str(e)}")
+                ScenarioModelingError(f"Scenario comparison failed: {e!s}"),
             )
 
     def _perform_comparative_analysis(

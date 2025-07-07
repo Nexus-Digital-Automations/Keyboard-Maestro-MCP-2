@@ -1,5 +1,4 @@
-"""
-Advanced cost optimization system for AI operations.
+"""Advanced cost optimization system for AI operations.
 
 This module provides comprehensive cost optimization including usage tracking,
 budget management, intelligent model selection, cost prediction, and
@@ -91,7 +90,6 @@ class CostBudget:
     @require(lambda self: all(0 <= t <= 1 for t in self.alert_thresholds))
     def __post_init__(self):
         """Validate budget configuration."""
-        pass
 
     def is_active(self, current_time: datetime = None) -> bool:
         """Check if budget is currently active."""
@@ -107,19 +105,18 @@ class CostBudget:
         """Calculate end of budget period."""
         if self.period == BudgetPeriod.HOURLY:
             return period_start + timedelta(hours=1)
-        elif self.period == BudgetPeriod.DAILY:
+        if self.period == BudgetPeriod.DAILY:
             return period_start + timedelta(days=1)
-        elif self.period == BudgetPeriod.WEEKLY:
+        if self.period == BudgetPeriod.WEEKLY:
             return period_start + timedelta(weeks=1)
-        elif self.period == BudgetPeriod.MONTHLY:
+        if self.period == BudgetPeriod.MONTHLY:
             # Approximate month
             return period_start + timedelta(days=30)
-        elif self.period == BudgetPeriod.QUARTERLY:
+        if self.period == BudgetPeriod.QUARTERLY:
             return period_start + timedelta(days=90)
-        elif self.period == BudgetPeriod.YEARLY:
+        if self.period == BudgetPeriod.YEARLY:
             return period_start + timedelta(days=365)
-        else:
-            return self.end_date or period_start + timedelta(days=30)
+        return self.end_date or period_start + timedelta(days=30)
 
 
 @dataclass
@@ -219,14 +216,14 @@ class CostOptimizer:
                         ValidationError(
                             "budget_conflict",
                             f"Budget conflicts with existing budget {existing_budget.budget_id}",
-                        )
+                        ),
                     )
 
             self.budgets[budget.budget_id] = budget
             return Either.right(budget.budget_id)
 
         except Exception as e:
-            return Either.left(ValidationError("budget_creation_failed", str(e)))
+            return Either.left(ValidationError("budget_creation_failed", str(e), "Budget creation operation failed"))
 
     def _periods_overlap(self, budget1: CostBudget, budget2: CostBudget) -> bool:
         """Check if two budget periods overlap."""
@@ -303,7 +300,9 @@ class CostOptimizer:
             period_end = budget.get_period_end(period_start)
 
             period_usage = self._calculate_period_usage(
-                budget, period_start, period_end
+                budget,
+                period_start,
+                period_end,
             )
             usage_percentage = (
                 float(period_usage / budget.amount) if budget.amount > 0 else 0.0
@@ -326,7 +325,8 @@ class CostOptimizer:
                         current_value=period_usage,
                         threshold_value=budget.amount * Decimal(str(threshold)),
                         recommended_actions=self._get_budget_alert_actions(
-                            budget, usage_percentage
+                            budget,
+                            usage_percentage,
                         ),
                     )
                     self.cost_alerts.append(alert)
@@ -335,21 +335,27 @@ class CostOptimizer:
         """Calculate start of current budget period."""
         if budget.period == BudgetPeriod.HOURLY:
             return current_time.replace(minute=0, second=0, microsecond=0)
-        elif budget.period == BudgetPeriod.DAILY:
+        if budget.period == BudgetPeriod.DAILY:
             return current_time.replace(hour=0, minute=0, second=0, microsecond=0)
-        elif budget.period == BudgetPeriod.WEEKLY:
+        if budget.period == BudgetPeriod.WEEKLY:
             days_since_monday = current_time.weekday()
             week_start = current_time - timedelta(days=days_since_monday)
             return week_start.replace(hour=0, minute=0, second=0, microsecond=0)
-        elif budget.period == BudgetPeriod.MONTHLY:
+        if budget.period == BudgetPeriod.MONTHLY:
             return current_time.replace(
-                day=1, hour=0, minute=0, second=0, microsecond=0
+                day=1,
+                hour=0,
+                minute=0,
+                second=0,
+                microsecond=0,
             )
-        else:
-            return budget.start_date
+        return budget.start_date
 
     def _calculate_period_usage(
-        self, budget: CostBudget, period_start: datetime, period_end: datetime
+        self,
+        budget: CostBudget,
+        period_start: datetime,
+        period_end: datetime,
     ) -> Decimal:
         """Calculate total usage for budget period."""
         total_cost = Decimal("0")
@@ -376,7 +382,9 @@ class CostOptimizer:
         return total_cost
 
     def _get_budget_alert_actions(
-        self, budget: CostBudget, usage_percentage: float
+        self,
+        budget: CostBudget,
+        usage_percentage: float,
     ) -> list[str]:
         """Get recommended actions for budget alert."""
         actions = []
@@ -387,7 +395,7 @@ class CostOptimizer:
                     "Consider suspending non-critical AI operations",
                     "Review and optimize current model usage",
                     "Switch to more cost-effective models",
-                ]
+                ],
             )
         elif usage_percentage >= 0.8:
             actions.extend(
@@ -395,14 +403,14 @@ class CostOptimizer:
                     "Monitor usage closely",
                     "Consider switching to cheaper models for non-critical tasks",
                     "Review recent high-cost operations",
-                ]
+                ],
             )
         else:
             actions.extend(
                 [
                     "Continue monitoring",
                     "Consider optimizing for better cost efficiency",
-                ]
+                ],
             )
 
         return actions
@@ -430,7 +438,9 @@ class CostOptimizer:
         metrics["request_count"] += 1
 
     def get_model_recommendations(
-        self, operation: AIOperation, input_size: int = 1000
+        self,
+        operation: AIOperation,
+        input_size: int = 1000,
     ) -> list[OptimizationRecommendation]:
         """Get model recommendations for cost optimization."""
         recommendations = []
@@ -458,7 +468,7 @@ class CostOptimizer:
                             "cost_per_token": avg_cost_per_token,
                             "time_per_request": avg_time_per_request,
                             "request_count": metrics["request_count"],
-                        }
+                        },
                     )
 
         # Sort by cost efficiency
@@ -498,18 +508,22 @@ class CostOptimizer:
         return recommendations
 
     def optimize_request(
-        self, request: AIRequest, strategy: CostOptimizationStrategy = None
+        self,
+        request: AIRequest,
+        strategy: CostOptimizationStrategy = None,
     ) -> Either[ValidationError, AIRequest]:
         """Optimize AI request for cost efficiency."""
         if strategy is None:
             strategy = self.default_strategy
 
         try:
-            optimized_params = (
-                dict(request.processing_parameters)
-                if hasattr(request, "processing_parameters")
-                else {}
-            )
+            # Extract current parameters from request
+            optimized_params = {
+                "temperature": request.temperature,
+                "max_tokens": request.max_tokens,
+                "processing_mode": request.processing_mode.value,
+                "output_format": request.output_format.value,
+            }
 
             if strategy == CostOptimizationStrategy.AGGRESSIVE:
                 # Maximize cost savings
@@ -518,18 +532,23 @@ class CostOptimizer:
                         "model_type": "auto",  # Let system choose cheapest
                         "processing_mode": "cost_effective",
                         "max_tokens": min(
-                            optimized_params.get("max_tokens", 1000), 500
+                            optimized_params.get("max_tokens", 1000),
+                            500,
                         ),
                         "temperature": min(
-                            optimized_params.get("temperature", 0.7), 0.3
+                            optimized_params.get("temperature", 0.7),
+                            0.3,
                         ),
-                    }
+                    },
                 )
 
             elif strategy == CostOptimizationStrategy.BALANCED:
                 # Balance cost and performance
                 optimized_params.update(
-                    {"processing_mode": "balanced", "enable_caching": True}
+                    {
+                        "processing_mode": "balanced",
+                        "enable_caching": True,
+                    },
                 )
 
             elif strategy == CostOptimizationStrategy.CONSERVATIVE:
@@ -546,7 +565,7 @@ class CostOptimizer:
                     {
                         "processing_mode": "accurate",
                         "temperature": optimized_params.get("temperature", 0.7),
-                    }
+                    },
                 )
 
             # Create optimized request (simplified - would need proper request reconstruction)
@@ -554,7 +573,7 @@ class CostOptimizer:
             return Either.right(request)
 
         except Exception as e:
-            return Either.left(ValidationError("optimization_failed", str(e)))
+            return Either.left(ValidationError("optimization_failed", str(e), "Cost optimization operation failed"))
 
     def predict_monthly_cost(self, days_to_analyze: int = 7) -> CostProjection:
         """Predict monthly cost based on recent usage."""
@@ -697,7 +716,7 @@ class CostOptimizer:
                     "limit": float(budget.amount),
                     "percentage_used": min(
                         float(
-                            self._calculate_current_usage(budget) / budget.amount * 100
+                            self._calculate_current_usage(budget) / budget.amount * 100,
                         ),
                         100,
                     )

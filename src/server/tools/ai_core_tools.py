@@ -1,5 +1,4 @@
-"""
-AI Core Processing Tools - Core AI processing management and basic operations.
+"""AI Core Processing Tools - Core AI processing management and basic operations.
 
 This module provides the foundational AI processing capabilities including the core
 AIProcessingManager class, security validation, model selection, and basic AI operations.
@@ -32,8 +31,7 @@ from src.core.errors import ValidationError
 
 
 class AIProcessingManager:
-    """
-    Comprehensive AI processing management with security and cost optimization.
+    """Comprehensive AI processing management with security and cost optimization.
 
     Implements enterprise-grade AI integration with support for multiple model
     providers, intelligent caching, and comprehensive security validation.
@@ -52,13 +50,13 @@ class AIProcessingManager:
             self.initialized = True
             return Either.right(None)
         except Exception as e:
-            return Either.left(ValidationError("initialization_failed", str(e)))
+            return Either.left(ValidationError("initialization_failed", str(e), "AI system initialization failed"))
 
-    @require(lambda self, operation: operation in AIOperation)
-    @require(lambda self, input_data: len(str(input_data)) > 0)
+    @require(lambda __self, operation: operation in AIOperation)
+    @require(lambda __self, input_data: len(str(input_data)) > 0)
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.get_left(), ValidationError)
+        or isinstance(result.get_left(), ValidationError),
     )
     async def process_ai_request(
         self,
@@ -76,13 +74,11 @@ class AIProcessingManager:
         privacy_mode: bool = True,
         user_id: str | None = None,
     ) -> Either[ValidationError, dict[str, Any]]:
-        """
-        Process AI request with comprehensive validation and optimization.
-        """
+        """Process AI request with comprehensive validation and optimization."""
         try:
             if not self.initialized:
                 return Either.left(
-                    ValidationError("not_initialized", "AI system not initialized")
+                    ValidationError("not_initialized", None, "AI system not initialized"),
                 )
 
             # Validate and parse parameters
@@ -91,8 +87,9 @@ class AIProcessingManager:
             except ValueError:
                 return Either.left(
                     ValidationError(
-                        "invalid_mode", f"Unknown processing mode: {processing_mode}"
-                    )
+                        "invalid_mode",
+                        f"Unknown processing mode: {processing_mode}",
+                    ),
                 )
 
             try:
@@ -100,20 +97,25 @@ class AIProcessingManager:
             except ValueError:
                 return Either.left(
                     ValidationError(
-                        "invalid_format", f"Unknown output format: {output_format}"
-                    )
+                        "invalid_format",
+                        f"Unknown output format: {output_format}",
+                    ),
                 )
 
             # Security validation
             security_result = await self._validate_input_security(
-                input_data, privacy_mode
+                input_data,
+                privacy_mode,
             )
             if security_result.is_left():
                 return security_result
 
             # Model selection
             model_result = self._select_model(
-                operation, model_type, model_name, proc_mode
+                operation,
+                model_type,
+                model_name,
+                proc_mode,
             )
             if model_result.is_left():
                 return model_result
@@ -123,12 +125,15 @@ class AIProcessingManager:
             # Check cache if enabled
             if enable_caching:
                 cache_key = self._generate_cache_key(
-                    operation, input_data, model.model_name, temperature
+                    operation,
+                    input_data,
+                    model.model_name,
+                    temperature,
                 )
                 cached_response = self.request_cache.get(cache_key)
                 if cached_response:
                     return Either.right(
-                        self._format_response(cached_response, out_format, cached=True)
+                        self._format_response(cached_response, out_format, cached=True),
                     )
 
             # Create AI request
@@ -158,7 +163,7 @@ class AIProcessingManager:
                         ValidationError(
                             "cost_limit_exceeded",
                             f"Estimated cost ${estimated_cost:.4f} exceeds limit ${cost_limit:.4f}",
-                        )
+                        ),
                     )
 
             # Process request
@@ -184,11 +189,13 @@ class AIProcessingManager:
 
         except Exception as e:
             return Either.left(
-                ValidationError("ai_request", str(e), "Valid AI request processing")
+                ValidationError("ai_request", str(e), "Valid AI request processing"),
             )
 
     async def _validate_input_security(
-        self, input_data: Any, privacy_mode: bool
+        self,
+        input_data: Any,
+        privacy_mode: bool,
     ) -> Either[ValidationError, None]:
         """Validate input data for security threats."""
         try:
@@ -198,8 +205,9 @@ class AIProcessingManager:
             if len(input_str.encode("utf-8")) > 1_000_000:  # 1MB limit
                 return Either.left(
                     ValidationError(
-                        "input_too_large", "Input exceeds maximum size limit"
-                    )
+                        "input_too_large",
+                        "Input exceeds maximum size limit",
+                    ),
                 )
 
             # Check for dangerous patterns
@@ -215,8 +223,9 @@ class AIProcessingManager:
                 if re.search(pattern, input_str, re.IGNORECASE):
                     return Either.left(
                         ValidationError(
-                            "dangerous_content", "Input contains dangerous pattern"
-                        )
+                            "dangerous_content",
+                            "Input contains dangerous pattern",
+                        ),
                     )
 
             # PII detection if privacy mode enabled
@@ -228,7 +237,7 @@ class AIProcessingManager:
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError("security_validation_failed", str(e)))
+            return Either.left(ValidationError("security_validation_failed", str(e), "Security validation failed"))
 
     def _detect_pii(self, text: str) -> Either[ValidationError, None]:
         """Detect personally identifiable information in text."""
@@ -247,8 +256,9 @@ class AIProcessingManager:
         if detected_pii:
             return Either.left(
                 ValidationError(
-                    "pii_detected", f"Detected PII types: {', '.join(detected_pii)}"
-                )
+                    "pii_detected",
+                    f"Detected PII types: {', '.join(detected_pii)}",
+                ),
             )
 
         return Either.right(None)
@@ -287,8 +297,9 @@ class AIProcessingManager:
             if not suitable_models:
                 return Either.left(
                     ValidationError(
-                        "no_suitable_model", "No model found matching criteria"
-                    )
+                        "no_suitable_model",
+                        "No model found matching criteria",
+                    ),
                 )
 
             # Select based on processing mode
@@ -314,10 +325,11 @@ class AIProcessingManager:
             return Either.right(selected)
 
         except Exception as e:
-            return Either.left(ValidationError("model_selection_failed", str(e)))
+            return Either.left(ValidationError("model_selection_failed", str(e), "Model selection failed"))
 
     async def _execute_ai_request(
-        self, request: AIRequest
+        self,
+        request: AIRequest,
     ) -> Either[ValidationError, AIResponse]:
         """Execute AI request - mock implementation."""
         try:
@@ -328,7 +340,8 @@ class AIProcessingManager:
                 result = self._mock_analyze(request.prepare_input_for_model())
             elif request.operation == AIOperation.GENERATE:
                 result = self._mock_generate(
-                    request.prepare_input_for_model(), request.temperature
+                    request.prepare_input_for_model(),
+                    request.temperature,
                 )
             elif request.operation == AIOperation.SUMMARIZE:
                 result = self._mock_summarize(request.prepare_input_for_model())
@@ -367,7 +380,7 @@ class AIProcessingManager:
             return Either.right(response)
 
         except Exception as e:
-            return Either.left(ValidationError("ai_execution_failed", str(e)))
+            return Either.left(ValidationError("ai_execution_failed", str(e), "AI execution failed"))
 
     def _mock_analyze(self, text: str) -> dict[str, Any]:
         """Mock text analysis."""
@@ -415,10 +428,12 @@ class AIProcessingManager:
 
         text_lower = text.lower()
         positive_score = sum(1 for word in positive_words if word in text_lower) / max(
-            1, len(text.split())
+            1,
+            len(text.split()),
         )
         negative_score = sum(1 for word in negative_words if word in text_lower) / max(
-            1, len(text.split())
+            1,
+            len(text.split()),
         )
         neutral_score = max(0, 1 - positive_score - negative_score)
 
@@ -437,24 +452,24 @@ class AIProcessingManager:
                 "objects_detected": ["text", "interface elements"],
                 "confidence": 0.92,
             }
-        else:
-            # Extract emails, URLs, numbers from text
-            emails = re.findall(
-                r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", input_data
-            )
-            urls = re.findall(
-                r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
-                input_data,
-            )
-            numbers = re.findall(r"\b\d+\b", input_data)
+        # Extract emails, URLs, numbers from text
+        emails = re.findall(
+            r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+            input_data,
+        )
+        urls = re.findall(
+            r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
+            input_data,
+        )
+        numbers = re.findall(r"\b\d+\b", input_data)
 
-            return {
-                "type": "text_extraction",
-                "emails": emails,
-                "urls": urls,
-                "numbers": numbers[:10],  # Limit to first 10
-                "extracted_entities": len(emails) + len(urls) + len(numbers),
-            }
+        return {
+            "type": "text_extraction",
+            "emails": emails,
+            "urls": urls,
+            "numbers": numbers[:10],  # Limit to first 10
+            "extracted_entities": len(emails) + len(urls) + len(numbers),
+        }
 
     def _is_image_path(self, input_data: str) -> bool:
         """Check if input is an image file path."""
@@ -471,11 +486,14 @@ class AIProcessingManager:
         """Generate cache key for request."""
         import hashlib
 
-        key_data = f"{operation.value}|{str(input_data)}|{model_name}|{temperature}"
-        return hashlib.md5(key_data.encode()).hexdigest()
+        key_data = f"{operation.value}|{input_data!s}|{model_name}|{temperature}"
+        return hashlib.sha256(key_data.encode()).hexdigest()[:16]
 
     def _format_response(
-        self, response: AIResponse, output_format: OutputFormat, cached: bool = False
+        self,
+        response: AIResponse,
+        output_format: OutputFormat,
+        cached: bool = False,
     ) -> dict[str, Any]:
         """Format AI response for return to client."""
         return {
@@ -552,8 +570,7 @@ async def km_ai_processing(
     timeout: int = 60,  # Processing timeout
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    AI/ML model integration for intelligent automation and decision-making.
+    """AI/ML model integration for intelligent automation and decision-making.
 
     This tool provides comprehensive AI processing capabilities including text analysis,
     content generation, image recognition, and intelligent decision-making with
@@ -576,13 +593,14 @@ async def km_ai_processing(
 
     Returns:
         Dict containing AI processing results with metadata and cost information
+
     """
     try:
         # Validate operation
         try:
             ai_operation = AIOperation(operation)
-        except ValueError:
-            raise ValidationError("operation", operation, "Valid AI operation")
+        except ValueError as e:
+            raise ValidationError("operation", operation, "Valid AI operation") from e
 
         # Initialize AI manager if needed
         if not ai_manager.initialized:
@@ -647,8 +665,7 @@ async def km_ai_status(
     reset_cache: bool = False,  # Clear request cache
     ctx=None,
 ) -> dict[str, Any]:
-    """
-    Get AI processing system status and statistics.
+    """Get AI processing system status and statistics.
 
     This tool provides comprehensive status information about the AI processing
     system including initialization status, cache performance, usage statistics,
@@ -662,6 +679,7 @@ async def km_ai_status(
 
     Returns:
         Dict containing system status and statistics
+
     """
     try:
         # Initialize AI manager if needed

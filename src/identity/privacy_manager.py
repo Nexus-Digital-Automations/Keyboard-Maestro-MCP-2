@@ -1,5 +1,4 @@
-"""
-Privacy Manager - TASK_67 Phase 2 Core Identity Engine
+"""Privacy Manager - TASK_67 Phase 2 Core Identity Engine.
 
 User data privacy protection, consent management, and compliance with privacy regulations.
 Handles data anonymization, secure storage, and user privacy controls.
@@ -206,19 +205,21 @@ class PrivacyManager:
             )
 
             logger.info(
-                f"Recorded consent for user {user_profile_id}: {consent_type.value} = {granted}"
+                f"Recorded consent for user {user_profile_id}: {consent_type.value} = {granted}",
             )
             return Either.success(consent_record)
 
         except Exception as e:
             logger.error(f"Failed to record consent: {e}")
             return Either.error(
-                IdentityError(f"Consent recording failed: {str(e)}", "CONSENT_ERROR")
+                IdentityError(f"Consent recording failed: {e!s}", "CONSENT_ERROR"),
             )
 
     @require(lambda user_profile_id: user_profile_id is not None)
     async def check_consent(
-        self, user_profile_id: UserProfileId, consent_type: ConsentType
+        self,
+        user_profile_id: UserProfileId,
+        consent_type: ConsentType,
     ) -> Either[IdentityError, bool]:
         """Check if user has granted consent for specific data usage."""
         try:
@@ -253,7 +254,7 @@ class PrivacyManager:
         except Exception as e:
             logger.error(f"Failed to check consent: {e}")
             return Either.error(
-                IdentityError(f"Consent check failed: {str(e)}", "CONSENT_CHECK_ERROR")
+                IdentityError(f"Consent check failed: {e!s}", "CONSENT_CHECK_ERROR"),
             )
 
     @require(lambda user_profile_id: user_profile_id is not None)
@@ -310,7 +311,7 @@ class PrivacyManager:
                     await self._trigger_data_cleanup(user_profile_id, consent_type)
 
                     logger.info(
-                        f"Withdrawn consent for user {user_profile_id}: {consent_type.value}"
+                        f"Withdrawn consent for user {user_profile_id}: {consent_type.value}",
                     )
                     return Either.success(True)
 
@@ -320,12 +321,15 @@ class PrivacyManager:
             logger.error(f"Failed to withdraw consent: {e}")
             return Either.error(
                 IdentityError(
-                    f"Consent withdrawal failed: {str(e)}", "CONSENT_WITHDRAWAL_ERROR"
-                )
+                    f"Consent withdrawal failed: {e!s}",
+                    "CONSENT_WITHDRAWAL_ERROR",
+                ),
             )
 
     async def _trigger_data_cleanup(
-        self, user_profile_id: UserProfileId, consent_type: ConsentType
+        self,
+        user_profile_id: UserProfileId,
+        consent_type: ConsentType,
     ) -> None:
         """Trigger data cleanup based on withdrawn consent."""
         try:
@@ -343,7 +347,9 @@ class PrivacyManager:
 
             for category in data_categories:
                 await self._schedule_data_deletion(
-                    user_profile_id, category, "consent_withdrawal"
+                    user_profile_id,
+                    category,
+                    "consent_withdrawal",
                 )
 
         except Exception as e:
@@ -364,7 +370,10 @@ class PrivacyManager:
 
             for category in data_categories:
                 result = await self._anonymize_category_data(
-                    user_profile_id, category, anonymization_key, anonymization_level
+                    user_profile_id,
+                    category,
+                    anonymization_key,
+                    anonymization_level,
                 )
                 anonymization_results[category.value] = result
 
@@ -383,7 +392,7 @@ class PrivacyManager:
         except Exception as e:
             logger.error(f"Data anonymization failed: {e}")
             return Either.error(
-                IdentityError(f"Anonymization failed: {str(e)}", "ANONYMIZATION_ERROR")
+                IdentityError(f"Anonymization failed: {e!s}", "ANONYMIZATION_ERROR"),
             )
 
     def _get_anonymization_key(self, user_profile_id: UserProfileId) -> str:
@@ -401,22 +410,20 @@ class PrivacyManager:
     ) -> dict[str, Any]:
         """Anonymize specific category of data."""
         try:
-            # Simulate data anonymization
-            if level == "basic":
-                return {
+            # Simulate data anonymization using dictionary lookup (SIM116 fix)
+            anonymization_configs = {
+                "basic": {
                     "method": "hash_replacement",
                     "fields_anonymized": ["identifiers", "names"],
                     "success": True,
-                }
-            elif level == "standard":
-                return {
+                },
+                "standard": {
                     "method": "differential_privacy",
                     "fields_anonymized": ["identifiers", "names", "timestamps"],
                     "privacy_budget": 0.1,
                     "success": True,
-                }
-            elif level == "advanced":
-                return {
+                },
+                "advanced": {
                     "method": "k_anonymity",
                     "fields_anonymized": [
                         "identifiers",
@@ -426,16 +433,23 @@ class PrivacyManager:
                     ],
                     "k_value": 5,
                     "success": True,
-                }
-            else:
-                return {"success": False, "error": "Unknown anonymization level"}
+                },
+            }
+
+            return anonymization_configs.get(
+                level,
+                {"success": False, "error": "Unknown anonymization level"},
+            )
 
         except Exception as e:
             logger.error(f"Category anonymization failed: {e}")
             return {"success": False, "error": str(e)}
 
     async def _schedule_data_deletion(
-        self, user_profile_id: UserProfileId, category: DataCategory, reason: str
+        self,
+        user_profile_id: UserProfileId,
+        category: DataCategory,
+        reason: str,
     ) -> None:
         """Schedule data deletion according to retention policy."""
         try:
@@ -453,7 +467,7 @@ class PrivacyManager:
                 )
 
                 logger.info(
-                    f"Scheduled data deletion for user {user_profile_id}, category {category.value}, reason: {reason}"
+                    f"Scheduled data deletion for user {user_profile_id}, category {category.value}, reason: {reason}",
                 )
 
         except Exception as e:
@@ -492,7 +506,8 @@ class PrivacyManager:
 
     @require(lambda user_profile_id: user_profile_id is not None)
     async def get_privacy_report(
-        self, user_profile_id: UserProfileId
+        self,
+        user_profile_id: UserProfileId,
     ) -> Either[IdentityError, dict[str, Any]]:
         """Generate privacy report for user."""
         try:
@@ -524,7 +539,7 @@ class PrivacyManager:
                 "consent_summary": consent_summary,
                 "total_consents": len(user_consents),
                 "active_consents": len(
-                    [c for c in user_consents if not c.withdrawal_date]
+                    [c for c in user_consents if not c.withdrawal_date],
                 ),
                 "data_retention_policies": data_retention_summary,
                 "audit_records_count": len(user_audit_records),
@@ -538,12 +553,14 @@ class PrivacyManager:
             logger.error(f"Privacy report generation failed: {e}")
             return Either.error(
                 IdentityError(
-                    f"Privacy report failed: {str(e)}", "PRIVACY_REPORT_ERROR"
-                )
+                    f"Privacy report failed: {e!s}",
+                    "PRIVACY_REPORT_ERROR",
+                ),
             )
 
     async def validate_compliance(
-        self, framework: str = "GDPR"
+        self,
+        framework: str = "GDPR",
     ) -> Either[IdentityError, dict[str, Any]]:
         """Validate compliance with privacy framework."""
         try:
@@ -565,7 +582,7 @@ class PrivacyManager:
                             and consent.consent_type == ConsentType.DATA_COLLECTION
                         ):
                             compliance_results["violations"].append(
-                                f"User {user_id} has not granted data collection consent"
+                                f"User {user_id} has not granted data collection consent",
                             )
                             compliance_results["compliant"] = False
 
@@ -573,7 +590,7 @@ class PrivacyManager:
             for category, policy in self.data_retention_policies.items():
                 if policy.retention_days > 2555:  # More than 7 years
                     compliance_results["recommendations"].append(
-                        f"Consider reducing retention period for {category.value} data"
+                        f"Consider reducing retention period for {category.value} data",
                     )
 
             return Either.success(compliance_results)
@@ -582,24 +599,29 @@ class PrivacyManager:
             logger.error(f"Compliance validation failed: {e}")
             return Either.error(
                 IdentityError(
-                    f"Compliance validation error: {str(e)}", "COMPLIANCE_ERROR"
-                )
+                    f"Compliance validation error: {e!s}",
+                    "COMPLIANCE_ERROR",
+                ),
             )
 
     async def export_user_data(
-        self, user_profile_id: UserProfileId, export_format: str = "json"
+        self,
+        user_profile_id: UserProfileId,
+        export_format: str = "json",
     ) -> Either[IdentityError, dict[str, Any]]:
         """Export user data for data portability (GDPR Article 20)."""
         try:
             # Check if user has consented to data export
             consent_result = await self.check_consent(
-                user_profile_id, ConsentType.DATA_COLLECTION
+                user_profile_id,
+                ConsentType.DATA_COLLECTION,
             )
             if consent_result.is_error() or not consent_result.value:
                 return Either.error(
                     IdentityError(
-                        "User has not consented to data collection", "NO_CONSENT"
-                    )
+                        "User has not consented to data collection",
+                        "NO_CONSENT",
+                    ),
                 )
 
             # Gather all user data
@@ -642,11 +664,13 @@ class PrivacyManager:
         except Exception as e:
             logger.error(f"Data export failed: {e}")
             return Either.error(
-                IdentityError(f"Data export error: {str(e)}", "DATA_EXPORT_ERROR")
+                IdentityError(f"Data export error: {e!s}", "DATA_EXPORT_ERROR"),
             )
 
     async def delete_user_data(
-        self, user_profile_id: UserProfileId, deletion_reason: str = "user_request"
+        self,
+        user_profile_id: UserProfileId,
+        deletion_reason: str = "user_request",
     ) -> Either[IdentityError, bool]:
         """Delete all user data (GDPR Article 17 - Right to be forgotten)."""
         try:
@@ -687,12 +711,12 @@ class PrivacyManager:
             )
 
             logger.info(
-                f"Deleted all data for user {user_profile_id}, reason: {deletion_reason}"
+                f"Deleted all data for user {user_profile_id}, reason: {deletion_reason}",
             )
             return Either.success(True)
 
         except Exception as e:
             logger.error(f"User data deletion failed: {e}")
             return Either.error(
-                IdentityError(f"Data deletion error: {str(e)}", "DATA_DELETION_ERROR")
+                IdentityError(f"Data deletion error: {e!s}", "DATA_DELETION_ERROR"),
             )

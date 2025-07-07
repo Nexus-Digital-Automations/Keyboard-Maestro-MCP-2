@@ -1,5 +1,4 @@
-"""
-Predictive automation module for machine learning-powered optimization and forecasting.
+"""Predictive automation module for machine learning-powered optimization and forecasting.
 
 This module provides predictive capabilities including ML model management, performance forecasting,
 proactive optimization, resource prediction, and automated system improvement recommendations.
@@ -28,25 +27,25 @@ from .resource_predictor import ResourcePredictor
 from .workflow_optimizer import WorkflowOptimizer
 
 __all__ = [
+    "AnomalyPrediction",
+    "AnomalyPredictor",
+    "CapacityPlan",
+    "CapacityPlanner",
+    "OptimizationEngine",
+    "OptimizationSuggestion",
+    "PatternAnalysis",
+    "PatternRecognitionEngine",
+    "PerformanceForecast",
+    "PerformancePredictor",
+    "PredictionRequest",
+    "PredictiveAlert",
+    "PredictiveAlertSystem",
     # Core Types
     "PredictiveModel",
-    "PredictionRequest",
-    "OptimizationSuggestion",
-    "PerformanceForecast",
-    "ResourcePrediction",
-    "PatternAnalysis",
-    "AnomalyPrediction",
-    "CapacityPlan",
-    "WorkflowOptimization",
-    "PredictiveAlert",
     # Core Components
     "PredictiveModelManager",
-    "PerformancePredictor",
-    "OptimizationEngine",
+    "ResourcePrediction",
     "ResourcePredictor",
-    "PatternRecognitionEngine",
-    "AnomalyPredictor",
-    "CapacityPlanner",
+    "WorkflowOptimization",
     "WorkflowOptimizer",
-    "PredictiveAlertSystem",
 ]

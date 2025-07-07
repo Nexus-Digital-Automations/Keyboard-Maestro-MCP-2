@@ -1,5 +1,4 @@
-"""
-Window management module for macOS window control and multi-monitor support.
+"""Window management module for macOS window control and multi-monitor support.
 
 This module provides comprehensive window management capabilities including:
 - Window positioning and resizing with coordinate validation
@@ -20,9 +19,9 @@ from .window_manager import (
 
 __all__ = [
     "Position",
-    "Size",
-    "WindowState",
     "ScreenInfo",
+    "Size",
     "WindowManager",
     "WindowOperationResult",
+    "WindowState",
 ]

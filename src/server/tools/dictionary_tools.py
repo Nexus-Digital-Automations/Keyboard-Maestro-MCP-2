@@ -1,5 +1,4 @@
-"""
-Dictionary management tools for Keyboard Maestro.
+"""Dictionary management tools for Keyboard Maestro.
 
 Provides comprehensive dictionary operations including creation, key management,
 JSON import/export, and bulk operations.
@@ -35,7 +34,8 @@ async def km_dictionary_manager(
         Field(description="Operation to perform on dictionary"),
     ],
     dictionary: Annotated[
-        str | None, Field(default=None, description="Dictionary name", max_length=255)
+        str | None,
+        Field(default=None, description="Dictionary name", max_length=255),
     ] = None,
     key: Annotated[
         str | None,
@@ -46,7 +46,8 @@ async def km_dictionary_manager(
         ),
     ] = None,
     value: Annotated[
-        str | None, Field(default=None, description="Value for set operation")
+        str | None,
+        Field(default=None, description="Value for set operation"),
     ] = None,
     json_data: Annotated[
         dict[str, Any] | None,
@@ -54,8 +55,7 @@ async def km_dictionary_manager(
     ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Manage Keyboard Maestro dictionaries for structured data storage.
+    """Manage Keyboard Maestro dictionaries for structured data storage.
 
     Dictionaries provide persistent key-value storage that survives between
     macro executions and Keyboard Maestro restarts. Useful for:
@@ -76,7 +76,7 @@ async def km_dictionary_manager(
     """
     if ctx:
         await ctx.info(
-            f"Dictionary operation: {operation} on {dictionary or 'all dictionaries'}"
+            f"Dictionary operation: {operation} on {dictionary or 'all dictionaries'}",
         )
 
     try:
@@ -101,7 +101,8 @@ async def km_dictionary_manager(
 
         # Check connection
         connection_test = await asyncio.get_event_loop().run_in_executor(
-            None, km_client.check_connection
+            None,
+            km_client.check_connection,
         )
 
         if connection_test.is_left() or not connection_test.get_right():
@@ -119,29 +120,30 @@ async def km_dictionary_manager(
         # Execute the requested operation
         if operation == "create":
             return await _create_dictionary(km_client, dictionary, ctx)
-        elif operation == "list_dicts":
+        if operation == "list_dicts":
             return await _list_dictionaries(km_client, ctx)
-        elif operation == "list_keys":
+        if operation == "list_keys":
             return await _list_dictionary_keys(km_client, dictionary, ctx)
-        elif operation == "get":
+        if operation == "get":
             return await _get_dictionary_value(km_client, dictionary, key, ctx)
-        elif operation == "set":
+        if operation == "set":
             return await _set_dictionary_value(km_client, dictionary, key, value, ctx)
-        elif operation == "delete":
+        if operation == "delete":
             return await _delete_dictionary_item(km_client, dictionary, key, ctx)
-        elif operation == "export":
+        if operation == "export":
             return await _export_dictionary(km_client, dictionary, ctx)
-        elif operation == "import":
+        if operation == "import":
             return await _import_dictionary(km_client, dictionary, json_data, ctx)
-        else:
-            raise ValidationError(
-                "operation", operation, f"Unknown operation: {operation}"
-            )
+        raise ValidationError(
+            "operation",
+            operation,
+            f"Unknown operation: {operation}",
+        )
 
     except Exception as e:
         logger.error(f"Dictionary operation error: {e}")
         if ctx:
-            await ctx.error(f"Dictionary operation failed: {str(e)}")
+            await ctx.error(f"Dictionary operation failed: {e!s}")
 
         return {
             "success": False,
@@ -155,7 +157,9 @@ async def km_dictionary_manager(
 
 
 async def _create_dictionary(
-    km_client, name: str, ctx: Context = None
+    km_client,
+    name: str,
+    ctx: Context = None,
 ) -> dict[str, Any]:
     """Create a new dictionary."""
     if ctx:
@@ -214,7 +218,9 @@ async def _list_dictionaries(km_client, ctx: Context = None) -> dict[str, Any]:
 
 
 async def _list_dictionary_keys(
-    km_client, dictionary: str, ctx: Context = None
+    km_client,
+    dictionary: str,
+    ctx: Context = None,
 ) -> dict[str, Any]:
     """List all keys in a dictionary."""
     if ctx:
@@ -239,7 +245,10 @@ async def _list_dictionary_keys(
 
 
 async def _get_dictionary_value(
-    km_client, dictionary: str, key: str, ctx: Context = None
+    km_client,
+    dictionary: str,
+    key: str,
+    ctx: Context = None,
 ) -> dict[str, Any]:
     """Get value for a specific key."""
     if ctx:
@@ -264,7 +273,11 @@ async def _get_dictionary_value(
 
 
 async def _set_dictionary_value(
-    km_client, dictionary: str, key: str, value: str, ctx: Context = None
+    km_client,
+    dictionary: str,
+    key: str,
+    value: str,
+    ctx: Context = None,
 ) -> dict[str, Any]:
     """Set value for a specific key."""
     if ctx:
@@ -297,7 +310,10 @@ async def _set_dictionary_value(
 
 
 async def _delete_dictionary_item(
-    km_client, dictionary: str, key: str | None, ctx: Context = None
+    km_client,
+    dictionary: str,
+    key: str | None,
+    ctx: Context = None,
 ) -> dict[str, Any]:
     """Delete a key or entire dictionary."""
     if key:
@@ -331,7 +347,9 @@ async def _delete_dictionary_item(
 
 
 async def _export_dictionary(
-    km_client, dictionary: str, ctx: Context = None
+    km_client,
+    dictionary: str,
+    ctx: Context = None,
 ) -> dict[str, Any]:
     """Export dictionary as JSON."""
     if ctx:
@@ -361,7 +379,10 @@ async def _export_dictionary(
 
 
 async def _import_dictionary(
-    km_client, dictionary: str, json_data: dict[str, Any], ctx: Context = None
+    km_client,
+    dictionary: str,
+    json_data: dict[str, Any],
+    ctx: Context = None,
 ) -> dict[str, Any]:
     """Import JSON data into dictionary."""
     if ctx:
@@ -369,13 +390,17 @@ async def _import_dictionary(
 
     if json_data is None:
         raise ValidationError(
-            "json_data", json_data, "No JSON data provided for import"
+            "json_data",
+            json_data,
+            "No JSON data provided for import",
         )
 
     # Validate JSON data
     if not isinstance(json_data, dict):
         raise ValidationError(
-            "json_data", json_data, "JSON data must be an object/dictionary"
+            "json_data",
+            json_data,
+            "JSON data must be an object/dictionary",
         )
 
     imported_count = 0
@@ -394,7 +419,9 @@ async def _import_dictionary(
         if ctx:
             progress = 25 + (75 * imported_count / len(json_data))
             await ctx.report_progress(
-                progress, 100, f"Imported {imported_count}/{len(json_data)} keys"
+                progress,
+                100,
+                f"Imported {imported_count}/{len(json_data)} keys",
             )
 
     if ctx:

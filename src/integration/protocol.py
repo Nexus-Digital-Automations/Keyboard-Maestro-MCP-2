@@ -1,5 +1,4 @@
-"""
-MCP Protocol Implementation for Keyboard Maestro Integration
+"""MCP Protocol Implementation for Keyboard Maestro Integration.
 
 Handles Model Context Protocol communication with functional error handling
 and immutable message processing patterns.
@@ -53,7 +52,10 @@ class MCPMessage:
 
     @classmethod
     def create_request(
-        cls, method: str, params: dict[str, Any], message_id: str | None = None
+        cls,
+        method: str,
+        params: dict[str, Any],
+        message_id: str | None = None,
     ) -> MCPMessage:
         """Create MCP request message."""
         return cls(
@@ -151,7 +153,8 @@ class MCPProtocolHandler:
 
     def __init__(self):
         self._method_handlers: dict[
-            str, Callable[[dict[str, Any]], Either[KMError, dict[str, Any]]]
+            str,
+            Callable[[dict[str, Any]], Either[KMError, dict[str, Any]]],
         ] = {
             MCPMethod.EXECUTE_MACRO.value: self._handle_execute_macro,
             MCPMethod.LIST_MACROS.value: self._handle_list_macros,
@@ -160,7 +163,7 @@ class MCPProtocolHandler:
             MCPMethod.PROCESS_EVENT.value: self._handle_process_event,
         }
 
-    @require(lambda self, message: message.is_valid_request())
+    @require(lambda __self, message: message.is_valid_request())
     def process_request(self, message: MCPMessage) -> MCPMessage:
         """Process MCP request with functional error handling."""
         # Validate message parameters
@@ -176,7 +179,9 @@ class MCPProtocolHandler:
         handler = self._method_handlers.get(message.method)
         if not handler:
             return MCPMessage.create_error(
-                message.id, "METHOD_NOT_FOUND", f"Unknown method: {message.method}"
+                message.id,
+                "METHOD_NOT_FOUND",
+                f"Unknown method: {message.method}",
             )
 
         # Execute handler with validated parameters
@@ -184,11 +189,13 @@ class MCPProtocolHandler:
 
         if result.is_right():
             return MCPMessage.create_response(message.id, result.get_right())
-        else:
-            error = result.get_left()
-            return MCPMessage.create_error(
-                message.id, error.code, error.message, error.details
-            )
+        error = result.get_left()
+        return MCPMessage.create_error(
+            message.id,
+            error.code,
+            error.message,
+            error.details,
+        )
 
     def _validate_request(self, message: MCPMessage) -> MCPValidationResult:
         """Validate and sanitize request parameters."""
@@ -197,19 +204,20 @@ class MCPProtocolHandler:
 
         if method == MCPMethod.EXECUTE_MACRO.value:
             return self._validate_execute_macro_params(params)
-        elif method == MCPMethod.LIST_MACROS.value:
+        if method == MCPMethod.LIST_MACROS.value:
             return self._validate_list_macros_params(params)
-        elif method == MCPMethod.REGISTER_TRIGGER.value:
+        if method == MCPMethod.REGISTER_TRIGGER.value:
             return self._validate_register_trigger_params(params)
-        elif method == MCPMethod.GET_MACRO_STATUS.value:
+        if method == MCPMethod.GET_MACRO_STATUS.value:
             return self._validate_get_macro_status_params(params)
-        elif method == MCPMethod.PROCESS_EVENT.value:
+        if method == MCPMethod.PROCESS_EVENT.value:
             return self._validate_process_event_params(params)
 
         return MCPValidationResult.invalid([f"Unknown method: {method}"])
 
     def _validate_execute_macro_params(
-        self, params: dict[str, Any]
+        self,
+        params: dict[str, Any],
     ) -> MCPValidationResult:
         """Validate execute_macro parameters."""
         errors = []
@@ -244,7 +252,8 @@ class MCPProtocolHandler:
         )
 
     def _validate_list_macros_params(
-        self, params: dict[str, Any]
+        self,
+        params: dict[str, Any],
     ) -> MCPValidationResult:
         """Validate list_macros parameters."""
         sanitized = {}
@@ -272,7 +281,8 @@ class MCPProtocolHandler:
         )
 
     def _validate_register_trigger_params(
-        self, params: dict[str, Any]
+        self,
+        params: dict[str, Any],
     ) -> MCPValidationResult:
         """Validate register_trigger parameters."""
         errors = []
@@ -280,12 +290,12 @@ class MCPProtocolHandler:
 
         # Required: trigger_id, macro_id, trigger_type
         required_fields = ["trigger_id", "macro_id", "trigger_type"]
-        for field in required_fields:
-            value = params.get(field)
+        for field_name in required_fields:
+            value = params.get(field_name)
             if not value or not isinstance(value, str):
-                errors.append(f"{field} is required and must be a string")
+                errors.append(f"{field_name} is required and must be a string")
             else:
-                sanitized[field] = value.strip()
+                sanitized[field_name] = value.strip()
 
         # Optional: configuration
         config = params.get("configuration", {})
@@ -301,7 +311,8 @@ class MCPProtocolHandler:
         )
 
     def _validate_get_macro_status_params(
-        self, params: dict[str, Any]
+        self,
+        params: dict[str, Any],
     ) -> MCPValidationResult:
         """Validate get_macro_status parameters."""
         errors = []
@@ -320,7 +331,8 @@ class MCPProtocolHandler:
         )
 
     def _validate_process_event_params(
-        self, params: dict[str, Any]
+        self,
+        params: dict[str, Any],
     ) -> MCPValidationResult:
         """Validate process_event parameters."""
         errors = []
@@ -342,16 +354,22 @@ class MCPProtocolHandler:
     # Handler methods (these would integrate with actual KM client and services)
 
     def _handle_execute_macro(
-        self, params: dict[str, Any]
+        self,
+        params: dict[str, Any],
     ) -> Either[KMError, dict[str, Any]]:
         """Handle macro execution request."""
         # This would integrate with the KMClient
         return Either.right(
-            {"success": True, "execution_token": str(uuid.uuid4()), "status": "started"}
+            {
+                "success": True,
+                "execution_token": str(uuid.uuid4()),
+                "status": "started",
+            },
         )
 
     def _handle_list_macros(
-        self, params: dict[str, Any]
+        self,
+        params: dict[str, Any],
     ) -> Either[KMError, dict[str, Any]]:
         """Handle macro listing request."""
         # This would integrate with the KMClient
@@ -360,20 +378,26 @@ class MCPProtocolHandler:
                 "macros": [],
                 "total_count": 0,
                 "filtered": params.get("group_filter") is not None,
-            }
+            },
         )
 
     def _handle_register_trigger(
-        self, params: dict[str, Any]
+        self,
+        params: dict[str, Any],
     ) -> Either[KMError, dict[str, Any]]:
         """Handle trigger registration request."""
         # This would integrate with trigger management
         return Either.right(
-            {"trigger_id": params["trigger_id"], "status": "registered", "active": True}
+            {
+                "trigger_id": params["trigger_id"],
+                "status": "registered",
+                "active": True,
+            },
         )
 
     def _handle_get_macro_status(
-        self, params: dict[str, Any]
+        self,
+        params: dict[str, Any],
     ) -> Either[KMError, dict[str, Any]]:
         """Handle macro status request."""
         # This would integrate with the KMClient
@@ -383,11 +407,12 @@ class MCPProtocolHandler:
                 "status": "available",
                 "enabled": True,
                 "last_executed": None,
-            }
+            },
         )
 
     def _handle_process_event(
-        self, params: dict[str, Any]
+        self,
+        params: dict[str, Any],
     ) -> Either[KMError, dict[str, Any]]:
         """Handle event processing request."""
         # This would integrate with event system
@@ -396,7 +421,7 @@ class MCPProtocolHandler:
                 "event_processed": True,
                 "processing_time_ms": 25.5,
                 "actions_triggered": 1,
-            }
+            },
         )
 
 
@@ -437,18 +462,19 @@ def deserialize_mcp_message(json_str: str) -> Either[str, MCPMessage]:
             params=params,
             message_type=msg_type,
             timestamp=datetime.fromisoformat(
-                data.get("timestamp", datetime.now().isoformat())
+                data.get("timestamp", datetime.now().isoformat()),
             ),
         )
 
         return Either.right(message)
 
     except (json.JSONDecodeError, KeyError, ValueError) as e:
-        return Either.left(f"Deserialization error: {str(e)}")
+        return Either.left(f"Deserialization error: {e!s}")
 
 
 def batch_process_messages(
-    handler: MCPProtocolHandler, messages: list[MCPMessage]
+    handler: MCPProtocolHandler,
+    messages: list[MCPMessage],
 ) -> list[MCPMessage]:
     """Process multiple MCP messages in batch."""
     return [handler.process_request(msg) for msg in messages if msg.is_valid_request()]

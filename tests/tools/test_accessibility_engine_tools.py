@@ -1,11 +1,13 @@
-"""
-Comprehensive test suite for accessibility engine tools using systematic MCP tool test pattern.
+"""Comprehensive test suite for accessibility engine tools using systematic MCP tool test pattern.
 
 Tests the complete accessibility functionality including accessibility testing, WCAG validation,
 assistive technology integration, and accessibility reporting capabilities.
 Tests follow the proven systematic pattern that achieved 100% success across 29+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import Mock
 
@@ -105,7 +107,7 @@ async def mock_km_test_accessibility(
                     "keyboard_shortcuts_documented",
                 ],
                 "recommendations": [
-                    "Improve focus indicator contrast on secondary buttons"
+                    "Improve focus indicator contrast on secondary buttons",
                 ],
             },
             "screen_reader_compatibility": {
@@ -150,7 +152,7 @@ async def mock_km_test_accessibility(
                     "motion_preferences",
                 ],
                 "recommendations": [
-                    "Provide larger touch targets for mobile interface"
+                    "Provide larger touch targets for mobile interface",
                 ],
             },
         },
@@ -513,7 +515,7 @@ async def mock_km_validate_wcag(
                     "enhancement": "Improve focus indicator design consistency",
                     "estimated_effort": "1-2 days",
                     "impact": "Better keyboard navigation experience",
-                }
+                },
             ],
             "long_term_strategy": [
                 "Implement accessibility-first design system",
@@ -809,7 +811,7 @@ async def mock_km_integrate_assistive_tech(
                     "macro_accessibility": "enhanced",
                     "voice_command_creation": "supported",
                     "switch_trigger_support": "active",
-                }
+                },
             },
         }
 
@@ -1139,7 +1141,7 @@ async def mock_km_generate_accessibility_report(
                         "Remediation Plan",
                         "Appendices",
                     ],
-                }
+                },
             )
         elif format == "html":
             generated_files.append(
@@ -1154,7 +1156,7 @@ async def mock_km_generate_accessibility_report(
                         "Search functionality",
                         "Export to other formats",
                     ],
-                }
+                },
             )
         elif format == "json":
             generated_files.append(
@@ -1164,7 +1166,7 @@ async def mock_km_generate_accessibility_report(
                     "size": "485 KB",
                     "structured": True,
                     "api_compatible": True,
-                }
+                },
             )
 
     report_results["generated_files"] = generated_files
@@ -1199,14 +1201,14 @@ class TestKMTestAccessibility:
     """Test suite for km_test_accessibility MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-accessibility-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_test_accessibility_comprehensive(self, mock_context):
+    async def test_test_accessibility_comprehensive(self, mock_context) -> None:
         """Test comprehensive accessibility testing."""
         result = await km_test_accessibility(
             test_scope="comprehensive",
@@ -1232,7 +1234,7 @@ class TestKMTestAccessibility:
         assert "manual_verification" in test
 
     @pytest.mark.asyncio
-    async def test_test_accessibility_quick(self, mock_context):
+    async def test_test_accessibility_quick(self, mock_context) -> None:
         """Test quick accessibility testing."""
         result = await km_test_accessibility(
             test_scope="quick",
@@ -1251,10 +1253,11 @@ class TestKMTestAccessibility:
         assert "manual_verification" not in test
 
     @pytest.mark.asyncio
-    async def test_test_accessibility_invalid_scope(self, mock_context):
+    async def test_test_accessibility_invalid_scope(self, mock_context) -> None:
         """Test accessibility testing with invalid scope."""
         result = await km_test_accessibility(
-            test_scope="invalid_scope", ctx=mock_context
+            test_scope="invalid_scope",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1262,10 +1265,12 @@ class TestKMTestAccessibility:
         assert "Invalid test scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_test_accessibility_invalid_format(self, mock_context):
+    async def test_test_accessibility_invalid_format(self, mock_context) -> None:
         """Test accessibility testing with invalid export format."""
         result = await km_test_accessibility(
-            test_scope="quick", export_format="invalid_format", ctx=mock_context
+            test_scope="quick",
+            export_format="invalid_format",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1273,7 +1278,7 @@ class TestKMTestAccessibility:
         assert "Invalid export format" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_test_accessibility_empty_scope(self, mock_context):
+    async def test_test_accessibility_empty_scope(self, mock_context) -> None:
         """Test accessibility testing with empty scope."""
         result = await km_test_accessibility(test_scope="", ctx=mock_context)
 
@@ -1286,14 +1291,14 @@ class TestKMValidateWCAG:
     """Test suite for km_validate_wcag MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-wcag-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_validate_wcag_aa_comprehensive(self, mock_context):
+    async def test_validate_wcag_aa_comprehensive(self, mock_context) -> None:
         """Test comprehensive WCAG AA validation."""
         result = await km_validate_wcag(
             validation_level="AA",
@@ -1318,7 +1323,7 @@ class TestKMValidateWCAG:
         assert "remediation_plan" in validation
 
     @pytest.mark.asyncio
-    async def test_validate_wcag_aaa(self, mock_context):
+    async def test_validate_wcag_aaa(self, mock_context) -> None:
         """Test WCAG AAA validation."""
         result = await km_validate_wcag(
             validation_level="AAA",
@@ -1339,10 +1344,11 @@ class TestKMValidateWCAG:
         assert "detailed_analysis" not in validation
 
     @pytest.mark.asyncio
-    async def test_validate_wcag_invalid_level(self, mock_context):
+    async def test_validate_wcag_invalid_level(self, mock_context) -> None:
         """Test WCAG validation with invalid level."""
         result = await km_validate_wcag(
-            validation_level="invalid_level", ctx=mock_context
+            validation_level="invalid_level",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1350,10 +1356,12 @@ class TestKMValidateWCAG:
         assert "Invalid validation level" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_validate_wcag_invalid_version(self, mock_context):
+    async def test_validate_wcag_invalid_version(self, mock_context) -> None:
         """Test WCAG validation with invalid version."""
         result = await km_validate_wcag(
-            validation_level="AA", wcag_version="invalid_version", ctx=mock_context
+            validation_level="AA",
+            wcag_version="invalid_version",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1361,7 +1369,7 @@ class TestKMValidateWCAG:
         assert "Invalid WCAG version" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_validate_wcag_empty_level(self, mock_context):
+    async def test_validate_wcag_empty_level(self, mock_context) -> None:
         """Test WCAG validation with empty level."""
         result = await km_validate_wcag(validation_level="", ctx=mock_context)
 
@@ -1374,16 +1382,16 @@ class TestKMIntegrateAssistiveTech:
     """Test suite for km_integrate_assistive_tech MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-assistive-tech-001"
+            "request_id": "test-request-assistive-tech-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_integrate_assistive_tech_comprehensive(self, mock_context):
+    async def test_integrate_assistive_tech_comprehensive(self, mock_context) -> None:
         """Test comprehensive assistive technology integration."""
         result = await km_integrate_assistive_tech(
             integration_scope="comprehensive",
@@ -1409,7 +1417,7 @@ class TestKMIntegrateAssistiveTech:
         assert "user_preferences" in integration
 
     @pytest.mark.asyncio
-    async def test_integrate_assistive_tech_screen_readers_only(self, mock_context):
+    async def test_integrate_assistive_tech_screen_readers_only(self, mock_context) -> None:
         """Test screen readers only integration."""
         result = await km_integrate_assistive_tech(
             integration_scope="screen_readers",
@@ -1428,10 +1436,11 @@ class TestKMIntegrateAssistiveTech:
         assert "optimization_recommendations" not in integration
 
     @pytest.mark.asyncio
-    async def test_integrate_assistive_tech_invalid_scope(self, mock_context):
+    async def test_integrate_assistive_tech_invalid_scope(self, mock_context) -> None:
         """Test assistive technology integration with invalid scope."""
         result = await km_integrate_assistive_tech(
-            integration_scope="invalid_scope", ctx=mock_context
+            integration_scope="invalid_scope",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1439,10 +1448,11 @@ class TestKMIntegrateAssistiveTech:
         assert "Invalid integration scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_integrate_assistive_tech_empty_scope(self, mock_context):
+    async def test_integrate_assistive_tech_empty_scope(self, mock_context) -> None:
         """Test assistive technology integration with empty scope."""
         result = await km_integrate_assistive_tech(
-            integration_scope="", ctx=mock_context
+            integration_scope="",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1454,16 +1464,16 @@ class TestKMGenerateAccessibilityReport:
     """Test suite for km_generate_accessibility_report MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-accessibility-report-001"
+            "request_id": "test-request-accessibility-report-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_generate_accessibility_report_comprehensive(self, mock_context):
+    async def test_generate_accessibility_report_comprehensive(self, mock_context) -> None:
         """Test comprehensive accessibility report generation."""
         result = await km_generate_accessibility_report(
             report_type="comprehensive",
@@ -1489,7 +1499,7 @@ class TestKMGenerateAccessibilityReport:
         assert len(report["generated_files"]) == 3
 
     @pytest.mark.asyncio
-    async def test_generate_accessibility_report_executive_summary(self, mock_context):
+    async def test_generate_accessibility_report_executive_summary(self, mock_context) -> None:
         """Test executive summary accessibility report generation."""
         result = await km_generate_accessibility_report(
             report_type="executive_summary",
@@ -1512,10 +1522,11 @@ class TestKMGenerateAccessibilityReport:
         assert len(report["generated_files"]) == 1
 
     @pytest.mark.asyncio
-    async def test_generate_accessibility_report_invalid_type(self, mock_context):
+    async def test_generate_accessibility_report_invalid_type(self, mock_context) -> None:
         """Test accessibility report generation with invalid type."""
         result = await km_generate_accessibility_report(
-            report_type="invalid_type", ctx=mock_context
+            report_type="invalid_type",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1523,7 +1534,7 @@ class TestKMGenerateAccessibilityReport:
         assert "Invalid report type" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_generate_accessibility_report_invalid_audience(self, mock_context):
+    async def test_generate_accessibility_report_invalid_audience(self, mock_context) -> None:
         """Test accessibility report generation with invalid audience."""
         result = await km_generate_accessibility_report(
             report_type="comprehensive",
@@ -1536,7 +1547,7 @@ class TestKMGenerateAccessibilityReport:
         assert "Invalid target audience" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_generate_accessibility_report_invalid_priority(self, mock_context):
+    async def test_generate_accessibility_report_invalid_priority(self, mock_context) -> None:
         """Test accessibility report generation with invalid priority filtering."""
         result = await km_generate_accessibility_report(
             report_type="comprehensive",
@@ -1549,10 +1560,11 @@ class TestKMGenerateAccessibilityReport:
         assert "Invalid priority filtering" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_generate_accessibility_report_empty_type(self, mock_context):
+    async def test_generate_accessibility_report_empty_type(self, mock_context) -> None:
         """Test accessibility report generation with empty type."""
         result = await km_generate_accessibility_report(
-            report_type="", ctx=mock_context
+            report_type="",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1565,16 +1577,16 @@ class TestAccessibilityEngineToolsIntegration:
     """Integration tests for accessibility engine tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-integration-accessibility-001"
+            "request_id": "test-integration-accessibility-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_accessibility_workflow(self, mock_context):
+    async def test_complete_accessibility_workflow(self, mock_context) -> None:
         """Test complete accessibility workflow integration."""
         # Test accessibility
         test_result = await km_test_accessibility(
@@ -1629,16 +1641,16 @@ class TestAccessibilityEngineToolsProperties:
     """Property-based tests for accessibility engine tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-property-accessibility-001"
+            "request_id": "test-property-accessibility-001",
         }
         return context
 
     @pytest.mark.asyncio
-    async def test_accessibility_testing_with_various_scopes(self, mock_context):
+    async def test_accessibility_testing_with_various_scopes(self, mock_context) -> None:
         """Test accessibility testing with various scopes."""
         test_scopes = ["comprehensive", "quick", "specific", "compliance", "usability"]
 
@@ -1648,19 +1660,21 @@ class TestAccessibilityEngineToolsProperties:
             assert result["accessibility_test"]["scope"] == scope
 
     @pytest.mark.asyncio
-    async def test_wcag_validation_levels_consistency(self, mock_context):
+    async def test_wcag_validation_levels_consistency(self, mock_context) -> None:
         """Test WCAG validation consistency across levels."""
         validation_levels = ["A", "AA", "AAA"]
 
         for level in validation_levels:
             result = await km_validate_wcag(
-                validation_level=level, wcag_version="2.1", ctx=mock_context
+                validation_level=level,
+                wcag_version="2.1",
+                ctx=mock_context,
             )
             assert result["success"] is True
             assert result["wcag_validation"]["conformance_level"] == level
 
     @pytest.mark.asyncio
-    async def test_assistive_tech_integration_scopes(self, mock_context):
+    async def test_assistive_tech_integration_scopes(self, mock_context) -> None:
         """Test assistive technology integration across scopes."""
         integration_scopes = [
             "comprehensive",
@@ -1672,13 +1686,14 @@ class TestAccessibilityEngineToolsProperties:
 
         for scope in integration_scopes:
             result = await km_integrate_assistive_tech(
-                integration_scope=scope, ctx=mock_context
+                integration_scope=scope,
+                ctx=mock_context,
             )
             assert result["success"] is True
             assert result["assistive_tech_integration"]["scope"] == scope
 
     @pytest.mark.asyncio
-    async def test_report_types_consistency(self, mock_context):
+    async def test_report_types_consistency(self, mock_context) -> None:
         """Test accessibility report generation consistency across types."""
         report_types = [
             "comprehensive",
@@ -1690,20 +1705,23 @@ class TestAccessibilityEngineToolsProperties:
 
         for report_type in report_types:
             result = await km_generate_accessibility_report(
-                report_type=report_type, ctx=mock_context
+                report_type=report_type,
+                ctx=mock_context,
             )
             assert result["success"] is True
             assert result["accessibility_report"]["type"] == report_type
             assert result["accessibility_report"]["report_status"] == "generated"
 
     @pytest.mark.asyncio
-    async def test_export_formats_consistency(self, mock_context):
+    async def test_export_formats_consistency(self, mock_context) -> None:
         """Test accessibility testing export format consistency."""
         export_formats = ["json", "html", "pdf", "csv", "xml"]
 
         for format in export_formats:
             result = await km_test_accessibility(
-                test_scope="quick", export_format=format, ctx=mock_context
+                test_scope="quick",
+                export_format=format,
+                ctx=mock_context,
             )
             assert result["success"] is True
             assert result["accessibility_test"]["test_status"] == "completed"

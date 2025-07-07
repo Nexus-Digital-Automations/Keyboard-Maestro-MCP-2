@@ -1,5 +1,4 @@
-"""
-Template Manager for Knowledge Management System.
+"""Template Manager for Knowledge Management System.
 
 This module provides comprehensive template management for standardized documentation
 generation, including template creation, validation, and dynamic content population.
@@ -69,9 +68,13 @@ class TemplateVariable:
             return False
 
         # Pattern validation
-        if self.validation_pattern and isinstance(value, str):
-            if not re.match(self.validation_pattern, value):
-                return False
+        # SIM102 fix: Combine nested if statements
+        if (
+            self.validation_pattern
+            and isinstance(value, str)
+            and not re.match(self.validation_pattern, value)
+        ):
+            return False
 
         # Possible values validation
         return not (self.possible_values and value not in self.possible_values)
@@ -88,7 +91,7 @@ class ContentTemplate:
     content_structure: str  # Template content with placeholders
     variables: list[TemplateVariable] = field(default_factory=list)
     output_formats: set[ContentFormat] = field(
-        default_factory=lambda: {ContentFormat.MARKDOWN}
+        default_factory=lambda: {ContentFormat.MARKDOWN},
     )
     usage_guidelines: str = ""
     auto_populate: bool = True
@@ -127,7 +130,7 @@ class ContentTemplate:
         undefined_placeholders = placeholders - defined_variables
         if undefined_placeholders:
             errors.append(
-                f"Undefined placeholders: {', '.join(undefined_placeholders)}"
+                f"Undefined placeholders: {', '.join(undefined_placeholders)}",
             )
 
         # Check for unused variables
@@ -213,16 +216,24 @@ class TemplateManager:
                 TemplateVariable("overview", "Document overview", required=True),
                 TemplateVariable("purpose", "Document purpose", required=True),
                 TemplateVariable(
-                    "features", "List of key features", "array", required=False
+                    "features",
+                    "List of key features",
+                    "array",
+                    required=False,
                 ),
                 TemplateVariable("usage", "Usage instructions", required=True),
                 TemplateVariable(
-                    "parameters", "Parameter definitions", "array", required=False
+                    "parameters",
+                    "Parameter definitions",
+                    "array",
+                    required=False,
                 ),
                 TemplateVariable("examples", "Usage examples", required=False),
                 TemplateVariable("notes", "Additional notes", required=False),
                 TemplateVariable(
-                    "related_docs", "Related documentation", required=False
+                    "related_docs",
+                    "Related documentation",
+                    required=False,
                 ),
             ],
             usage_guidelines="Use for standard documentation with overview, usage, and examples",
@@ -293,7 +304,9 @@ class TemplateManager:
                     default_value="json",
                 ),
                 TemplateVariable(
-                    "response_example", "Response example", required=False
+                    "response_example",
+                    "Response example",
+                    required=False,
                 ),
                 TemplateVariable("error_codes", "Error codes", "array", required=False),
                 TemplateVariable("notes", "Additional notes", required=False),
@@ -359,13 +372,21 @@ A: {{answer}}
                 TemplateVariable("title", "Guide title", required=True),
                 TemplateVariable("introduction", "Introduction", required=True),
                 TemplateVariable(
-                    "prerequisites", "Prerequisites", "array", required=False
+                    "prerequisites",
+                    "Prerequisites",
+                    "array",
+                    required=False,
                 ),
                 TemplateVariable(
-                    "getting_started", "Getting started section", required=True
+                    "getting_started",
+                    "Getting started section",
+                    required=True,
                 ),
                 TemplateVariable(
-                    "steps", "Step-by-step instructions", "array", required=True
+                    "steps",
+                    "Step-by-step instructions",
+                    "array",
+                    required=True,
                 ),
                 TemplateVariable(
                     "troubleshooting",
@@ -375,7 +396,10 @@ A: {{answer}}
                 ),
                 TemplateVariable("advanced_usage", "Advanced usage", required=False),
                 TemplateVariable(
-                    "best_practices", "Best practices", "array", required=False
+                    "best_practices",
+                    "Best practices",
+                    "array",
+                    required=False,
                 ),
                 TemplateVariable("faq", "FAQ", "array", required=False),
             ],
@@ -398,7 +422,8 @@ A: {{answer}}
         "Returns template or error",
     )
     async def create_template(
-        self, template: ContentTemplate
+        self,
+        template: ContentTemplate,
     ) -> Either[str, ContentTemplate]:
         """Create new content template."""
         try:
@@ -406,13 +431,13 @@ A: {{answer}}
             validation_errors = template.validate_structure()
             if validation_errors:
                 return Either.left(
-                    f"Template validation failed: {'; '.join(validation_errors)}"
+                    f"Template validation failed: {'; '.join(validation_errors)}",
                 )
 
             # Check for duplicate template ID
             if template.template_id in self.templates:
                 return Either.left(
-                    f"Template with ID '{template.template_id}' already exists"
+                    f"Template with ID '{template.template_id}' already exists",
                 )
 
             # Store template
@@ -422,7 +447,7 @@ A: {{answer}}
             return Either.right(template)
 
         except Exception as e:
-            error_msg = f"Failed to create template: {str(e)}"
+            error_msg = f"Failed to create template: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -436,12 +461,14 @@ A: {{answer}}
             return Either.right(template)
 
         except Exception as e:
-            error_msg = f"Failed to get template: {str(e)}"
+            error_msg = f"Failed to get template: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
     async def list_templates(
-        self, template_type: TemplateType | None = None, tags: set[str] | None = None
+        self,
+        template_type: TemplateType | None = None,
+        tags: set[str] | None = None,
     ) -> list[ContentTemplate]:
         """List available templates with optional filtering."""
         try:
@@ -458,16 +485,18 @@ A: {{answer}}
             return templates
 
         except Exception as e:
-            logger.error(f"Failed to list templates: {str(e)}")
+            logger.error(f"Failed to list templates: {e!s}")
             return []
 
-    @require(lambda template_id, context: template_id.strip(), "Template ID required")
+    @require(lambda template_id, _context: template_id.strip(), "Template ID required")
     @ensure(
         lambda result: result.is_right() or isinstance(result.left(), str),
         "Returns content or error",
     )
     async def render_template(
-        self, template_id: str, context: TemplateRenderContext
+        self,
+        template_id: str,
+        context: TemplateRenderContext,
     ) -> Either[str, str]:
         """Render template with given context."""
         try:
@@ -494,18 +523,21 @@ A: {{answer}}
             # Format for output format
             if context.output_format != ContentFormat.MARKDOWN:
                 rendered_content = await self._convert_format(
-                    rendered_content, context.output_format
+                    rendered_content,
+                    context.output_format,
                 )
 
             return Either.right(rendered_content)
 
         except Exception as e:
-            error_msg = f"Failed to render template: {str(e)}"
+            error_msg = f"Failed to render template: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
     async def update_template(
-        self, template_id: str, updates: dict[str, Any]
+        self,
+        template_id: str,
+        updates: dict[str, Any],
     ) -> Either[str, ContentTemplate]:
         """Update existing template."""
         try:
@@ -521,16 +553,19 @@ A: {{answer}}
                 description=updates.get("description", template.description),
                 template_type=template.template_type,
                 content_structure=updates.get(
-                    "content_structure", template.content_structure
+                    "content_structure",
+                    template.content_structure,
                 ),
                 variables=updates.get("variables", template.variables),
                 output_formats=updates.get("output_formats", template.output_formats),
                 usage_guidelines=updates.get(
-                    "usage_guidelines", template.usage_guidelines
+                    "usage_guidelines",
+                    template.usage_guidelines,
                 ),
                 auto_populate=updates.get("auto_populate", template.auto_populate),
                 validation_rules=updates.get(
-                    "validation_rules", template.validation_rules
+                    "validation_rules",
+                    template.validation_rules,
                 ),
                 created_at=template.created_at,
                 modified_at=datetime.utcnow(),
@@ -543,7 +578,7 @@ A: {{answer}}
             validation_errors = updated_template.validate_structure()
             if validation_errors:
                 return Either.left(
-                    f"Updated template validation failed: {'; '.join(validation_errors)}"
+                    f"Updated template validation failed: {'; '.join(validation_errors)}",
                 )
 
             # Store updated template
@@ -556,7 +591,7 @@ A: {{answer}}
             return Either.right(updated_template)
 
         except Exception as e:
-            error_msg = f"Failed to update template: {str(e)}"
+            error_msg = f"Failed to update template: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -580,12 +615,14 @@ A: {{answer}}
             return Either.right(True)
 
         except Exception as e:
-            error_msg = f"Failed to delete template: {str(e)}"
+            error_msg = f"Failed to delete template: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
     def _validate_context(
-        self, template: ContentTemplate, context: TemplateRenderContext
+        self,
+        template: ContentTemplate,
+        context: TemplateRenderContext,
     ) -> Either[str, bool]:
         """Validate template context variables."""
         errors = []
@@ -607,7 +644,9 @@ A: {{answer}}
         return Either.right(True)
 
     async def _auto_populate_variables(
-        self, template: ContentTemplate, context: TemplateRenderContext
+        self,
+        template: ContentTemplate,
+        context: TemplateRenderContext,
     ) -> None:
         """Auto-populate template variables with defaults."""
         for var in template.variables:
@@ -615,7 +654,9 @@ A: {{answer}}
                 context.variables[var.name] = var.default_value
 
     def _render_template_content(
-        self, template: ContentTemplate, context: TemplateRenderContext
+        self,
+        template: ContentTemplate,
+        context: TemplateRenderContext,
     ) -> str:
         """Render template content with context variables."""
         content = template.content_structure
@@ -646,14 +687,16 @@ A: {{answer}}
         return content
 
     def _render_conditional_sections(
-        self, content: str, context: TemplateRenderContext
+        self,
+        content: str,
+        context: TemplateRenderContext,
     ) -> str:
         """Render conditional sections in template."""
         # Simple conditional rendering
         # {{#variable}} content {{/variable}}
         pattern = r"\{\{#(\w+)\}\}(.*?)\{\{/\1\}\}"
 
-        def replace_conditional(match):
+        def replace_conditional(match) -> dict[str, Any]:
             var_name = match.group(1)
             section_content = match.group(2)
 
@@ -716,5 +759,5 @@ A: {{answer}}
             }
 
         except Exception as e:
-            logger.error(f"Failed to get template analytics: {str(e)}")
+            logger.error(f"Failed to get template analytics: {e!s}")
             return {}

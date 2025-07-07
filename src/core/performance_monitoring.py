@@ -1,5 +1,4 @@
-"""
-Performance monitoring type definitions for real-time system monitoring.
+"""Performance monitoring type definitions for real-time system monitoring.
 
 Comprehensive branded types for performance metrics, monitoring,
 optimization, and alerting with enterprise-grade validation.
@@ -162,7 +161,8 @@ class SystemResourceSnapshot:
     def __post_init__(self):
         require(lambda: 0 <= self.cpu_percent <= 100, "CPU percentage must be 0-100")
         require(
-            lambda: 0 <= self.memory_percent <= 100, "Memory percentage must be 0-100"
+            lambda: 0 <= self.memory_percent <= 100,
+            "Memory percentage must be 0-100",
         )
         require(lambda: self.memory_bytes >= 0, "Memory bytes must be non-negative")
 
@@ -180,28 +180,31 @@ class PerformanceThreshold:
 
     def __post_init__(self):
         require(
-            lambda: self.threshold_value >= 0, "Threshold value must be non-negative"
+            lambda: self.threshold_value >= 0,
+            "Threshold value must be non-negative",
         )
         require(
-            lambda: self.evaluation_period > 0, "Evaluation period must be positive"
+            lambda: self.evaluation_period > 0,
+            "Evaluation period must be positive",
         )
         require(
-            lambda: self.cooldown_period >= 0, "Cooldown period must be non-negative"
+            lambda: self.cooldown_period >= 0,
+            "Cooldown period must be non-negative",
         )
 
-    def evaluate(self, current_value: float | int) -> bool:
+    def evaluate(self, current_value: float) -> bool:
         """Evaluate if current value exceeds threshold."""
         if self.operator == ThresholdOperator.GREATER_THAN:
             return current_value > self.threshold_value
-        elif self.operator == ThresholdOperator.LESS_THAN:
+        if self.operator == ThresholdOperator.LESS_THAN:
             return current_value < self.threshold_value
-        elif self.operator == ThresholdOperator.EQUAL:
+        if self.operator == ThresholdOperator.EQUAL:
             return current_value == self.threshold_value
-        elif self.operator == ThresholdOperator.GREATER_EQUAL:
+        if self.operator == ThresholdOperator.GREATER_EQUAL:
             return current_value >= self.threshold_value
-        elif self.operator == ThresholdOperator.LESS_EQUAL:
+        if self.operator == ThresholdOperator.LESS_EQUAL:
             return current_value <= self.threshold_value
-        elif self.operator == ThresholdOperator.NOT_EQUAL:
+        if self.operator == ThresholdOperator.NOT_EQUAL:
             return current_value != self.threshold_value
         return False
 
@@ -233,7 +236,7 @@ class MonitoringConfiguration:
     scope: MonitoringScope
     target_id: str | None = None
     metrics_types: list[MetricType] = field(
-        default_factory=lambda: [MetricType.CPU, MetricType.MEMORY]
+        default_factory=lambda: [MetricType.CPU, MetricType.MEMORY],
     )
     sampling_interval: float = 1.0  # seconds
     duration: int | None = None  # seconds, None for continuous
@@ -250,11 +253,15 @@ class MonitoringConfiguration:
             )
         if self.duration is not None and not self.duration > 0:
             raise ValidationError(
-                "duration", self.duration, "Duration must be positive if specified"
+                "duration",
+                self.duration,
+                "Duration must be positive if specified",
             )
         if not len(self.metrics_types) > 0:
             raise ValidationError(
-                "metrics_types", self.metrics_types, "At least one metric type required"
+                "metrics_types",
+                self.metrics_types,
+                "At least one metric type required",
             )
 
 
@@ -294,7 +301,9 @@ class PerformanceMetrics:
         return latest
 
     def get_average_value(
-        self, metric_type: MetricType, time_window: timedelta | None = None
+        self,
+        metric_type: MetricType,
+        time_window: timedelta | None = None,
     ) -> float | None:
         """Get average value for a metric type within a time window."""
         if time_window:
@@ -414,10 +423,12 @@ class PerformanceReport:
 
     def __post_init__(self):
         require(
-            lambda: 0 <= self.overall_health_score <= 100, "Health score must be 0-100"
+            lambda: 0 <= self.overall_health_score <= 100,
+            "Health score must be 0-100",
         )
         require(
-            lambda: self.time_range[0] <= self.time_range[1], "Time range must be valid"
+            lambda: self.time_range[0] <= self.time_range[1],
+            "Time range must be valid",
         )
 
     def add_bottleneck(self, bottleneck: BottleneckAnalysis) -> None:
@@ -495,7 +506,8 @@ def collect_system_snapshot() -> SystemResourceSnapshot:
 
 
 def create_cpu_threshold(
-    threshold_percent: float, severity: AlertSeverity = AlertSeverity.MEDIUM
+    threshold_percent: float,
+    severity: AlertSeverity = AlertSeverity.MEDIUM,
 ) -> PerformanceThreshold:
     """Create CPU usage threshold."""
     return PerformanceThreshold(
@@ -509,7 +521,8 @@ def create_cpu_threshold(
 
 
 def create_memory_threshold(
-    threshold_percent: float, severity: AlertSeverity = AlertSeverity.MEDIUM
+    threshold_percent: float,
+    severity: AlertSeverity = AlertSeverity.MEDIUM,
 ) -> PerformanceThreshold:
     """Create memory usage threshold."""
     return PerformanceThreshold(
@@ -523,7 +536,8 @@ def create_memory_threshold(
 
 
 def create_execution_time_threshold(
-    threshold_ms: float, severity: AlertSeverity = AlertSeverity.HIGH
+    threshold_ms: float,
+    severity: AlertSeverity = AlertSeverity.HIGH,
 ) -> PerformanceThreshold:
     """Create execution time threshold."""
     return PerformanceThreshold(
@@ -568,22 +582,14 @@ class PerformanceMonitoringError(Exception):
 class MetricCollectionError(PerformanceMonitoringError):
     """Metric collection error."""
 
-    pass
-
 
 class ThresholdViolationError(PerformanceMonitoringError):
     """Threshold violation error."""
-
-    pass
 
 
 class OptimizationError(PerformanceMonitoringError):
     """Resource optimization error."""
 
-    pass
-
 
 class BenchmarkError(PerformanceMonitoringError):
     """Performance benchmarking error."""
-
-    pass

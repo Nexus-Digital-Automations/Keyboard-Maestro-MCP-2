@@ -1,5 +1,4 @@
-"""
-Property-Based Tests for Performance Monitoring - TASK_54 Phase 5 Implementation
+"""Property-Based Tests for Performance Monitoring - TASK_54 Phase 5 Implementation.
 
 Comprehensive property-based testing for performance monitoring components using Hypothesis.
 Tests type safety, contract compliance, and system invariants.
@@ -9,6 +8,9 @@ Performance: <500ms test execution, exhaustive edge case coverage
 Security: Input sanitization validation, boundary condition testing
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
 import logging
 from datetime import UTC, datetime, timedelta
@@ -64,70 +66,73 @@ logger = logging.getLogger(__name__)
 
 # Basic strategies
 @st.composite
-def monitoring_session_ids(draw):
+def monitoring_session_ids(draw) -> bool:
     """Generate valid monitoring session IDs."""
     return MonitoringSessionID(
-        f"monitor_{draw(st.text(min_size=8, max_size=12, alphabet=st.characters(whitelist_categories=['Ll', 'Nd'])))}"
+        f"monitor_{draw(st.text(min_size=8, max_size=12, alphabet=st.characters(whitelist_categories=['Ll', 'Nd'])))}",
     )
 
 
 @st.composite
-def metric_ids(draw):
+def metric_ids(draw) -> Any:
     """Generate valid metric IDs."""
     return MetricID(
-        f"metric_{draw(st.text(min_size=6, max_size=10, alphabet=st.characters(whitelist_categories=['Ll', 'Nd'])))}"
+        f"metric_{draw(st.text(min_size=6, max_size=10, alphabet=st.characters(whitelist_categories=['Ll', 'Nd'])))}",
     )
 
 
 @st.composite
-def alert_ids(draw):
+def alert_ids(draw) -> Any:
     """Generate valid alert IDs."""
     return AlertID(
-        f"alert_{draw(st.text(min_size=6, max_size=10, alphabet=st.characters(whitelist_categories=['Ll', 'Nd'])))}"
+        f"alert_{draw(st.text(min_size=6, max_size=10, alphabet=st.characters(whitelist_categories=['Ll', 'Nd'])))}",
     )
 
 
 @st.composite
-def cpu_percentages(draw):
+def cpu_percentages(draw) -> Any:
     """Generate valid CPU percentages."""
     return CPUPercentage(draw(st.floats(min_value=0.0, max_value=100.0)))
 
 
 @st.composite
-def memory_bytes(draw):
+def memory_bytes(draw) -> bool:
     """Generate valid memory byte amounts."""
     return MemoryBytes(draw(st.integers(min_value=0, max_value=1024**4)))  # Up to 1TB
 
 
 @st.composite
-def metric_values(draw):
+def metric_values(draw) -> Any:
     """Generate valid MetricValue instances."""
     metric_type = draw(st.sampled_from(MetricType))
     value = draw(
         st.floats(
-            min_value=0.0, max_value=10000.0, allow_nan=False, allow_infinity=False
-        )
+            min_value=0.0,
+            max_value=10000.0,
+            allow_nan=False,
+            allow_infinity=False,
+        ),
     )
     unit = draw(
         st.text(
             min_size=1,
             max_size=20,
             alphabet=st.characters(whitelist_categories=["Ll", "Lu"]),
-        )
+        ),
     )
     source = draw(
         st.text(
             min_size=1,
             max_size=50,
             alphabet=st.characters(whitelist_categories=["Ll", "Lu", "Nd"]),
-        )
+        ),
     )
 
     return MetricValue(metric_type=metric_type, value=value, unit=unit, source=source)
 
 
 @st.composite
-def system_resource_snapshots(draw):
+def system_resource_snapshots(draw) -> Any:
     """Generate valid SystemResourceSnapshot instances."""
     cpu_percent = draw(cpu_percentages())
     memory_value = draw(memory_bytes())
@@ -141,7 +146,7 @@ def system_resource_snapshots(draw):
             st.floats(min_value=0.0, max_value=100.0),
             st.floats(min_value=0.0, max_value=100.0),
             st.floats(min_value=0.0, max_value=100.0),
-        )
+        ),
     )
 
     return SystemResourceSnapshot(
@@ -158,7 +163,7 @@ def system_resource_snapshots(draw):
 
 
 @st.composite
-def performance_thresholds(draw):
+def performance_thresholds(draw) -> bool:
     """Generate valid PerformanceThreshold instances."""
     metric_type = draw(st.sampled_from(MetricType))
     threshold_value = draw(st.floats(min_value=0.0, max_value=1000.0, allow_nan=False))
@@ -178,13 +183,13 @@ def performance_thresholds(draw):
 
 
 @st.composite
-def monitoring_configurations(draw):
+def monitoring_configurations(draw) -> bool:
     """Generate valid MonitoringConfiguration instances."""
     session_id = draw(monitoring_session_ids())
     scope = draw(st.sampled_from(MonitoringScope))
     target_id = draw(st.one_of(st.none(), st.text(min_size=5, max_size=50)))
     metrics_types = draw(
-        st.lists(st.sampled_from(MetricType), min_size=1, max_size=5, unique=True)
+        st.lists(st.sampled_from(MetricType), min_size=1, max_size=5, unique=True),
     )
     sampling_interval = draw(st.floats(min_value=0.1, max_value=60.0))
     duration = draw(st.one_of(st.none(), st.integers(min_value=1, max_value=3600)))
@@ -208,17 +213,17 @@ class TestPerformanceMonitoringProperties:
     """Property-based tests for performance monitoring core types."""
 
     @given(cpu_percentages())
-    def test_cpu_percentage_bounds(self, cpu_percent):
+    def test_cpu_percentage_bounds(self, cpu_percent) -> None:
         """CPU percentages must be within valid bounds."""
         assert 0.0 <= cpu_percent <= 100.0
 
     @given(memory_bytes())
-    def test_memory_bytes_non_negative(self, memory_bytes_val):
+    def test_memory_bytes_non_negative(self, memory_bytes_val) -> None:
         """Memory bytes must be non-negative."""
         assert memory_bytes_val >= 0
 
     @given(metric_values())
-    def test_metric_value_invariants(self, metric_value):
+    def test_metric_value_invariants(self, metric_value) -> None:
         """MetricValue instances must satisfy basic invariants."""
         assert metric_value.value >= 0
         assert len(metric_value.unit.strip()) > 0
@@ -227,7 +232,7 @@ class TestPerformanceMonitoringProperties:
         assert metric_value.timestamp.tzinfo is not None
 
     @given(system_resource_snapshots())
-    def test_system_snapshot_invariants(self, snapshot):
+    def test_system_snapshot_invariants(self, snapshot) -> None:
         """SystemResourceSnapshot must satisfy resource constraints."""
         assert 0 <= snapshot.cpu_percent <= 100
         assert 0 <= snapshot.memory_percent <= 100
@@ -240,7 +245,7 @@ class TestPerformanceMonitoringProperties:
         assert len(snapshot.load_average) == 3
 
     @given(performance_thresholds())
-    def test_threshold_evaluation_consistency(self, threshold):
+    def test_threshold_evaluation_consistency(self, threshold) -> None:
         """Threshold evaluation must be consistent."""
         # Test boundary conditions
         test_value = threshold.threshold_value
@@ -261,7 +266,7 @@ class TestPerformanceMonitoringProperties:
             assert result is False
 
     @given(monitoring_configurations())
-    def test_monitoring_config_invariants(self, config):
+    def test_monitoring_config_invariants(self, config) -> None:
         """MonitoringConfiguration must satisfy basic constraints."""
         assert config.sampling_interval > 0
         assert config.duration is None or config.duration > 0
@@ -269,11 +274,12 @@ class TestPerformanceMonitoringProperties:
         assert len(config.session_id) > 0
 
     @given(st.lists(metric_values(), min_size=1, max_size=100))
-    def test_performance_metrics_operations(self, metric_list):
+    def test_performance_metrics_operations(self, metric_list) -> None:
         """PerformanceMetrics operations must maintain invariants."""
         session_id = generate_monitoring_session_id()
         metrics = PerformanceMetrics(
-            session_id=session_id, start_time=datetime.now(UTC)
+            session_id=session_id,
+            start_time=datetime.now(UTC),
         )
 
         # Add all metrics
@@ -293,11 +299,12 @@ class TestPerformanceMonitoringProperties:
                     metric_types_tested.add(metric.metric_type)
 
     @given(st.lists(system_resource_snapshots(), min_size=1, max_size=10))
-    def test_performance_score_calculation(self, snapshots):
+    def test_performance_score_calculation(self, snapshots) -> None:
         """Performance score calculation must be consistent."""
         session_id = generate_monitoring_session_id()
         metrics = PerformanceMetrics(
-            session_id=session_id, start_time=datetime.now(UTC)
+            session_id=session_id,
+            start_time=datetime.now(UTC),
         )
 
         for snapshot in snapshots:
@@ -307,7 +314,7 @@ class TestPerformanceMonitoringProperties:
         assert 0.0 <= score <= 100.0
 
     @given(st.floats(min_value=0.0, max_value=100.0), st.sampled_from(AlertSeverity))
-    def test_threshold_creation_helpers(self, threshold_value, severity):
+    def test_threshold_creation_helpers(self, threshold_value, severity) -> None:
         """Threshold creation helpers must create valid thresholds."""
         cpu_threshold = create_cpu_threshold(threshold_value, severity)
         memory_threshold = create_memory_threshold(threshold_value, severity)
@@ -336,7 +343,7 @@ class TestMetricsCollectorProperties:
 
     @given(monitoring_configurations())
     @pytest.mark.asyncio
-    async def test_session_lifecycle(self, config):
+    async def test_session_lifecycle(self, config) -> None:
         """Session lifecycle must maintain invariants."""
         # Start session
         session_result = await self.collector.start_collection_session(config)
@@ -357,7 +364,7 @@ class TestMetricsCollectorProperties:
 
     @given(st.integers(min_value=1, max_value=3))
     @pytest.mark.asyncio
-    async def test_concurrent_session_limits(self, max_sessions):
+    async def test_concurrent_session_limits(self, max_sessions) -> None:
         """Concurrent session limits must be enforced."""
         collector = MetricsCollector(max_concurrent_sessions=max_sessions)
 
@@ -395,12 +402,12 @@ class TestMetricsCollectorProperties:
 class TestResourceMonitorProperties:
     """Property-based tests for ResourceMonitor."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test environment."""
         self.monitor = ResourceMonitor(update_interval=0.1)
 
     @pytest.mark.asyncio
-    async def test_resource_report_invariants(self):
+    async def test_resource_report_invariants(self) -> None:
         """Resource report must satisfy system constraints."""
         result = await self.monitor.get_current_resources()
         assert result.is_right()
@@ -436,7 +443,7 @@ class TestResourceMonitorProperties:
             assert proc.num_threads >= 0
 
     @given(st.integers(min_value=1, max_value=72))
-    def test_trend_analysis_constraints(self, hours):
+    def test_trend_analysis_constraints(self, hours) -> None:
         """Trend analysis must handle various time ranges."""
         # Add some dummy reports to history
         for i in range(10):
@@ -472,7 +479,7 @@ class TestResourceMonitorProperties:
 class TestPerformanceAnalyzerProperties:
     """Property-based tests for PerformanceAnalyzer."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test environment."""
         self.analyzer = PerformanceAnalyzer()
 
@@ -505,9 +512,9 @@ class TestPerformanceAnalyzerProperties:
     #     assert len(report.recommendations) >= 0
 
     @given(
-        st.lists(st.floats(min_value=0.0, max_value=100.0), min_size=10, max_size=100)
+        st.lists(st.floats(min_value=0.0, max_value=100.0), min_size=10, max_size=100),
     )
-    def test_baseline_establishment(self, values):
+    def test_baseline_establishment(self, values) -> None:
         """Baseline establishment must handle various data distributions."""
         metric_type = MetricType.CPU
 
@@ -524,12 +531,12 @@ class TestPerformanceAnalyzerProperties:
 class TestAlertSystemProperties:
     """Property-based tests for AlertSystem."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test environment."""
         self.alert_system = AlertSystem()
 
     @given(st.text(min_size=1, max_size=50), st.floats(min_value=1.0, max_value=100.0))
-    def test_alert_rule_lifecycle(self, rule_name, threshold_value):
+    def test_alert_rule_lifecycle(self, rule_name, threshold_value) -> None:
         """Alert rule lifecycle must maintain consistency."""
         rule_id = f"test_rule_{abs(hash(rule_name)) % 10000}"
 
@@ -558,7 +565,7 @@ class TestAlertSystemProperties:
 
     @given(metric_values(), st.floats(min_value=0.0, max_value=50.0))
     @pytest.mark.asyncio
-    async def test_metric_evaluation_consistency(self, metric, threshold_value):
+    async def test_metric_evaluation_consistency(self, metric, threshold_value) -> None:
         """Metric evaluation must be consistent with thresholds."""
         # Create a threshold that might trigger
         rule = create_cpu_alert_rule(
@@ -604,9 +611,8 @@ class MetricsCollectionStateMachine(RuleBasedStateMachine):
         self.session_counter = 0
 
     @initialize()
-    def setup(self):
+    def setup(self) -> None:
         """Initialize the state machine."""
-        pass
 
     @rule()
     async def start_session(self):
@@ -642,7 +648,7 @@ class MetricsCollectionStateMachine(RuleBasedStateMachine):
             del self.active_sessions[session_id]
 
     @rule()
-    def check_session_status(self):
+    def check_session_status(self) -> None:
         """Check status of active sessions."""
         for session_id in self.active_sessions:
             status = self.collector.get_session_status(session_id)
@@ -650,13 +656,13 @@ class MetricsCollectionStateMachine(RuleBasedStateMachine):
             assert status["session_id"] == session_id
 
     @invariant()
-    def session_count_invariant(self):
+    def session_count_invariant(self) -> None:
         """Session count must not exceed limits."""
         assert len(self.active_sessions) <= 3
         assert len(self.collector.active_sessions) <= 3
 
     @invariant()
-    def session_consistency_invariant(self):
+    def session_consistency_invariant(self) -> None:
         """Active sessions must be consistent."""
         collector_sessions = set(self.collector.active_sessions.keys())
         tracked_sessions = set(self.active_sessions.keys())
@@ -664,7 +670,7 @@ class MetricsCollectionStateMachine(RuleBasedStateMachine):
 
 
 # Run the stateful tests
-def test_metrics_collection_stateful():
+def test_metrics_collection_stateful() -> None:
     """Run stateful testing for metrics collection."""
     # This would run the state machine, but asyncio integration is complex
     # In a real implementation, you'd use pytest-asyncio and proper async state machines
@@ -676,7 +682,7 @@ def test_metrics_collection_stateful():
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_monitoring_workflow():
+async def test_end_to_end_monitoring_workflow() -> None:
     """Test complete monitoring workflow from metrics to alerts."""
     # Set up components
     collector = MetricsCollector(max_concurrent_sessions=1)

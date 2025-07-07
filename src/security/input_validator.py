@@ -1,5 +1,4 @@
-"""
-Security input validation module for comprehensive threat detection.
+"""Security input validation module for comprehensive threat detection.
 
 Provides validation for SQL injection, XSS, command injection, path traversal,
 and other security threats with detailed threat analysis.
@@ -245,7 +244,10 @@ class InputValidator:
 
         # Remove javascript: URLs
         sanitized = re.sub(
-            r"javascript:", "[BLOCKED_JS]", sanitized, flags=re.IGNORECASE
+            r"javascript:",
+            "[BLOCKED_JS]",
+            sanitized,
+            flags=re.IGNORECASE,
         )
 
         return sanitized
@@ -274,7 +276,10 @@ class InputValidator:
         ]
         for cmd in dangerous_commands:
             sanitized = re.sub(
-                rf"\b{cmd}\b", "[BLOCKED_COMMAND]", sanitized, flags=re.IGNORECASE
+                rf"\b{cmd}\b",
+                "[BLOCKED_COMMAND]",
+                sanitized,
+                flags=re.IGNORECASE,
             )
 
         return sanitized
@@ -291,7 +296,10 @@ class InputValidator:
         sensitive_paths = ["/etc/passwd", "/etc/shadow", "windows/system32"]
         for path in sensitive_paths:
             sanitized = re.sub(
-                re.escape(path), "[BLOCKED_SYSTEM_PATH]", sanitized, flags=re.IGNORECASE
+                re.escape(path),
+                "[BLOCKED_SYSTEM_PATH]",
+                sanitized,
+                flags=re.IGNORECASE,
             )
 
         return sanitized

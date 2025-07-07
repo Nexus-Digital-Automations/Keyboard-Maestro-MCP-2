@@ -1,17 +1,19 @@
-"""
-Test coverage expansion for modules with 0% coverage.
+"""Test coverage expansion for modules with 0% coverage.
 
 This test file focuses on expanding coverage for critical modules that currently
 have 0% test coverage to improve overall project coverage toward 100%.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import pytest
 
 
 class TestZeroCoverageServerTools:
     """Test coverage for server tools with 0% coverage."""
 
-    def test_advanced_trigger_tools_import(self):
+    def test_advanced_trigger_tools_import(self) -> None:
         """Test advanced trigger tools import."""
         try:
             from src.server.tools.advanced_trigger_tools import AdvancedTriggerProcessor
@@ -20,7 +22,7 @@ class TestZeroCoverageServerTools:
         except ImportError:
             pytest.skip("Advanced trigger tools not available")
 
-    def test_advanced_window_tools_import(self):
+    def test_advanced_window_tools_import(self) -> None:
         """Test advanced window tools import."""
         try:
             from src.server.tools.advanced_window_tools import AdvancedWindowProcessor
@@ -29,7 +31,7 @@ class TestZeroCoverageServerTools:
         except ImportError:
             pytest.skip("Advanced window tools not available")
 
-    def test_audit_system_tools_import(self):
+    def test_audit_system_tools_import(self) -> None:
         """Test audit system tools import."""
         try:
             from src.server.tools import audit_system_tools
@@ -38,7 +40,7 @@ class TestZeroCoverageServerTools:
         except ImportError:
             pytest.skip("Audit system tools not available")
 
-    def test_automation_intelligence_tools_import(self):
+    def test_automation_intelligence_tools_import(self) -> None:
         """Test automation intelligence tools import."""
         from src.server.tools.automation_intelligence_tools import (
             AutomationIntelligenceTools,
@@ -46,7 +48,7 @@ class TestZeroCoverageServerTools:
 
         assert AutomationIntelligenceTools is not None
 
-    def test_creation_tools_import(self):
+    def test_creation_tools_import(self) -> None:
         """Test creation tools import."""
         try:
             from src.server.tools import creation_tools
@@ -55,7 +57,7 @@ class TestZeroCoverageServerTools:
         except ImportError:
             pytest.skip("Creation tools not available")
 
-    def test_developer_toolkit_tools_import(self):
+    def test_developer_toolkit_tools_import(self) -> None:
         """Test developer toolkit tools import."""
         try:
             from src.server.tools import developer_toolkit_tools
@@ -64,7 +66,7 @@ class TestZeroCoverageServerTools:
         except ImportError:
             pytest.skip("Developer toolkit tools not available")
 
-    def test_ecosystem_orchestrator_tools_import(self):
+    def test_ecosystem_orchestrator_tools_import(self) -> None:
         """Test ecosystem orchestrator tools import."""
         try:
             from src.server.tools import ecosystem_orchestrator_tools
@@ -73,7 +75,7 @@ class TestZeroCoverageServerTools:
         except ImportError:
             pytest.skip("Ecosystem orchestrator tools not available")
 
-    def test_interface_automation_tools_import(self):
+    def test_interface_automation_tools_import(self) -> None:
         """Test interface automation tools import."""
         try:
             from src.server.tools import interface_automation_tools
@@ -82,7 +84,7 @@ class TestZeroCoverageServerTools:
         except ImportError:
             pytest.skip("Interface automation tools not available")
 
-    def test_macro_move_tools_import(self):
+    def test_macro_move_tools_import(self) -> None:
         """Test macro move tools import."""
         try:
             from src.server.tools import macro_move_tools
@@ -91,7 +93,7 @@ class TestZeroCoverageServerTools:
         except ImportError:
             pytest.skip("Macro move tools not available")
 
-    def test_token_tools_import(self):
+    def test_token_tools_import(self) -> None:
         """Test token tools import."""
         try:
             from src.server.tools import token_tools
@@ -104,7 +106,7 @@ class TestZeroCoverageServerTools:
 class TestZeroCoverageCreation:
     """Test coverage for creation module tools."""
 
-    def test_automation_intelligence_tools_creation(self):
+    def test_automation_intelligence_tools_creation(self) -> None:
         """Test automation intelligence tools creation."""
         from src.server.tools.automation_intelligence_tools import (
             AutomationIntelligenceTools,
@@ -113,7 +115,7 @@ class TestZeroCoverageCreation:
         tools = AutomationIntelligenceTools()
         assert tools is not None
 
-    def test_advanced_trigger_processor_creation(self):
+    def test_advanced_trigger_processor_creation(self) -> None:
         """Test advanced trigger processor creation."""
         try:
             from src.server.tools.advanced_trigger_tools import AdvancedTriggerProcessor
@@ -123,7 +125,7 @@ class TestZeroCoverageCreation:
         except ImportError:
             pytest.skip("Advanced trigger processor not available")
 
-    def test_advanced_window_processor_creation(self):
+    def test_advanced_window_processor_creation(self) -> None:
         """Test advanced window processor creation."""
         try:
             from src.server.tools.advanced_window_tools import AdvancedWindowProcessor
@@ -137,7 +139,7 @@ class TestZeroCoverageCreation:
 class TestZeroCoverageCoreModules:
     """Test coverage for core modules with 0% coverage."""
 
-    def test_accessibility_architecture_import(self):
+    def test_accessibility_architecture_import(self) -> None:
         """Test accessibility architecture import."""
         try:
             from src.core import accessibility_architecture
@@ -146,7 +148,7 @@ class TestZeroCoverageCoreModules:
         except ImportError:
             pytest.skip("Accessibility architecture not available")
 
-    def test_communication_import(self):
+    def test_communication_import(self) -> None:
         """Test communication module import."""
         try:
             from src.core import communication
@@ -155,7 +157,7 @@ class TestZeroCoverageCoreModules:
         except ImportError:
             pytest.skip("Communication module not available")
 
-    def test_computer_vision_architecture_import(self):
+    def test_computer_vision_architecture_import(self) -> None:
         """Test computer vision architecture import."""
         try:
             from src.core import computer_vision_architecture
@@ -164,7 +166,7 @@ class TestZeroCoverageCoreModules:
         except ImportError:
             pytest.skip("Computer vision architecture not available")
 
-    def test_developer_toolkit_import(self):
+    def test_developer_toolkit_import(self) -> None:
         """Test developer toolkit import."""
         try:
             from src.core import developer_toolkit
@@ -173,7 +175,7 @@ class TestZeroCoverageCoreModules:
         except ImportError:
             pytest.skip("Developer toolkit not available")
 
-    def test_displays_import(self):
+    def test_displays_import(self) -> None:
         """Test displays module import."""
         try:
             from src.core import displays
@@ -182,7 +184,7 @@ class TestZeroCoverageCoreModules:
         except ImportError:
             pytest.skip("Displays module not available")
 
-    def test_ecosystem_architecture_import(self):
+    def test_ecosystem_architecture_import(self) -> None:
         """Test ecosystem architecture import."""
         try:
             from src.core import ecosystem_architecture
@@ -191,7 +193,7 @@ class TestZeroCoverageCoreModules:
         except ImportError:
             pytest.skip("Ecosystem architecture not available")
 
-    def test_hardware_events_import(self):
+    def test_hardware_events_import(self) -> None:
         """Test hardware events import."""
         try:
             from src.core import hardware_events
@@ -200,7 +202,7 @@ class TestZeroCoverageCoreModules:
         except ImportError:
             pytest.skip("Hardware events not available")
 
-    def test_knowledge_architecture_import(self):
+    def test_knowledge_architecture_import(self) -> None:
         """Test knowledge architecture import."""
         try:
             from src.core import knowledge_architecture
@@ -209,7 +211,7 @@ class TestZeroCoverageCoreModules:
         except ImportError:
             pytest.skip("Knowledge architecture not available")
 
-    def test_nlp_architecture_import(self):
+    def test_nlp_architecture_import(self) -> None:
         """Test NLP architecture import."""
         try:
             from src.core import nlp_architecture
@@ -218,7 +220,7 @@ class TestZeroCoverageCoreModules:
         except ImportError:
             pytest.skip("NLP architecture not available")
 
-    def test_testing_architecture_import(self):
+    def test_testing_architecture_import(self) -> None:
         """Test testing architecture import."""
         try:
             from src.core import testing_architecture
@@ -227,7 +229,7 @@ class TestZeroCoverageCoreModules:
         except ImportError:
             pytest.skip("Testing architecture not available")
 
-    def test_triggers_import(self):
+    def test_triggers_import(self) -> None:
         """Test triggers module import."""
         try:
             from src.core import triggers
@@ -236,7 +238,7 @@ class TestZeroCoverageCoreModules:
         except ImportError:
             pytest.skip("Triggers module not available")
 
-    def test_voice_architecture_import(self):
+    def test_voice_architecture_import(self) -> None:
         """Test voice architecture import."""
         try:
             from src.core import voice_architecture
@@ -249,7 +251,7 @@ class TestZeroCoverageCoreModules:
 class TestZeroCoverageAnalytics:
     """Test coverage for analytics modules with 0% coverage."""
 
-    def test_failure_predictor_import(self):
+    def test_failure_predictor_import(self) -> None:
         """Test failure predictor import."""
         try:
             from src.analytics import failure_predictor
@@ -258,7 +260,7 @@ class TestZeroCoverageAnalytics:
         except ImportError:
             pytest.skip("Failure predictor not available")
 
-    def test_insight_generator_import(self):
+    def test_insight_generator_import(self) -> None:
         """Test insight generator import."""
         try:
             from src.analytics import insight_generator
@@ -267,7 +269,7 @@ class TestZeroCoverageAnalytics:
         except ImportError:
             pytest.skip("Insight generator not available")
 
-    def test_ml_insights_engine_import(self):
+    def test_ml_insights_engine_import(self) -> None:
         """Test ML insights engine import."""
         try:
             from src.analytics import ml_insights_engine
@@ -276,7 +278,7 @@ class TestZeroCoverageAnalytics:
         except ImportError:
             pytest.skip("ML insights engine not available")
 
-    def test_model_manager_import(self):
+    def test_model_manager_import(self) -> None:
         """Test model manager import."""
         try:
             from src.analytics import model_manager
@@ -285,7 +287,7 @@ class TestZeroCoverageAnalytics:
         except ImportError:
             pytest.skip("Model manager not available")
 
-    def test_pattern_predictor_import(self):
+    def test_pattern_predictor_import(self) -> None:
         """Test pattern predictor import."""
         try:
             from src.analytics import pattern_predictor
@@ -294,7 +296,7 @@ class TestZeroCoverageAnalytics:
         except ImportError:
             pytest.skip("Pattern predictor not available")
 
-    def test_realtime_predictor_import(self):
+    def test_realtime_predictor_import(self) -> None:
         """Test realtime predictor import."""
         try:
             from src.analytics import realtime_predictor
@@ -303,7 +305,7 @@ class TestZeroCoverageAnalytics:
         except ImportError:
             pytest.skip("Realtime predictor not available")
 
-    def test_scenario_modeler_import(self):
+    def test_scenario_modeler_import(self) -> None:
         """Test scenario modeler import."""
         try:
             from src.analytics import scenario_modeler
@@ -312,7 +314,7 @@ class TestZeroCoverageAnalytics:
         except ImportError:
             pytest.skip("Scenario modeler not available")
 
-    def test_usage_forecaster_import(self):
+    def test_usage_forecaster_import(self) -> None:
         """Test usage forecaster import."""
         try:
             from src.analytics import usage_forecaster
@@ -325,7 +327,7 @@ class TestZeroCoverageAnalytics:
 class TestZeroCoverageCloudModules:
     """Test coverage for cloud modules with 0% coverage."""
 
-    def test_aws_connector_import(self):
+    def test_aws_connector_import(self) -> None:
         """Test AWS connector import."""
         try:
             from src.cloud import aws_connector
@@ -334,7 +336,7 @@ class TestZeroCoverageCloudModules:
         except ImportError:
             pytest.skip("AWS connector not available")
 
-    def test_azure_connector_import(self):
+    def test_azure_connector_import(self) -> None:
         """Test Azure connector import."""
         try:
             from src.cloud import azure_connector
@@ -343,7 +345,7 @@ class TestZeroCoverageCloudModules:
         except ImportError:
             pytest.skip("Azure connector not available")
 
-    def test_cloud_connector_manager_import(self):
+    def test_cloud_connector_manager_import(self) -> None:
         """Test cloud connector manager import."""
         try:
             from src.cloud import cloud_connector_manager
@@ -352,7 +354,7 @@ class TestZeroCoverageCloudModules:
         except ImportError:
             pytest.skip("Cloud connector manager not available")
 
-    def test_cloud_orchestrator_import(self):
+    def test_cloud_orchestrator_import(self) -> None:
         """Test cloud orchestrator import."""
         try:
             from src.cloud import cloud_orchestrator
@@ -361,7 +363,7 @@ class TestZeroCoverageCloudModules:
         except ImportError:
             pytest.skip("Cloud orchestrator not available")
 
-    def test_cost_optimizer_import(self):
+    def test_cost_optimizer_import(self) -> None:
         """Test cost optimizer import."""
         try:
             from src.cloud import cost_optimizer
@@ -370,7 +372,7 @@ class TestZeroCoverageCloudModules:
         except ImportError:
             pytest.skip("Cost optimizer not available")
 
-    def test_gcp_connector_import(self):
+    def test_gcp_connector_import(self) -> None:
         """Test GCP connector import."""
         try:
             from src.cloud import gcp_connector
@@ -383,7 +385,7 @@ class TestZeroCoverageCloudModules:
 class TestZeroCoverageIntelligence:
     """Test coverage for intelligence modules with 0% coverage."""
 
-    def test_automation_intelligence_manager_import(self):
+    def test_automation_intelligence_manager_import(self) -> None:
         """Test automation intelligence manager import."""
         try:
             from src.intelligence import automation_intelligence_manager
@@ -392,7 +394,7 @@ class TestZeroCoverageIntelligence:
         except ImportError:
             pytest.skip("Automation intelligence manager not available")
 
-    def test_behavior_analyzer_import(self):
+    def test_behavior_analyzer_import(self) -> None:
         """Test behavior analyzer import."""
         try:
             from src.intelligence import behavior_analyzer
@@ -401,7 +403,7 @@ class TestZeroCoverageIntelligence:
         except ImportError:
             pytest.skip("Behavior analyzer not available")
 
-    def test_data_anonymizer_import(self):
+    def test_data_anonymizer_import(self) -> None:
         """Test data anonymizer import."""
         try:
             from src.intelligence import data_anonymizer
@@ -410,7 +412,7 @@ class TestZeroCoverageIntelligence:
         except ImportError:
             pytest.skip("Data anonymizer not available")
 
-    def test_learning_engine_import(self):
+    def test_learning_engine_import(self) -> None:
         """Test learning engine import."""
         try:
             from src.intelligence import learning_engine
@@ -419,7 +421,7 @@ class TestZeroCoverageIntelligence:
         except ImportError:
             pytest.skip("Learning engine not available")
 
-    def test_nlp_processor_import(self):
+    def test_nlp_processor_import(self) -> None:
         """Test NLP processor import."""
         try:
             from src.intelligence import nlp_processor
@@ -428,7 +430,7 @@ class TestZeroCoverageIntelligence:
         except ImportError:
             pytest.skip("NLP processor not available")
 
-    def test_pattern_validator_import(self):
+    def test_pattern_validator_import(self) -> None:
         """Test pattern validator import."""
         try:
             from src.intelligence import pattern_validator
@@ -437,7 +439,7 @@ class TestZeroCoverageIntelligence:
         except ImportError:
             pytest.skip("Pattern validator not available")
 
-    def test_performance_optimizer_import(self):
+    def test_performance_optimizer_import(self) -> None:
         """Test performance optimizer import."""
         try:
             from src.intelligence import performance_optimizer
@@ -446,7 +448,7 @@ class TestZeroCoverageIntelligence:
         except ImportError:
             pytest.skip("Performance optimizer not available")
 
-    def test_privacy_manager_import(self):
+    def test_privacy_manager_import(self) -> None:
         """Test privacy manager import."""
         try:
             from src.intelligence import privacy_manager
@@ -455,7 +457,7 @@ class TestZeroCoverageIntelligence:
         except ImportError:
             pytest.skip("Privacy manager not available")
 
-    def test_suggestion_system_import(self):
+    def test_suggestion_system_import(self) -> None:
         """Test suggestion system import."""
         try:
             from src.intelligence import suggestion_system
@@ -464,7 +466,7 @@ class TestZeroCoverageIntelligence:
         except ImportError:
             pytest.skip("Suggestion system not available")
 
-    def test_workflow_analyzer_import(self):
+    def test_workflow_analyzer_import(self) -> None:
         """Test workflow analyzer import."""
         try:
             from src.intelligence import workflow_analyzer
@@ -477,7 +479,7 @@ class TestZeroCoverageIntelligence:
 class TestZeroCoverageSecurity:
     """Test coverage for security modules with 0% coverage."""
 
-    def test_access_controller_import(self):
+    def test_access_controller_import(self) -> None:
         """Test access controller import."""
         try:
             from src.security import access_controller
@@ -486,7 +488,7 @@ class TestZeroCoverageSecurity:
         except ImportError:
             pytest.skip("Access controller not available")
 
-    def test_compliance_monitor_import(self):
+    def test_compliance_monitor_import(self) -> None:
         """Test compliance monitor import."""
         try:
             from src.security import compliance_monitor
@@ -495,7 +497,7 @@ class TestZeroCoverageSecurity:
         except ImportError:
             pytest.skip("Compliance monitor not available")
 
-    def test_security_monitor_import(self):
+    def test_security_monitor_import(self) -> None:
         """Test security monitor import."""
         try:
             from src.security import security_monitor
@@ -504,7 +506,7 @@ class TestZeroCoverageSecurity:
         except ImportError:
             pytest.skip("Security monitor not available")
 
-    def test_threat_detector_import(self):
+    def test_threat_detector_import(self) -> None:
         """Test threat detector import."""
         try:
             from src.security import threat_detector
@@ -513,7 +515,7 @@ class TestZeroCoverageSecurity:
         except ImportError:
             pytest.skip("Threat detector not available")
 
-    def test_trust_validator_import(self):
+    def test_trust_validator_import(self) -> None:
         """Test trust validator import."""
         try:
             from src.security import trust_validator
@@ -526,7 +528,7 @@ class TestZeroCoverageSecurity:
 class TestZeroCoverageCommands:
     """Test coverage for commands modules with 0% coverage."""
 
-    def test_application_commands_import(self):
+    def test_application_commands_import(self) -> None:
         """Test application commands import."""
         try:
             from src.commands import application
@@ -535,7 +537,7 @@ class TestZeroCoverageCommands:
         except ImportError:
             pytest.skip("Application commands not available")
 
-    def test_base_commands_import(self):
+    def test_base_commands_import(self) -> None:
         """Test base commands import."""
         try:
             from src.commands import base
@@ -544,7 +546,7 @@ class TestZeroCoverageCommands:
         except ImportError:
             pytest.skip("Base commands not available")
 
-    def test_flow_commands_import(self):
+    def test_flow_commands_import(self) -> None:
         """Test flow commands import."""
         try:
             from src.commands import flow
@@ -553,7 +555,7 @@ class TestZeroCoverageCommands:
         except ImportError:
             pytest.skip("Flow commands not available")
 
-    def test_registry_commands_import(self):
+    def test_registry_commands_import(self) -> None:
         """Test registry commands import."""
         try:
             from src.commands import registry
@@ -562,7 +564,7 @@ class TestZeroCoverageCommands:
         except ImportError:
             pytest.skip("Registry commands not available")
 
-    def test_system_commands_import(self):
+    def test_system_commands_import(self) -> None:
         """Test system commands import."""
         try:
             from src.commands import system
@@ -571,7 +573,7 @@ class TestZeroCoverageCommands:
         except ImportError:
             pytest.skip("System commands not available")
 
-    def test_text_commands_import(self):
+    def test_text_commands_import(self) -> None:
         """Test text commands import."""
         try:
             from src.commands import text
@@ -580,7 +582,7 @@ class TestZeroCoverageCommands:
         except ImportError:
             pytest.skip("Text commands not available")
 
-    def test_validation_commands_import(self):
+    def test_validation_commands_import(self) -> None:
         """Test validation commands import."""
         try:
             from src.commands import validation
@@ -593,7 +595,7 @@ class TestZeroCoverageCommands:
 class TestBasicModuleFunctionality:
     """Test basic functionality of key modules."""
 
-    def test_automation_intelligence_tools_basic_methods(self):
+    def test_automation_intelligence_tools_basic_methods(self) -> None:
         """Test automation intelligence tools basic methods."""
         from src.server.tools.automation_intelligence_tools import (
             AutomationIntelligenceTools,
@@ -606,7 +608,7 @@ class TestBasicModuleFunctionality:
         # Basic instantiation should work
         assert tools is not None
 
-    def test_core_modules_basic_import_chain(self):
+    def test_core_modules_basic_import_chain(self) -> None:
         """Test that core modules can be imported in sequence."""
         try:
             import src.core
@@ -629,7 +631,7 @@ class TestBasicModuleFunctionality:
         except ImportError as e:
             pytest.skip(f"Core module chain import failed: {e}")
 
-    def test_server_tools_basic_import_chain(self):
+    def test_server_tools_basic_import_chain(self) -> None:
         """Test that server tools can be imported in sequence."""
         try:
             import src.server.tools

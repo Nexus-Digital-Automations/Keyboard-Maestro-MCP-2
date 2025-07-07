@@ -1,43 +1,14 @@
-"""
-Base utilities for tools modules.
+"""Base utilities for tools modules.
 
 Provides common imports and utilities to avoid circular dependencies.
 """
+from __future__ import annotations
 
-# Re-export commonly used components
-try:
-    from ..core import (
-        ExecutionError,
-        ExecutionResult,
-        MacroId,
-        PermissionDeniedError,
-        SecurityViolationError,
-        TimeoutError,
-        ValidationError,
-        create_simple_macro,
-        get_default_engine,
-    )
-    from ..core.types import Duration
-    from ..integration.macro_metadata import (
-        ActionCategory,
-        ComplexityLevel,
-        EnhancedMacroMetadata,
-        TriggerCategory,
-    )
-    from ..integration.smart_filtering import (
-        SearchQuery,
-        SearchScope,
-        SortCriteria,
-    )
-except ImportError:
-    # Fallback for direct execution
-    import os
-    import sys
-
-    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from typing import Any, Optional
 
 
-def get_server_utils():
+
+def get_server_utils() -> None:
     """Get server utilities with proper import handling."""
     try:
         from ..server_utils import (

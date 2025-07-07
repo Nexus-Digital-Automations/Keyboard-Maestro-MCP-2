@@ -1,5 +1,4 @@
-"""
-Secure Window Management with Multi-Monitor Support and Coordinate Validation
+"""Secure Window Management with Multi-Monitor Support and Coordinate Validation.
 
 Implements comprehensive window control capabilities with security validation,
 coordinate bounds checking, and robust error handling for macOS window operations.
@@ -170,7 +169,10 @@ class WindowOperationResult:
 
     @classmethod
     def failure_result(
-        cls, operation_time: Duration, error_code: str, details: str | None = None
+        cls,
+        operation_time: Duration,
+        error_code: str,
+        details: str | None = None,
     ) -> WindowOperationResult:
         """Create failed operation result."""
         return cls(
@@ -198,8 +200,7 @@ class WindowArrangement(Enum):
 
 
 class WindowManager:
-    """
-    Secure window management with multi-monitor support and coordinate validation.
+    """Secure window management with multi-monitor support and coordinate validation.
 
     Provides comprehensive window control capabilities with:
     - Position and size validation with bounds checking
@@ -223,7 +224,7 @@ class WindowManager:
     @ensure(
         lambda result: result.is_right()
         or result.get_left().code
-        in ["WINDOW_NOT_FOUND", "INVALID_POSITION", "MOVE_ERROR"]
+        in ["WINDOW_NOT_FOUND", "INVALID_POSITION", "MOVE_ERROR"],
     )
     async def move_window(
         self,
@@ -232,8 +233,7 @@ class WindowManager:
         window_index: int = 0,
         screen_target: str = "main",
     ) -> Either[KMError, WindowOperationResult]:
-        """
-        Move window to specific position with multi-monitor support.
+        """Move window to specific position with multi-monitor support.
 
         Security Features:
         - Position validation against screen bounds
@@ -259,7 +259,7 @@ class WindowManager:
             if not target_screen:
                 operation_time = Duration.from_seconds(time.time() - start_time)
                 return Either.left(
-                    KMError.validation_error(f"Invalid screen target: {screen_target}")
+                    KMError.validation_error(f"Invalid screen target: {screen_target}"),
                 )
 
             # Phase 2: Validate position is within screen bounds
@@ -267,8 +267,8 @@ class WindowManager:
                 operation_time = Duration.from_seconds(time.time() - start_time)
                 return Either.left(
                     KMError.validation_error(
-                        f"Position {position.x},{position.y} is outside screen bounds"
-                    )
+                        f"Position {position.x},{position.y} is outside screen bounds",
+                    ),
                 )
 
             # Phase 3: Get current window information
@@ -279,7 +279,9 @@ class WindowManager:
 
             # Phase 4: Execute window movement via AppleScript
             move_result = await self._move_window_applescript(
-                app_identifier, position, window_index
+                app_identifier,
+                position,
+                window_index,
             )
             if move_result.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
@@ -296,23 +298,24 @@ class WindowManager:
                         window_info,
                         operation_time,
                         f"Moved window to {position.x},{position.y}",
-                    )
+                    ),
                 )
-            else:
-                return Either.left(
-                    KMError.system_error("Failed to verify window movement")
-                )
+            return Either.left(
+                KMError.system_error("Failed to verify window movement"),
+            )
 
         except Exception as e:
             operation_time = Duration.from_seconds(time.time() - start_time)
-            return Either.left(KMError.execution_error(f"Window move failed: {str(e)}"))
+            return Either.left(KMError.execution_error(f"Window move failed: {e!s}"))
 
     @require(lambda size: size.width > 0 and size.height > 0)
     async def resize_window(
-        self, app_identifier: str, size: Size, window_index: int = 0
+        self,
+        app_identifier: str,
+        size: Size,
+        window_index: int = 0,
     ) -> Either[KMError, WindowOperationResult]:
-        """
-        Resize window with size validation and bounds checking.
+        """Resize window with size validation and bounds checking.
 
         Validates that new size is reasonable and fits within screen bounds.
         """
@@ -324,8 +327,8 @@ class WindowManager:
                 operation_time = Duration.from_seconds(time.time() - start_time)
                 return Either.left(
                     KMError.validation_error(
-                        f"Invalid window size: {size.width}x{size.height}"
-                    )
+                        f"Invalid window size: {size.width}x{size.height}",
+                    ),
                 )
 
             # Phase 2: Get current window information
@@ -336,7 +339,9 @@ class WindowManager:
 
             # Phase 3: Execute window resize via AppleScript
             resize_result = await self._resize_window_applescript(
-                app_identifier, size, window_index
+                app_identifier,
+                size,
+                window_index,
             )
             if resize_result.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
@@ -353,24 +358,25 @@ class WindowManager:
                         window_info,
                         operation_time,
                         f"Resized window to {size.width}x{size.height}",
-                    )
+                    ),
                 )
-            else:
-                return Either.left(
-                    KMError.system_error("Failed to verify window resize")
-                )
+            return Either.left(
+                KMError.system_error("Failed to verify window resize"),
+            )
 
         except Exception as e:
             operation_time = Duration.from_seconds(time.time() - start_time)
             return Either.left(
-                KMError.execution_error(f"Window resize failed: {str(e)}")
+                KMError.execution_error(f"Window resize failed: {e!s}"),
             )
 
     async def set_window_state(
-        self, app_identifier: str, target_state: WindowState, window_index: int = 0
+        self,
+        app_identifier: str,
+        target_state: WindowState,
+        window_index: int = 0,
     ) -> Either[KMError, WindowOperationResult]:
-        """
-        Set window state (minimize, maximize, restore, fullscreen).
+        """Set window state (minimize, maximize, restore, fullscreen).
 
         Handles window state transitions with proper validation.
         """
@@ -385,7 +391,9 @@ class WindowManager:
 
             # Execute state change via AppleScript
             state_result = await self._set_window_state_applescript(
-                app_identifier, target_state, window_index
+                app_identifier,
+                target_state,
+                window_index,
             )
             if state_result.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
@@ -402,17 +410,16 @@ class WindowManager:
                         window_info,
                         operation_time,
                         f"Set window state to {target_state.value}",
-                    )
+                    ),
                 )
-            else:
-                return Either.left(
-                    KMError.system_error("Failed to verify window state change")
-                )
+            return Either.left(
+                KMError.system_error("Failed to verify window state change"),
+            )
 
         except Exception as e:
             operation_time = Duration.from_seconds(time.time() - start_time)
             return Either.left(
-                KMError.execution_error(f"Window state change failed: {str(e)}")
+                KMError.execution_error(f"Window state change failed: {e!s}"),
             )
 
     async def arrange_window(
@@ -422,8 +429,7 @@ class WindowManager:
         window_index: int = 0,
         screen_target: str = "main",
     ) -> Either[KMError, WindowOperationResult]:
-        """
-        Arrange window using predefined layouts.
+        """Arrange window using predefined layouts.
 
         Supports common arrangements like half-screen, quarters, center, etc.
         """
@@ -440,7 +446,7 @@ class WindowManager:
             if not target_screen:
                 operation_time = Duration.from_seconds(time.time() - start_time)
                 return Either.left(
-                    KMError.validation_error(f"Invalid screen target: {screen_target}")
+                    KMError.validation_error(f"Invalid screen target: {screen_target}"),
                 )
 
             # Calculate position and size for arrangement
@@ -448,7 +454,10 @@ class WindowManager:
 
             # Execute both move and resize operations
             move_result = await self.move_window(
-                app_identifier, position, window_index, screen_target
+                app_identifier,
+                position,
+                window_index,
+                screen_target,
             )
             if move_result.is_left():
                 return move_result
@@ -463,19 +472,20 @@ class WindowManager:
                         window_info,
                         operation_time,
                         f"Applied {arrangement.value} arrangement",
-                    )
+                    ),
                 )
-            else:
-                return resize_result
+            return resize_result
 
         except Exception as e:
             operation_time = Duration.from_seconds(time.time() - start_time)
             return Either.left(
-                KMError.execution_error(f"Window arrangement failed: {str(e)}")
+                KMError.execution_error(f"Window arrangement failed: {e!s}"),
             )
 
     async def get_window_info(
-        self, app_identifier: str, window_index: int = 0
+        self,
+        app_identifier: str,
+        window_index: int = 0,
     ) -> Either[KMError, WindowInfo]:
         """Get comprehensive window information."""
         return await self._get_window_info(app_identifier, window_index)
@@ -555,11 +565,13 @@ class WindowManager:
                     size=Size(1920, 1080),
                     is_main=True,
                     name="Default Display",
-                )
+                ),
             ]
 
     def _select_target_screen(
-        self, screens: list[ScreenInfo], screen_target: str
+        self,
+        screens: list[ScreenInfo],
+        screen_target: str,
     ) -> ScreenInfo | None:
         """Select target screen based on identifier."""
         if screen_target == "main":
@@ -567,12 +579,12 @@ class WindowManager:
                 if screen.is_main:
                     return screen
             return screens[0] if screens else None
-        elif screen_target == "external":
+        if screen_target == "external":
             for screen in screens:
                 if not screen.is_main:
                     return screen
             return None
-        elif screen_target.isdigit():
+        if screen_target.isdigit():
             screen_index = int(screen_target)
             if 0 <= screen_index < len(screens):
                 return screens[screen_index]
@@ -580,7 +592,9 @@ class WindowManager:
         return None
 
     def _validate_position_on_screen(
-        self, position: Position, screen: ScreenInfo
+        self,
+        position: Position,
+        screen: ScreenInfo,
     ) -> bool:
         """Validate that position is within screen bounds."""
         return screen.contains_point(position)
@@ -596,7 +610,9 @@ class WindowManager:
         )
 
     def _calculate_arrangement(
-        self, arrangement: WindowArrangement, screen: ScreenInfo
+        self,
+        arrangement: WindowArrangement,
+        screen: ScreenInfo,
     ) -> tuple[Position, Size]:
         """Calculate position and size for predefined arrangements."""
         screen_width = screen.size.width
@@ -609,36 +625,37 @@ class WindowManager:
                 Position(origin_x, origin_y),
                 Size(screen_width // 2, screen_height),
             )
-        elif arrangement == WindowArrangement.RIGHT_HALF:
+        if arrangement == WindowArrangement.RIGHT_HALF:
             return (
                 Position(origin_x + screen_width // 2, origin_y),
                 Size(screen_width // 2, screen_height),
             )
-        elif arrangement == WindowArrangement.TOP_HALF:
+        if arrangement == WindowArrangement.TOP_HALF:
             return (
                 Position(origin_x, origin_y),
                 Size(screen_width, screen_height // 2),
             )
-        elif arrangement == WindowArrangement.BOTTOM_HALF:
+        if arrangement == WindowArrangement.BOTTOM_HALF:
             return (
                 Position(origin_x, origin_y + screen_height // 2),
                 Size(screen_width, screen_height // 2),
             )
-        elif arrangement == WindowArrangement.CENTER:
+        if arrangement == WindowArrangement.CENTER:
             center_size = Size(800, 600)
             center_pos = Position(
                 origin_x + (screen_width - center_size.width) // 2,
                 origin_y + (screen_height - center_size.height) // 2,
             )
             return (center_pos, center_size)
-        elif arrangement == WindowArrangement.MAXIMIZE:
+        if arrangement == WindowArrangement.MAXIMIZE:
             return (Position(origin_x, origin_y), Size(screen_width, screen_height))
-        else:
-            # Default to center
-            return self._calculate_arrangement(WindowArrangement.CENTER, screen)
+        # Default to center
+        return self._calculate_arrangement(WindowArrangement.CENTER, screen)
 
     async def _get_window_info(
-        self, app_identifier: str, window_index: int
+        self,
+        app_identifier: str,
+        window_index: int,
     ) -> Either[KMError, WindowInfo]:
         """Get window information via AppleScript."""
         try:
@@ -654,7 +671,7 @@ class WindowManager:
             # Query window information
             escaped_identifier = self._escape_applescript_string(app_identifier)
 
-            script = f'''
+            script = f"""
             tell application "System Events"
                 try
                     set appProcess to process "{escaped_identifier}"
@@ -673,7 +690,7 @@ class WindowManager:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             result = await self._execute_applescript(script, Duration.from_seconds(5))
             if result.is_left():
@@ -683,11 +700,11 @@ class WindowManager:
 
             if output == "NO_WINDOWS":
                 return Either.left(
-                    KMError.validation_error(f"No windows found for {app_identifier}")
+                    KMError.validation_error(f"No windows found for {app_identifier}"),
                 )
-            elif output.startswith("ERROR:"):
+            if output.startswith("ERROR:"):
                 return Either.left(
-                    KMError.execution_error(f"Window query failed: {output[6:]}")
+                    KMError.execution_error(f"Window query failed: {output[6:]}"),
                 )
 
             # Parse window information
@@ -710,24 +727,26 @@ class WindowManager:
                 self._window_cache[cache_key] = (window_info, current_time)
 
                 return Either.right(window_info)
-            else:
-                return Either.left(
-                    KMError.parsing_error("Invalid window information format")
-                )
+            return Either.left(
+                KMError.parsing_error("Invalid window information format"),
+            )
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Window info query failed: {str(e)}")
+                KMError.execution_error(f"Window info query failed: {e!s}"),
             )
 
     async def _move_window_applescript(
-        self, app_identifier: str, position: Position, window_index: int
+        self,
+        app_identifier: str,
+        position: Position,
+        window_index: int,
     ) -> Either[KMError, bool]:
         """Move window via AppleScript."""
         try:
             escaped_identifier = self._escape_applescript_string(app_identifier)
 
-            script = f'''
+            script = f"""
             tell application "System Events"
                 try
                     set appProcess to process "{escaped_identifier}"
@@ -738,7 +757,7 @@ class WindowManager:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
@@ -747,24 +766,27 @@ class WindowManager:
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
                 return Either.left(
-                    KMError.execution_error(f"Window move failed: {output[6:]}")
+                    KMError.execution_error(f"Window move failed: {output[6:]}"),
                 )
 
             return Either.right(True)
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"AppleScript move error: {str(e)}")
+                KMError.execution_error(f"AppleScript move error: {e!s}"),
             )
 
     async def _resize_window_applescript(
-        self, app_identifier: str, size: Size, window_index: int
+        self,
+        app_identifier: str,
+        size: Size,
+        window_index: int,
     ) -> Either[KMError, bool]:
         """Resize window via AppleScript."""
         try:
             escaped_identifier = self._escape_applescript_string(app_identifier)
 
-            script = f'''
+            script = f"""
             tell application "System Events"
                 try
                     set appProcess to process "{escaped_identifier}"
@@ -775,7 +797,7 @@ class WindowManager:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
@@ -784,18 +806,21 @@ class WindowManager:
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
                 return Either.left(
-                    KMError.execution_error(f"Window resize failed: {output[6:]}")
+                    KMError.execution_error(f"Window resize failed: {output[6:]}"),
                 )
 
             return Either.right(True)
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"AppleScript resize error: {str(e)}")
+                KMError.execution_error(f"AppleScript resize error: {e!s}"),
             )
 
     async def _set_window_state_applescript(
-        self, app_identifier: str, target_state: WindowState, window_index: int
+        self,
+        app_identifier: str,
+        target_state: WindowState,
+        window_index: int,
     ) -> Either[KMError, bool]:
         """Set window state via AppleScript."""
         try:
@@ -814,11 +839,11 @@ class WindowManager:
             else:
                 return Either.left(
                     KMError.validation_error(
-                        f"Unsupported window state: {target_state}"
-                    )
+                        f"Unsupported window state: {target_state}",
+                    ),
                 )
 
-            script = f'''
+            script = f"""
             tell application "System Events"
                 try
                     set appProcess to process "{escaped_identifier}"
@@ -829,7 +854,7 @@ class WindowManager:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
@@ -838,18 +863,22 @@ class WindowManager:
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
                 return Either.left(
-                    KMError.execution_error(f"Window state change failed: {output[6:]}")
+                    KMError.execution_error(
+                        f"Window state change failed: {output[6:]}"
+                    ),
                 )
 
             return Either.right(True)
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"AppleScript state change error: {str(e)}")
+                KMError.execution_error(f"AppleScript state change error: {e!s}"),
             )
 
     async def _execute_applescript(
-        self, script: str, timeout: Duration
+        self,
+        script: str,
+        timeout: Duration,
     ) -> Either[KMError, str]:
         """Execute AppleScript with timeout and error handling."""
         try:
@@ -862,7 +891,8 @@ class WindowManager:
             )
 
             stdout, stderr = await asyncio.wait_for(
-                process.communicate(), timeout=timeout.total_seconds()
+                process.communicate(),
+                timeout=timeout.total_seconds(),
             )
 
             if process.returncode != 0:
@@ -870,7 +900,7 @@ class WindowManager:
                     stderr.decode().strip() if stderr else "Unknown AppleScript error"
                 )
                 return Either.left(
-                    KMError.execution_error(f"AppleScript failed: {error_msg}")
+                    KMError.execution_error(f"AppleScript failed: {error_msg}"),
                 )
 
             return Either.right(stdout.decode())
@@ -878,12 +908,12 @@ class WindowManager:
         except asyncio.TimeoutError:
             return Either.left(
                 KMError.timeout_error(
-                    f"AppleScript execution timeout ({timeout.total_seconds()}s)"
-                )
+                    f"AppleScript execution timeout ({timeout.total_seconds()}s)",
+                ),
             )
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"AppleScript execution error: {str(e)}")
+                KMError.execution_error(f"AppleScript execution error: {e!s}"),
             )
 
     def _escape_applescript_string(self, value: str) -> str:

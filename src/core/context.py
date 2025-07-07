@@ -1,5 +1,4 @@
-"""
-Execution context management for the Keyboard Maestro MCP macro engine.
+"""Execution context management for the Keyboard Maestro MCP macro engine.
 
 This module provides secure, isolated execution environments for macro operations
 with comprehensive state management and security boundary enforcement.
@@ -9,10 +8,9 @@ from __future__ import annotations
 
 import threading
 import time
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass
 from datetime import datetime
-from typing import ContextManager
 
 from .contracts import ensure, require
 from .errors import (
@@ -52,8 +50,7 @@ class SecurityBoundary:
 
 
 class ExecutionContextManager:
-    """
-    Manages execution contexts with security boundaries and resource tracking.
+    """Manages execution contexts with security boundaries and resource tracking.
 
     This class provides thread-safe context management with comprehensive
     security enforcement and resource monitoring.
@@ -133,21 +130,21 @@ class ExecutionContextManager:
 
 
 class SecurityContextManager:
-    """
-    Manages security boundaries and permission validation.
+    """Manages security boundaries and permission validation.
 
     Provides secure execution environments with comprehensive permission
     checking and security violation detection.
     """
 
     @staticmethod
-    @require(lambda context, permissions: context is not None, "context cannot be None")
+    @require(lambda context, _permissions: context is not None, "context cannot be None")
     @require(
-        lambda context, permissions: permissions is not None,
+        lambda _context, permissions: permissions is not None,
         "permissions cannot be None",
     )
     def validate_permissions(
-        context: ExecutionContext, required_permissions: frozenset[Permission]
+        context: ExecutionContext,
+        required_permissions: frozenset[Permission],
     ) -> None:
         """Validate that context has required permissions."""
         if not context.has_permissions(required_permissions):
@@ -167,18 +164,19 @@ class SecurityContextManager:
 
     @staticmethod
     @require(
-        lambda operation, max_duration: max_duration.seconds > 0,
+        lambda _operation, max_duration: max_duration.seconds > 0,
         "duration must be positive",
     )
     def validate_timeout(operation: str, max_duration: Duration) -> None:
         """Validate operation timeout constraints."""
         # Implementation would include actual timeout checking logic
         # For now, this is a placeholder for the contract structure
-        pass
 
     @staticmethod
     def create_security_boundary(
-        permissions: frozenset[Permission], max_time: Duration, sandbox: bool = True
+        permissions: frozenset[Permission],
+        max_time: Duration,
+        sandbox: bool = True,
     ) -> SecurityBoundary:
         """Create a security boundary with specified constraints."""
         return SecurityBoundary(
@@ -190,10 +188,10 @@ class SecurityContextManager:
 
 @contextmanager
 def security_context(
-    context: ExecutionContext, required_permissions: frozenset[Permission]
-) -> ContextManager[ExecutionContext]:
-    """
-    Context manager for secure execution with permission validation.
+    context: ExecutionContext,
+    required_permissions: frozenset[Permission],
+) -> AbstractContextManager[ExecutionContext]:
+    """Context manager for secure execution with permission validation.
 
     Args:
         context: Execution context to validate
@@ -205,6 +203,7 @@ def security_context(
     Raises:
         PermissionDeniedError: If required permissions are not available
         SecurityViolationError: If security constraints are violated
+
     """
     # Validate permissions before entering context
     SecurityContextManager.validate_permissions(context, required_permissions)
@@ -228,7 +227,7 @@ def security_context(
                 operation="security_context",
                 timeout_seconds=context.timeout.total_seconds(),
                 context=error_context,
-            )
+            ) from e
 
         # Re-raise the original exception
         raise
@@ -238,8 +237,7 @@ def security_context(
 
 
 class VariableManager:
-    """
-    Manages variables within execution contexts with security controls.
+    """Manages variables within execution contexts with security controls.
 
     Provides secure variable storage and retrieval with access control
     and audit logging for sensitive operations.
@@ -251,9 +249,10 @@ class VariableManager:
         self._protected_variables: set[VariableName] = set()
         self._lock = threading.RLock()
 
-    @require(lambda self, name, value: name is not None, "variable name cannot be None")
+    @require(lambda __self, name, value: name is not None, "variable name cannot be None")
     @require(
-        lambda self, name, value: value is not None, "variable value cannot be None"
+        lambda _self, _name, value: value is not None,
+        "variable value cannot be None",
     )
     def set_global_variable(self, name: VariableName, value: str) -> None:
         """Set a global variable value."""
@@ -265,7 +264,7 @@ class VariableManager:
                 )
             self._global_variables[name] = value
 
-    @require(lambda self, name: name is not None, "variable name cannot be None")
+    @require(lambda __self, name: name is not None, "variable name cannot be None")
     def get_global_variable(self, name: VariableName) -> str | None:
         """Get a global variable value."""
         with self._lock:
@@ -273,15 +272,18 @@ class VariableManager:
 
     # @require(lambda self, token: token is not None, "token cannot be None")
     @require(
-        lambda self, token, name, value: name is not None,
+        lambda _self, _token, name, _value: name is not None,
         "variable name cannot be None",
     )
     @require(
-        lambda self, token, name, value: value is not None,
+        lambda _self, _token, _name, value: value is not None,
         "variable value cannot be None",
     )
     def set_context_variable(
-        self, token: ExecutionToken, name: VariableName, value: str
+        self,
+        token: ExecutionToken,
+        name: VariableName,
+        value: str,
     ) -> None:
         """Set a context-specific variable."""
         with self._lock:
@@ -290,16 +292,18 @@ class VariableManager:
             self._context_variables[token][name] = value
 
     # @require(lambda self, token: token is not None, "token cannot be None")
-    @require(lambda self, token, name: name is not None, "variable name cannot be None")
+    @require(lambda __self, token, name: name is not None, "variable name cannot be None")
     def get_context_variable(
-        self, token: ExecutionToken, name: VariableName
+        self,
+        token: ExecutionToken,
+        name: VariableName,
     ) -> str | None:
         """Get a context-specific variable value."""
         with self._lock:
             context_vars = self._context_variables.get(token, {})
             return context_vars.get(name)
 
-    @require(lambda self, name: name is not None, "variable name cannot be None")
+    @require(lambda __self, name: name is not None, "variable name cannot be None")
     def protect_variable(self, name: VariableName) -> None:
         """Mark a variable as protected from modification."""
         with self._lock:

@@ -1,5 +1,4 @@
-"""
-Either monad implementation for functional error handling.
+"""Either monad implementation for functional error handling.
 
 This module provides a type-safe way to handle operations that can fail,
 using the Either type to represent success (Right) or failure (Left) states.
@@ -8,7 +7,7 @@ using the Either type to represent success (Right) or failure (Left) states.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -19,8 +18,7 @@ C = TypeVar("C")
 
 
 class Either(Generic[A, B], ABC):
-    """
-    Either monad for functional error handling.
+    """Either monad for functional error handling.
 
     Either[A, B] represents a value that can be either:
     - Left[A]: An error or failure value of type A
@@ -30,47 +28,38 @@ class Either(Generic[A, B], ABC):
     @abstractmethod
     def is_left(self) -> bool:
         """Check if this is a Left (error) value."""
-        pass
 
     @abstractmethod
     def is_right(self) -> bool:
         """Check if this is a Right (success) value."""
-        pass
 
     @abstractmethod
     def get_left(self) -> A:
         """Get the Left value. Raises ValueError if called on Right."""
-        pass
 
     @abstractmethod
     def get_right(self) -> B:
         """Get the Right value. Raises ValueError if called on Left."""
-        pass
 
     @abstractmethod
     def map(self, f: Callable[[B], C]) -> Either[A, C]:
         """Transform the Right value, leaving Left unchanged."""
-        pass
 
     @abstractmethod
     def flat_map(self, f: Callable[[B], Either[A, C]]) -> Either[A, C]:
         """Monadic bind operation."""
-        pass
 
     @abstractmethod
     def map_left(self, f: Callable[[A], C]) -> Either[C, B]:
         """Transform the Left value, leaving Right unchanged."""
-        pass
 
     @abstractmethod
     def filter(self, predicate: Callable[[B], bool], error: A) -> Either[A, B]:
         """Filter the Right value using predicate, returning Left with error if fails."""
-        pass
 
     @abstractmethod
     def fold(self, left_func: Callable[[A], C], right_func: Callable[[B], C]) -> C:
         """Fold the Either value using appropriate function for Left or Right."""
-        pass
 
     def get_or_else(self, default: B) -> B:
         """Get the Right value or return default if Left."""
@@ -96,10 +85,10 @@ class Either(Generic[A, B], ABC):
 
     @staticmethod
     def try_operation(
-        operation: Callable[[], B], error_handler: Callable[[Exception], A]
+        operation: Callable[[], B],
+        error_handler: Callable[[Exception], A],
     ) -> Either[A, B]:
-        """
-        Execute an operation that might throw an exception.
+        """Execute an operation that might throw an exception.
 
         Args:
             operation: Function that might throw an exception
@@ -107,6 +96,7 @@ class Either(Generic[A, B], ABC):
 
         Returns:
             Either[A, B] containing the result or error
+
         """
         try:
             result = operation()
@@ -117,14 +107,14 @@ class Either(Generic[A, B], ABC):
 
     @staticmethod
     def try_either(operation: Callable[[], B]) -> Either[Exception, B]:
-        """
-        Execute an operation that might throw an exception.
+        """Execute an operation that might throw an exception.
 
         Args:
             operation: Function that might throw an exception
 
         Returns:
             Either[Exception, B] containing the result or exception
+
         """
         try:
             result = operation()
@@ -134,8 +124,7 @@ class Either(Generic[A, B], ABC):
 
     @staticmethod
     def from_optional(value: B | None, error: A) -> Either[A, B]:
-        """
-        Create Either from optional value.
+        """Create Either from optional value.
 
         Args:
             value: Optional value (None or actual value)
@@ -143,6 +132,7 @@ class Either(Generic[A, B], ABC):
 
         Returns:
             Either[A, B] containing the result or error
+
         """
         if value is None:
             return Either.left(error)
@@ -216,7 +206,7 @@ class _Left(Either[A, B]):
     def __repr__(self) -> str:
         return f"Left({self._value})"
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, _Left) and self._value == other._value
 
 
@@ -260,14 +250,13 @@ class _Right(Either[A, B]):
     def __repr__(self) -> str:
         return f"Right({self._value})"
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, _Right) and self._value == other._value
 
 
 # Convenience functions for common operations
 def sequence(eithers: list[Either[A, B]]) -> Either[A, list[B]]:
-    """
-    Convert a list of Either values to Either of list.
+    """Convert a list of Either values to Either of list.
 
     If all values are Right, returns Right with list of values.
     If any value is Left, returns the first Left encountered.
@@ -281,8 +270,7 @@ def sequence(eithers: list[Either[A, B]]) -> Either[A, list[B]]:
 
 
 def traverse(values: list[A], f: Callable[[A], Either[B, C]]) -> Either[B, list[C]]:
-    """
-    Apply a function returning Either to each value in a list.
+    """Apply a function returning Either to each value in a list.
 
     Returns Either[B, list[C]] where:
     - Right contains list of all successful results

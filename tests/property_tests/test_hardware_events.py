@@ -1,5 +1,4 @@
-"""
-Property-based tests for hardware event validation and interaction safety.
+"""Property-based tests for hardware event validation and interaction safety.
 
 This module provides comprehensive property-based testing for the interface
 automation system, validating security boundaries, coordinate safety, input
@@ -10,6 +9,9 @@ Performance: Tests validate timing constraints and rate limiting behavior.
 Type Safety: Tests validate type system integrity and contract compliance.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import re
 
 import pytest
@@ -37,7 +39,7 @@ class TestCoordinateProperties:
         st.integers(min_value=-1000, max_value=10000),
         st.integers(min_value=-1000, max_value=10000),
     )
-    def test_coordinate_bounds_validation(self, x: int, y: int):
+    def test_coordinate_bounds_validation(self, x: int, y: int) -> None:
         """Property: Coordinate creation should validate bounds correctly."""
         if 0 <= x <= 8192 and 0 <= y <= 8192:
             coord = Coordinate(x, y)
@@ -51,7 +53,7 @@ class TestCoordinateProperties:
         st.integers(min_value=0, max_value=8192),
         st.integers(min_value=0, max_value=8192),
     )
-    def test_coordinate_safety_properties(self, x: int, y: int):
+    def test_coordinate_safety_properties(self, x: int, y: int) -> None:
         """Property: Valid coordinates should pass safety validation."""
         coord = Coordinate(x, y)
         result = HardwareEventValidator.validate_coordinate_safety(coord)
@@ -75,7 +77,7 @@ class TestCoordinateProperties:
         st.integers(min_value=0, max_value=8192),
         st.integers(min_value=0, max_value=8192),
     )
-    def test_distance_calculation_properties(self, x1: int, y1: int, x2: int, y2: int):
+    def test_distance_calculation_properties(self, x1: int, y1: int, x2: int, y2: int) -> None:
         """Property: Distance calculation should be symmetric and non-negative."""
         coord1 = Coordinate(x1, y1)
         coord2 = Coordinate(x2, y2)
@@ -104,8 +106,13 @@ class TestMouseEventProperties:
         st.integers(min_value=10, max_value=5000),
     )
     def test_mouse_event_creation_properties(
-        self, x: int, y: int, button: MouseButton, click_count: int, duration: int
-    ):
+        self,
+        x: int,
+        y: int,
+        button: MouseButton,
+        click_count: int,
+        duration: int,
+    ) -> None:
         """Property: Valid mouse events should be created successfully."""
         coord = Coordinate(x, y)
 
@@ -126,7 +133,7 @@ class TestMouseEventProperties:
         st.integers(min_value=-10, max_value=20),
         st.integers(min_value=-100, max_value=10000),
     )
-    def test_mouse_event_validation_boundaries(self, click_count: int, duration: int):
+    def test_mouse_event_validation_boundaries(self, click_count: int, duration: int) -> None:
         """Property: Mouse events should validate parameter boundaries."""
         coord = Coordinate(100, 100)
 
@@ -154,7 +161,7 @@ class TestMouseEventProperties:
         st.integers(min_value=100, max_value=1000),
         st.integers(min_value=100, max_value=800),
     )
-    async def test_mouse_controller_properties(self, x: int, y: int):
+    async def test_mouse_controller_properties(self, x: int, y: int) -> None:
         """Property: Mouse controller should handle valid coordinates safely."""
         # Skip dangerous areas for this test
         assume(not (x <= 200 and y <= 100))
@@ -179,7 +186,7 @@ class TestKeyboardEventProperties:
     """Property-based tests for keyboard event validation and text safety."""
 
     @given(st.text(min_size=0, max_size=10000))
-    def test_text_content_validation(self, text: str):
+    def test_text_content_validation(self, text: str) -> None:
         """Property: Text validation should detect dangerous patterns consistently."""
         result = HardwareEventValidator.validate_text_safety(text)
 
@@ -240,13 +247,13 @@ class TestKeyboardEventProperties:
                     "space",
                     "enter",
                     "tab",
-                ]
+                ],
             ),
             min_size=1,
             max_size=15,
-        )
+        ),
     )
-    def test_key_combination_validation(self, keys: list[str]):
+    def test_key_combination_validation(self, keys: list[str]) -> None:
         """Property: Key combination validation should handle all valid key sets."""
         result = HardwareEventValidator.validate_key_combination(keys)
 
@@ -266,10 +273,10 @@ class TestKeyboardEventProperties:
                 whitelist_categories=("L", "N", "P", "S", "Z"),
                 blacklist_characters="\x1b\x00\x7f",
             ),
-        )
+        ),
     )
     @pytest.mark.asyncio
-    async def test_text_typing_properties(self, text: str):
+    async def test_text_typing_properties(self, text: str) -> None:
         """Property: Safe text should be typed successfully."""
         # Skip text with dangerous patterns
         dangerous_patterns = ["password:", "secret:", "<script", "javascript:"]
@@ -298,15 +305,22 @@ class TestDragOperationProperties:
         st.integers(min_value=100, max_value=10000),
     )
     def test_drag_operation_creation(
-        self, x1: int, y1: int, x2: int, y2: int, duration: int
-    ):
+        self,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+        duration: int,
+    ) -> None:
         """Property: Valid drag operations should be created with proper validation."""
         source = Coordinate(x1, y1)
         destination = Coordinate(x2, y2)
 
         if source != destination:
             drag_op = DragOperation(
-                source=source, destination=destination, duration_ms=duration
+                source=source,
+                destination=destination,
+                duration_ms=duration,
             )
 
             assert drag_op.source == source
@@ -327,7 +341,7 @@ class TestDragOperationProperties:
         st.integers(min_value=300, max_value=1100),
         st.integers(min_value=300, max_value=900),
     )
-    def test_drag_distance_validation(self, x1: int, y1: int, x2: int, y2: int):
+    def test_drag_distance_validation(self, x1: int, y1: int, x2: int, y2: int) -> None:
         """Property: Drag distance validation should prevent excessively long drags."""
         # Skip when source and destination are the same (would fail validation)
         assume(not (x1 == x2 and y1 == y2))
@@ -372,7 +386,7 @@ class TestGestureProperties:
         magnitude: float,
         finger_count: int,
         duration: int,
-    ):
+    ) -> None:
         """Property: Gesture events should validate finger count compatibility."""
         position = Coordinate(x, y)
 
@@ -438,7 +452,7 @@ class TestRateLimitingProperties:
 
     @given(st.lists(st.text(min_size=5, max_size=20), min_size=1, max_size=200))
     @pytest.mark.asyncio
-    async def test_rate_limiter_properties(self, operations: list[str]):
+    async def test_rate_limiter_properties(self, operations: list[str]) -> None:
         """Property: Rate limiter should enforce limits consistently."""
         rate_limiter = RateLimiter()
 
@@ -472,7 +486,7 @@ class TestSecurityProperties:
     """Property-based tests for security validation across all components."""
 
     @given(st.text(min_size=0, max_size=100))
-    def test_password_pattern_detection(self, text: str):
+    def test_password_pattern_detection(self, text: str) -> None:
         """Property: Password patterns should be detected consistently."""
         result = HardwareEventValidator.validate_text_safety(text)
 
@@ -483,7 +497,7 @@ class TestSecurityProperties:
             assert "DANGEROUS_TEXT_PATTERN" in result.get_left().error_code
 
     @given(st.text(min_size=0, max_size=100))
-    def test_script_injection_detection(self, text: str):
+    def test_script_injection_detection(self, text: str) -> None:
         """Property: Script injection patterns should be detected."""
         result = HardwareEventValidator.validate_text_safety(text)
 
@@ -494,9 +508,10 @@ class TestSecurityProperties:
             assert "DANGEROUS_TEXT_PATTERN" in result.get_left().error_code
 
     @given(
-        st.integers(min_value=0, max_value=300), st.integers(min_value=0, max_value=200)
+        st.integers(min_value=0, max_value=300),
+        st.integers(min_value=0, max_value=200),
     )
-    def test_system_area_protection(self, x: int, y: int):
+    def test_system_area_protection(self, x: int, y: int) -> None:
         """Property: System areas should be protected from interaction."""
         coord = Coordinate(x, y)
         result = HardwareEventValidator.validate_coordinate_safety(coord)
@@ -522,7 +537,7 @@ class TestPerformanceProperties:
         st.integers(min_value=500, max_value=1000),
     )
     @settings(deadline=2000)  # 2 second deadline for property tests
-    async def test_mouse_operation_timing(self, x: int, y: int):
+    async def test_mouse_operation_timing(self, x: int, y: int) -> None:
         """Property: Mouse operations should complete within timing constraints."""
         # Skip dangerous areas
         assume(not (x <= 200 and y <= 100))
@@ -557,19 +572,20 @@ class TestIntegrationProperties:
             min_size=1,
             max_size=20,
             alphabet=st.characters(
-                whitelist_categories=("L", "N"), blacklist_characters="\x1b\x00\x7f"
+                whitelist_categories=("L", "N"),
+                blacklist_characters="\x1b\x00\x7f",
             ),
-        )
+        ),
     )
     @settings(deadline=3000)
-    async def test_keyboard_mouse_integration(self, text: str):
+    async def test_keyboard_mouse_integration(self, text: str) -> None:
         """Property: Keyboard and mouse operations should integrate seamlessly."""
         # Skip dangerous text patterns
         assume(
             not any(
                 pattern in text.lower()
                 for pattern in ["password", "secret", "script", "eval"]
-            )
+            ),
         )
 
         mouse_controller = MouseController()

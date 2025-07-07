@@ -1,5 +1,4 @@
-"""
-Advanced trigger tools for sophisticated event-driven automation.
+"""Advanced trigger tools for sophisticated event-driven automation.
 
 This module implements the km_create_trigger_advanced MCP tool, enabling AI to create
 intelligent, responsive automation workflows that react to environmental changes.
@@ -45,10 +44,10 @@ class AdvancedTriggerProcessor:
         self.trigger_generator = KMTriggerGenerator()
 
     @require(
-        lambda self, macro_id: isinstance(macro_id, str) and len(macro_id.strip()) > 0
+        lambda _self, macro_id: isinstance(macro_id, str) and len(macro_id.strip()) > 0,
     )
-    @require(lambda self, trigger_type: isinstance(trigger_type, str))
-    @require(lambda self, config: isinstance(config, dict))
+    @require(lambda __self, trigger_type: isinstance(trigger_type, str))
+    @require(lambda __self, config: isinstance(config, dict))
     async def create_advanced_trigger(
         self,
         macro_identifier: str,
@@ -61,8 +60,7 @@ class AdvancedTriggerProcessor:
         max_executions: int | None = None,
         ctx: Context | None = None,
     ) -> Either[MCPError, dict[str, Any]]:
-        """
-        Create advanced trigger with comprehensive validation and security.
+        """Create advanced trigger with comprehensive validation and security.
 
         Architecture: Event-driven with type safety and resource protection
         Security: Input validation, resource limits, path protection
@@ -142,7 +140,8 @@ class AdvancedTriggerProcessor:
 
             # Additional security validation
             security_result = _perform_security_validation(
-                trigger_spec, sanitized_config
+                trigger_spec,
+                sanitized_config,
             )
             if security_result.is_left():
                 return {
@@ -156,7 +155,7 @@ class AdvancedTriggerProcessor:
 
             # Validate compatibility
             compatibility_result = integrator.validate_trigger_compatibility(
-                trigger_spec
+                trigger_spec,
             )
             if compatibility_result.is_left():
                 return {
@@ -182,7 +181,7 @@ class AdvancedTriggerProcessor:
             integration_details = integration_result.get_right()
 
             logger.info(
-                f"Successfully created trigger {trigger_spec.trigger_id} for macro {macro_id}"
+                f"Successfully created trigger {trigger_spec.trigger_id} for macro {macro_id}",
             )
 
             return {
@@ -202,10 +201,12 @@ class AdvancedTriggerProcessor:
                 "created_at": trigger_spec.metadata.get("created_at", ""),
                 "performance_metrics": {
                     "validation_time_ms": integration_details.get(
-                        "integration_time_ms", 0
+                        "integration_time_ms",
+                        0,
                     ),
                     "total_setup_time_ms": integration_details.get(
-                        "integration_time_ms", 0
+                        "integration_time_ms",
+                        0,
                     ),
                 },
                 "trigger_examples": _generate_trigger_examples(trigger_type_enum),
@@ -214,12 +215,12 @@ class AdvancedTriggerProcessor:
 
         except Exception as e:
             logger.error(
-                f"Error creating advanced trigger for macro {macro_identifier}: {str(e)}"
+                f"Error creating advanced trigger for macro {macro_identifier}: {e!s}",
             )
             return {
                 "success": False,
                 "error": "INTERNAL_ERROR",
-                "message": f"Failed to create trigger: {str(e)}",
+                "message": f"Failed to create trigger: {e!s}",
             }
 
 
@@ -265,7 +266,7 @@ def _validate_trigger_type(trigger_type: str) -> Either[ValidationError, Trigger
                 field_name="trigger_type",
                 value=trigger_type,
                 constraint=f"Invalid trigger type. Valid types: {[t.value for t in TriggerType]}",
-            )
+            ),
         )
 
     except Exception as e:
@@ -273,13 +274,14 @@ def _validate_trigger_type(trigger_type: str) -> Either[ValidationError, Trigger
             ValidationError(
                 field_name="trigger_type",
                 value=trigger_type,
-                constraint=f"Error validating trigger type: {str(e)}",
-            )
+                constraint=f"Error validating trigger type: {e!s}",
+            ),
         )
 
 
 def _validate_trigger_config(
-    trigger_type: TriggerType, config: dict[str, Any]
+    trigger_type: TriggerType,
+    config: dict[str, Any],
 ) -> Either[ValidationError, dict[str, Any]]:
     """Validate and sanitize trigger configuration."""
     try:
@@ -316,8 +318,8 @@ def _validate_trigger_config(
             ValidationError(
                 field_name="trigger_config",
                 value=str(config),
-                constraint=f"Error validating config: {str(e)}",
-            )
+                constraint=f"Error validating config: {e!s}",
+            ),
         )
 
 
@@ -362,7 +364,7 @@ def _validate_file_config(
                     field_name="watch_path",
                     value="missing",
                     constraint="File triggers require watch_path",
-                )
+                ),
             )
 
         # Validate path security
@@ -373,7 +375,7 @@ def _validate_file_config(
                     field_name="watch_path",
                     value=config["watch_path"],
                     constraint=path_result.get_left().message,
-                )
+                ),
             )
 
         sanitized = {
@@ -393,8 +395,8 @@ def _validate_file_config(
             ValidationError(
                 field_name="file_config",
                 value=str(config),
-                constraint=f"Error validating file config: {str(e)}",
-            )
+                constraint=f"Error validating file config: {e!s}",
+            ),
         )
 
 
@@ -407,7 +409,7 @@ def _validate_app_config(
 
         if "app_bundle_id" in config:
             app_result = TriggerValidator.validate_app_identifier(
-                config["app_bundle_id"]
+                config["app_bundle_id"],
             )
             if app_result.is_left():
                 return Either.left(
@@ -415,7 +417,7 @@ def _validate_app_config(
                         field_name="app_bundle_id",
                         value=config["app_bundle_id"],
                         constraint=app_result.get_left().message,
-                    )
+                    ),
                 )
             sanitized["app_bundle_id"] = app_result.get_right()
 
@@ -428,7 +430,7 @@ def _validate_app_config(
                     field_name="app_config",
                     value=str(config),
                     constraint="App triggers require app_bundle_id or app_name",
-                )
+                ),
             )
 
         return Either.right(sanitized)
@@ -438,8 +440,8 @@ def _validate_app_config(
             ValidationError(
                 field_name="app_config",
                 value=str(config),
-                constraint=f"Error validating app config: {str(e)}",
-            )
+                constraint=f"Error validating app config: {e!s}",
+            ),
         )
 
 
@@ -476,7 +478,7 @@ def _validate_conditions(conditions: list[dict]) -> Either[ValidationError, list
                         field_name=f"condition_{i}",
                         value=str(condition),
                         constraint="Condition must be a dictionary",
-                    )
+                    ),
                 )
 
             # Basic condition validation
@@ -488,7 +490,7 @@ def _validate_conditions(conditions: list[dict]) -> Either[ValidationError, list
                             field_name=f"condition_{i}.{field}",
                             value="missing",
                             constraint=f"Condition must have {field}",
-                        )
+                        ),
                     )
 
             validated_conditions.append(condition)
@@ -500,8 +502,8 @@ def _validate_conditions(conditions: list[dict]) -> Either[ValidationError, list
             ValidationError(
                 field_name="conditions",
                 value=str(conditions),
-                constraint=f"Error validating conditions: {str(e)}",
-            )
+                constraint=f"Error validating conditions: {e!s}",
+            ),
         )
 
 
@@ -522,7 +524,8 @@ def _build_trigger_spec(
         if trigger_type == TriggerType.TIME_SCHEDULED:
             if "schedule_time" in config:
                 builder = builder.scheduled_at(
-                    config["schedule_time"], config.get("timezone", "local")
+                    config["schedule_time"],
+                    config.get("timezone", "local"),
                 )
         elif trigger_type == TriggerType.TIME_RECURRING:
             if "recurring_interval" in config:
@@ -531,11 +534,13 @@ def _build_trigger_spec(
                 builder = builder.cron_pattern(config["recurring_pattern"])
         elif trigger_type == TriggerType.FILE_CREATED:
             builder = builder.when_file_created(
-                config["watch_path"], config.get("recursive", False)
+                config["watch_path"],
+                config.get("recursive", False),
             )
         elif trigger_type == TriggerType.FILE_MODIFIED:
             builder = builder.when_file_modified(
-                config["watch_path"], config.get("file_pattern")
+                config["watch_path"],
+                config.get("file_pattern"),
             )
         elif trigger_type == TriggerType.APP_LAUNCHED:
             if "app_bundle_id" in config:
@@ -569,13 +574,14 @@ def _build_trigger_spec(
             ValidationError(
                 field_name="trigger_build",
                 value="build_error",
-                constraint=f"Failed to build trigger: {str(e)}",
-            )
+                constraint=f"Failed to build trigger: {e!s}",
+            ),
         )
 
 
 def _perform_security_validation(
-    trigger_spec, config: dict[str, Any]
+    trigger_spec,
+    config: dict[str, Any],
 ) -> Either[SecurityError, None]:
     """Perform additional security validation on the trigger."""
     # Resource limits validation
@@ -603,7 +609,7 @@ def _perform_security_validation(
                 SecurityError(
                     "SUSPICIOUS_CONFIG",
                     f"Configuration contains potentially dangerous pattern: {pattern}",
-                )
+                ),
             )
 
     return Either.right(None)
@@ -624,7 +630,7 @@ def _generate_trigger_examples(trigger_type: TriggerType) -> list[dict[str, Any]
                     "name": "Every 30 minutes",
                     "config": {"recurring_interval_seconds": 1800},
                 },
-            ]
+            ],
         )
 
     elif trigger_type in [TriggerType.FILE_CREATED, TriggerType.FILE_MODIFIED]:
@@ -638,7 +644,7 @@ def _generate_trigger_examples(trigger_type: TriggerType) -> list[dict[str, Any]
                     "name": "Watch project directory",
                     "config": {"watch_path": "~/Projects", "recursive": True},
                 },
-            ]
+            ],
         )
 
     elif trigger_type in [TriggerType.APP_LAUNCHED, TriggerType.APP_QUIT]:
@@ -652,7 +658,7 @@ def _generate_trigger_examples(trigger_type: TriggerType) -> list[dict[str, Any]
                     "name": "When browser quits",
                     "config": {"app_bundle_id": "com.google.Chrome"},
                 },
-            ]
+            ],
         )
 
     return examples
@@ -680,7 +686,9 @@ def _suggest_next_actions(trigger_spec) -> list[str]:
 
 # Register helper functions for convenience
 def create_scheduled_trigger_helper(
-    macro_id: str, schedule_time: str, timezone: str = "local"
+    macro_id: str,
+    schedule_time: str,
+    timezone: str = "local",
 ) -> dict[str, Any]:
     """Helper to create scheduled trigger with minimal configuration."""
     return {
@@ -690,7 +698,9 @@ def create_scheduled_trigger_helper(
 
 
 def create_file_monitor_helper(
-    macro_id: str, watch_path: str, file_pattern: str | None = None
+    macro_id: str,
+    watch_path: str,
+    file_pattern: str | None = None,
 ) -> dict[str, Any]:
     """Helper to create file monitoring trigger with minimal configuration."""
     config = {"watch_path": watch_path}

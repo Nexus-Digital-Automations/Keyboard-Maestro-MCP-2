@@ -1,15 +1,15 @@
-"""
-Export System for Knowledge Management.
+"""Export System for Knowledge Management.
 
 This module provides comprehensive export capabilities for knowledge base content,
 supporting multiple formats with custom styling and branding options.
 """
 
 import logging
+import re
 import tempfile
 import zipfile
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -150,7 +150,9 @@ class MarkdownExporter:
         self.branding = branding
 
     async def export_document(
-        self, document: KnowledgeDocument, options: ExportOptions
+        self,
+        document: KnowledgeDocument,
+        options: ExportOptions,
     ) -> str:
         """Export single document to markdown."""
         content_parts = []
@@ -163,16 +165,16 @@ class MarkdownExporter:
         if options.include_metadata:
             content_parts.append("## Document Information")
             content_parts.append(
-                f"- **Created**: {document.metadata.created_at.isoformat()}"
+                f"- **Created**: {document.metadata.created_at.isoformat()}",
             )
             content_parts.append(
-                f"- **Modified**: {document.metadata.modified_at.isoformat()}"
+                f"- **Modified**: {document.metadata.modified_at.isoformat()}",
             )
             content_parts.append(f"- **Author**: {document.metadata.author}")
             content_parts.append(f"- **Version**: {document.metadata.version}")
             if document.metadata.description:
                 content_parts.append(
-                    f"- **Description**: {document.metadata.description}"
+                    f"- **Description**: {document.metadata.description}",
                 )
             if document.metadata.tags:
                 content_parts.append(f"- **Tags**: {', '.join(document.metadata.tags)}")
@@ -204,7 +206,7 @@ class MarkdownExporter:
             content_parts.append("## Table of Contents")
             for i, doc in enumerate(documents, 1):
                 content_parts.append(
-                    f"{i}. [{doc.metadata.title}](#{self._anchor_link(doc.metadata.title)})"
+                    f"{i}. [{doc.metadata.title}](#{self._anchor_link(doc.metadata.title)})",
                 )
             content_parts.append("")
 
@@ -228,7 +230,9 @@ class HTMLExporter:
         self.branding = branding
 
     async def export_document(
-        self, document: KnowledgeDocument, options: ExportOptions
+        self,
+        document: KnowledgeDocument,
+        options: ExportOptions,
     ) -> str:
         """Export single document to HTML."""
         # Convert markdown to HTML (simplified)
@@ -291,7 +295,7 @@ class HTMLExporter:
 
         if knowledge_base.description:
             html_parts.append(
-                f"<p class='description'>{knowledge_base.description}</p>"
+                f"<p class='description'>{knowledge_base.description}</p>",
             )
 
         # Add documents
@@ -320,7 +324,10 @@ class HTMLExporter:
 
         # Code blocks
         html = re.sub(
-            r"```(.*?)```", r"<pre><code>\1</code></pre>", html, flags=re.DOTALL
+            r"```(.*?)```",
+            r"<pre><code>\1</code></pre>",
+            html,
+            flags=re.DOTALL,
         )
         html = re.sub(r"`(.*?)`", r"<code>\1</code>", html)
 
@@ -402,11 +409,11 @@ class HTMLExporter:
         if self.branding and (self.branding.logo_url or self.branding.logo_base64):
             if self.branding.logo_url:
                 header_parts.append(
-                    f"<img src='{self.branding.logo_url}' alt='Logo' style='height: 40px;'>"
+                    f"<img src='{self.branding.logo_url}' alt='Logo' style='height: 40px;'>",
                 )
             elif self.branding.logo_base64:
                 header_parts.append(
-                    f"<img src='data:image/png;base64,{self.branding.logo_base64}' alt='Logo' style='height: 40px;'>"
+                    f"<img src='data:image/png;base64,{self.branding.logo_base64}' alt='Logo' style='height: 40px;'>",
                 )
 
         if self.branding and self.branding.company_name:
@@ -424,7 +431,8 @@ class HTMLExporter:
 
         if self.branding and self.branding.company_name:
             footer_content = footer_content.replace(
-                "</p>", f" by {self.branding.company_name}</p>"
+                "</p>",
+                f" by {self.branding.company_name}</p>",
             )
 
         return footer_content
@@ -434,26 +442,26 @@ class HTMLExporter:
         metadata_parts = ["<div class='metadata'>", "<h3>Document Information</h3>"]
 
         metadata_parts.append(
-            f"<p><strong>Created:</strong> {document.metadata.created_at.strftime('%Y-%m-%d %H:%M:%S')}</p>"
+            f"<p><strong>Created:</strong> {document.metadata.created_at.strftime('%Y-%m-%d %H:%M:%S')}</p>",
         )
         metadata_parts.append(
-            f"<p><strong>Modified:</strong> {document.metadata.modified_at.strftime('%Y-%m-%d %H:%M:%S')}</p>"
+            f"<p><strong>Modified:</strong> {document.metadata.modified_at.strftime('%Y-%m-%d %H:%M:%S')}</p>",
         )
         metadata_parts.append(
-            f"<p><strong>Author:</strong> {document.metadata.author}</p>"
+            f"<p><strong>Author:</strong> {document.metadata.author}</p>",
         )
         metadata_parts.append(
-            f"<p><strong>Version:</strong> {document.metadata.version}</p>"
+            f"<p><strong>Version:</strong> {document.metadata.version}</p>",
         )
 
         if document.metadata.description:
             metadata_parts.append(
-                f"<p><strong>Description:</strong> {document.metadata.description}</p>"
+                f"<p><strong>Description:</strong> {document.metadata.description}</p>",
             )
 
         if document.metadata.tags:
             tags_html = ", ".join(
-                [f"<span class='tag'>{tag}</span>" for tag in document.metadata.tags]
+                [f"<span class='tag'>{tag}</span>" for tag in document.metadata.tags],
             )
             metadata_parts.append(f"<p><strong>Tags:</strong> {tags_html}</p>")
 
@@ -523,7 +531,7 @@ class ExportManager:
             return Either.right(job)
 
         except Exception as e:
-            error_msg = f"Failed to create export job: {str(e)}"
+            error_msg = f"Failed to create export job: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -559,7 +567,9 @@ class ExportManager:
             content = ""
             if job.export_scope == "knowledge_base" and knowledge_base and documents:
                 content = await exporter.export_knowledge_base(
-                    knowledge_base, documents, job.options
+                    knowledge_base,
+                    documents,
+                    job.options,
                 )
                 job.update_progress(80, "processing")
             elif job.export_scope == "document" and documents and len(documents) > 0:
@@ -606,7 +616,7 @@ class ExportManager:
                 job.update_progress(job.progress, "failed")
                 job.error_message = str(e)
 
-            error_msg = f"Export job execution failed: {str(e)}"
+            error_msg = f"Export job execution failed: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -619,7 +629,7 @@ class ExportManager:
             return Either.right(self.jobs[job_id])
 
         except Exception as e:
-            error_msg = f"Failed to get job status: {str(e)}"
+            error_msg = f"Failed to get job status: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -639,7 +649,7 @@ class ExportManager:
             return Either.right(True)
 
         except Exception as e:
-            error_msg = f"Failed to cancel job: {str(e)}"
+            error_msg = f"Failed to cancel job: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -669,7 +679,8 @@ class ExportManager:
             # Apply compression if requested
             if job.options.compression != CompressionType.NONE:
                 compressed_path = await self._compress_file(
-                    output_path, job.options.compression
+                    output_path,
+                    job.options.compression,
                 )
                 output_path.unlink()  # Remove uncompressed file
                 return str(compressed_path)
@@ -677,10 +688,12 @@ class ExportManager:
             return str(output_path)
 
         except Exception as e:
-            raise KnowledgeError(f"Failed to save export content: {str(e)}")
+            raise KnowledgeError(f"Failed to save export content: {e!s}") from e
 
     async def _compress_file(
-        self, file_path: Path, compression: CompressionType
+        self,
+        file_path: Path,
+        compression: CompressionType,
     ) -> Path:
         """Compress exported file."""
         try:
@@ -694,7 +707,7 @@ class ExportManager:
             return file_path
 
         except Exception as e:
-            raise KnowledgeError(f"Failed to compress file: {str(e)}")
+            raise KnowledgeError(f"Failed to compress file: {e!s}") from e
 
     async def list_jobs(self, status_filter: str | None = None) -> list[ExportJob]:
         """List export jobs with optional status filter."""
@@ -710,7 +723,7 @@ class ExportManager:
             return jobs
 
         except Exception as e:
-            logger.error(f"Failed to list jobs: {str(e)}")
+            logger.error(f"Failed to list jobs: {e!s}")
             return []
 
     async def cleanup_completed_jobs(self, max_age_days: int = 7) -> int:
@@ -720,9 +733,13 @@ class ExportManager:
             jobs_to_remove = []
 
             for job_id, job in self.jobs.items():
-                if job.status in ["completed", "failed", "cancelled"]:
-                    if job.completed_at and job.completed_at < cutoff_date:
-                        jobs_to_remove.append(job_id)
+                # SIM102 fix: Combine nested if statements
+                if (
+                    job.status in ["completed", "failed", "cancelled"]
+                    and job.completed_at
+                    and job.completed_at < cutoff_date
+                ):
+                    jobs_to_remove.append(job_id)
 
             # Remove old jobs
             for job_id in jobs_to_remove:
@@ -732,10 +749,5 @@ class ExportManager:
             return len(jobs_to_remove)
 
         except Exception as e:
-            logger.error(f"Failed to cleanup jobs: {str(e)}")
+            logger.error(f"Failed to cleanup jobs: {e!s}")
             return 0
-
-
-# Add missing imports
-import re
-from datetime import timedelta

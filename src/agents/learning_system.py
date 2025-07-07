@@ -1,5 +1,4 @@
-"""
-Machine learning and adaptation system for autonomous agents.
+"""Machine learning and adaptation system for autonomous agents.
 
 This module provides comprehensive learning capabilities including pattern recognition,
 experience processing, model training, and continuous improvement for autonomous agents.
@@ -96,13 +95,11 @@ class LearningModel:
     def needs_retraining(self, new_data_size: int) -> bool:
         """Determine if model needs retraining."""
         # Retrain if significant new data or accuracy dropped
-        if new_data_size > self.training_data_size * 0.2:  # 20% new data
-            return True
-        if self.accuracy < 0.7:  # Accuracy below threshold
-            return True
-        if (datetime.now(UTC) - self.last_updated).days > 7:  # Weekly retraining
-            return True
-        return False
+        return (
+            new_data_size > self.training_data_size * 0.2  # 20% new data
+            or self.accuracy < 0.7  # Accuracy below threshold
+            or (datetime.now(UTC) - self.last_updated).days > 7  # Weekly retraining
+        )
 
 
 class LearningSystem:
@@ -124,7 +121,8 @@ class LearningSystem:
         self._initialize_feature_extractors()
 
     async def process_experience(
-        self, experience: LearningExperience
+        self,
+        experience: LearningExperience,
     ) -> Either[ValidationError, None]:
         """Process new learning experience."""
         try:
@@ -153,10 +151,11 @@ class LearningSystem:
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError("learning_failed", str(e)))
+            return Either.left(ValidationError("learning_failed", str(e), "Learning operation failed"))
 
     async def get_recommendations(
-        self, context: dict[str, Any]
+        self,
+        context: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Get action recommendations based on learned patterns."""
         recommendations = []
@@ -188,7 +187,8 @@ class LearningSystem:
         return recommendations
 
     async def adapt_behavior(
-        self, performance_metrics: dict[str, float]
+        self,
+        performance_metrics: dict[str, float],
     ) -> dict[str, Any]:
         """Adapt agent behavior based on performance."""
         adaptations = {
@@ -276,7 +276,8 @@ class LearningSystem:
         self.feature_extractors["context"] = self._extract_context_features
 
     def _anonymize_experience(
-        self, experience: LearningExperience
+        self,
+        experience: LearningExperience,
     ) -> LearningExperience:
         """Anonymize experience for privacy protection."""
         # Create anonymized copy
@@ -332,7 +333,7 @@ class LearningSystem:
                     "parameters": experience.action_taken.parameters,
                 },
                 outcome_correlation=self._calculate_outcome_correlation(
-                    similar_experiences
+                    similar_experiences,
                 ),
                 first_seen=min(e.timestamp for e in similar_experiences),
                 last_seen=experience.timestamp,
@@ -343,7 +344,9 @@ class LearningSystem:
         return patterns
 
     def _find_similar_experiences(
-        self, experience: LearningExperience, features: dict[str, Any]
+        self,
+        experience: LearningExperience,
+        features: dict[str, Any],
     ) -> list[LearningExperience]:
         """Find experiences similar to the given one."""
         similar = []
@@ -401,7 +404,7 @@ class LearningSystem:
             # Calculate model metrics
             recent_experiences = self.experiences[-1000:]
             success_rate = sum(1 for exp in recent_experiences if exp.success) / len(
-                recent_experiences
+                recent_experiences,
             )
 
             # Extract feature importance (simplified)
@@ -432,7 +435,8 @@ class LearningSystem:
             logging.error(f"Model update failed: {e}")
 
     async def _get_model_recommendations(
-        self, context: dict[str, Any]
+        self,
+        context: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Get recommendations from ML models."""
         recommendations = []
@@ -460,7 +464,8 @@ class LearningSystem:
         return recommendations
 
     def _extract_temporal_features(
-        self, experience: LearningExperience
+        self,
+        experience: LearningExperience,
     ) -> dict[str, Any]:
         """Extract temporal features from experience."""
         return {
@@ -470,7 +475,8 @@ class LearningSystem:
         }
 
     def _extract_sequence_features(
-        self, experience: LearningExperience
+        self,
+        experience: LearningExperience,
     ) -> dict[str, Any]:
         """Extract sequence features from experience."""
         # Get previous actions
@@ -485,7 +491,8 @@ class LearningSystem:
         }
 
     def _extract_performance_features(
-        self, experience: LearningExperience
+        self,
+        experience: LearningExperience,
     ) -> dict[str, Any]:
         """Extract performance features from experience."""
         return {
@@ -495,7 +502,8 @@ class LearningSystem:
         }
 
     def _extract_context_features(
-        self, experience: LearningExperience
+        self,
+        experience: LearningExperience,
     ) -> dict[str, Any]:
         """Extract context features from experience."""
         # Simplified context extraction
@@ -525,15 +533,15 @@ class LearningSystem:
         """Determine pattern type from features."""
         if "temporal" in features and features["temporal"].get("hour_of_day"):
             return "temporal_pattern"
-        elif "sequence" in features and features["sequence"].get("previous_actions"):
+        if "sequence" in features and features["sequence"].get("previous_actions"):
             return "sequence_pattern"
-        elif "performance" in features and features["performance"].get("success"):
+        if "performance" in features and features["performance"].get("success"):
             return "performance_pattern"
-        else:
-            return "general_pattern"
+        return "general_pattern"
 
     def _calculate_outcome_correlation(
-        self, experiences: list[LearningExperience]
+        self,
+        experiences: list[LearningExperience],
     ) -> float:
         """Calculate correlation between pattern and positive outcomes."""
         if not experiences:

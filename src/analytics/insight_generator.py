@@ -1,5 +1,4 @@
-"""
-Insight Generator - TASK_59 Phase 2 Core Implementation
+"""Insight Generator - TASK_59 Phase 2 Core Implementation.
 
 Intelligent insight generation and recommendation engine for automation workflows.
 Provides ML-powered analysis, actionable recommendations, and strategic optimization insights.
@@ -195,15 +194,16 @@ class AnalyticsInsight:
 
 
 class InsightGenerator:
-    """
-    Intelligent insight generation and recommendation engine.
+    """Intelligent insight generation and recommendation engine.
 
     Analyzes automation data to generate actionable insights, strategic recommendations,
     and comprehensive ROI analysis for optimization opportunities.
     """
 
     def __init__(
-        self, pattern_predictor: PatternPredictor, usage_forecaster: UsageForecaster
+        self,
+        pattern_predictor: PatternPredictor,
+        usage_forecaster: UsageForecaster,
     ):
         self.pattern_predictor = pattern_predictor
         self.usage_forecaster = usage_forecaster
@@ -217,7 +217,7 @@ class InsightGenerator:
         self._initialize_insight_templates()
         self._initialize_roi_models()
 
-    def _initialize_insight_templates(self):
+    def _initialize_insight_templates(self) -> int:
         """Initialize templates for different insight categories."""
         self.insight_templates = {
             InsightCategory.PERFORMANCE_OPTIMIZATION: {
@@ -252,7 +252,7 @@ class InsightGenerator:
             },
         }
 
-    def _initialize_roi_models(self):
+    def _initialize_roi_models(self) -> int:
         """Initialize ROI calculation models."""
         self.roi_models = {
             "performance_improvement": {
@@ -281,8 +281,7 @@ class InsightGenerator:
         include_roi_analysis: bool = True,
         prioritize_by_impact: bool = True,
     ) -> Either[PredictiveModelingError, list[PredictiveInsight]]:
-        """
-        Generate comprehensive insights from automation data.
+        """Generate comprehensive insights from automation data.
 
         Analyzes patterns, performance metrics, and usage data to generate
         actionable insights with ROI analysis and strategic recommendations.
@@ -296,14 +295,17 @@ class InsightGenerator:
             # Analyze each data source for insights
             for data in insight_data:
                 insights = await self._analyze_data_for_insights(
-                    data, categories, min_confidence
+                    data,
+                    categories,
+                    min_confidence,
                 )
                 if insights.is_right():
                     generated_insights.extend(insights.get_right())
 
             # Generate cross-data insights
             cross_insights = await self._generate_cross_data_insights(
-                insight_data, categories
+                insight_data,
+                categories,
             )
             if cross_insights.is_right():
                 generated_insights.extend(cross_insights.get_right())
@@ -327,7 +329,7 @@ class InsightGenerator:
                         # Add ROI information to insight metadata
                         if hasattr(insight, "supporting_evidence"):
                             insight.supporting_evidence.update(
-                                {"roi_analysis": roi_data}
+                                {"roi_analysis": roi_data},
                             )
 
             # Store insights in history
@@ -338,8 +340,9 @@ class InsightGenerator:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Insight generation failed: {str(e)}", "INSIGHT_GENERATION_ERROR"
-                )
+                    f"Insight generation failed: {e!s}",
+                    "INSIGHT_GENERATION_ERROR",
+                ),
             )
 
     async def _analyze_data_for_insights(
@@ -355,7 +358,8 @@ class InsightGenerator:
             # Performance optimization insights
             if InsightCategory.PERFORMANCE_OPTIMIZATION in categories:
                 perf_insights = await self._generate_performance_insights(
-                    data, min_confidence
+                    data,
+                    min_confidence,
                 )
                 insights.extend(perf_insights)
 
@@ -367,7 +371,8 @@ class InsightGenerator:
             # Efficiency improvement insights
             if InsightCategory.EFFICIENCY_IMPROVEMENT in categories:
                 efficiency_insights = await self._generate_efficiency_insights(
-                    data, min_confidence
+                    data,
+                    min_confidence,
                 )
                 insights.extend(efficiency_insights)
 
@@ -379,7 +384,8 @@ class InsightGenerator:
             # Capacity planning insights
             if InsightCategory.CAPACITY_PLANNING in categories:
                 capacity_insights = await self._generate_capacity_insights(
-                    data, min_confidence
+                    data,
+                    min_confidence,
                 )
                 insights.extend(capacity_insights)
 
@@ -388,13 +394,15 @@ class InsightGenerator:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Data analysis failed for {data.data_source}: {str(e)}",
+                    f"Data analysis failed for {data.data_source}: {e!s}",
                     "DATA_ANALYSIS_ERROR",
-                )
+                ),
             )
 
     async def _generate_performance_insights(
-        self, data: InsightData, min_confidence: float
+        self,
+        data: InsightData,
+        min_confidence: float,
     ) -> list[PredictiveInsight]:
         """Generate performance optimization insights."""
         insights = []
@@ -467,7 +475,9 @@ class InsightGenerator:
         return insights
 
     async def _generate_cost_insights(
-        self, data: InsightData, min_confidence: float
+        self,
+        data: InsightData,
+        min_confidence: float,
     ) -> list[PredictiveInsight]:
         """Generate cost reduction insights."""
         insights = []
@@ -491,7 +501,8 @@ class InsightGenerator:
                         description=f"High execution cost of ${cost:.3f} per operation. Annual cost: ${annual_cost:.2f}",
                         confidence_score=confidence,
                         impact_score=min(
-                            1.0, potential_savings / 10000
+                            1.0,
+                            potential_savings / 10000,
                         ),  # Scale impact
                         priority_level="high" if potential_savings > 5000 else "medium",
                         actionable_recommendations=[
@@ -547,7 +558,9 @@ class InsightGenerator:
         return insights
 
     async def _generate_efficiency_insights(
-        self, data: InsightData, min_confidence: float
+        self,
+        data: InsightData,
+        min_confidence: float,
     ) -> list[PredictiveInsight]:
         """Generate efficiency improvement insights."""
         insights = []
@@ -558,7 +571,8 @@ class InsightGenerator:
 
             if manual_tasks > 10:  # Many manual tasks
                 automation_potential = min(
-                    manual_tasks * 0.7, 50
+                    manual_tasks * 0.7,
+                    50,
                 )  # 70% automation potential
                 time_savings = automation_potential * 0.5  # 30 minutes per task
 
@@ -633,7 +647,9 @@ class InsightGenerator:
         return insights
 
     async def _generate_risk_insights(
-        self, data: InsightData, min_confidence: float
+        self,
+        data: InsightData,
+        min_confidence: float,
     ) -> list[PredictiveInsight]:
         """Generate risk mitigation insights."""
         insights = []
@@ -706,7 +722,9 @@ class InsightGenerator:
         return insights
 
     async def _generate_capacity_insights(
-        self, data: InsightData, min_confidence: float
+        self,
+        data: InsightData,
+        min_confidence: float,
     ) -> list[PredictiveInsight]:
         """Generate capacity planning insights."""
         insights = []
@@ -747,7 +765,9 @@ class InsightGenerator:
         return insights
 
     async def _generate_cross_data_insights(
-        self, insight_data: list[InsightData], categories: list[InsightCategory]
+        self,
+        insight_data: list[InsightData],
+        categories: list[InsightCategory],
     ) -> Either[PredictiveModelingError, list[PredictiveInsight]]:
         """Generate insights by analyzing data across multiple sources."""
         try:
@@ -756,7 +776,7 @@ class InsightGenerator:
             # Analyze correlations between different data sources
             if len(insight_data) >= 2:
                 correlation_insights = await self._analyze_data_correlations(
-                    insight_data
+                    insight_data,
                 )
                 insights.extend(correlation_insights)
 
@@ -774,13 +794,14 @@ class InsightGenerator:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Cross-data insight generation failed: {str(e)}",
+                    f"Cross-data insight generation failed: {e!s}",
                     "CROSS_DATA_ANALYSIS_ERROR",
-                )
+                ),
             )
 
     async def _analyze_data_correlations(
-        self, insight_data: list[InsightData]
+        self,
+        insight_data: list[InsightData],
     ) -> list[PredictiveInsight]:
         """Analyze correlations between different data sources."""
         insights = []
@@ -821,7 +842,8 @@ class InsightGenerator:
         return insights
 
     async def _analyze_workflow_patterns(
-        self, insight_data: list[InsightData]
+        self,
+        insight_data: list[InsightData],
     ) -> list[PredictiveInsight]:
         """Analyze workflow patterns across systems."""
         insights = []
@@ -862,7 +884,8 @@ class InsightGenerator:
         return insights
 
     async def _detect_cross_system_anomalies(
-        self, insight_data: list[InsightData]
+        self,
+        insight_data: list[InsightData],
     ) -> list[PredictiveInsight]:
         """Detect anomalies that span multiple systems."""
         insights = []
@@ -907,7 +930,8 @@ class InsightGenerator:
         return insights
 
     async def _calculate_insight_roi(
-        self, insight: PredictiveInsight
+        self,
+        insight: PredictiveInsight,
     ) -> Either[PredictiveModelingError, dict[str, float]]:
         """Calculate ROI for a specific insight."""
         try:
@@ -916,7 +940,8 @@ class InsightGenerator:
             if insight.insight_type == InsightType.PERFORMANCE_IMPROVEMENT:
                 # Calculate performance improvement ROI
                 current_time = insight.supporting_evidence.get(
-                    "current_response_time", 2.0
+                    "current_response_time",
+                    2.0,
                 )
                 if current_time > 2.0:
                     roi_data = self._calculate_performance_roi(current_time)
@@ -924,14 +949,16 @@ class InsightGenerator:
             elif insight.insight_type == InsightType.COST_SAVINGS:
                 # Calculate cost savings ROI
                 potential_savings = insight.supporting_evidence.get(
-                    "potential_annual_savings", 0
+                    "potential_annual_savings",
+                    0,
                 )
                 roi_data = self._calculate_cost_savings_roi(potential_savings)
 
             elif insight.insight_type == InsightType.EFFICIENCY:
                 # Calculate efficiency improvement ROI
                 time_savings = insight.supporting_evidence.get(
-                    "estimated_time_savings_hours", 0
+                    "estimated_time_savings_hours",
+                    0,
                 )
                 roi_data = self._calculate_efficiency_roi(time_savings)
 
@@ -949,8 +976,9 @@ class InsightGenerator:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"ROI calculation failed: {str(e)}", "ROI_CALCULATION_ERROR"
-                )
+                    f"ROI calculation failed: {e!s}",
+                    "ROI_CALCULATION_ERROR",
+                ),
             )
 
     def _estimate_performance_roi(self, response_time: float) -> float:
@@ -1035,7 +1063,9 @@ class InsightGenerator:
         }
 
     async def generate_executive_summary(
-        self, insights: list[PredictiveInsight], time_period: str = "last_month"
+        self,
+        insights: list[PredictiveInsight],
+        time_period: str = "last_month",
     ) -> Either[PredictiveModelingError, ExecutiveSummary]:
         """Generate executive summary from insights."""
         try:
@@ -1044,7 +1074,7 @@ class InsightGenerator:
                     PredictiveModelingError(
                         "No insights provided for executive summary",
                         "INSUFFICIENT_DATA",
-                    )
+                    ),
                 )
 
             # Extract key findings
@@ -1134,9 +1164,9 @@ class InsightGenerator:
         except Exception as e:
             return Either.left(
                 PredictiveModelingError(
-                    f"Executive summary generation failed: {str(e)}",
+                    f"Executive summary generation failed: {e!s}",
                     "SUMMARY_GENERATION_ERROR",
-                )
+                ),
             )
 
     async def get_insight_summary(self) -> dict[str, Any]:
@@ -1145,7 +1175,7 @@ class InsightGenerator:
             insight_categories = [category.value for category in InsightCategory]
 
             insight_counts_by_type = Counter(
-                [insight.insight_type.value for insight in self.insight_history]
+                [insight.insight_type.value for insight in self.insight_history],
             )
 
             high_impact_insights = [
@@ -1173,6 +1203,6 @@ class InsightGenerator:
 
         except Exception as e:
             return {
-                "error": f"Failed to generate insight summary: {str(e)}",
+                "error": f"Failed to generate insight summary: {e!s}",
                 "timestamp": datetime.now(UTC).isoformat(),
             }

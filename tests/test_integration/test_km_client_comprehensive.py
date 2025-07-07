@@ -1,10 +1,13 @@
-"""
-Comprehensive tests for KM client integration module.
+"""Comprehensive tests for KM client integration module.
 
 Tests cover functional interfaces, error handling monads, connection management,
 async operations, and security features with property-based testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import subprocess
 from unittest.mock import Mock, patch
 
@@ -25,18 +28,20 @@ from src.integration.km_client import (
     retry_with_backoff,
 )
 
+logger = logging.getLogger(__name__)
+
 
 # Test data generators
 @st.composite
-def connection_config_strategy(draw):
+def connection_config_strategy(draw) -> None:
     """Generate valid connection configurations."""
     method = draw(st.sampled_from(list(ConnectionMethod)))
     timeout = draw(st.floats(min_value=1.0, max_value=60.0))
     port = draw(st.integers(min_value=1024, max_value=65535))
     host = draw(
         st.text(min_size=1, max_size=50).filter(
-            lambda x: "." not in x or len(x.split(".")) == 4
-        )
+            lambda x: "." not in x or len(x.split(".")) == 4,
+        ),
     )
     retries = draw(st.integers(min_value=0, max_value=10))
     delay = draw(st.floats(min_value=0.1, max_value=5.0))
@@ -52,7 +57,7 @@ def connection_config_strategy(draw):
 
 
 @st.composite
-def km_error_strategy(draw):
+def km_error_strategy(draw) -> Any:
     """Generate valid KM errors."""
     error_codes = [
         "CONNECTION_ERROR",
@@ -67,20 +72,20 @@ def km_error_strategy(draw):
 
     # Optional details and retry_after
     details = draw(
-        st.one_of(st.none(), st.dictionaries(st.text(), st.text(), max_size=5))
+        st.one_of(st.none(), st.dictionaries(st.text(), st.text(), max_size=5)),
     )
     retry_after = draw(
         st.one_of(
             st.none(),
             st.floats(min_value=0.1, max_value=10.0).map(Duration.from_seconds),
-        )
+        ),
     )
 
     return KMError(code=code, message=message, details=details, retry_after=retry_after)
 
 
 @st.composite
-def trigger_definition_strategy(draw):
+def trigger_definition_strategy(draw) -> bool:
     """Generate valid trigger definitions."""
     trigger_id = draw(st.text(min_size=1, max_size=50))
     macro_id = draw(st.text(min_size=1, max_size=50))
@@ -98,7 +103,7 @@ def trigger_definition_strategy(draw):
             st.text(min_size=1, max_size=20),
             st.one_of(st.text(), st.integers(), st.booleans()),
             max_size=10,
-        )
+        ),
     )
     enabled = draw(st.booleans())
 
@@ -112,7 +117,7 @@ def trigger_definition_strategy(draw):
 
 
 @st.composite
-def applescript_output_strategy(draw):
+def applescript_output_strategy(draw) -> str:
     """Generate AppleScript record format outputs for testing."""
     num_records = draw(st.integers(min_value=1, max_value=5))
     records = []
@@ -134,7 +139,7 @@ def applescript_output_strategy(draw):
 class TestEitherMonad:
     """Test Either monad functionality for error handling."""
 
-    def test_either_left_creation(self):
+    def test_either_left_creation(self) -> None:
         """Test Left (error) value creation."""
         error = "Test error"
         either = Either.left(error)
@@ -144,7 +149,7 @@ class TestEitherMonad:
         assert either.get_left() == error
         assert either.get_right() is None
 
-    def test_either_right_creation(self):
+    def test_either_right_creation(self) -> None:
         """Test Right (success) value creation."""
         value = "Test value"
         either = Either.right(value)
@@ -154,7 +159,7 @@ class TestEitherMonad:
         assert either.get_right() == value
         assert either.get_left() is None
 
-    def test_either_map_on_right(self):
+    def test_either_map_on_right(self) -> None:
         """Test mapping function over Right value."""
         either = Either.right(5)
         result = either.map(lambda x: x * 2)
@@ -162,7 +167,7 @@ class TestEitherMonad:
         assert result.is_right()
         assert result.get_right() == 10
 
-    def test_either_map_on_left(self):
+    def test_either_map_on_left(self) -> None:
         """Test mapping function over Left value (should not apply)."""
         either = Either.left("error")
         result = either.map(lambda x: x * 2)
@@ -170,7 +175,7 @@ class TestEitherMonad:
         assert result.is_left()
         assert result.get_left() == "error"
 
-    def test_either_flat_map_on_right(self):
+    def test_either_flat_map_on_right(self) -> None:
         """Test flat mapping on Right value."""
         either = Either.right(5)
         result = either.flat_map(lambda x: Either.right(x * 2))
@@ -178,7 +183,7 @@ class TestEitherMonad:
         assert result.is_right()
         assert result.get_right() == 10
 
-    def test_either_flat_map_on_left(self):
+    def test_either_flat_map_on_left(self) -> None:
         """Test flat mapping on Left value (should not apply)."""
         either = Either.left("error")
         result = either.flat_map(lambda x: Either.right(x * 2))
@@ -186,14 +191,14 @@ class TestEitherMonad:
         assert result.is_left()
         assert result.get_left() == "error"
 
-    def test_either_get_or_else_right(self):
+    def test_either_get_or_else_right(self) -> None:
         """Test get_or_else with Right value."""
         either = Either.right("success")
         result = either.get_or_else("default")
 
         assert result == "success"
 
-    def test_either_get_or_else_left(self):
+    def test_either_get_or_else_left(self) -> None:
         """Test get_or_else with Left value."""
         either = Either.left("error")
         result = either.get_or_else("default")
@@ -201,7 +206,7 @@ class TestEitherMonad:
         assert result == "default"
 
     @given(st.integers(), st.text())
-    def test_either_property_validation(self, value, error):
+    def test_either_property_validation(self, value, error) -> None:
         """Property test for Either behavior."""
         # Right value properties
         right_either = Either.right(value)
@@ -223,7 +228,7 @@ class TestEitherMonad:
 class TestKMError:
     """Test KM error types and creation."""
 
-    def test_connection_error_creation(self):
+    def test_connection_error_creation(self) -> None:
         """Test connection error factory method."""
         message = "Connection failed"
         error = KMError.connection_error(message)
@@ -233,7 +238,7 @@ class TestKMError:
         assert error.details is None
         assert error.retry_after is None
 
-    def test_execution_error_creation(self):
+    def test_execution_error_creation(self) -> None:
         """Test execution error factory method."""
         message = "Execution failed"
         details = {"command": "test", "exit_code": 1}
@@ -244,7 +249,7 @@ class TestKMError:
         assert error.details == details
         assert error.retry_after is None
 
-    def test_timeout_error_creation(self):
+    def test_timeout_error_creation(self) -> None:
         """Test timeout error factory method."""
         timeout = Duration.from_seconds(30)
         error = KMError.timeout_error(timeout)
@@ -253,7 +258,7 @@ class TestKMError:
         assert "30" in error.message
         assert error.retry_after == Duration.from_seconds(1.0)
 
-    def test_validation_error_creation(self):
+    def test_validation_error_creation(self) -> None:
         """Test validation error factory method."""
         message = "Invalid input"
         error = KMError.validation_error(message)
@@ -262,7 +267,7 @@ class TestKMError:
         assert error.message == message
         assert error.retry_after is None
 
-    def test_not_found_error_creation(self):
+    def test_not_found_error_creation(self) -> None:
         """Test not found error factory method."""
         message = "Resource not found"
         error = KMError.not_found_error(message)
@@ -270,7 +275,7 @@ class TestKMError:
         assert error.code == "NOT_FOUND_ERROR"
         assert error.message == message
 
-    def test_security_error_creation(self):
+    def test_security_error_creation(self) -> None:
         """Test security error factory method."""
         message = "Access denied"
         error = KMError.security_error(message)
@@ -279,7 +284,7 @@ class TestKMError:
         assert error.message == message
 
     @given(km_error_strategy())
-    def test_error_property_validation(self, error: KMError):
+    def test_error_property_validation(self, error: KMError) -> None:
         """Property test for KM error behavior."""
         # All errors should have code and message
         assert isinstance(error.code, str)
@@ -298,7 +303,7 @@ class TestKMError:
 class TestConnectionConfig:
     """Test connection configuration functionality."""
 
-    def test_connection_config_defaults(self):
+    def test_connection_config_defaults(self) -> None:
         """Test default connection configuration."""
         config = ConnectionConfig()
 
@@ -309,7 +314,7 @@ class TestConnectionConfig:
         assert config.max_retries == 3
         assert config.retry_delay.total_seconds() == 0.5
 
-    def test_connection_config_with_timeout(self):
+    def test_connection_config_with_timeout(self) -> None:
         """Test creating config with different timeout."""
         original_config = ConnectionConfig()
         new_timeout = Duration.from_seconds(60)
@@ -323,7 +328,7 @@ class TestConnectionConfig:
         assert new_config.method == original_config.method
         assert new_config.web_api_port == original_config.web_api_port
 
-    def test_connection_config_with_method(self):
+    def test_connection_config_with_method(self) -> None:
         """Test creating config with different connection method."""
         original_config = ConnectionConfig()
         new_method = ConnectionMethod.WEB_API
@@ -338,7 +343,7 @@ class TestConnectionConfig:
         assert new_config.web_api_port == original_config.web_api_port
 
     @given(connection_config_strategy())
-    def test_connection_config_property_validation(self, config: ConnectionConfig):
+    def test_connection_config_property_validation(self, config: ConnectionConfig) -> None:
         """Property test for ConnectionConfig behavior."""
         # All configs should have valid properties
         assert isinstance(config.method, ConnectionMethod)
@@ -357,7 +362,7 @@ class TestConnectionConfig:
 class TestTriggerDefinition:
     """Test trigger definition functionality."""
 
-    def test_trigger_definition_creation(self):
+    def test_trigger_definition_creation(self) -> None:
         """Test trigger definition creation."""
         trigger_id = TriggerId("test_trigger")
         macro_id = MacroId("test_macro")
@@ -384,7 +389,7 @@ class TestTriggerDefinition:
         assert trigger_def.configuration == configuration
         assert trigger_def.enabled
 
-    def test_trigger_definition_to_dict(self):
+    def test_trigger_definition_to_dict(self) -> None:
         """Test trigger definition dictionary conversion."""
         trigger_id = TriggerId("test_trigger")
         macro_id = MacroId("test_macro")
@@ -414,8 +419,9 @@ class TestTriggerDefinition:
 
     @given(trigger_definition_strategy())
     def test_trigger_definition_property_validation(
-        self, trigger_def: TriggerDefinition
-    ):
+        self,
+        trigger_def: TriggerDefinition,
+    ) -> None:
         """Property test for TriggerDefinition behavior."""
         # All trigger definitions should have required fields
         assert isinstance(trigger_def.trigger_id, str)  # TriggerId is NewType of str
@@ -438,7 +444,7 @@ class TestTriggerDefinition:
 class TestKMClient:
     """Test KMClient functionality."""
 
-    def test_km_client_creation(self):
+    def test_km_client_creation(self) -> None:
         """Test KM client creation."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -447,11 +453,13 @@ class TestKMClient:
         assert client._config == config
 
     @patch("subprocess.run")
-    def test_execute_macro_applescript_success(self, mock_run):
+    def test_execute_macro_applescript_success(self, mock_run) -> None:
         """Test successful macro execution via AppleScript."""
         # Setup mock
         mock_run.return_value = Mock(
-            returncode=0, stdout="Macro executed successfully", stderr=""
+            returncode=0,
+            stdout="Macro executed successfully",
+            stderr="",
         )
 
         config = ConnectionConfig(method=ConnectionMethod.APPLESCRIPT)
@@ -464,7 +472,7 @@ class TestKMClient:
         mock_run.assert_called_once()
 
     @patch("subprocess.run")
-    def test_execute_macro_applescript_failure(self, mock_run):
+    def test_execute_macro_applescript_failure(self, mock_run) -> None:
         """Test failed macro execution via AppleScript."""
         # Setup mock
         mock_run.return_value = Mock(returncode=1, stdout="", stderr="Macro not found")
@@ -478,7 +486,7 @@ class TestKMClient:
         assert "Macro not found" in result.get_left().message
 
     @patch("subprocess.run")
-    def test_execute_macro_applescript_timeout(self, mock_run):
+    def test_execute_macro_applescript_timeout(self, mock_run) -> None:
         """Test macro execution timeout via AppleScript."""
         # Setup mock to raise timeout
         mock_run.side_effect = subprocess.TimeoutExpired(["osascript"], 30)
@@ -492,7 +500,7 @@ class TestKMClient:
         assert result.get_left().code == "TIMEOUT_ERROR"
 
     @patch("subprocess.run")
-    def test_check_connection_applescript(self, mock_run):
+    def test_check_connection_applescript(self, mock_run) -> None:
         """Test connection check via AppleScript."""
         # Setup mock for successful ping
         mock_run.return_value = Mock(returncode=0, stdout="true", stderr="")
@@ -506,11 +514,13 @@ class TestKMClient:
         assert result.get_right()
 
     @patch("subprocess.run")
-    def test_register_trigger_applescript(self, mock_run):
+    def test_register_trigger_applescript(self, mock_run) -> None:
         """Test trigger registration via AppleScript."""
         # Setup mock
         mock_run.return_value = Mock(
-            returncode=0, stdout="SUCCESS: Trigger registered", stderr=""
+            returncode=0,
+            stdout="SUCCESS: Trigger registered",
+            stderr="",
         )
 
         config = ConnectionConfig(method=ConnectionMethod.APPLESCRIPT)
@@ -534,11 +544,13 @@ class TestKMClient:
         assert result.get_right() == "test_trigger"
 
     @patch("subprocess.run")
-    def test_unregister_trigger_applescript(self, mock_run):
+    def test_unregister_trigger_applescript(self, mock_run) -> None:
         """Test trigger unregistration via AppleScript."""
         # Setup mock
         mock_run.return_value = Mock(
-            returncode=0, stdout="SUCCESS: Trigger unregistered", stderr=""
+            returncode=0,
+            stdout="SUCCESS: Trigger unregistered",
+            stderr="",
         )
 
         config = ConnectionConfig(method=ConnectionMethod.APPLESCRIPT)
@@ -549,7 +561,7 @@ class TestKMClient:
         assert result.is_right()
         assert result.get_right()
 
-    def test_unsupported_connection_method(self):
+    def test_unsupported_connection_method(self) -> None:
         """Test unsupported connection method error."""
 
         # Create invalid method
@@ -577,7 +589,7 @@ class TestKMClientAsync:
     """Test KMClient async functionality."""
 
     @pytest.mark.asyncio
-    async def test_register_trigger_async_success(self):
+    async def test_register_trigger_async_success(self) -> None:
         """Test successful async trigger registration."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -612,14 +624,14 @@ class TestKMClientAsync:
             assert result.get_right() == "test_trigger"
 
     @pytest.mark.asyncio
-    async def test_register_trigger_async_validation_failure(self):
+    async def test_register_trigger_async_validation_failure(self) -> None:
         """Test async trigger registration with validation failure."""
         config = ConnectionConfig()
         client = KMClient(config)
 
         with patch.object(client, "_validate_trigger_definition") as mock_validate:
             mock_validate.return_value = Either.left(
-                KMError.validation_error("Invalid trigger")
+                KMError.validation_error("Invalid trigger"),
             )
 
             class MockTriggerType:
@@ -639,7 +651,7 @@ class TestKMClientAsync:
             assert "Invalid trigger" in result.get_left().message
 
     @pytest.mark.asyncio
-    async def test_list_macros_async_applescript(self):
+    async def test_list_macros_async_applescript(self) -> None:
         """Test async macro listing via AppleScript."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -650,7 +662,7 @@ class TestKMClientAsync:
                 [
                     {"id": "macro1", "name": "Test Macro 1", "group": "Group1"},
                     {"id": "macro2", "name": "Test Macro 2", "group": "Group2"},
-                ]
+                ],
             )
 
             result = await client.list_macros_async()
@@ -661,7 +673,7 @@ class TestKMClientAsync:
             assert macros[0]["name"] == "Test Macro 1"
 
     @pytest.mark.asyncio
-    async def test_list_macros_async_fallback_to_web_api(self):
+    async def test_list_macros_async_fallback_to_web_api(self) -> None:
         """Test async macro listing fallback to web API."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -672,10 +684,10 @@ class TestKMClientAsync:
             patch.object(client, "_list_macros_web_api") as mock_web_api,
         ):
             mock_applescript.return_value = Either.left(
-                KMError.connection_error("AppleScript failed")
+                KMError.connection_error("AppleScript failed"),
             )
             mock_web_api.return_value = Either.right(
-                [{"id": "macro1", "name": "Web API Macro", "group": "Web Group"}]
+                [{"id": "macro1", "name": "Web API Macro", "group": "Web Group"}],
             )
 
             result = await client.list_macros_async()
@@ -686,7 +698,7 @@ class TestKMClientAsync:
             assert macros[0]["name"] == "Web API Macro"
 
     @pytest.mark.asyncio
-    async def test_move_macro_to_group_async_success(self):
+    async def test_move_macro_to_group_async_success(self) -> None:
         """Test successful async macro movement."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -721,18 +733,19 @@ class TestKMClientAsync:
             assert move_result.was_successful()
 
     @pytest.mark.asyncio
-    async def test_move_macro_to_group_async_validation_failure(self):
+    async def test_move_macro_to_group_async_validation_failure(self) -> None:
         """Test async macro movement with validation failure."""
         config = ConnectionConfig()
         client = KMClient(config)
 
         with patch.object(client, "_validate_move_operation") as mock_validate:
             mock_validate.return_value = Either.left(
-                KMError.not_found_error("Macro not found")
+                KMError.not_found_error("Macro not found"),
             )
 
             result = await client.move_macro_to_group_async(
-                MacroId("nonexistent"), GroupId("target")
+                MacroId("nonexistent"),
+                GroupId("target"),
             )
 
             assert result.is_left()
@@ -742,7 +755,7 @@ class TestKMClientAsync:
 class TestKMClientAppleScriptParsing:
     """Test AppleScript parsing functionality."""
 
-    def test_parse_applescript_records_single(self):
+    def test_parse_applescript_records_single(self) -> bool:
         """Test parsing single AppleScript record."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -760,7 +773,7 @@ class TestKMClientAppleScriptParsing:
         assert record["triggerCount"] == 2
         assert record["actionCount"] == 5
 
-    def test_parse_applescript_records_multiple(self):
+    def test_parse_applescript_records_multiple(self) -> bool:
         """Test parsing multiple AppleScript records."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -781,7 +794,7 @@ class TestKMClientAppleScriptParsing:
         assert result[1]["macroName"] == "Second Macro"
         assert not result[1]["enabled"]
 
-    def test_parse_applescript_records_with_quotes(self):
+    def test_parse_applescript_records_with_quotes(self) -> bool:
         """Test parsing records with quoted values."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -797,8 +810,9 @@ class TestKMClientAppleScriptParsing:
 
     @given(applescript_output_strategy())
     def test_parse_applescript_records_property_validation(
-        self, applescript_output: str
-    ):
+        self,
+        applescript_output: str,
+    ) -> bool:
         """Property test for AppleScript record parsing."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -815,15 +829,14 @@ class TestKMClientAppleScriptParsing:
                 if "macroId" in record:
                     assert isinstance(record["macroId"], str)
                     assert len(record["macroId"]) > 0
-        except Exception:
-            # Some malformed inputs might fail - that's acceptable
-            pass
+        except Exception as e:
+            logger.debug(f"Operation failed during operation: {e}")
 
 
 class TestKMClientSecurity:
     """Test security features of KM client."""
 
-    def test_escape_applescript_string_basic(self):
+    def test_escape_applescript_string_basic(self) -> str:
         """Test basic AppleScript string escaping."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -840,7 +853,7 @@ class TestKMClientSecurity:
         result = client._escape_applescript_string("Line 1\nLine 2")
         assert result == "Line 1\\nLine 2"
 
-    def test_contains_dangerous_applescript(self):
+    def test_contains_dangerous_applescript(self) -> str:
         """Test dangerous AppleScript detection."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -867,7 +880,7 @@ class TestKMClientSecurity:
         for script in dangerous_scripts:
             assert client._contains_dangerous_applescript(script)
 
-    def test_contains_dangerous_commands(self):
+    def test_contains_dangerous_commands(self) -> str:
         """Test dangerous command detection."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -899,11 +912,11 @@ class TestKMClientSecurity:
 class TestRetryWithBackoff:
     """Test retry functionality."""
 
-    def test_retry_success_first_attempt(self):
+    def test_retry_success_first_attempt(self) -> None:
         """Test retry when operation succeeds on first attempt."""
         call_count = 0
 
-        def mock_operation():
+        def mock_operation() -> Any:
             nonlocal call_count
             call_count += 1
             return Either.right("success")
@@ -914,11 +927,11 @@ class TestRetryWithBackoff:
         assert result.get_right() == "success"
         assert call_count == 1
 
-    def test_retry_success_after_failures(self):
+    def test_retry_success_after_failures(self) -> None:
         """Test retry when operation succeeds after some failures."""
         call_count = 0
 
-        def mock_operation():
+        def mock_operation() -> Any:
             nonlocal call_count
             call_count += 1
             if call_count < 3:
@@ -931,11 +944,11 @@ class TestRetryWithBackoff:
         assert result.get_right() == "success after retries"
         assert call_count == 3
 
-    def test_retry_max_retries_exceeded(self):
+    def test_retry_max_retries_exceeded(self) -> None:
         """Test retry when max retries are exceeded."""
         call_count = 0
 
-        def mock_operation():
+        def mock_operation() -> Any:
             nonlocal call_count
             call_count += 1
             return Either.left(KMError.connection_error("Always fails"))
@@ -946,11 +959,11 @@ class TestRetryWithBackoff:
         assert "Always fails" in result.get_left().message
         assert call_count == 3  # Initial attempt + 2 retries
 
-    def test_retry_with_retry_after(self):
+    def test_retry_with_retry_after(self) -> None:
         """Test retry respects retry_after from error."""
         call_count = 0
 
-        def mock_operation():
+        def mock_operation() -> Any:
             nonlocal call_count
             call_count += 1
             if call_count == 1:
@@ -970,7 +983,7 @@ class TestFallbackClient:
     """Test fallback client functionality."""
 
     @patch("subprocess.run")
-    def test_fallback_client_primary_success(self, mock_run):
+    def test_fallback_client_primary_success(self, mock_run) -> None:
         """Test fallback client when primary method succeeds."""
         # Setup primary method to succeed
         mock_run.return_value = Mock(returncode=0, stdout="Primary success", stderr="")
@@ -985,19 +998,18 @@ class TestFallbackClient:
         assert "success" in result.get_right()
 
     @patch("subprocess.run")
-    def test_fallback_client_primary_failure_fallback_success(self, mock_run):
+    def test_fallback_client_primary_failure_fallback_success(self, mock_run) -> None:
         """Test fallback client when primary fails but fallback succeeds."""
         call_count = 0
 
-        def mock_run_side_effect(*args, **kwargs):
+        def mock_run_side_effect(*args, **kwargs) -> Any:
             nonlocal call_count
             call_count += 1
             if call_count == 1:
                 # Primary method fails
                 return Mock(returncode=1, stdout="", stderr="Primary failed")
-            else:
-                # Fallback method succeeds
-                return Mock(returncode=0, stdout="Fallback success", stderr="")
+            # Fallback method succeeds
+            return Mock(returncode=0, stdout="Fallback success", stderr="")
 
         mock_run.side_effect = mock_run_side_effect
 
@@ -1015,11 +1027,13 @@ class TestIntegration:
     """Integration tests for complete workflows."""
 
     @patch("subprocess.run")
-    def test_complete_macro_execution_workflow(self, mock_run):
+    def test_complete_macro_execution_workflow(self, mock_run) -> None:
         """Test complete macro execution workflow."""
         # Setup successful macro execution
         mock_run.return_value = Mock(
-            returncode=0, stdout="Macro executed successfully with output", stderr=""
+            returncode=0,
+            stdout="Macro executed successfully with output",
+            stderr="",
         )
 
         config = ConnectionConfig(method=ConnectionMethod.APPLESCRIPT)
@@ -1027,7 +1041,8 @@ class TestIntegration:
 
         # Execute macro
         result = client.execute_macro(
-            MacroId("integration_test_macro"), "test_parameter"
+            MacroId("integration_test_macro"),
+            "test_parameter",
         )
 
         assert result.is_right()
@@ -1036,18 +1051,24 @@ class TestIntegration:
         assert "Macro executed successfully" in response["output"]
 
     @patch("subprocess.run")
-    def test_complete_trigger_management_workflow(self, mock_run):
+    def test_complete_trigger_management_workflow(self, mock_run) -> None:
         """Test complete trigger management workflow."""
         # Setup successful trigger operations
         responses = [
             Mock(
-                returncode=0, stdout="SUCCESS: Trigger registered", stderr=""
+                returncode=0,
+                stdout="SUCCESS: Trigger registered",
+                stderr="",
             ),  # Register
             Mock(
-                returncode=0, stdout="SUCCESS: Trigger activated", stderr=""
+                returncode=0,
+                stdout="SUCCESS: Trigger activated",
+                stderr="",
             ),  # Activate
             Mock(
-                returncode=0, stdout="SUCCESS: Trigger unregistered", stderr=""
+                returncode=0,
+                stdout="SUCCESS: Trigger unregistered",
+                stderr="",
             ),  # Unregister
         ]
         mock_run.side_effect = responses
@@ -1082,7 +1103,7 @@ class TestIntegration:
         # Verify all calls were made
         assert mock_run.call_count == 3
 
-    def test_error_propagation_workflow(self):
+    def test_error_propagation_workflow(self) -> None:
         """Test error propagation through workflow."""
         config = ConnectionConfig(method=ConnectionMethod.APPLESCRIPT)
         KMClient(config)

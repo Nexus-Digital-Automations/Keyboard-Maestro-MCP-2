@@ -1,5 +1,4 @@
-"""
-Real-time Predictor - TASK_59 Phase 5 Integration & Validation Implementation
+"""Real-time Predictor - TASK_59 Phase 5 Integration & Validation Implementation.
 
 Real-time prediction serving and monitoring for predictive analytics models.
 Provides low-latency prediction serving, real-time monitoring, and adaptive model management.
@@ -169,15 +168,14 @@ class PredictionCache:
             if (datetime.now(UTC) - cache_time).total_seconds() < self.ttl_seconds:
                 self.access_times[cache_key] = datetime.now(UTC)
                 return response
-            else:
-                # Expired
-                del self.cache[cache_key]
-                if cache_key in self.access_times:
-                    del self.access_times[cache_key]
+            # Expired
+            del self.cache[cache_key]
+            if cache_key in self.access_times:
+                del self.access_times[cache_key]
 
         return None
 
-    def put(self, cache_key: str, response: PredictionResponse):
+    def put(self, cache_key: str, response: PredictionResponse) -> None:
         """Cache prediction response."""
         # Evict if at capacity
         if len(self.cache) >= self.max_size:
@@ -202,7 +200,7 @@ class PredictionCache:
         self.cache[cache_key] = (cached_response, datetime.now(UTC))
         self.access_times[cache_key] = datetime.now(UTC)
 
-    def _evict_lru(self):
+    def _evict_lru(self) -> Any:
         """Evict least recently used item."""
         if self.access_times:
             lru_key = min(self.access_times.items(), key=lambda x: x[1])[0]
@@ -210,7 +208,7 @@ class PredictionCache:
                 del self.cache[lru_key]
             del self.access_times[lru_key]
 
-    def clear(self):
+    def clear(self) -> None:
         """Clear all cached items."""
         self.cache.clear()
         self.access_times.clear()
@@ -302,15 +300,16 @@ class RealtimePredictor:
             # Test model with dummy data
             try:
                 dummy_features = [1.0] * max(
-                    1, len(feature_names) if feature_names else 3
+                    1,
+                    len(feature_names) if feature_names else 3,
                 )
                 test_prediction = predictor_function(dummy_features)
 
                 if not isinstance(test_prediction, int | float):
                     return Either.left(
                         RealtimePredictionError(
-                            f"Model predictor must return numeric value, got {type(test_prediction)}"
-                        )
+                            f"Model predictor must return numeric value, got {type(test_prediction)}",
+                        ),
                     )
 
                 # Test confidence function if provided
@@ -321,13 +320,13 @@ class RealtimePredictor:
                     ):
                         return Either.left(
                             RealtimePredictionError(
-                                "Confidence function must return value between 0.0 and 1.0"
-                            )
+                                "Confidence function must return value between 0.0 and 1.0",
+                            ),
                         )
 
             except Exception as e:
                 return Either.left(
-                    RealtimePredictionError(f"Model test failed: {str(e)}")
+                    RealtimePredictionError(f"Model test failed: {e!s}"),
                 )
 
             # Mark as ready
@@ -348,16 +347,17 @@ class RealtimePredictor:
 
         except Exception as e:
             return Either.left(
-                RealtimePredictionError(f"Failed to load model: {str(e)}")
+                RealtimePredictionError(f"Failed to load model: {e!s}"),
             )
 
     @require(lambda request: isinstance(request, PredictionRequest))
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.left_value, RealtimePredictionError)
+        or isinstance(result.left_value, RealtimePredictionError),
     )
     async def predict(
-        self, request: PredictionRequest
+        self,
+        request: PredictionRequest,
     ) -> Either[RealtimePredictionError, PredictionResponse]:
         """Make real-time prediction."""
         try:
@@ -367,7 +367,7 @@ class RealtimePredictor:
             # Check if model is loaded
             if model_key not in self.loaded_models:
                 return Either.left(
-                    RealtimePredictionError(f"Model {request.model_id} not loaded")
+                    RealtimePredictionError(f"Model {request.model_id} not loaded"),
                 )
 
             loaded_model = self.loaded_models[model_key]
@@ -376,8 +376,8 @@ class RealtimePredictor:
             if loaded_model.model_state not in [ModelState.READY, ModelState.SERVING]:
                 return Either.left(
                     RealtimePredictionError(
-                        f"Model {request.model_id} not ready (state: {loaded_model.model_state.value})"
-                    )
+                        f"Model {request.model_id} not ready (state: {loaded_model.model_state.value})",
+                    ),
                 )
 
             # Check cache first
@@ -392,17 +392,21 @@ class RealtimePredictor:
             # Queue request if priority-based processing
             if request.priority == PredictionPriority.CRITICAL:
                 response = await self._process_prediction_immediately(
-                    request, loaded_model, start_time
+                    request,
+                    loaded_model,
+                    start_time,
                 )
             else:
                 # Add to queue for batch processing
                 response = await self._process_prediction_immediately(
-                    request, loaded_model, start_time
+                    request,
+                    loaded_model,
+                    start_time,
                 )
 
             # Cache result if successful
             if response.is_right():
-                self.prediction_cache.put(cache_key, response.right_value)
+                self.prediction_cache.put(cache_key, response.value)
 
             # Update model state back to ready
             loaded_model.model_state = ModelState.READY
@@ -410,10 +414,13 @@ class RealtimePredictor:
             return response
 
         except Exception as e:
-            return Either.left(RealtimePredictionError(f"Prediction failed: {str(e)}"))
+            return Either.left(RealtimePredictionError(f"Prediction failed: {e!s}"))
 
     async def _process_prediction_immediately(
-        self, request: PredictionRequest, loaded_model: LoadedModel, start_time: float
+        self,
+        request: PredictionRequest,
+        loaded_model: LoadedModel,
+        start_time: float,
     ) -> Either[RealtimePredictionError, PredictionResponse]:
         """Process prediction immediately."""
         try:
@@ -424,8 +431,8 @@ class RealtimePredictor:
             ):
                 return Either.left(
                     RealtimePredictionError(
-                        f"Feature count mismatch: expected {len(loaded_model.feature_names)}, got {len(request.features)}"
-                    )
+                        f"Feature count mismatch: expected {len(loaded_model.feature_names)}, got {len(request.features)}",
+                    ),
                 )
 
             # Make prediction
@@ -434,7 +441,7 @@ class RealtimePredictor:
 
                 if not isinstance(prediction_value, int | float):
                     return Either.left(
-                        RealtimePredictionError("Predictor returned non-numeric value")
+                        RealtimePredictionError("Predictor returned non-numeric value"),
                     )
 
                 prediction_value = float(prediction_value)
@@ -442,7 +449,7 @@ class RealtimePredictor:
             except Exception as e:
                 loaded_model.error_count += 1
                 return Either.left(
-                    RealtimePredictionError(f"Prediction execution failed: {str(e)}")
+                    RealtimePredictionError(f"Prediction execution failed: {e!s}"),
                 )
 
             # Calculate confidence if requested
@@ -452,7 +459,7 @@ class RealtimePredictor:
             if request.include_confidence and loaded_model.confidence_function:
                 try:
                     confidence_score = loaded_model.confidence_function(
-                        request.features
+                        request.features,
                     )
                     confidence_score = float(confidence_score)
 
@@ -473,14 +480,18 @@ class RealtimePredictor:
             feature_importance = None
             if request.include_explanation and loaded_model.feature_names:
                 feature_importance = self._calculate_feature_importance(
-                    request.features, loaded_model.feature_names, prediction_value
+                    request.features,
+                    loaded_model.feature_names,
+                    prediction_value,
                 )
 
             # Generate explanation if requested
             explanation = None
             if request.include_explanation:
                 explanation = self._generate_prediction_explanation(
-                    prediction_value, confidence_score, feature_importance
+                    prediction_value,
+                    confidence_score,
+                    feature_importance,
                 )
 
             # Calculate processing time
@@ -513,7 +524,7 @@ class RealtimePredictor:
                     "processing_time_ms": processing_time_ms,
                     "success": True,
                     "cached": False,
-                }
+                },
             )
 
             return Either.right(response)
@@ -521,7 +532,7 @@ class RealtimePredictor:
         except Exception as e:
             loaded_model.error_count += 1
             return Either.left(
-                RealtimePredictionError(f"Prediction processing failed: {str(e)}")
+                RealtimePredictionError(f"Prediction processing failed: {e!s}"),
             )
 
     def _generate_cache_key(self, request: PredictionRequest) -> str:
@@ -531,7 +542,10 @@ class RealtimePredictor:
         return f"{request.model_id}:{hash(features_str)}"
 
     def _calculate_feature_importance(
-        self, features: list[float], feature_names: list[str], prediction_value: float
+        self,
+        features: list[float],
+        feature_names: list[str],
+        prediction_value: float,
     ) -> dict[str, float]:
         """Calculate simplified feature importance."""
         importance = {}
@@ -540,7 +554,7 @@ class RealtimePredictor:
         total_magnitude = sum(abs(f) for f in features)
 
         for i, (feature_name, feature_value) in enumerate(
-            zip(feature_names, features, strict=False)
+            zip(feature_names, features, strict=False),
         ):
             if total_magnitude > 0:
                 # Importance proportional to feature magnitude
@@ -580,13 +594,15 @@ class RealtimePredictor:
                 else "low"
             )
             explanation_parts.append(
-                f"Confidence: {confidence_pct:.1f}% ({confidence_level})"
+                f"Confidence: {confidence_pct:.1f}% ({confidence_level})",
             )
 
         if feature_importance:
             # Find top 3 most important features
             top_features = sorted(
-                feature_importance.items(), key=lambda x: x[1], reverse=True
+                feature_importance.items(),
+                key=lambda x: x[1],
+                reverse=True,
             )[:3]
             if top_features:
                 feature_list = ", ".join(
@@ -597,7 +613,8 @@ class RealtimePredictor:
         return ". ".join(explanation_parts)
 
     async def predict_batch(
-        self, requests: list[PredictionRequest]
+        self,
+        requests: list[PredictionRequest],
     ) -> list[Either[RealtimePredictionError, PredictionResponse]]:
         """Make batch predictions efficiently."""
         if not requests:
@@ -622,7 +639,8 @@ class RealtimePredictor:
         return results
 
     async def predict_streaming(
-        self, request_stream: AsyncGenerator[PredictionRequest, None]
+        self,
+        request_stream: AsyncGenerator[PredictionRequest, None],
     ) -> AsyncGenerator[Either[RealtimePredictionError, PredictionResponse], None]:
         """Handle streaming predictions."""
         async for request in request_stream:
@@ -637,7 +655,8 @@ class RealtimePredictor:
                 if not self.prediction_queue.empty():
                     # Get next request
                     request = await asyncio.wait_for(
-                        self.prediction_queue.get(), timeout=1.0
+                        self.prediction_queue.get(),
+                        timeout=1.0,
                     )
 
                     # Process prediction
@@ -700,7 +719,8 @@ class RealtimePredictor:
                             if entry.get("cached", False)
                         ]
                         cache_hit_rate = len(cached_requests) / max(
-                            1, len(recent_requests)
+                            1,
+                            len(recent_requests),
                         )
 
                         # Update metrics
@@ -738,13 +758,13 @@ class RealtimePredictor:
                         metrics = self.model_metrics[model_key]
                         if metrics.error_rate > 0.1:  # 10% error rate threshold
                             print(
-                                f"High error rate for model {model_key}: {metrics.error_rate:.2%}"
+                                f"High error rate for model {model_key}: {metrics.error_rate:.2%}",
                             )
 
                         # Check latency
                         if metrics.average_latency_ms > 1000:  # 1 second threshold
                             print(
-                                f"High latency for model {model_key}: {metrics.average_latency_ms:.1f}ms"
+                                f"High latency for model {model_key}: {metrics.average_latency_ms:.1f}ms",
                             )
 
                 await asyncio.sleep(30.0)  # Check every 30 seconds
@@ -767,7 +787,8 @@ class RealtimePredictor:
                 await asyncio.sleep(300.0)
 
     async def get_model_status(
-        self, model_id: ModelId
+        self,
+        model_id: ModelId,
     ) -> Either[RealtimePredictionError, dict[str, Any]]:
         """Get status and metrics for a specific model."""
         try:
@@ -775,7 +796,7 @@ class RealtimePredictor:
 
             if model_key not in self.loaded_models:
                 return Either.left(
-                    RealtimePredictionError(f"Model {model_id} not found")
+                    RealtimePredictionError(f"Model {model_id} not found"),
                 )
 
             loaded_model = self.loaded_models[model_key]
@@ -808,7 +829,7 @@ class RealtimePredictor:
 
         except Exception as e:
             return Either.left(
-                RealtimePredictionError(f"Failed to get model status: {str(e)}")
+                RealtimePredictionError(f"Failed to get model status: {e!s}"),
             )
 
     async def get_system_metrics(self) -> dict[str, Any]:
@@ -861,7 +882,8 @@ class RealtimePredictor:
         }
 
     async def unload_model(
-        self, model_id: ModelId
+        self,
+        model_id: ModelId,
     ) -> Either[RealtimePredictionError, str]:
         """Unload a model from real-time serving."""
         try:
@@ -869,7 +891,7 @@ class RealtimePredictor:
 
             if model_key not in self.loaded_models:
                 return Either.left(
-                    RealtimePredictionError(f"Model {model_id} not loaded")
+                    RealtimePredictionError(f"Model {model_id} not loaded"),
                 )
 
             # Mark as retired
@@ -890,7 +912,7 @@ class RealtimePredictor:
 
         except Exception as e:
             return Either.left(
-                RealtimePredictionError(f"Failed to unload model: {str(e)}")
+                RealtimePredictionError(f"Failed to unload model: {e!s}"),
             )
 
     async def update_model(
@@ -905,7 +927,7 @@ class RealtimePredictor:
 
             if model_key not in self.loaded_models:
                 return Either.left(
-                    RealtimePredictionError(f"Model {model_id} not loaded")
+                    RealtimePredictionError(f"Model {model_id} not loaded"),
                 )
 
             loaded_model = self.loaded_models[model_key]
@@ -918,7 +940,7 @@ class RealtimePredictor:
             if not isinstance(test_prediction, int | float):
                 loaded_model.model_state = ModelState.ERROR
                 return Either.left(
-                    RealtimePredictionError("New predictor must return numeric value")
+                    RealtimePredictionError("New predictor must return numeric value"),
                 )
 
             # Update predictor functions
@@ -943,7 +965,7 @@ class RealtimePredictor:
             if model_key in self.loaded_models:
                 self.loaded_models[model_key].model_state = ModelState.ERROR
             return Either.left(
-                RealtimePredictionError(f"Failed to update model: {str(e)}")
+                RealtimePredictionError(f"Failed to update model: {e!s}"),
             )
 
     def __del__(self):

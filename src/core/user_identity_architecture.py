@@ -1,5 +1,4 @@
-"""
-User Identity Architecture - TASK_67 Phase 1 Architecture & Design
+"""User Identity Architecture - TASK_67 Phase 1 Architecture & Design.
 
 Type-safe user identity management with enterprise-grade security, privacy protection,
 and personalized automation for username-based authentication systems.
@@ -30,8 +29,8 @@ SessionToken = NewType("SessionToken", str)
 class AuthenticationMethod(Enum):
     """Supported authentication methods."""
 
-    PASSWORD = "password"
-    TOKEN = "token"
+    PASSWORD = "password"  # noqa: S105 - Type identifier, not a secret
+    TOKEN = "token"  # noqa: S105 - Type identifier, not a secret
     SSO = "sso"
     SESSION = "session"
     API_KEY = "api_key"
@@ -159,7 +158,7 @@ class AuthenticationRequest:
     def __post_init__(self):
         if self.multi_factor and self.security_level == SecurityLevel.LOW:
             raise ValueError(
-                "Multi-factor authentication requires security level medium or higher"
+                "Multi-factor authentication requires security level medium or higher",
             )
 
 
@@ -256,7 +255,7 @@ class PersonalizationSettings:
 
     @require(lambda self: len(self.automation_preferences) >= 0)
     @require(
-        lambda self: self.adaptation_level in ["light", "moderate", "comprehensive"]
+        lambda self: self.adaptation_level in ["light", "moderate", "comprehensive"],
     )
     def __post_init__(self):
         pass
@@ -269,7 +268,8 @@ class PersonalizationSettings:
     def is_learning_enabled(self) -> bool:
         """Check if behavioral learning is enabled."""
         return self.learning_enabled and self.privacy_preferences.get(
-            "allow_learning", True
+            "allow_learning",
+            True,
         )
 
 
@@ -399,7 +399,8 @@ def generate_salt() -> str:
 
 
 def validate_password_complexity(
-    password: str, requirements: dict[str, Any]
+    password: str,
+    requirements: dict[str, Any],
 ) -> tuple[bool, list[str]]:
     """Validate password meets complexity requirements."""
     errors = []
@@ -408,17 +409,20 @@ def validate_password_complexity(
     if len(password) < min_length:
         errors.append(f"Password must be at least {min_length} characters")
 
-    if requirements.get("require_uppercase", True):
-        if not any(c.isupper() for c in password):
-            errors.append("Password must contain at least one uppercase letter")
+    if requirements.get("require_uppercase", True) and not any(
+        c.isupper() for c in password
+    ):
+        errors.append("Password must contain at least one uppercase letter")
 
-    if requirements.get("require_lowercase", True):
-        if not any(c.islower() for c in password):
-            errors.append("Password must contain at least one lowercase letter")
+    if requirements.get("require_lowercase", True) and not any(
+        c.islower() for c in password
+    ):
+        errors.append("Password must contain at least one lowercase letter")
 
-    if requirements.get("require_digits", True):
-        if not any(c.isdigit() for c in password):
-            errors.append("Password must contain at least one digit")
+    if requirements.get("require_digits", True) and not any(
+        c.isdigit() for c in password
+    ):
+        errors.append("Password must contain at least one digit")
 
     if requirements.get("require_special", True):
         special_chars = "!@#$%^&*()_+-=[]{}|;:,.<>?"
@@ -434,7 +438,8 @@ def calculate_session_expiry(duration_hours: int) -> datetime:
 
 
 def validate_user_permissions(
-    user_permissions: set[str], required_permission: str
+    user_permissions: set[str],
+    required_permission: str,
 ) -> bool:
     """Validate user has required permissions."""
     return required_permission in user_permissions
@@ -466,7 +471,8 @@ def create_default_identity_config() -> IdentityConfiguration:
 
 
 def analyze_authentication_risk(
-    auth_request: AuthenticationRequest, user_profile: UserProfile | None = None
+    auth_request: AuthenticationRequest,
+    user_profile: UserProfile | None = None,
 ) -> dict[str, Any]:
     """Analyze authentication request for security risks."""
     risk_factors = {"risk_level": "low", "risk_score": 0.0, "factors": []}

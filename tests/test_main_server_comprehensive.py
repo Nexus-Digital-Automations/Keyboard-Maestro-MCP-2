@@ -1,5 +1,4 @@
-"""
-Comprehensive Main Server Tests - Coverage Expansion
+"""Comprehensive Main Server Tests - Coverage Expansion.
 
 Tests for main.py, server initialization, resources, and configuration modules.
 Focuses on achieving high coverage for actual server implementation.
@@ -8,6 +7,9 @@ Architecture: Property-Based Testing + Type Safety + Contract Validation
 Performance: <100ms per test, parallel execution, comprehensive edge case coverage
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import os
 import tempfile
 from unittest.mock import AsyncMock, Mock, patch
@@ -33,17 +35,17 @@ except ImportError:
     MAIN_SERVER_AVAILABLE = False
 
     # Mock classes for testing
-    def create_mcp_server():
+    def create_mcp_server() -> None:
         return None
 
-    def main():
+    def main() -> None:
         pass
 
 
 class TestMainEntryPoint:
     """Test main entry point functionality."""
 
-    def test_create_mcp_server(self):
+    def test_create_mcp_server(self) -> None:
         """Test MCP server creation."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Main server module not available")
@@ -58,7 +60,7 @@ class TestMainEntryPoint:
             mock_fastmcp.assert_called_once()
             assert server == mock_server
 
-    def test_server_configuration(self):
+    def test_server_configuration(self) -> None:
         """Test server configuration."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Main server module not available")
@@ -83,7 +85,7 @@ class TestMainEntryPoint:
             mock_config.assert_called_once()
             mock_config_manager.get_category_summary.assert_called_once()
 
-    def test_main_function_execution(self):
+    def test_main_function_execution(self) -> None:
         """Test main function execution."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Main server module not available")
@@ -105,7 +107,7 @@ class TestMainEntryPoint:
 
             mock_create.assert_called_once()
 
-    def test_main_with_arguments(self):
+    def test_main_with_arguments(self) -> None:
         """Test main function with command line arguments."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Main server module not available")
@@ -132,7 +134,7 @@ class TestMainEntryPoint:
             # Should parse arguments
             mock_parser_instance.parse_args.assert_called_once()
 
-    def test_logging_configuration(self):
+    def test_logging_configuration(self) -> None:
         """Test logging configuration."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Main server module not available")
@@ -152,7 +154,7 @@ class TestServerInitialization:
     """Test server initialization functionality."""
 
     @pytest.mark.asyncio
-    async def test_initialize_components(self):
+    async def test_initialize_components(self) -> None:
         """Test component initialization."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server initialization module not available")
@@ -175,7 +177,7 @@ class TestServerInitialization:
             assert result is not None
 
     @pytest.mark.asyncio
-    async def test_get_km_client(self):
+    async def test_get_km_client(self) -> None:
         """Test KM client retrieval."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server initialization module not available")
@@ -190,7 +192,7 @@ class TestServerInitialization:
             assert client == mock_client
 
     @pytest.mark.asyncio
-    async def test_initialization_error_handling(self):
+    async def test_initialization_error_handling(self) -> None:
         """Test initialization error handling."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server initialization module not available")
@@ -201,7 +203,7 @@ class TestServerInitialization:
             with pytest.raises(Exception, match="Initialization failed"):
                 await initialize_components()
 
-    def test_configuration_loading(self):
+    def test_configuration_loading(self) -> None:
         """Test configuration loading."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server initialization module not available")
@@ -220,7 +222,7 @@ class TestServerInitialization:
             assert config["server"]["port"] == 8080
             assert config["tools"]["enabled"] is True
 
-    def test_environment_detection(self):
+    def test_environment_detection(self) -> None:
         """Test environment detection."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server initialization module not available")
@@ -239,7 +241,7 @@ class TestServerInitialization:
 class TestServerResources:
     """Test server resources functionality."""
 
-    def test_get_server_status(self):
+    def test_get_server_status(self) -> None:
         """Test server status retrieval."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server resources module not available")
@@ -263,7 +265,7 @@ class TestServerResources:
             assert "system_info" in status
             assert status["system_info"]["platform"] == "macOS"
 
-    def test_get_tool_help(self):
+    def test_get_tool_help(self) -> None:
         """Test tool help generation."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server resources module not available")
@@ -274,7 +276,7 @@ class TestServerResources:
         assert len(help_text) > 0
         assert "km_execute_macro" in help_text.lower()
 
-    def test_get_tool_help_nonexistent(self):
+    def test_get_tool_help_nonexistent(self) -> None:
         """Test tool help for nonexistent tool."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server resources module not available")
@@ -284,7 +286,7 @@ class TestServerResources:
         assert isinstance(help_text, str)
         assert "not found" in help_text.lower() or "unknown" in help_text.lower()
 
-    def test_create_macro_prompt(self):
+    def test_create_macro_prompt(self) -> None:
         """Test macro prompt creation."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server resources module not available")
@@ -302,7 +304,7 @@ class TestServerResources:
         assert "description" in prompt
         assert "actions" in prompt
 
-    def test_prompt_validation(self):
+    def test_prompt_validation(self) -> None:
         """Test prompt validation."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server resources module not available")
@@ -325,7 +327,7 @@ class TestServerResources:
 
     @given(st.text(min_size=1, max_size=50))
     @settings(max_examples=10)
-    def test_tool_help_property_based(self, tool_name):
+    def test_tool_help_property_based(self, tool_name) -> None:
         """Property-based test for tool help."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server resources module not available")
@@ -340,7 +342,7 @@ class TestServerResources:
 class TestServerConfig:
     """Test server configuration functionality."""
 
-    def test_server_config_creation(self):
+    def test_server_config_creation(self) -> None:
         """Test server config creation."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server config module not available")
@@ -352,7 +354,7 @@ class TestServerConfig:
         assert config.debug is True
         assert config.log_level == "INFO"
 
-    def test_server_config_validation(self):
+    def test_server_config_validation(self) -> None:
         """Test server config validation."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server config module not available")
@@ -368,7 +370,7 @@ class TestServerConfig:
         with pytest.raises(ValueError):
             ServerConfig(host="localhost", port=70000)
 
-    def test_tool_config_creation(self):
+    def test_tool_config_creation(self) -> None:
         """Test tool config creation."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server config module not available")
@@ -384,14 +386,18 @@ class TestServerConfig:
         assert "km_execute_macro" in tool_config.enabled_tools
         assert tool_config.tool_timeout == 30.0
 
-    def test_config_loading_from_file(self):
+    def test_config_loading_from_file(self) -> None:
         """Test config loading from file."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server config module not available")
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             config_data = {
-                "server": {"host": "0.0.0.0", "port": 8080, "debug": False},
+                "server": {
+                    "host": "127.0.0.1",
+                    "port": 8080,
+                    "debug": False,
+                },  # S104 fix: Use localhost instead of binding to all interfaces
                 "tools": {"enabled_tools": ["km_execute_macro"], "tool_timeout": 60.0},
             }
             import json
@@ -404,13 +410,15 @@ class TestServerConfig:
 
                 loaded_config = load_config_from_file(f.name)
 
-                assert loaded_config["server"]["host"] == "0.0.0.0"
+                assert (
+                    loaded_config["server"]["host"] == "127.0.0.1"
+                )  # S104 fix: Updated assertion to match secure localhost binding
                 assert loaded_config["server"]["port"] == 8080
                 assert loaded_config["tools"]["tool_timeout"] == 60.0
             finally:
                 os.unlink(f.name)
 
-    def test_config_environment_override(self):
+    def test_config_environment_override(self) -> None:
         """Test config environment variable override."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server config module not available")
@@ -435,7 +443,7 @@ class TestServerConfig:
 class TestServerUtils:
     """Test server utility functions."""
 
-    def test_validate_input(self):
+    def test_validate_input(self) -> None:
         """Test input validation."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server utils module not available")
@@ -451,7 +459,7 @@ class TestServerUtils:
         assert validate_input(42, str) is False
         assert validate_input(None, str) is False
 
-    def test_sanitize_output(self):
+    def test_sanitize_output(self) -> None:
         """Test output sanitization."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server utils module not available")
@@ -476,7 +484,7 @@ class TestServerUtils:
         assert "<img" not in clean_dict["nested"]["dangerous"]
         assert clean_dict["safe_key"] == "safe_value"
 
-    def test_input_validation_schemas(self):
+    def test_input_validation_schemas(self) -> None:
         """Test input validation with schemas."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server utils module not available")
@@ -513,7 +521,7 @@ class TestServerUtils:
 
     @given(st.text(), st.one_of(st.none(), st.text(), st.integers(), st.booleans()))
     @settings(max_examples=20)
-    def test_sanitization_property_based(self, key, value):
+    def test_sanitization_property_based(self, key, value) -> None:
         """Property-based test for sanitization."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server utils module not available")
@@ -536,7 +544,7 @@ class TestServerIntegration:
     """Test server integration scenarios."""
 
     @pytest.mark.asyncio
-    async def test_full_server_startup(self):
+    async def test_full_server_startup(self) -> None:
         """Test full server startup process."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server modules not available")
@@ -557,7 +565,7 @@ class TestServerIntegration:
             assert server == mock_server
 
     @pytest.mark.asyncio
-    async def test_server_shutdown_handling(self):
+    async def test_server_shutdown_handling(self) -> None:
         """Test server shutdown handling."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server modules not available")
@@ -570,7 +578,7 @@ class TestServerIntegration:
             # Should cleanup components
             mock_cleanup.assert_called_once()
 
-    def test_error_recovery(self):
+    def test_error_recovery(self) -> None:
         """Test error recovery mechanisms."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server modules not available")
@@ -595,7 +603,7 @@ class TestServerIntegration:
 class TestServerPerformance:
     """Test server performance characteristics."""
 
-    def test_status_response_time(self):
+    def test_status_response_time(self) -> None:
         """Test server status response time."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server modules not available")
@@ -614,7 +622,7 @@ class TestServerPerformance:
             assert response_time < 0.1  # Less than 100ms
             assert status is not None
 
-    def test_concurrent_help_requests(self):
+    def test_concurrent_help_requests(self) -> None:
         """Test concurrent help request handling."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server modules not available")
@@ -624,12 +632,15 @@ class TestServerPerformance:
 
         results = []
 
-        def get_help_worker():
+        def get_help_worker() -> None:
             start_time = time.time()
             help_text = get_tool_help("km_execute_macro")
             end_time = time.time()
             results.append(
-                {"help_text": help_text, "response_time": end_time - start_time}
+                {
+                    "help_text": help_text,
+                    "response_time": end_time - start_time,
+                },
             )
 
         # Create multiple threads

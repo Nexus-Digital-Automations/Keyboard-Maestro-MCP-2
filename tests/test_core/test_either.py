@@ -1,10 +1,12 @@
-"""
-Comprehensive tests for Either monad implementation.
+"""Comprehensive tests for Either monad implementation.
 
 Tests cover all Either functionality including Left/Right creation,
 transformations, error handling, and property-based testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
@@ -14,7 +16,7 @@ from src.core.either import Either, Left, Right
 class TestEitherBasics:
     """Test basic Either functionality."""
 
-    def test_left_creation(self):
+    def test_left_creation(self) -> None:
         """Test Left value creation and properties."""
         error = "Something went wrong"
         left = Left(error)
@@ -26,7 +28,7 @@ class TestEitherBasics:
         with pytest.raises(ValueError):
             left.get_right()
 
-    def test_right_creation(self):
+    def test_right_creation(self) -> None:
         """Test Right value creation and properties."""
         value = 42
         right = Right(value)
@@ -38,7 +40,7 @@ class TestEitherBasics:
         with pytest.raises(ValueError):
             right.get_left()
 
-    def test_left_equality(self):
+    def test_left_equality(self) -> None:
         """Test Left equality comparison."""
         left1 = Left("error")
         left2 = Left("error")
@@ -48,7 +50,7 @@ class TestEitherBasics:
         assert left1 != left3
         assert left1 != Right("error")
 
-    def test_right_equality(self):
+    def test_right_equality(self) -> None:
         """Test Right equality comparison."""
         right1 = Right(42)
         right2 = Right(42)
@@ -62,7 +64,7 @@ class TestEitherBasics:
 class TestEitherTransformations:
     """Test Either transformations (map, flat_map, etc.)."""
 
-    def test_right_map(self):
+    def test_right_map(self) -> None:
         """Test mapping over Right values."""
         right = Right(5)
         mapped = right.map(lambda x: x * 2)
@@ -70,7 +72,7 @@ class TestEitherTransformations:
         assert mapped.is_right() is True
         assert mapped.get_right() == 10
 
-    def test_left_map(self):
+    def test_left_map(self) -> None:
         """Test mapping over Left values (should remain unchanged)."""
         left = Left("error")
         mapped = left.map(lambda x: x * 2)
@@ -78,7 +80,7 @@ class TestEitherTransformations:
         assert mapped.is_left() is True
         assert mapped.get_left() == "error"
 
-    def test_right_flat_map(self):
+    def test_right_flat_map(self) -> None:
         """Test flat mapping over Right values."""
         right = Right(5)
 
@@ -92,7 +94,7 @@ class TestEitherTransformations:
         assert flat_mapped_error.is_left() is True
         assert flat_mapped_error.get_left() == "error in transformation"
 
-    def test_left_flat_map(self):
+    def test_left_flat_map(self) -> None:
         """Test flat mapping over Left values (should remain unchanged)."""
         left = Left("original error")
         flat_mapped = left.flat_map(lambda x: Right(x * 2))
@@ -100,7 +102,7 @@ class TestEitherTransformations:
         assert flat_mapped.is_left() is True
         assert flat_mapped.get_left() == "original error"
 
-    def test_map_left(self):
+    def test_map_left(self) -> None:
         """Test mapping over Left values."""
         left = Left("error")
         mapped = left.map_left(lambda x: f"Transformed: {x}")
@@ -108,7 +110,7 @@ class TestEitherTransformations:
         assert mapped.is_left() is True
         assert mapped.get_left() == "Transformed: error"
 
-    def test_right_map_left(self):
+    def test_right_map_left(self) -> None:
         """Test mapping Left on Right values (should remain unchanged)."""
         right = Right(42)
         mapped = right.map_left(lambda x: f"Transformed: {x}")
@@ -120,7 +122,7 @@ class TestEitherTransformations:
 class TestEitherFiltering:
     """Test Either filtering and conditional operations."""
 
-    def test_right_filter_success(self):
+    def test_right_filter_success(self) -> None:
         """Test filtering Right values that pass the predicate."""
         right = Right(10)
         filtered = right.filter(lambda x: x > 5, "Value too small")
@@ -128,7 +130,7 @@ class TestEitherFiltering:
         assert filtered.is_right() is True
         assert filtered.get_right() == 10
 
-    def test_right_filter_failure(self):
+    def test_right_filter_failure(self) -> None:
         """Test filtering Right values that fail the predicate."""
         right = Right(3)
         filtered = right.filter(lambda x: x > 5, "Value too small")
@@ -136,7 +138,7 @@ class TestEitherFiltering:
         assert filtered.is_left() is True
         assert filtered.get_left() == "Value too small"
 
-    def test_left_filter(self):
+    def test_left_filter(self) -> None:
         """Test filtering Left values (should remain unchanged)."""
         left = Left("original error")
         filtered = left.filter(lambda x: x > 5, "Value too small")
@@ -148,25 +150,27 @@ class TestEitherFiltering:
 class TestEitherUtilities:
     """Test Either utility methods."""
 
-    def test_fold_right(self):
+    def test_fold_right(self) -> None:
         """Test folding Right values."""
         right = Right(42)
         result = right.fold(
-            left_func=lambda x: f"Error: {x}", right_func=lambda x: f"Success: {x}"
+            left_func=lambda x: f"Error: {x}",
+            right_func=lambda x: f"Success: {x}",
         )
 
         assert result == "Success: 42"
 
-    def test_fold_left(self):
+    def test_fold_left(self) -> None:
         """Test folding Left values."""
         left = Left("error")
         result = left.fold(
-            left_func=lambda x: f"Error: {x}", right_func=lambda x: f"Success: {x}"
+            left_func=lambda x: f"Error: {x}",
+            right_func=lambda x: f"Success: {x}",
         )
 
         assert result == "Error: error"
 
-    def test_or_else_right(self):
+    def test_or_else_right(self) -> None:
         """Test or_else on Right values."""
         right = Right(42)
         result = right.or_else(Right(99))
@@ -174,7 +178,7 @@ class TestEitherUtilities:
         assert result.is_right() is True
         assert result.get_right() == 42
 
-    def test_or_else_left(self):
+    def test_or_else_left(self) -> None:
         """Test or_else on Left values."""
         left = Left("error")
         result = left.or_else(Right(99))
@@ -182,14 +186,14 @@ class TestEitherUtilities:
         assert result.is_right() is True
         assert result.get_right() == 99
 
-    def test_get_or_else_right(self):
+    def test_get_or_else_right(self) -> None:
         """Test get_or_else on Right values."""
         right = Right(42)
         result = right.get_or_else(99)
 
         assert result == 42
 
-    def test_get_or_else_left(self):
+    def test_get_or_else_left(self) -> None:
         """Test get_or_else on Left values."""
         left = Left("error")
         result = left.get_or_else(99)
@@ -200,7 +204,7 @@ class TestEitherUtilities:
 class TestEitherChaining:
     """Test chaining Either operations."""
 
-    def test_successful_chain(self):
+    def test_successful_chain(self) -> None:
         """Test chaining successful operations."""
         result = (
             Right(5)
@@ -212,7 +216,7 @@ class TestEitherChaining:
         assert result.is_right() is True
         assert result.get_right() == 11
 
-    def test_chain_with_failure(self):
+    def test_chain_with_failure(self) -> None:
         """Test chaining with a failure in the middle."""
         result = (
             Right(5)
@@ -224,7 +228,7 @@ class TestEitherChaining:
         assert result.is_left() is True
         assert result.get_left() == "Error in middle"
 
-    def test_chain_starting_with_left(self):
+    def test_chain_starting_with_left(self) -> None:
         """Test chaining starting with Left value."""
         result = (
             Left("Initial error")
@@ -240,28 +244,28 @@ class TestEitherChaining:
 class TestEitherConstructors:
     """Test Either construction helpers."""
 
-    def test_try_success(self):
+    def test_try_success(self) -> None:
         """Test try_either with successful operation."""
         result = Either.try_either(lambda: 10 / 2)
 
         assert result.is_right() is True
         assert result.get_right() == 5.0
 
-    def test_try_failure(self):
+    def test_try_failure(self) -> None:
         """Test try_either with failing operation."""
         result = Either.try_either(lambda: 10 / 0)
 
         assert result.is_left() is True
         assert isinstance(result.get_left(), ZeroDivisionError)
 
-    def test_from_optional_some(self):
+    def test_from_optional_some(self) -> None:
         """Test creating Either from Some value."""
         result = Either.from_optional(42, "No value")
 
         assert result.is_right() is True
         assert result.get_right() == 42
 
-    def test_from_optional_none(self):
+    def test_from_optional_none(self) -> None:
         """Test creating Either from None value."""
         result = Either.from_optional(None, "No value")
 
@@ -273,7 +277,7 @@ class TestPropertyBasedEither:
     """Property-based tests for Either laws and invariants."""
 
     @given(st.integers())
-    def test_right_identity_law(self, value):
+    def test_right_identity_law(self, value) -> None:
         """Test that Right values preserve identity under map with identity function."""
         right = Right(value)
         mapped = right.map(lambda x: x)
@@ -281,7 +285,7 @@ class TestPropertyBasedEither:
         assert mapped == right
 
     @given(st.text())
-    def test_left_identity_law(self, error):
+    def test_left_identity_law(self, error) -> None:
         """Test that Left values preserve identity under map."""
         left = Left(error)
         mapped = left.map(lambda x: x * 2)
@@ -289,14 +293,14 @@ class TestPropertyBasedEither:
         assert mapped == left
 
     @given(st.integers())
-    def test_composition_law(self, value):
+    def test_composition_law(self, value) -> None:
         """Test that map composition is associative."""
         right = Right(value)
 
-        def f(x):
+        def f(x) -> Any:
             return x + 1
 
-        def g(x):
+        def g(x) -> Any:
             return x * 2
 
         # map(g ∘ f) == map(g).map(f)
@@ -306,7 +310,7 @@ class TestPropertyBasedEither:
         assert composed1 == composed2
 
     @given(st.integers())
-    def test_flat_map_identity_law(self, value):
+    def test_flat_map_identity_law(self, value) -> None:
         """Test flat_map identity law: Right(a).flat_map(Right) == Right(a)."""
         right = Right(value)
         flat_mapped = right.flat_map(lambda x: Right(x))
@@ -314,7 +318,7 @@ class TestPropertyBasedEither:
         assert flat_mapped == right
 
     @given(st.text())
-    def test_left_flat_map_invariant(self, error):
+    def test_left_flat_map_invariant(self, error) -> None:
         """Test that flat_map on Left values returns the same Left."""
         left = Left(error)
         flat_mapped = left.flat_map(lambda x: Right(x * 2))
@@ -322,14 +326,14 @@ class TestPropertyBasedEither:
         assert flat_mapped == left
 
     @given(st.integers(), st.integers())
-    def test_associativity_law(self, value, multiplier):
+    def test_associativity_law(self, value, multiplier) -> None:
         """Test flat_map associativity law."""
         right = Right(value)
 
-        def f(x):
+        def f(x) -> Any:
             return Right(x + 1)
 
-        def g(x):
+        def g(x) -> Any:
             return Right(x * multiplier)
 
         # right.flat_map(f).flat_map(g) == right.flat_map(lambda x: f(x).flat_map(g))
@@ -342,7 +346,7 @@ class TestPropertyBasedEither:
 class TestEitherTypeAnnotations:
     """Test Either with various types."""
 
-    def test_string_either(self):
+    def test_string_either(self) -> None:
         """Test Either with string types."""
         success: Either[str, str] = Right("success")
         failure: Either[str, str] = Left("failure")
@@ -350,7 +354,7 @@ class TestEitherTypeAnnotations:
         assert success.is_right() is True
         assert failure.is_left() is True
 
-    def test_complex_types(self):
+    def test_complex_types(self) -> None:
         """Test Either with complex types."""
         data = {"key": "value", "number": 42}
         success: Either[str, dict] = Right(data)
@@ -358,7 +362,7 @@ class TestEitherTypeAnnotations:
         assert success.is_right() is True
         assert success.get_right() == data
 
-    def test_nested_either(self):
+    def test_nested_either(self) -> None:
         """Test nested Either operations."""
 
         def divide(x: float, y: float) -> Either[str, float]:

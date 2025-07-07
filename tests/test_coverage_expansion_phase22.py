@@ -1,23 +1,27 @@
-"""
-Phase 22 Comprehensive Domain Module Testing & Advanced Coverage Optimization for Keyboard Maestro MCP.
+"""Phase 22 Comprehensive Domain Module Testing & Advanced Coverage Optimization for Keyboard Maestro MCP.
 
 This module targets comprehensive domain module testing and advanced coverage optimization,
 focusing on comprehensive domain coverage, remaining infrastructure systems, and advanced system
 integration patterns for systematic progression toward 18%+ coverage milestone through comprehensive testing.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_advanced_workflow_business_intelligence():
+def test_advanced_workflow_business_intelligence() -> None:
     """Test comprehensive coverage of advanced workflow and business intelligence systems."""
-
     # Target advanced workflow and business intelligence modules
     workflow_bi_modules = [
         ("workflow", "visual_composer"),  # Advanced workflow visual composition
@@ -86,9 +90,9 @@ def test_advanced_workflow_business_intelligence():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -98,9 +102,8 @@ def test_advanced_workflow_business_intelligence():
     )
 
 
-def test_enterprise_communication_collaboration():
+def test_enterprise_communication_collaboration() -> None:
     """Test comprehensive coverage of enterprise communication and collaboration systems."""
-
     # Target enterprise communication and collaboration modules
     comm_collab_modules = [
         ("agents", "communication_hub"),  # Enterprise communication hub
@@ -164,9 +167,9 @@ def test_enterprise_communication_collaboration():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -176,9 +179,8 @@ def test_enterprise_communication_collaboration():
     )
 
 
-def test_advanced_analytics_data_processing():
+def test_advanced_analytics_data_processing() -> None:
     """Test comprehensive coverage of advanced analytics and data processing systems."""
-
     # Target advanced analytics and data processing modules
     analytics_data_modules = [
         ("analytics", "performance_analyzer"),  # Performance analysis systems
@@ -244,9 +246,9 @@ def test_advanced_analytics_data_processing():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -256,9 +258,8 @@ def test_advanced_analytics_data_processing():
     )
 
 
-def test_system_integration_middleware():
+def test_system_integration_middleware() -> None:
     """Test comprehensive coverage of system integration and middleware systems."""
-
     # Target system integration and middleware modules
     integration_middleware_modules = [
         ("integration", "event_dispatcher"),  # Event dispatching systems
@@ -325,9 +326,9 @@ def test_system_integration_middleware():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -337,9 +338,8 @@ def test_system_integration_middleware():
     )
 
 
-def test_remaining_infrastructure_components():
+def test_remaining_infrastructure_components() -> None:
     """Test comprehensive coverage of remaining infrastructure components."""
-
     # Target remaining infrastructure component modules
     infrastructure_modules = [
         ("infrastructure", "backup_manager"),  # Backup management systems
@@ -394,9 +394,9 @@ def test_remaining_infrastructure_components():
                                     if hasattr(instance, method):
                                         assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -406,9 +406,8 @@ def test_remaining_infrastructure_components():
     )
 
 
-def test_comprehensive_domain_functionality_patterns():
+def test_comprehensive_domain_functionality_patterns() -> None:
     """Test comprehensive functionality patterns across all domain areas."""
-
     # Test comprehensive domain functionality patterns
     domain_functionality_data = {
         "workflow_business_intelligence": {
@@ -568,7 +567,7 @@ def test_comprehensive_domain_functionality_patterns():
     assert analytics_metrics["processing_efficiency"] > 0.90
 
 
-def test_advanced_comprehensive_async_functionality():
+def test_advanced_comprehensive_async_functionality() -> bool:
     """Test advanced async functionality for Phase 22 comprehensive domain modules."""
 
     @pytest.mark.asyncio
@@ -697,9 +696,8 @@ def test_advanced_comprehensive_async_functionality():
     assert result is True
 
 
-def test_strategic_comprehensive_coverage_optimization():
+def test_strategic_comprehensive_coverage_optimization() -> None:
     """Test strategic patterns for comprehensive coverage optimization in Phase 22."""
-
     # Test strategic comprehensive coverage optimization scenarios
     comprehensive_coverage_optimization = {
         "comprehensive_domain_targeting": {
@@ -858,9 +856,8 @@ def test_strategic_comprehensive_coverage_optimization():
     assert remaining_to_target < 0.78  # Should be making solid progress toward 95%
 
 
-def test_phase_22_completion_validation():
+def test_phase_22_completion_validation() -> None:
     """Test Phase 22 completion validation for comprehensive coverage optimization."""
-
     # Test Phase 22 completion validation scenarios
     phase_22_validation = {
         "completion_criteria": {

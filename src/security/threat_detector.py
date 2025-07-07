@@ -1,5 +1,4 @@
-"""
-Threat Detector - TASK_62 Phase 4 Advanced Security Features
+"""Threat Detector - TASK_62 Phase 4 Advanced Security Features.
 
 AI-powered threat detection and response for zero trust security framework.
 Provides intelligent threat analysis, pattern recognition, and automated response capabilities.
@@ -164,7 +163,7 @@ class AIThreatDetector:
         # Initialize threat indicators from intelligence feeds
         self._initialize_threat_indicators()
 
-    def _initialize_threat_patterns(self):
+    def _initialize_threat_patterns(self) -> bool:
         """Initialize default threat detection patterns."""
         patterns = [
             ThreatPattern(
@@ -214,7 +213,7 @@ class AIThreatDetector:
         for pattern in patterns:
             self.threat_patterns[pattern.pattern_id] = pattern
 
-    def _initialize_threat_indicators(self):
+    def _initialize_threat_indicators(self) -> bool:
         """Initialize threat indicators from intelligence feeds."""
         # Placeholder for threat intelligence integration
         # In production, this would load from external threat feeds
@@ -229,7 +228,7 @@ class AIThreatDetector:
                 first_seen=datetime.now(UTC) - timedelta(days=30),
                 last_seen=datetime.now(UTC),
                 sources=["threat_feed_1", "security_vendor_x"],
-            )
+            ),
         ]
 
         for indicator in indicators:
@@ -244,8 +243,7 @@ class AIThreatDetector:
         enable_ml_analysis: bool = True,
         enable_behavioral_analysis: bool = True,
     ) -> Either[ThreatDetectionError, dict[str, Any]]:
-        """
-        Detect security threats using AI and pattern recognition.
+        """Detect security threats using AI and pattern recognition.
 
         Args:
             security_events: List of security events to analyze
@@ -255,6 +253,7 @@ class AIThreatDetector:
 
         Returns:
             Either threat detection error or detection results
+
         """
         try:
             detections = []
@@ -270,7 +269,8 @@ class AIThreatDetector:
             # Perform behavioral analysis if enabled
             if enable_behavioral_analysis:
                 behavioral_detections = await self._analyze_behavioral_anomalies(
-                    security_events, scope
+                    security_events,
+                    scope,
                 )
                 detections.extend(behavioral_detections)
 
@@ -317,21 +317,22 @@ class AIThreatDetector:
                             d
                             for d in correlated_detections
                             if d.severity == ThreatSeverity.HIGH
-                        ]
+                        ],
                     ),
                     "recommended_immediate_actions": self._get_immediate_actions(
-                        correlated_detections
+                        correlated_detections,
                     ),
-                }
+                },
             )
 
         except Exception as e:
             return Either.error(
-                ThreatDetectionError(f"Threat detection failed: {str(e)}")
+                ThreatDetectionError(f"Threat detection failed: {e!s}"),
             )
 
     async def _analyze_threat_patterns(
-        self, events: list[dict[str, Any]]
+        self,
+        events: list[dict[str, Any]],
     ) -> list[ThreatDetection]:
         """Analyze events against known threat patterns."""
         detections = []
@@ -377,7 +378,8 @@ class AIThreatDetector:
         return detections
 
     async def _check_threat_indicators(
-        self, events: list[dict[str, Any]]
+        self,
+        events: list[dict[str, Any]],
     ) -> list[ThreatDetection]:
         """Check events against known threat indicators."""
         detections = []
@@ -407,7 +409,8 @@ class AIThreatDetector:
 
                     # Generate recommended actions
                     actions = self._generate_response_actions(
-                        threat_type, indicator.severity
+                        threat_type,
+                        indicator.severity,
                     )
 
                     detection = ThreatDetection(
@@ -432,7 +435,9 @@ class AIThreatDetector:
         return detections
 
     async def _analyze_behavioral_anomalies(
-        self, events: list[dict[str, Any]], scope: str
+        self,
+        events: list[dict[str, Any]],
+        scope: str,
     ) -> list[ThreatDetection]:
         """Analyze events for behavioral anomalies."""
         detections = []
@@ -450,7 +455,8 @@ class AIThreatDetector:
             if baseline_metrics:
                 # Compare current behavior to baseline
                 anomaly_score = self._calculate_anomaly_score(
-                    current_metrics, baseline_metrics
+                    current_metrics,
+                    baseline_metrics,
                 )
 
                 if anomaly_score > 0.7:  # Threshold for anomalous behavior
@@ -489,7 +495,9 @@ class AIThreatDetector:
         return detections
 
     async def _analyze_with_ml(
-        self, events: list[dict[str, Any]], scope: str
+        self,
+        events: list[dict[str, Any]],
+        scope: str,
     ) -> list[ThreatDetection]:
         """Analyze events using machine learning models."""
         detections = []
@@ -524,7 +532,8 @@ class AIThreatDetector:
         return detections
 
     async def _correlate_detections(
-        self, detections: list[ThreatDetection]
+        self,
+        detections: list[ThreatDetection],
     ) -> list[ThreatDetection]:
         """Correlate and deduplicate threat detections."""
         # Group similar detections
@@ -568,7 +577,8 @@ class AIThreatDetector:
         # Calculate merged confidence (average weighted by individual confidence)
         total_weight = sum(d.confidence for d in detections)
         merged_confidence = min(
-            1.0, total_weight / len(detections) * 1.2
+            1.0,
+            total_weight / len(detections) * 1.2,
         )  # Boost for correlation
 
         return ThreatDetection(
@@ -580,7 +590,7 @@ class AIThreatDetector:
             risk_score=create_risk_score(merged_confidence * 100),
             source_ip=base_detection.source_ip,
             target_resources=list(
-                set().union(*[d.target_resources for d in detections])
+                set().union(*[d.target_resources for d in detections]),
             ),
             patterns_matched=list(set(merged_patterns)),
             evidence=merged_evidence,
@@ -594,7 +604,9 @@ class AIThreatDetector:
     # Helper methods
 
     async def _calculate_pattern_score(
-        self, events: list[dict[str, Any]], pattern: ThreatPattern
+        self,
+        events: list[dict[str, Any]],
+        pattern: ThreatPattern,
     ) -> float:
         """Calculate how well events match a threat pattern."""
         # Simplified pattern matching - in production would use more sophisticated analysis
@@ -609,15 +621,17 @@ class AIThreatDetector:
         )
 
     def _check_indicator_in_events(
-        self, indicator: str, events: list[dict[str, Any]]
+        self,
+        indicator: str,
+        events: list[dict[str, Any]],
     ) -> bool:
         """Check if an indicator pattern exists in events."""
         # Simplified indicator checking
         if "failed_login" in indicator:
             return any(event.get("event_type") == "login_failed" for event in events)
-        elif "large_data_transfer" in indicator:
+        if "large_data_transfer" in indicator:
             return any(event.get("data_size", 0) > 1000000 for event in events)  # > 1MB
-        elif "network_scanning" in indicator:
+        if "network_scanning" in indicator:
             return any(event.get("event_type") == "network_scan" for event in events)
 
         return False
@@ -643,21 +657,24 @@ class AIThreatDetector:
         return indicators
 
     def _infer_threat_vector(
-        self, events: list[dict[str, Any]], threat_type: ThreatType
+        self,
+        events: list[dict[str, Any]],
+        threat_type: ThreatType,
     ) -> ThreatVector:
         """Infer threat vector from events and threat type."""
         # Analyze events to determine likely attack vector
         if any(event.get("source") == "email" for event in events):
             return ThreatVector.EMAIL
-        elif any(event.get("source") == "web" for event in events):
+        if any(event.get("source") == "web" for event in events):
             return ThreatVector.WEB
-        elif any(event.get("protocol") in ["tcp", "udp"] for event in events):
+        if any(event.get("protocol") in ["tcp", "udp"] for event in events):
             return ThreatVector.NETWORK
-        else:
-            return ThreatVector.ENDPOINT  # Default
+        return ThreatVector.ENDPOINT  # Default
 
     def _calculate_severity(
-        self, score: float, threat_type: ThreatType
+        self,
+        score: float,
+        threat_type: ThreatType,
     ) -> ThreatSeverity:
         """Calculate threat severity based on score and type."""
         # High-impact threat types get elevated severity
@@ -670,20 +687,19 @@ class AIThreatDetector:
         if threat_type in high_impact_types:
             if score > 0.7:
                 return ThreatSeverity.HIGH
-            elif score > 0.5:
+            if score > 0.5:
                 return ThreatSeverity.MEDIUM
-            else:
-                return ThreatSeverity.LOW
-        else:
-            if score > 0.9:
-                return ThreatSeverity.HIGH
-            elif score > 0.7:
-                return ThreatSeverity.MEDIUM
-            else:
-                return ThreatSeverity.LOW
+            return ThreatSeverity.LOW
+        if score > 0.9:
+            return ThreatSeverity.HIGH
+        if score > 0.7:
+            return ThreatSeverity.MEDIUM
+        return ThreatSeverity.LOW
 
     def _generate_response_actions(
-        self, threat_type: ThreatType, severity: ThreatSeverity
+        self,
+        threat_type: ThreatType,
+        severity: ThreatSeverity,
     ) -> list[ResponseAction]:
         """Generate recommended response actions based on threat characteristics."""
         actions = [ResponseAction.MONITOR, ResponseAction.ALERT]
@@ -705,7 +721,8 @@ class AIThreatDetector:
         return actions
 
     def _group_events_by_entity(
-        self, events: list[dict[str, Any]]
+        self,
+        events: list[dict[str, Any]],
     ) -> dict[str, list[dict[str, Any]]]:
         """Group events by entity (user, system, application)."""
         grouped = {}
@@ -724,7 +741,8 @@ class AIThreatDetector:
         return grouped
 
     def _calculate_behavioral_metrics(
-        self, events: list[dict[str, Any]]
+        self,
+        events: list[dict[str, Any]],
     ) -> dict[str, float]:
         """Calculate behavioral metrics for an entity."""
         metrics = {
@@ -762,7 +780,9 @@ class AIThreatDetector:
         return metrics
 
     def _calculate_anomaly_score(
-        self, current: dict[str, float], baseline: dict[str, float]
+        self,
+        current: dict[str, float],
+        baseline: dict[str, float],
     ) -> float:
         """Calculate anomaly score comparing current behavior to baseline."""
         anomaly_scores = []
@@ -786,20 +806,19 @@ class AIThreatDetector:
             return "low"
 
         high_severity_count = len(
-            [d for d in detections if d.severity == ThreatSeverity.HIGH]
+            [d for d in detections if d.severity == ThreatSeverity.HIGH],
         )
         medium_severity_count = len(
-            [d for d in detections if d.severity == ThreatSeverity.MEDIUM]
+            [d for d in detections if d.severity == ThreatSeverity.MEDIUM],
         )
 
         if high_severity_count > 0:
             return "critical" if high_severity_count > 2 else "high"
-        elif medium_severity_count > 3:
+        if medium_severity_count > 3:
             return "high"
-        elif medium_severity_count > 0:
+        if medium_severity_count > 0:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def _get_immediate_actions(self, detections: list[ThreatDetection]) -> list[str]:
         """Get immediate actions recommended across all detections."""
@@ -828,8 +847,8 @@ class AIThreatDetector:
 # Export the threat detector class
 __all__ = [
     "AIThreatDetector",
-    "ThreatType",
-    "ThreatVector",
     "ResponseAction",
     "ThreatDetection",
+    "ThreatType",
+    "ThreatVector",
 ]

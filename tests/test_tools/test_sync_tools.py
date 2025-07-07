@@ -1,5 +1,4 @@
-"""
-Comprehensive Test Suite for Sync Tools - Following Proven MCP Tool Test Pattern
+"""Comprehensive Test Suite for Sync Tools - Following Proven MCP Tool Test Pattern.
 
 This test suite validates the Sync Tools functionality using the systematic
 testing approach that achieved 100% success rate across 18 tool suites.
@@ -30,6 +29,9 @@ Key Mocking Pattern:
 - Sync status: Test health monitoring and performance metrics
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
 import time
 from datetime import UTC, datetime
@@ -56,7 +58,7 @@ from src.server.tools.sync_tools import (
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context():
+def mock_context() -> Any:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -70,7 +72,7 @@ def mock_context():
 
 
 @pytest.fixture
-def mock_sync_manager():
+def mock_sync_manager() -> Any:
     """Create mock sync manager with standard interface."""
     sync_mgr = Mock()
 
@@ -115,7 +117,7 @@ def mock_sync_manager():
 
 
 @pytest.fixture
-def mock_file_monitor():
+def mock_file_monitor() -> Any:
     """Create mock file monitor with standard interface."""
     monitor = Mock()
 
@@ -138,7 +140,7 @@ def mock_file_monitor():
 
 
 @pytest.fixture
-def mock_sync_stopped():
+def mock_sync_stopped() -> Any:
     """Create mock sync manager in stopped state."""
     sync_mgr = Mock()
     sync_mgr.sync_state = Mock()
@@ -152,7 +154,7 @@ def mock_sync_stopped():
 
 
 @pytest.fixture
-def mock_sync_active():
+def mock_sync_active() -> Any:
     """Create mock sync manager in active state."""
     sync_mgr = Mock()
     sync_mgr.sync_state = Mock()
@@ -173,8 +175,11 @@ class TestSyncOperations:
 
     @pytest.mark.asyncio
     async def test_start_realtime_sync_success(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test successful start of real-time synchronization."""
         with (
             patch(
@@ -188,7 +193,9 @@ class TestSyncOperations:
             patch("src.server.tools.sync_tools.WATCHDOG_AVAILABLE", True),
         ):
             result = await km_start_realtime_sync(
-                enable_file_monitoring=True, poll_interval_seconds=60, ctx=mock_context
+                enable_file_monitoring=True,
+                poll_interval_seconds=60,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -206,7 +213,7 @@ class TestSyncOperations:
             assert result["metadata"]["feature"] == "real_time_sync_task_7"
 
     @pytest.mark.asyncio
-    async def test_start_sync_already_active(self, mock_context, mock_sync_active):
+    async def test_start_sync_already_active(self, mock_context, mock_sync_active) -> None:
         """Test starting sync when already active."""
         with patch(
             "src.server.tools.sync_tools.get_sync_manager",
@@ -220,8 +227,11 @@ class TestSyncOperations:
 
     @pytest.mark.asyncio
     async def test_start_sync_with_file_monitoring_disabled(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test starting sync with file monitoring disabled."""
         with (
             patch(
@@ -234,7 +244,8 @@ class TestSyncOperations:
             ),
         ):
             result = await km_start_realtime_sync(
-                enable_file_monitoring=False, ctx=mock_context
+                enable_file_monitoring=False,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -242,8 +253,11 @@ class TestSyncOperations:
 
     @pytest.mark.asyncio
     async def test_start_sync_file_monitoring_unavailable(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test starting sync when file monitoring is unavailable."""
         mock_file_monitor.start_monitoring.return_value = False
 
@@ -258,7 +272,8 @@ class TestSyncOperations:
             ),
         ):
             result = await km_start_realtime_sync(
-                enable_file_monitoring=True, ctx=mock_context
+                enable_file_monitoring=True,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -266,8 +281,11 @@ class TestSyncOperations:
 
     @pytest.mark.asyncio
     async def test_stop_realtime_sync_success(
-        self, mock_context, mock_sync_active, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_active,
+        mock_file_monitor,
+    ) -> None:
         """Test successful stop of real-time synchronization."""
         with (
             patch(
@@ -290,7 +308,7 @@ class TestSyncOperations:
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_stop_sync_already_stopped(self, mock_context, mock_sync_stopped):
+    async def test_stop_sync_already_stopped(self, mock_context, mock_sync_stopped) -> None:
         """Test stopping sync when already stopped."""
         with patch(
             "src.server.tools.sync_tools.get_sync_manager",
@@ -303,8 +321,11 @@ class TestSyncOperations:
 
     @pytest.mark.asyncio
     async def test_sync_status_success(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test successful sync status retrieval."""
         with (
             patch(
@@ -318,7 +339,8 @@ class TestSyncOperations:
             patch("src.server.tools.sync_tools.WATCHDOG_AVAILABLE", True),
         ):
             result = await km_sync_status(
-                include_performance_metrics=True, ctx=mock_context
+                include_performance_metrics=True,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -332,8 +354,11 @@ class TestSyncOperations:
 
     @pytest.mark.asyncio
     async def test_sync_status_without_performance_metrics(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test sync status without performance metrics."""
         with (
             patch(
@@ -346,7 +371,8 @@ class TestSyncOperations:
             ),
         ):
             result = await km_sync_status(
-                include_performance_metrics=False, ctx=mock_context
+                include_performance_metrics=False,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -354,7 +380,7 @@ class TestSyncOperations:
             assert "health" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_force_sync_success(self, mock_context, mock_sync_manager):
+    async def test_force_sync_success(self, mock_context, mock_sync_manager) -> None:
         """Test successful forced synchronization."""
         with patch(
             "src.server.tools.sync_tools.get_sync_manager",
@@ -372,7 +398,7 @@ class TestSyncOperations:
             assert "sync_status" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_force_sync_full_resync(self, mock_context, mock_sync_manager):
+    async def test_force_sync_full_resync(self, mock_context, mock_sync_manager) -> None:
         """Test forced synchronization with full resync."""
         with patch(
             "src.server.tools.sync_tools.get_sync_manager",
@@ -389,7 +415,7 @@ class TestSyncErrorHandling:
     """Test sync tools error handling scenarios."""
 
     @pytest.mark.asyncio
-    async def test_start_sync_failure(self, mock_context, mock_sync_manager):
+    async def test_start_sync_failure(self, mock_context, mock_sync_manager) -> None:
         """Test error when sync manager fails to start."""
         # Mock start_sync failure - Either pattern left (error)
         mock_start_result = Mock()
@@ -412,7 +438,7 @@ class TestSyncErrorHandling:
             assert "Connection failed" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_start_sync_exception(self, mock_context):
+    async def test_start_sync_exception(self, mock_context) -> None:
         """Test exception handling during sync start."""
         with patch(
             "src.server.tools.sync_tools.get_sync_manager",
@@ -429,7 +455,7 @@ class TestSyncErrorHandling:
             assert "System error" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_stop_sync_exception(self, mock_context):
+    async def test_stop_sync_exception(self, mock_context) -> None:
         """Test exception handling during sync stop."""
         with patch(
             "src.server.tools.sync_tools.get_sync_manager",
@@ -445,7 +471,7 @@ class TestSyncErrorHandling:
             assert "Stop error" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_sync_status_exception(self, mock_context):
+    async def test_sync_status_exception(self, mock_context) -> None:
         """Test exception handling during status retrieval."""
         with patch(
             "src.server.tools.sync_tools.get_sync_manager",
@@ -462,7 +488,7 @@ class TestSyncErrorHandling:
             assert "Status error" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_force_sync_failure(self, mock_context, mock_sync_manager):
+    async def test_force_sync_failure(self, mock_context, mock_sync_manager) -> None:
         """Test error when force sync fails."""
         # Mock force_sync failure - Either pattern left (error)
         mock_force_result = Mock()
@@ -482,7 +508,7 @@ class TestSyncErrorHandling:
             assert "Sync operation failed" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_force_sync_exception(self, mock_context):
+    async def test_force_sync_exception(self, mock_context) -> None:
         """Test exception handling during force sync."""
         with patch(
             "src.server.tools.sync_tools.get_sync_manager",
@@ -502,8 +528,11 @@ class TestSyncConfiguration:
 
     @pytest.mark.asyncio
     async def test_custom_poll_interval_configuration(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test custom poll interval configuration."""
         with (
             patch(
@@ -532,8 +561,11 @@ class TestSyncConfiguration:
 
     @pytest.mark.asyncio
     async def test_default_configuration_preserved(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test that default configuration is preserved when using default values."""
         with (
             patch(
@@ -555,7 +587,7 @@ class TestSyncConfiguration:
             assert mock_sync_manager.config.base_poll_interval.total_seconds() == 30
 
     @pytest.mark.asyncio
-    async def test_sync_status_health_degraded(self, mock_context, mock_file_monitor):
+    async def test_sync_status_health_degraded(self, mock_context, mock_file_monitor) -> None:
         """Test sync status when health is degraded."""
         # Create sync manager with errors
         degraded_sync_mgr = Mock()
@@ -590,8 +622,10 @@ class TestSyncConfiguration:
 
     @pytest.mark.asyncio
     async def test_sync_status_with_monitoring_recommendations(
-        self, mock_context, mock_sync_manager
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+    ) -> None:
         """Test sync status recommendations for file monitoring."""
         # Mock file monitor that's not monitoring
         inactive_monitor = Mock()
@@ -625,8 +659,11 @@ class TestSyncIntegration:
 
     @pytest.mark.asyncio
     async def test_complete_sync_lifecycle(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test complete sync lifecycle: start -> status -> force -> stop."""
         with (
             patch(
@@ -660,8 +697,11 @@ class TestSyncIntegration:
 
     @pytest.mark.asyncio
     async def test_sync_with_file_monitoring_workflow(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test sync workflow with file monitoring integration."""
         with (
             patch(
@@ -676,7 +716,8 @@ class TestSyncIntegration:
         ):
             # Start with file monitoring
             result = await km_start_realtime_sync(
-                enable_file_monitoring=True, ctx=mock_context
+                enable_file_monitoring=True,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -708,8 +749,11 @@ class TestSyncContext:
 
     @pytest.mark.asyncio
     async def test_context_progress_reporting(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test context progress reporting during sync operations."""
         with (
             patch(
@@ -730,7 +774,7 @@ class TestSyncContext:
             mock_context.info.assert_called()
 
     @pytest.mark.asyncio
-    async def test_context_error_logging(self, mock_context):
+    async def test_context_error_logging(self, mock_context) -> None:
         """Test context error logging during failures."""
         with patch(
             "src.server.tools.sync_tools.get_sync_manager",
@@ -743,7 +787,7 @@ class TestSyncContext:
             mock_context.error.assert_called()
 
     @pytest.mark.asyncio
-    async def test_without_context(self, mock_sync_manager, mock_file_monitor):
+    async def test_without_context(self, mock_sync_manager, mock_file_monitor) -> None:
         """Test operations without context provided."""
         with (
             patch(
@@ -765,29 +809,32 @@ class TestSyncPropertyBased:
     """Property-based testing for sync tools with Hypothesis."""
 
     @composite
-    def valid_poll_intervals(draw):
+    def valid_poll_intervals(draw) -> Any:
         """Generate valid poll intervals."""
         return draw(st.integers(min_value=5, max_value=300))
 
     @given(valid_poll_intervals())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    def test_poll_interval_property(self, interval):
+    def test_poll_interval_property(self, interval) -> None:
         """Property: Valid poll intervals should be within allowed range."""
         assert 5 <= interval <= 300
 
     @pytest.mark.asyncio
     async def test_configuration_consistency_property(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Property: Configuration changes should be consistently applied."""
         test_intervals = [10, 30, 60, 120, 300]
 
         for interval in test_intervals:
             mock_sync_manager.config.base_poll_interval = Duration.from_seconds(
-                30
+                30,
             )  # Reset
             mock_sync_manager.config.slow_poll_interval = Duration.from_seconds(
-                120
+                120,
             )  # Reset
 
             with (
@@ -801,7 +848,8 @@ class TestSyncPropertyBased:
                 ),
             ):
                 result = await km_start_realtime_sync(
-                    poll_interval_seconds=interval, ctx=mock_context
+                    poll_interval_seconds=interval,
+                    ctx=mock_context,
                 )
 
                 assert result["success"] is True
@@ -819,8 +867,11 @@ class TestSyncPerformance:
 
     @pytest.mark.asyncio
     async def test_sync_operation_response_time(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test that sync operations complete within reasonable time."""
         operations = [
             (km_start_realtime_sync, {}),
@@ -853,8 +904,11 @@ class TestSyncPerformance:
 
     @pytest.mark.asyncio
     async def test_concurrent_operations_performance(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test performance with concurrent sync operations."""
 
         async def run_status_check():
@@ -890,8 +944,11 @@ class TestSyncEdgeCases:
 
     @pytest.mark.asyncio
     async def test_minimum_poll_interval(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test minimum allowed poll interval."""
         with (
             patch(
@@ -913,8 +970,11 @@ class TestSyncEdgeCases:
 
     @pytest.mark.asyncio
     async def test_maximum_poll_interval(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test maximum allowed poll interval."""
         with (
             patch(
@@ -938,7 +998,7 @@ class TestSyncEdgeCases:
             )  # 4x
 
     @pytest.mark.asyncio
-    async def test_empty_sync_status(self, mock_context, mock_file_monitor):
+    async def test_empty_sync_status(self, mock_context, mock_file_monitor) -> None:
         """Test sync status with minimal data."""
         empty_sync_mgr = Mock()
         empty_sync_mgr.get_sync_status.return_value = {
@@ -973,7 +1033,7 @@ class TestSyncEdgeCases:
             )  # Should still be healthy
 
     @pytest.mark.asyncio
-    async def test_sync_zero_macros(self, mock_context, mock_sync_manager):
+    async def test_sync_zero_macros(self, mock_context, mock_sync_manager) -> None:
         """Test forced sync with zero macros."""
         # Mock force sync returning 0 macros
         mock_force_result = Mock()
@@ -992,8 +1052,11 @@ class TestSyncEdgeCases:
 
     @pytest.mark.asyncio
     async def test_watchdog_unavailable_scenario(
-        self, mock_context, mock_sync_manager, mock_file_monitor
-    ):
+        self,
+        mock_context,
+        mock_sync_manager,
+        mock_file_monitor,
+    ) -> None:
         """Test scenario where watchdog is not available."""
         with (
             patch(
@@ -1007,7 +1070,8 @@ class TestSyncEdgeCases:
             patch("src.server.tools.sync_tools.WATCHDOG_AVAILABLE", False),
         ):
             result = await km_start_realtime_sync(
-                enable_file_monitoring=True, ctx=mock_context
+                enable_file_monitoring=True,
+                ctx=mock_context,
             )
 
             assert result["success"] is True

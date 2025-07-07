@@ -1,21 +1,26 @@
-"""
-Phase 15 Specialized Remaining Systems & Final Coverage Optimization for Keyboard Maestro MCP.
+"""Phase 15 Specialized Remaining Systems & Final Coverage Optimization for Keyboard Maestro MCP.
 
 This module targets specialized remaining systems and final coverage optimization patterns,
 focusing on remaining uncovered modules, edge case systems, optimization patterns,
 and final systematic coverage enhancement toward the 95% target.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_actions_action_builder_comprehensive():
+def test_actions_action_builder_comprehensive() -> None:
     """Test comprehensive coverage of actions action builder (184 lines - action building infrastructure)."""
     try:
         from src.actions import action_builder
@@ -27,38 +32,34 @@ def test_actions_action_builder_comprehensive():
             try:
                 builder = action_builder.ActionBuilder()
                 assert builder is not None
-            except Exception:
-                pass  # Skip if instantiation requires action configuration
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test action building functionality if available
         if hasattr(action_builder, "build_action"):
             try:
                 action = action_builder.build_action("test_action", {"type": "click"})
                 assert action is not None or action == {}
-            except Exception:
-                pass  # Method may require action definition
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test action validation if available
         if hasattr(action_builder, "validate_action"):
             try:
                 result = action_builder.validate_action("action_spec")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require action schema
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test action compilation if available
         if hasattr(action_builder, "compile_action"):
             try:
                 compiled = action_builder.compile_action("action_definition")
                 assert compiled is not None or isinstance(compiled, str)
-            except Exception:
-                pass  # Method may require compilation rules
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Actions action builder import failed: {e}")
 
 
-def test_actions_action_registry_comprehensive():
+def test_actions_action_registry_comprehensive() -> None:
     """Test comprehensive coverage of actions action registry (113 lines - action registry infrastructure)."""
     try:
         from src.actions import action_registry
@@ -70,42 +71,38 @@ def test_actions_action_registry_comprehensive():
             try:
                 registry = action_registry.ActionRegistry()
                 assert registry is not None
-            except Exception:
-                pass  # Skip if instantiation requires registry configuration
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test action registration functionality if available
         if hasattr(action_registry, "register_action"):
             try:
                 result = action_registry.register_action(
-                    "test_action", {"handler": "test_handler"}
+                    "test_action",
+                    {"handler": "test_handler"},
                 )
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require action handler
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test action discovery if available
         if hasattr(action_registry, "get_registered_actions"):
             try:
                 actions = action_registry.get_registered_actions()
                 assert actions is not None or actions == []
-            except Exception:
-                pass  # Method may require action registry
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test action lookup if available
         if hasattr(action_registry, "lookup_action"):
             try:
                 action = action_registry.lookup_action("action_id")
                 assert action is not None or action == {}
-            except Exception:
-                pass  # Method may require registered actions
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Actions action registry import failed: {e}")
 
 
-def test_agents_comprehensive_systems():
+def test_agents_comprehensive_systems() -> None:
     """Test comprehensive coverage of agents systems (multiple modules - agent infrastructure)."""
-
     agent_modules = [
         "agent_manager",
         "communication_hub",
@@ -153,9 +150,9 @@ def test_agents_comprehensive_systems():
                                 if hasattr(instance, method):
                                     assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -163,9 +160,8 @@ def test_agents_comprehensive_systems():
     assert successful_imports >= 4, f"Only {successful_imports} agent modules imported"
 
 
-def test_specialized_tools_comprehensive():
+def test_specialized_tools_comprehensive() -> None:
     """Test comprehensive coverage of specialized tool modules."""
-
     specialized_tools = [
         ("tools", "core_tools"),
         ("tools", "group_tools"),
@@ -202,9 +198,9 @@ def test_specialized_tools_comprehensive():
                                 if hasattr(instance, method):
                                     assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -214,9 +210,8 @@ def test_specialized_tools_comprehensive():
     )
 
 
-def test_analytics_comprehensive_systems():
+def test_analytics_comprehensive_systems() -> None:
     """Test comprehensive coverage of analytics systems (multiple modules - analytics infrastructure)."""
-
     analytics_modules = [
         "anomaly_detector",
         "dashboard_generator",
@@ -274,9 +269,9 @@ def test_analytics_comprehensive_systems():
                                 if hasattr(instance, method):
                                     assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -286,9 +281,8 @@ def test_analytics_comprehensive_systems():
     )
 
 
-def test_server_tools_comprehensive_coverage():
+def test_server_tools_comprehensive_coverage() -> None:
     """Test comprehensive coverage of remaining server tools modules."""
-
     remaining_server_tools = [
         "accessibility_engine_tools",
         "ai_core_tools",
@@ -325,7 +319,8 @@ def test_server_tools_comprehensive_coverage():
                     # Look for FastMCP tools with km_ prefix
                     for attr in dir(module):
                         if attr.startswith("km_") and hasattr(
-                            getattr(module, attr, None), "fn"
+                            getattr(module, attr, None),
+                            "fn",
                         ):
                             tool = getattr(module, attr)
                             assert hasattr(tool, "fn")
@@ -340,9 +335,8 @@ def test_server_tools_comprehensive_coverage():
     )
 
 
-def test_advanced_specialized_data_processing():
+def test_advanced_specialized_data_processing() -> None:
     """Test advanced data processing patterns for specialized remaining systems."""
-
     # Test specialized systems data processing scenarios
     specialized_data = {
         "action_systems": {
@@ -499,12 +493,12 @@ def test_advanced_specialized_data_processing():
             + j.get("insights_generated", 0)
             + j.get("forecasts_created", 0)
             for j in analytics_data["analysis_jobs"]
-        ]
+        ],
     )
     assert total_outputs == 37
 
 
-def test_specialized_async_functionality():
+def test_specialized_async_functionality() -> bool:
     """Test async functionality patterns for specialized remaining systems."""
 
     @pytest.mark.asyncio
@@ -603,9 +597,8 @@ def test_specialized_async_functionality():
     assert result is True
 
 
-def test_specialized_configuration_optimization():
+def test_specialized_configuration_optimization() -> None:
     """Test configuration optimization patterns for specialized remaining systems."""
-
     # Test specialized systems configuration optimization scenarios
     optimization_config = {
         "action_optimization": {
@@ -704,9 +697,8 @@ def test_specialized_configuration_optimization():
     assert analytics_config["parallel_workers"] == 8
 
 
-def test_final_coverage_optimization_patterns():
+def test_final_coverage_optimization_patterns() -> None:
     """Test final coverage optimization patterns for remaining systems."""
-
     # Test final coverage optimization scenarios
     coverage_patterns = {
         "module_coverage_analysis": {

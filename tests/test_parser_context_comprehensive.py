@@ -1,5 +1,4 @@
-"""
-Comprehensive Parser and Context Module Tests - Coverage Expansion
+"""Comprehensive Parser and Context Module Tests - Coverage Expansion.
 
 Tests for core parsing functionality, context management, and execution environment.
 Focuses on achieving high coverage for core infrastructure modules.
@@ -23,17 +22,14 @@ try:
         ExecutionContext,
         VariableScope,
     )
-    from src.core.either import Either
     from src.core.parser import (
         CommandParser,
         MacroParser,
         ParameterParser,
-        ParseError,
         ParseResult,
         Token,
         TokenType,
     )
-    from src.core.types import CommandId, MacroId, VariableId
 
     PARSER_CONTEXT_AVAILABLE = True
 except ImportError:
@@ -41,7 +37,7 @@ except ImportError:
 
     # Mock classes for testing
     class MacroParser:
-        def parse(self, source: str):
+        def parse(self, source: str) -> dict[str, Any]:
             return {"commands": []}
 
     class ParseResult:
@@ -54,7 +50,7 @@ except ImportError:
 class TestMacroParser:
     """Test macro parsing functionality."""
 
-    def test_parser_creation(self):
+    def test_parser_creation(self) -> None:
         """Test macro parser creation."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -62,7 +58,7 @@ class TestMacroParser:
         parser = MacroParser()
         assert parser is not None
 
-    def test_simple_macro_parsing(self):
+    def test_simple_macro_parsing(self) -> None:
         """Test parsing simple macro definitions."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -83,7 +79,7 @@ class TestMacroParser:
         assert len(result.data["commands"]) == 1
         assert result.data["commands"][0]["command_type"] == "type_text"
 
-    def test_complex_macro_parsing(self):
+    def test_complex_macro_parsing(self) -> None:
         """Test parsing complex macro with multiple commands."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -109,7 +105,7 @@ class TestMacroParser:
         assert result.data["macro_name"] == "Complex Macro"
         assert len(result.data["commands"]) == 3  # set_variable, repeat, if
 
-    def test_macro_parsing_syntax_errors(self):
+    def test_macro_parsing_syntax_errors(self) -> None:
         """Test macro parsing with syntax errors."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -129,7 +125,7 @@ class TestMacroParser:
             assert not result.success
             assert "syntax" in result.error.lower() or "parse" in result.error.lower()
 
-    def test_macro_parsing_nested_structures(self):
+    def test_macro_parsing_nested_structures(self) -> None:
         """Test parsing nested control structures."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -156,7 +152,7 @@ class TestMacroParser:
         assert result.data["commands"][0]["command_type"] == "repeat"
         assert "nested_commands" in result.data["commands"][0]
 
-    def test_macro_parsing_variables(self):
+    def test_macro_parsing_variables(self) -> None:
         """Test parsing macro with variable definitions."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -180,7 +176,7 @@ class TestMacroParser:
         assert result.data["variables"]["count"] == 42
         assert result.data["variables"]["enabled"] is True
 
-    def test_macro_parsing_comments(self):
+    def test_macro_parsing_comments(self) -> None:
         """Test parsing macro with comments."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -208,10 +204,10 @@ class TestMacroParser:
             min_size=1,
             max_size=50,
             alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ",
-        )
+        ),
     )
     @settings(max_examples=10)
-    def test_macro_name_parsing_property(self, macro_name):
+    def test_macro_name_parsing_property(self, macro_name) -> None:
         """Property-based test for macro name parsing."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -223,11 +219,11 @@ class TestMacroParser:
         if not clean_name:
             return
 
-        macro_source = f'''
+        macro_source = f"""
         macro "{clean_name}" {{
             type_text "test"
         }}
-        '''
+        """
 
         result = parser.parse(macro_source)
         if result.success:
@@ -237,7 +233,7 @@ class TestMacroParser:
 class TestCommandParser:
     """Test command parsing functionality."""
 
-    def test_command_parser_creation(self):
+    def test_command_parser_creation(self) -> None:
         """Test command parser creation."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -245,7 +241,7 @@ class TestCommandParser:
         parser = CommandParser()
         assert parser is not None
 
-    def test_simple_command_parsing(self):
+    def test_simple_command_parsing(self) -> None:
         """Test parsing simple commands."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -266,7 +262,7 @@ class TestCommandParser:
             assert "command_type" in result.data
             assert "parameters" in result.data
 
-    def test_command_with_parameters(self):
+    def test_command_with_parameters(self) -> None:
         """Test parsing commands with various parameter types."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -288,7 +284,7 @@ class TestCommandParser:
         assert result.success
         assert result.data["parameters"]["enabled"] is True
 
-    def test_command_with_variable_references(self):
+    def test_command_with_variable_references(self) -> None:
         """Test parsing commands with variable references."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -300,7 +296,7 @@ class TestCommandParser:
         assert result.data["parameters"]["text"]["type"] == "variable_reference"
         assert result.data["parameters"]["text"]["variable_name"] == "user_input"
 
-    def test_command_parsing_errors(self):
+    def test_command_parsing_errors(self) -> None:
         """Test command parsing error handling."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -324,7 +320,7 @@ class TestCommandParser:
 class TestParameterParser:
     """Test parameter parsing functionality."""
 
-    def test_parameter_parser_creation(self):
+    def test_parameter_parser_creation(self) -> None:
         """Test parameter parser creation."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -332,7 +328,7 @@ class TestParameterParser:
         parser = ParameterParser()
         assert parser is not None
 
-    def test_string_parameter_parsing(self):
+    def test_string_parameter_parsing(self) -> None:
         """Test string parameter parsing."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -350,7 +346,7 @@ class TestParameterParser:
         assert result.success
         assert result.data["value"] == "Hello\nWorld\t!"
 
-    def test_numeric_parameter_parsing(self):
+    def test_numeric_parameter_parsing(self) -> None:
         """Test numeric parameter parsing."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -374,7 +370,7 @@ class TestParameterParser:
         assert result.success
         assert result.data["value"] == -42
 
-    def test_boolean_parameter_parsing(self):
+    def test_boolean_parameter_parsing(self) -> None:
         """Test boolean parameter parsing."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -395,7 +391,7 @@ class TestParameterParser:
             assert result.data["value"] is False
             assert result.data["type"] == "boolean"
 
-    def test_variable_reference_parsing(self):
+    def test_variable_reference_parsing(self) -> None:
         """Test variable reference parsing."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -407,7 +403,7 @@ class TestParameterParser:
         assert result.data["type"] == "variable_reference"
         assert result.data["variable_name"] == "test_var"
 
-    def test_function_call_parsing(self):
+    def test_function_call_parsing(self) -> None:
         """Test function call parsing."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -430,7 +426,7 @@ class TestParameterParser:
 class TestExecutionContext:
     """Test execution context functionality."""
 
-    def test_context_creation(self):
+    def test_context_creation(self) -> None:
         """Test execution context creation."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -439,7 +435,7 @@ class TestExecutionContext:
         assert context is not None
         assert len(context.get_all_variables()) == 0
 
-    def test_variable_management(self):
+    def test_variable_management(self) -> None:
         """Test variable management in context."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -459,7 +455,7 @@ class TestExecutionContext:
         # Test non-existent variable
         assert context.get_variable("non_existent") is None
 
-    def test_variable_scoping(self):
+    def test_variable_scoping(self) -> None:
         """Test variable scoping."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -483,7 +479,7 @@ class TestExecutionContext:
         assert context.get_variable("global_var") == "global_value"
         assert context.get_variable("local_var") is None
 
-    def test_context_state_management(self):
+    def test_context_state_management(self) -> None:
         """Test context state management."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -503,7 +499,7 @@ class TestExecutionContext:
         context.set_state(ContextState.COMPLETED)
         assert context.get_state() == ContextState.COMPLETED
 
-    def test_environment_context(self):
+    def test_environment_context(self) -> None:
         """Test environment context functionality."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -519,7 +515,7 @@ class TestExecutionContext:
         env_context.set_env_variable("TEST_VAR", "test_value")
         assert env_context.get_env_variable("TEST_VAR") == "test_value"
 
-    def test_context_persistence(self):
+    def test_context_persistence(self) -> None:
         """Test context persistence."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -546,7 +542,7 @@ class TestExecutionContext:
         st.one_of(st.text(), st.integers(), st.booleans()),
     )
     @settings(max_examples=20)
-    def test_variable_storage_property(self, var_name, var_value):
+    def test_variable_storage_property(self, var_name, var_value) -> None:
         """Property-based test for variable storage."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -567,7 +563,7 @@ class TestExecutionContext:
 class TestVariableScope:
     """Test variable scope functionality."""
 
-    def test_scope_creation(self):
+    def test_scope_creation(self) -> None:
         """Test variable scope creation."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -576,7 +572,7 @@ class TestVariableScope:
         assert scope.name == "test_scope"
         assert len(scope.get_variables()) == 0
 
-    def test_scope_variable_operations(self):
+    def test_scope_variable_operations(self) -> None:
         """Test variable operations within scope."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -599,7 +595,7 @@ class TestVariableScope:
         scope.remove_variable("var1")
         assert not scope.has_variable("var1")
 
-    def test_scope_nesting(self):
+    def test_scope_nesting(self) -> None:
         """Test nested scope functionality."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -624,7 +620,7 @@ class TestVariableScope:
 class TestContextManager:
     """Test context manager functionality."""
 
-    def test_context_manager_creation(self):
+    def test_context_manager_creation(self) -> None:
         """Test context manager creation."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -632,7 +628,7 @@ class TestContextManager:
         manager = ContextManager()
         assert manager is not None
 
-    def test_context_lifecycle(self):
+    def test_context_lifecycle(self) -> None:
         """Test context lifecycle management."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -660,7 +656,7 @@ class TestContextManager:
         manager.destroy_context(context_id)
         assert manager.get_context(context_id) is None
 
-    def test_concurrent_contexts(self):
+    def test_concurrent_contexts(self) -> None:
         """Test concurrent context management."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")
@@ -692,7 +688,7 @@ class TestContextManager:
 class TestTokenization:
     """Test tokenization functionality."""
 
-    def test_token_creation(self):
+    def test_token_creation(self) -> None:
         """Test token creation."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -703,7 +699,7 @@ class TestTokenization:
         assert token.line == 1
         assert token.column == 5
 
-    def test_tokenization_process(self):
+    def test_tokenization_process(self) -> None:
         """Test tokenization process."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -719,7 +715,7 @@ class TestTokenization:
         assert tokens[1].type == TokenType.STRING
         assert tokens[1].value == "Hello World"
 
-    def test_tokenization_edge_cases(self):
+    def test_tokenization_edge_cases(self) -> None:
         """Test tokenization edge cases."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -754,7 +750,7 @@ class TestParserContextIntegration:
     """Test integration between parser and context."""
 
     @pytest.mark.asyncio
-    async def test_parse_and_execute_workflow(self):
+    async def test_parse_and_execute_workflow(self) -> None:
         """Test complete parse and execute workflow."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser/Context modules not available")
@@ -778,13 +774,14 @@ class TestParserContextIntegration:
         for command in parse_result.data["commands"]:
             if command["command_type"] == "set_variable":
                 context.set_variable(
-                    command["parameters"]["name"], command["parameters"]["value"]
+                    command["parameters"]["name"],
+                    command["parameters"]["value"],
                 )
 
         # Verify context state
         assert context.get_variable("counter") == "0"
 
-    def test_error_recovery(self):
+    def test_error_recovery(self) -> None:
         """Test error recovery mechanisms."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser/Context modules not available")

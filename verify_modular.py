@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""
-Quick verification that the modularized Keyboard Maestro MCP server is working correctly.
-"""
+"""Quick verification that the modularized Keyboard Maestro MCP server is working correctly."""
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import sys
 from pathlib import Path
 
@@ -10,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 
-def main():
+def main() -> bool:
     print("🧪 Verifying modular server setup...")
 
     try:
@@ -46,7 +47,7 @@ def main():
             print(f"✅ All {expected_tools} expected tools are available")
         else:
             print(
-                f"⚠️  Only {len(available_tools)} tools found, expected {expected_tools}"
+                f"⚠️  Only {len(available_tools)} tools found, expected {expected_tools}",
             )
 
         # Check resources

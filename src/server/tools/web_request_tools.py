@@ -1,5 +1,4 @@
-"""
-Web request tools for HTTP/REST API integration.
+"""Web request tools for HTTP/REST API integration.
 
 This module implements the km_web_request MCP tool, enabling AI to make HTTP requests
 to APIs, webhooks, and web services. Includes comprehensive security validation,
@@ -39,8 +38,8 @@ class WebRequestProcessor:
         self.allow_localhost = allow_localhost
         self.token_processor = TokenProcessor()
 
-    @require(lambda self, url: isinstance(url, str) and len(url.strip()) > 0)
-    @require(lambda self, method: isinstance(method, str))
+    @require(lambda __self, url: isinstance(url, str) and len(url.strip()) > 0)
+    @require(lambda __self, method: isinstance(method, str))
     async def process_web_request(
         self,
         url: str,
@@ -58,8 +57,7 @@ class WebRequestProcessor:
         save_response_to: str | None = None,
         ctx: Context | None = None,
     ) -> Either[MCPError, dict[str, Any]]:
-        """
-        Process web request with comprehensive validation and security.
+        """Process web request with comprehensive validation and security.
 
         Architecture: HTTP client with security-first design
         Security: URL validation, SSRF protection, credential sanitization
@@ -85,7 +83,8 @@ class WebRequestProcessor:
 
             # Process headers with token substitution
             processed_headers_result = await self._process_headers_with_tokens(
-                headers or {}, ctx
+                headers or {},
+                ctx,
             )
             if processed_headers_result.is_left():
                 return Either.left(processed_headers_result.get_left())
@@ -94,7 +93,8 @@ class WebRequestProcessor:
 
             # Process parameters with token substitution
             processed_params_result = await self._process_params_with_tokens(
-                params or {}, ctx
+                params or {},
+                ctx,
             )
             if processed_params_result.is_left():
                 return Either.left(processed_params_result.get_left())
@@ -123,7 +123,9 @@ class WebRequestProcessor:
 
             # Process authentication
             auth_headers_result = await self._process_authentication(
-                auth_type, auth_credentials, ctx
+                auth_type,
+                auth_credentials,
+                ctx,
             )
             if auth_headers_result.is_left():
                 return Either.left(auth_headers_result.get_left())
@@ -136,7 +138,8 @@ class WebRequestProcessor:
 
             async with HTTPClient(allow_localhost=self.allow_localhost) as client:
                 response_result = await client.execute_request(
-                    http_request, auth_headers
+                    http_request,
+                    auth_headers,
                 )
 
                 if response_result.is_left():
@@ -149,7 +152,10 @@ class WebRequestProcessor:
                 await ctx.report_progress(75, 100, "Processing response")
 
             processed_response_result = await self._process_response(
-                response, response_format, save_response_to, ctx
+                response,
+                response_format,
+                save_response_to,
+                ctx,
             )
 
             if processed_response_result.is_left():
@@ -160,20 +166,22 @@ class WebRequestProcessor:
             if ctx:
                 await ctx.report_progress(100, 100, "Request completed successfully")
                 await ctx.info(
-                    f"Request completed: {response.status_code} in {response.duration_ms:.1f}ms"
+                    f"Request completed: {response.status_code} in {response.duration_ms:.1f}ms",
                 )
 
             return Either.right(final_response)
 
         except Exception as e:
-            error_msg = f"Failed to process web request: {str(e)}"
+            error_msg = f"Failed to process web request: {e!s}"
             logger.error(error_msg, exc_info=True)
             if ctx:
                 await ctx.error(error_msg)
             return Either.left(MCPError("WEB_REQUEST_ERROR", error_msg))
 
     async def _process_url_with_tokens(
-        self, url: str, ctx: Context | None
+        self,
+        url: str,
+        ctx: Context | None,
     ) -> Either[MCPError, str]:
         """Process URL with token substitution."""
         try:
@@ -188,8 +196,9 @@ class WebRequestProcessor:
         except Exception as e:
             return Either.left(
                 MCPError(
-                    "URL_PROCESSING_ERROR", f"Failed to process URL tokens: {str(e)}"
-                )
+                    "URL_PROCESSING_ERROR",
+                    f"Failed to process URL tokens: {e!s}",
+                ),
             )
 
     def _validate_http_method(self, method: str) -> Either[MCPError, HTTPMethod]:
@@ -204,19 +213,21 @@ class WebRequestProcessor:
                     MCPError(
                         "INVALID_HTTP_METHOD",
                         f"Invalid HTTP method '{method}'. Valid methods: {', '.join(valid_methods)}",
-                    )
+                    ),
                 )
 
         except Exception as e:
             return Either.left(
                 MCPError(
                     "METHOD_VALIDATION_ERROR",
-                    f"Failed to validate HTTP method: {str(e)}",
-                )
+                    f"Failed to validate HTTP method: {e!s}",
+                ),
             )
 
     async def _process_headers_with_tokens(
-        self, headers: dict[str, str], ctx: Context | None
+        self,
+        headers: dict[str, str],
+        ctx: Context | None,
     ) -> Either[MCPError, dict[str, str]]:
         """Process headers with token substitution."""
         try:
@@ -225,7 +236,7 @@ class WebRequestProcessor:
             for name, value in headers.items():
                 # Process tokens in header value
                 processed_value = await self.token_processor.process_tokens_in_text(
-                    str(value)
+                    str(value),
                 )
                 processed_headers[name] = processed_value
 
@@ -242,12 +253,14 @@ class WebRequestProcessor:
             return Either.left(
                 MCPError(
                     "HEADER_PROCESSING_ERROR",
-                    f"Failed to process header tokens: {str(e)}",
-                )
+                    f"Failed to process header tokens: {e!s}",
+                ),
             )
 
     async def _process_params_with_tokens(
-        self, params: dict[str, str], ctx: Context | None
+        self,
+        params: dict[str, str],
+        ctx: Context | None,
     ) -> Either[MCPError, dict[str, str]]:
         """Process query parameters with token substitution."""
         try:
@@ -256,7 +269,7 @@ class WebRequestProcessor:
             for name, value in params.items():
                 # Process tokens in parameter value
                 processed_value = await self.token_processor.process_tokens_in_text(
-                    str(value)
+                    str(value),
                 )
                 processed_params[name] = processed_value
 
@@ -269,12 +282,14 @@ class WebRequestProcessor:
             return Either.left(
                 MCPError(
                     "PARAM_PROCESSING_ERROR",
-                    f"Failed to process parameter tokens: {str(e)}",
-                )
+                    f"Failed to process parameter tokens: {e!s}",
+                ),
             )
 
     async def _process_request_data(
-        self, data: str | dict[str, Any] | None, ctx: Context | None
+        self,
+        data: str | dict[str, Any] | None,
+        ctx: Context | None,
     ) -> Either[MCPError, str | dict[str, Any] | None]:
         """Process request data with token substitution."""
         try:
@@ -290,7 +305,7 @@ class WebRequestProcessor:
 
                 return Either.right(processed_data)
 
-            elif isinstance(data, dict):
+            if isinstance(data, dict):
                 # Process tokens in dictionary values
                 processed_data = {}
 
@@ -311,15 +326,15 @@ class WebRequestProcessor:
 
                 return Either.right(processed_data)
 
-            else:
-                # Return data as-is for other types
-                return Either.right(data)
+            # Return data as-is for other types
+            return Either.right(data)
 
         except Exception as e:
             return Either.left(
                 MCPError(
-                    "DATA_PROCESSING_ERROR", f"Failed to process request data: {str(e)}"
-                )
+                    "DATA_PROCESSING_ERROR",
+                    f"Failed to process request data: {e!s}",
+                ),
             )
 
     async def _process_authentication(
@@ -335,7 +350,8 @@ class WebRequestProcessor:
 
             # Create authentication
             auth_result = AuthenticationManager.create_authentication(
-                auth_type, auth_credentials
+                auth_type,
+                auth_credentials,
             )
 
             if auth_result.is_left():
@@ -344,7 +360,7 @@ class WebRequestProcessor:
                     MCPError(
                         "AUTHENTICATION_ERROR",
                         f"Authentication validation failed: {validation_error.constraint}",
-                    )
+                    ),
                 )
 
             auth = auth_result.get_right()
@@ -358,7 +374,7 @@ class WebRequestProcessor:
                     MCPError(
                         "AUTHENTICATION_APPLICATION_ERROR",
                         f"Failed to apply authentication: {validation_error.constraint}",
-                    )
+                    ),
                 )
 
             auth_data = headers_result.get_right()
@@ -372,8 +388,8 @@ class WebRequestProcessor:
             return Either.left(
                 MCPError(
                     "AUTHENTICATION_PROCESSING_ERROR",
-                    f"Failed to process authentication: {str(e)}",
-                )
+                    f"Failed to process authentication: {e!s}",
+                ),
             )
 
     async def _process_response(
@@ -435,12 +451,16 @@ class WebRequestProcessor:
         except Exception as e:
             return Either.left(
                 MCPError(
-                    "RESPONSE_PROCESSING_ERROR", f"Failed to process response: {str(e)}"
-                )
+                    "RESPONSE_PROCESSING_ERROR",
+                    f"Failed to process response: {e!s}",
+                ),
             )
 
     async def _save_response(
-        self, response: HTTPResponse, save_to: str, ctx: Context | None
+        self,
+        response: HTTPResponse,
+        save_to: str,
+        ctx: Context | None,
     ) -> None:
         """Save response content to file or variable."""
         try:
@@ -460,13 +480,12 @@ class WebRequestProcessor:
                 if ctx:
                     await ctx.info(f"Would save response to file: {file_path}")
 
-            else:
-                if ctx:
-                    await ctx.warn(f"Unknown save target format: {save_to}")
+            elif ctx:
+                await ctx.warn(f"Unknown save target format: {save_to}")
 
         except Exception as e:
             if ctx:
-                await ctx.error(f"Failed to save response: {str(e)}")
+                await ctx.error(f"Failed to save response: {e!s}")
 
 
 async def km_web_request(
@@ -485,8 +504,7 @@ async def km_web_request(
     save_response_to: str | None = None,
     ctx: Context | None = None,
 ) -> str:
-    """
-    Make HTTP requests to APIs, webhooks, and web services.
+    """Make HTTP requests to APIs, webhooks, and web services.
 
     Enables AI to integrate with modern web services, REST APIs, and cloud platforms.
     Supports all major HTTP methods, authentication types, and response formats.
@@ -538,6 +556,7 @@ async def km_web_request(
             method="POST",
             data={"text": "Automation completed at %ShortTime%"}
         )
+
     """
     try:
         # Initialize processor
@@ -570,11 +589,11 @@ async def km_web_request(
     except ToolError:
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in km_web_request: {str(e)}", exc_info=True)
-        raise ToolError(f"Unexpected error processing web request: {str(e)}")
+        logger.error(f"Unexpected error in km_web_request: {e!s}", exc_info=True)
+        raise ToolError(f"Unexpected error processing web request: {e!s}") from e
 
 
 # Tool registration function for MCP server
-def register_web_request_tools(mcp):
+def register_web_request_tools(mcp) -> None:
     """Register web request tools with the MCP server."""
     mcp.tool()(km_web_request)

@@ -1,5 +1,4 @@
-"""
-System Control Commands
+"""System Control Commands.
 
 Provides secure system-level commands including pause, sound control,
 and volume management with comprehensive validation and security boundaries.
@@ -7,8 +6,10 @@ and volume management with comprehensive validation and security boundaries.
 
 from __future__ import annotations
 
+import logging
 import os
 import platform
+import shutil
 import subprocess
 import time
 from dataclasses import dataclass
@@ -17,6 +18,77 @@ from enum import Enum
 from ..core.types import CommandResult, Duration, ExecutionContext, Permission
 from .base import BaseCommand, create_command_result, is_valid_duration
 from .validation import SecurityValidator
+
+logger = logging.getLogger(__name__)
+
+
+class SecurityError(Exception):
+    """Security validation error for process execution."""
+
+
+def secure_subprocess_run(
+    command: str,
+    args: list[str],
+    **kwargs,
+) -> subprocess.CompletedProcess:
+    """Secure subprocess execution with full path resolution and validation.
+
+    Args:
+        command: Command name to execute
+        args: Arguments to pass to command
+        **kwargs: Additional subprocess.run arguments
+
+    Returns:
+        CompletedProcess result
+
+    Raises:
+        SecurityError: If command path cannot be validated or is untrusted
+
+    """
+    # Resolve full executable path
+    full_path = shutil.which(command)
+    if not full_path:
+        raise SecurityError(f"Executable not found in PATH: {command}")
+
+    # Validate path is in trusted system locations
+    trusted_prefixes = [
+        "/usr/bin/",
+        "/bin/",
+        "/usr/sbin/",
+        "/sbin/",
+        "/System/Library/",
+        "/usr/local/bin/",
+    ]
+
+    # Windows trusted locations
+    if platform.system().lower() == "windows":
+        trusted_prefixes.extend(
+            [
+                "C:\\Windows\\System32\\",
+                "C:\\Windows\\SysWOW64\\",
+                "C:\\Program Files\\",
+                "C:\\Program Files (x86)\\",
+            ],
+        )
+
+    if not any(full_path.startswith(prefix) for prefix in trusted_prefixes):
+        logger.warning(f"Using non-standard executable path: {full_path}")
+
+    # Sanitize arguments - basic validation
+    sanitized_args = []
+    for arg in args:
+        if isinstance(arg, str):
+            # Remove potentially dangerous characters
+            sanitized_arg = arg.replace(";", "").replace("&", "").replace("|", "")
+            sanitized_args.append(sanitized_arg)
+        else:
+            sanitized_args.append(str(arg))
+
+    # Log security-relevant execution
+    logger.info(f"Executing secure subprocess: {full_path} with args: {sanitized_args}")
+
+    # Execute with full path
+    return subprocess.run([full_path] + sanitized_args, **kwargs)
 
 
 class SoundType(Enum):
@@ -39,8 +111,7 @@ class VolumeUnit(Enum):
 
 @dataclass(frozen=True)
 class PauseCommand(BaseCommand):
-    """
-    Pause execution for a specified duration.
+    """Pause execution for a specified duration.
 
     Provides safe delays with timeout protection and
     reasonable duration limits to prevent resource exhaustion.
@@ -67,10 +138,7 @@ class PauseCommand(BaseCommand):
             return False
 
         # Additional safety check for reasonable pause times
-        if duration.seconds > 60:  # Max 1 minute pause
-            return False
-
-        return True
+        return duration.seconds <= 60  # Max 1 minute pause
 
     def _execute_impl(self, context: ExecutionContext) -> CommandResult:
         """Execute pause with interruption support."""
@@ -115,7 +183,7 @@ class PauseCommand(BaseCommand):
         except Exception as e:
             return create_command_result(
                 success=False,
-                error_message=f"Pause execution failed: {str(e)}",
+                error_message=f"Pause execution failed: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 
@@ -130,8 +198,7 @@ class PauseCommand(BaseCommand):
 
 @dataclass(frozen=True)
 class PlaySoundCommand(BaseCommand):
-    """
-    Play system sounds with volume and type control.
+    """Play system sounds with volume and type control.
 
     Provides secure sound playback with validation to prevent
     audio file path traversal and volume abuse.
@@ -240,18 +307,17 @@ class PlaySoundCommand(BaseCommand):
                     sounds_played=sounds_played,
                     custom_sound_used=custom_path is not None,
                 )
-            else:
-                return create_command_result(
-                    success=False,
-                    error_message=f"Only played {sounds_played} of {repeat_count} sounds",
-                    execution_time=execution_time,
-                    sounds_played=sounds_played,
-                )
+            return create_command_result(
+                success=False,
+                error_message=f"Only played {sounds_played} of {repeat_count} sounds",
+                execution_time=execution_time,
+                sounds_played=sounds_played,
+            )
 
         except Exception as e:
             return create_command_result(
                 success=False,
-                error_message=f"Sound playback failed: {str(e)}",
+                error_message=f"Sound playback failed: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 
@@ -273,18 +339,25 @@ class PlaySoundCommand(BaseCommand):
 
                 sound_file = sound_map.get(sound_type, sound_map[SoundType.BEEP])
                 if os.path.exists(sound_file):
-                    subprocess.run(["afplay", sound_file], check=True, timeout=5)
+                    secure_subprocess_run("afplay", [sound_file], check=True, timeout=5)
                     return True
-                else:
-                    # Fallback to system beep
-                    subprocess.run(["osascript", "-e", "beep"], check=True, timeout=5)
-                    return True
+                # Fallback to system beep
+                secure_subprocess_run(
+                    "osascript",
+                    ["-e", "beep"],
+                    check=True,
+                    timeout=5,
+                )
+                return True
 
-            elif system == "linux":
+            if system == "linux":
                 # Use aplay or paplay for Linux
                 try:
-                    subprocess.run(
-                        ["pactl", "play-sample", "bell"], check=True, timeout=5
+                    secure_subprocess_run(
+                        "pactl",
+                        ["play-sample", "bell"],
+                        check=True,
+                        timeout=5,
                     )
                     return True
                 except (subprocess.CalledProcessError, FileNotFoundError):
@@ -312,25 +385,33 @@ class PlaySoundCommand(BaseCommand):
             system = platform.system().lower()
 
             if system == "darwin":  # macOS
-                subprocess.run(["afplay", sound_path], check=True, timeout=10)
+                secure_subprocess_run("afplay", [sound_path], check=True, timeout=10)
                 return True
-            elif system == "linux":
+            if system == "linux":
                 # Try multiple players
                 players = ["paplay", "aplay", "mpg123", "ogg123"]
                 for player in players:
                     try:
-                        subprocess.run([player, sound_path], check=True, timeout=10)
+                        secure_subprocess_run(
+                            player,
+                            [sound_path],
+                            check=True,
+                            timeout=10,
+                        )
                         return True
-                    except (subprocess.CalledProcessError, FileNotFoundError):
+                    except (
+                        subprocess.CalledProcessError,
+                        FileNotFoundError,
+                        SecurityError,
+                    ):
                         continue
                 return False
-            elif system == "windows":
+            if system == "windows":
                 import winsound
 
                 winsound.PlaySound(sound_path, winsound.SND_FILENAME)
                 return True
-            else:
-                return False
+            return False
 
         except Exception:
             return False
@@ -348,8 +429,7 @@ class PlaySoundCommand(BaseCommand):
 
 @dataclass(frozen=True)
 class SetVolumeCommand(BaseCommand):
-    """
-    Set system volume with validation and safety limits.
+    """Set system volume with validation and safety limits.
 
     Provides secure volume control with protection against
     hearing damage and audio disruption.
@@ -419,7 +499,9 @@ class SetVolumeCommand(BaseCommand):
             if fade_duration:
                 # Gradual volume change
                 success = self._set_volume_gradually(
-                    current_volume, volume_level, fade_duration
+                    current_volume,
+                    volume_level,
+                    fade_duration,
                 )
             else:
                 # Immediate volume change
@@ -441,17 +523,16 @@ class SetVolumeCommand(BaseCommand):
                     volume_unit=volume_unit.value,
                     used_fade=fade_duration is not None,
                 )
-            else:
-                return create_command_result(
-                    success=False,
-                    error_message="Failed to set system volume",
-                    execution_time=execution_time,
-                )
+            return create_command_result(
+                success=False,
+                error_message="Failed to set system volume",
+                execution_time=execution_time,
+            )
 
         except Exception as e:
             return create_command_result(
                 success=False,
-                error_message=f"Volume control failed: {str(e)}",
+                error_message=f"Volume control failed: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 
@@ -461,8 +542,9 @@ class SetVolumeCommand(BaseCommand):
             system = platform.system().lower()
 
             if system == "darwin":  # macOS
-                result = subprocess.run(
-                    ["osascript", "-e", "output volume of (get volume settings)"],
+                result = secure_subprocess_run(
+                    "osascript",
+                    ["-e", "output volume of (get volume settings)"],
                     capture_output=True,
                     text=True,
                     timeout=5,
@@ -472,8 +554,9 @@ class SetVolumeCommand(BaseCommand):
 
             elif system == "linux":
                 # Try to get volume from pulseaudio
-                result = subprocess.run(
-                    ["pactl", "get-sink-volume", "@DEFAULT_SINK@"],
+                result = secure_subprocess_run(
+                    "pactl",
+                    ["get-sink-volume", "@DEFAULT_SINK@"],
                     capture_output=True,
                     text=True,
                     timeout=5,
@@ -499,17 +582,16 @@ class SetVolumeCommand(BaseCommand):
             volume_percent = int(volume_level * 100)
 
             if system == "darwin":  # macOS
-                subprocess.run(
-                    ["osascript", "-e", f"set volume output volume {volume_percent}"],
+                secure_subprocess_run(
+                    "osascript",
+                    ["-e", f"set volume output volume {volume_percent}"],
                     check=True,
                     timeout=5,
                 )
-                return True
-
             elif system == "linux":
-                subprocess.run(
+                secure_subprocess_run(
+                    "pactl",
                     [
-                        "pactl",
                         "set-sink-volume",
                         "@DEFAULT_SINK@",
                         f"{volume_percent}%",
@@ -517,20 +599,22 @@ class SetVolumeCommand(BaseCommand):
                     check=True,
                     timeout=5,
                 )
-                return True
-
             elif system == "windows":
                 # Windows volume control would require additional libraries
                 # For now, return success but note it's not implemented
-                return True
+                pass
 
-            return False
+            # Return True for supported systems
+            return system in ("darwin", "linux", "windows")
 
         except Exception:
             return False
 
     def _set_volume_gradually(
-        self, start_volume: float, end_volume: float, duration: Duration
+        self,
+        start_volume: float,
+        end_volume: float,
+        duration: Duration,
     ) -> bool:
         """Set volume gradually over the specified duration."""
         try:

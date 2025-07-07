@@ -1,5 +1,4 @@
-"""
-Real-time compliance monitoring and violation detection system.
+"""Real-time compliance monitoring and violation detection system.
 
 This module provides comprehensive compliance monitoring with configurable rules,
 real-time violation detection, automated alerting, and regulatory standard support
@@ -48,9 +47,10 @@ class ComplianceMonitor:
             "start_time": datetime.now(UTC),
         }
 
-    @require(lambda self, rule: isinstance(rule, ComplianceRule))
+    @require(lambda __self, rule: isinstance(rule, ComplianceRule))
     async def register_compliance_rule(
-        self, rule: ComplianceRule
+        self,
+        rule: ComplianceRule,
     ) -> Either[AuditError, None]:
         """Register new compliance monitoring rule with validation."""
         try:
@@ -61,7 +61,7 @@ class ComplianceMonitor:
 
             self.compliance_rules[rule.rule_id] = rule
             logger.info(
-                f"Registered compliance rule: {rule.name} ({rule.standard.value})"
+                f"Registered compliance rule: {rule.name} ({rule.standard.value})",
             )
 
             return Either.right(None)
@@ -77,7 +77,7 @@ class ComplianceMonitor:
             return True
         return False
 
-    @require(lambda self, event: isinstance(event, AuditEvent))
+    @require(lambda __self, event: isinstance(event, AuditEvent))
     async def monitor_event(self, event: AuditEvent) -> list[ComplianceRule]:
         """Monitor event for compliance violations with performance optimization."""
         violations = []
@@ -111,7 +111,7 @@ class ComplianceMonitor:
                             await self._trigger_violation_callbacks(event, rule)
 
                             logger.warning(
-                                f"Compliance violation detected: {rule.name} - {event.action}"
+                                f"Compliance violation detected: {rule.name} - {event.action}",
                             )
 
                 except Exception as e:
@@ -127,7 +127,8 @@ class ComplianceMonitor:
         return violations
 
     async def evaluate_batch(
-        self, events: list[AuditEvent]
+        self,
+        events: list[AuditEvent],
     ) -> dict[str, list[ComplianceRule]]:
         """Evaluate multiple events for compliance violations efficiently."""
         results = {}
@@ -139,27 +140,28 @@ class ComplianceMonitor:
 
         return results
 
-    def enable_monitoring(self):
+    def enable_monitoring(self) -> bool:
         """Enable compliance monitoring."""
         self.monitoring_enabled = True
         logger.info("Compliance monitoring enabled")
 
-    def disable_monitoring(self):
+    def disable_monitoring(self) -> bool:
         """Disable compliance monitoring."""
         self.monitoring_enabled = False
         logger.info("Compliance monitoring disabled")
 
-    def add_violation_callback(self, callback: Callable):
+    def add_violation_callback(self, callback: Callable) -> bool:
         """Add callback to be called when violations are detected."""
         self.violation_callbacks.append(callback)
 
-    def remove_violation_callback(self, callback: Callable):
+    def remove_violation_callback(self, callback: Callable) -> bool:
         """Remove violation callback."""
         if callback in self.violation_callbacks:
             self.violation_callbacks.remove(callback)
 
     def get_rules_by_standard(
-        self, standard: ComplianceStandard
+        self,
+        standard: ComplianceStandard,
     ) -> list[ComplianceRule]:
         """Get all rules for specific compliance standard."""
         return [
@@ -170,7 +172,7 @@ class ComplianceMonitor:
         """Get all active (enabled) compliance rules."""
         return [rule for rule in self.compliance_rules.values() if rule.enabled]
 
-    def load_standard_rules(self, standard: ComplianceStandard):
+    def load_standard_rules(self, standard: ComplianceStandard) -> bool:
         """Load pre-defined compliance rules for specific standard."""
         standard_rules = self._get_standard_rules(standard)
 
@@ -354,22 +356,22 @@ class ComplianceMonitor:
             if rule.rule_id in self.compliance_rules:
                 return Either.left(
                     AuditError.rule_registration_failed(
-                        f"Rule ID already exists: {rule.rule_id}"
-                    )
+                        f"Rule ID already exists: {rule.rule_id}",
+                    ),
                 )
 
             # Validate rule condition syntax
             if not rule.condition or len(rule.condition.strip()) == 0:
                 return Either.left(
                     AuditError.rule_registration_failed(
-                        "Rule condition cannot be empty"
-                    )
+                        "Rule condition cannot be empty",
+                    ),
                 )
 
             # Validate rule name
             if not rule.name or len(rule.name.strip()) == 0:
                 return Either.left(
-                    AuditError.rule_registration_failed("Rule name cannot be empty")
+                    AuditError.rule_registration_failed("Rule name cannot be empty"),
                 )
 
             return Either.right(None)
@@ -386,7 +388,9 @@ class ComplianceMonitor:
         return datetime.now(UTC) - cached_time < self.cache_expiry
 
     async def _trigger_violation_callbacks(
-        self, event: AuditEvent, rule: ComplianceRule
+        self,
+        event: AuditEvent,
+        rule: ComplianceRule,
     ):
         """Trigger violation callbacks asynchronously."""
         for callback in self.violation_callbacks:
@@ -441,7 +445,9 @@ class ComplianceMonitor:
         return stats
 
     async def generate_compliance_summary(
-        self, period_start: datetime, period_end: datetime
+        self,
+        period_start: datetime,
+        period_end: datetime,
     ) -> dict[str, Any]:
         """Generate compliance monitoring summary for period."""
         try:
@@ -451,7 +457,7 @@ class ComplianceMonitor:
                 "monitoring_enabled": self.monitoring_enabled,
                 "active_rules": len(self.get_active_rules()),
                 "standards_monitored": list(
-                    {rule.standard.value for rule in self.compliance_rules.values()}
+                    {rule.standard.value for rule in self.compliance_rules.values()},
                 ),
                 "violation_summary": {
                     "total_violations": self.stats["violations_detected"],
@@ -498,7 +504,7 @@ class ViolationNotifier:
             RiskLevel.CRITICAL: "critical",
         }
 
-    def register_channel(self, name: str, handler: Callable):
+    def register_channel(self, name: str, handler: Callable) -> None:
         """Register notification channel."""
         self.notification_channels[name] = handler
 

@@ -1,5 +1,4 @@
-"""
-Comprehensive notification system for Keyboard Maestro MCP Tools.
+"""Comprehensive notification system for Keyboard Maestro MCP Tools.
 
 This module implements a multi-channel notification system that provides user feedback
 through system notifications, modal alerts, HUD displays, and sound notifications
@@ -103,15 +102,13 @@ class NotificationSpec:
         # Message validation
         if not self.message or len(self.message) > 500:
             raise ValueError(
-                f"Message must be 1-500 characters, got {len(self.message)}"
+                f"Message must be 1-500 characters, got {len(self.message)}",
             )
 
         # Duration validation
-        if self.duration is not None:
-            if self.duration < 0.1 or self.duration > 60.0:
-                raise ValueError(
-                    f"Duration must be 0.1-60.0 seconds, got {self.duration}"
-                )
+        # SIM102 fix: Combine nested if statements
+        if self.duration is not None and (self.duration < 0.1 or self.duration > 60.0):
+            raise ValueError(f"Duration must be 0.1-60.0 seconds, got {self.duration}")
 
         # Button validation
         if len(self.buttons) > 3:
@@ -148,7 +145,7 @@ class NotificationSpec:
 
         # File path validation (basic check)
         return bool(
-            sound.startswith("/") and sound.endswith((".aiff", ".wav", ".mp3", ".m4a"))
+            sound.startswith("/") and sound.endswith((".aiff", ".wav", ".mp3", ".m4a")),
         )
 
     def is_dismissible(self) -> bool:
@@ -164,8 +161,7 @@ class NotificationSpec:
 
 
 class NotificationManager:
-    """
-    Manage user notifications with multiple display channels.
+    """Manage user notifications with multiple display channels.
 
     Provides comprehensive notification capabilities including:
     - System notifications through macOS Notification Center
@@ -184,24 +180,25 @@ class NotificationManager:
         self._notification_counter += 1
         return f"notification_{self._notification_counter}_{int(time.time())}"
 
-    @require(lambda self, spec: isinstance(spec, NotificationSpec))
+    @require(lambda __self, spec: isinstance(spec, NotificationSpec))
     @ensure(lambda result: isinstance(result, Either))
     async def display_notification(
-        self, spec: NotificationSpec
+        self,
+        spec: NotificationSpec,
     ) -> Either[MacroEngineError, NotificationResult]:
-        """
-        Display notification with comprehensive validation and error handling.
+        """Display notification with comprehensive validation and error handling.
 
         Args:
             spec: Complete notification specification
 
         Returns:
             Either notification result or error details
+
         """
         try:
             # Validate content safety
             if not self._validate_notification_content(
-                spec.title
+                spec.title,
             ) or not self._validate_notification_content(spec.message):
                 return Either.left(
                     MacroEngineError(
@@ -211,39 +208,39 @@ class NotificationManager:
                             "title_length": len(spec.title),
                             "message_length": len(spec.message),
                         },
-                    )
+                    ),
                 )
 
             # Route to appropriate display method
             if spec.notification_type == NotificationType.NOTIFICATION:
                 return await self._display_system_notification(spec)
-            elif spec.notification_type == NotificationType.ALERT:
+            if spec.notification_type == NotificationType.ALERT:
                 return await self._display_alert_dialog(spec)
-            elif spec.notification_type == NotificationType.HUD:
+            if spec.notification_type == NotificationType.HUD:
                 return await self._display_hud(spec)
-            elif spec.notification_type == NotificationType.SOUND:
+            if spec.notification_type == NotificationType.SOUND:
                 return await self._display_sound_notification(spec)
-            else:
-                return Either.left(
-                    MacroEngineError(
-                        code="INVALID_NOTIFICATION_TYPE",
-                        message=f"Unsupported notification type: {spec.notification_type}",
-                        details={"type": spec.notification_type.value},
-                    )
-                )
+            return Either.left(
+                MacroEngineError(
+                    code="INVALID_NOTIFICATION_TYPE",
+                    message=f"Unsupported notification type: {spec.notification_type}",
+                    details={"type": spec.notification_type.value},
+                ),
+            )
 
         except Exception as e:
             logger.error(f"Failed to display notification: {e}")
             return Either.left(
                 MacroEngineError(
                     code="DISPLAY_ERROR",
-                    message=f"Notification display failed: {str(e)}",
+                    message=f"Notification display failed: {e!s}",
                     details={"error_type": type(e).__name__},
-                )
+                ),
             )
 
     async def _display_system_notification(
-        self, spec: NotificationSpec
+        self,
+        spec: NotificationSpec,
     ) -> Either[MacroEngineError, NotificationResult]:
         """Display macOS system notification."""
         notification_id = self._generate_notification_id()
@@ -285,20 +282,21 @@ class NotificationManager:
                     notification_id=notification_id,
                     display_time=display_time,
                     interaction_data={"applescript_result": result.get_right()},
-                )
+                ),
             )
 
         except Exception as e:
             return Either.left(
                 MacroEngineError(
                     code="SYSTEM_NOTIFICATION_ERROR",
-                    message=f"System notification failed: {str(e)}",
+                    message=f"System notification failed: {e!s}",
                     details={"notification_id": notification_id},
-                )
+                ),
             )
 
     async def _display_alert_dialog(
-        self, spec: NotificationSpec
+        self,
+        spec: NotificationSpec,
     ) -> Either[MacroEngineError, NotificationResult]:
         """Display modal alert dialog with user interaction."""
         notification_id = self._generate_notification_id()
@@ -308,17 +306,17 @@ class NotificationManager:
             # Build AppleScript for alert dialog
             if spec.buttons:
                 buttons_str = "{" + ", ".join(f'"{btn}"' for btn in spec.buttons) + "}"
-                script = f'''
+                script = f"""
                 display alert "{self._escape_applescript_string(spec.title)}" ¬
                 message "{self._escape_applescript_string(spec.message)}" ¬
                 buttons {buttons_str} ¬
                 default button 1
-                '''
+                """
             else:
-                script = f'''
+                script = f"""
                 display alert "{self._escape_applescript_string(spec.title)}" ¬
                 message "{self._escape_applescript_string(spec.message)}"
-                '''
+                """
 
             # Execute through KM client
             result = await self.km_client.execute_applescript(script)
@@ -349,20 +347,21 @@ class NotificationManager:
                         "button_clicked": button_clicked,
                         "applescript_result": applescript_result,
                     },
-                )
+                ),
             )
 
         except Exception as e:
             return Either.left(
                 MacroEngineError(
                     code="ALERT_DIALOG_ERROR",
-                    message=f"Alert dialog failed: {str(e)}",
+                    message=f"Alert dialog failed: {e!s}",
                     details={"notification_id": notification_id},
-                )
+                ),
             )
 
     async def _display_hud(
-        self, spec: NotificationSpec
+        self,
+        spec: NotificationSpec,
     ) -> Either[MacroEngineError, NotificationResult]:
         """Display heads-up display overlay."""
         notification_id = self._generate_notification_id()
@@ -397,20 +396,21 @@ class NotificationManager:
                         "position": spec.position.value,
                         "duration": duration,
                     },
-                )
+                ),
             )
 
         except Exception as e:
             return Either.left(
                 MacroEngineError(
                     code="HUD_DISPLAY_ERROR",
-                    message=f"HUD display failed: {str(e)}",
+                    message=f"HUD display failed: {e!s}",
                     details={"notification_id": notification_id},
-                )
+                ),
             )
 
     async def _display_sound_notification(
-        self, spec: NotificationSpec
+        self,
+        spec: NotificationSpec,
     ) -> Either[MacroEngineError, NotificationResult]:
         """Display sound notification."""
         notification_id = self._generate_notification_id()
@@ -433,27 +433,27 @@ class NotificationManager:
                     notification_id=notification_id,
                     display_time=display_time,
                     interaction_data={"sound_file": sound_file},
-                )
+                ),
             )
 
         except Exception as e:
             return Either.left(
                 MacroEngineError(
                     code="SOUND_NOTIFICATION_ERROR",
-                    message=f"Sound notification failed: {str(e)}",
+                    message=f"Sound notification failed: {e!s}",
                     details={"notification_id": notification_id},
-                )
+                ),
             )
 
     def _validate_notification_content(self, content: str) -> bool:
-        """
-        Validate notification content for safety and appropriateness.
+        """Validate notification content for safety and appropriateness.
 
         Args:
             content: Text content to validate
 
         Returns:
             True if content is safe, False otherwise
+
         """
         if not content or len(content.strip()) == 0:
             return False

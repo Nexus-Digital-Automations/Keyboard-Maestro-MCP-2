@@ -1,5 +1,4 @@
-"""
-Example of how to integrate permissions into your MCP server.
+"""Example of how to integrate permissions into your MCP server.
 
 This shows practical patterns for permission management in a real application.
 """
@@ -17,6 +16,7 @@ class UserPermissionManager:
     """Manages permissions for different users/clients."""
 
     def __init__(self):
+        """Initialize permission manager with default user permissions."""
         # In a real application, this would come from a database or config
         self.user_permissions: dict[str, frozenset[Permission]] = {
             "guest": frozenset([Permission.TEXT_INPUT]),
@@ -25,7 +25,7 @@ class UserPermissionManager:
                     Permission.TEXT_INPUT,
                     Permission.SYSTEM_SOUND,
                     Permission.FLOW_CONTROL,
-                ]
+                ],
             ),
             "power_user": frozenset(
                 [
@@ -35,7 +35,7 @@ class UserPermissionManager:
                     Permission.SYSTEM_CONTROL,
                     Permission.FLOW_CONTROL,
                     Permission.CLIPBOARD_ACCESS,
-                ]
+                ],
             ),
             "admin": frozenset(Permission),  # All permissions
         }
@@ -45,22 +45,27 @@ class UserPermissionManager:
         return self.user_permissions.get(user_type, frozenset([Permission.TEXT_INPUT]))
 
     def create_context_for_user(
-        self, user_type: str, timeout_seconds: int = 30
+        self,
+        user_type: str,
+        timeout_seconds: int = 30,
     ) -> ExecutionContext:
         """Create an execution context for a specific user type."""
         permissions = self.get_permissions_for_user(user_type)
         return ExecutionContext.create_test_context(
-            permissions=permissions, timeout=Duration.from_seconds(timeout_seconds)
+            permissions=permissions,
+            timeout=Duration.from_seconds(timeout_seconds),
         )
 
     def can_user_run_macro(
-        self, user_type: str, macro: MacroDefinition
+        self,
+        user_type: str,
+        macro: MacroDefinition,
     ) -> tuple[bool, list[Permission]]:
-        """
-        Check if a user can run a specific macro.
+        """Check if a user can run a specific macro.
 
         Returns:
             (can_run, missing_permissions)
+
         """
         user_permissions = self.get_permissions_for_user(user_type)
 
@@ -79,20 +84,24 @@ class MacroExecutionService:
     """Service that handles macro execution with permission checking."""
 
     def __init__(self):
+        """Initialize secure macro service with engine and permission manager."""
         self.engine = MacroEngine()
         self.permission_manager = UserPermissionManager()
 
     def execute_macro_for_user(
-        self, macro: MacroDefinition, user_type: str, timeout_seconds: int | None = None
+        self,
+        macro: MacroDefinition,
+        user_type: str,
+        timeout_seconds: int | None = None,
     ) -> dict:
-        """
-        Execute a macro for a specific user with appropriate permissions.
+        """Execute a macro for a specific user with appropriate permissions.
 
         Returns a result dictionary with execution details.
         """
         # Check if user can run this macro
         can_run, missing_permissions = self.permission_manager.can_user_run_macro(
-            user_type, macro
+            user_type,
+            macro,
         )
 
         if not can_run:
@@ -141,7 +150,7 @@ class MacroExecutionService:
 
 
 # Example usage in MCP server
-def mcp_server_example():
+def mcp_server_example() -> None:
     """Example of how you'd use this in your MCP server."""
     service = MacroExecutionService()
 
@@ -149,7 +158,8 @@ def mcp_server_example():
     from src.core import CommandType, create_test_macro
 
     app_macro = create_test_macro(
-        "Launch Calculator", [CommandType.APPLICATION_CONTROL]
+        "Launch Calculator",
+        [CommandType.APPLICATION_CONTROL],
     )
     sound_macro = create_test_macro("Play Alert", [CommandType.PLAY_SOUND])
 
@@ -172,12 +182,12 @@ def mcp_server_example():
         # Try to run sound macro
         result = service.execute_macro_for_user(sound_macro, user_type)
         print(
-            f"Sound macro result: {'✅ Success' if result['success'] else '❌ Failed'}"
+            f"Sound macro result: {'✅ Success' if result['success'] else '❌ Failed'}",
         )
 
 
 # Configuration-based permissions
-def load_permissions_from_config():
+def load_permissions_from_config() -> dict[str, frozenset[Permission]]:
     """Example of loading permissions from configuration."""
     # This could be a JSON file, environment variables, etc.
     config = {
@@ -196,7 +206,7 @@ def load_permissions_from_config():
             permission_map[role] = frozenset(Permission)
         else:
             permission_map[role] = frozenset(
-                [Permission[perm.upper()] for perm in perms]
+                [Permission[perm.upper()] for perm in perms],
             )
 
     return permission_map

@@ -1,5 +1,4 @@
-"""
-Core plugin architecture types and protocols for the plugin ecosystem.
+"""Core plugin architecture types and protocols for the plugin ecosystem.
 
 This module defines the fundamental plugin architecture with branded types,
 security boundaries, lifecycle management, and API specifications.
@@ -101,7 +100,8 @@ class PluginPermissions:
     def minimal(cls) -> PluginPermissions:
         """Create minimal permission set."""
         return cls(
-            permissions=set(), resource_limits={"memory_mb": 64, "cpu_percent": 5}
+            permissions=set(),
+            resource_limits={"memory_mb": 64, "cpu_percent": 5},
         )
 
     @classmethod
@@ -126,7 +126,9 @@ class PluginAPI:
         if self.version not in self.compatible_versions:
             # Add current version to compatible versions
             object.__setattr__(
-                self, "compatible_versions", self.compatible_versions | {self.version}
+                self,
+                "compatible_versions",
+                self.compatible_versions | {self.version},
             )
 
     def is_compatible(self, required_version: ApiVersion) -> bool:
@@ -159,7 +161,14 @@ class PluginDependency:
     def is_satisfied_by(self, version: str) -> bool:
         """Check if dependency is satisfied by given version."""
         # Simplified version checking - would use proper semver library
-        required_version = self.version_requirement.lstrip(">=<!=")
+        # B005 fix: Use proper version requirement parsing instead of misleading lstrip
+        import re
+
+        version_match = re.match(r"[>=<!]*([0-9.]+)", self.version_requirement)
+        if version_match:
+            required_version = version_match.group(1)
+        else:
+            required_version = self.version_requirement
         return version >= required_version
 
 
@@ -246,15 +255,15 @@ class CustomActionParameter:
             # Required parameter check
             if self.required and value is None:
                 return Either.left(
-                    ValidationError(f"Required parameter '{self.name}' is missing")
+                    ValidationError(f"Required parameter '{self.name}' is missing"),
                 )
 
             # Type checking
             if value is not None and not isinstance(value, self.param_type):
                 return Either.left(
                     ValidationError(
-                        f"Parameter '{self.name}' must be of type {self.param_type.__name__}"
-                    )
+                        f"Parameter '{self.name}' must be of type {self.param_type.__name__}",
+                    ),
                 )
 
             # Constraint validation
@@ -264,36 +273,39 @@ class CustomActionParameter:
                         if len(value) < constraint_value:
                             return Either.left(
                                 ValidationError(
-                                    f"Parameter '{self.name}' must have at least {constraint_value} characters"
-                                )
+                                    f"Parameter '{self.name}' must have at least {constraint_value} characters",
+                                ),
                             )
                     elif constraint == "max_length" and hasattr(value, "__len__"):
                         if len(value) > constraint_value:
                             return Either.left(
                                 ValidationError(
-                                    f"Parameter '{self.name}' must have at most {constraint_value} characters"
-                                )
+                                    f"Parameter '{self.name}' must have at most {constraint_value} characters",
+                                ),
                             )
                     elif constraint == "min_value" and isinstance(value, int | float):
                         if value < constraint_value:
                             return Either.left(
                                 ValidationError(
-                                    f"Parameter '{self.name}' must be at least {constraint_value}"
-                                )
+                                    f"Parameter '{self.name}' must be at least {constraint_value}",
+                                ),
                             )
-                    elif constraint == "max_value" and isinstance(value, int | float):
-                        if value > constraint_value:
-                            return Either.left(
-                                ValidationError(
-                                    f"Parameter '{self.name}' must be at most {constraint_value}"
-                                )
-                            )
+                    elif (
+                        constraint == "max_value"
+                        and isinstance(value, int | float)
+                        and value > constraint_value
+                    ):
+                        return Either.left(
+                            ValidationError(
+                                f"Parameter '{self.name}' must be at most {constraint_value}",
+                            ),
+                        )
 
             return Either.right(None)
 
         except Exception as e:
             return Either.left(
-                ValidationError("parameter_value", str(e), "valid parameter value")
+                ValidationError("parameter_value", str(e), "valid parameter value"),
             )
 
 
@@ -317,7 +329,8 @@ class CustomAction:
             raise ValueError("Handler must be callable")
 
     def validate_parameters(
-        self, params: dict[str, Any]
+        self,
+        params: dict[str, Any],
     ) -> Either[ValidationError, None]:
         """Validate action parameters against specification."""
         try:
@@ -336,15 +349,17 @@ class CustomAction:
             if unexpected:
                 return Either.left(
                     ValidationError(
-                        "parameters", ", ".join(unexpected), "expected parameter names"
-                    )
+                        "parameters",
+                        ", ".join(unexpected),
+                        "expected parameter names",
+                    ),
                 )
 
             return Either.right(None)
 
         except Exception as e:
             return Either.left(
-                ValidationError("parameters", str(e), "valid parameters")
+                ValidationError("parameters", str(e), "valid parameters"),
             )
 
     async def execute(self, params: dict[str, Any]) -> Either[PluginError, Any]:
@@ -355,7 +370,7 @@ class CustomAction:
             if validation_result.is_left():
                 error = validation_result.get_left()
                 return Either.left(
-                    PluginError.parameter_validation_error(error.message)
+                    PluginError.parameter_validation_error(error.message),
                 )
 
             # Add default values for missing optional parameters
@@ -424,7 +439,10 @@ class PluginConfiguration:
         )
 
     def validate_setting(
-        self, key: str, value: Any, schema: dict[str, Any] | None = None
+        self,
+        key: str,
+        value: Any,
+        schema: dict[str, Any] | None = None,
     ) -> Either[ValidationError, None]:
         """Validate setting against schema if provided."""
         if not schema:
@@ -435,17 +453,28 @@ class PluginConfiguration:
             # In a full implementation, would use jsonschema or similar
             if key in schema:
                 expected_type = schema[key].get("type")
-                if expected_type and not isinstance(value, eval(expected_type)):
-                    return Either.left(
-                        ValidationError(
-                            f"Setting '{key}' must be of type {expected_type}"
+                if expected_type:
+                    # Safe type mapping instead of eval
+                    type_mapping = {
+                        "str": str,
+                        "int": int,
+                        "float": float,
+                        "bool": bool,
+                        "list": list,
+                        "dict": dict,
+                    }
+                    type_class = type_mapping.get(expected_type)
+                    if type_class and not isinstance(value, type_class):
+                        return Either.left(
+                            ValidationError(
+                                f"Setting '{key}' must be of type {expected_type}",
+                            ),
                         )
-                    )
 
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError(f"Setting validation failed: {str(e)}"))
+            return Either.left(ValidationError(f"Setting validation failed: {e!s}"))
 
 
 class PluginHook:
@@ -488,7 +517,8 @@ class PluginInterface(Protocol):
         ...
 
     async def initialize(
-        self, api_bridge: PluginAPIBridge
+        self,
+        api_bridge: PluginAPIBridge,
     ) -> Either[PluginError, None]:
         """Initialize plugin with API bridge."""
         ...
@@ -543,7 +573,9 @@ class PluginError(Exception):
 
     @classmethod
     def execution_error(
-        cls, details: str, context: dict[str, Any] | None = None
+        cls,
+        details: str,
+        context: dict[str, Any] | None = None,
     ) -> PluginError:
         return cls(f"Plugin execution error: {details}", "EXECUTION_ERROR", context)
 

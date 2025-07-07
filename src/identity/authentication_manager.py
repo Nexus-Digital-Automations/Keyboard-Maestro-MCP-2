@@ -1,5 +1,4 @@
-"""
-Identity Authentication Manager - TASK_67 Phase 2 Core Identity Engine
+"""Identity Authentication Manager - TASK_67 Phase 2 Core Identity Engine.
 
 Username-based authentication system with enterprise-grade security, session management,
 and multi-factor authentication capabilities for practical MCP server environments.
@@ -75,10 +74,10 @@ class IdentityAuthenticationManager:
             logger.warning(f"Failed to create default users: {e}")
 
     async def _create_default_admin_user(self) -> None:
-        """Create default admin user for development."""
+        """Create default admin user for development only."""
         admin_result = await self.register_user(
             username="admin",
-            password="SecureAdmin123!",
+            password="SecureAdmin123!",  # noqa: S106 - Development-only default password for testing
             display_name="Administrator",
             email="admin@example.com",
             permissions={"admin", "user_management", "system_config"},
@@ -90,7 +89,7 @@ class IdentityAuthenticationManager:
         # Create default regular user
         user_result = await self.register_user(
             username="testuser",
-            password="TestUser123!",
+            password="TestUser123!",  # noqa: S106 - Development-only default password for testing
             display_name="Test User",
             email="test@example.com",
             permissions={"user", "automation"},
@@ -119,13 +118,15 @@ class IdentityAuthenticationManager:
             if username.lower() in self.username_to_profile:
                 return Either.error(
                     IdentityError(
-                        f"Username already exists: {username}", "USERNAME_EXISTS"
-                    )
+                        f"Username already exists: {username}",
+                        "USERNAME_EXISTS",
+                    ),
                 )
 
             # Validate password complexity
             is_valid, errors = validate_password_complexity(
-                password, self.config.password_complexity_requirements
+                password,
+                self.config.password_complexity_requirements,
             )
             if not is_valid:
                 return Either.error(
@@ -133,7 +134,7 @@ class IdentityAuthenticationManager:
                         f"Password validation failed: {'; '.join(errors)}",
                         "WEAK_PASSWORD",
                         {"validation_errors": errors},
-                    )
+                    ),
                 )
 
             # Generate secure credentials
@@ -179,15 +180,18 @@ class IdentityAuthenticationManager:
             logger.error(f"Failed to register user {username}: {e}")
             return Either.error(
                 IdentityError(
-                    f"User registration failed: {str(e)}", "REGISTRATION_FAILED"
-                )
+                    f"User registration failed: {e!s}",
+                    "REGISTRATION_FAILED",
+                ),
             )
 
     @require(
-        lambda auth_request: auth_request.username and len(auth_request.username) > 0
+        lambda auth_request: auth_request.username and len(auth_request.username) > 0,
     )
     async def authenticate_user(
-        self, auth_request: AuthenticationRequest, password: str | None = None
+        self,
+        auth_request: AuthenticationRequest,
+        password: str | None = None,
     ) -> Either[IdentityError, AuthenticationResult]:
         """Authenticate user with username and password or session."""
         start_time = datetime.now(UTC)
@@ -205,13 +209,13 @@ class IdentityAuthenticationManager:
 
             # Check if authentication method is supported
             if not user_profile.has_authentication_method(
-                auth_request.authentication_method
+                auth_request.authentication_method,
             ):
                 return Either.error(
                     IdentityError(
                         f"Authentication method not supported: {auth_request.authentication_method.value}",
                         "UNSUPPORTED_AUTH_METHOD",
-                    )
+                    ),
                 )
 
             # Perform authentication based on method
@@ -220,18 +224,21 @@ class IdentityAuthenticationManager:
 
             if auth_request.authentication_method == AuthenticationMethod.PASSWORD:
                 auth_success = await self._authenticate_with_password(
-                    username_lower, password, security_warnings
+                    username_lower,
+                    password,
+                    security_warnings,
                 )
             elif auth_request.authentication_method == AuthenticationMethod.SESSION:
                 auth_success = await self._authenticate_with_session(
-                    username_lower, security_warnings
+                    username_lower,
+                    security_warnings,
                 )
             else:
                 return Either.error(
                     IdentityError(
                         f"Authentication method not implemented: {auth_request.authentication_method.value}",
                         "NOT_IMPLEMENTED",
-                    )
+                    ),
                 )
 
             # Calculate processing time
@@ -240,7 +247,7 @@ class IdentityAuthenticationManager:
             if not auth_success:
                 self.security_metrics["failed_attempts"] += 1
                 return Either.error(
-                    IdentityError.authentication_failed(auth_request.username)
+                    IdentityError.authentication_failed(auth_request.username),
                 )
 
             # Create session
@@ -309,11 +316,14 @@ class IdentityAuthenticationManager:
         except Exception as e:
             logger.error(f"Authentication failed for {auth_request.username}: {e}")
             return Either.error(
-                IdentityError(f"Authentication system error: {str(e)}", "SYSTEM_ERROR")
+                IdentityError(f"Authentication system error: {e!s}", "SYSTEM_ERROR"),
             )
 
     async def _authenticate_with_password(
-        self, username: str, password: str | None, security_warnings: list[str]
+        self,
+        username: str,
+        password: str | None,
+        security_warnings: list[str],
     ) -> bool:
         """Authenticate user with password."""
         if not password:
@@ -336,7 +346,9 @@ class IdentityAuthenticationManager:
         return False
 
     async def _authenticate_with_session(
-        self, username: str, security_warnings: list[str]
+        self,
+        username: str,
+        security_warnings: list[str],
     ) -> bool:
         """Authenticate user with existing session."""
         # Check for valid existing session
@@ -352,7 +364,8 @@ class IdentityAuthenticationManager:
 
     @require(lambda session_token: len(session_token) > 0)
     async def validate_session(
-        self, session_token: SessionToken
+        self,
+        session_token: SessionToken,
     ) -> Either[IdentityError, UserSession]:
         """Validate session token and return session information."""
         try:
@@ -364,28 +377,29 @@ class IdentityAuthenticationManager:
                         updated_session = session.update_activity()
                         self.active_sessions[session.session_id] = updated_session
                         return Either.success(updated_session)
-                    else:
-                        # Session expired
-                        del self.active_sessions[session.session_id]
-                        return Either.error(
-                            IdentityError.session_expired(session.session_id)
-                        )
+                    # Session expired
+                    del self.active_sessions[session.session_id]
+                    return Either.error(
+                        IdentityError.session_expired(session.session_id),
+                    )
 
             return Either.error(
-                IdentityError("Invalid session token", "INVALID_SESSION_TOKEN")
+                IdentityError("Invalid session token", "INVALID_SESSION_TOKEN"),
             )
 
         except Exception as e:
             logger.error(f"Session validation failed: {e}")
             return Either.error(
                 IdentityError(
-                    f"Session validation error: {str(e)}", "SESSION_VALIDATION_ERROR"
-                )
+                    f"Session validation error: {e!s}",
+                    "SESSION_VALIDATION_ERROR",
+                ),
             )
 
     @require(lambda session_id: len(session_id) > 0)
     async def logout_user(
-        self, session_id: UserSessionId
+        self,
+        session_id: UserSessionId,
     ) -> Either[IdentityError, bool]:
         """Logout user and invalidate session."""
         try:
@@ -395,26 +409,27 @@ class IdentityAuthenticationManager:
 
                 # Update metrics
                 self.security_metrics["active_sessions"] = float(
-                    len(self.active_sessions)
+                    len(self.active_sessions),
                 )
 
                 logger.info(
-                    f"User logged out: {session.authentication_result.username}"
+                    f"User logged out: {session.authentication_result.username}",
                 )
                 return Either.success(True)
 
             return Either.error(
-                IdentityError(f"Session not found: {session_id}", "SESSION_NOT_FOUND")
+                IdentityError(f"Session not found: {session_id}", "SESSION_NOT_FOUND"),
             )
 
         except Exception as e:
             logger.error(f"Logout failed: {e}")
             return Either.error(
-                IdentityError(f"Logout error: {str(e)}", "LOGOUT_ERROR")
+                IdentityError(f"Logout error: {e!s}", "LOGOUT_ERROR"),
             )
 
     async def get_user_profile(
-        self, user_profile_id: UserProfileId
+        self,
+        user_profile_id: UserProfileId,
     ) -> Either[IdentityError, UserProfile]:
         """Get user profile by ID."""
         try:
@@ -427,12 +442,15 @@ class IdentityAuthenticationManager:
             logger.error(f"Failed to get user profile: {e}")
             return Either.error(
                 IdentityError(
-                    f"Profile retrieval error: {str(e)}", "PROFILE_RETRIEVAL_ERROR"
-                )
+                    f"Profile retrieval error: {e!s}",
+                    "PROFILE_RETRIEVAL_ERROR",
+                ),
             )
 
     async def update_user_profile(
-        self, user_profile_id: UserProfileId, updates: dict[str, Any]
+        self,
+        user_profile_id: UserProfileId,
+        updates: dict[str, Any],
     ) -> Either[IdentityError, UserProfile]:
         """Update user profile with new data."""
         try:
@@ -453,13 +471,16 @@ class IdentityAuthenticationManager:
                     current_profile.personalization_preferences,
                 ),
                 accessibility_settings=updates.get(
-                    "accessibility_settings", current_profile.accessibility_settings
+                    "accessibility_settings",
+                    current_profile.accessibility_settings,
                 ),
                 behavioral_patterns=updates.get(
-                    "behavioral_patterns", current_profile.behavioral_patterns
+                    "behavioral_patterns",
+                    current_profile.behavioral_patterns,
                 ),
                 privacy_settings=updates.get(
-                    "privacy_settings", current_profile.privacy_settings
+                    "privacy_settings",
+                    current_profile.privacy_settings,
                 ),
                 permissions=updates.get("permissions", current_profile.permissions),
                 created_at=current_profile.created_at,
@@ -476,7 +497,7 @@ class IdentityAuthenticationManager:
         except Exception as e:
             logger.error(f"Failed to update user profile: {e}")
             return Either.error(
-                IdentityError(f"Profile update error: {str(e)}", "PROFILE_UPDATE_ERROR")
+                IdentityError(f"Profile update error: {e!s}", "PROFILE_UPDATE_ERROR"),
             )
 
     async def cleanup_expired_sessions(self) -> int:
@@ -535,7 +556,7 @@ class IdentityAuthenticationManager:
                         "expires_at": session.expires_at.isoformat(),
                         "security_level": session.security_level.value,
                         "activity_count": session.activity_count,
-                    }
+                    },
                 )
 
         return sessions

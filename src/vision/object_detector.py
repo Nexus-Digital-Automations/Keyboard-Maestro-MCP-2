@@ -1,5 +1,4 @@
-"""
-Object Detector - TASK_61 Phase 2 Core Implementation
+"""Object Detector - TASK_61 Phase 2 Core Implementation.
 
 Advanced object detection and classification system for computer vision automation.
 Provides AI-powered object detection, classification, and tracking capabilities with real-time processing.
@@ -233,13 +232,13 @@ class ObjectDetector:
             return True
 
         except Exception as e:
-            logging.error(f"Failed to initialize model {model_id}: {str(e)}")
+            logging.error(f"Failed to initialize model {model_id}: {e!s}")
             return False
 
     @require(lambda image_content: isinstance(image_content, ImageContent))
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.left_value, ObjectDetectionError)
+        or isinstance(result.left_value, ObjectDetectionError),
     )
     async def detect_objects(
         self,
@@ -260,8 +259,9 @@ class ObjectDetector:
             if validation_result.is_left():
                 return Either.left(
                     ObjectDetectionError(
-                        validation_result.left_value.message, "IMAGE_VALIDATION_ERROR"
-                    )
+                        validation_result.left_value.message,
+                        "IMAGE_VALIDATION_ERROR",
+                    ),
                 )
 
             # Check if model is loaded
@@ -270,13 +270,16 @@ class ObjectDetector:
                 if not success:
                     return Either.left(
                         ObjectDetectionError(
-                            f"Failed to load model: {model_id}", "MODEL_LOADING_ERROR"
-                        )
+                            f"Failed to load model: {model_id}",
+                            "MODEL_LOADING_ERROR",
+                        ),
                     )
 
             # Simulate object detection (in real implementation, this would use actual AI models)
             detected_objects = await self._simulate_object_detection(
-                image_content, threshold, max_objects
+                image_content,
+                threshold,
+                max_objects,
             )
 
             # Apply post-processing if enabled
@@ -301,15 +304,18 @@ class ObjectDetector:
         except Exception as e:
             return Either.left(
                 ObjectDetectionError(
-                    f"Object detection failed: {str(e)}",
+                    f"Object detection failed: {e!s}",
                     "DETECTION_ERROR",
                     VisionOperation.OBJECT_DETECTION,
                     {"threshold": threshold, "max_objects": max_objects},
-                )
+                ),
             )
 
     async def _simulate_object_detection(
-        self, image_content: ImageContent, threshold: float, max_objects: int
+        self,
+        image_content: ImageContent,
+        threshold: float,
+        max_objects: int,
     ) -> list[DetectedObject]:
         """Simulate object detection (replace with actual AI model inference)."""
         # This simulates realistic object detection results
@@ -320,7 +326,7 @@ class ObjectDetector:
         random.seed(len(image_content) % 1000)  # Deterministic based on image
 
         # Simulate detection results
-        num_objects = min(random.randint(1, 8), max_objects)
+        num_objects = min(random.randint(1, 8), max_objects)  # noqa: S311 # Simulation data generation
         detected_objects = []
 
         common_objects = [
@@ -338,21 +344,22 @@ class ObjectDetector:
             if i < len(common_objects):
                 class_name, category, base_confidence = common_objects[i]
             else:
-                class_name, category, base_confidence = random.choice(common_objects)
+                class_name, category, base_confidence = random.choice(common_objects)  # noqa: S311 # Simulation data generation
 
             # Add some randomness to confidence
             confidence = min(
-                1.0, max(threshold, base_confidence + random.uniform(-0.1, 0.1))
+                1.0,
+                max(threshold, base_confidence + random.uniform(-0.1, 0.1)),  # noqa: S311 # Simulation data generation
             )
 
             if confidence < threshold:
                 continue
 
             # Generate realistic bounding box
-            x = random.uniform(0.0, 0.7)
-            y = random.uniform(0.0, 0.7)
-            width = random.uniform(0.1, min(0.3, 1.0 - x))
-            height = random.uniform(0.1, min(0.3, 1.0 - y))
+            x = random.uniform(0.0, 0.7)  # noqa: S311 # Simulation data generation
+            y = random.uniform(0.0, 0.7)  # noqa: S311 # Simulation data generation
+            width = random.uniform(0.1, min(0.3, 1.0 - x))  # noqa: S311 # Simulation data generation
+            height = random.uniform(0.1, min(0.3, 1.0 - y))  # noqa: S311 # Simulation data generation
 
             bbox = BoundingBox(
                 bbox_id=create_bbox_id(),
@@ -411,7 +418,8 @@ class ObjectDetector:
         return f"{v_pos}_{h_pos}"
 
     async def _post_process_detections(
-        self, detections: list[DetectedObject]
+        self,
+        detections: list[DetectedObject],
     ) -> list[DetectedObject]:
         """Apply post-processing to detection results."""
         if not detections:
@@ -419,7 +427,8 @@ class ObjectDetector:
 
         # Apply confidence filtering
         filtered = filter_objects_by_confidence(
-            detections, self.config.confidence_threshold
+            detections,
+            self.config.confidence_threshold,
         )
 
         # Apply Non-Maximum Suppression
@@ -507,7 +516,9 @@ class ObjectDetector:
                 track.track_confidence *= 0.9
 
     def _update_performance_metrics(
-        self, num_detections: int, processing_time: float
+        self,
+        num_detections: int,
+        processing_time: float,
     ) -> None:
         """Update performance metrics."""
         self.performance_metrics["total_detections"] += num_detections
@@ -560,8 +571,9 @@ class ObjectDetector:
         except Exception as e:
             return Either.left(
                 ObjectDetectionError(
-                    f"Object classification failed: {str(e)}", "CLASSIFICATION_ERROR"
-                )
+                    f"Object classification failed: {e!s}",
+                    "CLASSIFICATION_ERROR",
+                ),
             )
 
     async def batch_detect_objects(
@@ -590,9 +602,10 @@ class ObjectDetector:
                     results.append(
                         Either.left(
                             ObjectDetectionError(
-                                f"Batch processing error: {str(result)}", "BATCH_ERROR"
-                            )
-                        )
+                                f"Batch processing error: {result!s}",
+                                "BATCH_ERROR",
+                            ),
+                        ),
                     )
                 else:
                     results.append(result)
@@ -612,7 +625,7 @@ class ObjectDetector:
             "detection_counts": dict(self.detection_stats),
             "average_confidences": avg_confidences,
             "active_tracks": len(
-                [t for t in self.object_tracks.values() if t.is_active]
+                [t for t in self.object_tracks.values() if t.is_active],
             ),
             "total_tracks": len(self.object_tracks),
             "supported_classes": len(self.class_mapping),

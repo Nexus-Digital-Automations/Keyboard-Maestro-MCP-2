@@ -1,5 +1,4 @@
-"""
-Immutable Trigger Management System
+"""Immutable Trigger Management System.
 
 Manages Keyboard Maestro triggers with immutable state transitions
 and functional state management patterns.
@@ -7,15 +6,25 @@ and functional state management patterns.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+import asyncio
+from asyncio import Queue
 from dataclasses import dataclass, field
 from dataclasses import replace as dataclass_replace
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 from ..core.types import MacroId, TriggerId
 from .events import KMEvent, TriggerType
+from .km_client import Either, KMClient, KMError
+from .km_client import TriggerDefinition as KMTriggerDefinition
+from .security import sanitize_trigger_configuration, validate_trigger_input
+
+if TYPE_CHECKING:
+    from ..core.engine import MacroEngine
 
 
 class TriggerStatus(Enum):
@@ -54,7 +63,9 @@ class TriggerMetadata:
     def with_trigger_event(self) -> TriggerMetadata:
         """Create new metadata with incremented trigger count."""
         return dataclass_replace(
-            self, last_triggered=datetime.now(), trigger_count=self.trigger_count + 1
+            self,
+            last_triggered=datetime.now(),
+            trigger_count=self.trigger_count + 1,
         )
 
     def with_failure(self) -> TriggerMetadata:
@@ -250,7 +261,10 @@ class TriggerEvent:
 
     @classmethod
     def fail_event(
-        cls, trigger_id: TriggerId, error_message: str, **details
+        cls,
+        trigger_id: TriggerId,
+        error_message: str,
+        **details,
     ) -> TriggerEvent:
         """Create trigger failure event."""
         failure_details = {"error_message": error_message, **details}
@@ -279,7 +293,7 @@ def update_trigger_state(current: TriggerState, event: TriggerEvent) -> TriggerS
         )
         return current.with_registered(trigger_info)
 
-    elif event.event_type == TriggerEventType.ACTIVATE:
+    if event.event_type == TriggerEventType.ACTIVATE:
         if current.has_trigger(event.trigger_id):
             return current.with_activated(event.trigger_id)
 
@@ -291,16 +305,18 @@ def update_trigger_state(current: TriggerState, event: TriggerEvent) -> TriggerS
         if current.has_trigger(event.trigger_id):
             return current.with_failed(event.trigger_id)
 
-    elif event.event_type == TriggerEventType.UNREGISTER:
-        if current.has_trigger(event.trigger_id):
-            return current.without_trigger(event.trigger_id)
+    elif event.event_type == TriggerEventType.UNREGISTER and current.has_trigger(
+        event.trigger_id
+    ):
+        return current.without_trigger(event.trigger_id)
 
     # Return unchanged state if event doesn't apply
     return current
 
 
 def apply_trigger_events(
-    initial_state: TriggerState, events: list[TriggerEvent]
+    initial_state: TriggerState,
+    events: list[TriggerEvent],
 ) -> TriggerState:
     """Apply sequence of trigger events to state."""
     return _reduce_state(initial_state, events, update_trigger_state)
@@ -339,7 +355,8 @@ def create_trigger_matcher(
 
 
 def find_triggers_matching(
-    state: TriggerState, predicate: Callable[[TriggerInfo], bool]
+    state: TriggerState,
+    predicate: Callable[[TriggerInfo], bool],
 ) -> list[TriggerInfo]:
     """Find all triggers matching predicate."""
     return [info for info in state.triggers.values() if predicate(info)]
@@ -362,18 +379,6 @@ def get_trigger_statistics(state: TriggerState) -> dict[str, int]:
 
 
 # TASK_2 Phase 2 Implementation: Trigger Registration & Event Routing System
-
-import asyncio
-from asyncio import Queue
-
-# Avoid circular import - import MacroEngine when needed
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from ..core.engine import MacroEngine
-from .km_client import Either, KMClient, KMError
-from .km_client import TriggerDefinition as KMTriggerDefinition
-from .security import sanitize_trigger_configuration, validate_trigger_input
 
 
 @dataclass
@@ -434,7 +439,8 @@ class TriggerRegistrationManager:
 
     # @require(lambda self, trigger_def: isinstance(trigger_def, TriggerDefinition))
     async def register_trigger(
-        self, trigger_def: TriggerDefinition
+        self,
+        trigger_def: TriggerDefinition,
     ) -> Either[KMError, TriggerId]:
         """Register a new trigger with Keyboard Maestro."""
         try:
@@ -442,7 +448,7 @@ class TriggerRegistrationManager:
             is_valid = validate_trigger_input(trigger_def.configuration)
             if not is_valid:
                 return Either.left(
-                    KMError.validation_error("Invalid trigger configuration")
+                    KMError.validation_error("Invalid trigger configuration"),
                 )
 
             sanitized_config = sanitize_trigger_configuration(trigger_def.configuration)
@@ -484,7 +490,7 @@ class TriggerRegistrationManager:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Trigger registration failed: {str(e)}")
+                KMError.execution_error(f"Trigger registration failed: {e!s}"),
             )
 
     # @require(lambda self, trigger_id: trigger_id)
@@ -493,7 +499,7 @@ class TriggerRegistrationManager:
         async with self._state_lock:
             if not self._state.has_trigger(trigger_id):
                 return Either.left(
-                    KMError.not_found_error(f"Trigger {trigger_id} not found")
+                    KMError.not_found_error(f"Trigger {trigger_id} not found"),
                 )
 
             # Activate in Keyboard Maestro
@@ -511,7 +517,7 @@ class TriggerRegistrationManager:
         async with self._state_lock:
             if not self._state.has_trigger(trigger_id):
                 return Either.left(
-                    KMError.not_found_error(f"Trigger {trigger_id} not found")
+                    KMError.not_found_error(f"Trigger {trigger_id} not found"),
                 )
 
             # Deactivate in Keyboard Maestro
@@ -544,8 +550,10 @@ class TriggerRegistrationManager:
                     elif km_trigger["status"] == "inactive":
                         events.append(
                             TriggerEvent(
-                                trigger_id, TriggerEventType.DEACTIVATE, datetime.now()
-                            )
+                                trigger_id,
+                                TriggerEventType.DEACTIVATE,
+                                datetime.now(),
+                            ),
                         )
 
                 self._state = apply_trigger_events(self._state, events)
@@ -553,7 +561,7 @@ class TriggerRegistrationManager:
             return Either.right(self._state)
 
         except Exception as e:
-            return Either.left(KMError.execution_error(f"State sync failed: {str(e)}"))
+            return Either.left(KMError.execution_error(f"State sync failed: {e!s}"))
 
     def get_current_state(self) -> TriggerState:
         """Get current trigger state (thread-safe read)."""
@@ -564,7 +572,9 @@ class EventRouter:
     """Routes Keyboard Maestro events to appropriate macro handlers."""
 
     def __init__(
-        self, macro_engine: MacroEngine, trigger_manager: TriggerRegistrationManager
+        self,
+        macro_engine: MacroEngine,
+        trigger_manager: TriggerRegistrationManager,
     ):
         self._macro_engine = macro_engine
         self._trigger_manager = trigger_manager
@@ -595,12 +605,12 @@ class EventRouter:
             trigger_info = trigger_state.get_trigger(event.trigger_id)
             if not trigger_info:
                 return Either.left(
-                    KMError.not_found_error(f"Trigger {event.trigger_id} not found")
+                    KMError.not_found_error(f"Trigger {event.trigger_id} not found"),
                 )
 
             if not trigger_info.can_trigger():
                 return Either.left(
-                    KMError.execution_error(f"Trigger {event.trigger_id} cannot fire")
+                    KMError.execution_error(f"Trigger {event.trigger_id} cannot fire"),
                 )
 
             # Apply routing rules to find handler
@@ -620,11 +630,13 @@ class EventRouter:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Event routing failed: {str(e)}")
+                KMError.execution_error(f"Event routing failed: {e!s}"),
             )
 
     async def _execute_macro_for_event(
-        self, trigger_info: TriggerInfo, event: KMEvent
+        self,
+        trigger_info: TriggerInfo,
+        event: KMEvent,
     ) -> Either[KMError, bool]:
         """Execute macro associated with trigger."""
         try:
@@ -640,27 +652,24 @@ class EventRouter:
                 async with self._trigger_manager._state_lock:
                     self._trigger_manager._state = (
                         self._trigger_manager._state.with_triggered(
-                            trigger_info.trigger_id
+                            trigger_info.trigger_id,
                         )
                     )
                 return Either.right(True)
-            else:
-                # Update trigger state to record failure
-                async with self._trigger_manager._state_lock:
-                    self._trigger_manager._state = (
-                        self._trigger_manager._state.with_failed(
-                            trigger_info.trigger_id
-                        )
-                    )
-                return Either.left(
-                    KMError.execution_error(
-                        f"Macro execution failed: {execution_result.error_message}"
-                    )
+            # Update trigger state to record failure
+            async with self._trigger_manager._state_lock:
+                self._trigger_manager._state = self._trigger_manager._state.with_failed(
+                    trigger_info.trigger_id,
                 )
+            return Either.left(
+                KMError.execution_error(
+                    f"Macro execution failed: {execution_result.error_message}",
+                ),
+            )
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Macro execution error: {str(e)}")
+                KMError.execution_error(f"Macro execution error: {e!s}"),
             )
 
     async def start_event_processing(self) -> None:
@@ -685,7 +694,7 @@ class EventRouter:
                 # Normal timeout, continue loop
                 continue
             except Exception as e:
-                print(f"Event processing error: {str(e)}")
+                print(f"Event processing error: {e!s}")
 
     async def stop_event_processing(self) -> None:
         """Stop the event processing loop."""

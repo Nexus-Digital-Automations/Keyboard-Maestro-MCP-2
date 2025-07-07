@@ -1,5 +1,4 @@
-"""
-Master ecosystem orchestrator coordinating all 46+ automation tools.
+"""Master ecosystem orchestrator coordinating all 46+ automation tools.
 
 This module provides the central coordination hub that brings together:
 - Tool registry and capability management
@@ -103,7 +102,6 @@ class EcosystemOrchestrator:
 
     async def initialize(self) -> Either[OrchestrationError, None]:
         """Initialize the complete ecosystem orchestrator."""
-
         try:
             self.logger.info("Initializing ecosystem orchestrator...")
 
@@ -114,7 +112,7 @@ class EcosystemOrchestrator:
             # Validate tool registry completeness
             if len(self.tool_registry.tools) < 40:  # Expect at least 40 tools
                 self.logger.warning(
-                    f"Tool registry contains only {len(self.tool_registry.tools)} tools"
+                    f"Tool registry contains only {len(self.tool_registry.tools)} tools",
                 )
 
             # Perform initial system health check
@@ -132,12 +130,11 @@ class EcosystemOrchestrator:
             error_msg = f"Ecosystem initialization failed: {e}"
             self.logger.error(error_msg)
             return Either.left(
-                OrchestrationError.ecosystem_initialization_failed(error_msg)
+                OrchestrationError.ecosystem_initialization_failed(error_msg),
             )
 
     async def shutdown(self) -> None:
         """Gracefully shutdown the ecosystem orchestrator."""
-
         try:
             self.logger.info("Shutting down ecosystem orchestrator...")
 
@@ -158,7 +155,6 @@ class EcosystemOrchestrator:
 
     async def _perform_initial_health_check(self) -> Either[OrchestrationError, None]:
         """Perform initial health check of the ecosystem."""
-
         try:
             # Check tool registry
             if not self.tool_registry.tools:
@@ -171,8 +167,8 @@ class EcosystemOrchestrator:
                 if not tools_in_category:
                     return Either.left(
                         OrchestrationError.ecosystem_initialization_failed(
-                            f"No tools found in required category: {category.value}"
-                        )
+                            f"No tools found in required category: {category.value}",
+                        ),
                     )
 
             # Check resource pools
@@ -180,8 +176,8 @@ class EcosystemOrchestrator:
             if resource_status["system_health"] == "critical":
                 return Either.left(
                     OrchestrationError.ecosystem_initialization_failed(
-                        "Critical resource issues detected"
-                    )
+                        "Critical resource issues detected",
+                    ),
                 )
 
             return Either.right(None)
@@ -189,8 +185,8 @@ class EcosystemOrchestrator:
         except Exception as e:
             return Either.left(
                 OrchestrationError.ecosystem_initialization_failed(
-                    f"Health check failed: {e}"
-                )
+                    f"Health check failed: {e}",
+                ),
             )
 
     @require(lambda self: self.is_initialized)
@@ -202,7 +198,6 @@ class EcosystemOrchestrator:
         tool_selection: str = "intelligent",
     ) -> Either[OrchestrationError, OrchestrationResult]:
         """Orchestrate complex workflow across multiple ecosystem tools."""
-
         orchestration_id = create_orchestration_id()
 
         try:
@@ -219,12 +214,14 @@ class EcosystemOrchestrator:
             # Create or use provided workflow
             if workflow_definition:
                 workflow = await self._create_workflow_from_definition(
-                    workflow_definition, execution_mode
+                    workflow_definition,
+                    execution_mode,
                 )
             else:
                 # Create a default ecosystem health workflow
                 workflow = await self._create_default_workflow(
-                    execution_mode, optimization_target
+                    execution_mode,
+                    optimization_target,
                 )
 
             if workflow.is_left():
@@ -235,7 +232,8 @@ class EcosystemOrchestrator:
             # Execute workflow
             self.active_orchestrations[orchestration_id]["status"] = "executing"
             execution_result = await self.workflow_engine.execute_workflow(
-                ecosystem_workflow, optimization_target
+                ecosystem_workflow,
+                optimization_target,
             )
 
             if execution_result.is_left():
@@ -263,10 +261,11 @@ class EcosystemOrchestrator:
             return Either.left(OrchestrationError.workflow_execution_failed(error_msg))
 
     async def _create_workflow_from_definition(
-        self, definition: dict[str, Any], execution_mode: ExecutionMode
+        self,
+        definition: dict[str, Any],
+        execution_mode: ExecutionMode,
     ) -> Either[OrchestrationError, EcosystemWorkflow]:
         """Create workflow from user-provided definition."""
-
         try:
             workflow_id = create_workflow_id()
 
@@ -278,7 +277,7 @@ class EcosystemOrchestrator:
                 tool_id = step_def.get("tool_id")
                 if not tool_id or tool_id not in self.tool_registry.tools:
                     return Either.left(
-                        OrchestrationError.tool_not_found(tool_id or "unknown")
+                        OrchestrationError.tool_not_found(tool_id or "unknown"),
                     )
 
                 step = WorkflowStep(
@@ -319,15 +318,16 @@ class EcosystemOrchestrator:
         except Exception as e:
             return Either.left(
                 OrchestrationError.workflow_execution_failed(
-                    f"Failed to create workflow: {e}"
-                )
+                    f"Failed to create workflow: {e}",
+                ),
             )
 
     async def _create_default_workflow(
-        self, execution_mode: ExecutionMode, optimization_target: OptimizationTarget
+        self,
+        execution_mode: ExecutionMode,
+        optimization_target: OptimizationTarget,
     ) -> Either[OrchestrationError, EcosystemWorkflow]:
         """Create default ecosystem health and optimization workflow."""
-
         try:
             workflow_id = create_workflow_id()
 
@@ -336,7 +336,7 @@ class EcosystemOrchestrator:
 
             # Foundation tool step
             foundation_tools = self.tool_registry.find_tools_by_category(
-                ToolCategory.FOUNDATION
+                ToolCategory.FOUNDATION,
             )
             if foundation_tools:
                 step = WorkflowStep(
@@ -349,7 +349,7 @@ class EcosystemOrchestrator:
 
             # Intelligence tool step (if available)
             intelligence_tools = self.tool_registry.find_tools_by_category(
-                ToolCategory.INTELLIGENCE
+                ToolCategory.INTELLIGENCE,
             )
             if intelligence_tools:
                 step = WorkflowStep(
@@ -363,7 +363,7 @@ class EcosystemOrchestrator:
 
             # Enterprise tool step (if available)
             enterprise_tools = self.tool_registry.find_tools_by_category(
-                ToolCategory.ENTERPRISE
+                ToolCategory.ENTERPRISE,
             )
             if enterprise_tools:
                 step = WorkflowStep(
@@ -400,15 +400,15 @@ class EcosystemOrchestrator:
         except Exception as e:
             return Either.left(
                 OrchestrationError.workflow_execution_failed(
-                    f"Failed to create default workflow: {e}"
-                )
+                    f"Failed to create default workflow: {e}",
+                ),
             )
 
     async def optimize(
-        self, target: OptimizationTarget = OptimizationTarget.EFFICIENCY
+        self,
+        target: OptimizationTarget = OptimizationTarget.EFFICIENCY,
     ) -> Either[OrchestrationError, dict[str, Any]]:
         """Optimize ecosystem performance across all dimensions."""
-
         try:
             self.logger.info(f"Starting ecosystem optimization for {target.value}")
 
@@ -422,7 +422,7 @@ class EcosystemOrchestrator:
 
             # Resource optimization
             resource_optimization = await self.resource_manager.optimize_allocation(
-                target
+                target,
             )
             if resource_optimization.is_right():
                 optimization_result["actions_performed"].append("resource_optimization")
@@ -443,8 +443,9 @@ class EcosystemOrchestrator:
             ]
             optimization_result["recommendations"].extend(
                 current_state.get("capability_analysis", {}).get(
-                    "improvement_areas", []
-                )
+                    "improvement_areas",
+                    [],
+                ),
             )
 
             # Tool registry optimization
@@ -465,7 +466,6 @@ class EcosystemOrchestrator:
 
     async def monitor(self) -> Either[OrchestrationError, dict[str, Any]]:
         """Get comprehensive monitoring data for the ecosystem."""
-
         try:
             # Get current performance metrics
             current_metrics = await self.performance_monitor.get_current_metrics()
@@ -511,7 +511,6 @@ class EcosystemOrchestrator:
         focus_areas: list[str] | None = None,
     ) -> Either[OrchestrationError, dict[str, Any]]:
         """Create strategic plan for ecosystem evolution."""
-
         try:
             # Convert string parameters to enums
             evolution_phase = EvolutionPhase.OPTIMIZATION  # Default
@@ -521,8 +520,8 @@ class EcosystemOrchestrator:
                 except ValueError:
                     return Either.left(
                         OrchestrationError.strategic_planning_failed(
-                            f"Invalid target phase: {target_phase}"
-                        )
+                            f"Invalid target phase: {target_phase}",
+                        ),
                     )
 
             # Convert focus areas to categories
@@ -541,7 +540,9 @@ class EcosystemOrchestrator:
             # Create strategic roadmap
             timeline = timedelta(days=timeline_months * 30)
             roadmap_result = await self.strategic_planner.create_strategic_roadmap(
-                evolution_phase, timeline, focus_categories
+                evolution_phase,
+                timeline,
+                focus_categories,
             )
 
             if roadmap_result.is_left():
@@ -601,7 +602,6 @@ class EcosystemOrchestrator:
         parameters: dict[str, Any] | None = None,
     ) -> Either[OrchestrationError, dict[str, Any]]:
         """Coordinate operation across multiple specific tools."""
-
         try:
             coordination_id = create_orchestration_id()
             self.logger.info(f"Coordinating {operation} across {len(tools)} tools")
@@ -616,7 +616,7 @@ class EcosystemOrchestrator:
 
             if not valid_tools:
                 return Either.left(
-                    OrchestrationError.tool_not_found("No valid tools provided")
+                    OrchestrationError.tool_not_found("No valid tools provided"),
                 )
 
             # Create coordination workflow
@@ -681,7 +681,6 @@ class EcosystemOrchestrator:
 
     async def analyze(self) -> Either[OrchestrationError, dict[str, Any]]:
         """Perform comprehensive ecosystem analysis."""
-
         try:
             analysis_result = {
                 "timestamp": datetime.now(UTC).isoformat(),
@@ -715,13 +714,13 @@ class EcosystemOrchestrator:
             # Performance recommendations
             if health_report.overall_health_score < 0.8:
                 recommendations.append(
-                    "Improve system health - current score below optimal"
+                    "Improve system health - current score below optimal",
                 )
 
             # Ecosystem recommendations
             if ecosystem_stats["enterprise_ready_tools"] < 20:
                 recommendations.append(
-                    "Increase enterprise-ready tools for production deployment"
+                    "Increase enterprise-ready tools for production deployment",
                 )
 
             if ecosystem_stats["ai_enhanced_tools"] < 5:
@@ -743,7 +742,6 @@ class EcosystemOrchestrator:
 
     async def get_status(self) -> EcosystemStatus:
         """Get current status of the entire ecosystem."""
-
         try:
             # Get performance metrics
             current_metrics = await self.performance_monitor.get_current_metrics()

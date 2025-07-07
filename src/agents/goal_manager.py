@@ -1,5 +1,4 @@
-"""
-Goal management system for autonomous agents.
+"""Goal management system for autonomous agents.
 
 This module provides comprehensive goal management including creation, prioritization,
 tracking, and achievement verification for autonomous agents. Implements sophisticated
@@ -94,7 +93,9 @@ class GoalManager:
         self.goal_conflicts: dict[GoalId, set[GoalId]] = defaultdict(set)
 
     async def add_goal(
-        self, goal: AgentGoal, decompose: bool = True
+        self,
+        goal: AgentGoal,
+        decompose: bool = True,
     ) -> Either[AutonomousAgentError, GoalId]:
         """Add a new goal with optional decomposition."""
         try:
@@ -103,8 +104,8 @@ class GoalManager:
             if conflicts:
                 return Either.left(
                     AutonomousAgentError.conflicting_goals(
-                        [f"Conflicts with {c}" for c in conflicts]
-                    )
+                        [f"Conflicts with {c}" for c in conflicts],
+                    ),
                 )
 
             # Add to active goals
@@ -120,7 +121,7 @@ class GoalManager:
                     for sub_goal in decomposition.sub_goals:
                         self.active_goals[sub_goal.goal_id] = sub_goal
                         self.goal_metrics[sub_goal.goal_id] = GoalMetrics(
-                            goal_id=sub_goal.goal_id
+                            goal_id=sub_goal.goal_id,
                         )
 
             # Update priorities
@@ -142,7 +143,9 @@ class GoalManager:
         return Either.right(None)
 
     async def complete_goal(
-        self, goal_id: GoalId, metrics: dict[str, Any]
+        self,
+        goal_id: GoalId,
+        metrics: dict[str, Any],
     ) -> Either[AutonomousAgentError, None]:
         """Mark goal as completed with metrics."""
         if goal_id not in self.active_goals:
@@ -160,7 +163,7 @@ class GoalManager:
             )
         goal_metrics.resource_usage = metrics.get("resource_usage", {})
         goal_metrics.success_confidence = ConfidenceScore(
-            metrics.get("confidence", 1.0)
+            metrics.get("confidence", 1.0),
         )
 
         # Check dependent goals
@@ -172,7 +175,9 @@ class GoalManager:
         return Either.right(None)
 
     async def fail_goal(
-        self, goal_id: GoalId, reasons: list[str]
+        self,
+        goal_id: GoalId,
+        reasons: list[str],
     ) -> Either[AutonomousAgentError, None]:
         """Mark goal as failed with reasons."""
         if goal_id not in self.active_goals:
@@ -204,7 +209,8 @@ class GoalManager:
 
         # Sort by urgency and priority
         achievable.sort(
-            key=lambda g: (g.get_urgency_score(), g.priority.value), reverse=True
+            key=lambda g: (g.get_urgency_score(), g.priority.value),
+            reverse=True,
         )
 
         return achievable[:limit]
@@ -232,7 +238,7 @@ class GoalManager:
                 g for g in decomposition.sub_goals if g.goal_id in self.completed_goals
             }
             progress["sub_goal_progress"] = decomposition.calculate_progress(
-                {g.goal_id for g in completed_sub_goals}
+                {g.goal_id for g in completed_sub_goals},
             )
             progress["sub_goals_total"] = len(decomposition.sub_goals)
             progress["sub_goals_completed"] = len(completed_sub_goals)
@@ -262,7 +268,8 @@ class GoalManager:
 
             # Semantic conflicts (simplified - in production would use NLP)
             if self._are_goals_contradictory(
-                new_goal.description, existing_goal.description
+                new_goal.description,
+                existing_goal.description,
             ):
                 conflicts.append(goal_id)
 
@@ -299,7 +306,7 @@ class GoalManager:
                     deadline=goal.deadline,
                     estimated_duration=timedelta(
                         seconds=goal.estimated_duration.total_seconds()
-                        / len(goal.success_criteria)
+                        / len(goal.success_criteria),
                     )
                     if goal.estimated_duration
                     else None,
@@ -359,7 +366,7 @@ class GoalManager:
                 if not dependencies and goal_id in self.active_goals:
                     self.active_goals[goal_id]
                     logging.info(
-                        f"Goal {goal_id} dependencies met, ready for execution"
+                        f"Goal {goal_id} dependencies met, ready for execution",
                     )
 
     async def _update_parent_progress(self, sub_goal_id: GoalId) -> None:
@@ -376,7 +383,7 @@ class GoalManager:
                         {
                             "confidence": 1.0,
                             "resource_usage": self._aggregate_sub_goal_resources(
-                                sub_goal_ids
+                                sub_goal_ids,
                             ),
                         },
                     )
@@ -392,7 +399,7 @@ class GoalManager:
         # Mark dependent goals as blocked or failed
         for goal_id in dependent_goals:
             logging.warning(
-                f"Goal {goal_id} blocked due to failure of {failed_goal_id}"
+                f"Goal {goal_id} blocked due to failure of {failed_goal_id}",
             )
             # Could implement retry logic or alternative path finding here
 
@@ -418,7 +425,8 @@ class GoalManager:
         return False
 
     def _aggregate_sub_goal_resources(
-        self, sub_goal_ids: set[GoalId]
+        self,
+        sub_goal_ids: set[GoalId],
     ) -> dict[str, float]:
         """Aggregate resource usage from sub-goals."""
         total_resources = defaultdict(float)

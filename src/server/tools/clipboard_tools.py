@@ -1,5 +1,4 @@
-"""
-Clipboard Management MCP Tools
+"""Clipboard Management MCP Tools.
 
 Provides comprehensive clipboard operations for Keyboard Maestro MCP including
 current content access, history management, named clipboards, and security validation.
@@ -62,7 +61,10 @@ async def km_clipboard_manager(
     history_count: Annotated[
         int | None,
         Field(
-            default=10, description="Number of history items to retrieve", ge=1, le=50
+            default=10,
+            description="Number of history items to retrieve",
+            ge=1,
+            le=50,
         ),
     ] = 10,
     content: Annotated[
@@ -82,7 +84,8 @@ async def km_clipboard_manager(
         ),
     ] = "text",
     include_sensitive: Annotated[
-        bool, Field(default=False, description="Include potentially sensitive content")
+        bool,
+        Field(default=False, description="Include potentially sensitive content"),
     ] = False,
     tags: Annotated[
         list[str] | None,
@@ -91,11 +94,14 @@ async def km_clipboard_manager(
     description: Annotated[
         str | None,
         Field(
-            default=None, description="Description for named clipboard", max_length=500
+            default=None,
+            description="Description for named clipboard",
+            max_length=500,
         ),
     ] = None,
     overwrite: Annotated[
-        bool, Field(default=False, description="Overwrite existing named clipboard")
+        bool,
+        Field(default=False, description="Overwrite existing named clipboard"),
     ] = False,
     search_query: Annotated[
         str | None,
@@ -106,7 +112,8 @@ async def km_clipboard_manager(
         ),
     ] = None,
     search_content: Annotated[
-        bool, Field(default=False, description="Search within clipboard content")
+        bool,
+        Field(default=False, description="Search within clipboard content"),
     ] = False,
     sort_by: Annotated[
         str,
@@ -122,8 +129,7 @@ async def km_clipboard_manager(
     ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Comprehensive clipboard management with security and privacy protection.
+    """Comprehensive clipboard management with security and privacy protection.
 
     Operations:
     - get: Retrieve current clipboard content with format detection
@@ -185,7 +191,7 @@ async def km_clipboard_manager(
             }
 
         # Set clipboard content
-        elif operation == "set":
+        if operation == "set":
             if not content:
                 return {
                     "success": False,
@@ -219,7 +225,7 @@ async def km_clipboard_manager(
             }
 
         # Get specific history item
-        elif operation == "get_history":
+        if operation == "get_history":
             if history_index is None:
                 return {
                     "success": False,
@@ -230,7 +236,8 @@ async def km_clipboard_manager(
                 }
 
             result = await clipboard_manager.get_history_item(
-                history_index, include_sensitive
+                history_index,
+                include_sensitive,
             )
             if result.is_left():
                 error = result.get_left()
@@ -265,9 +272,10 @@ async def km_clipboard_manager(
             }
 
         # List clipboard history
-        elif operation == "list_history":
+        if operation == "list_history":
             result = await clipboard_manager.get_history_list(
-                history_count, include_sensitive
+                history_count,
+                include_sensitive,
             )
             if result.is_left():
                 error = result.get_left()
@@ -308,7 +316,7 @@ async def km_clipboard_manager(
             }
 
         # Manage named clipboards
-        elif operation == "manage_named":
+        if operation == "manage_named":
             if not clipboard_name:
                 return {
                     "success": False,
@@ -322,7 +330,7 @@ async def km_clipboard_manager(
             if content is not None:
                 # Get current clipboard content to create ClipboardContent object
                 current_result = await clipboard_manager.get_clipboard(
-                    True
+                    True,
                 )  # Include sensitive for internal operations
                 if current_result.is_left():
                     # Use provided content instead
@@ -343,7 +351,11 @@ async def km_clipboard_manager(
                 tag_set = set(tags) if tags else set()
 
                 result = await named_manager.create_named_clipboard(
-                    clipboard_name, content_obj, tag_set, description, overwrite
+                    clipboard_name,
+                    content_obj,
+                    tag_set,
+                    description,
+                    overwrite,
                 )
 
                 if result.is_left():
@@ -368,51 +380,52 @@ async def km_clipboard_manager(
                 }
 
             # Get named clipboard
-            else:
-                result = await named_manager.get_named_clipboard(clipboard_name)
-                if result.is_left():
-                    error = result.get_left()
-                    return {
-                        "success": False,
-                        "error": {
-                            "code": error.code,
-                            "message": error.message,
-                            "details": error.details,
-                        },
-                    }
-
-                named_cb = result.get_right()
+            result = await named_manager.get_named_clipboard(clipboard_name)
+            if result.is_left():
+                error = result.get_left()
                 return {
-                    "success": True,
-                    "data": {
-                        "name": named_cb.name,
-                        "content": named_cb.content.content
-                        if not named_cb.content.is_sensitive or include_sensitive
-                        else "[SENSITIVE CONTENT HIDDEN]",
-                        "format": named_cb.content.format.value,
-                        "size_bytes": named_cb.content.size_bytes,
-                        "created_at": named_cb.created_at,
-                        "accessed_at": named_cb.accessed_at,
-                        "access_count": named_cb.access_count,
-                        "tags": list(named_cb.tags),
-                        "description": named_cb.description,
-                        "preview": named_cb.content.preview(),
-                    },
-                    "metadata": {
-                        "operation": "get_named",
-                        "security_filtered": named_cb.content.is_sensitive
-                        and not include_sensitive,
+                    "success": False,
+                    "error": {
+                        "code": error.code,
+                        "message": error.message,
+                        "details": error.details,
                     },
                 }
 
+            named_cb = result.get_right()
+            return {
+                "success": True,
+                "data": {
+                    "name": named_cb.name,
+                    "content": named_cb.content.content
+                    if not named_cb.content.is_sensitive or include_sensitive
+                    else "[SENSITIVE CONTENT HIDDEN]",
+                    "format": named_cb.content.format.value,
+                    "size_bytes": named_cb.content.size_bytes,
+                    "created_at": named_cb.created_at,
+                    "accessed_at": named_cb.accessed_at,
+                    "access_count": named_cb.access_count,
+                    "tags": list(named_cb.tags),
+                    "description": named_cb.description,
+                    "preview": named_cb.content.preview(),
+                },
+                "metadata": {
+                    "operation": "get_named",
+                    "security_filtered": named_cb.content.is_sensitive
+                    and not include_sensitive,
+                },
+            }
+
         # Search named clipboards
-        elif operation == "search_named":
+        if operation == "search_named":
             if not search_query:
                 # List all named clipboards
                 result = await named_manager.list_named_clipboards(tag_filter, sort_by)
             else:
                 result = await named_manager.search_named_clipboards(
-                    search_query, search_content, 50
+                    search_query,
+                    search_content,
+                    50,
                 )
 
             if result.is_left():
@@ -457,7 +470,7 @@ async def km_clipboard_manager(
             }
 
         # Get clipboard statistics
-        elif operation == "stats":
+        if operation == "stats":
             result = await named_manager.get_clipboard_stats()
             if result.is_left():
                 error = result.get_left()
@@ -473,24 +486,23 @@ async def km_clipboard_manager(
             stats = result.get_right()
             return {"success": True, "data": stats, "metadata": {"operation": "stats"}}
 
-        else:
-            return {
-                "success": False,
-                "error": {
-                    "code": "VALIDATION_ERROR",
-                    "message": f"Unsupported operation: {operation}",
-                },
-            }
+        return {
+            "success": False,
+            "error": {
+                "code": "VALIDATION_ERROR",
+                "message": f"Unsupported operation: {operation}",
+            },
+        }
 
     except Exception as e:
         if ctx:
-            await ctx.error(f"Clipboard operation failed: {str(e)}")
+            await ctx.error(f"Clipboard operation failed: {e!s}")
 
         return {
             "success": False,
             "error": {
                 "code": "EXECUTION_ERROR",
-                "message": f"Clipboard operation failed: {str(e)}",
+                "message": f"Clipboard operation failed: {e!s}",
                 "details": {"exception_type": type(e).__name__},
             },
         }

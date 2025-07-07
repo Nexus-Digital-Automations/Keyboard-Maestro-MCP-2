@@ -1,10 +1,12 @@
-"""
-Dynamic Tool Registration Engine for FastMCP.
+"""Dynamic Tool Registration Engine for FastMCP.
 
 This module handles the automatic registration of discovered tools with the FastMCP
 server, eliminating the need for manual tool registration boilerplate.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import logging
 
 from fastmcp import FastMCP
@@ -50,7 +52,6 @@ class DynamicToolRegistrar:
 
     def _create_tool_wrapper(self, metadata: ToolMetadata) -> callable:
         """Create a wrapper function for the tool that maintains type safety."""
-
         # Import the actual tool function at registration time
         try:
             module = __import__(metadata.module_name, fromlist=[metadata.name])
@@ -58,7 +59,7 @@ class DynamicToolRegistrar:
         except (ImportError, AttributeError) as import_error:
             error_message = str(import_error)
             logger.error(
-                f"Failed to import tool {metadata.name} from {metadata.module_name}: {error_message}"
+                f"Failed to import tool {metadata.name} from {metadata.module_name}: {error_message}",
             )
 
             # Create a placeholder function that returns an error
@@ -73,51 +74,63 @@ class DynamicToolRegistrar:
             error_wrapper.__doc__ = f"Error: {metadata.name} not available"
             return error_wrapper
 
+        # S102 Security Fix: Replace dangerous exec() with safe dynamic function creation
         # Build the explicit parameter list from metadata
         param_names = [param.name for param in metadata.parameters] + ["ctx"]
 
-        # Create a wrapper with explicit parameters (FastMCP doesn't support **kwargs)
-        if metadata.is_async:
-            # Create async wrapper with explicit parameters
-            exec_code = f"""
-async def tool_wrapper({", ".join(f"{name}=None" for name in param_names)}):
-    '''Dynamically generated async tool wrapper.'''
-    try:
-        kwargs = {{{", ".join(f"'{name}': {name}" for name in param_names)}}}
-        return await actual_tool_func(**kwargs)
-    except Exception as e:
-        logger.error(f"Error executing tool {metadata.name}: {{e}}")
-        return {{
-            "success": False,
-            "error": str(e),
-            "tool": "{metadata.name}"
-        }}
-"""
-        else:
-            # Create sync wrapper with explicit parameters
-            exec_code = f"""
-def tool_wrapper({", ".join(f"{name}=None" for name in param_names)}):
-    '''Dynamically generated sync tool wrapper.'''
-    try:
-        kwargs = {{{", ".join(f"'{name}': {name}" for name in param_names)}}}
-        return actual_tool_func(**kwargs)
-    except Exception as e:
-        logger.error(f"Error executing tool {metadata.name}: {{e}}")
-        return {{
-            "success": False,
-            "error": str(e),
-            "tool": "{metadata.name}"
-        }}
-"""
+        # Create a secure wrapper function using closures instead of exec()
+        def create_safe_wrapper(is_async: bool, param_names: list[str]) -> bool:
+            if is_async:
 
-        # Execute the dynamically created function
-        local_vars = {
-            "actual_tool_func": actual_tool_func,
-            "logger": logger,
-            "metadata": metadata,
-        }
-        exec(exec_code, globals(), local_vars)
-        tool_wrapper = local_vars["tool_wrapper"]
+                async def async_tool_wrapper(*args, **kwargs):
+                    """Securely generated async tool wrapper."""
+                    try:
+                        # Build kwargs from positional args and keyword args
+                        combined_kwargs = {}
+                        for i, param_name in enumerate(param_names):
+                            if i < len(args):
+                                combined_kwargs[param_name] = args[i]
+                            elif param_name in kwargs:
+                                combined_kwargs[param_name] = kwargs[param_name]
+                            else:
+                                combined_kwargs[param_name] = None
+
+                        return await actual_tool_func(**combined_kwargs)
+                    except Exception as e:
+                        logger.error(f"Error executing tool {metadata.name}: {e}")
+                        return {
+                            "success": False,
+                            "error": str(e),
+                            "tool": metadata.name,
+                        }
+
+                return async_tool_wrapper
+
+            def sync_tool_wrapper(*args, **kwargs) -> bool:
+                """Securely generated sync tool wrapper."""
+                try:
+                    # Build kwargs from positional args and keyword args
+                    combined_kwargs = {}
+                    for i, param_name in enumerate(param_names):
+                        if i < len(args):
+                            combined_kwargs[param_name] = args[i]
+                        elif param_name in kwargs:
+                            combined_kwargs[param_name] = kwargs[param_name]
+                        else:
+                            combined_kwargs[param_name] = None
+
+                    return actual_tool_func(**combined_kwargs)
+                except Exception as e:
+                    logger.error(f"Error executing tool {metadata.name}: {e}")
+                    return {
+                        "success": False,
+                        "error": str(e),
+                        "tool": metadata.name,
+                    }
+
+            return sync_tool_wrapper
+
+        tool_wrapper = create_safe_wrapper(metadata.is_async, param_names)
 
         # Preserve the original function's signature and metadata
         tool_wrapper.__name__ = metadata.name
@@ -127,8 +140,10 @@ def tool_wrapper({", ".join(f"{name}=None" for name in param_names)}):
         try:
             if hasattr(actual_tool_func, "__annotations__"):
                 tool_wrapper.__annotations__ = actual_tool_func.__annotations__.copy()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(
+                f"Failed to copy annotations for {actual_tool_func.__name__}: {e!s}",
+            )
 
         return tool_wrapper
 
@@ -160,8 +175,7 @@ def tool_wrapper({", ".join(f"{name}=None" for name in param_names)}):
 
 
 def register_tools_dynamically(mcp_server: FastMCP) -> DynamicToolRegistrar:
-    """
-    Register all discovered tools with the FastMCP server.
+    """Register all discovered tools with the FastMCP server.
 
     This function replaces the need for manual tool registration in main.py.
 
@@ -170,6 +184,7 @@ def register_tools_dynamically(mcp_server: FastMCP) -> DynamicToolRegistrar:
 
     Returns:
         DynamicToolRegistrar instance for further management
+
     """
     registrar = DynamicToolRegistrar(mcp_server)
     registrar.register_all_tools()
@@ -179,18 +194,16 @@ def register_tools_dynamically(mcp_server: FastMCP) -> DynamicToolRegistrar:
 class ToolRegistrationError(Exception):
     """Raised when tool registration fails."""
 
-    pass
-
 
 def validate_tool_signature(metadata: ToolMetadata) -> bool:
-    """
-    Validate that a tool has a proper signature for FastMCP registration.
+    """Validate that a tool has a proper signature for FastMCP registration.
 
     Args:
         metadata: Tool metadata to validate
 
     Returns:
         True if valid, False otherwise
+
     """
     try:
         # Check if function exists and is callable
@@ -206,7 +219,7 @@ def validate_tool_signature(metadata: ToolMetadata) -> bool:
         for param in metadata.parameters:
             if param.annotation is None:
                 logger.warning(
-                    f"Parameter {param.name} in {metadata.name} lacks type annotation"
+                    f"Parameter {param.name} in {metadata.name} lacks type annotation",
                 )
                 return False
 

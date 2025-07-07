@@ -1,5 +1,4 @@
-"""
-Named Clipboard System for Persistent Storage
+"""Named Clipboard System for Persistent Storage.
 
 This module implements named clipboards for workflow data persistence,
 providing organizational capabilities with security validation and
@@ -10,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import re
 import time
 from dataclasses import dataclass, field
@@ -19,6 +19,8 @@ from typing import Any
 from ..core.contracts import ensure, require
 from ..integration.km_client import Either, KMError
 from .clipboard_manager import ClipboardContent, ClipboardFormat
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -37,7 +39,6 @@ class NamedClipboard:
     @require(lambda self: re.match(r"^[a-zA-Z0-9_\-\s]+$", self.name))
     def __post_init__(self):
         """Validate named clipboard constraints."""
-        pass
 
     def with_access(self) -> NamedClipboard:
         """Create new instance with updated access information."""
@@ -107,19 +108,18 @@ class NamedClipboard:
 
 
 class NamedClipboardManager:
-    """
-    Manage named clipboards with persistence and organization.
+    """Manage named clipboards with persistence and organization.
 
     Provides efficient storage and retrieval of named clipboard content
     with search capabilities, tagging, and security validation.
     """
 
     def __init__(self, storage_path: Path | None = None):
-        """
-        Initialize named clipboard manager.
+        """Initialize named clipboard manager.
 
         Args:
             storage_path: Custom path for persistent storage
+
         """
         self._clipboards: dict[str, NamedClipboard] = {}
         self._storage_path = (
@@ -139,7 +139,7 @@ class NamedClipboardManager:
     @ensure(
         lambda result: result.is_right()
         or result.get_left().code
-        in ["NAME_CONFLICT", "STORAGE_FULL", "VALIDATION_ERROR"]
+        in ["NAME_CONFLICT", "STORAGE_FULL", "VALIDATION_ERROR"],
     )
     async def create_named_clipboard(
         self,
@@ -149,8 +149,7 @@ class NamedClipboardManager:
         description: str | None = None,
         overwrite: bool = False,
     ) -> Either[KMError, bool]:
-        """
-        Create named clipboard with conflict detection and validation.
+        """Create named clipboard with conflict detection and validation.
 
         Args:
             name: Unique clipboard name
@@ -161,14 +160,15 @@ class NamedClipboardManager:
 
         Returns:
             Either success status or error details
+
         """
         try:
             # Validate name format
             if not re.match(r"^[a-zA-Z0-9_\-\s]+$", name.strip()):
                 return Either.left(
                     KMError.validation_error(
-                        "Clipboard name can only contain letters, numbers, spaces, underscores, and hyphens"
-                    )
+                        "Clipboard name can only contain letters, numbers, spaces, underscores, and hyphens",
+                    ),
                 )
 
             name = name.strip()
@@ -177,8 +177,8 @@ class NamedClipboardManager:
             if name in self._clipboards and not overwrite:
                 return Either.left(
                     KMError.validation_error(
-                        f"Named clipboard '{name}' already exists. Use overwrite=True to replace."
-                    )
+                        f"Named clipboard '{name}' already exists. Use overwrite=True to replace.",
+                    ),
                 )
 
             # Check storage limits
@@ -188,8 +188,8 @@ class NamedClipboardManager:
             ):
                 return Either.left(
                     KMError.validation_error(
-                        f"Maximum named clipboards ({self._max_clipboards}) reached"
-                    )
+                        f"Maximum named clipboards ({self._max_clipboards}) reached",
+                    ),
                 )
 
             # Validate tags
@@ -221,23 +221,23 @@ class NamedClipboardManager:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to create named clipboard: {str(e)}")
+                KMError.execution_error(f"Failed to create named clipboard: {e!s}"),
             )
 
     async def get_named_clipboard(self, name: str) -> Either[KMError, NamedClipboard]:
-        """
-        Get named clipboard by name with access tracking.
+        """Get named clipboard by name with access tracking.
 
         Args:
             name: Clipboard name to retrieve
 
         Returns:
             Either named clipboard or error details
+
         """
         try:
             if name not in self._clipboards:
                 return Either.left(
-                    KMError.not_found_error(f"Named clipboard '{name}' not found")
+                    KMError.not_found_error(f"Named clipboard '{name}' not found"),
                 )
 
             # Update access information
@@ -251,14 +251,15 @@ class NamedClipboardManager:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to get named clipboard: {str(e)}")
+                KMError.execution_error(f"Failed to get named clipboard: {e!s}"),
             )
 
     async def list_named_clipboards(
-        self, tag_filter: str | None = None, sort_by: str = "name"
+        self,
+        tag_filter: str | None = None,
+        sort_by: str = "name",
     ) -> Either[KMError, list[NamedClipboard]]:
-        """
-        List all named clipboards with optional filtering and sorting.
+        """List all named clipboards with optional filtering and sorting.
 
         Args:
             tag_filter: Optional tag to filter by
@@ -266,6 +267,7 @@ class NamedClipboardManager:
 
         Returns:
             Either list of named clipboards or error details
+
         """
         try:
             clipboards = list(self._clipboards.values())
@@ -289,23 +291,23 @@ class NamedClipboardManager:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to list named clipboards: {str(e)}")
+                KMError.execution_error(f"Failed to list named clipboards: {e!s}"),
             )
 
     async def delete_named_clipboard(self, name: str) -> Either[KMError, bool]:
-        """
-        Delete named clipboard with validation.
+        """Delete named clipboard with validation.
 
         Args:
             name: Clipboard name to delete
 
         Returns:
             Either success status or error details
+
         """
         try:
             if name not in self._clipboards:
                 return Either.left(
-                    KMError.not_found_error(f"Named clipboard '{name}' not found")
+                    KMError.not_found_error(f"Named clipboard '{name}' not found"),
                 )
 
             # Remove from memory
@@ -318,14 +320,16 @@ class NamedClipboardManager:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to delete named clipboard: {str(e)}")
+                KMError.execution_error(f"Failed to delete named clipboard: {e!s}"),
             )
 
     async def search_named_clipboards(
-        self, query: str, search_content: bool = False, max_results: int = 50
+        self,
+        query: str,
+        search_content: bool = False,
+        max_results: int = 50,
     ) -> Either[KMError, list[NamedClipboard]]:
-        """
-        Search named clipboards by name, tags, or content.
+        """Search named clipboards by name, tags, or content.
 
         Args:
             query: Search query string
@@ -334,6 +338,7 @@ class NamedClipboardManager:
 
         Returns:
             Either list of matching clipboards or error details
+
         """
         try:
             query = query.lower().strip()
@@ -375,15 +380,15 @@ class NamedClipboardManager:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to search named clipboards: {str(e)}")
+                KMError.execution_error(f"Failed to search named clipboards: {e!s}"),
             )
 
     async def get_clipboard_stats(self) -> Either[KMError, dict[str, Any]]:
-        """
-        Get statistics about named clipboards.
+        """Get statistics about named clipboards.
 
         Returns:
             Either statistics dictionary or error details
+
         """
         try:
             stats = {
@@ -411,7 +416,8 @@ class NamedClipboardManager:
 
             # Find most accessed
             most_accessed = max(
-                self._clipboards.values(), key=lambda cb: cb.access_count
+                self._clipboards.values(),
+                key=lambda cb: cb.access_count,
             )
             stats["most_accessed"] = {
                 "name": most_accessed.name,
@@ -441,7 +447,7 @@ class NamedClipboardManager:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to get clipboard stats: {str(e)}")
+                KMError.execution_error(f"Failed to get clipboard stats: {e!s}"),
             )
 
     async def _load_clipboards(self) -> None:
@@ -457,8 +463,16 @@ class NamedClipboardManager:
                 try:
                     clipboard = NamedClipboard.from_dict(clipboard_data)
                     self._clipboards[clipboard.name] = clipboard
-                except Exception:
+                except Exception as e:
                     # Skip invalid clipboard data
+                    logger.warning(
+                        f"Skipping invalid clipboard data: {e}",
+                        extra={
+                            "clipboard_data": clipboard_data,
+                            "error_type": type(e).__name__,
+                            "operation": "load_clipboard",
+                        },
+                    )
                     continue
 
         except Exception:
@@ -481,6 +495,13 @@ class NamedClipboardManager:
             # Atomic rename
             temp_path.replace(self._storage_path)
 
-        except Exception:
-            # Silent failure for storage operations
-            pass
+        except Exception as e:
+            # Log storage operation failures but don't raise
+            logger.warning(
+                f"Failed to save clipboards to storage: {e}",
+                extra={
+                    "storage_path": str(self._storage_path),
+                    "error_type": type(e).__name__,
+                    "operation": "save_clipboards",
+                },
+            )

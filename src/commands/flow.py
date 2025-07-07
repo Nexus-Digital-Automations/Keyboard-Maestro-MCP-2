@@ -1,5 +1,4 @@
-"""
-Flow Control Commands
+"""Flow Control Commands.
 
 Provides secure flow control including conditionals, loops, and breaks
 with comprehensive validation and safety limits to prevent infinite loops
@@ -58,8 +57,7 @@ class ComparisonOperator(Enum):
 
 @dataclass(frozen=True)
 class ConditionalCommand(BaseCommand):
-    """
-    Execute commands conditionally based on evaluated conditions.
+    """Execute commands conditionally based on evaluated conditions.
 
     Provides secure conditional execution with validation to prevent
     code injection and ensure safe condition evaluation.
@@ -182,7 +180,10 @@ class ConditionalCommand(BaseCommand):
         try:
             # Evaluate condition
             condition_result = self._evaluate_condition(
-                condition_type, left_operand, right_operand, case_sensitive
+                condition_type,
+                left_operand,
+                right_operand,
+                case_sensitive,
             )
 
             # Determine which action to execute
@@ -205,26 +206,29 @@ class ConditionalCommand(BaseCommand):
                     right_operand=right_operand,
                     condition_type=condition_type.value,
                 )
-            else:
-                execution_time = Duration.from_seconds(time.time() - start_time)
+            execution_time = Duration.from_seconds(time.time() - start_time)
 
-                return create_command_result(
-                    success=True,
-                    output=f"Condition evaluated to {condition_result}, no action to execute",
-                    execution_time=execution_time,
-                    condition_result=condition_result,
-                    action_executed=None,
-                )
+            return create_command_result(
+                success=True,
+                output=f"Condition evaluated to {condition_result}, no action to execute",
+                execution_time=execution_time,
+                condition_result=condition_result,
+                action_executed=None,
+            )
 
         except Exception as e:
             return create_command_result(
                 success=False,
-                error_message=f"Conditional execution failed: {str(e)}",
+                error_message=f"Conditional execution failed: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 
     def _evaluate_condition(
-        self, condition_type: ConditionType, left: str, right: str, case_sensitive: bool
+        self,
+        condition_type: ConditionType,
+        left: str,
+        right: str,
+        case_sensitive: bool,
     ) -> bool:
         """Safely evaluate condition without code injection."""
         try:
@@ -234,44 +238,44 @@ class ConditionalCommand(BaseCommand):
 
             if condition_type == ConditionType.EQUALS:
                 return left_val == right_val
-            elif condition_type == ConditionType.NOT_EQUALS:
+            if condition_type == ConditionType.NOT_EQUALS:
                 return left_val != right_val
-            elif condition_type == ConditionType.CONTAINS:
+            if condition_type == ConditionType.CONTAINS:
                 return right_val in left_val
-            elif condition_type == ConditionType.NOT_CONTAINS:
+            if condition_type == ConditionType.NOT_CONTAINS:
                 return right_val not in left_val
-            elif condition_type == ConditionType.IS_EMPTY:
+            if condition_type == ConditionType.IS_EMPTY:
                 return len(left.strip()) == 0
-            elif condition_type == ConditionType.IS_NOT_EMPTY:
+            if condition_type == ConditionType.IS_NOT_EMPTY:
                 return len(left.strip()) > 0
-            elif condition_type == ConditionType.REGEX_MATCH:
+            if condition_type == ConditionType.REGEX_MATCH:
                 flags = 0 if case_sensitive else re.IGNORECASE
                 return bool(re.search(right, left, flags))
-            else:
-                # Numeric comparisons
-                try:
-                    left_num = float(left)
-                    right_num = float(right)
+            # Numeric comparisons
+            try:
+                left_num = float(left)
+                right_num = float(right)
 
-                    if condition_type == ConditionType.GREATER_THAN:
-                        return left_num > right_num
-                    elif condition_type == ConditionType.LESS_THAN:
-                        return left_num < right_num
-                    elif condition_type == ConditionType.GREATER_EQUAL:
-                        return left_num >= right_num
-                    elif condition_type == ConditionType.LESS_EQUAL:
-                        return left_num <= right_num
-                    else:
-                        return False
-                except ValueError:
-                    # If numeric conversion fails, default to string comparison
-                    return left_val == right_val
+                if condition_type == ConditionType.GREATER_THAN:
+                    return left_num > right_num
+                if condition_type == ConditionType.LESS_THAN:
+                    return left_num < right_num
+                if condition_type == ConditionType.GREATER_EQUAL:
+                    return left_num >= right_num
+                if condition_type == ConditionType.LESS_EQUAL:
+                    return left_num <= right_num
+                return False
+            except ValueError:
+                # If numeric conversion fails, default to string comparison
+                return left_val == right_val
 
         except Exception:
             return False
 
     def _execute_action(
-        self, action: dict[str, Any], context: ExecutionContext
+        self,
+        action: dict[str, Any],
+        context: ExecutionContext,
     ) -> bool:
         """Execute a simple action safely."""
         try:
@@ -281,27 +285,26 @@ class ConditionalCommand(BaseCommand):
                 message = action.get("message", "")
                 print(f"[LOG] {message}")
                 return True
-            elif action_type == "pause":
+            if action_type == "pause":
                 duration = float(action.get("duration", 1.0))
                 duration = max(0.1, min(10.0, duration))  # Limit pause duration
                 time.sleep(duration)
                 return True
-            elif action_type == "beep":
+            if action_type == "beep":
                 print("\a", end="", flush=True)
                 return True
-            elif action_type == "display_message":
+            if action_type == "display_message":
                 message = action.get("message", "")
                 print(f"[MESSAGE] {message}")
                 return True
-            else:
-                # For other action types, we would integrate with the command registry
-                # For now, just return success for recognized types
-                return action_type in {
-                    "set_variable",
-                    "type_text",
-                    "key_press",
-                    "mouse_click",
-                }
+            # For other action types, we would integrate with the command registry
+            # For now, just return success for recognized types
+            return action_type in {
+                "set_variable",
+                "type_text",
+                "key_press",
+                "mouse_click",
+            }
 
         except Exception:
             return False
@@ -332,8 +335,7 @@ class ConditionalCommand(BaseCommand):
 
 @dataclass(frozen=True)
 class LoopCommand(BaseCommand):
-    """
-    Execute commands in a loop with safety limits and break conditions.
+    """Execute commands in a loop with safety limits and break conditions.
 
     Provides secure loop execution with validation to prevent infinite loops
     and resource exhaustion.
@@ -504,7 +506,9 @@ class LoopCommand(BaseCommand):
 
                     # Execute action
                     success = self._execute_loop_action(
-                        loop_action, context, iterations_completed
+                        loop_action,
+                        context,
+                        iterations_completed,
                     )
                     iterations_completed += 1
 
@@ -551,7 +555,7 @@ class LoopCommand(BaseCommand):
         except Exception as e:
             return create_command_result(
                 success=False,
-                error_message=f"Loop execution failed: {str(e)}",
+                error_message=f"Loop execution failed: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
                 iterations_completed=iterations_completed,
                 total_errors=total_errors,
@@ -567,14 +571,21 @@ class LoopCommand(BaseCommand):
 
             # Use the same condition evaluation logic as ConditionalCommand
             return self._evaluate_condition_logic(
-                condition_type, left_operand, right_operand, case_sensitive
+                condition_type,
+                left_operand,
+                right_operand,
+                case_sensitive,
             )
 
         except Exception:
             return False
 
     def _evaluate_condition_logic(
-        self, condition_type: ConditionType, left: str, right: str, case_sensitive: bool
+        self,
+        condition_type: ConditionType,
+        left: str,
+        right: str,
+        case_sensitive: bool,
     ) -> bool:
         """Evaluate condition logic (shared with ConditionalCommand)."""
         try:
@@ -583,22 +594,21 @@ class LoopCommand(BaseCommand):
 
             if condition_type == ConditionType.EQUALS:
                 return left_val == right_val
-            elif condition_type == ConditionType.NOT_EQUALS:
+            if condition_type == ConditionType.NOT_EQUALS:
                 return left_val != right_val
-            elif condition_type == ConditionType.CONTAINS:
+            if condition_type == ConditionType.CONTAINS:
                 return right_val in left_val
-            elif condition_type == ConditionType.NOT_CONTAINS:
+            if condition_type == ConditionType.NOT_CONTAINS:
                 return right_val not in left_val
-            elif condition_type == ConditionType.IS_EMPTY:
+            if condition_type == ConditionType.IS_EMPTY:
                 return len(left.strip()) == 0
-            elif condition_type == ConditionType.IS_NOT_EMPTY:
+            if condition_type == ConditionType.IS_NOT_EMPTY:
                 return len(left.strip()) > 0
-            elif condition_type == ConditionType.GREATER_THAN:
+            if condition_type == ConditionType.GREATER_THAN:
                 return float(left) > float(right)
-            elif condition_type == ConditionType.LESS_THAN:
+            if condition_type == ConditionType.LESS_THAN:
                 return float(left) < float(right)
-            else:
-                return False
+            return False
 
         except Exception:
             return False
@@ -619,29 +629,29 @@ class LoopCommand(BaseCommand):
                 item_info = f" (item: {current_item})" if current_item else ""
                 print(f"[LOOP {iteration}] {message}{item_info}")
                 return True
-            elif action_type == "pause":
+            if action_type == "pause":
                 duration = float(action.get("duration", 0.1))
                 duration = max(
-                    0.01, min(1.0, duration)
+                    0.01,
+                    min(1.0, duration),
                 )  # Limit pause duration in loops
                 time.sleep(duration)
                 return True
-            elif action_type == "increment_counter":
+            if action_type == "increment_counter":
                 counter_name = action.get("counter_name", "default")
                 # In a real implementation, this would update a variable store
                 print(f"[COUNTER] {counter_name} incremented at iteration {iteration}")
                 return True
-            elif action_type == "beep":
+            if action_type == "beep":
                 print("\a", end="", flush=True)
                 return True
-            else:
-                # For other action types, assume success for recognized types
-                return action_type in {
-                    "set_variable",
-                    "type_text",
-                    "key_press",
-                    "mouse_click",
-                }
+            # For other action types, assume success for recognized types
+            return action_type in {
+                "set_variable",
+                "type_text",
+                "key_press",
+                "mouse_click",
+            }
 
         except Exception:
             return False
@@ -668,8 +678,7 @@ class LoopCommand(BaseCommand):
 
 @dataclass(frozen=True)
 class BreakCommand(BaseCommand):
-    """
-    Break out of loops or conditional structures.
+    """Break out of loops or conditional structures.
 
     Provides controlled flow interruption with validation to prevent
     misuse and ensure proper control flow.
@@ -746,7 +755,7 @@ class BreakCommand(BaseCommand):
         except Exception as e:
             return create_command_result(
                 success=False,
-                error_message=f"Break execution failed: {str(e)}",
+                error_message=f"Break execution failed: {e!s}",
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 

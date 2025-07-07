@@ -1,5 +1,4 @@
-"""
-Notification system for Keyboard Maestro MCP Tools.
+"""Notification system for Keyboard Maestro MCP Tools.
 
 This module provides comprehensive user feedback capabilities through multiple
 notification channels including system notifications, alerts, HUD displays,
@@ -15,7 +14,7 @@ from .notification_manager import (
 
 __all__ = [
     "NotificationManager",
-    "NotificationType",
-    "NotificationSpec",
     "NotificationResult",
+    "NotificationSpec",
+    "NotificationType",
 ]

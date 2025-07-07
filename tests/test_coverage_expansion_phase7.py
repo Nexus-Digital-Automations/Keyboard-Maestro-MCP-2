@@ -1,5 +1,4 @@
-"""
-Phase 7 Enterprise ML & Advanced Systems Test Coverage Expansion for Keyboard Maestro MCP.
+"""Phase 7 Enterprise ML & Advanced Systems Test Coverage Expansion for Keyboard Maestro MCP.
 
 This module targets enterprise systems, machine learning components, and advanced features
 with the highest impact for coverage expansion, focusing on enterprise SSO (600 lines),
@@ -7,16 +6,22 @@ IoT ML analytics (630 lines), learning engines (574 lines), and other strategic
 advanced modules for maximum coverage gain toward the 95% target.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_enterprise_sso_manager_systematic_import():
+def test_enterprise_sso_manager_systematic_import() -> None:
     """Test import of enterprise SSO manager (600 lines - enterprise module)."""
     try:
         from src.enterprise import sso_manager
@@ -33,22 +38,20 @@ def test_enterprise_sso_manager_systematic_import():
             try:
                 result = sso_manager.authenticate_user("test_user", "test_token")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require SSO configuration
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test SSO configuration if available
         if hasattr(sso_manager, "configure_sso"):
             try:
                 config_result = sso_manager.configure_sso({"provider": "okta"})
                 assert config_result is not None or isinstance(config_result, bool)
-            except Exception:
-                pass  # Method may require enterprise credentials
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Enterprise SSO manager import failed: {e}")
 
 
-def test_iot_ml_analytics_systematic_import():
+def test_iot_ml_analytics_systematic_import() -> None:
     """Test import of IoT ML analytics (630 lines - ML analytics module)."""
     try:
         from src.iot import ml_analytics
@@ -65,22 +68,20 @@ def test_iot_ml_analytics_systematic_import():
             try:
                 model = ml_analytics.train_model("device_pattern", [{"data": "test"}])
                 assert model is not None
-            except Exception:
-                pass  # Method may require training data
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test prediction functionality if available
         if hasattr(ml_analytics, "predict"):
             try:
                 prediction = ml_analytics.predict("model_id", {"input": "test"})
                 assert prediction is not None
-            except Exception:
-                pass  # Method may require trained model
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"IoT ML analytics import failed: {e}")
 
 
-def test_intelligence_learning_engine_systematic_import():
+def test_intelligence_learning_engine_systematic_import() -> None:
     """Test import of intelligence learning engine (574 lines - learning module)."""
     try:
         from src.intelligence import learning_engine
@@ -96,27 +97,27 @@ def test_intelligence_learning_engine_systematic_import():
         if hasattr(learning_engine, "learn_pattern"):
             try:
                 learning_result = learning_engine.learn_pattern(
-                    "user_behavior", {"pattern": "test"}
+                    "user_behavior",
+                    {"pattern": "test"},
                 )
                 assert learning_result is not None
-            except Exception:
-                pass  # Method may require learning data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test knowledge application if available
         if hasattr(learning_engine, "apply_knowledge"):
             try:
                 application = learning_engine.apply_knowledge(
-                    "context", {"situation": "test"}
+                    "context",
+                    {"situation": "test"},
                 )
                 assert application is not None or application == {}
-            except Exception:
-                pass  # Method may require knowledge base
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Intelligence learning engine import failed: {e}")
 
 
-def test_suggestions_learning_system_systematic_import():
+def test_suggestions_learning_system_systematic_import() -> None:
     """Test import of suggestions learning system (547 lines - learning module)."""
     try:
         from src.suggestions import learning_system
@@ -132,25 +133,24 @@ def test_suggestions_learning_system_systematic_import():
         if hasattr(learning_system, "learn_from_interaction"):
             try:
                 learning_result = learning_system.learn_from_interaction(
-                    "user_action", {"feedback": "positive"}
+                    "user_action",
+                    {"feedback": "positive"},
                 )
                 assert learning_result is not None or isinstance(learning_result, bool)
-            except Exception:
-                pass  # Method may require interaction data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test suggestion generation if available
         if hasattr(learning_system, "generate_suggestions"):
             try:
                 suggestions = learning_system.generate_suggestions("context")
                 assert suggestions is not None or suggestions == []
-            except Exception:
-                pass  # Method may require learned patterns
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Suggestions learning system import failed: {e}")
 
 
-def test_knowledge_content_organizer_systematic_import():
+def test_knowledge_content_organizer_systematic_import() -> None:
     """Test import of knowledge content organizer (617 lines - knowledge module)."""
     try:
         from src.knowledge import content_organizer
@@ -166,27 +166,25 @@ def test_knowledge_content_organizer_systematic_import():
         if hasattr(content_organizer, "organize_content"):
             try:
                 organization = content_organizer.organize_content(
-                    [{"title": "test", "content": "test content"}]
+                    [{"title": "test", "content": "test content"}],
                 )
                 assert organization is not None
-            except Exception:
-                pass  # Method may require content data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test content categorization if available
         if hasattr(content_organizer, "categorize_content"):
             try:
                 categories = content_organizer.categorize_content(
-                    {"content": "test content"}
+                    {"content": "test content"},
                 )
                 assert categories is not None or categories == []
-            except Exception:
-                pass  # Method may require categorization rules
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Knowledge content organizer import failed: {e}")
 
 
-def test_advanced_trigger_tools_systematic_import():
+def test_advanced_trigger_tools_systematic_import() -> None:
     """Test import of advanced trigger tools (602 lines - advanced tools module)."""
     try:
         from src.server.tools import advanced_trigger_tools
@@ -217,7 +215,7 @@ def test_advanced_trigger_tools_systematic_import():
         pytest.skip(f"Advanced trigger tools import failed: {e}")
 
 
-def test_advanced_window_tools_systematic_import():
+def test_advanced_window_tools_systematic_import() -> None:
     """Test import of advanced window tools (505 lines - advanced tools module)."""
     try:
         from src.server.tools import advanced_window_tools
@@ -248,7 +246,7 @@ def test_advanced_window_tools_systematic_import():
         pytest.skip(f"Advanced window tools import failed: {e}")
 
 
-def test_window_advanced_positioning_systematic_import():
+def test_window_advanced_positioning_systematic_import() -> None:
     """Test import of window advanced positioning (442 lines - window module)."""
     try:
         from src.window import advanced_positioning
@@ -263,36 +261,32 @@ def test_window_advanced_positioning_systematic_import():
 
                 mock_display_manager = Mock()
                 positioning = advanced_positioning.AdvancedPositioning(
-                    mock_display_manager
+                    mock_display_manager,
                 )
                 assert positioning is not None
-            except Exception:
-                # Skip if instantiation requires complex dependencies
-                pass
-
-        # Test positioning functionality if available
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         if hasattr(advanced_positioning, "calculate_optimal_position"):
             try:
                 position = advanced_positioning.calculate_optimal_position(
-                    "window_id", {"screen": "primary"}
+                    "window_id",
+                    {"screen": "primary"},
                 )
                 assert position is not None
-            except Exception:
-                pass  # Method may require window context
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test layout optimization if available
         if hasattr(advanced_positioning, "optimize_layout"):
             try:
                 layout = advanced_positioning.optimize_layout(["window1", "window2"])
                 assert layout is not None or layout == {}
-            except Exception:
-                pass  # Method may require window data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Window advanced positioning import failed: {e}")
 
 
-def test_advanced_tools_systematic_import():
+def test_advanced_tools_systematic_import() -> None:
     """Test import of advanced tools (401 lines - advanced tools module)."""
     try:
         from src.server.tools import advanced_tools
@@ -323,9 +317,8 @@ def test_advanced_tools_systematic_import():
         pytest.skip(f"Advanced tools import failed: {e}")
 
 
-def test_comprehensive_enterprise_ml_integration():
+def test_comprehensive_enterprise_ml_integration() -> None:
     """Test comprehensive integration across enterprise and ML systems."""
-
     # Test enterprise modules integration
     enterprise_modules = ["sso_manager"]
 
@@ -355,9 +348,9 @@ def test_comprehensive_enterprise_ml_integration():
                                 if hasattr(instance, method):
                                     assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -384,9 +377,9 @@ def test_comprehensive_enterprise_ml_integration():
                             instance = getattr(module, potential_class)()
                             assert instance is not None
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -397,9 +390,8 @@ def test_comprehensive_enterprise_ml_integration():
     assert ml_imports >= 1, f"Only {ml_imports} ML modules imported"
 
 
-def test_advanced_systems_integration():
+def test_advanced_systems_integration() -> None:
     """Test advanced systems and tools integration."""
-
     # Test advanced tools modules integration
     advanced_tool_modules = [
         "advanced_trigger_tools",
@@ -412,7 +404,8 @@ def test_advanced_systems_integration():
     for module_name in advanced_tool_modules:
         try:
             module = __import__(
-                f"src.server.tools.{module_name}", fromlist=[module_name]
+                f"src.server.tools.{module_name}",
+                fromlist=[module_name],
             )
             if module is not None:
                 advanced_imports += 1
@@ -457,9 +450,8 @@ def test_advanced_systems_integration():
     )
 
 
-def test_enterprise_sso_authentication_patterns():
+def test_enterprise_sso_authentication_patterns() -> None:
     """Test enterprise SSO authentication patterns for coverage."""
-
     # Test SSO authentication scenarios
     sso_scenarios = {
         "authentication_flows": [
@@ -540,9 +532,8 @@ def test_enterprise_sso_authentication_patterns():
     assert "api_access" in all_permissions
 
 
-def test_ml_analytics_learning_patterns():
+def test_ml_analytics_learning_patterns() -> None:
     """Test ML analytics and learning patterns for coverage."""
-
     # Test ML analytics scenarios
     ml_scenarios = {
         "training_data": [
@@ -630,7 +621,7 @@ def test_ml_analytics_learning_patterns():
     assert len(model_types) == 4
 
 
-def test_advanced_workflow_learning_patterns():
+def test_advanced_workflow_learning_patterns() -> bool:
     """Test advanced workflow and learning system patterns."""
 
     @pytest.mark.asyncio
@@ -725,9 +716,8 @@ def test_advanced_workflow_learning_patterns():
     assert result is True
 
 
-def test_advanced_system_configuration_patterns():
+def test_advanced_system_configuration_patterns() -> None:
     """Test configuration patterns for advanced enterprise and ML systems."""
-
     # Test advanced system configuration scenarios
     advanced_config = {
         "enterprise_sso": {

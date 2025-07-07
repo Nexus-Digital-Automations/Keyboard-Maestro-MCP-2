@@ -1,5 +1,4 @@
-"""
-Server configuration and FastMCP setup.
+"""Server configuration and FastMCP setup.
 
 Contains server configuration, logging setup, and FastMCP initialization.
 """
@@ -44,7 +43,6 @@ class ToolConfig:
 
 def setup_logging(config: ServerConfig) -> logging.Logger:
     """Setup logging configuration for the server."""
-
     # Create logs directory if it doesn't exist
     logs_path = Path(config.logs_dir)
     logs_path.mkdir(exist_ok=True)
@@ -69,7 +67,6 @@ def setup_logging(config: ServerConfig) -> logging.Logger:
 
 def create_fastmcp_server(config: ServerConfig) -> FastMCP:
     """Create and configure the FastMCP server instance."""
-
     instructions = """
 This server provides comprehensive Keyboard Maestro automation capabilities through 9 production-ready MCP tools.
 
@@ -102,7 +99,7 @@ def load_config_from_file(config_path: str) -> dict:
     import json
 
     try:
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             return json.load(f)
     except FileNotFoundError:
         return {}

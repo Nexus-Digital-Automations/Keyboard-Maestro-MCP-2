@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for computer vision tools module using systematic MCP tool test pattern.
+"""Comprehensive tests for computer vision tools module using systematic MCP tool test pattern.
 
 Tests cover advanced computer vision capabilities including object detection, scene analysis,
 image classification, OCR text extraction, and performance monitoring with property-based testing
@@ -7,6 +6,10 @@ and comprehensive enterprise-grade validation using the proven pattern that achi
 100% success across 21+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -15,6 +18,8 @@ import pytest
 import src.server.tools.computer_vision_tools as cv_tools
 from hypothesis import given
 from hypothesis import strategies as st
+
+logger = logging.getLogger(__name__)
 
 # Extract underlying functions from FastMCP tool objects (systematic pattern)
 km_detect_objects = cv_tools.km_detect_objects.fn
@@ -26,7 +31,7 @@ km_computer_vision_metrics = cv_tools.km_computer_vision_metrics.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def image_data_strategy(draw):
+def image_data_strategy(draw) -> Any:
     """Generate valid base64 image data."""
     # Simple base64 encoded minimal image data for testing
     test_images = [
@@ -38,26 +43,26 @@ def image_data_strategy(draw):
 
 
 @st.composite
-def confidence_strategy(draw):
+def confidence_strategy(draw) -> Any:
     """Generate valid confidence thresholds."""
     return draw(st.floats(min_value=0.1, max_value=1.0))
 
 
 @st.composite
-def max_objects_strategy(draw):
+def max_objects_strategy(draw) -> Any:
     """Generate valid max object counts."""
     return draw(st.integers(min_value=1, max_value=100))
 
 
 @st.composite
-def model_type_strategy(draw):
+def model_type_strategy(draw) -> Any:
     """Generate valid model types."""
     models = ["yolo_v8", "detectron2", "custom"]
     return draw(st.sampled_from(models))
 
 
 @st.composite
-def roi_coordinates_strategy(draw):
+def roi_coordinates_strategy(draw) -> list[Any]:
     """Generate valid ROI coordinates."""
     # Normalized coordinates between 0.0 and 1.0
     x = draw(st.floats(min_value=0.0, max_value=0.8))
@@ -68,14 +73,14 @@ def roi_coordinates_strategy(draw):
 
 
 @st.composite
-def analysis_level_strategy(draw):
+def analysis_level_strategy(draw) -> Any:
     """Generate valid analysis levels."""
     levels = ["basic", "standard", "detailed", "comprehensive"]
     return draw(st.sampled_from(levels))
 
 
 @st.composite
-def text_detection_mode_strategy(draw):
+def text_detection_mode_strategy(draw) -> Any:
     """Generate valid text detection modes."""
     modes = ["fast", "accurate", "hybrid"]
     return draw(st.sampled_from(modes))
@@ -84,7 +89,7 @@ def text_detection_mode_strategy(draw):
 class TestComputerVisionDependencies:
     """Test computer vision module dependencies and imports."""
 
-    def test_computer_vision_imports(self):
+    def test_computer_vision_imports(self) -> None:
         """Test that computer vision tools can be imported."""
         assert km_detect_objects is not None
         assert callable(km_detect_objects)
@@ -107,23 +112,23 @@ class TestComputerVisionParameterValidation:
     """Test parameter validation for computer vision functions."""
 
     @given(confidence_strategy())
-    def test_valid_confidence_thresholds(self, confidence):
+    def test_valid_confidence_thresholds(self, confidence) -> None:
         """Test that valid confidence thresholds are accepted."""
         assert 0.1 <= confidence <= 1.0
 
     @given(max_objects_strategy())
-    def test_valid_max_objects(self, max_objects):
+    def test_valid_max_objects(self, max_objects) -> None:
         """Test that valid max object counts are accepted."""
         assert 1 <= max_objects <= 100
 
     @given(model_type_strategy())
-    def test_valid_model_types(self, model_type):
+    def test_valid_model_types(self, model_type) -> None:
         """Test that valid model types are accepted."""
         valid_models = ["yolo_v8", "detectron2", "custom"]
         assert model_type in valid_models
 
     @given(roi_coordinates_strategy())
-    def test_valid_roi_coordinates(self, roi_coords):
+    def test_valid_roi_coordinates(self, roi_coords) -> None:
         """Test that valid ROI coordinates are accepted."""
         assert len(roi_coords) == 4
         assert all(0.0 <= coord <= 1.0 for coord in roi_coords)
@@ -133,13 +138,13 @@ class TestComputerVisionParameterValidation:
         assert y + height <= 1.0
 
     @given(analysis_level_strategy())
-    def test_valid_analysis_levels(self, analysis_level):
+    def test_valid_analysis_levels(self, analysis_level) -> None:
         """Test that valid analysis levels are accepted."""
         valid_levels = ["basic", "standard", "detailed", "comprehensive"]
         assert analysis_level in valid_levels
 
     @given(text_detection_mode_strategy())
-    def test_valid_text_detection_modes(self, detection_mode):
+    def test_valid_text_detection_modes(self, detection_mode) -> None:
         """Test that valid text detection modes are accepted."""
         valid_modes = ["fast", "accurate", "hybrid"]
         assert detection_mode in valid_modes
@@ -149,17 +154,17 @@ class TestKMDetectObjectsMocked:
     """Test km_detect_objects with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_detect_objects_success(self):
+    async def test_km_detect_objects_success(self) -> None:
         """Test successful object detection."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools.object_detector"
+                "src.server.tools.computer_vision_tools.object_detector",
             ) as mock_detector,
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.create_image_content"
+                "src.server.tools.computer_vision_tools.create_image_content",
             ) as mock_create_image,
         ):
             # Setup mocks
@@ -189,7 +194,7 @@ class TestKMDetectObjectsMocked:
             mock_object.features = {"color": "blue_shirt", "style": "casual"}
             mock_object.metadata = {"detection_method": "yolo_v8"}
 
-            mock_detection_result.right_value = [mock_object]
+            mock_detection_result.value = [mock_object]
             mock_detector.detect_objects = AsyncMock(return_value=mock_detection_result)
 
             # Mock detection statistics
@@ -242,16 +247,17 @@ class TestKMDetectObjectsMocked:
             assert result["detection_statistics"]["average_detection_time"] == 245.5
 
     @pytest.mark.asyncio
-    async def test_km_detect_objects_invalid_image(self):
+    async def test_km_detect_objects_invalid_image(self) -> None:
         """Test object detection with invalid image data."""
         with patch(
-            "src.server.tools.computer_vision_tools._validate_components"
+            "src.server.tools.computer_vision_tools._validate_components",
         ) as mock_validate:
             mock_validate.return_value = None
 
             # Execute with invalid image data
             result = await km_detect_objects(
-                image_data="invalid_base64_data", confidence_threshold=0.5
+                image_data="invalid_base64_data",
+                confidence_threshold=0.5,
             )
 
             # Verify error handling
@@ -260,10 +266,10 @@ class TestKMDetectObjectsMocked:
             assert result["error_code"] == "IMAGE_PROCESSING_ERROR"
 
     @pytest.mark.asyncio
-    async def test_km_detect_objects_invalid_roi(self):
+    async def test_km_detect_objects_invalid_roi(self) -> None:
         """Test object detection with invalid ROI coordinates."""
         with patch(
-            "src.server.tools.computer_vision_tools._validate_components"
+            "src.server.tools.computer_vision_tools._validate_components",
         ) as mock_validate:
             mock_validate.return_value = None
 
@@ -285,20 +291,20 @@ class TestKMAnalyzeSceneMocked:
     """Test km_analyze_scene with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_analyze_scene_success(self):
+    async def test_km_analyze_scene_success(self) -> None:
         """Test successful scene analysis."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools.scene_analyzer"
+                "src.server.tools.computer_vision_tools.scene_analyzer",
             ) as mock_analyzer,
             patch(
-                "src.server.tools.computer_vision_tools.object_detector"
+                "src.server.tools.computer_vision_tools.object_detector",
             ) as mock_detector,
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.create_image_content"
+                "src.server.tools.computer_vision_tools.create_image_content",
             ) as mock_create_image,
         ):
             # Setup mocks
@@ -309,7 +315,7 @@ class TestKMAnalyzeSceneMocked:
             # Mock object detection result for scene analysis
             mock_detection_result = Mock()
             mock_detection_result.is_left.return_value = False
-            mock_detection_result.right_value = []  # Empty objects for simplicity
+            mock_detection_result.value = []  # Empty objects for simplicity
             mock_detector.detect_objects = AsyncMock(return_value=mock_detection_result)
 
             # Mock scene analysis result
@@ -339,7 +345,7 @@ class TestKMAnalyzeSceneMocked:
                 "contextual_analysis": {"activity_level": "active"},
             }
 
-            mock_analysis_result.right_value = mock_scene_data
+            mock_analysis_result.value = mock_scene_data
             mock_analyzer.analyze_scene = AsyncMock(return_value=mock_analysis_result)
 
             test_image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
@@ -371,20 +377,20 @@ class TestKMAnalyzeSceneMocked:
             assert result["analysis_level"] == "comprehensive"
 
     @pytest.mark.asyncio
-    async def test_km_analyze_scene_basic_analysis(self):
+    async def test_km_analyze_scene_basic_analysis(self) -> None:
         """Test scene analysis with basic analysis level."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools.scene_analyzer"
+                "src.server.tools.computer_vision_tools.scene_analyzer",
             ) as mock_analyzer,
             patch(
-                "src.server.tools.computer_vision_tools.object_detector"
+                "src.server.tools.computer_vision_tools.object_detector",
             ) as mock_detector,
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.create_image_content"
+                "src.server.tools.computer_vision_tools.create_image_content",
             ) as mock_create_image,
         ):
             mock_validate.return_value = None
@@ -394,7 +400,7 @@ class TestKMAnalyzeSceneMocked:
             # Mock object detection result (not called with include_objects=False but needed for safety)
             mock_detection_result = Mock()
             mock_detection_result.is_left.return_value = False
-            mock_detection_result.right_value = []
+            mock_detection_result.value = []
             mock_detector.detect_objects = AsyncMock(return_value=mock_detection_result)
 
             # Mock basic analysis result
@@ -413,7 +419,7 @@ class TestKMAnalyzeSceneMocked:
             mock_scene_data.lighting_conditions = "natural_daylight"
             mock_scene_data.metadata = {}
 
-            mock_analysis_result.right_value = mock_scene_data
+            mock_analysis_result.value = mock_scene_data
             mock_analyzer.analyze_scene = AsyncMock(return_value=mock_analysis_result)
 
             test_image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
@@ -444,20 +450,20 @@ class TestKMClassifyImageContentMocked:
     """Test km_classify_image_content with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_classify_image_content_success(self):
+    async def test_km_classify_image_content_success(self) -> None:
         """Test successful image content classification."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools.scene_analyzer"
+                "src.server.tools.computer_vision_tools.scene_analyzer",
             ) as mock_analyzer,
             patch(
-                "src.server.tools.computer_vision_tools.object_detector"
+                "src.server.tools.computer_vision_tools.object_detector",
             ) as mock_detector,
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.create_image_content"
+                "src.server.tools.computer_vision_tools.create_image_content",
             ) as mock_create_image,
         ):
             mock_validate.return_value = None
@@ -473,7 +479,7 @@ class TestKMClassifyImageContentMocked:
             mock_scene_analysis.scene_type.value = "office"
             mock_scene_analysis.confidence = 0.9
             mock_scene_analysis.description = "Modern office workspace with technology"
-            mock_scene_result.right_value = mock_scene_analysis
+            mock_scene_result.value = mock_scene_analysis
             mock_analyzer.analyze_scene = AsyncMock(return_value=mock_scene_result)
 
             # Mock object detection result
@@ -486,10 +492,12 @@ class TestKMClassifyImageContentMocked:
                     confidence=0.85,
                 ),
                 Mock(
-                    category=Mock(value="text"), class_name="text_field", confidence=0.8
+                    category=Mock(value="text"),
+                    class_name="text_field",
+                    confidence=0.8,
                 ),
             ]
-            mock_detection_result.right_value = mock_detected_objects
+            mock_detection_result.value = mock_detected_objects
             mock_detector.detect_objects = AsyncMock(return_value=mock_detection_result)
 
             test_image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
@@ -517,20 +525,20 @@ class TestKMClassifyImageContentMocked:
             assert result["scene_context"]["objects_detected"] == 2
 
     @pytest.mark.asyncio
-    async def test_km_classify_image_content_filtered_confidence(self):
+    async def test_km_classify_image_content_filtered_confidence(self) -> None:
         """Test image classification with confidence filtering."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools.scene_analyzer"
+                "src.server.tools.computer_vision_tools.scene_analyzer",
             ) as mock_analyzer,
             patch(
-                "src.server.tools.computer_vision_tools.object_detector"
+                "src.server.tools.computer_vision_tools.object_detector",
             ) as mock_detector,
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.create_image_content"
+                "src.server.tools.computer_vision_tools.create_image_content",
             ) as mock_create_image,
         ):
             mock_validate.return_value = None
@@ -545,13 +553,13 @@ class TestKMClassifyImageContentMocked:
             mock_scene_analysis.scene_type.value = "office"
             mock_scene_analysis.confidence = 0.95  # High confidence scene
             mock_scene_analysis.description = "High confidence office scene"
-            mock_scene_result.right_value = mock_scene_analysis
+            mock_scene_result.value = mock_scene_analysis
             mock_analyzer.analyze_scene = AsyncMock(return_value=mock_scene_result)
 
             # Mock object detection result with no objects
             mock_detection_result = Mock()
             mock_detection_result.is_right.return_value = True
-            mock_detection_result.right_value = []  # No objects detected
+            mock_detection_result.value = []  # No objects detected
             mock_detector.detect_objects = AsyncMock(return_value=mock_detection_result)
 
             test_image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
@@ -576,17 +584,17 @@ class TestKMExtractTextFromImageMocked:
     """Test km_extract_text_from_image with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_extract_text_success(self):
+    async def test_km_extract_text_success(self) -> None:
         """Test successful text extraction from image."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools.object_detector"
+                "src.server.tools.computer_vision_tools.object_detector",
             ) as mock_detector,
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.create_image_content"
+                "src.server.tools.computer_vision_tools.create_image_content",
             ) as mock_create_image,
         ):
             mock_validate.return_value = None
@@ -613,7 +621,7 @@ class TestKMExtractTextFromImageMocked:
                 ),
             ]
 
-            mock_detection_result.right_value = mock_text_objects
+            mock_detection_result.value = mock_text_objects
             mock_detector.detect_objects = AsyncMock(return_value=mock_detection_result)
 
             test_image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
@@ -653,17 +661,17 @@ class TestKMExtractTextFromImageMocked:
             assert region["confidence"] == 0.9
 
     @pytest.mark.asyncio
-    async def test_km_extract_text_no_regions(self):
+    async def test_km_extract_text_no_regions(self) -> None:
         """Test text extraction without region details."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools.object_detector"
+                "src.server.tools.computer_vision_tools.object_detector",
             ) as mock_detector,
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.create_image_content"
+                "src.server.tools.computer_vision_tools.create_image_content",
             ) as mock_create_image,
         ):
             mock_validate.return_value = None
@@ -673,7 +681,7 @@ class TestKMExtractTextFromImageMocked:
             # Mock object detection result with no text objects
             mock_detection_result = Mock()
             mock_detection_result.is_right.return_value = True
-            mock_detection_result.right_value = []  # No text objects detected
+            mock_detection_result.value = []  # No text objects detected
             mock_detector.detect_objects = AsyncMock(return_value=mock_detection_result)
 
             test_image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
@@ -701,20 +709,20 @@ class TestKMComputerVisionMetricsMocked:
     """Test km_computer_vision_metrics with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_km_computer_vision_metrics_success(self):
+    async def test_km_computer_vision_metrics_success(self) -> None:
         """Test successful computer vision metrics retrieval."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools.object_detector"
+                "src.server.tools.computer_vision_tools.object_detector",
             ) as mock_detector,
             patch(
-                "src.server.tools.computer_vision_tools.scene_analyzer"
+                "src.server.tools.computer_vision_tools.scene_analyzer",
             ) as mock_analyzer,
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.vision_performance_metrics"
+                "src.server.tools.computer_vision_tools.vision_performance_metrics",
             ) as mock_global_metrics,
         ):
             mock_validate.return_value = None
@@ -787,20 +795,20 @@ class TestKMComputerVisionMetricsMocked:
             assert scene_metrics["average_analysis_time"] == 200.0
 
     @pytest.mark.asyncio
-    async def test_km_computer_vision_metrics_reset_counters(self):
+    async def test_km_computer_vision_metrics_reset_counters(self) -> None:
         """Test computer vision metrics with counter reset."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools.object_detector"
+                "src.server.tools.computer_vision_tools.object_detector",
             ) as mock_detector,
             patch(
-                "src.server.tools.computer_vision_tools.scene_analyzer"
+                "src.server.tools.computer_vision_tools.scene_analyzer",
             ) as mock_analyzer,
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.vision_performance_metrics"
+                "src.server.tools.computer_vision_tools.vision_performance_metrics",
             ) as mock_global_metrics,
         ):
             mock_validate.return_value = None
@@ -858,14 +866,14 @@ class TestComputerVisionErrorHandling:
     """Test error handling for computer vision operations."""
 
     @pytest.mark.asyncio
-    async def test_computer_vision_system_error(self):
+    async def test_computer_vision_system_error(self) -> None:
         """Test handling of system errors during computer vision operations."""
         with patch(
-            "src.server.tools.computer_vision_tools._validate_components"
+            "src.server.tools.computer_vision_tools._validate_components",
         ) as mock_validate:
             # Mock system error
             mock_validate.side_effect = RuntimeError(
-                "Computer vision components not initialized"
+                "Computer vision components not initialized",
             )
 
             test_image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
@@ -876,17 +884,17 @@ class TestComputerVisionErrorHandling:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_computer_vision_processing_error(self):
+    async def test_computer_vision_processing_error(self) -> None:
         """Test handling of processing errors."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.object_detector"
+                "src.server.tools.computer_vision_tools.object_detector",
             ) as mock_detector,
             patch(
-                "src.server.tools.computer_vision_tools.create_image_content"
+                "src.server.tools.computer_vision_tools.create_image_content",
             ) as mock_create_image,
         ):
             mock_validate.return_value = None
@@ -915,20 +923,20 @@ class TestComputerVisionIntegration:
     """Test complete computer vision workflow integration."""
 
     @pytest.mark.asyncio
-    async def test_complete_computer_vision_workflow(self):
+    async def test_complete_computer_vision_workflow(self) -> None:
         """Test complete computer vision workflow integration."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools.object_detector"
+                "src.server.tools.computer_vision_tools.object_detector",
             ) as mock_detector,
             patch(
-                "src.server.tools.computer_vision_tools.scene_analyzer"
+                "src.server.tools.computer_vision_tools.scene_analyzer",
             ) as mock_analyzer,
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.create_image_content"
+                "src.server.tools.computer_vision_tools.create_image_content",
             ) as mock_create_image,
         ):
             mock_validate.return_value = None
@@ -945,12 +953,16 @@ class TestComputerVisionIntegration:
             mock_object.class_name = "text_document"
             mock_object.confidence = 0.91
             mock_object.bounding_box = Mock(
-                x=0.1, y=0.2, width=0.8, height=0.6, confidence=0.91
+                x=0.1,
+                y=0.2,
+                width=0.8,
+                height=0.6,
+                confidence=0.91,
             )
             mock_object.attributes = {}
             mock_object.features = {}
             mock_object.metadata = {}
-            mock_detection_result.right_value = [mock_object]
+            mock_detection_result.value = [mock_object]
             mock_detector.detect_objects = AsyncMock(return_value=mock_detection_result)
             mock_detector.get_detection_statistics.return_value = {
                 "performance_metrics": {
@@ -987,7 +999,7 @@ class TestComputerVisionIntegration:
                     "functional_purpose": "document_reading",
                 },
             }
-            mock_scene_result.right_value = mock_scene_data
+            mock_scene_result.value = mock_scene_data
             mock_analyzer.analyze_scene = AsyncMock(return_value=mock_scene_result)
             mock_analyzer.get_analysis_statistics.return_value = {
                 "performance_metrics": {
@@ -1005,7 +1017,7 @@ class TestComputerVisionIntegration:
                     class_name="document_text",
                     confidence=0.95,
                     bounding_box=Mock(x=0.1, y=0.1, width=0.8, height=0.8),
-                )
+                ),
             ]
             # We'll reuse the object detector mock, adding text objects to the result
 
@@ -1013,15 +1025,18 @@ class TestComputerVisionIntegration:
 
             # Execute complete workflow
             detection_result = await km_detect_objects(
-                image_data=test_image, confidence_threshold=0.7
+                image_data=test_image,
+                confidence_threshold=0.7,
             )
 
             scene_result = await km_analyze_scene(
-                image_data=test_image, analysis_level="comprehensive"
+                image_data=test_image,
+                analysis_level="comprehensive",
             )
 
             text_result = await km_extract_text_from_image(
-                image_data=test_image, ocr_mode="accurate"
+                image_data=test_image,
+                ocr_mode="accurate",
             )
 
             metrics_result = await km_computer_vision_metrics()
@@ -1044,17 +1059,17 @@ class TestComputerVisionProperties:
 
     @given(image_data_strategy(), confidence_strategy(), max_objects_strategy())
     @pytest.mark.asyncio
-    async def test_detect_objects_properties(self, image_data, confidence, max_objects):
+    async def test_detect_objects_properties(self, image_data, confidence, max_objects) -> None:
         """Test properties of object detection operations."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools.object_detector"
+                "src.server.tools.computer_vision_tools.object_detector",
             ) as mock_detector,
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.create_image_content"
+                "src.server.tools.computer_vision_tools.create_image_content",
             ) as mock_create_image,
         ):
             mock_validate.return_value = None
@@ -1064,7 +1079,7 @@ class TestComputerVisionProperties:
             # Mock successful detection with property-based constraints
             mock_result = Mock()
             mock_result.is_left.return_value = False
-            mock_result.right_value = []  # Empty result for property testing
+            mock_result.value = []  # Empty result for property testing
             mock_detector.detect_objects = AsyncMock(return_value=mock_result)
             mock_detector.get_detection_statistics.return_value = {
                 "performance_metrics": {
@@ -1094,23 +1109,22 @@ class TestComputerVisionProperties:
                         == confidence
                     )
                     assert result["detection_parameters"]["max_objects"] == max_objects
-            except Exception:
-                # Some combinations might not be valid, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
     @given(analysis_level_strategy())
     @pytest.mark.asyncio
-    async def test_scene_analysis_properties(self, analysis_level):
+    async def test_scene_analysis_properties(self, analysis_level) -> None:
         """Test properties of scene analysis operations."""
         with (
             patch(
-                "src.server.tools.computer_vision_tools.scene_analyzer"
+                "src.server.tools.computer_vision_tools.scene_analyzer",
             ) as mock_analyzer,
             patch(
-                "src.server.tools.computer_vision_tools._validate_components"
+                "src.server.tools.computer_vision_tools._validate_components",
             ) as mock_validate,
             patch(
-                "src.server.tools.computer_vision_tools.create_image_content"
+                "src.server.tools.computer_vision_tools.create_image_content",
             ) as mock_create_image,
         ):
             mock_validate.return_value = None
@@ -1129,14 +1143,15 @@ class TestComputerVisionProperties:
             mock_scene_data.spatial_layout = {}
             mock_scene_data.detected_activities = []
             mock_scene_data.safety_assessment = None
-            mock_result.right_value = mock_scene_data
+            mock_result.value = mock_scene_data
             mock_analyzer.analyze_scene = AsyncMock(return_value=mock_result)
 
             test_image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
 
             try:
                 result = await km_analyze_scene(
-                    image_data=test_image, analysis_level=analysis_level
+                    image_data=test_image,
+                    analysis_level=analysis_level,
                 )
 
                 # Verify properties
@@ -1146,9 +1161,8 @@ class TestComputerVisionProperties:
                     assert 0.0 <= result["confidence"] <= 1.0
                     assert "processing_time_ms" in result
                     assert result["processing_time_ms"] >= 0
-            except Exception:
-                # Some combinations might not be valid, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
 
 if __name__ == "__main__":

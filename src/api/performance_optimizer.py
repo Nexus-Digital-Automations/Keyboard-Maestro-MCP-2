@@ -1,5 +1,4 @@
-"""
-Performance Optimizer - TASK_64 Phase 5 Integration & Monitoring
+"""Performance Optimizer - TASK_64 Phase 5 Integration & Monitoring.
 
 API performance optimization and caching for API orchestration.
 Provides intelligent caching, performance analytics, and optimization strategies.
@@ -12,6 +11,7 @@ Intelligence: ML-driven optimization, predictive caching, adaptive strategies, a
 from __future__ import annotations
 
 import asyncio
+import logging
 import statistics
 import time
 from collections import defaultdict, deque
@@ -26,6 +26,8 @@ from src.core.api_orchestration_architecture import (
 )
 from src.core.contracts import require
 from src.core.either import Either
+
+logger = logging.getLogger(__name__)
 
 
 class CacheStrategy(Enum):
@@ -80,7 +82,7 @@ class CacheEntry:
         age = (datetime.now(UTC) - self.created_at).total_seconds()
         return age > self.ttl_seconds
 
-    def update_access(self):
+    def update_access(self) -> None:
         """Update access statistics."""
         self.last_accessed = datetime.now(UTC)
         self.access_count += 1
@@ -132,8 +134,11 @@ class PerformanceProfile:
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def update_metrics(
-        self, response_time: float, success: bool, timestamp: datetime | None = None
-    ):
+        self,
+        response_time: float,
+        success: bool,
+        timestamp: datetime | None = None,
+    ) -> None:
         """Update performance metrics with new data point."""
         if timestamp is None:
             timestamp = datetime.now(UTC)
@@ -330,7 +335,8 @@ class IntelligentCache:
         if self.strategy == CacheStrategy.LRU:
             # Evict least recently used
             sorted_entries = sorted(
-                self.cache.items(), key=lambda x: x[1].last_accessed
+                self.cache.items(),
+                key=lambda x: x[1].last_accessed,
             )
             keys_to_evict = [key for key, _ in sorted_entries[:count]]
 
@@ -363,7 +369,8 @@ class IntelligentCache:
 
             # Factor in access frequency
             access_frequency = entry.access_count / max(
-                1, (datetime.now(UTC) - entry.created_at).total_seconds() / 3600
+                1,
+                (datetime.now(UTC) - entry.created_at).total_seconds() / 3600,
             )
             score += access_frequency * 0.4
 
@@ -450,7 +457,9 @@ class PerformanceOptimizer:
     @require(lambda endpoint_id: isinstance(endpoint_id, str) and len(endpoint_id) > 0)
     @require(lambda service_id: isinstance(service_id, ServiceId))
     def register_endpoint(
-        self, endpoint_id: str, service_id: ServiceId
+        self,
+        endpoint_id: str,
+        service_id: ServiceId,
     ) -> Either[APIOrchestrationError, bool]:
         """Register endpoint for performance monitoring."""
         try:
@@ -458,14 +467,15 @@ class PerformanceOptimizer:
 
             if profile_key not in self.profiles:
                 self.profiles[profile_key] = PerformanceProfile(
-                    endpoint_id=endpoint_id, service_id=service_id
+                    endpoint_id=endpoint_id,
+                    service_id=service_id,
                 )
 
             return Either.success(True)
 
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Endpoint registration failed: {str(e)}")
+                APIOrchestrationError(f"Endpoint registration failed: {e!s}"),
             )
 
     async def record_performance(
@@ -495,7 +505,7 @@ class PerformanceOptimizer:
 
         except Exception as e:
             return Either.error(
-                APIOrchestrationError(f"Performance recording failed: {str(e)}")
+                APIOrchestrationError(f"Performance recording failed: {e!s}"),
             )
 
     async def get_cached_response(self, cache_key: str) -> Any | None:
@@ -503,7 +513,10 @@ class PerformanceOptimizer:
         return await self.cache.get(cache_key)
 
     async def cache_response(
-        self, cache_key: str, response: Any, ttl: int | None = None
+        self,
+        cache_key: str,
+        response: Any,
+        ttl: int | None = None,
     ) -> bool:
         """Cache response with intelligent TTL."""
         # Determine optimal TTL based on content and access patterns
@@ -537,7 +550,7 @@ class PerformanceOptimizer:
                         t
                         for t in access_times
                         if (datetime.now(UTC) - t).total_seconds() < 3600
-                    ]
+                    ],
                 )
                 if recent_accesses > 10:
                     base_ttl *= 1.5
@@ -555,7 +568,7 @@ class PerformanceOptimizer:
                 > self.performance_thresholds[PerformanceMetric.RESPONSE_TIME]
             ):
                 recommendations.extend(
-                    await self._generate_latency_recommendations(profile)
+                    await self._generate_latency_recommendations(profile),
                 )
 
             # Analyze error patterns
@@ -564,7 +577,7 @@ class PerformanceOptimizer:
                 > self.performance_thresholds[PerformanceMetric.ERROR_RATE]
             ):
                 recommendations.extend(
-                    await self._generate_reliability_recommendations(profile)
+                    await self._generate_reliability_recommendations(profile),
                 )
 
             # Analyze caching opportunities
@@ -573,7 +586,7 @@ class PerformanceOptimizer:
                 < self.performance_thresholds[PerformanceMetric.CACHE_HIT_RATE]
             ):
                 recommendations.extend(
-                    await self._generate_caching_recommendations(profile)
+                    await self._generate_caching_recommendations(profile),
                 )
 
             # Store recommendations
@@ -581,11 +594,23 @@ class PerformanceOptimizer:
                 self.recommendations[rec.recommendation_id] = rec
                 self.optimizer_metrics["total_recommendations"] += 1
 
-        except Exception:
-            pass  # Graceful degradation
+        except Exception as e:
+            # Log performance analysis failures for monitoring
+            logger.warning(
+                f"Performance analysis failed for profile {profile.endpoint}: {e}",
+                extra={
+                    "endpoint": profile.endpoint,
+                    "error_type": type(e).__name__,
+                    "operation": "performance_analysis",
+                },
+            )
+            self.optimizer_metrics["analysis_errors"] = (
+                self.optimizer_metrics.get("analysis_errors", 0) + 1
+            )
 
     async def _generate_latency_recommendations(
-        self, profile: PerformanceProfile
+        self,
+        profile: PerformanceProfile,
     ) -> list[OptimizationRecommendation]:
         """Generate recommendations for reducing latency."""
         recommendations = []
@@ -621,7 +646,8 @@ class PerformanceOptimizer:
         return recommendations
 
     async def _generate_reliability_recommendations(
-        self, profile: PerformanceProfile
+        self,
+        profile: PerformanceProfile,
     ) -> list[OptimizationRecommendation]:
         """Generate recommendations for improving reliability."""
         recommendations = []
@@ -643,7 +669,8 @@ class PerformanceOptimizer:
         return recommendations
 
     async def _generate_caching_recommendations(
-        self, profile: PerformanceProfile
+        self,
+        profile: PerformanceProfile,
     ) -> list[OptimizationRecommendation]:
         """Generate recommendations for improving caching."""
         recommendations = []
@@ -656,7 +683,7 @@ class PerformanceOptimizer:
             optimization_type="cache_ttl",
             current_config={"ttl_seconds": 3600},
             recommended_config={
-                "ttl_seconds": await self._calculate_optimal_cache_ttl(profile)
+                "ttl_seconds": await self._calculate_optimal_cache_ttl(profile),
             },
             expected_improvement={"cache_hit_rate": 25.0, "response_time": -15.0},
             confidence_score=0.65,
@@ -740,7 +767,9 @@ class PerformanceOptimizer:
             del self.recommendations[rec_id]
 
     def get_performance_summary(
-        self, endpoint_id: str, service_id: ServiceId
+        self,
+        endpoint_id: str,
+        service_id: ServiceId,
     ) -> dict[str, Any] | None:
         """Get performance summary for endpoint."""
         profile_key = f"{service_id}:{endpoint_id}"
@@ -769,7 +798,7 @@ class PerformanceOptimizer:
         """Get performance optimizer metrics."""
         total_endpoints = len(self.profiles)
         healthy_endpoints = len(
-            [p for p in self.profiles.values() if p.get_optimization_score() > 80]
+            [p for p in self.profiles.values() if p.get_optimization_score() > 80],
         )
 
         return {
@@ -779,10 +808,10 @@ class PerformanceOptimizer:
             "optimization_coverage": healthy_endpoints / max(1, total_endpoints),
             "cache_metrics": self.cache.get_metrics(),
             "pending_recommendations": len(
-                [r for r in self.recommendations.values() if r.status == "pending"]
+                [r for r in self.recommendations.values() if r.status == "pending"],
             ),
             "applied_recommendations": len(
-                [r for r in self.recommendations.values() if r.status == "applied"]
+                [r for r in self.recommendations.values() if r.status == "applied"],
             ),
             "recommendation_acceptance_rate": self.optimizer_metrics[
                 "accepted_recommendations"
@@ -793,12 +822,12 @@ class PerformanceOptimizer:
 
 # Export the performance optimizer classes
 __all__ = [
-    "PerformanceOptimizer",
-    "IntelligentCache",
-    "PerformanceProfile",
-    "OptimizationRecommendation",
     "CacheEntry",
     "CacheStrategy",
+    "IntelligentCache",
+    "OptimizationRecommendation",
     "OptimizationStrategy",
     "PerformanceMetric",
+    "PerformanceOptimizer",
+    "PerformanceProfile",
 ]

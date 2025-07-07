@@ -1,5 +1,4 @@
-"""
-Ecosystem orchestration type definitions and architecture.
+"""Ecosystem orchestration type definitions and architecture.
 
 This module provides comprehensive type definitions for orchestrating and managing
 the complete 49-tool enterprise automation ecosystem with intelligent coordination,
@@ -23,19 +22,13 @@ from .contracts import require
 class OrchestrationId(str):
     """Unique identifier for orchestration sessions."""
 
-    pass
-
 
 class WorkflowId(str):
     """Unique identifier for workflow definitions."""
 
-    pass
-
 
 class ToolId(str):
     """Unique identifier for registered tools."""
-
-    pass
 
 
 class OptimizationScore(float):
@@ -44,7 +37,7 @@ class OptimizationScore(float):
     def __new__(cls, value: float):
         if not 0.0 <= value <= 1.0:
             raise ValueError(
-                f"OptimizationScore must be between 0.0 and 1.0, got {value}"
+                f"OptimizationScore must be between 0.0 and 1.0, got {value}",
             )
         return super().__new__(cls, value)
 
@@ -55,7 +48,7 @@ class EfficiencyMetric(float):
     def __new__(cls, value: float):
         if not 0.0 <= value <= 1.0:
             raise ValueError(
-                f"EfficiencyMetric must be between 0.0 and 1.0, got {value}"
+                f"EfficiencyMetric must be between 0.0 and 1.0, got {value}",
             )
         return super().__new__(cls, value)
 
@@ -66,7 +59,7 @@ class ResourceUtilization(float):
     def __new__(cls, value: float):
         if not 0.0 <= value <= 100.0:
             raise ValueError(
-                f"ResourceUtilization must be between 0.0 and 100.0, got {value}"
+                f"ResourceUtilization must be between 0.0 and 100.0, got {value}",
             )
         return super().__new__(cls, value)
 
@@ -156,7 +149,7 @@ class ToolCapability:
     def get_resource_score(self) -> float:
         """Calculate resource usage score."""
         return sum(self.resource_requirements.values()) / len(
-            self.resource_requirements
+            self.resource_requirements,
         )
 
     def can_run_parallel_with(self, other: "ToolCapability") -> bool:
@@ -235,7 +228,8 @@ class WorkflowDefinition:
         return groups
 
     def estimate_execution_time(
-        self, tool_registry: dict[ToolId, ToolCapability]
+        self,
+        tool_registry: dict[ToolId, ToolCapability],
     ) -> timedelta:
         """Estimate workflow execution time."""
         sequential_time = 0.0
@@ -292,15 +286,14 @@ class OrchestrationContext:
         # Base priority from optimization target
         if self.optimization_target == OptimizationTarget.PERFORMANCE:
             return 1.0 - step.timeout.total_seconds() / 3600.0  # Favor faster steps
-        elif self.optimization_target == OptimizationTarget.EFFICIENCY:
+        if self.optimization_target == OptimizationTarget.EFFICIENCY:
             # Favor steps with lower resource requirements
             return 1.0 - sum(step.parameters.get("resource_cost", {}).values()) / 100.0
-        elif self.optimization_target == OptimizationTarget.RELIABILITY:
+        if self.optimization_target == OptimizationTarget.RELIABILITY:
             return 1.0 - (
                 step.retry_count / 10.0
             )  # Favor steps with fewer retries needed
-        else:
-            return 0.5  # Balanced priority
+        return 0.5  # Balanced priority
 
 
 @dataclass
@@ -382,7 +375,7 @@ class SystemHealth:
         ]
         if unavailable_tools:
             issues.append(
-                f"Critical: Tools unavailable: {', '.join(unavailable_tools)}"
+                f"Critical: Tools unavailable: {', '.join(unavailable_tools)}",
             )
 
         overloaded_resources = [
@@ -390,7 +383,7 @@ class SystemHealth:
         ]
         if overloaded_resources:
             issues.append(
-                f"Critical: Resources overloaded: {', '.join(overloaded_resources)}"
+                f"Critical: Resources overloaded: {', '.join(overloaded_resources)}",
             )
 
         return issues
@@ -406,7 +399,8 @@ class EcosystemOrchestratorError(Exception):
 
     @classmethod
     def workflow_not_found(
-        cls, workflow_id: WorkflowId
+        cls,
+        workflow_id: WorkflowId,
     ) -> "EcosystemOrchestratorError":
         return cls(f"Workflow not found: {workflow_id}", "WORKFLOW_NOT_FOUND")
 
@@ -416,7 +410,10 @@ class EcosystemOrchestratorError(Exception):
 
     @classmethod
     def resource_limit_exceeded(
-        cls, resource: str, required: float, available: float
+        cls,
+        resource: str,
+        required: float,
+        available: float,
     ) -> "EcosystemOrchestratorError":
         return cls(
             f"Resource limit exceeded for {resource}: required {required}, available {available}",
@@ -430,7 +427,8 @@ class EcosystemOrchestratorError(Exception):
     @classmethod
     def workflow_validation_failed(cls, details: str) -> "EcosystemOrchestratorError":
         return cls(
-            f"Workflow validation failed: {details}", "WORKFLOW_VALIDATION_FAILED"
+            f"Workflow validation failed: {details}",
+            "WORKFLOW_VALIDATION_FAILED",
         )
 
     @classmethod
@@ -441,14 +439,14 @@ class EcosystemOrchestratorError(Exception):
 def create_orchestration_id() -> OrchestrationId:
     """Create unique orchestration identifier."""
     return OrchestrationId(
-        f"orch_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+        f"orch_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}",
     )
 
 
 def create_workflow_id() -> WorkflowId:
     """Create unique workflow identifier."""
     return WorkflowId(
-        f"wf_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+        f"wf_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}",
     )
 
 

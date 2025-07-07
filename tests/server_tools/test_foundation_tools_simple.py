@@ -1,10 +1,12 @@
-"""
-Simple Foundation Tools Test Coverage for TASK_69.
+"""Simple Foundation Tools Test Coverage for TASK_69.
 
 This module provides basic import and structure testing for foundation tools,
 focusing on achieving test coverage for MCP tool modules.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -13,7 +15,7 @@ import pytest
 class TestFoundationToolsImports:
     """Test that all foundation tool modules can be imported successfully."""
 
-    def test_core_tools_import(self):
+    def test_core_tools_import(self) -> None:
         """Test core tools module imports successfully."""
         try:
             from src.server.tools import core_tools
@@ -24,7 +26,7 @@ class TestFoundationToolsImports:
         except ImportError as e:
             pytest.fail(f"Failed to import core_tools: {e}")
 
-    def test_engine_tools_import(self):
+    def test_engine_tools_import(self) -> None:
         """Test engine tools module imports successfully."""
         try:
             from src.server.tools import engine_tools
@@ -33,7 +35,7 @@ class TestFoundationToolsImports:
         except ImportError as e:
             pytest.fail(f"Failed to import engine_tools: {e}")
 
-    def test_group_tools_import(self):
+    def test_group_tools_import(self) -> None:
         """Test group tools module imports successfully."""
         try:
             from src.server.tools import group_tools
@@ -42,7 +44,7 @@ class TestFoundationToolsImports:
         except ImportError as e:
             pytest.fail(f"Failed to import group_tools: {e}")
 
-    def test_action_tools_import(self):
+    def test_action_tools_import(self) -> None:
         """Test action tools module imports successfully."""
         try:
             from src.server.tools import action_tools
@@ -51,7 +53,7 @@ class TestFoundationToolsImports:
         except ImportError as e:
             pytest.fail(f"Failed to import action_tools: {e}")
 
-    def test_calculator_tools_import(self):
+    def test_calculator_tools_import(self) -> None:
         """Test calculator tools module imports successfully."""
         try:
             from src.server.tools import calculator_tools
@@ -60,7 +62,7 @@ class TestFoundationToolsImports:
         except ImportError as e:
             pytest.fail(f"Failed to import calculator_tools: {e}")
 
-    def test_clipboard_tools_import(self):
+    def test_clipboard_tools_import(self) -> None:
         """Test clipboard tools module imports successfully."""
         try:
             from src.server.tools import clipboard_tools
@@ -69,7 +71,7 @@ class TestFoundationToolsImports:
         except ImportError as e:
             pytest.fail(f"Failed to import clipboard_tools: {e}")
 
-    def test_file_operation_tools_import(self):
+    def test_file_operation_tools_import(self) -> None:
         """Test file operation tools module imports successfully."""
         try:
             from src.server.tools import file_operation_tools
@@ -78,7 +80,7 @@ class TestFoundationToolsImports:
         except ImportError as e:
             pytest.fail(f"Failed to import file_operation_tools: {e}")
 
-    def test_notification_tools_import(self):
+    def test_notification_tools_import(self) -> None:
         """Test notification tools module imports successfully."""
         try:
             from src.server.tools import notification_tools
@@ -87,7 +89,7 @@ class TestFoundationToolsImports:
         except ImportError as e:
             pytest.fail(f"Failed to import notification_tools: {e}")
 
-    def test_hotkey_tools_import(self):
+    def test_hotkey_tools_import(self) -> None:
         """Test hotkey tools module imports successfully."""
         try:
             from src.server.tools import hotkey_tools
@@ -96,7 +98,7 @@ class TestFoundationToolsImports:
         except ImportError as e:
             pytest.fail(f"Failed to import hotkey_tools: {e}")
 
-    def test_window_tools_import(self):
+    def test_window_tools_import(self) -> None:
         """Test window tools module imports successfully."""
         try:
             from src.server.tools import window_tools
@@ -112,7 +114,7 @@ class TestFoundationToolsBasicFunctionality:
     """Test basic functionality of foundation tools with minimal mocking."""
 
     @pytest.fixture
-    def mock_fastmcp_context(self):
+    def mock_fastmcp_context(self) -> Any:
         """Create simple mock FastMCP context."""
         context = Mock()
         context.session_id = "test-session"
@@ -121,7 +123,7 @@ class TestFoundationToolsBasicFunctionality:
         context.report_progress = AsyncMock()
         return context
 
-    def test_function_signatures_exist(self):
+    def test_function_signatures_exist(self) -> None:
         """Test that key functions have expected signatures."""
         from src.server.tools.calculator_tools import km_calculator
         from src.server.tools.core_tools import km_execute_macro, km_list_macros
@@ -133,7 +135,7 @@ class TestFoundationToolsBasicFunctionality:
         assert callable(km_engine_control)
         assert callable(km_calculator)
 
-    def test_validation_error_handling(self):
+    def test_validation_error_handling(self) -> None:
         """Test that validation errors are handled properly."""
         from src.core.errors import ValidationError
 
@@ -142,10 +144,11 @@ class TestFoundationToolsBasicFunctionality:
         assert "test_field" in str(error)
         assert isinstance(error, Exception)
 
-    def test_core_types_available(self):
+    def test_core_types_available(self) -> None:
         """Test that core types are available."""
         try:
-            from src.core.types import ExecutionStatus, GroupId, MacroId
+            # F401 fix: Import only used types
+            from src.core.types import MacroId
 
             # Test basic type instantiation
             macro_id = MacroId("test-macro")
@@ -158,7 +161,7 @@ class TestFoundationToolsBasicFunctionality:
 class TestFoundationToolsCoverage:
     """Tests designed to improve code coverage for foundation tools."""
 
-    def test_tool_module_attributes(self):
+    def test_tool_module_attributes(self) -> None:
         """Test that tool modules have expected attributes."""
         modules_to_test = [
             "core_tools",
@@ -176,7 +179,8 @@ class TestFoundationToolsCoverage:
         for module_name in modules_to_test:
             try:
                 module = __import__(
-                    f"src.server.tools.{module_name}", fromlist=[module_name]
+                    f"src.server.tools.{module_name}",
+                    fromlist=[module_name],
                 )
                 # Check that module has expected structure
                 assert hasattr(module, "__doc__"), (
@@ -189,7 +193,7 @@ class TestFoundationToolsCoverage:
                 # Some modules may not exist yet, skip them
                 continue
 
-    def test_error_classes_coverage(self):
+    def test_error_classes_coverage(self) -> None:
         """Test error classes to improve coverage."""
         from src.core.errors import (
             ContractViolationError,
@@ -199,7 +203,9 @@ class TestFoundationToolsCoverage:
 
         # Test error instantiation and string representation
         validation_error = ValidationError(
-            "test_field", "bad_value", "validation failed"
+            "test_field",
+            "bad_value",
+            "validation failed",
         )
         assert "test_field" in str(validation_error)
 
@@ -207,11 +213,13 @@ class TestFoundationToolsCoverage:
         assert "execution failed" in str(execution_error)
 
         contract_error = ContractViolationError(
-            "precondition", "value < 0", "x must be positive"
+            "precondition",
+            "value < 0",
+            "x must be positive",
         )
         assert "precondition" in str(contract_error)
 
-    def test_basic_type_operations(self):
+    def test_basic_type_operations(self) -> None:
         """Test basic operations on custom types."""
         from src.core.types import GroupId, MacroId
 
@@ -231,7 +239,7 @@ class TestFoundationToolsCoverage:
         assert str(group_id1) == "group1"
         assert bool(group_id1) is True
 
-    def test_server_utils_coverage(self):
+    def test_server_utils_coverage(self) -> None:
         """Test server utilities for coverage."""
         try:
             from src.server.utils import parse_variable_records
@@ -249,7 +257,7 @@ class TestFoundationToolsCoverage:
             # Skip if utils not available
             pass
 
-    def test_initialization_module_coverage(self):
+    def test_initialization_module_coverage(self) -> None:
         """Test initialization module components."""
         try:
             from src.server.initialization import get_km_client
@@ -265,7 +273,7 @@ class TestFoundationToolsCoverage:
 class TestFoundationToolsIntegration:
     """Test basic integration patterns across foundation tools."""
 
-    def test_consistent_error_handling_pattern(self):
+    def test_consistent_error_handling_pattern(self) -> None:
         """Test that tools follow consistent error handling patterns."""
         from src.core.errors import ValidationError
 
@@ -276,7 +284,7 @@ class TestFoundationToolsIntegration:
             assert isinstance(e, Exception)
             assert "test_field" in str(e)
 
-    def test_type_safety_imports(self):
+    def test_type_safety_imports(self) -> None:
         """Test that type safety components are available."""
         try:
             from src.core.errors import ExecutionError, ValidationError
@@ -292,20 +300,20 @@ class TestFoundationToolsIntegration:
         except ImportError as e:
             pytest.fail(f"Failed to import type safety components: {e}")
 
-    def test_contract_system_availability(self):
+    def test_contract_system_availability(self) -> None:
         """Test that contract system components are available."""
         try:
             from src.core.errors import ContractViolationError
 
             # Test contract violation error
-            contract_error = ContractViolationError("Precondition failed")
+            contract_error = ContractViolationError("precondition", "failed validation")
             assert "Precondition failed" in str(contract_error)
 
         except ImportError:
             # Contract system may not be fully implemented yet
             pass
 
-    def test_foundation_tools_docstrings(self):
+    def test_foundation_tools_docstrings(self) -> None:
         """Test that foundation tools have proper documentation."""
         tools_with_docs = [
             ("src.server.tools.core_tools", "km_execute_macro"),

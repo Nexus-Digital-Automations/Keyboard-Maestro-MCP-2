@@ -1,11 +1,13 @@
-"""
-Phase 2 Strategic Test Coverage Expansion for Keyboard Maestro MCP.
+"""Phase 2 Strategic Test Coverage Expansion for Keyboard Maestro MCP.
 
 This module targets specific high-impact modules that showed import challenges
 in Phase 1, focusing on systematic module instantiation and functionality testing
 to achieve maximum coverage gain efficiently.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import os
 import sys
 from pathlib import Path
@@ -17,9 +19,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_server_tools_systematic_imports():
+def test_server_tools_systematic_imports() -> None:
     """Test systematic import of server tools with proper error handling."""
-
     # Core server tools that should import cleanly
     try:
         from src.server.tools import condition_tools, dictionary_tools, engine_tools
@@ -47,7 +48,8 @@ def test_server_tools_systematic_imports():
     for tool_module in tool_modules:
         try:
             module = __import__(
-                f"src.server.tools.{tool_module}", fromlist=[tool_module]
+                f"src.server.tools.{tool_module}",
+                fromlist=[tool_module],
             )
             assert module is not None
             successful_imports += 1
@@ -60,9 +62,8 @@ def test_server_tools_systematic_imports():
     )
 
 
-def test_analytics_modules_systematic_imports():
+def test_analytics_modules_systematic_imports() -> None:
     """Test analytics modules with proper dependency handling."""
-
     # Test analytics core modules
     try:
         # Try individual analytics components
@@ -77,7 +78,8 @@ def test_analytics_modules_systematic_imports():
         for module_name in analytics_modules:
             try:
                 module = __import__(
-                    f"src.analytics.{module_name}", fromlist=[module_name]
+                    f"src.analytics.{module_name}",
+                    fromlist=[module_name],
                 )
                 if module is not None:
                     successful_analytics += 1
@@ -94,16 +96,19 @@ def test_analytics_modules_systematic_imports():
         pytest.skip(f"Analytics modules import failed: {e}")
 
 
-def test_core_types_enhanced_functionality():
+def test_core_types_enhanced_functionality() -> None:
     """Test enhanced core types functionality for deeper coverage."""
     try:
+        # F401 fix: Use importlib for availability testing
+        import importlib.util
+
+        core_types_spec = importlib.util.find_spec("src.core.types")
+        if core_types_spec is None:
+            pytest.skip("Core types module not available")
+
         from src.core.types import (
-            CommandId,
-            CommandParameters,
             Duration,
             ExecutionContext,
-            ExecutionToken,
-            MacroId,
             Permission,
             SecurityViolationError,
             ValidationError,
@@ -125,7 +130,8 @@ def test_core_types_enhanced_functionality():
         # Test ExecutionContext creation and variable management
         permissions = frozenset([Permission.TEXT_INPUT, Permission.AUTOMATION_CONTROL])
         context = ExecutionContext(
-            permissions=permissions, timeout=Duration.from_seconds(30)
+            permissions=permissions,
+            timeout=Duration.from_seconds(30),
         )
 
         # Test permission checking
@@ -143,14 +149,17 @@ def test_core_types_enhanced_functionality():
 
         # Test error types comprehensive functionality
         validation_error = ValidationError(
-            "field_name", "invalid_value", "must be positive"
+            "field_name",
+            "invalid_value",
+            "must be positive",
         )
         assert validation_error.field_name == "field_name"
         assert validation_error.value == "invalid_value"
         assert validation_error.constraint == "must be positive"
 
         security_error = SecurityViolationError(
-            "injection_attempt", "detected script tag"
+            "injection_attempt",
+            "detected script tag",
         )
         assert security_error.violation_type == "injection_attempt"
         assert security_error.details == "detected script tag"
@@ -159,7 +168,7 @@ def test_core_types_enhanced_functionality():
         pytest.skip(f"Core types enhanced test failed: {e}")
 
 
-def test_security_modules_enhanced_functionality():
+def test_security_modules_enhanced_functionality() -> None:
     """Test enhanced security modules functionality."""
     try:
         from src.security.access_controller import AccessController
@@ -190,7 +199,7 @@ def test_security_modules_enhanced_functionality():
         pytest.skip(f"Security modules enhanced test failed: {e}")
 
 
-def test_integration_modules_enhanced_functionality():
+def test_integration_modules_enhanced_functionality() -> None:
     """Test enhanced integration modules functionality."""
     try:
         from src.integration.km_client import KMClient
@@ -204,23 +213,26 @@ def test_integration_modules_enhanced_functionality():
         ):
             km_client = KMClient()
             assert hasattr(km_client, "execute_macro") or hasattr(
-                km_client, "send_command"
+                km_client,
+                "send_command",
             )
             assert hasattr(km_client, "get_macro_status") or hasattr(
-                km_client, "query_status"
+                km_client,
+                "query_status",
             )
 
         # Test SecurityIntegration
         security_integration = SecurityIntegration()
         assert hasattr(security_integration, "validate_request") or hasattr(
-            security_integration, "check_security"
+            security_integration,
+            "check_security",
         )
 
     except ImportError as e:
         pytest.skip(f"Integration modules enhanced test failed: {e}")
 
 
-def test_parser_modules_enhanced_functionality():
+def test_parser_modules_enhanced_functionality() -> None:
     """Test enhanced parser modules functionality."""
     try:
         from src.core.parser import CommandValidator, InputSanitizer
@@ -233,13 +245,15 @@ def test_parser_modules_enhanced_functionality():
         dangerous_input = "<script>alert('test')</script>"
         try:
             sanitized = InputSanitizer.sanitize_text_input(
-                dangerous_input, strict_mode=True
+                dangerous_input,
+                strict_mode=True,
             )
             assert "<script>" not in sanitized
         except Exception:
             # Strict mode may raise exceptions, try non-strict mode
             sanitized = InputSanitizer.sanitize_text_input(
-                dangerous_input, strict_mode=False
+                dangerous_input,
+                strict_mode=False,
             )
             assert isinstance(sanitized, str)
 
@@ -249,18 +263,19 @@ def test_parser_modules_enhanced_functionality():
 
         # Test CommandValidator functionality
         assert hasattr(CommandValidator, "validate_command_parameters") or hasattr(
-            CommandValidator, "validate_command_type"
+            CommandValidator,
+            "validate_command_type",
         )
 
     except ImportError as e:
         pytest.skip(f"Parser modules enhanced test failed: {e}")
 
 
-def test_engine_modules_enhanced_functionality():
+def test_engine_modules_enhanced_functionality() -> None:
     """Test enhanced engine modules functionality."""
     try:
         from src.core.engine import MacroEngine, PlaceholderCommand
-        from src.core.types import CommandId, CommandParameters, CommandType, MacroId
+        from src.core.types import CommandId, CommandParameters, CommandType
 
         # Test MacroEngine instantiation
         engine = MacroEngine()
@@ -287,7 +302,7 @@ def test_engine_modules_enhanced_functionality():
         pytest.skip(f"Engine modules enhanced test failed: {e}")
 
 
-def test_ai_modules_enhanced_functionality():
+def test_ai_modules_enhanced_functionality() -> None:
     """Test enhanced AI modules functionality."""
     try:
         from src.ai import (
@@ -316,7 +331,7 @@ def test_ai_modules_enhanced_functionality():
         pytest.skip(f"AI modules enhanced test failed: {e}")
 
 
-def test_cloud_modules_enhanced_functionality():
+def test_cloud_modules_enhanced_functionality() -> None:
     """Test enhanced cloud modules functionality."""
     try:
         from src.cloud import (
@@ -346,7 +361,7 @@ def test_cloud_modules_enhanced_functionality():
         pytest.skip(f"Cloud modules enhanced test failed: {e}")
 
 
-def test_workflow_modules_enhanced_functionality():
+def test_workflow_modules_enhanced_functionality() -> None:
     """Test enhanced workflow and orchestration modules."""
     try:
         from src.orchestration import (
@@ -373,7 +388,7 @@ def test_workflow_modules_enhanced_functionality():
         pytest.skip(f"Workflow modules enhanced test failed: {e}")
 
 
-def test_comprehensive_error_handling_patterns():
+def test_comprehensive_error_handling_patterns() -> None:
     """Test comprehensive error handling across modules."""
     try:
         from src.core.types import SecurityViolationError, ValidationError
@@ -393,7 +408,8 @@ def test_comprehensive_error_handling_patterns():
         assert repr(security_error1) != ""
 
         security_error2 = SecurityViolationError(
-            "sql_injection", "detected SQL pattern"
+            "sql_injection",
+            "detected SQL pattern",
         )
         assert security_error2.violation_type == "sql_injection"
 
@@ -410,7 +426,7 @@ def test_comprehensive_error_handling_patterns():
 
 
 @pytest.mark.asyncio
-async def test_async_module_functionality():
+async def test_async_module_functionality() -> None:
     """Test async functionality across modules for comprehensive coverage."""
     import asyncio
 
@@ -441,9 +457,8 @@ async def test_async_module_functionality():
         assert str(e) == "Async operation failed"
 
 
-def test_data_structure_comprehensive_coverage():
+def test_data_structure_comprehensive_coverage() -> None:
     """Test comprehensive data structure usage for coverage."""
-
     # Test dictionary operations
     test_data = {
         "string_key": "string_value",
@@ -491,9 +506,8 @@ def test_data_structure_comprehensive_coverage():
     assert test_tuple[-1] is True
 
 
-def test_configuration_and_environment_comprehensive():
+def test_configuration_and_environment_comprehensive() -> None:
     """Test comprehensive configuration and environment handling."""
-
     # Test environment variable operations
     original_test_var = os.environ.get("COMPREHENSIVE_TEST_VAR")
 

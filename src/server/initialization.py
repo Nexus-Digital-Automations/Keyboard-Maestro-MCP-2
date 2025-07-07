@@ -1,10 +1,12 @@
-"""
-Component initialization and dependency management.
+"""Component initialization and dependency management.
 
 Handles initialization of core components like KM client, metadata extractor,
 sync manager, and file monitor with proper dependency injection.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
 import logging
 
@@ -83,7 +85,9 @@ def get_sync_manager() -> MacroSyncManager:
             cache_ttl=Duration.from_minutes(10),
         )
         _sync_manager = MacroSyncManager(
-            get_km_client(), get_metadata_extractor(), config
+            get_km_client(),
+            get_metadata_extractor(),
+            config,
         )
         logger.info("Sync manager initialized")
     return _sync_manager
@@ -94,7 +98,7 @@ def get_file_monitor() -> KMFileMonitor:
     global _file_monitor
     if _file_monitor is None:
 
-        def on_file_change(event: FileChangeEvent):
+        def on_file_change(event: FileChangeEvent) -> Any:
             """Handle file system changes."""
             logger.info(f"File change detected: {event.event_type} {event.file_path}")
             # Trigger sync manager to check for changes
@@ -127,7 +131,7 @@ def get_environment() -> str:
 
 def setup_logging() -> None:
     """Setup logging configuration."""
-    pass  # Already handled by main.py
+    # Already handled by main.py
 
 
 async def cleanup_components() -> None:

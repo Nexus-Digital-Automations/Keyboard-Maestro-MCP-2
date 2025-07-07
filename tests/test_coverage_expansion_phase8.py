@@ -1,5 +1,4 @@
-"""
-Phase 8 Core Infrastructure & Backup Systems Test Coverage Expansion for Keyboard Maestro MCP.
+"""Phase 8 Core Infrastructure & Backup Systems Test Coverage Expansion for Keyboard Maestro MCP.
 
 This module targets core infrastructure and backup systems with the highest impact
 for coverage expansion, focusing on AI processing backup (1493 lines), main original
@@ -7,16 +6,22 @@ for coverage expansion, focusing on AI processing backup (1493 lines), main orig
 for maximum coverage gain toward the 95% target.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_ai_processing_tools_backup_systematic_import():
+def test_ai_processing_tools_backup_systematic_import() -> None:
     """Test import of AI processing tools backup (1493 lines - mega infrastructure module)."""
     try:
         from src.server.tools import ai_processing_tools_backup
@@ -47,10 +52,10 @@ def test_ai_processing_tools_backup_systematic_import():
         pytest.skip(f"AI processing tools backup import failed: {e}")
 
 
-def test_main_original_systematic_import():
+def test_main_original_systematic_import() -> None:
     """Test import of main original (1291 lines - core infrastructure module)."""
     try:
-        import src.main_original as main_original
+        from src import main_original
 
         assert main_original is not None
 
@@ -78,7 +83,7 @@ def test_main_original_systematic_import():
         pytest.skip(f"Main original import failed: {e}")
 
 
-def test_km_client_comprehensive_systematic_import():
+def test_km_client_comprehensive_systematic_import() -> None:
     """Test import of KM client comprehensive (1170 lines - core integration module)."""
     try:
         from src.integration import km_client
@@ -91,31 +96,26 @@ def test_km_client_comprehensive_systematic_import():
                 # Try with minimal configuration
                 client = km_client.KMClient()
                 assert client is not None
-            except Exception:
-                # Skip if instantiation requires configuration
-                pass
-
-        # Test client functionality if available
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         if hasattr(km_client, "connect"):
             try:
                 result = km_client.connect()
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require KM connection
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test client operations if available
         if hasattr(km_client, "execute_macro"):
             try:
                 result = km_client.execute_macro("test_macro")
                 assert result is not None
-            except Exception:
-                pass  # Method may require active KM connection
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"KM client import failed: {e}")
 
 
-def test_analytics_scenario_modeler_comprehensive_systematic_import():
+def test_analytics_scenario_modeler_comprehensive_systematic_import() -> None:
     """Test import of analytics scenario modeler (1019 lines - analytics infrastructure)."""
     try:
         from src.analytics import scenario_modeler
@@ -127,30 +127,27 @@ def test_analytics_scenario_modeler_comprehensive_systematic_import():
             try:
                 modeler = scenario_modeler.ScenarioModeler()
                 assert modeler is not None
-            except Exception:
-                pass  # Skip if instantiation requires dependencies
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test scenario modeling functionality if available
         if hasattr(scenario_modeler, "create_scenario"):
             try:
                 scenario = scenario_modeler.create_scenario("test_scenario", {})
                 assert scenario is not None
-            except Exception:
-                pass  # Method may require specific parameters
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test scenario analysis if available
         if hasattr(scenario_modeler, "analyze_scenario"):
             try:
                 analysis = scenario_modeler.analyze_scenario("scenario_id")
                 assert analysis is not None or analysis == {}
-            except Exception:
-                pass  # Method may require scenario data
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics scenario modeler import failed: {e}")
 
 
-def test_security_policy_enforcer_comprehensive_systematic_import():
+def test_security_policy_enforcer_comprehensive_systematic_import() -> None:
     """Test import of security policy enforcer (1010 lines - security infrastructure)."""
     try:
         from src.security import policy_enforcer
@@ -162,32 +159,30 @@ def test_security_policy_enforcer_comprehensive_systematic_import():
             try:
                 enforcer = policy_enforcer.PolicyEnforcer()
                 assert enforcer is not None
-            except Exception:
-                pass  # Skip if instantiation requires security context
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test policy enforcement functionality if available
         if hasattr(policy_enforcer, "enforce_policy"):
             try:
                 result = policy_enforcer.enforce_policy(
-                    "policy_id", {"context": "test"}
+                    "policy_id",
+                    {"context": "test"},
                 )
                 assert result is not None
-            except Exception:
-                pass  # Method may require policy configuration
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test policy validation if available
         if hasattr(policy_enforcer, "validate_policy"):
             try:
                 result = policy_enforcer.validate_policy({"rule": "test_rule"})
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require policy format
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Security policy enforcer import failed: {e}")
 
 
-def test_security_access_controller_comprehensive_systematic_import():
+def test_security_access_controller_comprehensive_systematic_import() -> None:
     """Test import of security access controller (1009 lines - security infrastructure)."""
     try:
         from src.security import access_controller
@@ -199,30 +194,27 @@ def test_security_access_controller_comprehensive_systematic_import():
             try:
                 controller = access_controller.AccessController()
                 assert controller is not None
-            except Exception:
-                pass  # Skip if instantiation requires security setup
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test access control functionality if available
         if hasattr(access_controller, "check_access"):
             try:
                 result = access_controller.check_access("user_id", "resource", "action")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require access context
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test permission management if available
         if hasattr(access_controller, "grant_permission"):
             try:
                 result = access_controller.grant_permission("user_id", "permission")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require admin privileges
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Security access controller import failed: {e}")
 
 
-def test_testing_automation_tools_comprehensive_systematic_import():
+def test_testing_automation_tools_comprehensive_systematic_import() -> None:
     """Test import of testing automation tools (993 lines - testing infrastructure)."""
     try:
         from src.server.tools import testing_automation_tools
@@ -253,7 +245,7 @@ def test_testing_automation_tools_comprehensive_systematic_import():
         pytest.skip(f"Testing automation tools import failed: {e}")
 
 
-def test_analytics_model_manager_comprehensive_systematic_import():
+def test_analytics_model_manager_comprehensive_systematic_import() -> None:
     """Test import of analytics model manager (983 lines - analytics infrastructure)."""
     try:
         from src.analytics import model_manager
@@ -265,30 +257,27 @@ def test_analytics_model_manager_comprehensive_systematic_import():
             try:
                 manager = model_manager.ModelManager()
                 assert manager is not None
-            except Exception:
-                pass  # Skip if instantiation requires ML dependencies
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test model management functionality if available
         if hasattr(model_manager, "load_model"):
             try:
                 model = model_manager.load_model("test_model")
                 assert model is not None or model is False
-            except Exception:
-                pass  # Method may require model files
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test model operations if available
         if hasattr(model_manager, "save_model"):
             try:
                 result = model_manager.save_model("test_model", {})
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require model data
-
+            except (OSError, FileNotFoundError, PermissionError) as e:
+                logger.debug(f"File operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Analytics model manager import failed: {e}")
 
 
-def test_quantum_ready_tools_systematic_import():
+def test_quantum_ready_tools_systematic_import() -> None:
     """Test import of quantum ready tools (971 lines - quantum infrastructure)."""
     try:
         from src.server.tools import quantum_ready_tools
@@ -319,7 +308,7 @@ def test_quantum_ready_tools_systematic_import():
         pytest.skip(f"Quantum ready tools import failed: {e}")
 
 
-def test_predictive_analytics_tools_comprehensive_systematic_import():
+def test_predictive_analytics_tools_comprehensive_systematic_import() -> None:
     """Test import of predictive analytics tools (943 lines - analytics infrastructure)."""
     try:
         from src.server.tools import predictive_analytics_tools
@@ -350,7 +339,7 @@ def test_predictive_analytics_tools_comprehensive_systematic_import():
         pytest.skip(f"Predictive analytics tools import failed: {e}")
 
 
-def test_knowledge_management_tools_comprehensive_systematic_import():
+def test_knowledge_management_tools_comprehensive_systematic_import() -> None:
     """Test import of knowledge management tools (912 lines - knowledge infrastructure)."""
     try:
         from src.server.tools import knowledge_management_tools
@@ -381,9 +370,8 @@ def test_knowledge_management_tools_comprehensive_systematic_import():
         pytest.skip(f"Knowledge management tools import failed: {e}")
 
 
-def test_core_infrastructure_integration():
+def test_core_infrastructure_integration() -> None:
     """Test comprehensive integration across core infrastructure systems."""
-
     # Test core infrastructure modules integration
     infrastructure_modules = [
         ("server.tools", "ai_processing_tools_backup"),
@@ -413,9 +401,9 @@ def test_core_infrastructure_integration():
                         try:
                             instance = getattr(module, potential_class)()
                             assert instance is not None
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -425,9 +413,8 @@ def test_core_infrastructure_integration():
     )
 
 
-def test_security_infrastructure_integration():
+def test_security_infrastructure_integration() -> None:
     """Test security infrastructure integration for coverage."""
-
     # Test security modules integration
     security_modules = ["policy_enforcer", "access_controller", "security_monitor"]
 
@@ -462,9 +449,9 @@ def test_security_infrastructure_integration():
                                 if hasattr(instance, method):
                                     assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -472,9 +459,8 @@ def test_security_infrastructure_integration():
     assert security_imports >= 2, f"Only {security_imports} security modules imported"
 
 
-def test_advanced_infrastructure_data_processing():
+def test_advanced_infrastructure_data_processing() -> None:
     """Test advanced data processing patterns for infrastructure systems."""
-
     # Test infrastructure data processing scenarios
     infrastructure_data = {
         "backup_systems": {
@@ -557,7 +543,7 @@ def test_advanced_infrastructure_data_processing():
 
     # Test average latency
     avg_latency = sum(c["latency_ms"] for c in connected_clients) / len(
-        connected_clients
+        connected_clients,
     )
     assert avg_latency < 20
 
@@ -575,7 +561,7 @@ def test_advanced_infrastructure_data_processing():
     assert mitigation_rate > 0.90
 
 
-def test_infrastructure_async_functionality():
+def test_infrastructure_async_functionality() -> bool:
     """Test async functionality patterns for infrastructure systems."""
 
     @pytest.mark.asyncio
@@ -673,9 +659,8 @@ def test_infrastructure_async_functionality():
     assert result is True
 
 
-def test_infrastructure_configuration_patterns():
+def test_infrastructure_configuration_patterns() -> None:
     """Test configuration patterns for infrastructure systems."""
-
     # Test infrastructure configuration scenarios
     infrastructure_config = {
         "backup_systems": {

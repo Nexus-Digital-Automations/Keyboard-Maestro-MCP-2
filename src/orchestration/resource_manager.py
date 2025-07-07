@@ -1,5 +1,4 @@
-"""
-Intelligent resource allocation and management for the complete ecosystem.
+"""Intelligent resource allocation and management for the complete ecosystem.
 
 This module provides comprehensive resource management capabilities including:
 - Dynamic resource allocation and load balancing
@@ -217,7 +216,7 @@ class IntelligentResourceManager:
                 self.logger.error(f"Error in rebalance loop: {e}")
                 await asyncio.sleep(30)
 
-    @require(lambda self, tool_id: len(tool_id) > 0)
+    @require(lambda __self, tool_id: len(tool_id) > 0)
     async def request_resources(
         self,
         tool_id: str,
@@ -227,7 +226,6 @@ class IntelligentResourceManager:
         workflow_id: str | None = None,
     ) -> Either[OrchestrationError, AllocationResult]:
         """Request resource allocation for tool execution."""
-
         # Get tool requirements
         tool = self.tool_registry.tools.get(tool_id)
         if not tool:
@@ -270,7 +268,7 @@ class IntelligentResourceManager:
                     wait_time=(
                         datetime.now(UTC) - resource_request.requested_at
                     ).total_seconds(),
-                )
+                ),
             )
 
         # Return queued status
@@ -279,16 +277,16 @@ class IntelligentResourceManager:
                 success=False,
                 error_message="Resources not immediately available - request queued",
                 alternative_suggestions=await self._generate_allocation_suggestions(
-                    resource_request
+                    resource_request,
                 ),
-            )
+            ),
         )
 
     async def _try_immediate_allocation(
-        self, request: ResourceRequest
+        self,
+        request: ResourceRequest,
     ) -> AllocationResult:
         """Try to allocate resources immediately."""
-
         # Check if all required resources are available
         for resource_type, amount in request.resource_requirements.items():
             pool = self.resource_pools.get(resource_type)
@@ -337,7 +335,7 @@ class IntelligentResourceManager:
                     "resources": allocated_resources,
                     "allocation_time": 0.0,  # Immediate
                     "optimization_target": request.optimization_target.value,
-                }
+                },
             )
 
             return AllocationResult(
@@ -350,11 +348,13 @@ class IntelligentResourceManager:
             # Rollback on error
             await self._rollback_allocation(allocated_resources)
             return AllocationResult(
-                success=False, error_message=f"Allocation failed: {e}"
+                success=False,
+                error_message=f"Allocation failed: {e}",
             )
 
     async def _rollback_allocation(
-        self, allocated_resources: dict[ResourceType, float]
+        self,
+        allocated_resources: dict[ResourceType, float],
     ) -> None:
         """Rollback partial resource allocation."""
         for resource_type, amount in allocated_resources.items():
@@ -392,14 +392,14 @@ class IntelligentResourceManager:
 
         if processed_requests:
             self.logger.info(
-                f"Processed {len(processed_requests)} pending resource requests"
+                f"Processed {len(processed_requests)} pending resource requests",
             )
 
     async def release_resources(
-        self, reservation_id: str
+        self,
+        reservation_id: str,
     ) -> Either[OrchestrationError, None]:
         """Release allocated resources."""
-
         reservation = self.active_reservations.get(reservation_id)
         if not reservation:
             return Either.left(
@@ -407,7 +407,7 @@ class IntelligentResourceManager:
                     "resource_management",
                     reservation_id,
                     f"Reservation {reservation_id} not found",
-                )
+                ),
             )
 
         # Release resources back to pools
@@ -418,9 +418,12 @@ class IntelligentResourceManager:
                 pool.allocated_capacity -= amount
 
                 # Update pool status
-                if pool.status == ResourcePoolStatus.OVERLOADED:
-                    if pool.utilization_rate <= self.max_utilization_threshold:
-                        pool.status = ResourcePoolStatus.AVAILABLE
+                # SIM102 fix: Combine nested if statements
+                if (
+                    pool.status == ResourcePoolStatus.OVERLOADED
+                    and pool.utilization_rate <= self.max_utilization_threshold
+                ):
+                    pool.status = ResourcePoolStatus.AVAILABLE
 
         # Remove reservation
         del self.active_reservations[reservation_id]
@@ -445,7 +448,6 @@ class IntelligentResourceManager:
 
     async def _rebalance_resources(self) -> None:
         """Rebalance resources across pools."""
-
         # Identify overloaded and underutilized pools
         overloaded_pools = []
         underutilized_pools = []
@@ -458,23 +460,24 @@ class IntelligentResourceManager:
 
         if overloaded_pools:
             self.logger.info(
-                f"Overloaded resource pools: {[p.resource_type.value for p in overloaded_pools]}"
+                f"Overloaded resource pools: {[p.resource_type.value for p in overloaded_pools]}",
             )
 
             # Generate scaling recommendations
             for pool in overloaded_pools:
                 recommended_increase = pool.total_capacity * 0.2  # 20% increase
                 self.logger.info(
-                    f"Recommend increasing {pool.resource_type.value} capacity by {recommended_increase}"
+                    f"Recommend increasing {pool.resource_type.value} capacity by {recommended_increase}",
                 )
 
         if underutilized_pools:
             self.logger.debug(
-                f"Underutilized resource pools: {[p.resource_type.value for p in underutilized_pools]}"
+                f"Underutilized resource pools: {[p.resource_type.value for p in underutilized_pools]}",
             )
 
     async def _generate_allocation_suggestions(
-        self, request: ResourceRequest
+        self,
+        request: ResourceRequest,
     ) -> list[str]:
         """Generate suggestions for resource allocation alternatives."""
         suggestions = []
@@ -488,19 +491,19 @@ class IntelligentResourceManager:
 
         if constraining_resources:
             suggestions.append(
-                f"Waiting for {', '.join(constraining_resources)} to become available"
+                f"Waiting for {', '.join(constraining_resources)} to become available",
             )
 
         # Suggest priority increase
         if request.priority < 8:
             suggestions.append(
-                "Consider increasing request priority for faster allocation"
+                "Consider increasing request priority for faster allocation",
             )
 
         # Suggest workflow optimization
         if request.workflow_id:
             suggestions.append(
-                "Consider optimizing workflow to reduce resource requirements"
+                "Consider optimizing workflow to reduce resource requirements",
             )
 
         # Suggest off-peak execution
@@ -512,7 +515,6 @@ class IntelligentResourceManager:
 
     async def get_resource_status(self) -> dict[str, Any]:
         """Get current resource pool status."""
-
         status = {
             "timestamp": datetime.now(UTC).isoformat(),
             "resource_pools": {},
@@ -549,10 +551,10 @@ class IntelligentResourceManager:
         return status
 
     async def optimize_allocation(
-        self, target: OptimizationTarget = OptimizationTarget.EFFICIENCY
+        self,
+        target: OptimizationTarget = OptimizationTarget.EFFICIENCY,
     ) -> Either[OrchestrationError, dict[str, Any]]:
         """Optimize resource allocation based on target."""
-
         optimization_result = {
             "timestamp": datetime.now(UTC).isoformat(),
             "optimization_target": target.value,
@@ -597,8 +599,8 @@ class IntelligentResourceManager:
         except Exception as e:
             return Either.left(
                 OrchestrationError.optimization_failed(
-                    f"Resource optimization failed: {e}"
-                )
+                    f"Resource optimization failed: {e}",
+                ),
             )
 
     async def _optimize_for_performance(self) -> list[str]:
@@ -637,7 +639,7 @@ class IntelligentResourceManager:
                 pool.available_capacity -= unused
                 total_unused += unused
                 actions.append(
-                    f"Reduced {pool.resource_type.value} capacity to improve efficiency"
+                    f"Reduced {pool.resource_type.value} capacity to improve efficiency",
                 )
 
         if total_unused > 0:
@@ -660,7 +662,7 @@ class IntelligentResourceManager:
                 else:
                     pool.available_capacity = 0
                 actions.append(
-                    f"Reduced {pool.resource_type.value} capacity by 30% for cost savings"
+                    f"Reduced {pool.resource_type.value} capacity by 30% for cost savings",
                 )
 
         return actions
@@ -680,7 +682,7 @@ class IntelligentResourceManager:
 
         if consistently_overloaded:
             recommendations.append(
-                f"Consider permanent capacity increase for: {', '.join(consistently_overloaded)}"
+                f"Consider permanent capacity increase for: {', '.join(consistently_overloaded)}",
             )
 
         # Check for fragmented allocations
@@ -696,14 +698,13 @@ class IntelligentResourceManager:
         # Check queue length
         if len(self.pending_requests) > 5:
             recommendations.append(
-                "High request queue - consider load balancing or capacity increase"
+                "High request queue - consider load balancing or capacity increase",
             )
 
         return recommendations
 
     async def _calculate_optimization_impact(self) -> dict[str, float]:
         """Calculate the impact of optimization actions."""
-
         # Calculate current system metrics
         total_capacity = sum(
             pool.total_capacity for pool in self.resource_pools.values()
@@ -726,7 +727,8 @@ class IntelligentResourceManager:
                 a.get("allocation_time", 0) for a in recent_allocations
             ) / len(recent_allocations)
             allocation_efficiency = max(
-                0, 1.0 - (avg_allocation_time / 60)
+                0,
+                1.0 - (avg_allocation_time / 60),
             )  # Normalize to 1 minute
         else:
             allocation_efficiency = 1.0

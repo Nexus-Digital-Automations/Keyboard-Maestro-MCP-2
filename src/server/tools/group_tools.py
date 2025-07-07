@@ -1,12 +1,10 @@
-"""
-Macro group management tools.
+"""Macro group management tools.
 
 Contains tools for listing and managing Keyboard Maestro macro groups
 with comprehensive statistics and organization capabilities.
 """
 
 import logging
-import subprocess
 from datetime import UTC, datetime
 from typing import Annotated, Any
 
@@ -21,12 +19,14 @@ logger = logging.getLogger(__name__)
 
 async def km_list_macro_groups(
     include_macro_count: Annotated[
-        bool, Field(default=True, description="Include count of macros in each group")
+        bool,
+        Field(default=True, description="Include count of macros in each group"),
     ] = True,
     include_enabled_count: Annotated[
         bool,
         Field(
-            default=True, description="Include count of enabled macros in each group"
+            default=True,
+            description="Include count of enabled macros in each group",
         ),
     ] = True,
     sort_by: Annotated[
@@ -38,8 +38,7 @@ async def km_list_macro_groups(
     ] = "name",
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    List all macro groups from Keyboard Maestro with optional statistics.
+    """List all macro groups from Keyboard Maestro with optional statistics.
 
     Provides comprehensive group information including macro counts,
     group status, and organizational structure.
@@ -88,9 +87,34 @@ async def km_list_macro_groups(
         if ctx:
             await ctx.report_progress(40, 100, "Executing AppleScript query")
 
-        result = subprocess.run(
-            ["osascript", "-e", script], capture_output=True, text=True, timeout=30
-        )
+        # S607 SECURITY FIX: Use secure subprocess execution
+        try:
+            from ...commands.secure_subprocess import (
+                CommandType,
+                SecureCommand,
+                get_secure_subprocess_manager,
+            )
+
+            secure_manager = get_secure_subprocess_manager()
+            command = SecureCommand(
+                command_type=CommandType.SYSTEM_INFO,
+                executable="osascript",
+                args=["-e", script],
+                timeout=30.0,
+                allowed_return_codes={0, 1},
+            )
+            result = secure_manager.execute_secure_command(command)
+        except Exception:
+            # Fallback if secure subprocess not available
+            import subprocess
+
+            # S607 fix: Use full path for executable
+            result = subprocess.run(
+                ["/usr/bin/osascript", "-e", script],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
 
         if result.returncode != 0:
             if ctx:

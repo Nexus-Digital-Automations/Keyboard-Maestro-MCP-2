@@ -1,5 +1,4 @@
-"""
-Plugin SDK providing development framework for creating Keyboard Maestro plugins.
+"""Plugin SDK providing development framework for creating Keyboard Maestro plugins.
 
 This module provides a comprehensive SDK for plugin developers with base classes,
 utilities, and development tools to create high-quality plugins efficiently.
@@ -58,23 +57,23 @@ class PluginLogger:
         self.logger = logging.getLogger(f"plugin.{plugin_id}")
         self.performance_data: dict[str, list[float]] = {}
 
-    def debug(self, message: str, **context):
+    def debug(self, message: str, **context) -> None:
         """Debug level logging with context."""
         self._log_with_context("DEBUG", message, context)
 
-    def info(self, message: str, **context):
+    def info(self, message: str, **context) -> None:
         """Info level logging with context."""
         self._log_with_context("INFO", message, context)
 
-    def warning(self, message: str, **context):
+    def warning(self, message: str, **context) -> None:
         """Warning level logging with context."""
         self._log_with_context("WARNING", message, context)
 
-    def error(self, message: str, **context):
+    def error(self, message: str, **context) -> None:
         """Error level logging with context."""
         self._log_with_context("ERROR", message, context)
 
-    def _log_with_context(self, level: str, message: str, context: dict[str, Any]):
+    def _log_with_context(self, level: str, message: str, context: dict[str, Any]) -> Any:
         """Log message with plugin context."""
         formatted_message = f"[{self.plugin_id}] {message}"
         if context:
@@ -82,7 +81,7 @@ class PluginLogger:
 
         getattr(self.logger, level.lower())(formatted_message)
 
-    def log_performance(self, operation: str, duration_ms: float):
+    def log_performance(self, operation: str, duration_ms: float) -> None:
         """Log performance metrics for operations."""
         if self.sdk_config.performance_monitoring:
             if operation not in self.performance_data:
@@ -93,7 +92,8 @@ class PluginLogger:
             # Log slow operations
             if duration_ms > 1000:  # > 1 second
                 self.warning(
-                    f"Slow operation detected: {operation}", duration_ms=duration_ms
+                    f"Slow operation detected: {operation}",
+                    duration_ms=duration_ms,
                 )
 
     def get_performance_summary(self) -> dict[str, dict[str, float]]:
@@ -140,7 +140,9 @@ class ValidationHelper:
 
     @staticmethod
     def validate_number(
-        value: Any, min_val: float | None = None, max_val: float | None = None
+        value: Any,
+        min_val: float | None = None,
+        max_val: float | None = None,
     ) -> Either[str, int | float]:
         """Validate numeric parameters."""
         if not isinstance(value, int | float):
@@ -177,7 +179,7 @@ class ValidationHelper:
             return Either.right(clean_path)
 
         except Exception as e:
-            return Either.left(f"Invalid path: {str(e)}")
+            return Either.left(f"Invalid path: {e!s}")
 
 
 class ActionBuilder:
@@ -194,9 +196,13 @@ class ActionBuilder:
         description: str,
         handler: Callable,
         return_type: type = str,
-        timeout: Duration = Duration.from_seconds(30.0),
+        timeout: Duration | None = None,
     ) -> "ActionBuilder":
         """Add a custom action to the builder."""
+        # B008 fix: Move function call from default argument to function body
+        if timeout is None:
+            timeout = Duration.from_seconds(30.0)
+
         # Validate handler signature
         sig = inspect.signature(handler)
         parameters = []
@@ -246,7 +252,10 @@ class HookBuilder:
         self.hooks: list[PluginHook] = []
 
     def add_hook(
-        self, hook_id: HookId, event_type: str, handler: Callable
+        self,
+        hook_id: HookId,
+        event_type: str,
+        handler: Callable,
     ) -> "HookBuilder":
         """Add a hook to the builder."""
         hook = PluginHook(hook_id, event_type, handler)
@@ -259,15 +268,16 @@ class HookBuilder:
 
 
 class BasePlugin(PluginInterface):
-    """
-    Base class for all plugins providing common functionality and structure.
+    """Base class for all plugins providing common functionality and structure.
 
     This class implements the PluginInterface and provides a foundation for
     plugin development with built-in logging, validation, and API access.
     """
 
     def __init__(
-        self, metadata: PluginMetadata, configuration: PluginConfiguration | None = None
+        self,
+        metadata: PluginMetadata,
+        configuration: PluginConfiguration | None = None,
     ):
         self._metadata = metadata
         self._configuration = configuration or PluginConfiguration(
@@ -304,7 +314,8 @@ class BasePlugin(PluginInterface):
         return self._api_bridge
 
     async def initialize(
-        self, api_bridge: PluginAPIBridge
+        self,
+        api_bridge: PluginAPIBridge,
     ) -> Either[PluginError, None]:
         """Initialize plugin with API bridge."""
         try:
@@ -324,7 +335,7 @@ class BasePlugin(PluginInterface):
             return Either.right(None)
 
         except Exception as e:
-            error_msg = f"Plugin initialization failed: {str(e)}"
+            error_msg = f"Plugin initialization failed: {e!s}"
             self.logger.error(error_msg, exception=str(e))
             return Either.left(PluginError.initialization_failed(error_msg))
 
@@ -333,7 +344,7 @@ class BasePlugin(PluginInterface):
         try:
             if not self._initialized:
                 return Either.left(
-                    PluginError.activation_failed("Plugin not initialized")
+                    PluginError.activation_failed("Plugin not initialized"),
                 )
 
             self.logger.info("Plugin activating")
@@ -348,7 +359,7 @@ class BasePlugin(PluginInterface):
             return Either.right(None)
 
         except Exception as e:
-            error_msg = f"Plugin activation failed: {str(e)}"
+            error_msg = f"Plugin activation failed: {e!s}"
             self.logger.error(error_msg, exception=str(e))
             return Either.left(PluginError.activation_failed(error_msg))
 
@@ -367,7 +378,7 @@ class BasePlugin(PluginInterface):
             return Either.right(None)
 
         except Exception as e:
-            error_msg = f"Plugin deactivation failed: {str(e)}"
+            error_msg = f"Plugin deactivation failed: {e!s}"
             self.logger.error(error_msg, exception=str(e))
             return Either.left(PluginError(error_msg, "DEACTIVATION_FAILED"))
 
@@ -388,17 +399,18 @@ class BasePlugin(PluginInterface):
             return []
 
     async def call_mcp_tool(
-        self, tool_name: str, parameters: dict[str, Any]
+        self,
+        tool_name: str,
+        parameters: dict[str, Any],
     ) -> Either[PluginError, Any]:
-        """
-        Call an MCP tool through the API bridge.
+        """Call an MCP tool through the API bridge.
 
         This method provides a convenient interface for plugins to access
         the 38+ available MCP tools with automatic permission checking.
         """
         if not self._api_bridge:
             return Either.left(
-                PluginError("API bridge not available", "API_NOT_AVAILABLE")
+                PluginError("API bridge not available", "API_NOT_AVAILABLE"),
             )
 
         if not self._active:
@@ -419,13 +431,14 @@ class BasePlugin(PluginInterface):
             else:
                 error = result.get_left()
                 self.logger.warning(
-                    f"MCP tool call failed: {tool_name}", error=error.message
+                    f"MCP tool call failed: {tool_name}",
+                    error=error.message,
                 )
 
             return result
 
         except Exception as e:
-            error_msg = f"MCP tool call exception: {str(e)}"
+            error_msg = f"MCP tool call exception: {e!s}"
             self.logger.error(error_msg, tool=tool_name, exception=str(e))
             return Either.left(PluginError.execution_error(error_msg))
 
@@ -434,34 +447,31 @@ class BasePlugin(PluginInterface):
     @abstractmethod
     async def on_initialize(self) -> Either[PluginError, None]:
         """Custom initialization logic for the plugin."""
-        pass
 
     @abstractmethod
     async def on_activate(self) -> Either[PluginError, None]:
         """Custom activation logic for the plugin."""
-        pass
 
     @abstractmethod
     async def on_deactivate(self) -> Either[PluginError, None]:
         """Custom deactivation logic for the plugin."""
-        pass
 
     @abstractmethod
     async def register_actions(self) -> list[CustomAction]:
         """Register custom actions provided by this plugin."""
-        pass
 
     @abstractmethod
     async def register_hooks(self) -> list[PluginHook]:
         """Register event hooks provided by this plugin."""
-        pass
 
 
 class UtilityPlugin(BasePlugin):
     """Specialized base class for utility plugins with common patterns."""
 
     def __init__(
-        self, metadata: PluginMetadata, configuration: PluginConfiguration | None = None
+        self,
+        metadata: PluginMetadata,
+        configuration: PluginConfiguration | None = None,
     ):
         super().__init__(metadata, configuration)
         self._action_builder = ActionBuilder(metadata.identifier)
@@ -472,11 +482,14 @@ class UtilityPlugin(BasePlugin):
         action_id: str,
         name: str,
         description: str,
-        timeout: Duration = Duration.from_seconds(30.0),
-    ):
+        timeout: Duration | None = None,
+    ) -> bool:
         """Decorator for registering action methods."""
+        # B008 fix: Move function call from default argument to function body
+        if timeout is None:
+            timeout = Duration.from_seconds(30.0)
 
-        def decorator(func):
+        def decorator(func) -> bool:
             self._action_builder.add_action(
                 action_id=ActionId(action_id),
                 name=name,
@@ -488,12 +501,14 @@ class UtilityPlugin(BasePlugin):
 
         return decorator
 
-    def hook(self, hook_id: str, event_type: str):
+    def hook(self, hook_id: str, event_type: str) -> bool:
         """Decorator for registering hook methods."""
 
-        def decorator(func):
+        def decorator(func) -> bool:
             self._hook_builder.add_hook(
-                hook_id=HookId(hook_id), event_type=event_type, handler=func
+                hook_id=HookId(hook_id),
+                event_type=event_type,
+                handler=func,
             )
             return func
 
@@ -512,7 +527,9 @@ class IntegrationPlugin(BasePlugin):
     """Specialized base class for integration plugins with external services."""
 
     def __init__(
-        self, metadata: PluginMetadata, configuration: PluginConfiguration | None = None
+        self,
+        metadata: PluginMetadata,
+        configuration: PluginConfiguration | None = None,
     ):
         super().__init__(metadata, configuration)
         self._connection_pool = {}
@@ -543,7 +560,8 @@ class IntegrationPlugin(BasePlugin):
                 self.logger.debug(f"Closed connection to {service_name}")
             except Exception as e:
                 self.logger.warning(
-                    f"Error closing connection to {service_name}", exception=str(e)
+                    f"Error closing connection to {service_name}",
+                    exception=str(e),
                 )
 
         self._connection_pool.clear()
@@ -594,7 +612,9 @@ def validate_plugin_structure(plugin_path: Path) -> Either[str, None]:
 
 
 async def test_plugin_action(
-    plugin: BasePlugin, action_id: str, parameters: dict[str, Any]
+    plugin: BasePlugin,
+    action_id: str,
+    parameters: dict[str, Any],
 ) -> Either[str, Any]:
     """Test a plugin action with given parameters."""
     try:
@@ -608,7 +628,7 @@ async def test_plugin_action(
         return result
 
     except Exception as e:
-        return Either.left(f"Test execution failed: {str(e)}")
+        return Either.left(f"Test execution failed: {e!s}")
 
 
 # Example plugin template

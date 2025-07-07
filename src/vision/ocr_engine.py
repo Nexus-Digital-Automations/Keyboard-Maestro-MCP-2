@@ -1,5 +1,4 @@
-"""
-Advanced OCR (Optical Character Recognition) engine for visual automation.
+"""Advanced OCR (Optical Character Recognition) engine for visual automation.
 
 This module implements sophisticated text extraction capabilities using multiple OCR
 backends and techniques. Provides high-accuracy text recognition with language support,
@@ -130,11 +129,11 @@ class OCRPrivacyFilter:
         privacy_mode: bool = True,
         custom_patterns: dict[str, list[str]] | None = None,
     ) -> tuple[str, set[str]]:
-        """
-        Filter sensitive content from OCR text with detailed detection logging.
+        """Filter sensitive content from OCR text with detailed detection logging.
 
         Returns:
             Tuple of (filtered_text, detected_categories)
+
         """
         if not privacy_mode:
             return text, set()
@@ -150,13 +149,18 @@ class OCRPrivacyFilter:
         for category, patterns in all_patterns.items():
             for pattern in patterns:
                 matches = re.finditer(
-                    pattern, filtered_text, re.IGNORECASE | re.MULTILINE
+                    pattern,
+                    filtered_text,
+                    re.IGNORECASE | re.MULTILINE,
                 )
                 for _match in matches:
                     detected_categories.add(category)
                     # Replace with redaction label
                     filtered_text = re.sub(
-                        pattern, cls.REDACTION_LABEL, filtered_text, flags=re.IGNORECASE
+                        pattern,
+                        cls.REDACTION_LABEL,
+                        filtered_text,
+                        flags=re.IGNORECASE,
                     )
 
         return filtered_text, detected_categories
@@ -186,7 +190,7 @@ class OCRPrivacyFilter:
                 PrivacyError(
                     "High-risk content detected - explicit privacy mode required",
                     {"risk_score": risk_score, "detected_risks": detected_risks},
-                )
+                ),
             )
 
         return Either.right(text)
@@ -213,7 +217,7 @@ class OCRResultCache:
 
         if region:
             hasher.update(
-                f"{region.x},{region.y},{region.width},{region.height}".encode()
+                f"{region.x},{region.y},{region.width},{region.height}".encode(),
             )
 
         hasher.update(f"{options.dpi},{options.language_detection}".encode())
@@ -234,9 +238,8 @@ class OCRResultCache:
             if datetime.now() - timestamp <= self.ttl:
                 logger.debug(f"OCR cache hit for key: {cache_key}")
                 return result
-            else:
-                # Remove expired entry
-                del self.cache[cache_key]
+            # Remove expired entry
+            del self.cache[cache_key]
 
         return None
 
@@ -264,8 +267,7 @@ class OCRResultCache:
 
 
 class OCREngine:
-    """
-    Advanced OCR engine with multiple backend support and intelligent processing.
+    """Advanced OCR engine with multiple backend support and intelligent processing.
 
     Provides high-accuracy text extraction with comprehensive language support,
     privacy protection, and performance optimization through caching and batch processing.
@@ -281,7 +283,10 @@ class OCREngine:
         "pt": OCRLanguageConfig("pt", "Portuguese", ["Latin"], 0.0),
         "ru": OCRLanguageConfig("ru", "Russian", ["Cyrillic"], -0.05),
         "ja": OCRLanguageConfig(
-            "ja", "Japanese", ["Hiragana", "Katakana", "Kanji"], -0.1
+            "ja",
+            "Japanese",
+            ["Hiragana", "Katakana", "Kanji"],
+            -0.1,
         ),
         "ko": OCRLanguageConfig("ko", "Korean", ["Hangul"], -0.1),
         "zh": OCRLanguageConfig("zh", "Chinese", ["Han"], -0.1),
@@ -293,12 +298,12 @@ class OCREngine:
         self.cache = OCRResultCache(max_size=cache_size) if cache_enabled else None
         self.privacy_filter = OCRPrivacyFilter()
         logger.info(
-            f"OCR Engine initialized with cache={'enabled' if cache_enabled else 'disabled'}"
+            f"OCR Engine initialized with cache={'enabled' if cache_enabled else 'disabled'}",
         )
 
     @require(lambda image_data: len(image_data) > 0)
     @ensure(
-        lambda result: result.is_right() or isinstance(result.get_left(), VisualError)
+        lambda result: result.is_right() or isinstance(result.get_left(), VisualError),
     )
     async def extract_text(
         self,
@@ -308,8 +313,7 @@ class OCREngine:
         options: OCRProcessingOptions | None = None,
         privacy_mode: bool = True,
     ) -> Either[VisualError, OCRResult]:
-        """
-        Extract text from image data using advanced OCR techniques.
+        """Extract text from image data using advanced OCR techniques.
 
         Args:
             image_data: Image data to process
@@ -320,10 +324,11 @@ class OCREngine:
 
         Returns:
             Either OCR result or processing error
+
         """
         try:
             logger.info(
-                f"Starting OCR extraction for {len(image_data)} bytes, language: {language}"
+                f"Starting OCR extraction for {len(image_data)} bytes, language: {language}",
             )
 
             # Validate inputs
@@ -334,8 +339,8 @@ class OCREngine:
             if language not in self.SUPPORTED_LANGUAGES:
                 return Either.left(
                     ProcessingError(
-                        f"Unsupported language: {language}. Supported: {list(self.SUPPORTED_LANGUAGES.keys())}"
-                    )
+                        f"Unsupported language: {language}. Supported: {list(self.SUPPORTED_LANGUAGES.keys())}",
+                    ),
                 )
 
             # Use default options if not provided
@@ -351,7 +356,10 @@ class OCREngine:
 
             # Perform OCR processing
             ocr_result = await self._perform_ocr_extraction(
-                bytes(image_data), region, language, options
+                bytes(image_data),
+                region,
+                language,
+                options,
             )
 
             if ocr_result.is_left():
@@ -371,13 +379,13 @@ class OCREngine:
                 self.cache.put(bytes(image_data), region, options, result)
 
             logger.info(
-                f"OCR extraction completed: {len(result.text)} characters, confidence: {result.confidence}"
+                f"OCR extraction completed: {len(result.text)} characters, confidence: {result.confidence}",
             )
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"OCR extraction failed: {str(e)}")
-            return Either.left(ProcessingError(f"OCR extraction failed: {str(e)}"))
+            logger.error(f"OCR extraction failed: {e!s}")
+            return Either.left(ProcessingError(f"OCR extraction failed: {e!s}"))
 
     async def _perform_ocr_extraction(
         self,
@@ -436,7 +444,7 @@ class OCREngine:
                     y=text_region.y,
                     width=text_region.width,
                     height=word_height,
-                )
+                ),
             ]
 
             result = OCRResult(
@@ -462,10 +470,11 @@ class OCREngine:
             return Either.right(result)
 
         except Exception as e:
-            return Either.left(ProcessingError(f"OCR processing failed: {str(e)}"))
+            return Either.left(ProcessingError(f"OCR processing failed: {e!s}"))
 
     def _apply_privacy_filtering(
-        self, result: OCRResult
+        self,
+        result: OCRResult,
     ) -> Either[VisualError, OCRResult]:
         """Apply privacy filtering to OCR result."""
         try:
@@ -477,7 +486,8 @@ class OCREngine:
             # Filter sensitive content
             filtered_text, detected_categories = (
                 self.privacy_filter.filter_sensitive_content(
-                    str(result.text), privacy_mode=True
+                    str(result.text),
+                    privacy_mode=True,
                 )
             )
 
@@ -489,7 +499,7 @@ class OCREngine:
                     "detected_sensitive_categories": list(detected_categories),
                     "original_length": len(str(result.text)),
                     "filtered_length": len(filtered_text),
-                }
+                },
             )
 
             # Create new result with filtered text
@@ -508,13 +518,13 @@ class OCREngine:
 
             if detected_categories:
                 logger.warning(
-                    f"Sensitive content detected and filtered: {detected_categories}"
+                    f"Sensitive content detected and filtered: {detected_categories}",
                 )
 
             return Either.right(filtered_result)
 
         except Exception as e:
-            return Either.left(ProcessingError(f"Privacy filtering failed: {str(e)}"))
+            return Either.left(ProcessingError(f"Privacy filtering failed: {e!s}"))
 
     @require(lambda text_inputs: len(text_inputs) > 0)
     async def batch_extract_text(
@@ -524,8 +534,7 @@ class OCREngine:
         options: OCRProcessingOptions | None = None,
         privacy_mode: bool = True,
     ) -> list[Either[VisualError, OCRResult]]:
-        """
-        Perform batch OCR extraction for multiple images.
+        """Perform batch OCR extraction for multiple images.
 
         Args:
             text_inputs: List of (image_data, region) tuples
@@ -535,6 +544,7 @@ class OCREngine:
 
         Returns:
             List of OCR results or errors
+
         """
         logger.info(f"Starting batch OCR extraction for {len(text_inputs)} inputs")
 
@@ -542,7 +552,11 @@ class OCREngine:
         tasks = []
         for image_data, region in text_inputs:
             task = self.extract_text(
-                image_data, region, language, options, privacy_mode
+                image_data,
+                region,
+                language,
+                options,
+                privacy_mode,
             )
             tasks.append(task)
 
@@ -553,7 +567,7 @@ class OCREngine:
         for i, result in enumerate(results):
             if isinstance(result, Exception):
                 error_result = Either.left(
-                    ProcessingError(f"Batch item {i} failed: {str(result)}")
+                    ProcessingError(f"Batch item {i} failed: {result!s}"),
                 )
                 processed_results.append(error_result)
             else:
@@ -561,7 +575,7 @@ class OCREngine:
 
         success_count = sum(1 for r in processed_results if r.is_right())
         logger.info(
-            f"Batch OCR completed: {success_count}/{len(text_inputs)} successful"
+            f"Batch OCR completed: {success_count}/{len(text_inputs)} successful",
         )
 
         return processed_results
@@ -599,12 +613,17 @@ async def extract_text_from_region(
     """Extract text from a specific screen region."""
     engine = OCREngine()
     return await engine.extract_text(
-        image_data, region, language, privacy_mode=privacy_mode
+        image_data,
+        region,
+        language,
+        privacy_mode=privacy_mode,
     )
 
 
 async def extract_text_with_high_accuracy(
-    image_data: ImageData, language: str = "en", privacy_mode: bool = True
+    image_data: ImageData,
+    language: str = "en",
+    privacy_mode: bool = True,
 ) -> Either[VisualError, OCRResult]:
     """Extract text with high accuracy settings."""
     options = OCRProcessingOptions(

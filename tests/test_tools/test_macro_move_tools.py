@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for macro movement tools.
+"""Comprehensive tests for macro movement tools.
 
 Tests cover validation, security, execution, error handling, and property-based scenarios
 following ADDER+ testing methodology.
@@ -31,13 +30,13 @@ from src.server.tools.macro_move_tools import (
 class TestInputValidation:
     """Test comprehensive input validation and sanitization."""
 
-    def test_sanitize_identifier_valid_inputs(self):
+    def test_sanitize_identifier_valid_inputs(self) -> None:
         """Test valid identifier sanitization."""
         assert _sanitize_identifier("Test Macro", "macro") == "Test Macro"
         assert _sanitize_identifier("  Valid Name  ", "macro") == "Valid Name"
         assert _sanitize_identifier("Test-Macro_123", "macro") == "Test-Macro_123"
 
-    def test_sanitize_identifier_invalid_inputs(self):
+    def test_sanitize_identifier_invalid_inputs(self) -> None:
         """Test invalid identifier rejection."""
         with pytest.raises(ValueError, match="cannot be empty"):
             _sanitize_identifier("", "macro")
@@ -48,7 +47,7 @@ class TestInputValidation:
         with pytest.raises(ValueError, match="cannot exceed 255 characters"):
             _sanitize_identifier("x" * 256, "macro")
 
-    def test_sanitize_identifier_security_patterns(self):
+    def test_sanitize_identifier_security_patterns(self) -> None:
         """Test rejection of suspicious patterns."""
         suspicious_inputs = [
             "<script>alert('xss')</script>",
@@ -64,7 +63,7 @@ class TestInputValidation:
             with pytest.raises(ValueError, match="Suspicious pattern detected"):
                 _sanitize_identifier(suspicious, "macro")
 
-    def test_validate_security_constraints_system_groups(self):
+    def test_validate_security_constraints_system_groups(self) -> None:
         """Test system group protection."""
         system_groups = [
             "Global Macro Group",
@@ -77,11 +76,12 @@ class TestInputValidation:
 
         for group in system_groups:
             with pytest.raises(
-                SecurityViolationError, match="Cannot move macros to system group"
+                SecurityViolationError,
+                match="Cannot move macros to system group",
             ):
                 _validate_security_constraints("Test Macro", group)
 
-    def test_validate_security_constraints_unsafe_characters(self):
+    def test_validate_security_constraints_unsafe_characters(self) -> None:
         """Test unsafe character rejection."""
         with pytest.raises(SecurityViolationError, match="unsafe characters"):
             _validate_security_constraints("Test\x00Macro", "ValidGroup")
@@ -94,13 +94,17 @@ class TestMacroMovementValidation:
     """Test pre-movement validation logic."""
 
     @pytest.mark.asyncio
-    async def test_validate_move_operation_macro_not_found(self):
+    async def test_validate_move_operation_macro_not_found(self) -> None:
         """Test validation when macro doesn't exist."""
         with patch(
-            "src.server.tools.macro_move_tools._get_macro_info", return_value=None
+            "src.server.tools.macro_move_tools._get_macro_info",
+            return_value=None,
         ):
             result = await _validate_move_operation(
-                "NonexistentMacro", "TargetGroup", False, None
+                "NonexistentMacro",
+                "TargetGroup",
+                False,
+                None,
             )
 
             assert not result.success
@@ -108,15 +112,19 @@ class TestMacroMovementValidation:
             assert "not found" in result.error_message
 
     @pytest.mark.asyncio
-    async def test_validate_move_operation_source_equals_target(self):
+    async def test_validate_move_operation_source_equals_target(self) -> None:
         """Test validation when source equals target group."""
         mock_info = {"group": "SameGroup"}
 
         with patch(
-            "src.server.tools.macro_move_tools._get_macro_info", return_value=mock_info
+            "src.server.tools.macro_move_tools._get_macro_info",
+            return_value=mock_info,
         ):
             result = await _validate_move_operation(
-                "TestMacro", "SameGroup", False, None
+                "TestMacro",
+                "SameGroup",
+                False,
+                None,
             )
 
             assert not result.success
@@ -124,7 +132,7 @@ class TestMacroMovementValidation:
             assert "already in group" in result.error_message
 
     @pytest.mark.asyncio
-    async def test_validate_move_operation_group_not_found(self):
+    async def test_validate_move_operation_group_not_found(self) -> None:
         """Test validation when target group doesn't exist."""
         mock_info = {"group": "SourceGroup"}
 
@@ -139,7 +147,10 @@ class TestMacroMovementValidation:
             ),
         ):
             result = await _validate_move_operation(
-                "TestMacro", "NonexistentGroup", False, None
+                "TestMacro",
+                "NonexistentGroup",
+                False,
+                None,
             )
 
             assert not result.success
@@ -147,7 +158,7 @@ class TestMacroMovementValidation:
             assert "does not exist" in result.error_message
 
     @pytest.mark.asyncio
-    async def test_validate_move_operation_success(self):
+    async def test_validate_move_operation_success(self) -> None:
         """Test successful validation."""
         mock_info = {"group": "SourceGroup"}
 
@@ -162,7 +173,10 @@ class TestMacroMovementValidation:
             ),
         ):
             result = await _validate_move_operation(
-                "TestMacro", "TargetGroup", False, None
+                "TestMacro",
+                "TargetGroup",
+                False,
+                None,
             )
 
             assert result.success
@@ -175,7 +189,7 @@ class TestAppleScriptIntegration:
     """Test AppleScript execution and integration."""
 
     @pytest.mark.asyncio
-    async def test_get_macro_info_success(self):
+    async def test_get_macro_info_success(self) -> None:
         """Test successful macro info retrieval."""
         mock_process = MagicMock()
         mock_process.returncode = 0
@@ -188,7 +202,7 @@ class TestAppleScriptIntegration:
             assert result["group"] == "TestGroup"
 
     @pytest.mark.asyncio
-    async def test_get_macro_info_not_found(self):
+    async def test_get_macro_info_not_found(self) -> None:
         """Test macro info retrieval when macro not found."""
         mock_process = MagicMock()
         mock_process.returncode = 0
@@ -200,7 +214,7 @@ class TestAppleScriptIntegration:
             assert result is None
 
     @pytest.mark.asyncio
-    async def test_check_group_exists_true(self):
+    async def test_check_group_exists_true(self) -> None:
         """Test group existence check - exists."""
         mock_process = MagicMock()
         mock_process.returncode = 0
@@ -212,7 +226,7 @@ class TestAppleScriptIntegration:
             assert result is True
 
     @pytest.mark.asyncio
-    async def test_check_group_exists_false(self):
+    async def test_check_group_exists_false(self) -> None:
         """Test group existence check - doesn't exist."""
         mock_process = MagicMock()
         mock_process.returncode = 0
@@ -224,7 +238,7 @@ class TestAppleScriptIntegration:
             assert result is False
 
     @pytest.mark.asyncio
-    async def test_create_group_if_missing_success(self):
+    async def test_create_group_if_missing_success(self) -> None:
         """Test successful group creation."""
         mock_process = MagicMock()
         mock_process.returncode = 0
@@ -241,7 +255,7 @@ class TestAppleScriptIntegration:
 
             assert result is True
 
-    def test_escape_applescript_string(self):
+    def test_escape_applescript_string(self) -> None:
         """Test AppleScript string escaping."""
         assert (
             _escape_applescript_string('Test "quoted" string')
@@ -256,7 +270,7 @@ class TestMacroMovementExecution:
     """Test complete macro movement execution."""
 
     @pytest.mark.asyncio
-    async def test_execute_macro_movement_success(self):
+    async def test_execute_macro_movement_success(self) -> None:
         """Test successful macro movement execution."""
         mock_info = {"group": "SourceGroup"}
         mock_process = MagicMock()
@@ -275,7 +289,12 @@ class TestMacroMovementExecution:
             patch("asyncio.wait_for", side_effect=mock_wait_for),
         ):
             result = await _execute_macro_movement(
-                "TestMacro", "TargetGroup", False, True, Duration.from_seconds(30), None
+                "TestMacro",
+                "TargetGroup",
+                False,
+                True,
+                Duration.from_seconds(30),
+                None,
             )
 
             assert result.success
@@ -284,13 +303,13 @@ class TestMacroMovementExecution:
             assert result.target_group == "TargetGroup"
 
     @pytest.mark.asyncio
-    async def test_execute_macro_movement_applescript_error(self):
+    async def test_execute_macro_movement_applescript_error(self) -> None:
         """Test macro movement with AppleScript error."""
         mock_info = {"group": "SourceGroup"}
         mock_process = MagicMock()
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(
-            return_value=(b"ERROR: Macro not found\n", b"")
+            return_value=(b"ERROR: Macro not found\n", b""),
         )
 
         async def mock_wait_for(coro, timeout):
@@ -305,7 +324,12 @@ class TestMacroMovementExecution:
             patch("asyncio.wait_for", side_effect=mock_wait_for),
         ):
             result = await _execute_macro_movement(
-                "TestMacro", "TargetGroup", False, True, Duration.from_seconds(30), None
+                "TestMacro",
+                "TargetGroup",
+                False,
+                True,
+                Duration.from_seconds(30),
+                None,
             )
 
             assert not result.success
@@ -313,7 +337,7 @@ class TestMacroMovementExecution:
             assert "Macro not found" in result.error_message
 
     @pytest.mark.asyncio
-    async def test_execute_macro_movement_timeout(self):
+    async def test_execute_macro_movement_timeout(self) -> None:
         """Test macro movement timeout handling."""
         mock_info = {"group": "SourceGroup"}
 
@@ -326,7 +350,12 @@ class TestMacroMovementExecution:
             patch("asyncio.wait_for", side_effect=asyncio.TimeoutError()),
         ):
             result = await _execute_macro_movement(
-                "TestMacro", "TargetGroup", False, True, Duration.from_seconds(5), None
+                "TestMacro",
+                "TargetGroup",
+                False,
+                True,
+                Duration.from_seconds(5),
+                None,
             )
 
             assert not result.success
@@ -338,7 +367,7 @@ class TestFullMacroMovementWorkflow:
     """Test complete macro movement workflow through MCP tool."""
 
     @pytest.mark.asyncio
-    async def test_km_move_macro_to_group_success(self):
+    async def test_km_move_macro_to_group_success(self) -> None:
         """Test successful complete macro movement."""
         mock_info = {"group": "SourceGroup"}
         mock_process = MagicMock()
@@ -380,7 +409,7 @@ class TestFullMacroMovementWorkflow:
             assert "correlation_id" in result["metadata"]
 
     @pytest.mark.asyncio
-    async def test_km_move_macro_to_group_validation_error(self):
+    async def test_km_move_macro_to_group_validation_error(self) -> None:
         """Test macro movement with validation error."""
         result = await km_move_macro_to_group(
             macro_identifier="",  # Invalid empty identifier
@@ -396,7 +425,7 @@ class TestFullMacroMovementWorkflow:
         assert "cannot be empty" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_km_move_macro_to_group_security_violation(self):
+    async def test_km_move_macro_to_group_security_violation(self) -> None:
         """Test macro movement with security violation."""
         result = await km_move_macro_to_group(
             macro_identifier="TestMacro",
@@ -412,7 +441,7 @@ class TestFullMacroMovementWorkflow:
         assert "system group" in result["error"]["details"].lower()
 
     @pytest.mark.asyncio
-    async def test_km_move_macro_to_group_with_group_creation(self):
+    async def test_km_move_macro_to_group_with_group_creation(self) -> None:
         """Test macro movement with automatic group creation."""
         mock_info = {"group": "SourceGroup"}
         mock_process = MagicMock()
@@ -485,9 +514,9 @@ class TestPropertyBasedScenarios:
         ),
     )
     @settings(max_examples=50)
-    def test_sanitization_properties(self, macro_name, source_group, target_group):
-        """
-        Property: Valid inputs should always pass sanitization.
+    def test_sanitization_properties(self, macro_name, source_group, target_group) -> None:
+        """Property: Valid inputs should always pass sanitization.
+
         Invalid inputs should always be rejected with clear error messages.
         """
         # Valid inputs should pass
@@ -517,21 +546,23 @@ class TestPropertyBasedScenarios:
             min_size=1,
             max_size=50,
             alphabet=st.characters(
-                whitelist_categories=("Lu", "Ll", "Nd"), whitelist_characters=" -_"
+                whitelist_categories=("Lu", "Ll", "Nd"),
+                whitelist_characters=" -_",
             ),
         ),
         valid_group=st.text(
             min_size=1,
             max_size=30,
             alphabet=st.characters(
-                whitelist_categories=("Lu", "Ll", "Nd"), whitelist_characters=" -_"
+                whitelist_categories=("Lu", "Ll", "Nd"),
+                whitelist_characters=" -_",
             ),
         ),
     )
     @settings(max_examples=30)
-    def test_security_constraints_properties(self, valid_macro, valid_group):
-        """
-        Property: Security validation should consistently apply rules.
+    def test_security_constraints_properties(self, valid_macro, valid_group) -> None:
+        """Property: Security validation should consistently apply rules.
+
         Valid inputs should pass, system groups should be blocked.
         """
         # Valid inputs should pass security validation
@@ -553,7 +584,7 @@ class TestErrorHandlingAndRecovery:
     """Test comprehensive error handling and recovery scenarios."""
 
     @pytest.mark.asyncio
-    async def test_rollback_on_verification_failure(self):
+    async def test_rollback_on_verification_failure(self) -> None:
         """Test rollback when movement verification fails."""
         mock_info = {"group": "SourceGroup"}
         mock_process = MagicMock()
@@ -579,7 +610,7 @@ class TestErrorHandlingAndRecovery:
                 return_value=False,
             ),
             patch(
-                "src.server.tools.macro_move_tools._attempt_rollback"
+                "src.server.tools.macro_move_tools._attempt_rollback",
             ) as mock_rollback,
         ):
             result = await km_move_macro_to_group(
@@ -596,7 +627,7 @@ class TestErrorHandlingAndRecovery:
             mock_rollback.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_error_response_structure(self):
+    async def test_error_response_structure(self) -> None:
         """Test that error responses have consistent structure."""
         result = await km_move_macro_to_group(
             macro_identifier="",  # Invalid to trigger error
@@ -626,7 +657,7 @@ class TestErrorHandlingAndRecovery:
         assert "operation" in metadata
 
     @pytest.mark.asyncio
-    async def test_timeout_handling(self):
+    async def test_timeout_handling(self) -> None:
         """Test proper timeout handling and error reporting."""
         mock_info = {"group": "SourceGroup"}
 
@@ -663,7 +694,7 @@ class TestPerformanceAndBenchmarks:
     """Test performance characteristics and benchmarks."""
 
     @pytest.mark.asyncio
-    async def test_operation_timing(self):
+    async def test_operation_timing(self) -> None:
         """Test that operations complete within expected timeframes."""
         mock_info = {"group": "SourceGroup"}
         mock_process = MagicMock()
@@ -714,7 +745,7 @@ class TestPerformanceAndBenchmarks:
 
 # Integration test fixtures and utilities
 @pytest.fixture
-def mock_km_environment():
+def mock_km_environment() -> Any:
     """Mock Keyboard Maestro environment for testing."""
     return {
         "macros": {
@@ -726,7 +757,7 @@ def mock_km_environment():
 
 
 @pytest.fixture
-def mock_applescript_success():
+def mock_applescript_success() -> Any:
     """Mock successful AppleScript execution."""
     mock_process = MagicMock()
     mock_process.returncode = 0
@@ -735,7 +766,7 @@ def mock_applescript_success():
 
 
 @pytest.fixture
-def mock_applescript_error():
+def mock_applescript_error() -> Any:
     """Mock failed AppleScript execution."""
     mock_process = MagicMock()
     mock_process.returncode = 1
@@ -744,7 +775,7 @@ def mock_applescript_error():
 
 
 # Test utilities
-def assert_valid_error_response(result: dict[str, Any]):
+def assert_valid_error_response(result: dict[str, Any]) -> None:
     """Assert that error response has valid structure."""
     assert "success" in result
     assert result["success"] is False
@@ -769,7 +800,7 @@ def assert_valid_error_response(result: dict[str, Any]):
         assert field in metadata
 
 
-def assert_valid_success_response(result: dict[str, Any]):
+def assert_valid_success_response(result: dict[str, Any]) -> None:
     """Assert that success response has valid structure."""
     assert "success" in result
     assert result["success"] is True

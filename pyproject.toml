@@ -37,6 +37,7 @@ dependencies = [
     "statsmodels>=0.14.0",
     "pyyaml>=6.0.2",
     "defusedxml>=0.7.1",
+    "pytest-timeout>=2.4.0",
 ]
 
 [project.optional-dependencies]

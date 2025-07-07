@@ -1,5 +1,4 @@
-"""
-AI-powered recommendation generation system for intelligent automation optimization.
+"""AI-powered recommendation generation system for intelligent automation optimization.
 
 This module implements advanced recommendation algorithms that use AI processing
 and pattern analysis to generate personalized, actionable suggestions for
@@ -42,7 +41,8 @@ class AIPromptGenerator:
 
     @staticmethod
     def generate_workflow_optimization_prompt(
-        context: SuggestionContext, insights: list[PatternInsight]
+        context: SuggestionContext,
+        insights: list[PatternInsight],
     ) -> str:
         """Generate AI prompt for workflow optimization suggestions."""
         context_summary = context.get_context_summary()
@@ -108,7 +108,8 @@ class AIPromptGenerator:
 
     @staticmethod
     def generate_tool_recommendation_prompt(
-        context: SuggestionContext, available_tools: list[str]
+        context: SuggestionContext,
+        available_tools: list[str],
     ) -> str:
         """Generate AI prompt for tool recommendation suggestions."""
         context_summary = context.get_context_summary()
@@ -180,15 +181,14 @@ class RecommendationEngine:
             "km_add_action",
         ]
 
-    @require(lambda self, context: isinstance(context, SuggestionContext))
+    @require(lambda __self, context: isinstance(context, SuggestionContext))
     async def generate_suggestions(
         self,
         context: SuggestionContext,
         suggestion_types: set[SuggestionType] | None = None,
         max_suggestions: int = 5,
     ) -> list[IntelligentSuggestion]:
-        """
-        Generate AI-powered suggestions based on context and analysis.
+        """Generate AI-powered suggestions based on context and analysis.
 
         Args:
             context: Current automation context
@@ -197,15 +197,16 @@ class RecommendationEngine:
 
         Returns:
             List of intelligent suggestions sorted by relevance
+
         """
         try:
             # Validate context security
             validation_result = self.security_validator.validate_suggestion_context(
-                context
+                context,
             )
             if validation_result.is_left():
                 logger.warning(
-                    f"Context validation failed: {validation_result.get_left().message}"
+                    f"Context validation failed: {validation_result.get_left().message}",
                 )
                 return []
 
@@ -229,13 +230,14 @@ class RecommendationEngine:
             suggestion_tasks = []
             for suggestion_type in suggestion_types:
                 task = asyncio.create_task(
-                    self._generate_suggestions_by_type(suggestion_type, context)
+                    self._generate_suggestions_by_type(suggestion_type, context),
                 )
                 suggestion_tasks.append(task)
 
             # Wait for all suggestion generation tasks
             suggestion_results = await asyncio.gather(
-                *suggestion_tasks, return_exceptions=True
+                *suggestion_tasks,
+                return_exceptions=True,
             )
 
             # Collect successful results
@@ -243,7 +245,7 @@ class RecommendationEngine:
                 if isinstance(result, list):
                     all_suggestions.extend(result)
                 elif isinstance(result, Exception):
-                    logger.error(f"Suggestion generation error: {str(result)}")
+                    logger.error(f"Suggestion generation error: {result!s}")
 
             # Sort suggestions by urgency score and confidence
             all_suggestions.sort(key=lambda s: s.get_urgency_score(), reverse=True)
@@ -252,7 +254,7 @@ class RecommendationEngine:
             sanitized_suggestions = []
             for suggestion in all_suggestions:
                 sanitized = self.security_validator.sanitize_suggestion_content(
-                    suggestion
+                    suggestion,
                 )
                 sanitized_suggestions.append(sanitized)
 
@@ -263,42 +265,44 @@ class RecommendationEngine:
             final_suggestions = sanitized_suggestions[:max_suggestions]
 
             logger.info(
-                f"Generated {len(final_suggestions)} suggestions for user {context.user_id}"
+                f"Generated {len(final_suggestions)} suggestions for user {context.user_id}",
             )
             return final_suggestions
 
         except Exception as e:
-            logger.error(f"Error generating suggestions: {str(e)}")
+            logger.error(f"Error generating suggestions: {e!s}")
             return []
 
     async def _generate_suggestions_by_type(
-        self, suggestion_type: SuggestionType, context: SuggestionContext
+        self,
+        suggestion_type: SuggestionType,
+        context: SuggestionContext,
     ) -> list[IntelligentSuggestion]:
         """Generate suggestions for specific type."""
         try:
             if suggestion_type == SuggestionType.WORKFLOW_OPTIMIZATION:
                 return await self._generate_workflow_optimizations(context)
-            elif suggestion_type == SuggestionType.NEW_AUTOMATION:
+            if suggestion_type == SuggestionType.NEW_AUTOMATION:
                 return await self._generate_new_automation_suggestions(context)
-            elif suggestion_type == SuggestionType.TOOL_RECOMMENDATION:
+            if suggestion_type == SuggestionType.TOOL_RECOMMENDATION:
                 return await self._generate_tool_recommendations(context)
-            elif suggestion_type == SuggestionType.PERFORMANCE_IMPROVEMENT:
+            if suggestion_type == SuggestionType.PERFORMANCE_IMPROVEMENT:
                 return await self._generate_performance_improvements(context)
-            elif suggestion_type == SuggestionType.ERROR_PREVENTION:
+            if suggestion_type == SuggestionType.ERROR_PREVENTION:
                 return await self._generate_error_prevention_suggestions(context)
-            elif suggestion_type == SuggestionType.BEST_PRACTICE:
+            if suggestion_type == SuggestionType.BEST_PRACTICE:
                 return await self._generate_best_practice_suggestions(context)
-            else:
-                return []
+            return []
 
         except Exception as e:
             logger.error(
-                f"Error generating {suggestion_type.value} suggestions: {str(e)}"
+                f"Error generating {suggestion_type.value} suggestions: {e!s}",
             )
             return []
 
     async def _generate_workflow_optimizations(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> list[IntelligentSuggestion]:
         """Generate workflow optimization suggestions using pattern analysis and AI."""
         suggestions = []
@@ -306,7 +310,8 @@ class RecommendationEngine:
         try:
             # Get pattern analysis insights
             insights = await self.pattern_analyzer.analyze_user_patterns(
-                context.user_id, depth="standard"
+                context.user_id,
+                depth="standard",
             )
 
             # Filter for optimization-relevant insights
@@ -321,7 +326,8 @@ class RecommendationEngine:
                 # Generate rule-based suggestions from insights
                 for insight in optimization_insights[:2]:  # Limit to top 2
                     rule_based_suggestion = self._create_rule_based_optimization(
-                        insight, context
+                        insight,
+                        context,
                     )
                     if rule_based_suggestion:
                         suggestions.append(rule_based_suggestion)
@@ -329,7 +335,8 @@ class RecommendationEngine:
                 # Generate AI-powered suggestions if AI processor is available
                 if self.ai_processor and len(optimization_insights) > 0:
                     ai_suggestion = await self._generate_ai_optimization_suggestion(
-                        context, optimization_insights
+                        context,
+                        optimization_insights,
                     )
                     if ai_suggestion:
                         suggestions.append(ai_suggestion)
@@ -337,18 +344,19 @@ class RecommendationEngine:
             # If no specific insights, provide general optimization suggestions
             if not suggestions and context.performance_data:
                 general_suggestion = self._create_general_optimization_suggestion(
-                    context
+                    context,
                 )
                 if general_suggestion:
                     suggestions.append(general_suggestion)
 
         except Exception as e:
-            logger.error(f"Error generating workflow optimizations: {str(e)}")
+            logger.error(f"Error generating workflow optimizations: {e!s}")
 
         return suggestions
 
     async def _generate_new_automation_suggestions(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> list[IntelligentSuggestion]:
         """Generate new automation suggestions based on patterns and AI analysis."""
         suggestions = []
@@ -357,7 +365,7 @@ class RecommendationEngine:
             # Analyze recent actions for automation opportunities
             if len(context.recent_actions) >= 3:
                 pattern_suggestion = self._create_pattern_based_automation_suggestion(
-                    context
+                    context,
                 )
                 if pattern_suggestion:
                     suggestions.append(pattern_suggestion)
@@ -370,18 +378,19 @@ class RecommendationEngine:
 
             # Generate context-based suggestions
             context_suggestion = self._create_context_based_automation_suggestion(
-                context
+                context,
             )
             if context_suggestion:
                 suggestions.append(context_suggestion)
 
         except Exception as e:
-            logger.error(f"Error generating new automation suggestions: {str(e)}")
+            logger.error(f"Error generating new automation suggestions: {e!s}")
 
         return suggestions
 
     async def _generate_tool_recommendations(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> list[IntelligentSuggestion]:
         """Generate tool recommendation suggestions."""
         suggestions = []
@@ -393,7 +402,8 @@ class RecommendationEngine:
             # Generate recommendations based on usage patterns
             if current_tools:
                 usage_based_suggestion = self._create_usage_based_tool_recommendation(
-                    context, current_tools
+                    context,
+                    current_tools,
                 )
                 if usage_based_suggestion:
                     suggestions.append(usage_based_suggestion)
@@ -406,18 +416,19 @@ class RecommendationEngine:
 
             # Suggest underutilized powerful tools
             underutilized_suggestion = self._create_underutilized_tool_suggestion(
-                context
+                context,
             )
             if underutilized_suggestion:
                 suggestions.append(underutilized_suggestion)
 
         except Exception as e:
-            logger.error(f"Error generating tool recommendations: {str(e)}")
+            logger.error(f"Error generating tool recommendations: {e!s}")
 
         return suggestions
 
     async def _generate_performance_improvements(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> list[IntelligentSuggestion]:
         """Generate performance improvement suggestions."""
         suggestions = []
@@ -426,14 +437,15 @@ class RecommendationEngine:
             # Get optimization opportunities from pattern analyzer
             opportunities = (
                 await self.pattern_analyzer.identify_optimization_opportunities(
-                    context.user_id
+                    context.user_id,
                 )
             )
 
             # Convert opportunities to suggestions
             for opportunity in opportunities[:2]:  # Limit to top 2
                 suggestion = self._convert_opportunity_to_suggestion(
-                    opportunity, context
+                    opportunity,
+                    context,
                 )
                 if suggestion:
                     suggestions.append(suggestion)
@@ -441,18 +453,19 @@ class RecommendationEngine:
             # Add general performance suggestions if none found
             if not suggestions:
                 general_perf_suggestion = self._create_general_performance_suggestion(
-                    context
+                    context,
                 )
                 if general_perf_suggestion:
                     suggestions.append(general_perf_suggestion)
 
         except Exception as e:
-            logger.error(f"Error generating performance improvements: {str(e)}")
+            logger.error(f"Error generating performance improvements: {e!s}")
 
         return suggestions
 
     async def _generate_error_prevention_suggestions(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> list[IntelligentSuggestion]:
         """Generate error prevention suggestions."""
         suggestions = []
@@ -487,12 +500,13 @@ class RecommendationEngine:
                     suggestions.append(suggestion)
 
         except Exception as e:
-            logger.error(f"Error generating error prevention suggestions: {str(e)}")
+            logger.error(f"Error generating error prevention suggestions: {e!s}")
 
         return suggestions
 
     async def _generate_best_practice_suggestions(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> list[IntelligentSuggestion]:
         """Generate best practice suggestions."""
         suggestions = []
@@ -528,12 +542,14 @@ class RecommendationEngine:
                 suggestions.append(best_practice_suggestion)
 
         except Exception as e:
-            logger.error(f"Error generating best practice suggestions: {str(e)}")
+            logger.error(f"Error generating best practice suggestions: {e!s}")
 
         return suggestions
 
     def _create_rule_based_optimization(
-        self, insight: PatternInsight, context: SuggestionContext
+        self,
+        insight: PatternInsight,
+        context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Create optimization suggestion based on pattern insight."""
         try:
@@ -564,7 +580,7 @@ class RecommendationEngine:
                     ],
                     reasoning=insight.message,
                 )
-            elif insight.insight_type == "low_reliability":
+            if insight.insight_type == "low_reliability":
                 return IntelligentSuggestion(
                     suggestion_id=f"opt_reliability_{datetime.now().timestamp()}",
                     suggestion_type=SuggestionType.WORKFLOW_OPTIMIZATION,
@@ -587,12 +603,14 @@ class RecommendationEngine:
                     reasoning=insight.message,
                 )
         except Exception as e:
-            logger.error(f"Error creating rule-based optimization: {str(e)}")
+            logger.error(f"Error creating rule-based optimization: {e!s}")
 
         return None
 
     async def _generate_ai_optimization_suggestion(
-        self, context: SuggestionContext, insights: list[PatternInsight]
+        self,
+        context: SuggestionContext,
+        insights: list[PatternInsight],
     ) -> IntelligentSuggestion | None:
         """Generate AI-powered optimization suggestion."""
         try:
@@ -600,11 +618,14 @@ class RecommendationEngine:
                 return None
 
             prompt = self.prompt_generator.generate_workflow_optimization_prompt(
-                context, insights
+                context,
+                insights,
             )
 
             ai_result = await self.ai_processor.generate_text(
-                prompt=prompt, style="technical", max_length=200
+                prompt=prompt,
+                style="technical",
+                max_length=200,
             )
 
             if ai_result.is_right():
@@ -620,18 +641,19 @@ class RecommendationEngine:
                     potential_impact="AI-identified efficiency improvements",
                     implementation_effort="Varies",
                     suggested_actions=[
-                        {"action": "ai_recommendation", "description": ai_content}
+                        {"action": "ai_recommendation", "description": ai_content},
                     ],
                     reasoning="Generated using AI analysis of your automation patterns",
                 )
 
         except Exception as e:
-            logger.error(f"Error generating AI optimization suggestion: {str(e)}")
+            logger.error(f"Error generating AI optimization suggestion: {e!s}")
 
         return None
 
     def _create_general_optimization_suggestion(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Create general optimization suggestion when no specific insights available."""
         try:
@@ -657,12 +679,13 @@ class RecommendationEngine:
                 reasoning="Regular optimization review is a good practice",
             )
         except Exception as e:
-            logger.error(f"Error creating general optimization suggestion: {str(e)}")
+            logger.error(f"Error creating general optimization suggestion: {e!s}")
 
         return None
 
     def _create_pattern_based_automation_suggestion(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Create automation suggestion based on action patterns."""
         try:
@@ -698,20 +721,21 @@ class RecommendationEngine:
                             "action": "create_macro",
                             "repeated_action": most_repeated[0],
                             "frequency": most_repeated[1],
-                        }
+                        },
                     ],
                     reasoning="Pattern analysis detected repeated manual actions",
                 )
 
         except Exception as e:
             logger.error(
-                f"Error creating pattern-based automation suggestion: {str(e)}"
+                f"Error creating pattern-based automation suggestion: {e!s}",
             )
 
         return None
 
     async def _generate_ai_automation_suggestion(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Generate AI-powered new automation suggestion."""
         try:
@@ -721,7 +745,9 @@ class RecommendationEngine:
             prompt = self.prompt_generator.generate_new_automation_prompt(context)
 
             ai_result = await self.ai_processor.generate_text(
-                prompt=prompt, style="helpful", max_length=150
+                prompt=prompt,
+                style="helpful",
+                max_length=150,
             )
 
             if ai_result.is_right():
@@ -737,18 +763,19 @@ class RecommendationEngine:
                     potential_impact="Time savings through new automation",
                     implementation_effort="Varies",
                     suggested_actions=[
-                        {"action": "ai_suggestion", "description": ai_content}
+                        {"action": "ai_suggestion", "description": ai_content},
                     ],
                     reasoning="AI-generated based on activity pattern analysis",
                 )
 
         except Exception as e:
-            logger.error(f"Error generating AI automation suggestion: {str(e)}")
+            logger.error(f"Error generating AI automation suggestion: {e!s}")
 
         return None
 
     def _create_context_based_automation_suggestion(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Create automation suggestion based on current context."""
         try:
@@ -774,20 +801,22 @@ class RecommendationEngine:
                         "action": "explore_context_automation",
                         "context": context_key,
                         "time": context.time_of_day,
-                    }
+                    },
                 ],
                 reasoning=f"Suggestion based on current context: {context_key}",
             )
 
         except Exception as e:
             logger.error(
-                f"Error creating context-based automation suggestion: {str(e)}"
+                f"Error creating context-based automation suggestion: {e!s}",
             )
 
         return None
 
     def _create_usage_based_tool_recommendation(
-        self, context: SuggestionContext, current_tools: list[str]
+        self,
+        context: SuggestionContext,
+        current_tools: list[str],
     ) -> IntelligentSuggestion | None:
         """Create tool recommendation based on current usage patterns."""
         try:
@@ -831,18 +860,19 @@ class RecommendationEngine:
                             "action": "try_tool",
                             "recommended_tool": top_recommendation,
                             "current_tools": current_tools,
-                        }
+                        },
                     ],
                     reasoning="Tool recommendation based on usage pattern analysis",
                 )
 
         except Exception as e:
-            logger.error(f"Error creating usage-based tool recommendation: {str(e)}")
+            logger.error(f"Error creating usage-based tool recommendation: {e!s}")
 
         return None
 
     async def _generate_ai_tool_recommendation(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Generate AI-powered tool recommendation."""
         try:
@@ -850,11 +880,14 @@ class RecommendationEngine:
                 return None
 
             prompt = self.prompt_generator.generate_tool_recommendation_prompt(
-                context, self.available_tools
+                context,
+                self.available_tools,
             )
 
             ai_result = await self.ai_processor.generate_text(
-                prompt=prompt, style="helpful", max_length=120
+                prompt=prompt,
+                style="helpful",
+                max_length=120,
             )
 
             if ai_result.is_right():
@@ -870,18 +903,19 @@ class RecommendationEngine:
                     potential_impact="Access to more efficient automation tools",
                     implementation_effort="Low",
                     suggested_actions=[
-                        {"action": "ai_tool_recommendation", "description": ai_content}
+                        {"action": "ai_tool_recommendation", "description": ai_content},
                     ],
                     reasoning="AI analysis of your workflow patterns and available tools",
                 )
 
         except Exception as e:
-            logger.error(f"Error generating AI tool recommendation: {str(e)}")
+            logger.error(f"Error generating AI tool recommendation: {e!s}")
 
         return None
 
     def _create_underutilized_tool_suggestion(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Suggest powerful but underutilized tools."""
         try:
@@ -917,18 +951,20 @@ class RecommendationEngine:
                                 "action": "explore_tool",
                                 "tool": tool,
                                 "description": description,
-                            }
+                            },
                         ],
                         reasoning="Many users don't discover these powerful automation tools",
                     )
 
         except Exception as e:
-            logger.error(f"Error creating underutilized tool suggestion: {str(e)}")
+            logger.error(f"Error creating underutilized tool suggestion: {e!s}")
 
         return None
 
     def _convert_opportunity_to_suggestion(
-        self, opportunity: OptimizationOpportunity, context: SuggestionContext
+        self,
+        opportunity: OptimizationOpportunity,
+        context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Convert optimization opportunity to intelligent suggestion."""
         try:
@@ -946,17 +982,18 @@ class RecommendationEngine:
                         "action": "optimize_performance",
                         "opportunity_type": opportunity.opportunity_type,
                         "affected_items": opportunity.affected_items,
-                    }
+                    },
                 ],
                 reasoning=f"Performance analysis identified {opportunity.opportunity_type} optimization opportunity",
             )
         except Exception as e:
-            logger.error(f"Error converting opportunity to suggestion: {str(e)}")
+            logger.error(f"Error converting opportunity to suggestion: {e!s}")
 
         return None
 
     def _create_general_performance_suggestion(
-        self, context: SuggestionContext
+        self,
+        context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Create general performance improvement suggestion."""
         try:
@@ -982,7 +1019,7 @@ class RecommendationEngine:
                 reasoning="Performance monitoring helps identify optimization opportunities",
             )
         except Exception as e:
-            logger.error(f"Error creating general performance suggestion: {str(e)}")
+            logger.error(f"Error creating general performance suggestion: {e!s}")
 
         return None
 
@@ -1009,7 +1046,9 @@ class RecommendationEngine:
             return False
 
     def _generate_cache_key(
-        self, context: SuggestionContext, suggestion_types: set[SuggestionType] | None
+        self,
+        context: SuggestionContext,
+        suggestion_types: set[SuggestionType] | None,
     ) -> str:
         """Generate cache key for suggestion results."""
         types_str = (
@@ -1021,15 +1060,15 @@ class RecommendationEngine:
 
     def _is_cache_valid(self, cache_key: str) -> bool:
         """Check if cached suggestions are still valid."""
-        if cache_key not in self.suggestion_cache:
-            return False
-
+        # SIM103 fix: Return the condition directly
         # For now, we'll implement basic time-based cache validation
         # In practice, this could be more sophisticated
-        return True  # Simplified for this implementation
+        return cache_key in self.suggestion_cache  # Simplified for this implementation
 
     def _cache_suggestions(
-        self, cache_key: str, suggestions: list[IntelligentSuggestion]
+        self,
+        cache_key: str,
+        suggestions: list[IntelligentSuggestion],
     ) -> None:
         """Cache suggestion results."""
         self.suggestion_cache[cache_key] = suggestions

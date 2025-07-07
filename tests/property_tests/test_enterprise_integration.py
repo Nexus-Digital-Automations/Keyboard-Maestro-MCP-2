@@ -1,11 +1,14 @@
-"""
-Property-based tests for enterprise integration system.
+"""Property-based tests for enterprise integration system.
 
 This module provides comprehensive property-based testing for enterprise integration
 using Hypothesis to validate behavior across all input ranges with focus on
 security, compliance, and integration reliability.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 from datetime import UTC, datetime, timedelta
 from unittest.mock import Mock, patch
 
@@ -27,6 +30,8 @@ from src.enterprise.ldap_connector import LDAPConnector
 from src.enterprise.sso_manager import SSOManager
 from src.server.tools.enterprise_sync_tools import km_enterprise_sync
 
+logger = logging.getLogger(__name__)
+
 
 class TestEnterpriseConnectionProperties:
     """Property-based tests for enterprise connection functionality."""
@@ -39,8 +44,12 @@ class TestEnterpriseConnectionProperties:
         st.sampled_from(list(IntegrationType)),
     )
     def test_enterprise_connection_properties(
-        self, connection_id, host, port, integration_type
-    ):
+        self,
+        connection_id,
+        host,
+        port,
+        integration_type,
+    ) -> None:
         """Property: Enterprise connections should handle various host and port combinations."""
         assume(connection_id.strip() != "")
         assume(host.strip() != "")
@@ -76,7 +85,7 @@ class TestEnterpriseConnectionProperties:
         st.text(min_size=1, max_size=50),
         st.text(min_size=12, max_size=100),
     )
-    def test_enterprise_credentials_properties(self, auth_method, username, password):
+    def test_enterprise_credentials_properties(self, auth_method, username, password) -> None:
         """Property: Enterprise credentials should handle various authentication methods."""
         assume(username.strip() != "")
         assume(password.strip() != "")
@@ -84,7 +93,9 @@ class TestEnterpriseConnectionProperties:
         try:
             if auth_method == AuthenticationMethod.SIMPLE_BIND:
                 credentials = create_enterprise_credentials(
-                    auth_method=auth_method, username=username, password=password
+                    auth_method=auth_method,
+                    username=username,
+                    password=password,
                 )
             elif auth_method == AuthenticationMethod.API_KEY:
                 credentials = create_enterprise_credentials(
@@ -104,11 +115,13 @@ class TestEnterpriseConnectionProperties:
                 )
             elif auth_method == AuthenticationMethod.CERTIFICATE:
                 credentials = create_enterprise_credentials(
-                    auth_method=auth_method, certificate_path="/path/to/cert.pem"
+                    auth_method=auth_method,
+                    certificate_path="/path/to/cert.pem",
                 )
             else:
                 credentials = create_enterprise_credentials(
-                    auth_method=auth_method, username=username
+                    auth_method=auth_method,
+                    username=username,
                 )
 
             assert credentials.auth_method == auth_method
@@ -130,7 +143,7 @@ class TestEnterpriseConnectionProperties:
         st.booleans(),
         st.sets(st.text(min_size=1, max_size=20), max_size=10),
     )
-    def test_ldap_user_properties(self, username, display_name, is_active, groups):
+    def test_ldap_user_properties(self, username, display_name, is_active, groups) -> None:
         """Property: LDAP users should handle various usernames and attributes."""
         assume(username.strip() != "")
 
@@ -170,8 +183,12 @@ class TestEnterpriseConnectionProperties:
         st.sampled_from(list(IntegrationType)),
     )
     def test_sync_result_properties(
-        self, successful, failed, duration, integration_type
-    ):
+        self,
+        successful,
+        failed,
+        duration,
+        integration_type,
+    ) -> None:
         """Property: Sync results should handle various success/failure counts."""
         total_processed = successful + failed
 
@@ -200,7 +217,7 @@ class TestEnterpriseConnectionProperties:
 class TestEnterpriseSecurityProperties:
     """Property-based tests for enterprise security validation."""
 
-    def test_security_validator_initialization(self):
+    def test_security_validator_initialization(self) -> None:
         """Property: Security validator should initialize correctly."""
         validator = EnterpriseSecurityValidator()
 
@@ -218,8 +235,13 @@ class TestEnterpriseSecurityProperties:
         st.booleans(),
     )
     def test_connection_security_validation_properties(
-        self, host, port, integration_type, use_ssl, ssl_verify
-    ):
+        self,
+        host,
+        port,
+        integration_type,
+        use_ssl,
+        ssl_verify,
+    ) -> None:
         """Property: Connection security validation should be consistent."""
         assume(host.strip() != "")
 
@@ -272,12 +294,14 @@ class TestEnterpriseSecurityProperties:
                 "(sAMAccountName=*)",
                 "(cn=test)",
                 "(mail=*@company.com)",
-            ]
+            ],
         ),
     )
     def test_ldap_search_filter_validation_properties(
-        self, base_filter, standard_filter
-    ):
+        self,
+        base_filter,
+        standard_filter,
+    ) -> None:
         """Property: LDAP search filter validation should detect injection attacks."""
         validator = EnterpriseSecurityValidator()
 
@@ -317,13 +341,17 @@ class TestEnterpriseSecurityProperties:
         st.integers(min_value=0, max_value=4),
     )
     def test_password_complexity_validation_properties(
-        self, upper_count, lower_count, digit_count, special_count
-    ):
+        self,
+        upper_count,
+        lower_count,
+        digit_count,
+        special_count,
+    ) -> None:
         """Property: Password complexity validation should be consistent."""
         validator = EnterpriseSecurityValidator()
 
         # Build password with only ASCII characters for predictable testing
-        base_password = "base1234"  # Safe base that won't interfere
+        base_password = "base1234"  # noqa: S105 # Test fixture, not production password
         test_password = base_password
         test_password += "A" * upper_count
         test_password += "a" * lower_count
@@ -364,7 +392,7 @@ class TestLDAPConnectorProperties:
         st.integers(min_value=389, max_value=65535),
     )
     @pytest.mark.asyncio
-    async def test_ldap_connection_properties(self, connection_id, host, port):
+    async def test_ldap_connection_properties(self, connection_id, host, port) -> None:
         """Property: LDAP connection should handle various configurations."""
         assume(connection_id.strip() != "")
         assume(host.strip() != "")
@@ -386,7 +414,7 @@ class TestLDAPConnectorProperties:
                 credentials = create_enterprise_credentials(
                     auth_method=AuthenticationMethod.SIMPLE_BIND,
                     username="test_user",
-                    password="test_password123!",
+                    password="test_password123!",  # noqa: S106 # Test fixture password
                 )
 
                 # Mock LDAP library for testing
@@ -416,16 +444,15 @@ class TestLDAPConnectorProperties:
                         assert isinstance(status, dict)
                         assert "status" in status
 
-            except Exception:
-                # Some configurations might be invalid
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
 
 class TestSSOManagerProperties:
     """Property-based tests for SSO manager functionality."""
 
     @pytest.fixture
-    def sso_manager(self):
+    def sso_manager(self) -> Any:
         """Provide SSO manager for tests."""
         return SSOManager()
 
@@ -437,8 +464,11 @@ class TestSSOManagerProperties:
     )
     @pytest.mark.asyncio
     async def test_oauth_provider_configuration_properties(
-        self, provider_name, client_id, client_secret
-    ):
+        self,
+        provider_name,
+        client_id,
+        client_secret,
+    ) -> None:
         """Property: OAuth provider configuration should handle various inputs."""
         assume(provider_name.strip() != "")
         assume(len(client_id) >= 10)
@@ -474,8 +504,10 @@ class TestSSOManagerProperties:
     @given(st.text(min_size=1, max_size=50), st.text(min_size=10, max_size=200))
     @pytest.mark.asyncio
     async def test_saml_provider_configuration_properties(
-        self, provider_name, entity_id
-    ):
+        self,
+        provider_name,
+        entity_id,
+    ) -> None:
         """Property: SAML provider configuration should handle various inputs."""
         assume(provider_name.strip() != "")
         assume(entity_id.strip() != "")
@@ -541,14 +573,17 @@ class TestEnterpriseSyncToolProperties:
     )
     @pytest.mark.asyncio
     async def test_enterprise_sync_tool_properties(
-        self, operation, integration_type, host
-    ):
+        self,
+        operation,
+        integration_type,
+        host,
+    ) -> None:
         """Property: Enterprise sync tool should handle various operations."""
         assume(host.strip() != "")
 
         # Mock the enterprise sync manager
         with patch(
-            "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager"
+            "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager",
         ) as mock_get_manager:
             mock_manager = Mock()
             mock_manager.get_system_status.return_value = {
@@ -560,7 +595,8 @@ class TestEnterpriseSyncToolProperties:
 
             if operation == "status":
                 result = await km_enterprise_sync(
-                    operation=operation, integration_type=integration_type
+                    operation=operation,
+                    integration_type=integration_type,
                 )
             elif operation == "connect":
                 result = await km_enterprise_sync(
@@ -579,7 +615,8 @@ class TestEnterpriseSyncToolProperties:
                 )
             else:
                 result = await km_enterprise_sync(
-                    operation=operation, integration_type=integration_type
+                    operation=operation,
+                    integration_type=integration_type,
                 )
 
             # Property: All operations should return a structured response
@@ -595,14 +632,15 @@ class TestEnterpriseSyncToolProperties:
     @settings(max_examples=20, deadline=5000)
     @given(st.text(max_size=0))
     @pytest.mark.asyncio
-    async def test_invalid_parameters_validation_properties(self, empty_value):
+    async def test_invalid_parameters_validation_properties(self, empty_value) -> None:
         """Property: Empty or invalid parameters should be rejected gracefully."""
         assume(len(empty_value.strip()) == 0)
 
         # Property: Invalid operations should raise contract violations
         with pytest.raises(ContractViolationError) as exc_info:
             await km_enterprise_sync(
-                operation="invalid_operation", integration_type="invalid_type"
+                operation="invalid_operation",
+                integration_type="invalid_type",
             )
 
         # Verify the contract violation contains expected information
@@ -621,10 +659,13 @@ class TestEnterpriseIntegrationCompliance:
         st.booleans(),  # Certificate verification
     )
     def test_enterprise_configuration_compliance_properties(
-        self, retention_days, security_level, use_ssl, ssl_verify
-    ):
+        self,
+        retention_days,
+        security_level,
+        use_ssl,
+        ssl_verify,
+    ) -> None:
         """Property: Enterprise configurations should meet compliance requirements."""
-
         # Filter out invalid combinations using assume()
         if security_level == SecurityLevel.ENTERPRISE:
             assume(use_ssl)  # Enterprise level requires SSL
@@ -651,8 +692,11 @@ class TestEnterpriseIntegrationCompliance:
         st.floats(min_value=0.0, max_value=3600.0),
     )
     def test_enterprise_performance_properties(
-        self, records_count, batch_size, duration
-    ):
+        self,
+        records_count,
+        batch_size,
+        duration,
+    ) -> None:
         """Property: Enterprise operations should meet performance requirements."""
         assume(batch_size > 0)
 
@@ -676,9 +720,8 @@ class TestEnterpriseIntegrationCompliance:
                     # This would trigger performance warnings in a real system
                     pass
 
-    def test_enterprise_audit_integration_properties(self):
+    def test_enterprise_audit_integration_properties(self) -> None:
         """Property: Enterprise operations should integrate with audit system."""
-
         # Property: All enterprise operations should be auditable
         auditable_operations = ["connect", "sync", "query", "authenticate", "configure"]
 

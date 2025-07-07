@@ -1,5 +1,4 @@
-"""
-Core data structure types for dictionary and JSON management.
+"""Core data structure types for dictionary and JSON management.
 
 This module defines branded types, protocols, and data structures for type-safe
 data management with comprehensive validation and security boundaries.
@@ -136,7 +135,7 @@ class DataSchema:
 
         if schema_id is None:
             schema_id = SchemaId(
-                f"schema_{hashlib.md5(json.dumps(schema, sort_keys=True).encode()).hexdigest()[:8]}"
+                f"schema_{hashlib.sha256(json.dumps(schema, sort_keys=True).encode()).hexdigest()[:8]}",
             )
 
         return cls(schema=schema, schema_id=schema_id)
@@ -192,7 +191,7 @@ class DictionaryMetadata:
         """Create metadata for a new dictionary."""
         now = datetime.now()
         dictionary_id = DictionaryId(
-            f"dict_{hashlib.sha256(f'{name}_{now.isoformat()}'.encode()).hexdigest()[:16]}"
+            f"dict_{hashlib.sha256(f'{name}_{now.isoformat()}'.encode()).hexdigest()[:16]}",
         )
 
         return cls(
@@ -209,7 +208,10 @@ class DictionaryMetadata:
         )
 
     def update_size(
-        self, new_size: int, new_key_count: int, new_nested_levels: int
+        self,
+        new_size: int,
+        new_key_count: int,
+        new_nested_levels: int,
     ) -> DictionaryMetadata:
         """Create updated metadata with new size information."""
         from dataclasses import replace
@@ -281,13 +283,16 @@ class DataValidator(Protocol):
     """Protocol for data validation operations."""
 
     def validate_value(
-        self, value: Any, path: DictionaryPath | None = None
+        self,
+        value: Any,
+        path: DictionaryPath | None = None,
     ) -> Either[ValidationError, None]:
         """Validate a value according to schema or rules."""
         ...
 
     def validate_structure(
-        self, data: dict[str, Any]
+        self,
+        data: dict[str, Any],
     ) -> Either[ValidationError, list[str]]:
         """Validate entire data structure."""
         ...
@@ -297,13 +302,17 @@ class DataTransformer(Protocol):
     """Protocol for data transformation operations."""
 
     def transform_keys(
-        self, data: dict[str, Any], strategy: str
+        self,
+        data: dict[str, Any],
+        strategy: str,
     ) -> Either[ValidationError, dict[str, Any]]:
         """Transform keys according to naming strategy."""
         ...
 
     def transform_values(
-        self, data: dict[str, Any], transformer: str
+        self,
+        data: dict[str, Any],
+        transformer: str,
     ) -> Either[ValidationError, dict[str, Any]]:
         """Transform values according to transformation rules."""
         ...
@@ -335,7 +344,7 @@ class SecurityLimits:
 
         if size > limit:
             return Either.left(
-                SecurityError(f"{size_type} size {size} exceeds limit {limit}")
+                SecurityError(f"{size_type} size {size} exceeds limit {limit}"),
             )
 
         return Either.right(None)
@@ -345,8 +354,8 @@ class SecurityLimits:
         if depth > self.max_nesting_depth:
             return Either.left(
                 SecurityError(
-                    f"Nesting depth {depth} exceeds limit {self.max_nesting_depth}"
-                )
+                    f"Nesting depth {depth} exceeds limit {self.max_nesting_depth}",
+                ),
             )
         return Either.right(None)
 

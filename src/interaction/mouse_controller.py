@@ -1,5 +1,4 @@
-"""
-Mouse interaction controller for hardware automation.
+"""Mouse interaction controller for hardware automation.
 
 This module implements comprehensive mouse control capabilities including clicks,
 movement, drag operations, and scrolling with security validation and performance
@@ -44,10 +43,10 @@ class MouseController:
         self.last_position: Coordinate | None = None
         self.screen_width, self.screen_height = get_screen_dimensions()
 
-    @require(lambda self, position: isinstance(position, Coordinate))
+    @require(lambda __self, position: isinstance(position, Coordinate))
     @ensure(
         lambda result: result.is_right()
-        or result.get_left().error_code.startswith("MOUSE_")
+        or result.get_left().error_code.startswith("MOUSE_"),
     )
     async def click_at_position(
         self,
@@ -56,8 +55,7 @@ class MouseController:
         click_count: int = 1,
         duration_ms: int = 100,
     ) -> Either[SecurityError, dict[str, Any]]:
-        """
-        Perform mouse click at specified position with security validation.
+        """Perform mouse click at specified position with security validation.
 
         Args:
             position: Target coordinate for click
@@ -67,10 +65,11 @@ class MouseController:
 
         Returns:
             Either security error or operation result with timing information
+
         """
         try:
             logger.info(
-                f"Mouse click at ({position.x}, {position.y}) with {button.value} button"
+                f"Mouse click at ({position.x}, {position.y}) with {button.value} button",
             )
 
             # Validate position is on screen
@@ -80,7 +79,7 @@ class MouseController:
 
             # Security validation
             security_result = HardwareEventValidator.validate_coordinate_safety(
-                position
+                position,
             )
             if security_result.is_left():
                 return Either.left(security_result.get_left())
@@ -115,7 +114,8 @@ class MouseController:
                 "click_count": click_count,
                 "duration_ms": duration_ms,
                 "execution_time_ms": execution_result.get_right().get(
-                    "execution_time_ms", 0
+                    "execution_time_ms",
+                    0,
                 ),
                 "event_id": mouse_event.event_id,
                 "timestamp": datetime.now().isoformat(),
@@ -125,17 +125,18 @@ class MouseController:
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Error in mouse click: {str(e)}")
+            logger.error(f"Error in mouse click: {e!s}")
             return Either.left(
                 SecurityError(
-                    "MOUSE_CLICK_ERROR", f"Failed to execute mouse click: {str(e)}"
-                )
+                    "MOUSE_CLICK_ERROR",
+                    f"Failed to execute mouse click: {e!s}",
+                ),
             )
 
-    @require(lambda self, source, destination: source != destination)
+    @require(lambda __self, source, destination: source != destination)
     @ensure(
         lambda result: result.is_right()
-        or result.get_left().error_code.startswith("MOUSE_")
+        or result.get_left().error_code.startswith("MOUSE_"),
     )
     async def drag_and_drop(
         self,
@@ -145,8 +146,7 @@ class MouseController:
         smooth_movement: bool = True,
         button: MouseButton = MouseButton.LEFT,
     ) -> Either[SecurityError, dict[str, Any]]:
-        """
-        Perform drag and drop operation with smooth movement.
+        """Perform drag and drop operation with smooth movement.
 
         Args:
             source: Starting coordinate for drag
@@ -157,10 +157,11 @@ class MouseController:
 
         Returns:
             Either security error or operation result with path information
+
         """
         try:
             logger.info(
-                f"Drag and drop from ({source.x}, {source.y}) to ({destination.x}, {destination.y})"
+                f"Drag and drop from ({source.x}, {source.y}) to ({destination.x}, {destination.y})",
             )
 
             # Create drag operation
@@ -206,31 +207,35 @@ class MouseController:
                 "smooth_movement": smooth_movement,
                 "button": button.value,
                 "execution_time_ms": execution_result.get_right().get(
-                    "execution_time_ms", 0
+                    "execution_time_ms",
+                    0,
                 ),
                 "event_id": drag_op.event_id,
                 "timestamp": datetime.now().isoformat(),
             }
 
             logger.info(
-                f"Drag and drop completed, distance: {drag_op.distance():.1f} pixels"
+                f"Drag and drop completed, distance: {drag_op.distance():.1f} pixels",
             )
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Error in drag and drop: {str(e)}")
+            logger.error(f"Error in drag and drop: {e!s}")
             return Either.left(
                 SecurityError(
-                    "MOUSE_DRAG_ERROR", f"Failed to execute drag and drop: {str(e)}"
-                )
+                    "MOUSE_DRAG_ERROR",
+                    f"Failed to execute drag and drop: {e!s}",
+                ),
             )
 
-    @require(lambda self, position: isinstance(position, Coordinate))
+    @require(lambda __self, position: isinstance(position, Coordinate))
     async def move_to_position(
-        self, position: Coordinate, duration_ms: int = 200, smooth_movement: bool = True
+        self,
+        position: Coordinate,
+        duration_ms: int = 200,
+        smooth_movement: bool = True,
     ) -> Either[SecurityError, dict[str, Any]]:
-        """
-        Move mouse cursor to specified position with optional smooth movement.
+        """Move mouse cursor to specified position with optional smooth movement.
 
         Args:
             position: Target coordinate for movement
@@ -239,6 +244,7 @@ class MouseController:
 
         Returns:
             Either security error or operation result with movement path
+
         """
         try:
             logger.info(f"Mouse move to ({position.x}, {position.y})")
@@ -255,7 +261,9 @@ class MouseController:
 
             # Execute mouse movement
             execution_result = await self._execute_mouse_movement(
-                position, duration_ms, smooth_movement
+                position,
+                duration_ms,
+                smooth_movement,
             )
             if execution_result.is_left():
                 return execution_result
@@ -276,7 +284,8 @@ class MouseController:
                 "smooth_movement": smooth_movement,
                 "distance_moved": distance,
                 "execution_time_ms": execution_result.get_right().get(
-                    "execution_time_ms", 0
+                    "execution_time_ms",
+                    0,
                 ),
                 "timestamp": datetime.now().isoformat(),
             }
@@ -285,14 +294,15 @@ class MouseController:
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Error in mouse movement: {str(e)}")
+            logger.error(f"Error in mouse movement: {e!s}")
             return Either.left(
                 SecurityError(
-                    "MOUSE_MOVE_ERROR", f"Failed to execute mouse movement: {str(e)}"
-                )
+                    "MOUSE_MOVE_ERROR",
+                    f"Failed to execute mouse movement: {e!s}",
+                ),
             )
 
-    @require(lambda self, position: isinstance(position, Coordinate))
+    @require(lambda __self, position: isinstance(position, Coordinate))
     async def scroll_at_position(
         self,
         position: Coordinate,
@@ -301,8 +311,7 @@ class MouseController:
         duration_ms: int = 200,
         smooth_scroll: bool = True,
     ) -> Either[SecurityError, dict[str, Any]]:
-        """
-        Perform scroll operation at specified position.
+        """Perform scroll operation at specified position.
 
         Args:
             position: Position to perform scroll
@@ -313,10 +322,11 @@ class MouseController:
 
         Returns:
             Either security error or operation result
+
         """
         try:
             logger.info(
-                f"Scroll {direction.value} at ({position.x}, {position.y}), amount: {amount}"
+                f"Scroll {direction.value} at ({position.x}, {position.y}), amount: {amount}",
             )
 
             # Validate position
@@ -352,7 +362,8 @@ class MouseController:
                 "duration_ms": duration_ms,
                 "smooth_scroll": smooth_scroll,
                 "execution_time_ms": execution_result.get_right().get(
-                    "execution_time_ms", 0
+                    "execution_time_ms",
+                    0,
                 ),
                 "event_id": scroll_event.event_id,
                 "timestamp": datetime.now().isoformat(),
@@ -362,16 +373,17 @@ class MouseController:
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Error in scroll operation: {str(e)}")
+            logger.error(f"Error in scroll operation: {e!s}")
             return Either.left(
                 SecurityError(
                     "MOUSE_SCROLL_ERROR",
-                    f"Failed to execute scroll operation: {str(e)}",
-                )
+                    f"Failed to execute scroll operation: {e!s}",
+                ),
             )
 
     def _validate_screen_position(
-        self, position: Coordinate
+        self,
+        position: Coordinate,
     ) -> Either[SecurityError, None]:
         """Validate position is within screen bounds."""
         if position.x < 0 or position.y < 0:
@@ -379,7 +391,7 @@ class MouseController:
                 SecurityError(
                     "NEGATIVE_COORDINATES",
                     f"Negative coordinates not allowed: ({position.x}, {position.y})",
-                )
+                ),
             )
 
         if position.x >= self.screen_width or position.y >= self.screen_height:
@@ -387,13 +399,14 @@ class MouseController:
                 SecurityError(
                     "POSITION_OUT_OF_BOUNDS",
                     f"Position ({position.x}, {position.y}) outside screen bounds ({self.screen_width}x{self.screen_height})",
-                )
+                ),
             )
 
         return Either.right(None)
 
     async def _execute_mouse_click(
-        self, mouse_event: MouseEvent
+        self,
+        mouse_event: MouseEvent,
     ) -> Either[IntegrationError, dict[str, Any]]:
         """Execute mouse click via AppleScript/Core Graphics."""
         try:
@@ -412,18 +425,20 @@ class MouseController:
                     "applescript_generated": True,
                     "execution_time_ms": execution_time,
                     "click_executed": True,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
                 IntegrationError(
-                    "CLICK_EXECUTION_ERROR", f"Failed to execute mouse click: {str(e)}"
-                )
+                    "CLICK_EXECUTION_ERROR",
+                    f"Failed to execute mouse click: {e!s}",
+                ),
             )
 
     async def _execute_drag_operation(
-        self, drag_op: DragOperation
+        self,
+        drag_op: DragOperation,
     ) -> Either[IntegrationError, dict[str, Any]]:
         """Execute drag and drop operation with smooth movement."""
         try:
@@ -431,7 +446,9 @@ class MouseController:
 
             # Generate movement path for smooth dragging
             path = self._generate_smooth_path(
-                drag_op.source, drag_op.destination, drag_op.duration_ms
+                drag_op.source,
+                drag_op.destination,
+                drag_op.duration_ms,
             )
 
             # Generate AppleScript for drag operation
@@ -455,19 +472,22 @@ class MouseController:
                     "execution_time_ms": execution_time,
                     "path_points": len(path),
                     "drag_executed": True,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
                 IntegrationError(
                     "DRAG_EXECUTION_ERROR",
-                    f"Failed to execute drag operation: {str(e)}",
-                )
+                    f"Failed to execute drag operation: {e!s}",
+                ),
             )
 
     async def _execute_mouse_movement(
-        self, position: Coordinate, duration_ms: int, smooth: bool
+        self,
+        position: Coordinate,
+        duration_ms: int,
+        smooth: bool,
     ) -> Either[IntegrationError, dict[str, Any]]:
         """Execute mouse movement with optional smooth animation."""
         try:
@@ -480,7 +500,9 @@ class MouseController:
             if smooth and self.last_position:
                 # Generate smooth path
                 path = self._generate_smooth_path(
-                    self.last_position, position, duration_ms
+                    self.last_position,
+                    position,
+                    duration_ms,
                 )
                 step_duration = duration_ms / len(path)
                 for _point in path:
@@ -495,19 +517,20 @@ class MouseController:
                     "applescript_generated": True,
                     "execution_time_ms": execution_time,
                     "movement_executed": True,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
                 IntegrationError(
                     "MOVE_EXECUTION_ERROR",
-                    f"Failed to execute mouse movement: {str(e)}",
-                )
+                    f"Failed to execute mouse movement: {e!s}",
+                ),
             )
 
     async def _execute_scroll_operation(
-        self, scroll_event: ScrollEvent
+        self,
+        scroll_event: ScrollEvent,
     ) -> Either[IntegrationError, dict[str, Any]]:
         """Execute scroll operation."""
         try:
@@ -526,25 +549,29 @@ class MouseController:
                     "applescript_generated": True,
                     "execution_time_ms": execution_time,
                     "scroll_executed": True,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
                 IntegrationError(
                     "SCROLL_EXECUTION_ERROR",
-                    f"Failed to execute scroll operation: {str(e)}",
-                )
+                    f"Failed to execute scroll operation: {e!s}",
+                ),
             )
 
     def _generate_smooth_path(
-        self, start: Coordinate, end: Coordinate, duration_ms: int
+        self,
+        start: Coordinate,
+        end: Coordinate,
+        duration_ms: int,
     ) -> list[Coordinate]:
         """Generate smooth movement path between two points."""
         # Calculate number of steps based on distance and duration
         distance = start.distance_to(end)
         steps = max(
-            10, min(int(distance / 5), int(duration_ms / 10))
+            10,
+            min(int(distance / 5), int(duration_ms / 10)),
         )  # 5-pixel steps or 10ms steps
 
         path = []
@@ -623,7 +650,10 @@ end tell
         return applescript
 
     def _generate_move_applescript(
-        self, position: Coordinate, duration_ms: int, smooth: bool
+        self,
+        position: Coordinate,
+        duration_ms: int,
+        smooth: bool,
     ) -> str:
         """Generate AppleScript for mouse movement."""
         x, y = position.x, position.y

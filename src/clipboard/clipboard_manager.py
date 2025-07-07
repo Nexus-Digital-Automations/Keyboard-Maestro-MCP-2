@@ -1,5 +1,4 @@
-"""
-Core Clipboard Operations with Security and Privacy Protection
+"""Core Clipboard Operations with Security and Privacy Protection.
 
 This module implements comprehensive clipboard management for Keyboard Maestro MCP,
 providing secure access to clipboard content, history, and format detection with
@@ -47,7 +46,6 @@ class ClipboardContent:
     @require(lambda self: self.size_bytes <= 100_000_000)  # 100MB limit
     def __post_init__(self):
         """Validate clipboard content constraints."""
-        pass
 
     def preview(self, max_length: int = 50) -> str:
         """Generate safe preview of clipboard content with privacy protection."""
@@ -62,18 +60,17 @@ class ClipboardContent:
             if len(content_str) > max_length:
                 return content_str[:max_length] + "..."
             return content_str
-        elif self.format == ClipboardFormat.IMAGE:
+        if self.format == ClipboardFormat.IMAGE:
             return f"[IMAGE - {self.size_bytes} bytes]"
-        elif self.format == ClipboardFormat.FILE:
+        if self.format == ClipboardFormat.FILE:
             return f"[FILE - {self.size_bytes} bytes]"
-        elif self.format == ClipboardFormat.URL:
+        if self.format == ClipboardFormat.URL:
             return (
                 f"[URL - {str(self.content)[:max_length]}...]"
                 if len(str(self.content)) > max_length
-                else f"[URL - {str(self.content)}]"
+                else f"[URL - {self.content!s}]"
             )
-        else:
-            return f"[{self.format.value.upper()} - {self.size_bytes} bytes]"
+        return f"[{self.format.value.upper()} - {self.size_bytes} bytes]"
 
     def is_empty(self) -> bool:
         """Check if clipboard content is empty."""
@@ -83,8 +80,7 @@ class ClipboardContent:
 
 
 class ClipboardManager:
-    """
-    Secure clipboard operations with history and format detection.
+    """Secure clipboard operations with history and format detection.
 
     Implements defensive programming patterns with comprehensive security
     validation, sensitive content detection, and memory management.
@@ -113,17 +109,18 @@ class ClipboardManager:
     @require(lambda content: len(content.encode("utf-8")) <= 100_000_000)
     @ensure(
         lambda result: result.is_right()
-        or result.get_left().code in ["SECURITY_ERROR", "SIZE_ERROR", "EXECUTION_ERROR"]
+        or result.get_left().code
+        in ["SECURITY_ERROR", "SIZE_ERROR", "EXECUTION_ERROR"],
     )
     async def set_clipboard(self, content: str) -> Either[KMError, bool]:
-        """
-        Set clipboard content with comprehensive security validation.
+        """Set clipboard content with comprehensive security validation.
 
         Args:
             content: Text content to set on clipboard
 
         Returns:
             Either success status or error details
+
         """
         try:
             # Validate content size
@@ -131,16 +128,16 @@ class ClipboardManager:
             if len(content_bytes) > self._max_content_size:
                 return Either.left(
                     KMError.validation_error(
-                        f"Content size {len(content_bytes)} exceeds maximum {self._max_content_size}"
-                    )
+                        f"Content size {len(content_bytes)} exceeds maximum {self._max_content_size}",
+                    ),
                 )
 
             # Detect sensitive content
             if self._detection_enabled and self._detect_sensitive_content(content):
                 return Either.left(
                     KMError.validation_error(
-                        "Potentially sensitive content detected. Use include_sensitive=True to override."
-                    )
+                        "Potentially sensitive content detected. Use include_sensitive=True to override.",
+                    ),
                 )
 
             # Set clipboard via AppleScript
@@ -149,24 +146,25 @@ class ClipboardManager:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to set clipboard: {str(e)}")
+                KMError.execution_error(f"Failed to set clipboard: {e!s}"),
             )
 
     @ensure(
         lambda result: result.is_right()
-        or result.get_left().code in ["ACCESS_ERROR", "EXECUTION_ERROR"]
+        or result.get_left().code in ["ACCESS_ERROR", "EXECUTION_ERROR"],
     )
     async def get_clipboard(
-        self, include_sensitive: bool = False
+        self,
+        include_sensitive: bool = False,
     ) -> Either[KMError, ClipboardContent]:
-        """
-        Get current clipboard content with format detection and security filtering.
+        """Get current clipboard content with format detection and security filtering.
 
         Args:
             include_sensitive: Whether to include potentially sensitive content
 
         Returns:
             Either clipboard content or error details
+
         """
         try:
             # Get clipboard content via AppleScript
@@ -207,15 +205,16 @@ class ClipboardManager:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to get clipboard: {str(e)}")
+                KMError.execution_error(f"Failed to get clipboard: {e!s}"),
             )
 
     @require(lambda index: index >= 0 and index < 200)
     async def get_history_item(
-        self, index: int, include_sensitive: bool = False
+        self,
+        index: int,
+        include_sensitive: bool = False,
     ) -> Either[KMError, ClipboardContent]:
-        """
-        Get item from clipboard history with bounds checking and security filtering.
+        """Get item from clipboard history with bounds checking and security filtering.
 
         Args:
             index: 0-based history position (0 = most recent)
@@ -223,6 +222,7 @@ class ClipboardManager:
 
         Returns:
             Either clipboard content or error details
+
         """
         try:
             # Get clipboard history via AppleScript
@@ -234,8 +234,8 @@ class ClipboardManager:
             if not content:
                 return Either.left(
                     KMError.not_found_error(
-                        f"No clipboard history item at index {index}"
-                    )
+                        f"No clipboard history item at index {index}",
+                    ),
                 )
 
             timestamp = time.time() - (index * 60)  # Estimate timestamp based on index
@@ -270,14 +270,15 @@ class ClipboardManager:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to get clipboard history: {str(e)}")
+                KMError.execution_error(f"Failed to get clipboard history: {e!s}"),
             )
 
     async def get_history_list(
-        self, count: int = 10, include_sensitive: bool = False
+        self,
+        count: int = 10,
+        include_sensitive: bool = False,
     ) -> Either[KMError, list[ClipboardContent]]:
-        """
-        Get list of clipboard history items.
+        """Get list of clipboard history items.
 
         Args:
             count: Number of items to retrieve (max 200)
@@ -285,6 +286,7 @@ class ClipboardManager:
 
         Returns:
             Either list of clipboard content or error details
+
         """
         count = min(count, self._max_history_size)
         history_items = []
@@ -303,14 +305,14 @@ class ClipboardManager:
         return Either.right(history_items)
 
     def _detect_sensitive_content(self, content: str) -> bool:
-        """
-        Detect potentially sensitive content using pattern matching.
+        """Detect potentially sensitive content using pattern matching.
 
         Args:
             content: Text content to analyze
 
         Returns:
             True if sensitive patterns detected
+
         """
         if not isinstance(content, str) or not content.strip():
             return False
@@ -335,14 +337,14 @@ class ClipboardManager:
         return False
 
     def _detect_format(self, content: Any) -> ClipboardFormat:
-        """
-        Detect clipboard content format.
+        """Detect clipboard content format.
 
         Args:
             content: Clipboard content to analyze
 
         Returns:
             Detected format type
+
         """
         if isinstance(content, bytes):
             # Check for image headers
@@ -359,9 +361,10 @@ class ClipboardManager:
                 return ClipboardFormat.URL
 
             # Check for file path patterns
-            if content.startswith("/") or content.startswith("file://"):
-                if Path(content.replace("file://", "")).exists():
-                    return ClipboardFormat.FILE
+            if (content.startswith("/") or content.startswith("file://")) and Path(
+                content.replace("file://", ""),
+            ).exists():
+                return ClipboardFormat.FILE
 
             # Default to text
             return ClipboardFormat.TEXT
@@ -374,12 +377,12 @@ class ClipboardManager:
             # Escape content for AppleScript
             escaped_content = self._escape_applescript_string(content)
 
-            script = f'''
+            script = f"""
             tell application "System Events"
                 set the clipboard to "{escaped_content}"
                 return "success"
             end tell
-            '''
+            """
 
             process = await asyncio.create_subprocess_exec(
                 "osascript",
@@ -394,7 +397,7 @@ class ClipboardManager:
             if process.returncode != 0:
                 error_msg = stderr.decode().strip() if stderr else "Unknown error"
                 return Either.left(
-                    KMError.execution_error(f"AppleScript failed: {error_msg}")
+                    KMError.execution_error(f"AppleScript failed: {error_msg}"),
                 )
 
             return Either.right(True)
@@ -403,7 +406,7 @@ class ClipboardManager:
             return Either.left(KMError.timeout_error(Duration.from_seconds(10)))
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to set clipboard: {str(e)}")
+                KMError.execution_error(f"Failed to set clipboard: {e!s}"),
             )
 
     async def _get_clipboard_applescript(self) -> Either[KMError, str]:
@@ -433,7 +436,7 @@ class ClipboardManager:
             if process.returncode != 0:
                 error_msg = stderr.decode().strip() if stderr else "Unknown error"
                 return Either.left(
-                    KMError.execution_error(f"AppleScript failed: {error_msg}")
+                    KMError.execution_error(f"AppleScript failed: {error_msg}"),
                 )
 
             output = stdout.decode().strip()
@@ -446,11 +449,12 @@ class ClipboardManager:
             return Either.left(KMError.timeout_error(Duration.from_seconds(10)))
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to get clipboard: {str(e)}")
+                KMError.execution_error(f"Failed to get clipboard: {e!s}"),
             )
 
     async def _get_clipboard_history_applescript(
-        self, index: int
+        self,
+        index: int,
     ) -> Either[KMError, str]:
         """Get clipboard history item via AppleScript."""
         try:
@@ -479,13 +483,13 @@ class ClipboardManager:
             if process.returncode != 0:
                 error_msg = stderr.decode().strip() if stderr else "Unknown error"
                 return Either.left(
-                    KMError.execution_error(f"AppleScript failed: {error_msg}")
+                    KMError.execution_error(f"AppleScript failed: {error_msg}"),
                 )
 
             output = stdout.decode().strip()
             if output.startswith("ERROR:"):
                 return Either.left(
-                    KMError.not_found_error(f"History item {index} not found")
+                    KMError.not_found_error(f"History item {index} not found"),
                 )
 
             return Either.right(output)
@@ -494,7 +498,7 @@ class ClipboardManager:
             return Either.left(KMError.timeout_error(Duration.from_seconds(10)))
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to get clipboard history: {str(e)}")
+                KMError.execution_error(f"Failed to get clipboard history: {e!s}"),
             )
 
     def _escape_applescript_string(self, text: str) -> str:

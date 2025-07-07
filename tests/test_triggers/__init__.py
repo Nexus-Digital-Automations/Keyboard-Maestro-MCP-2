@@ -1,3 +1,1 @@
-"""
-Tests for trigger management system.
-"""
+"""Tests for trigger management system."""

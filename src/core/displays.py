@@ -1,5 +1,4 @@
-"""
-Advanced display and multi-monitor type definitions for sophisticated window management.
+"""Advanced display and multi-monitor type definitions for sophisticated window management.
 
 This module provides comprehensive display detection, coordinate mathematics, and
 multi-monitor topology analysis for advanced window positioning and desktop
@@ -65,7 +64,6 @@ class DisplayInfo:
     @require(lambda self: len(self.name) > 0)
     def __post_init__(self):
         """Contract validation for display specification."""
-        pass
 
     def bounds(self) -> tuple[int, int, int, int]:
         """Get display bounds as (x, y, width, height)."""
@@ -111,7 +109,6 @@ class GridCell:
     @require(lambda self: self.padding >= 0)
     def __post_init__(self):
         """Contract validation for grid cell specification."""
-        pass
 
     def to_dict(self) -> dict[str, int]:
         """Convert to dictionary representation."""
@@ -140,7 +137,6 @@ class WindowLayout:
     @require(lambda self: self.global_padding >= 0)
     def __post_init__(self):
         """Contract validation for window layout specification."""
-        pass
 
     def get_window_count(self) -> int:
         """Get total number of windows in layout."""
@@ -158,11 +154,10 @@ class DisplayTopology:
 
     @require(lambda self: len(self.displays) > 0)
     @require(
-        lambda self: any(d.display_id == self.main_display_id for d in self.displays)
+        lambda self: any(d.display_id == self.main_display_id for d in self.displays),
     )
     def __post_init__(self):
         """Contract validation for display topology."""
-        pass
 
     def get_display_by_id(self, display_id: int) -> DisplayInfo | None:
         """Get display by ID."""
@@ -196,10 +191,10 @@ class DisplayTopology:
         """Calculate absolute position from relative coordinates."""
         # Convert relative position (0.0-1.0) to absolute coordinates
         target_x = int(
-            target_display.position[0] + relative_x * target_display.resolution[0]
+            target_display.position[0] + relative_x * target_display.resolution[0],
         )
         target_y = int(
-            target_display.position[1] + relative_y * target_display.resolution[1]
+            target_display.position[1] + relative_y * target_display.resolution[1],
         )
 
         return (target_x, target_y)
@@ -214,10 +209,10 @@ class DisplayManager:
         self._cache_ttl: float = 5.0  # 5 seconds cache TTL
 
     async def detect_displays(
-        self, force_refresh: bool = False
+        self,
+        force_refresh: bool = False,
     ) -> Either[WindowError, DisplayTopology]:
-        """
-        Detect and analyze all connected displays with intelligent caching.
+        """Detect and analyze all connected displays with intelligent caching.
 
         Architecture: Event-driven display detection with topology analysis
         Security: Bounds validation and coordinate system integrity
@@ -257,7 +252,7 @@ class DisplayManager:
             return Either.right(topology)
 
         except Exception as e:
-            return Either.left(WindowError(f"Display detection failed: {str(e)}"))
+            return Either.left(WindowError(f"Display detection failed: {e!s}"))
 
     async def _enumerate_system_displays(
         self,
@@ -291,10 +286,11 @@ class DisplayManager:
             return Either.right(displays)
 
         except Exception as e:
-            return Either.left(WindowError(f"Failed to enumerate displays: {str(e)}"))
+            return Either.left(WindowError(f"Failed to enumerate displays: {e!s}"))
 
     def _analyze_display_topology(
-        self, displays: list[DisplayInfo]
+        self,
+        displays: list[DisplayInfo],
     ) -> Either[WindowError, DisplayTopology]:
         """Analyze display arrangement and calculate topology."""
         try:
@@ -320,10 +316,11 @@ class DisplayManager:
             return Either.right(topology)
 
         except Exception as e:
-            return Either.left(WindowError(f"Topology analysis failed: {str(e)}"))
+            return Either.left(WindowError(f"Topology analysis failed: {e!s}"))
 
     def _determine_arrangement_pattern(
-        self, displays: list[DisplayInfo]
+        self,
+        displays: list[DisplayInfo],
     ) -> DisplayArrangement:
         """Determine the arrangement pattern of multiple displays."""
         if len(displays) == 1:
@@ -339,13 +336,13 @@ class DisplayManager:
 
         if horizontal_aligned:
             return DisplayArrangement.HORIZONTAL
-        elif vertical_aligned:
+        if vertical_aligned:
             return DisplayArrangement.VERTICAL
-        else:
-            return DisplayArrangement.CUSTOM
+        return DisplayArrangement.CUSTOM
 
     def _calculate_total_bounds(
-        self, displays: list[DisplayInfo]
+        self,
+        displays: list[DisplayInfo],
     ) -> tuple[int, int, int, int]:
         """Calculate the total bounding rectangle for all displays."""
         if not displays:
@@ -378,5 +375,4 @@ def get_grid_dimensions(pattern: WindowGridPattern) -> tuple[int, int]:
     if pattern in GRID_PATTERN_SPECS:
         spec = GRID_PATTERN_SPECS[pattern]
         return (spec["rows"], spec["columns"])
-    else:
-        return (2, 2)  # Default fallback
+    return (2, 2)  # Default fallback

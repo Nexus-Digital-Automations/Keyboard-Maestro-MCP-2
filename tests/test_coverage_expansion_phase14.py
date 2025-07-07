@@ -1,21 +1,26 @@
-"""
-Phase 14 Micro-Module & Advanced Integration Test Coverage Expansion for Keyboard Maestro MCP.
+"""Phase 14 Micro-Module & Advanced Integration Test Coverage Expansion for Keyboard Maestro MCP.
 
 This module targets micro-modules and advanced integration patterns with optimal impact for coverage expansion,
 focusing on utility modules (150-200 lines), helper functions, integration connectors, and advanced system patterns
 for maximum coverage gain toward the 95% target.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 import sys
 from pathlib import Path
 
 import pytest
 
+logger = logging.getLogger(__name__)
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def test_server_utils_systematic_import():
+def test_server_utils_systematic_import() -> None:
     """Test import of server utils (42 lines - server utility infrastructure)."""
     try:
         from src import server_utils
@@ -27,30 +32,27 @@ def test_server_utils_systematic_import():
             try:
                 config = server_utils.get_server_config()
                 assert config is not None or config == {}
-            except Exception:
-                pass  # Method may require configuration
-
+            except (OSError, FileNotFoundError, PermissionError) as e:
+                logger.debug(f"File operation failed during operation: {e}")
         # Test server status utilities if available
         if hasattr(server_utils, "check_server_status"):
             try:
                 status = server_utils.check_server_status()
                 assert status is not None or isinstance(status, bool)
-            except Exception:
-                pass  # Method may require server connection
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test utility helpers if available
         if hasattr(server_utils, "format_response"):
             try:
                 result = server_utils.format_response({"test": "data"})
                 assert result is not None or isinstance(result, dict)
-            except Exception:
-                pass  # Method may require response formatting rules
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Server utils import failed: {e}")
 
 
-def test_server_backup_systematic_import():
+def test_server_backup_systematic_import() -> None:
     """Test import of server backup (87 lines - backup infrastructure)."""
     try:
         from src import server_backup
@@ -62,30 +64,27 @@ def test_server_backup_systematic_import():
             try:
                 result = server_backup.create_backup("test_config")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require backup configuration
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test backup restoration if available
         if hasattr(server_backup, "restore_backup"):
             try:
                 result = server_backup.restore_backup("backup_id")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require backup files
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test backup validation if available
         if hasattr(server_backup, "validate_backup"):
             try:
                 result = server_backup.validate_backup("backup_path")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require backup validation rules
-
+            except (OSError, FileNotFoundError, PermissionError) as e:
+                logger.debug(f"File operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Server backup import failed: {e}")
 
 
-def test_server_modular_systematic_import():
+def test_server_modular_systematic_import() -> None:
     """Test import of server modular (65 lines - modular infrastructure)."""
     try:
         from src import server_modular
@@ -97,30 +96,27 @@ def test_server_modular_systematic_import():
             try:
                 result = server_modular.load_module("test_module")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require module files
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test module management if available
         if hasattr(server_modular, "get_loaded_modules"):
             try:
                 modules = server_modular.get_loaded_modules()
                 assert modules is not None or modules == []
-            except Exception:
-                pass  # Method may require module registry
-
+            except (OSError, FileNotFoundError, PermissionError) as e:
+                logger.debug(f"File operation failed during operation: {e}")
         # Test module validation if available
         if hasattr(server_modular, "validate_module"):
             try:
                 result = server_modular.validate_module("module_name")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require module definition
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Server modular import failed: {e}")
 
 
-def test_tools_base_systematic_import():
+def test_tools_base_systematic_import() -> None:
     """Test import of tools base (23 lines - tools base infrastructure)."""
     try:
         from src.tools import base
@@ -132,30 +128,27 @@ def test_tools_base_systematic_import():
             try:
                 tool = base.BaseTool()
                 assert tool is not None
-            except Exception:
-                pass  # Skip if instantiation requires parameters
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test tool registration if available
         if hasattr(base, "register_tool"):
             try:
                 result = base.register_tool("test_tool", {})
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require tool definition
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test tool validation if available
         if hasattr(base, "validate_tool"):
             try:
                 result = base.validate_tool("tool_spec")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require tool schema
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Tools base import failed: {e}")
 
 
-def test_tools_extended_systematic_import():
+def test_tools_extended_systematic_import() -> None:
     """Test import of tools extended (24 lines - extended tools infrastructure)."""
     try:
         from src.tools import extended_tools
@@ -167,30 +160,27 @@ def test_tools_extended_systematic_import():
             try:
                 tool = extended_tools.ExtendedTool()
                 assert tool is not None
-            except Exception:
-                pass  # Skip if instantiation requires parameters
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test extended capabilities if available
         if hasattr(extended_tools, "get_extended_capabilities"):
             try:
                 caps = extended_tools.get_extended_capabilities()
                 assert caps is not None or caps == []
-            except Exception:
-                pass  # Method may require capability registry
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test tool extension if available
         if hasattr(extended_tools, "extend_tool"):
             try:
                 result = extended_tools.extend_tool("base_tool", {"extensions": []})
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require extension rules
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Tools extended import failed: {e}")
 
 
-def test_tools_advanced_ai_systematic_import():
+def test_tools_advanced_ai_systematic_import() -> None:
     """Test import of tools advanced AI (14 lines - advanced AI tools infrastructure)."""
     try:
         from src.tools import advanced_ai_tools
@@ -202,30 +192,27 @@ def test_tools_advanced_ai_systematic_import():
             try:
                 tool = advanced_ai_tools.AdvancedAITool()
                 assert tool is not None
-            except Exception:
-                pass  # Skip if instantiation requires AI configuration
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test AI processing if available
         if hasattr(advanced_ai_tools, "process_with_ai"):
             try:
                 result = advanced_ai_tools.process_with_ai("input_data")
                 assert result is not None or isinstance(result, str)
-            except Exception:
-                pass  # Method may require AI model
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test AI capabilities if available
         if hasattr(advanced_ai_tools, "get_ai_capabilities"):
             try:
                 caps = advanced_ai_tools.get_ai_capabilities()
                 assert caps is not None or caps == []
-            except Exception:
-                pass  # Method may require AI registry
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Tools advanced AI import failed: {e}")
 
 
-def test_windows_window_manager_systematic_import():
+def test_windows_window_manager_systematic_import() -> None:
     """Test import of windows window manager (381 lines - window management infrastructure)."""
     try:
         from src.windows import window_manager
@@ -237,38 +224,34 @@ def test_windows_window_manager_systematic_import():
             try:
                 manager = window_manager.WindowManager()
                 assert manager is not None
-            except Exception:
-                pass  # Skip if instantiation requires window system
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test window management functionality if available
         if hasattr(window_manager, "get_active_window"):
             try:
                 window = window_manager.get_active_window()
                 assert window is not None or window == {}
-            except Exception:
-                pass  # Method may require window system access
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test window operations if available
         if hasattr(window_manager, "set_window_position"):
             try:
                 result = window_manager.set_window_position("window_id", 100, 100)
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require window system access
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test window listing if available
         if hasattr(window_manager, "list_windows"):
             try:
                 windows = window_manager.list_windows()
                 assert windows is not None or windows == []
-            except Exception:
-                pass  # Method may require window enumeration
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Windows window manager import failed: {e}")
 
 
-def test_triggers_hotkey_manager_systematic_import():
+def test_triggers_hotkey_manager_systematic_import() -> None:
     """Test import of triggers hotkey manager (228 lines - hotkey management infrastructure)."""
     try:
         from src.triggers import hotkey_manager
@@ -280,38 +263,34 @@ def test_triggers_hotkey_manager_systematic_import():
             try:
                 manager = hotkey_manager.HotkeyManager()
                 assert manager is not None
-            except Exception:
-                pass  # Skip if instantiation requires hotkey system
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test hotkey registration if available
         if hasattr(hotkey_manager, "register_hotkey"):
             try:
                 result = hotkey_manager.register_hotkey("ctrl+alt+t", "action_id")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require hotkey system access
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test hotkey validation if available
         if hasattr(hotkey_manager, "validate_hotkey"):
             try:
                 result = hotkey_manager.validate_hotkey("ctrl+shift+a")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require hotkey validation rules
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test hotkey management if available
         if hasattr(hotkey_manager, "list_hotkeys"):
             try:
                 hotkeys = hotkey_manager.list_hotkeys()
                 assert hotkeys is not None or hotkeys == []
-            except Exception:
-                pass  # Method may require hotkey registry
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Triggers hotkey manager import failed: {e}")
 
 
-def test_tokens_integration_systematic_import():
+def test_tokens_integration_systematic_import() -> None:
     """Test import of tokens integration (70 lines - token integration infrastructure)."""
     try:
         from src.tokens import km_token_integration
@@ -323,38 +302,34 @@ def test_tokens_integration_systematic_import():
             try:
                 integration = km_token_integration.TokenIntegration()
                 assert integration is not None
-            except Exception:
-                pass  # Skip if instantiation requires token configuration
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test token processing if available
         if hasattr(km_token_integration, "process_token"):
             try:
                 result = km_token_integration.process_token("test_token")
                 assert result is not None or result == {}
-            except Exception:
-                pass  # Method may require token validation
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test token validation if available
         if hasattr(km_token_integration, "validate_token"):
             try:
                 result = km_token_integration.validate_token("token_value")
                 assert result is not None or isinstance(result, bool)
-            except Exception:
-                pass  # Method may require token schema
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test token management if available
         if hasattr(km_token_integration, "get_token_info"):
             try:
                 info = km_token_integration.get_token_info("token_id")
                 assert info is not None or info == {}
-            except Exception:
-                pass  # Method may require token registry
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Tokens KM integration import failed: {e}")
 
 
-def test_tokens_processor_systematic_import():
+def test_tokens_processor_systematic_import() -> None:
     """Test import of tokens processor (241 lines - token processing infrastructure)."""
     try:
         from src.tokens import token_processor
@@ -366,40 +341,35 @@ def test_tokens_processor_systematic_import():
             try:
                 processor = token_processor.TokenProcessor()
                 assert processor is not None
-            except Exception:
-                pass  # Skip if instantiation requires token configuration
-
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.debug(f"Import failed during operation: {e}")
         # Test token processing functionality if available
         if hasattr(token_processor, "process_tokens"):
             try:
                 result = token_processor.process_tokens(["token1", "token2"])
                 assert result is not None or result == []
-            except Exception:
-                pass  # Method may require token processing rules
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test token parsing if available
         if hasattr(token_processor, "parse_token"):
             try:
                 result = token_processor.parse_token("token_string")
                 assert result is not None or result == {}
-            except Exception:
-                pass  # Method may require token parsing rules
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
         # Test token transformation if available
         if hasattr(token_processor, "transform_token"):
             try:
                 result = token_processor.transform_token("input_token", "target_format")
                 assert result is not None or isinstance(result, str)
-            except Exception:
-                pass  # Method may require transformation rules
-
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
     except ImportError as e:
         pytest.skip(f"Tokens processor import failed: {e}")
 
 
-def test_micro_module_integration():
+def test_micro_module_integration() -> None:
     """Test comprehensive integration across micro-modules and utilities."""
-
     # Test micro-module integration
     micro_modules = [
         ("", "server_utils"),
@@ -415,7 +385,8 @@ def test_micro_module_integration():
         try:
             if package:
                 module = __import__(
-                    f"src.{package}.{module_name}", fromlist=[module_name]
+                    f"src.{package}.{module_name}",
+                    fromlist=[module_name],
                 )
             else:
                 module = __import__(f"src.{module_name}", fromlist=[module_name])
@@ -449,9 +420,9 @@ def test_micro_module_integration():
                                 if hasattr(instance, method):
                                     assert callable(getattr(instance, method))
 
-                        except Exception:
-                            continue  # Skip if instantiation fails
-
+                        except Exception as e:
+                            logger.debug(f"Operation failed during operation: {e}")
+                            continue
         except ImportError:
             continue
 
@@ -459,9 +430,8 @@ def test_micro_module_integration():
     assert micro_imports >= 2, f"Only {micro_imports} micro-modules imported"
 
 
-def test_advanced_micro_module_data_processing():
+def test_advanced_micro_module_data_processing() -> None:
     """Test advanced data processing patterns for micro-modules."""
-
     # Test micro-module data processing scenarios
     micro_data = {
         "server_utilities": {
@@ -610,7 +580,7 @@ def test_advanced_micro_module_data_processing():
     assert total_uses == 236
 
 
-def test_micro_module_async_functionality():
+def test_micro_module_async_functionality() -> bool:
     """Test async functionality patterns for micro-modules."""
 
     @pytest.mark.asyncio
@@ -709,9 +679,8 @@ def test_micro_module_async_functionality():
     assert result is True
 
 
-def test_micro_module_configuration_patterns():
+def test_micro_module_configuration_patterns() -> None:
     """Test configuration patterns for micro-modules."""
-
     # Test micro-module configuration scenarios
     micro_config = {
         "server_utilities": {
@@ -800,9 +769,8 @@ def test_micro_module_configuration_patterns():
     assert token_config["max_concurrent_tokens"] == 100
 
 
-def test_utility_integration_patterns():
+def test_utility_integration_patterns() -> None:
     """Test advanced utility integration patterns."""
-
     # Test utility integration scenarios
     utility_patterns = {
         "cross_module_integration": {
@@ -863,7 +831,7 @@ def test_utility_integration_patterns():
     # Test performance pattern analysis
     performance_data = utility_patterns["utility_performance"]
     avg_server_response = sum(performance_data["server_response_times"]) / len(
-        performance_data["server_response_times"]
+        performance_data["server_response_times"],
     )
     assert 25 <= avg_server_response <= 35
 

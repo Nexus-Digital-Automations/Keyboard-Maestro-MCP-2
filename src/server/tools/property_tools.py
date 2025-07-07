@@ -1,5 +1,4 @@
-"""
-Property management tools for Keyboard Maestro macros.
+"""Property management tools for Keyboard Maestro macros.
 
 Provides tools to get and update macro properties including name, enabled state,
 color coding, notes, and other metadata.
@@ -34,8 +33,7 @@ async def km_manage_macro_properties(
     ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Get or update properties of a Keyboard Maestro macro.
+    """Get or update properties of a Keyboard Maestro macro.
 
     Available properties for update:
     - name: New macro name (1-255 characters)
@@ -51,7 +49,7 @@ async def km_manage_macro_properties(
     """
     if ctx:
         await ctx.info(
-            f"Managing macro properties: operation={operation}, macro={macro_id}"
+            f"Managing macro properties: operation={operation}, macro={macro_id}",
         )
 
     try:
@@ -63,7 +61,8 @@ async def km_manage_macro_properties(
 
         # Check connection
         connection_test = await asyncio.get_event_loop().run_in_executor(
-            None, km_client.check_connection
+            None,
+            km_client.check_connection,
         )
 
         if connection_test.is_left() or not connection_test.get_right():
@@ -82,14 +81,13 @@ async def km_manage_macro_properties(
         if operation == "get":
             # Get macro properties
             return await _get_macro_properties(km_client, macro_id, ctx)
-        else:
-            # Update macro properties
-            return await _update_macro_properties(km_client, macro_id, properties, ctx)
+        # Update macro properties
+        return await _update_macro_properties(km_client, macro_id, properties, ctx)
 
     except Exception as e:
         logger.error(f"Error managing macro properties: {e}")
         if ctx:
-            await ctx.error(f"Property management failed: {str(e)}")
+            await ctx.error(f"Property management failed: {e!s}")
 
         return {
             "success": False,
@@ -103,7 +101,9 @@ async def km_manage_macro_properties(
 
 
 async def _get_macro_properties(
-    km_client, macro_id: str, ctx: Context = None
+    km_client,
+    macro_id: str,
+    ctx: Context = None,
 ) -> dict[str, Any]:
     """Get properties for a specific macro."""
     if ctx:
@@ -160,7 +160,7 @@ async def _get_macro_properties(
     properties["has_triggers"] = properties["trigger_count"] > 0
     properties["is_complex"] = properties["action_count"] > 10
     properties["recently_modified"] = _is_recently_modified(
-        properties["modification_date"]
+        properties["modification_date"],
     )
 
     if ctx:
@@ -178,7 +178,10 @@ async def _get_macro_properties(
 
 
 async def _update_macro_properties(
-    km_client, macro_id: str, properties: dict[str, Any], ctx: Context = None
+    km_client,
+    macro_id: str,
+    properties: dict[str, Any],
+    ctx: Context = None,
 ) -> dict[str, Any]:
     """Update properties for a specific macro."""
     if ctx:
@@ -256,6 +259,6 @@ def _is_recently_modified(modification_date: str) -> bool:
         # Parse the date (format may vary)
         # This is a simplified check
         return "2024" in modification_date or "2025" in modification_date
-    except (Exception) as e:
+    except Exception as e:
         logger.debug(f"Operation failed during operation: {e}")
         return False

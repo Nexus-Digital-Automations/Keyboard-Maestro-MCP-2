@@ -1,5 +1,4 @@
-"""
-Natural language processing for intelligent workflow creation and analysis.
+"""Natural language processing for intelligent workflow creation and analysis.
 
 This module provides comprehensive NLP capabilities for workflow intelligence including:
 - Intent recognition from natural language descriptions
@@ -135,7 +134,6 @@ class NLPProcessor:
 
     def _initialize_intent_patterns(self) -> dict[IntentType, list[str]]:
         """Initialize regex patterns for intent recognition."""
-
         return {
             IntentType.AUTOMATION: [
                 r"\b(automat[ie]|when.*then|every.*do|trigger|run automatically)\b",
@@ -191,7 +189,6 @@ class NLPProcessor:
 
     def _initialize_action_patterns(self) -> dict[ActionIntent, list[str]]:
         """Initialize action intent patterns."""
-
         return {
             ActionIntent.CREATE: [r"\b(create|make|generate|build|add|new)\b"],
             ActionIntent.READ: [r"\b(read|get|fetch|retrieve|find|search)\b"],
@@ -211,7 +208,6 @@ class NLPProcessor:
 
     def _initialize_entity_patterns(self) -> dict[str, str]:
         """Initialize entity extraction patterns."""
-
         return {
             "time": r"\b(\d{1,2}:\d{2}|\d{1,2}\s*(am|pm)|morning|afternoon|evening|night)\b",
             "duration": r"\b(\d+\s*(minutes?|hours?|days?|weeks?|months?))\b",
@@ -227,7 +223,6 @@ class NLPProcessor:
 
     def _initialize_tool_mapping(self) -> dict[IntentType, list[str]]:
         """Initialize mapping of intents to relevant tools."""
-
         return {
             IntentType.AUTOMATION: [
                 "km_create_macro",
@@ -255,7 +250,6 @@ class NLPProcessor:
 
     def _initialize_templates(self) -> dict[str, dict[str, Any]]:
         """Initialize workflow templates for matching."""
-
         return {
             "email_automation": {
                 "name": "Email Automation",
@@ -295,10 +289,10 @@ class NLPProcessor:
 
     @require(lambda description: len(description.strip()) >= 10)
     async def recognize_intent(
-        self, description: str
+        self,
+        description: str,
     ) -> Either[OrchestrationError, IntentRecognition]:
         """Recognize intent from natural language workflow description."""
-
         try:
             description_lower = description.lower()
 
@@ -316,13 +310,15 @@ class NLPProcessor:
             if not intent_scores:
                 return Either.left(
                     OrchestrationError.workflow_execution_failed(
-                        "No clear intent recognized in description"
-                    )
+                        "No clear intent recognized in description",
+                    ),
                 )
 
             # Determine primary and secondary intents
             sorted_intents = sorted(
-                intent_scores.items(), key=lambda x: x[1], reverse=True
+                intent_scores.items(),
+                key=lambda x: x[1],
+                reverse=True,
             )
             primary_intent = sorted_intents[0][0]
             secondary_intents = [
@@ -356,10 +352,14 @@ class NLPProcessor:
 
             # Determine complexity and estimate steps
             complexity_level = self._assess_complexity(
-                description, action_intents, entities
+                description,
+                action_intents,
+                entities,
             )
             estimated_steps = self._estimate_steps(
-                action_intents, entities, complexity_level
+                action_intents,
+                entities,
+                complexity_level,
             )
 
             # Calculate overall confidence
@@ -387,13 +387,12 @@ class NLPProcessor:
         except Exception as e:
             return Either.left(
                 OrchestrationError.workflow_execution_failed(
-                    f"Intent recognition failed: {e}"
-                )
+                    f"Intent recognition failed: {e}",
+                ),
             )
 
     def _extract_keywords(self, description: str) -> list[str]:
         """Extract important keywords from description."""
-
         # Remove common words
         stop_words = {
             "a",
@@ -482,7 +481,6 @@ class NLPProcessor:
         entities: dict[str, list[str]],
     ) -> str:
         """Assess workflow complexity based on description elements."""
-
         complexity_indicators = 0
 
         # Count action intents
@@ -525,10 +523,9 @@ class NLPProcessor:
         # Determine complexity level
         if complexity_indicators <= 2:
             return "simple"
-        elif complexity_indicators <= 5:
+        if complexity_indicators <= 5:
             return "intermediate"
-        else:
-            return "advanced"
+        return "advanced"
 
     def _estimate_steps(
         self,
@@ -537,7 +534,6 @@ class NLPProcessor:
         complexity: str,
     ) -> int:
         """Estimate number of workflow steps."""
-
         base_steps = len(action_intents) or 1
 
         # Add steps for complexity

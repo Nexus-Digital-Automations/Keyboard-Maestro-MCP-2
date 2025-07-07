@@ -1,5 +1,4 @@
-"""
-Comprehensive Test Suite for Hotkey Tools - Following Proven MCP Tool Test Pattern
+"""Comprehensive Test Suite for Hotkey Tools - Following Proven MCP Tool Test Pattern.
 
 This test suite validates the Hotkey Tools functionality using the systematic
 testing approach that achieved 100% success rate across 14 tool suites.
@@ -29,6 +28,9 @@ Key Mocking Pattern:
 - HotkeySpec: Mock hotkey specification creation and validation
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -55,7 +57,7 @@ from src.triggers.hotkey_manager import HotkeyManager
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context():
+def mock_context() -> Any:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -69,7 +71,7 @@ def mock_context():
 
 
 @pytest.fixture
-def mock_hotkey_manager():
+def mock_hotkey_manager() -> Any:
     """Create mock HotkeyManager with standard interface."""
     manager = Mock(spec=HotkeyManager)
     manager.detect_conflicts = AsyncMock()
@@ -98,7 +100,7 @@ def mock_hotkey_manager():
     mock_hotkey_spec.allow_repeat = False
 
     manager.get_registered_hotkeys.return_value = {
-        "cmd+n": ("macro-123", mock_hotkey_spec)
+        "cmd+n": ("macro-123", mock_hotkey_spec),
     }
 
     # Setup alternatives
@@ -108,21 +110,21 @@ def mock_hotkey_manager():
 
 
 @pytest.fixture
-def mock_km_client():
+def mock_km_client() -> Any:
     """Create mock KMClient with standard interface."""
     client = Mock(spec=KMClient)
     return client
 
 
 @pytest.fixture
-def mock_trigger_manager():
+def mock_trigger_manager() -> Any:
     """Create mock TriggerRegistrationManager with standard interface."""
     manager = Mock(spec=TriggerRegistrationManager)
     return manager
 
 
 @pytest.fixture
-def mock_hotkey_spec():
+def mock_hotkey_spec() -> Any:
     """Create mock HotkeySpec with standard interface."""
     spec = Mock()
     spec.to_display_string.return_value = "Cmd+N"
@@ -147,7 +149,7 @@ class TestHotkeyTriggerCreation:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test successful hotkey trigger creation."""
         with (
             patch(
@@ -155,7 +157,8 @@ class TestHotkeyTriggerCreation:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -167,7 +170,10 @@ class TestHotkeyTriggerCreation:
             ),
         ):
             result = await km_create_hotkey_trigger(
-                macro_id="test-macro-123", key="n", modifiers=["cmd"], ctx=mock_context
+                macro_id="test-macro-123",
+                key="n",
+                modifiers=["cmd"],
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -184,7 +190,7 @@ class TestHotkeyTriggerCreation:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test hotkey creation with multiple modifiers."""
         with (
             patch(
@@ -192,7 +198,8 @@ class TestHotkeyTriggerCreation:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -224,7 +231,7 @@ class TestHotkeyTriggerCreation:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test hotkey creation with special keys."""
         special_keys = ["space", "tab", "f1", "escape", "enter"]
 
@@ -234,7 +241,8 @@ class TestHotkeyTriggerCreation:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -264,7 +272,7 @@ class TestHotkeyTriggerCreation:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test different activation modes."""
         activation_modes = ["pressed", "released", "tapped", "held"]
 
@@ -274,7 +282,8 @@ class TestHotkeyTriggerCreation:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -307,7 +316,7 @@ class TestHotkeyTriggerCreation:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test different tap counts."""
         tap_counts = [1, 2, 3, 4]
 
@@ -317,7 +326,8 @@ class TestHotkeyTriggerCreation:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -348,7 +358,7 @@ class TestHotkeyTriggerCreation:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test allow_repeat option."""
         with (
             patch(
@@ -356,7 +366,8 @@ class TestHotkeyTriggerCreation:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -391,7 +402,7 @@ class TestHotkeyConflictDetection:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test conflict detection when conflicts exist."""
         # Setup conflict detection to return conflicts
         mock_conflict = Mock()
@@ -408,7 +419,8 @@ class TestHotkeyConflictDetection:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -441,7 +453,7 @@ class TestHotkeyConflictDetection:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test conflict detection with alternative suggestions."""
         # Setup conflict
         mock_conflict = Mock()
@@ -468,7 +480,8 @@ class TestHotkeyConflictDetection:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -502,7 +515,7 @@ class TestHotkeyConflictDetection:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test hotkey creation with conflict detection disabled."""
         with (
             patch(
@@ -510,7 +523,8 @@ class TestHotkeyConflictDetection:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -540,12 +554,17 @@ class TestHotkeyListing:
 
     @pytest.mark.asyncio
     async def test_list_all_hotkeys(
-        self, mock_context, mock_hotkey_manager, mock_km_client, mock_trigger_manager
-    ):
+        self,
+        mock_context,
+        mock_hotkey_manager,
+        mock_km_client,
+        mock_trigger_manager,
+    ) -> None:
         """Test listing all registered hotkeys."""
         with (
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -566,12 +585,17 @@ class TestHotkeyListing:
 
     @pytest.mark.asyncio
     async def test_list_hotkeys_filtered_by_macro(
-        self, mock_context, mock_hotkey_manager, mock_km_client, mock_trigger_manager
-    ):
+        self,
+        mock_context,
+        mock_hotkey_manager,
+        mock_km_client,
+        mock_trigger_manager,
+    ) -> None:
         """Test listing hotkeys filtered by macro ID."""
         with (
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -583,7 +607,8 @@ class TestHotkeyListing:
             ),
         ):
             result = await km_list_hotkey_triggers(
-                macro_id="macro-123", ctx=mock_context
+                macro_id="macro-123",
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -592,8 +617,12 @@ class TestHotkeyListing:
 
     @pytest.mark.asyncio
     async def test_list_hotkeys_with_conflicts(
-        self, mock_context, mock_hotkey_manager, mock_km_client, mock_trigger_manager
-    ):
+        self,
+        mock_context,
+        mock_hotkey_manager,
+        mock_km_client,
+        mock_trigger_manager,
+    ) -> None:
         """Test listing hotkeys with conflict information."""
         # Setup conflict for listing
         mock_conflict = Mock()
@@ -604,7 +633,8 @@ class TestHotkeyListing:
 
         with (
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -616,7 +646,8 @@ class TestHotkeyListing:
             ),
         ):
             result = await km_list_hotkey_triggers(
-                include_conflicts=True, ctx=mock_context
+                include_conflicts=True,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -630,7 +661,7 @@ class TestHotkeyToolsErrorHandling:
     """Test hotkey tools error handling scenarios."""
 
     @pytest.mark.asyncio
-    async def test_invalid_hotkey_specification_error(self, mock_context):
+    async def test_invalid_hotkey_specification_error(self, mock_context) -> None:
         """Test handling of invalid hotkey specification."""
         with patch(
             "src.server.tools.hotkey_tools.create_hotkey_spec",
@@ -648,14 +679,17 @@ class TestHotkeyToolsErrorHandling:
             assert "Invalid hotkey specification" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_security_violation_error(self, mock_context):
+    async def test_security_violation_error(self, mock_context) -> None:
         """Test handling of security violations."""
         with patch(
             "src.server.tools.hotkey_tools.create_hotkey_spec",
             side_effect=SecurityViolationError("injection", "detected malicious input"),
         ):
             result = await km_create_hotkey_trigger(
-                macro_id="test-macro-123", key="n", modifiers=["cmd"], ctx=mock_context
+                macro_id="test-macro-123",
+                key="n",
+                modifiers=["cmd"],
+                ctx=mock_context,
             )
 
             assert result["success"] is False
@@ -669,7 +703,7 @@ class TestHotkeyToolsErrorHandling:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test handling of HotkeyManager error responses."""
         # Configure mock to return error
         error_result = Mock()
@@ -688,7 +722,8 @@ class TestHotkeyToolsErrorHandling:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -700,7 +735,10 @@ class TestHotkeyToolsErrorHandling:
             ),
         ):
             result = await km_create_hotkey_trigger(
-                macro_id="test-macro-123", key="n", modifiers=["cmd"], ctx=mock_context
+                macro_id="test-macro-123",
+                key="n",
+                modifiers=["cmd"],
+                ctx=mock_context,
             )
 
             assert result["success"] is False
@@ -708,14 +746,17 @@ class TestHotkeyToolsErrorHandling:
             assert result["error"]["message"] == "Failed to create trigger"
 
     @pytest.mark.asyncio
-    async def test_general_exception_handling(self, mock_context):
+    async def test_general_exception_handling(self, mock_context) -> None:
         """Test general exception handling."""
         with patch(
             "src.server.tools.hotkey_tools.create_hotkey_spec",
             side_effect=Exception("Unexpected error"),
         ):
             result = await km_create_hotkey_trigger(
-                macro_id="test-macro-123", key="n", modifiers=["cmd"], ctx=mock_context
+                macro_id="test-macro-123",
+                key="n",
+                modifiers=["cmd"],
+                ctx=mock_context,
             )
 
             assert result["success"] is False
@@ -723,7 +764,7 @@ class TestHotkeyToolsErrorHandling:
             assert "Unexpected error" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_list_hotkeys_exception_handling(self, mock_context):
+    async def test_list_hotkeys_exception_handling(self, mock_context) -> None:
         """Test exception handling in list hotkeys."""
         with patch(
             "src.server.tools.hotkey_tools.KMClient",
@@ -748,7 +789,7 @@ class TestHotkeyToolsSecurity:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test macro ID input sanitization."""
         with (
             patch(
@@ -756,7 +797,8 @@ class TestHotkeyToolsSecurity:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -787,7 +829,7 @@ class TestHotkeyToolsSecurity:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test key input sanitization."""
         with (
             patch(
@@ -795,7 +837,8 @@ class TestHotkeyToolsSecurity:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -808,7 +851,10 @@ class TestHotkeyToolsSecurity:
         ):
             # Test with uppercase key
             result = await km_create_hotkey_trigger(
-                macro_id="test-macro-123", key="N", modifiers=["cmd"], ctx=mock_context
+                macro_id="test-macro-123",
+                key="N",
+                modifiers=["cmd"],
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -822,7 +868,7 @@ class TestHotkeyToolsSecurity:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test modifier input sanitization."""
         with (
             patch(
@@ -830,7 +876,8 @@ class TestHotkeyToolsSecurity:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -853,7 +900,7 @@ class TestHotkeyToolsSecurity:
             # Verify modifiers were sanitized (empty/whitespace removed, lowercased)
 
     @pytest.mark.asyncio
-    async def test_injection_prevention_macro_id(self, mock_context):
+    async def test_injection_prevention_macro_id(self, mock_context) -> None:
         """Test prevention of injection in macro ID."""
         malicious_ids = [
             "macro'; DROP TABLE macros; --",
@@ -868,11 +915,15 @@ class TestHotkeyToolsSecurity:
             with patch(
                 "src.server.tools.hotkey_tools.create_hotkey_spec",
                 side_effect=SecurityViolationError(
-                    "injection", "detected injection attempt"
+                    "injection",
+                    "detected injection attempt",
                 ),
             ):
                 result = await km_create_hotkey_trigger(
-                    macro_id=malicious_id, key="n", modifiers=["cmd"], ctx=mock_context
+                    macro_id=malicious_id,
+                    key="n",
+                    modifiers=["cmd"],
+                    ctx=mock_context,
                 )
 
                 assert result["success"] is False
@@ -891,7 +942,7 @@ class TestHotkeyToolsIntegration:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test combined create and list workflow."""
         with (
             patch(
@@ -899,7 +950,8 @@ class TestHotkeyToolsIntegration:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -912,7 +964,10 @@ class TestHotkeyToolsIntegration:
         ):
             # Create hotkey
             create_result = await km_create_hotkey_trigger(
-                macro_id="test-macro-123", key="n", modifiers=["cmd"], ctx=mock_context
+                macro_id="test-macro-123",
+                key="n",
+                modifiers=["cmd"],
+                ctx=mock_context,
             )
 
             # List hotkeys
@@ -930,7 +985,7 @@ class TestHotkeyToolsIntegration:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test complete conflict detection workflow."""
         # Setup conflict scenario
         mock_conflict = Mock()
@@ -957,7 +1012,8 @@ class TestHotkeyToolsIntegration:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -993,7 +1049,7 @@ class TestHotkeyToolsPropertyBased:
     """Property-based testing for hotkey tools with Hypothesis."""
 
     @composite
-    def valid_keys(draw):
+    def valid_keys(draw) -> Any:
         """Generate valid key identifiers."""
         letter_keys = st.sampled_from("abcdefghijklmnopqrstuvwxyz")
         number_keys = st.sampled_from("0123456789")
@@ -1029,28 +1085,29 @@ class TestHotkeyToolsPropertyBased:
                 "clear",
                 "help",
                 "insert",
-            ]
+            ],
         )
         return draw(st.one_of(letter_keys, number_keys, special_keys))
 
     @composite
-    def valid_modifiers(draw):
+    def valid_modifiers(draw) -> Any:
         """Generate valid modifier combinations."""
         modifiers = st.sampled_from(["cmd", "opt", "shift", "ctrl", "fn"])
         return draw(st.lists(modifiers, min_size=0, max_size=3, unique=True))
 
     @composite
-    def valid_macro_ids(draw):
+    def valid_macro_ids(draw) -> Any:
         """Generate valid macro IDs."""
         # Generate macro IDs without dangerous characters
         chars = st.characters(
-            whitelist_categories=("Lu", "Ll", "Nd", "Pc"), whitelist_characters=" -._"
+            whitelist_categories=("Lu", "Ll", "Nd", "Pc"),
+            whitelist_characters=" -._",
         )
         return draw(st.text(chars, min_size=1, max_size=100))
 
     @given(valid_macro_ids(), valid_keys(), valid_modifiers())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    def test_input_sanitization_property(self, macro_id, key, modifiers):
+    def test_input_sanitization_property(self, macro_id, key, modifiers) -> None:
         """Property: All valid inputs should be properly sanitized."""
         assume(len(macro_id.strip()) > 0)  # Non-empty after strip
 
@@ -1071,8 +1128,11 @@ class TestHotkeyToolsPropertyBased:
     )
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     async def test_hotkey_options_property(
-        self, activation_mode, tap_count, allow_repeat
-    ):
+        self,
+        activation_mode,
+        tap_count,
+        allow_repeat,
+    ) -> None:
         """Property: All valid option combinations should be accepted."""
         mock_context = Mock(spec=Context)
         mock_context.info = AsyncMock()
@@ -1132,7 +1192,7 @@ class TestHotkeyToolsPerformance:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test that hotkey creation completes within reasonable time."""
         import time
 
@@ -1142,7 +1202,8 @@ class TestHotkeyToolsPerformance:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -1156,7 +1217,10 @@ class TestHotkeyToolsPerformance:
             start_time = time.time()
 
             result = await km_create_hotkey_trigger(
-                macro_id="test-macro-123", key="n", modifiers=["cmd"], ctx=mock_context
+                macro_id="test-macro-123",
+                key="n",
+                modifiers=["cmd"],
+                ctx=mock_context,
             )
 
             end_time = time.time()
@@ -1174,7 +1238,7 @@ class TestHotkeyToolsPerformance:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test conflict detection performance."""
         import time
 
@@ -1195,7 +1259,8 @@ class TestHotkeyToolsPerformance:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -1226,8 +1291,12 @@ class TestHotkeyToolsPerformance:
 
     @pytest.mark.asyncio
     async def test_list_hotkeys_performance(
-        self, mock_context, mock_hotkey_manager, mock_km_client, mock_trigger_manager
-    ):
+        self,
+        mock_context,
+        mock_hotkey_manager,
+        mock_km_client,
+        mock_trigger_manager,
+    ) -> None:
         """Test hotkey listing performance with many hotkeys."""
         import time
 
@@ -1248,7 +1317,8 @@ class TestHotkeyToolsPerformance:
 
         with (
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -1284,7 +1354,7 @@ class TestHotkeyToolsEdgeCases:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test hotkey creation with empty modifiers list."""
         with (
             patch(
@@ -1292,7 +1362,8 @@ class TestHotkeyToolsEdgeCases:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -1304,7 +1375,10 @@ class TestHotkeyToolsEdgeCases:
             ),
         ):
             result = await km_create_hotkey_trigger(
-                macro_id="test-macro-123", key="n", modifiers=[], ctx=mock_context
+                macro_id="test-macro-123",
+                key="n",
+                modifiers=[],
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -1317,7 +1391,7 @@ class TestHotkeyToolsEdgeCases:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test hotkey creation with maximum tap count."""
         with (
             patch(
@@ -1325,7 +1399,8 @@ class TestHotkeyToolsEdgeCases:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -1354,7 +1429,7 @@ class TestHotkeyToolsEdgeCases:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test hotkey creation with Unicode macro ID."""
         with (
             patch(
@@ -1362,7 +1437,8 @@ class TestHotkeyToolsEdgeCases:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -1374,7 +1450,10 @@ class TestHotkeyToolsEdgeCases:
             ),
         ):
             result = await km_create_hotkey_trigger(
-                macro_id="测试宏 🎯", key="n", modifiers=["cmd"], ctx=mock_context
+                macro_id="测试宏 🎯",
+                key="n",
+                modifiers=["cmd"],
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -1387,7 +1466,7 @@ class TestHotkeyToolsEdgeCases:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test hotkey creation with maximum length macro ID."""
         long_macro_id = "a" * 255  # Maximum allowed length
 
@@ -1397,7 +1476,8 @@ class TestHotkeyToolsEdgeCases:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -1409,7 +1489,10 @@ class TestHotkeyToolsEdgeCases:
             ),
         ):
             result = await km_create_hotkey_trigger(
-                macro_id=long_macro_id, key="n", modifiers=["cmd"], ctx=mock_context
+                macro_id=long_macro_id,
+                key="n",
+                modifiers=["cmd"],
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -1422,7 +1505,7 @@ class TestHotkeyToolsEdgeCases:
         mock_km_client,
         mock_trigger_manager,
         mock_hotkey_spec,
-    ):
+    ) -> None:
         """Test various modifier combinations."""
         modifier_combinations = [
             ["cmd"],
@@ -1440,7 +1523,8 @@ class TestHotkeyToolsEdgeCases:
                 return_value=mock_hotkey_spec,
             ),
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",
@@ -1463,14 +1547,19 @@ class TestHotkeyToolsEdgeCases:
 
     @pytest.mark.asyncio
     async def test_list_empty_hotkeys(
-        self, mock_context, mock_hotkey_manager, mock_km_client, mock_trigger_manager
-    ):
+        self,
+        mock_context,
+        mock_hotkey_manager,
+        mock_km_client,
+        mock_trigger_manager,
+    ) -> None:
         """Test listing when no hotkeys are registered."""
         mock_hotkey_manager.get_registered_hotkeys.return_value = {}
 
         with (
             patch(
-                "src.server.tools.hotkey_tools.KMClient", return_value=mock_km_client
+                "src.server.tools.hotkey_tools.KMClient",
+                return_value=mock_km_client,
             ),
             patch(
                 "src.server.tools.hotkey_tools.TriggerRegistrationManager",

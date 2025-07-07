@@ -1,5 +1,4 @@
-"""
-Strategic automation planning and ecosystem evolution for long-term optimization.
+"""Strategic automation planning and ecosystem evolution for long-term optimization.
 
 This module provides comprehensive strategic planning capabilities including:
 - Long-term automation strategy and roadmap planning
@@ -158,7 +157,6 @@ class EcosystemStrategicPlanner:
 
     async def analyze_current_state(self) -> dict[str, Any]:
         """Analyze current ecosystem state for strategic planning."""
-
         analysis = {
             "timestamp": datetime.now(UTC).isoformat(),
             "ecosystem_overview": {},
@@ -179,10 +177,10 @@ class EcosystemStrategicPlanner:
             "total_tools": total_tools,
             "category_distribution": category_distribution,
             "enterprise_ready_tools": len(
-                [t for t in self.tool_registry.tools.values() if t.enterprise_ready]
+                [t for t in self.tool_registry.tools.values() if t.enterprise_ready],
             ),
             "ai_enhanced_tools": len(
-                [t for t in self.tool_registry.tools.values() if t.ai_enhanced]
+                [t for t in self.tool_registry.tools.values() if t.ai_enhanced],
             ),
         }
 
@@ -218,7 +216,6 @@ class EcosystemStrategicPlanner:
 
     async def _assess_ecosystem_maturity(self) -> dict[str, float]:
         """Assess ecosystem maturity across different dimensions."""
-
         # Tool coverage maturity (0-1)
         total_possible_tools = 68  # Based on roadmap (TASK_1-68)
         current_tools = len(self.tool_registry.tools)
@@ -230,10 +227,11 @@ class EcosystemStrategicPlanner:
                 t
                 for t in self.tool_registry.tools.values()
                 if "automation" in " ".join(t.capabilities)
-            ]
+            ],
         )
         automation_efficiency = min(
-            1.0, automation_tools / 20
+            1.0,
+            automation_tools / 20,
         )  # Assume 20 core automation tools
 
         # AI integration maturity (0-1)
@@ -242,10 +240,11 @@ class EcosystemStrategicPlanner:
 
         # Enterprise readiness maturity (0-1)
         enterprise_tools = len(
-            [t for t in self.tool_registry.tools.values() if t.enterprise_ready]
+            [t for t in self.tool_registry.tools.values() if t.enterprise_ready],
         )
         enterprise_readiness = min(
-            1.0, enterprise_tools / 25
+            1.0,
+            enterprise_tools / 25,
         )  # Assume 25 enterprise tools target
 
         # Innovation index (0-1)
@@ -255,7 +254,8 @@ class EcosystemStrategicPlanner:
             for cat in advanced_categories
         )
         innovation_index = min(
-            1.0, advanced_tools / 8
+            1.0,
+            advanced_tools / 8,
         )  # Assume 8 advanced tools target
 
         # Overall maturity score
@@ -277,7 +277,6 @@ class EcosystemStrategicPlanner:
 
     async def _analyze_capabilities(self) -> dict[str, Any]:
         """Analyze current capabilities and identify gaps."""
-
         capability_analysis = {
             "strong_areas": [],
             "improvement_areas": [],
@@ -327,7 +326,6 @@ class EcosystemStrategicPlanner:
 
     async def _assess_technology_alignment(self) -> dict[str, Any]:
         """Assess alignment with current technology trends."""
-
         alignment_scores = {}
 
         # AI/ML Integration alignment
@@ -336,7 +334,7 @@ class EcosystemStrategicPlanner:
 
         # Cloud-native alignment
         enterprise_tools = len(
-            [t for t in self.tool_registry.tools.values() if t.enterprise_ready]
+            [t for t in self.tool_registry.tools.values() if t.enterprise_ready],
         )
         alignment_scores["cloud_native"] = min(1.0, enterprise_tools / 20)
 
@@ -346,7 +344,7 @@ class EcosystemStrategicPlanner:
                 t
                 for t in self.tool_registry.tools.values()
                 if "api" in " ".join(t.capabilities).lower()
-            ]
+            ],
         )
         alignment_scores["api_first"] = min(1.0, api_tools / 15)
 
@@ -356,7 +354,7 @@ class EcosystemStrategicPlanner:
                 t
                 for t in self.tool_registry.tools.values()
                 if t.security_level.value in ["high", "enterprise"]
-            ]
+            ],
         )
         alignment_scores["security"] = min(1.0, security_tools / 25)
 
@@ -375,7 +373,6 @@ class EcosystemStrategicPlanner:
 
     async def identify_capability_gaps(self) -> list[CapabilityGap]:
         """Identify critical capability gaps in the ecosystem."""
-
         gaps = []
 
         # Define expected capabilities for a mature ecosystem
@@ -439,13 +436,14 @@ class EcosystemStrategicPlanner:
                         category=category,
                         missing_capability=expected_cap,
                         business_impact=self._assess_capability_business_impact(
-                            expected_cap
+                            expected_cap,
                         ),
                         priority=self._determine_capability_priority(
-                            category, expected_cap
+                            category,
+                            expected_cap,
                         ),
                         potential_solutions=self._suggest_capability_solutions(
-                            expected_cap
+                            expected_cap,
                         ),
                         estimated_effort=self._estimate_capability_effort(expected_cap),
                     )
@@ -475,16 +473,16 @@ class EcosystemStrategicPlanner:
 
         if capability in high_impact_capabilities:
             return "high"
-        elif capability in medium_impact_capabilities:
+        if capability in medium_impact_capabilities:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def _determine_capability_priority(
-        self, category: ToolCategory, capability: str
+        self,
+        category: ToolCategory,
+        capability: str,
     ) -> StrategicPriority:
         """Determine strategic priority for capability development."""
-
         # Critical capabilities for core operations
         critical_capabilities = [
             "security_hardening",
@@ -501,19 +499,17 @@ class EcosystemStrategicPlanner:
 
         if capability in critical_capabilities:
             return StrategicPriority.CRITICAL
-        elif capability in high_value_capabilities or category in [
+        if capability in high_value_capabilities or category in [
             ToolCategory.INTELLIGENCE,
             ToolCategory.AUTONOMOUS,
         ]:
             return StrategicPriority.HIGH
-        elif category in [ToolCategory.ENTERPRISE, ToolCategory.FOUNDATION]:
+        if category in [ToolCategory.ENTERPRISE, ToolCategory.FOUNDATION]:
             return StrategicPriority.MEDIUM
-        else:
-            return StrategicPriority.LOW
+        return StrategicPriority.LOW
 
     def _suggest_capability_solutions(self, capability: str) -> list[str]:
         """Suggest potential solutions for missing capability."""
-
         solution_mapping = {
             "natural_language_processing": [
                 "Integrate OpenAI API",
@@ -579,7 +575,6 @@ class EcosystemStrategicPlanner:
 
     def _estimate_capability_effort(self, capability: str) -> float:
         """Estimate development effort in person-months."""
-
         effort_mapping = {
             "natural_language_processing": 6.0,
             "computer_vision": 8.0,
@@ -603,7 +598,6 @@ class EcosystemStrategicPlanner:
         focus_areas: list[ToolCategory],
     ) -> Either[OrchestrationError, EvolutionRoadmap]:
         """Create strategic roadmap for ecosystem evolution."""
-
         try:
             # Determine current phase
             maturity = await self._assess_ecosystem_maturity()
@@ -611,7 +605,8 @@ class EcosystemStrategicPlanner:
 
             # Generate initiatives based on gaps and focus areas
             initiatives = await self._generate_strategic_initiatives(
-                focus_areas, target_phase
+                focus_areas,
+                target_phase,
             )
 
             # Create milestones
@@ -622,7 +617,8 @@ class EcosystemStrategicPlanner:
 
             # Define expected outcomes
             expected_outcomes = self._define_expected_outcomes(
-                target_phase, focus_areas
+                target_phase,
+                focus_areas,
             )
 
             roadmap_id = f"roadmap_{datetime.now(UTC).timestamp()}"
@@ -645,31 +641,30 @@ class EcosystemStrategicPlanner:
         except Exception as e:
             return Either.left(
                 OrchestrationError.strategic_planning_failed(
-                    f"Roadmap creation failed: {e}"
-                )
+                    f"Roadmap creation failed: {e}",
+                ),
             )
 
     def _determine_current_phase(self, overall_maturity: float) -> EvolutionPhase:
         """Determine current evolution phase based on maturity."""
-
         if overall_maturity < 0.3:
             return EvolutionPhase.FOUNDATION
-        elif overall_maturity < 0.5:
+        if overall_maturity < 0.5:
             return EvolutionPhase.EXPANSION
-        elif overall_maturity < 0.7:
+        if overall_maturity < 0.7:
             return EvolutionPhase.INTELLIGENCE
-        elif overall_maturity < 0.85:
+        if overall_maturity < 0.85:
             return EvolutionPhase.OPTIMIZATION
-        elif overall_maturity < 0.95:
+        if overall_maturity < 0.95:
             return EvolutionPhase.INNOVATION
-        else:
-            return EvolutionPhase.MATURITY
+        return EvolutionPhase.MATURITY
 
     async def _generate_strategic_initiatives(
-        self, focus_areas: list[ToolCategory], target_phase: EvolutionPhase
+        self,
+        focus_areas: list[ToolCategory],
+        target_phase: EvolutionPhase,
     ) -> list[StrategicInitiative]:
         """Generate strategic initiatives for roadmap."""
-
         initiatives = []
         initiative_counter = 1
 
@@ -691,11 +686,11 @@ class EcosystemStrategicPlanner:
                     * 10000,  # $10k per person-month
                     expected_roi=self._calculate_initiative_roi(gap),
                     timeline=timedelta(
-                        days=gap.estimated_effort * 30
+                        days=gap.estimated_effort * 30,
                     ),  # Months to days
                     dependencies=[],
                     technology_trends=self._map_capability_to_trends(
-                        gap.missing_capability
+                        gap.missing_capability,
                     ),
                     success_metrics=[
                         f"{gap.missing_capability} fully implemented",
@@ -712,7 +707,8 @@ class EcosystemStrategicPlanner:
 
         # Add phase-specific initiatives
         phase_initiatives = self._get_phase_specific_initiatives(
-            target_phase, initiative_counter
+            target_phase,
+            initiative_counter,
         )
         initiatives.extend(phase_initiatives)
 
@@ -720,7 +716,6 @@ class EcosystemStrategicPlanner:
 
     def _calculate_initiative_roi(self, gap: CapabilityGap) -> float:
         """Calculate expected ROI for initiative."""
-
         # Base ROI estimates by capability type
         roi_mapping = {
             "automated_decision_making": 3.5,
@@ -737,14 +732,12 @@ class EcosystemStrategicPlanner:
         # Adjust based on business impact
         if gap.business_impact == "high":
             return base_roi * 1.3
-        elif gap.business_impact == "medium":
+        if gap.business_impact == "medium":
             return base_roi * 1.1
-        else:
-            return base_roi * 0.9
+        return base_roi * 0.9
 
     def _map_capability_to_trends(self, capability: str) -> list[TechnologyTrend]:
         """Map capability to relevant technology trends."""
-
         trend_mapping = {
             "natural_language_processing": [TechnologyTrend.AI_ML_INTEGRATION],
             "computer_vision": [
@@ -777,10 +770,11 @@ class EcosystemStrategicPlanner:
         return trend_mapping.get(capability, [TechnologyTrend.API_FIRST])
 
     def _get_phase_specific_initiatives(
-        self, target_phase: EvolutionPhase, start_counter: int
+        self,
+        target_phase: EvolutionPhase,
+        start_counter: int,
     ) -> list[StrategicInitiative]:
         """Get initiatives specific to target evolution phase."""
-
         initiatives = []
 
         if target_phase == EvolutionPhase.INTELLIGENCE:
@@ -806,8 +800,8 @@ class EcosystemStrategicPlanner:
                             "AI model complexity",
                             "Data quality requirements",
                         ],
-                    )
-                ]
+                    ),
+                ],
             )
 
         elif target_phase == EvolutionPhase.OPTIMIZATION:
@@ -833,17 +827,18 @@ class EcosystemStrategicPlanner:
                             "50% cost reduction",
                         ],
                         risk_factors=["System complexity", "Migration challenges"],
-                    )
-                ]
+                    ),
+                ],
             )
 
         return initiatives
 
     def _create_roadmap_milestones(
-        self, initiatives: list[StrategicInitiative], timeline: timedelta
+        self,
+        initiatives: list[StrategicInitiative],
+        timeline: timedelta,
     ) -> list[dict[str, Any]]:
         """Create milestones for roadmap."""
-
         milestones = []
 
         # Quarter-based milestones
@@ -873,10 +868,10 @@ class EcosystemStrategicPlanner:
         return milestones
 
     def _calculate_resource_requirements(
-        self, initiatives: list[StrategicInitiative]
+        self,
+        initiatives: list[StrategicInitiative],
     ) -> dict[str, float]:
         """Calculate total resource requirements for initiatives."""
-
         return {
             "total_effort_person_months": sum(
                 init.estimated_effort for init in initiatives
@@ -890,10 +885,11 @@ class EcosystemStrategicPlanner:
         }
 
     def _define_expected_outcomes(
-        self, target_phase: EvolutionPhase, focus_areas: list[ToolCategory]
+        self,
+        target_phase: EvolutionPhase,
+        focus_areas: list[ToolCategory],
     ) -> list[str]:
         """Define expected outcomes for roadmap."""
-
         base_outcomes = [
             f"Achieve {target_phase.value} phase maturity",
             "Improve overall ecosystem performance by 25%",

@@ -1,5 +1,4 @@
-"""
-Adaptive Learning Engine for Automation Intelligence.
+"""Adaptive Learning Engine for Automation Intelligence.
 
 This module implements sophisticated machine learning algorithms for behavioral
 pattern analysis, adaptive automation optimization, and intelligent workflow
@@ -52,7 +51,7 @@ class LearningFeatures:
                 len(self.temporal_features.get("peak_hours", [])),
                 self.temporal_features.get("total_activity_points", 0),
                 len(self.temporal_features.get("activity_distribution", {})),
-            ]
+            ],
         )
 
         # Sequence features
@@ -61,7 +60,7 @@ class LearningFeatures:
                 self.sequence_features.get("average_sequence_length", 0.0),
                 self.sequence_features.get("sequence_complexity", 0.0),
                 len(self.sequence_features.get("unique_actions", set())),
-            ]
+            ],
         )
 
         # Tool usage features
@@ -70,7 +69,7 @@ class LearningFeatures:
                 len(self.tool_usage_features.get("tools_used", set())),
                 self.tool_usage_features.get("tool_diversity_score", 0.0),
                 self.tool_usage_features.get("primary_tool_usage_ratio", 0.0),
-            ]
+            ],
         )
 
         # Performance features
@@ -79,7 +78,7 @@ class LearningFeatures:
                 self.performance_features.get("average_efficiency", 0.0),
                 self.performance_features.get("success_rate_variance", 0.0),
                 self.performance_features.get("completion_time_consistency", 0.0),
-            ]
+            ],
         )
 
         return vector
@@ -130,20 +129,21 @@ class LearningEngine:
             self._configure_optimization_algorithms()
 
             logger.info(
-                f"Learning engine initialized with mode: {self.learning_mode.value}"
+                f"Learning engine initialized with mode: {self.learning_mode.value}",
             )
             return Either.right(None)
 
         except Exception as e:
-            logger.error(f"Learning engine initialization failed: {str(e)}")
+            logger.error(f"Learning engine initialization failed: {e!s}")
             return Either.left(IntelligenceError.initialization_failed(str(e)))
 
-    @require(lambda self, patterns: len(patterns) >= 1)
+    @require(lambda __self, patterns: len(patterns) >= 1)
     async def learn_from_patterns(
-        self, patterns: list[UserBehaviorPattern], learning_target: str = "optimization"
+        self,
+        patterns: list[UserBehaviorPattern],
+        learning_target: str = "optimization",
     ) -> Either[IntelligenceError, LearningResults]:
-        """
-        Learn from behavioral patterns to improve automation intelligence.
+        """Learn from behavioral patterns to improve automation intelligence.
 
         Applies sophisticated machine learning algorithms to extract insights,
         identify optimization opportunities, and generate predictive models
@@ -160,13 +160,14 @@ class LearningEngine:
             - Privacy-preserving feature extraction
             - Secure model training with no sensitive data retention
             - Confidential learning results with anonymized insights
+
         """
         try:
             if len(patterns) < self.min_patterns_for_learning:
                 return Either.left(
                     IntelligenceError.learning_failed(
-                        f"Insufficient patterns for learning: {len(patterns)} < {self.min_patterns_for_learning}"
-                    )
+                        f"Insufficient patterns for learning: {len(patterns)} < {self.min_patterns_for_learning}",
+                    ),
                 )
 
             # Extract learning features from patterns
@@ -178,7 +179,8 @@ class LearningEngine:
 
             # Apply learning algorithm based on mode and target
             learning_result = await self._apply_learning_algorithm(
-                features, learning_target
+                features,
+                learning_target,
             )
             if learning_result.is_left():
                 return learning_result
@@ -192,16 +194,17 @@ class LearningEngine:
             await self._store_learning_results(enhanced_results)
 
             logger.info(
-                f"Learning completed for {len(patterns)} patterns with confidence: {enhanced_results.confidence:.3f}"
+                f"Learning completed for {len(patterns)} patterns with confidence: {enhanced_results.confidence:.3f}",
             )
             return Either.right(enhanced_results)
 
         except Exception as e:
-            logger.error(f"Learning from patterns failed: {str(e)}")
+            logger.error(f"Learning from patterns failed: {e!s}")
             return Either.left(IntelligenceError.learning_failed(str(e)))
 
     async def _extract_learning_features(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> Either[IntelligenceError, LearningFeatures]:
         """Extract comprehensive features from behavioral patterns."""
         try:
@@ -223,15 +226,16 @@ class LearningEngine:
             return Either.right(features)
 
         except Exception as e:
-            logger.error(f"Feature extraction failed: {str(e)}")
+            logger.error(f"Feature extraction failed: {e!s}")
             return Either.left(
                 IntelligenceError.learning_failed(
-                    f"Feature extraction failed: {str(e)}"
-                )
+                    f"Feature extraction failed: {e!s}",
+                ),
             )
 
     def _extract_temporal_features(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Extract temporal features for time-based pattern analysis."""
         # Collect all completion times and calculate statistics
@@ -251,7 +255,7 @@ class LearningEngine:
             "total_frequency": sum(frequencies),
             "average_frequency": statistics.mean(frequencies) if frequencies else 0.0,
             "frequency_distribution": self._calculate_frequency_distribution(
-                frequencies
+                frequencies,
             ),
             "peak_usage_periods": self._identify_peak_usage_periods(patterns),
             "temporal_consistency": self._calculate_temporal_consistency(patterns),
@@ -260,7 +264,8 @@ class LearningEngine:
         return features
 
     def _extract_sequence_features(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Extract sequence-based features for workflow analysis."""
         all_sequences = [p.action_sequence for p in patterns]
@@ -294,7 +299,8 @@ class LearningEngine:
         return features
 
     def _extract_tool_usage_features(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Extract tool usage features for automation optimization."""
         tool_usage = defaultdict(int)
@@ -327,7 +333,7 @@ class LearningEngine:
             if total_usage > 0
             else 0.0,
             "tool_efficiency_scores": self._calculate_tool_efficiency_scores(
-                tool_patterns
+                tool_patterns,
             ),
             "tool_combinations": self._analyze_tool_combinations(patterns),
         }
@@ -335,7 +341,8 @@ class LearningEngine:
         return features
 
     def _extract_performance_features(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Extract performance-related features for optimization analysis."""
         efficiency_scores = [p.get_efficiency_score() for p in patterns]
@@ -362,20 +369,21 @@ class LearningEngine:
             if len(success_rates) > 1
             else 0.0,
             "high_performance_patterns": len(
-                [p for p in patterns if p.get_efficiency_score() > 0.8]
+                [p for p in patterns if p.get_efficiency_score() > 0.8],
             ),
             "low_performance_patterns": len(
-                [p for p in patterns if p.get_efficiency_score() < 0.5]
+                [p for p in patterns if p.get_efficiency_score() < 0.5],
             ),
             "completion_time_consistency": self._calculate_completion_time_consistency(
-                patterns
+                patterns,
             ),
         }
 
         return features
 
     def _extract_context_features(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Extract context-based features for situational analysis."""
         all_context_tags = set()
@@ -399,38 +407,43 @@ class LearningEngine:
         return features
 
     async def _apply_learning_algorithm(
-        self, features: LearningFeatures, learning_target: str
+        self,
+        features: LearningFeatures,
+        learning_target: str,
     ) -> Either[IntelligenceError, LearningResults]:
         """Apply machine learning algorithm based on mode and target."""
         try:
             if self.learning_mode == LearningMode.ADAPTIVE:
                 return await self._apply_adaptive_learning(features, learning_target)
-            elif self.learning_mode == LearningMode.SUPERVISED:
+            if self.learning_mode == LearningMode.SUPERVISED:
                 return await self._apply_supervised_learning(features, learning_target)
-            elif self.learning_mode == LearningMode.UNSUPERVISED:
+            if self.learning_mode == LearningMode.UNSUPERVISED:
                 return await self._apply_unsupervised_learning(
-                    features, learning_target
+                    features,
+                    learning_target,
                 )
-            elif self.learning_mode == LearningMode.REINFORCEMENT:
+            if self.learning_mode == LearningMode.REINFORCEMENT:
                 return await self._apply_reinforcement_learning(
-                    features, learning_target
+                    features,
+                    learning_target,
                 )
-            else:
-                return Either.left(
-                    IntelligenceError.learning_failed(
-                        f"Unsupported learning mode: {self.learning_mode}"
-                    )
-                )
+            return Either.left(
+                IntelligenceError.learning_failed(
+                    f"Unsupported learning mode: {self.learning_mode}",
+                ),
+            )
 
         except Exception as e:
             return Either.left(
                 IntelligenceError.learning_failed(
-                    f"Learning algorithm failed: {str(e)}"
-                )
+                    f"Learning algorithm failed: {e!s}",
+                ),
             )
 
     async def _apply_adaptive_learning(
-        self, features: LearningFeatures, learning_target: str
+        self,
+        features: LearningFeatures,
+        _learning_target: str,
     ) -> Either[IntelligenceError, LearningResults]:
         """Apply adaptive learning algorithm for continuous improvement."""
         try:
@@ -440,13 +453,13 @@ class LearningEngine:
 
             # Analyze temporal patterns for insights
             temporal_insights = self._analyze_temporal_patterns(
-                features.temporal_features
+                features.temporal_features,
             )
             insights.extend(temporal_insights)
 
             # Identify optimization opportunities
             performance_optimizations = self._identify_performance_optimizations(
-                features.performance_features
+                features.performance_features,
             )
             optimizations.extend(performance_optimizations)
 
@@ -456,12 +469,15 @@ class LearningEngine:
 
             # Calculate overall confidence
             confidence = self._calculate_learning_confidence(
-                features, insights, optimizations
+                features,
+                insights,
+                optimizations,
             )
 
             # Generate recommendations
             recommendations = self._generate_learning_recommendations(
-                insights, optimizations
+                insights,
+                optimizations,
             )
 
             results = LearningResults(
@@ -477,7 +493,7 @@ class LearningEngine:
 
         except Exception as e:
             return Either.left(
-                IntelligenceError.learning_failed(f"Adaptive learning failed: {str(e)}")
+                IntelligenceError.learning_failed(f"Adaptive learning failed: {e!s}"),
             )
 
     def _calculate_learning_confidence(
@@ -490,7 +506,7 @@ class LearningEngine:
         # Base confidence from feature quality
         feature_vector = features.get_feature_vector()
         feature_completeness = len([f for f in feature_vector if f > 0]) / len(
-            feature_vector
+            feature_vector,
         )
 
         # Confidence from insights quality
@@ -510,26 +526,33 @@ class LearningEngine:
 
     # Placeholder implementations for other learning modes
     async def _apply_supervised_learning(
-        self, features: LearningFeatures, target: str
+        self,
+        _features: LearningFeatures,
+        _target: str,
     ) -> Either[IntelligenceError, LearningResults]:
         """Apply supervised learning with labeled data."""
         return Either.right(LearningResults(learning_mode=self.learning_mode))
 
     async def _apply_unsupervised_learning(
-        self, features: LearningFeatures, target: str
+        self,
+        _features: LearningFeatures,
+        _target: str,
     ) -> Either[IntelligenceError, LearningResults]:
         """Apply unsupervised learning for pattern discovery."""
         return Either.right(LearningResults(learning_mode=self.learning_mode))
 
     async def _apply_reinforcement_learning(
-        self, features: LearningFeatures, target: str
+        self,
+        _features: LearningFeatures,
+        _target: str,
     ) -> Either[IntelligenceError, LearningResults]:
         """Apply reinforcement learning with feedback loops."""
         return Either.right(LearningResults(learning_mode=self.learning_mode))
 
     # Helper methods for feature extraction and analysis
     def _calculate_frequency_distribution(
-        self, frequencies: list[int]
+        self,
+        frequencies: list[int],
     ) -> dict[str, int]:
         """Calculate distribution of pattern frequencies."""
         if not frequencies:
@@ -548,7 +571,8 @@ class LearningEngine:
         return distribution
 
     def _identify_peak_usage_periods(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[str]:
         """Identify peak usage periods from patterns."""
         # This would analyze actual time data from patterns
@@ -556,7 +580,8 @@ class LearningEngine:
         return ["morning", "afternoon"]
 
     def _calculate_temporal_consistency(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> float:
         """Calculate consistency of temporal patterns."""
         if len(patterns) < 2:
@@ -592,7 +617,8 @@ class LearningEngine:
         return total_complexity / len(sequences)
 
     def _find_common_subsequences(
-        self, sequences: list[list[str]]
+        self,
+        sequences: list[list[str]],
     ) -> list[tuple[str, ...]]:
         """Find common subsequences across action sequences."""
         # Simplified implementation - find common 2-element subsequences
@@ -640,61 +666,73 @@ class LearningEngine:
 
     # Placeholder helper methods
     def _calculate_tool_efficiency_scores(
-        self, tool_patterns: dict[str, list]
+        self,
+        tool_patterns: dict[str, list],
     ) -> dict[str, float]:
         """Calculate efficiency scores for different tools."""
         return {}
 
     def _analyze_tool_combinations(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[dict[str, Any]]:
         """Analyze tool combination patterns."""
         return []
 
     def _calculate_completion_time_consistency(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> float:
         """Calculate consistency of completion times."""
         return 0.0
 
     def _identify_common_contexts(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> list[str]:
         """Identify common context patterns."""
         return []
 
     def _analyze_context_patterns(
-        self, patterns: list[UserBehaviorPattern]
+        self,
+        patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Analyze context usage patterns."""
         return {}
 
     def _analyze_temporal_patterns(
-        self, temporal_features: dict[str, Any]
+        self,
+        temporal_features: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Analyze temporal patterns for insights."""
         return []
 
     def _identify_performance_optimizations(
-        self, performance_features: dict[str, Any]
+        self,
+        performance_features: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Identify performance optimization opportunities."""
         return []
 
     def _generate_usage_predictions(
-        self, features: LearningFeatures
+        self,
+        features: LearningFeatures,
     ) -> list[dict[str, Any]]:
         """Generate usage pattern predictions."""
         return []
 
     def _generate_learning_recommendations(
-        self, insights: list[dict[str, Any]], optimizations: list[dict[str, Any]]
+        self,
+        insights: list[dict[str, Any]],
+        optimizations: list[dict[str, Any]],
     ) -> list[str]:
         """Generate actionable recommendations from learning."""
         return []
 
     async def _enhance_learning_results(
-        self, results: LearningResults, patterns: list[UserBehaviorPattern]
+        self,
+        results: LearningResults,
+        patterns: list[UserBehaviorPattern],
     ) -> LearningResults:
         """Enhance learning results with additional analysis."""
         return results
@@ -708,5 +746,5 @@ class LearningEngine:
                 "confidence": results.confidence,
                 "insights_count": len(results.insights),
                 "optimizations_count": len(results.optimizations),
-            }
+            },
         )

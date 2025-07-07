@@ -1,5 +1,4 @@
-"""
-Voice Control Tools - TASK_66 Phase 3 MCP Tools Implementation
+"""Voice Control Tools - TASK_66 Phase 3 MCP Tools Implementation.
 
 FastMCP tools for voice command recognition, speech processing, and automation control
 with enterprise-grade security, accessibility features, and multi-language support.
@@ -14,10 +13,14 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Annotated, Any
+from typing import TYPE_CHECKING, Annotated, Any
 
 from fastmcp import Context, FastMCP
-from pydantic import Field
+
+if TYPE_CHECKING:
+    from pydantic import Field
+else:
+    from pydantic import Field
 
 from ...core.contracts import ensure, require
 from ...core.either import Either
@@ -102,7 +105,9 @@ class VoiceControlManager:
     @require(lambda command: command and len(command.strip()) > 0)
     @ensure(lambda result: result.is_success() or result.is_error())
     async def process_voice_command(
-        self, command: str, settings: RecognitionSettings
+        self,
+        command: str,
+        settings: RecognitionSettings,
     ) -> Either[VoiceControlError, dict[str, Any]]:
         """Process voice command with comprehensive validation and execution."""
         try:
@@ -117,7 +122,7 @@ class VoiceControlManager:
 
             # Execute automation commands
             execution_result = await self.command_dispatcher.dispatch_command(
-                intent_data
+                intent_data,
             )
             if execution_result.is_error():
                 return execution_result
@@ -158,9 +163,9 @@ class VoiceControlManager:
         except Exception as e:
             self._update_performance_metrics(0, False)
             logger.error(f"Voice command processing failed: {e}")
-            return Either.error(VoiceControlError(f"Processing failed: {str(e)}"))
+            return Either.error(VoiceControlError(f"Processing failed: {e!s}"))
 
-    def _update_performance_metrics(self, processing_time: float, success: bool):
+    def _update_performance_metrics(self, processing_time: float, success: bool) -> Any:
         """Update performance tracking metrics."""
         self.performance_metrics["total_commands_processed"] += 1
         if success:
@@ -174,7 +179,8 @@ class VoiceControlManager:
         ) / total_processed
 
     async def configure_personalization(
-        self, configuration: VoiceControlConfiguration
+        self,
+        configuration: VoiceControlConfiguration,
     ) -> Either[VoiceControlError, dict[str, Any]]:
         """Configure voice personalization settings."""
         try:
@@ -187,11 +193,13 @@ class VoiceControlManager:
             return Either.success(result)
         except Exception as e:
             return Either.error(
-                VoiceControlError(f"Personalization configuration failed: {str(e)}")
+                VoiceControlError(f"Personalization configuration failed: {e!s}"),
             )
 
     async def save_voice_profile(
-        self, profile_name: str, voice_profile: VoiceProfile
+        self,
+        profile_name: str,
+        voice_profile: VoiceProfile,
     ) -> Either[VoiceControlError, bool]:
         """Save voice profile for user."""
         try:
@@ -200,7 +208,7 @@ class VoiceControlManager:
             return Either.success(True)
         except Exception as e:
             return Either.error(
-                VoiceControlError(f"Failed to save voice profile: {str(e)}")
+                VoiceControlError(f"Failed to save voice profile: {e!s}"),
             )
 
 
@@ -313,7 +321,7 @@ async def _km_process_voice_commands_impl(
         logger.error(f"Voice command processing failed: {e}")
         return {
             "success": False,
-            "error": f"Voice processing failed: {str(e)}",
+            "error": f"Voice processing failed: {e!s}",
             "error_type": "system_error",
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -322,36 +330,44 @@ async def _km_process_voice_commands_impl(
 @mcp.tool()
 async def km_process_voice_commands(
     audio_input: Annotated[
-        str | None, Field(description="Audio file path or real-time input")
+        str | None,
+        Field(description="Audio file path or real-time input"),
     ] = None,
     recognition_language: Annotated[
-        str, Field(description="Speech recognition language code")
+        str,
+        Field(description="Speech recognition language code"),
     ] = "en-US",
     command_timeout: Annotated[
-        int, Field(description="Command recognition timeout in seconds", ge=1, le=60)
+        int,
+        Field(description="Command recognition timeout in seconds", ge=1, le=60),
     ] = 10,
     confidence_threshold: Annotated[
-        float, Field(description="Recognition confidence threshold", ge=0.1, le=1.0)
+        float,
+        Field(description="Recognition confidence threshold", ge=0.1, le=1.0),
     ] = 0.8,
     noise_filtering: Annotated[
-        bool, Field(description="Enable noise filtering and audio enhancement")
+        bool,
+        Field(description="Enable noise filtering and audio enhancement"),
     ] = True,
     speaker_identification: Annotated[
-        bool, Field(description="Enable speaker identification")
+        bool,
+        Field(description="Enable speaker identification"),
     ] = False,
     continuous_listening: Annotated[
-        bool, Field(description="Enable continuous listening mode")
+        bool,
+        Field(description="Enable continuous listening mode"),
     ] = False,
     execute_immediately: Annotated[
-        bool, Field(description="Execute recognized commands immediately")
+        bool,
+        Field(description="Execute recognized commands immediately"),
     ] = True,
     provide_feedback: Annotated[
-        bool, Field(description="Provide voice feedback on command execution")
+        bool,
+        Field(description="Provide voice feedback on command execution"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Process voice commands with speech recognition and execute corresponding automation workflows.
+    """Process voice commands with speech recognition and execute corresponding automation workflows.
 
     FastMCP Tool for voice command processing through Claude Desktop.
     Recognizes speech, processes voice commands, and executes automation with voice feedback.
@@ -411,17 +427,17 @@ async def _km_configure_voice_control_impl(
         if configuration_type == "recognition":
             # Configure speech recognition settings
             result = await voice_manager.speech_recognizer.configure_recognition(
-                configuration
+                configuration,
             )
         elif configuration_type == "commands":
             # Configure command mappings
             result = await voice_manager.intent_processor.configure_commands(
-                configuration
+                configuration,
             )
         elif configuration_type == "feedback":
             # Configure voice feedback settings
             result = await voice_manager.feedback_manager.configure_feedback(
-                configuration
+                configuration,
             )
         elif configuration_type == "personalization":
             # Configure user personalization
@@ -455,7 +471,7 @@ async def _km_configure_voice_control_impl(
         logger.error(f"Voice control configuration failed: {e}")
         return {
             "success": False,
-            "error": f"Configuration failed: {str(e)}",
+            "error": f"Configuration failed: {e!s}",
             "configuration_type": configuration_type,
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -466,34 +482,40 @@ async def km_configure_voice_control(
     configuration_type: Annotated[
         str,
         Field(
-            description="Configuration type (recognition|commands|feedback|personalization)"
+            description="Configuration type (recognition|commands|feedback|personalization)",
         ),
     ],
     language_settings: Annotated[
-        dict[str, Any] | None, Field(description="Language and accent configuration")
+        dict[str, Any] | None,
+        Field(description="Language and accent configuration"),
     ] = None,
     command_mappings: Annotated[
-        dict[str, str] | None, Field(description="Voice command to automation mappings")
+        dict[str, str] | None,
+        Field(description="Voice command to automation mappings"),
     ] = None,
     recognition_sensitivity: Annotated[
-        float | None, Field(description="Recognition sensitivity", ge=0.1, le=1.0)
+        float | None,
+        Field(description="Recognition sensitivity", ge=0.1, le=1.0),
     ] = None,
     voice_feedback_settings: Annotated[
-        dict[str, Any] | None, Field(description="Voice feedback configuration")
+        dict[str, Any] | None,
+        Field(description="Voice feedback configuration"),
     ] = None,
     wake_word: Annotated[
-        str | None, Field(description="Custom wake word for activation")
+        str | None,
+        Field(description="Custom wake word for activation"),
     ] = None,
     user_voice_profile: Annotated[
-        str | None, Field(description="User voice profile for personalization")
+        str | None,
+        Field(description="User voice profile for personalization"),
     ] = None,
     accessibility_mode: Annotated[
-        bool, Field(description="Enable accessibility optimizations")
+        bool,
+        Field(description="Enable accessibility optimizations"),
     ] = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Configure voice control settings, command mappings, and personalization options.
+    """Configure voice control settings, command mappings, and personalization options.
 
     FastMCP Tool for voice control configuration through Claude Desktop.
     Sets up speech recognition, command mappings, and personalized voice interaction.
@@ -516,31 +538,37 @@ async def km_configure_voice_control(
 @mcp.tool()
 async def km_provide_voice_feedback(
     message: Annotated[
-        str, Field(description="Message to convert to speech", max_length=1000)
+        str,
+        Field(description="Message to convert to speech", max_length=1000),
     ],
     voice_settings: Annotated[
-        dict[str, Any] | None, Field(description="Voice synthesis settings")
+        dict[str, Any] | None,
+        Field(description="Voice synthesis settings"),
     ] = None,
     language: Annotated[str, Field(description="Speech synthesis language")] = "en-US",
     speech_rate: Annotated[
-        float, Field(description="Speech rate", ge=0.1, le=3.0)
+        float,
+        Field(description="Speech rate", ge=0.1, le=3.0),
     ] = 1.0,
     voice_volume: Annotated[
-        float, Field(description="Voice volume", ge=0.0, le=1.0)
+        float,
+        Field(description="Voice volume", ge=0.0, le=1.0),
     ] = 0.8,
     emotion_tone: Annotated[
-        str | None, Field(description="Emotional tone (neutral|happy|sad|excited)")
+        str | None,
+        Field(description="Emotional tone (neutral|happy|sad|excited)"),
     ] = None,
     interrupt_current: Annotated[
-        bool, Field(description="Interrupt current speech synthesis")
+        bool,
+        Field(description="Interrupt current speech synthesis"),
     ] = False,
     save_audio: Annotated[
-        bool, Field(description="Save synthesized audio to file")
+        bool,
+        Field(description="Save synthesized audio to file"),
     ] = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Provide voice feedback and responses using text-to-speech synthesis.
+    """Provide voice feedback and responses using text-to-speech synthesis.
 
     FastMCP Tool for voice feedback through Claude Desktop.
     Converts text to natural speech with customizable voice settings and emotional tone.
@@ -578,7 +606,8 @@ async def km_provide_voice_feedback(
 
         # Generate speech feedback
         feedback_result = await feedback_manager.provide_feedback(
-            message, synthesis_settings
+            message,
+            synthesis_settings,
         )
 
         if feedback_result.is_left():
@@ -620,7 +649,7 @@ async def km_provide_voice_feedback(
         logger.error(f"Voice feedback failed: {e}")
         return {
             "success": False,
-            "error": f"Speech synthesis failed: {str(e)}",
+            "error": f"Speech synthesis failed: {e!s}",
             "message_length": len(message) if message else 0,
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -631,34 +660,40 @@ async def km_train_voice_recognition(
     training_type: Annotated[
         str,
         Field(
-            description="Training type (user_voice|custom_commands|accent_adaptation)"
+            description="Training type (user_voice|custom_commands|accent_adaptation)",
         ),
     ],
     user_profile_name: Annotated[
-        str, Field(description="User profile name for training")
+        str,
+        Field(description="User profile name for training"),
     ],
     training_data: Annotated[
-        list[str] | None, Field(description="Training phrases or audio samples")
+        list[str] | None,
+        Field(description="Training phrases or audio samples"),
     ] = None,
     training_sessions: Annotated[
-        int, Field(description="Number of training sessions", ge=1, le=20)
+        int,
+        Field(description="Number of training sessions", ge=1, le=20),
     ] = 5,
     adaptation_mode: Annotated[
-        str, Field(description="Adaptation mode (quick|standard|comprehensive)")
+        str,
+        Field(description="Adaptation mode (quick|standard|comprehensive)"),
     ] = "standard",
     background_noise_training: Annotated[
-        bool, Field(description="Include background noise adaptation")
+        bool,
+        Field(description="Include background noise adaptation"),
     ] = True,
     validate_training: Annotated[
-        bool, Field(description="Validate training effectiveness")
+        bool,
+        Field(description="Validate training effectiveness"),
     ] = True,
     save_profile: Annotated[
-        bool, Field(description="Save trained voice profile")
+        bool,
+        Field(description="Save trained voice profile"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Train and customize voice recognition for improved accuracy and personalization.
+    """Train and customize voice recognition for improved accuracy and personalization.
 
     FastMCP Tool for voice recognition training through Claude Desktop.
     Adapts speech recognition to user voice, accent, and custom commands.
@@ -701,7 +736,7 @@ async def km_train_voice_recognition(
 
         # Execute training
         training_result = await voice_manager.speech_recognizer.train_recognition(
-            training_session
+            training_session,
         )
 
         if training_result.is_left():
@@ -719,7 +754,8 @@ async def km_train_voice_recognition(
         # Save voice profile if requested
         if save_profile:
             profile_result = await voice_manager.save_voice_profile(
-                user_profile_name, training_data.voice_profile
+                user_profile_name,
+                training_data.voice_profile,
             )
             if profile_result.is_right():
                 voice_manager.voice_profiles[user_profile_name] = (
@@ -761,7 +797,7 @@ async def km_train_voice_recognition(
         logger.error(f"Voice recognition training failed: {e}")
         return {
             "success": False,
-            "error": f"Training failed: {str(e)}",
+            "error": f"Training failed: {e!s}",
             "training_type": training_type,
             "user_profile": user_profile_name,
             "timestamp": datetime.now(UTC).isoformat(),
@@ -811,7 +847,8 @@ async def _km_provide_voice_feedback_impl(
 
         # Generate speech feedback
         feedback_result = await feedback_manager.provide_speech_feedback(
-            message, synthesis_settings
+            message,
+            synthesis_settings,
         )
 
         return {
@@ -833,7 +870,7 @@ async def _km_provide_voice_feedback_impl(
         logger.error(f"Voice feedback generation failed: {e}")
         return {
             "success": False,
-            "error": f"Feedback generation failed: {str(e)}",
+            "error": f"Feedback generation failed: {e!s}",
             "message": message,
             "timestamp": datetime.now(UTC).isoformat(),
         }
@@ -916,7 +953,7 @@ async def _km_train_voice_recognition_impl(
         logger.error(f"Voice recognition training failed: {e}")
         return {
             "success": False,
-            "error": f"Training failed: {str(e)}",
+            "error": f"Training failed: {e!s}",
             "training_type": training_type,
             "user_profile": user_profile_name,
             "timestamp": datetime.now(UTC).isoformat(),

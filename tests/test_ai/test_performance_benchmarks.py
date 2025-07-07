@@ -1,5 +1,4 @@
-"""
-Performance benchmark tests for AI infrastructure components.
+"""Performance benchmark tests for AI infrastructure components.
 
 This module provides comprehensive performance testing and validation for the AI
 infrastructure including cache operations, cost calculations, provider clients,
@@ -13,6 +12,9 @@ Performance Requirements:
 - Throughput: >100 operations/second sustained
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -30,13 +32,17 @@ from src.ai.cost_optimization import (
 )
 from src.ai.providers.openai_client import OpenAIClient
 from src.ai.security.api_key_manager import APIKeyManager
-from src.core.ai_integration import AIOperation, AIRequest
+from src.core.ai_integration import (
+    AIOperation,
+    TokenCount,
+    create_ai_request,
+)
 
 
 class TestCachePerformance:
     """Performance tests for caching system."""
 
-    def test_l1_cache_performance_requirements(self):
+    def test_l1_cache_performance_requirements(self) -> None:
         """Test L1 cache meets <10ms performance requirements."""
         cache_manager = CacheManager(max_size=1000)
 
@@ -60,7 +66,7 @@ class TestCachePerformance:
         assert result == value
         assert get_time < 0.01  # <10ms requirement
 
-    def test_cache_bulk_operations_performance(self):
+    def test_cache_bulk_operations_performance(self) -> None:
         """Test cache performance under bulk operations."""
         cache_manager = CacheManager(max_size=10000)
 
@@ -94,7 +100,7 @@ class TestCachePerformance:
         # Should handle 1000 GET operations quickly
         assert bulk_get_time < 0.5  # <500ms for 1000 operations
 
-    def test_cache_memory_efficiency(self):
+    def test_cache_memory_efficiency(self) -> None:
         """Test cache memory usage efficiency."""
         cache_manager = CacheManager(max_size=5000)
 
@@ -119,11 +125,11 @@ class TestCachePerformance:
         # Should use reasonable memory (allowing for test overhead)
         assert memory_increase < 50  # <50MB for 5000 items
 
-    def test_concurrent_cache_operations(self):
+    def test_concurrent_cache_operations(self) -> None:
         """Test cache performance under concurrent access."""
         cache_manager = CacheManager(max_size=10000)
 
-        def cache_worker(worker_id: int, operation_count: int):
+        def cache_worker(worker_id: int, operation_count: int) -> None:
             """Worker function for concurrent testing."""
             for i in range(operation_count):
                 key = CacheKey(f"concurrent_{worker_id}_{i}")
@@ -156,7 +162,7 @@ class TestCachePerformance:
 class TestCostOptimizationPerformance:
     """Performance tests for cost optimization system."""
 
-    def test_usage_recording_performance(self):
+    def test_usage_recording_performance(self) -> None:
         """Test cost tracking performance requirements."""
         cost_optimizer = CostOptimizer()
 
@@ -177,7 +183,7 @@ class TestCostOptimizationPerformance:
         # Should record usage quickly
         assert record_time < 0.005  # <5ms requirement
 
-    def test_bulk_usage_recording_performance(self):
+    def test_bulk_usage_recording_performance(self) -> None:
         """Test bulk usage recording performance."""
         cost_optimizer = CostOptimizer()
 
@@ -199,7 +205,7 @@ class TestCostOptimizationPerformance:
         # Should handle 1000 usage records efficiently
         assert bulk_record_time < 5.0  # <5 seconds for 1000 records
 
-    def test_cost_calculation_performance(self):
+    def test_cost_calculation_performance(self) -> None:
         """Test cost calculation and reporting performance."""
         cost_optimizer = CostOptimizer()
 
@@ -234,12 +240,14 @@ class TestCostOptimizationPerformance:
 class TestProviderClientPerformance:
     """Performance tests for provider clients."""
 
-    def test_openai_client_initialization_performance(self):
+    def test_openai_client_initialization_performance(self) -> None:
         """Test OpenAI client initialization performance."""
         start_time = time.time()
 
         OpenAIClient(
-            api_key="test-key-performance", model="gpt-3.5-turbo", timeout=10.0
+            api_key="test-key-performance",
+            model="gpt-3.5-turbo",
+            timeout=10.0,
         )
 
         init_time = time.time() - start_time
@@ -247,7 +255,7 @@ class TestProviderClientPerformance:
         # Should initialize quickly
         assert init_time < 0.1  # <100ms for initialization
 
-    def test_token_counting_performance(self):
+    def test_token_counting_performance(self) -> None:
         """Test token counting performance."""
         client = OpenAIClient(api_key="test-key-performance", model="gpt-3.5-turbo")
 
@@ -267,15 +275,18 @@ class TestProviderClientPerformance:
             assert token_count > 0
             assert count_time < 0.05  # <50ms for token counting
 
-    def test_request_payload_building_performance(self):
+    def test_request_payload_building_performance(self) -> None:
         """Test request payload building performance."""
         client = OpenAIClient(api_key="test-key-performance", model="gpt-3.5-turbo")
 
-        request = AIRequest(
+        request_result = create_ai_request(
             operation=AIOperation.ANALYZE,
             input_data="Test input for performance analysis",
-            processing_parameters={"temperature": 0.7, "max_tokens": 100, "top_p": 0.9},
+            temperature=0.7,
+            max_tokens=TokenCount(100),
         )
+        assert request_result.is_right()
+        request = request_result.value
 
         start_time = time.time()
         payload = client._build_request_payload(request)
@@ -289,7 +300,7 @@ class TestProviderClientPerformance:
 class TestSecurityPerformance:
     """Performance tests for security components."""
 
-    def test_api_key_validation_performance(self):
+    def test_api_key_validation_performance(self) -> None:
         """Test API key validation performance."""
         api_key_manager = APIKeyManager()
 
@@ -309,7 +320,7 @@ class TestSecurityPerformance:
             # Should validate quickly regardless of result
             assert validation_time < 0.01  # <10ms for validation
 
-    def test_key_storage_performance(self):
+    def test_key_storage_performance(self) -> None:
         """Test key storage and retrieval performance."""
         api_key_manager = APIKeyManager()
 
@@ -342,30 +353,44 @@ class TestEndToEndPerformance:
     """End-to-end performance tests."""
 
     @pytest.mark.asyncio
-    async def test_complete_workflow_performance(self):
+    async def test_complete_workflow_performance(self) -> None:
         """Test complete AI workflow performance."""
         # Setup components
         cache_manager = IntelligentCacheManager()
         cost_optimizer = CostOptimizer()
 
         # Create test request
-        request = AIRequest(
+        request_result = create_ai_request(
             operation=AIOperation.ANALYZE,
             input_data="Test input for end-to-end performance testing",
-            processing_parameters={"temperature": 0.7, "max_tokens": 100},
+            temperature=0.7,
+            max_tokens=TokenCount(100),
         )
+        assert request_result.is_right()
+        request = request_result.value
+
+        # Extract processing parameters for cache methods
+        processing_params = {
+            "temperature": request.temperature,
+            "max_tokens": int(request.max_tokens) if request.max_tokens else None,
+            "processing_mode": request.processing_mode.value,
+        }
 
         # Test cache miss scenario (simulated)
         start_time = time.time()
 
         # Generate cache key
         cache_manager._generate_ai_cache_key(
-            request.operation, request.input_data, request.processing_parameters
+            request.operation,
+            request.input_data,
+            processing_params,
         )
 
         # Check cache (miss)
         await cache_manager.get_ai_result(
-            request.operation, request.input_data, request.processing_parameters
+            request.operation,
+            request.input_data,
+            processing_params,
         )
 
         # Simulate AI processing result
@@ -380,7 +405,7 @@ class TestEndToEndPerformance:
             request.operation,
             request.input_data,
             mock_result,
-            request.processing_parameters,
+            processing_params,
         )
 
         # Record usage
@@ -399,7 +424,7 @@ class TestEndToEndPerformance:
         assert workflow_time < 0.5  # <500ms for complete workflow
 
     @pytest.mark.asyncio
-    async def test_cache_hit_performance(self):
+    async def test_cache_hit_performance(self) -> None:
         """Test cached request performance."""
         cache_manager = IntelligentCacheManager()
 
@@ -407,14 +432,19 @@ class TestEndToEndPerformance:
         test_result = {"cached_analysis": "Fast cached result", "confidence": 0.99}
 
         await cache_manager.put_ai_result(
-            AIOperation.ANALYZE, "cached test input", test_result, {"temperature": 0.7}
+            AIOperation.ANALYZE,
+            "cached test input",
+            test_result,
+            {"temperature": 0.7},
         )
 
         # Test cache hit performance
         start_time = time.time()
 
         cached_result = await cache_manager.get_ai_result(
-            AIOperation.ANALYZE, "cached test input", {"temperature": 0.7}
+            AIOperation.ANALYZE,
+            "cached test input",
+            {"temperature": 0.7},
         )
 
         cache_hit_time = time.time() - start_time
@@ -422,7 +452,7 @@ class TestEndToEndPerformance:
         assert cached_result == test_result
         assert cache_hit_time < 0.1  # <100ms for cache hit
 
-    def test_system_resource_usage(self):
+    def test_system_resource_usage(self) -> None:
         """Test overall system resource usage."""
         # Get initial resource usage
         process = psutil.Process(os.getpid())
@@ -440,7 +470,7 @@ class TestEndToEndPerformance:
             cache_manager.cache.l1_cache.put(key, value)
 
         # Cost operations
-        for i in range(500):
+        for _i in range(500):
             cost_optimizer.record_usage(
                 operation=AIOperation.ANALYZE,
                 model_used="gpt-3.5-turbo",
@@ -461,7 +491,7 @@ class TestEndToEndPerformance:
 class TestScalabilityBenchmarks:
     """Scalability benchmark tests."""
 
-    def test_cache_scalability(self):
+    def test_cache_scalability(self) -> None:
         """Test cache performance at scale."""
         cache_manager = CacheManager(max_size=50000)
 
@@ -488,7 +518,7 @@ class TestScalabilityBenchmarks:
             max_time = count * 0.001  # 1ms per operation max
             assert operation_time < max_time
 
-    def test_cost_tracking_scalability(self):
+    def test_cost_tracking_scalability(self) -> None:
         """Test cost tracking performance at scale."""
         cost_optimizer = CostOptimizer()
 

@@ -1,5 +1,4 @@
-"""
-Metadata and Analysis MCP Tools
+"""Metadata and Analysis MCP Tools.
 
 Advanced macro discovery, metadata analysis, and search functionality.
 """
@@ -27,7 +26,7 @@ from ..integration.smart_filtering import (
 logger = logging.getLogger(__name__)
 
 
-def register_metadata_tools(mcp):
+def register_metadata_tools(mcp) -> None:
     """Register metadata and analysis tools with the MCP server."""
 
     @mcp.tool()
@@ -61,7 +60,8 @@ def register_metadata_tools(mcp):
             ),
         ] = None,
         min_usage_count: Annotated[
-            int, Field(default=0, ge=0, description="Minimum execution count filter")
+            int,
+            Field(default=0, ge=0, description="Minimum execution count filter"),
         ] = 0,
         sort_by: Annotated[
             str,
@@ -76,15 +76,14 @@ def register_metadata_tools(mcp):
         ] = 20,
         ctx: Context = None,
     ) -> dict[str, Any]:
-        """
-        Advanced macro search with comprehensive filtering and metadata analysis.
+        """Advanced macro search with comprehensive filtering and metadata analysis.
 
         TASK_6 IMPLEMENTATION: Enhanced macro discovery with rich metadata,
         smart filtering, usage analytics, and hierarchical organization.
         """
         if ctx:
             await ctx.info(
-                f"Advanced search: '{query or 'all macros'}' with {scope} scope"
+                f"Advanced search: '{query or 'all macros'}' with {scope} scope",
             )
 
         try:
@@ -126,7 +125,9 @@ def register_metadata_tools(mcp):
 
             if ctx:
                 await ctx.report_progress(
-                    30, 100, f"Extracting metadata for {len(basic_macros)} macros"
+                    30,
+                    100,
+                    f"Extracting metadata for {len(basic_macros)} macros",
                 )
 
             # Extract enhanced metadata for each macro
@@ -137,7 +138,7 @@ def register_metadata_tools(mcp):
                     # Convert string to MacroId branded type
                     macro_id = MacroId(macro_id_str)
                     metadata_result = await extractor.extract_enhanced_metadata(
-                        macro_id
+                        macro_id,
                     )
                     if metadata_result.is_right():
                         enhanced_macros.append(metadata_result.get_right())
@@ -156,7 +157,9 @@ def register_metadata_tools(mcp):
 
             # Convert filter parameters
             search_scope = getattr(
-                SearchScope, scope.upper(), SearchScope.NAME_AND_GROUP
+                SearchScope,
+                scope.upper(),
+                SearchScope.NAME_AND_GROUP,
             )
             sort_criteria = getattr(SortCriteria, sort_by.upper(), SortCriteria.NAME)
 
@@ -186,7 +189,10 @@ def register_metadata_tools(mcp):
 
             # Apply smart filtering
             filter_result = smart_filter.search_macros(
-                enhanced_macros, search_query, sort_criteria, limit
+                enhanced_macros,
+                search_query,
+                sort_criteria,
+                limit,
             )
 
             if ctx:
@@ -218,13 +224,13 @@ def register_metadata_tools(mcp):
                         },
                         "optimization_suggestions": macro.optimization_suggestions,
                         "last_analyzed": macro.last_analyzed.isoformat(),
-                    }
+                    },
                 )
 
             if ctx:
                 await ctx.report_progress(100, 100, "Search complete")
                 await ctx.info(
-                    f"Found {len(result_macros)} matching macros with enhanced metadata"
+                    f"Found {len(result_macros)} matching macros with enhanced metadata",
                 )
 
             return {
@@ -272,9 +278,9 @@ def register_metadata_tools(mcp):
         ] = True,
         ctx: Context = None,
     ) -> dict[str, Any]:
-        """
-        Analyze detailed metadata for a specific macro including complexity,
-        usage patterns, optimization suggestions, and relationships.
+        """Analyze detailed metadata for a specific macro including complexity.
+
+        Usage patterns, optimization suggestions, and relationships.
 
         TASK_6 IMPLEMENTATION: Deep macro analysis for AI-driven insights.
         """
@@ -297,7 +303,7 @@ def register_metadata_tools(mcp):
             # Convert string to MacroId branded type and extract enhanced metadata
             macro_id_branded = MacroId(macro_id)
             metadata_result = await extractor.extract_enhanced_metadata(
-                macro_id_branded
+                macro_id_branded,
             )
 
             if metadata_result.is_left():
@@ -316,7 +322,9 @@ def register_metadata_tools(mcp):
 
             if ctx:
                 await ctx.report_progress(
-                    75, 100, "Analyzing patterns and relationships"
+                    75,
+                    100,
+                    "Analyzing patterns and relationships",
                 )
 
             # Find similar macros if requested
@@ -338,13 +346,15 @@ def register_metadata_tools(mcp):
                             # Convert string to MacroId branded type
                             macro_id = MacroId(macro_id_str)
                             enhanced_result = await extractor.extract_enhanced_metadata(
-                                macro_id
+                                macro_id,
                             )
                             if enhanced_result.is_right():
                                 all_enhanced.append(enhanced_result.get_right())
 
                     similar_macros_list = smart_filter.find_similar_macros(
-                        macro_metadata, all_enhanced, similarity_threshold=0.6
+                        macro_metadata,
+                        all_enhanced,
+                        similarity_threshold=0.6,
                     )
 
                     for similar in similar_macros_list[:5]:  # Top 5 similar
@@ -354,7 +364,7 @@ def register_metadata_tools(mcp):
                                 "name": similar.name,
                                 "group": similar.group,
                                 "similarity_reason": "Similar function and complexity",
-                            }
+                            },
                         )
 
             # Build detailed analysis
@@ -377,7 +387,7 @@ def register_metadata_tools(mcp):
                         t.category.value for t in macro_metadata.triggers
                     ],
                     "action_categories": list(
-                        {a.category.value for a in macro_metadata.actions}
+                        {a.category.value for a in macro_metadata.actions},
                     ),
                 },
                 "usage_analytics": {
@@ -396,7 +406,8 @@ def register_metadata_tools(mcp):
                 "optimization": {
                     "suggestions": macro_metadata.optimization_suggestions,
                     "performance_score": max(
-                        0, min(10, int(macro_metadata.usage_stats.success_rate * 10))
+                        0,
+                        min(10, int(macro_metadata.usage_stats.success_rate * 10)),
                     ),
                     "complexity_score": [
                         "simple",
@@ -429,17 +440,17 @@ def register_metadata_tools(mcp):
                 analysis_result["relationships"] = {
                     "similar_macros": similar_macros,
                     "calls_other_macros": list(
-                        macro_metadata.relationships.calls_macros
+                        macro_metadata.relationships.calls_macros,
                     ),
                     "called_by_macros": list(
-                        macro_metadata.relationships.called_by_macros
+                        macro_metadata.relationships.called_by_macros,
                     ),
                 }
 
             if ctx:
                 await ctx.report_progress(100, 100, "Analysis complete")
                 await ctx.info(
-                    f"Generated comprehensive analysis for {macro_metadata.name}"
+                    f"Generated comprehensive analysis for {macro_metadata.name}",
                 )
 
             return {

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Keyboard Maestro MCP Server - Main Entry Point (Dynamic Registration)
+"""Keyboard Maestro MCP Server - Main Entry Point (Dynamic Registration).
 
 Advanced macOS automation through Model Context Protocol using FastMCP framework
 with dynamic tool registration system. Provides 46+ production-ready tools for
@@ -46,7 +45,6 @@ logger = logging.getLogger(__name__)
 
 def create_mcp_server() -> FastMCP:
     """Create and configure the FastMCP server with comprehensive instructions."""
-
     # Get tool configuration for dynamic capability description
     config_manager = get_tool_config_manager()
     category_summary = config_manager.get_category_summary()
@@ -122,7 +120,7 @@ def register_resources_and_prompts(mcp: FastMCP) -> None:
         task_description: Annotated[
             str,
             Field(
-                description="Description of the automation task to create a macro for"
+                description="Description of the automation task to create a macro for",
             ),
         ],
         app_context: Annotated[
@@ -137,7 +135,7 @@ def register_resources_and_prompts(mcp: FastMCP) -> None:
         return create_macro_prompt(task_description, app_context)
 
 
-def main():
+def main() -> int:
     """Main entry point for the Keyboard Maestro MCP server."""
     parser = argparse.ArgumentParser(description="Keyboard Maestro MCP Server")
     parser.add_argument(
@@ -152,7 +150,10 @@ def main():
         help="Host for SSE transport (default: 127.0.0.1)",
     )
     parser.add_argument(
-        "--port", type=int, default=8000, help="Port for SSE transport (default: 8000)"
+        "--port",
+        type=int,
+        default=8000,
+        help="Port for SSE transport (default: 8000)",
     )
     parser.add_argument(
         "--log-level",
@@ -166,7 +167,9 @@ def main():
         help="Filter tools to register (tool names or categories)",
     )
     parser.add_argument(
-        "--disable-experimental", action="store_true", help="Disable experimental tools"
+        "--disable-experimental",
+        action="store_true",
+        help="Disable experimental tools",
     )
 
     args = parser.parse_args()
@@ -211,7 +214,7 @@ def main():
 
         registered_tools = registrar.get_registered_tools()
         logger.info(
-            f"✅ Successfully registered {len(registered_tools)} tools dynamically"
+            f"✅ Successfully registered {len(registered_tools)} tools dynamically",
         )
 
         # Log registration summary by category

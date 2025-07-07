@@ -1,5 +1,4 @@
-"""
-MCP tools for predictive automation operations.
+"""MCP tools for predictive automation operations.
 
 This module provides comprehensive MCP tools for machine learning-powered
 predictive automation, optimization, and system intelligence.
@@ -40,7 +39,8 @@ class PredictiveAutomationTools:
         self.model_manager = PredictiveModelManager()
         self.performance_predictor = PerformancePredictor(self.model_manager)
         self.optimization_engine = OptimizationEngine(
-            self.model_manager, self.performance_predictor
+            self.model_manager,
+            self.performance_predictor,
         )
         self.resource_predictor = ResourcePredictor(self.model_manager)
         self.pattern_recognition = PatternRecognitionEngine(self.model_manager)
@@ -56,10 +56,11 @@ class PredictiveAutomationTools:
 
         @mcp.tool()
         async def km_predict_performance(
-            metric_name: str, forecast_hours: int = 24, confidence_level: float = 0.8
+            metric_name: str,
+            forecast_hours: int = 24,
+            confidence_level: float = 0.8,
         ) -> str:
-            """
-            Predict system performance trends and forecasts.
+            """Predict system performance trends and forecasts.
 
             Args:
                 metric_name: Name of metric to predict (response_time, throughput, error_rate, etc.)
@@ -68,6 +69,7 @@ class PredictiveAutomationTools:
 
             Returns:
                 JSON string with performance forecast including trends and recommendations
+
             """
             try:
                 # Validate inputs
@@ -122,7 +124,7 @@ class PredictiveAutomationTools:
 
             except Exception as e:
                 self.logger.error(f"Performance prediction failed: {e}")
-                return f"Error: Performance prediction failed - {str(e)}"
+                return f"Error: Performance prediction failed - {e!s}"
 
         @mcp.tool()
         async def km_generate_optimizations(
@@ -130,8 +132,7 @@ class PredictiveAutomationTools:
             optimization_strategy: str = "balanced",
             max_suggestions: int = 5,
         ) -> str:
-            """
-            Generate system optimization recommendations using ML analysis.
+            """Generate system optimization recommendations using ML analysis.
 
             Args:
                 system_health: Current system health score (0.0-1.0)
@@ -140,6 +141,7 @@ class PredictiveAutomationTools:
 
             Returns:
                 JSON string with optimization suggestions and implementation details
+
             """
             try:
                 # Validate inputs
@@ -175,7 +177,8 @@ class PredictiveAutomationTools:
                 # Generate optimizations
                 optimizations_result = (
                     await self.optimization_engine.analyze_optimization_opportunities(
-                        context, OptimizationStrategy(optimization_strategy)
+                        context,
+                        OptimizationStrategy(optimization_strategy),
                     )
                 )
 
@@ -225,7 +228,7 @@ class PredictiveAutomationTools:
 
             except Exception as e:
                 self.logger.error(f"Optimization generation failed: {e}")
-                return f"Error: Optimization generation failed - {str(e)}"
+                return f"Error: Optimization generation failed - {e!s}"
 
         @mcp.tool()
         async def km_predict_resource_usage(
@@ -233,8 +236,7 @@ class PredictiveAutomationTools:
             prediction_hours: int = 24,
             include_recommendations: bool = True,
         ) -> str:
-            """
-            Predict resource usage patterns and capacity needs.
+            """Predict resource usage patterns and capacity needs.
 
             Args:
                 resource_type: Type of resource (cpu, memory, storage, network)
@@ -243,6 +245,7 @@ class PredictiveAutomationTools:
 
             Returns:
                 JSON string with resource usage predictions and capacity planning
+
             """
             try:
                 # Validate inputs
@@ -301,14 +304,14 @@ class PredictiveAutomationTools:
 
             except Exception as e:
                 self.logger.error(f"Resource prediction failed: {e}")
-                return f"Error: Resource prediction failed - {str(e)}"
+                return f"Error: Resource prediction failed - {e!s}"
 
         @mcp.tool()
         async def km_detect_anomalies(
-            metric_data: str = "{}", sensitivity: float = 0.8
+            metric_data: str = "{}",
+            sensitivity: float = 0.8,
         ) -> str:
-            """
-            Detect anomalies and predict potential system issues.
+            """Detect anomalies and predict potential system issues.
 
             Args:
                 metric_data: JSON string with metrics data for analysis
@@ -316,6 +319,7 @@ class PredictiveAutomationTools:
 
             Returns:
                 JSON string with detected anomalies and predictions
+
             """
             try:
                 import json
@@ -349,7 +353,7 @@ class PredictiveAutomationTools:
 
                 # Detect anomalies
                 anomalies_result = await self.anomaly_predictor.predict_anomalies(
-                    metrics
+                    metrics,
                 )
 
                 if anomalies_result.is_left():
@@ -393,14 +397,14 @@ class PredictiveAutomationTools:
 
             except Exception as e:
                 self.logger.error(f"Anomaly detection failed: {e}")
-                return f"Error: Anomaly detection failed - {str(e)}"
+                return f"Error: Anomaly detection failed - {e!s}"
 
         @mcp.tool()
         async def km_create_capacity_plan(
-            resource_type: str, planning_days: int = 30
+            resource_type: str,
+            planning_days: int = 30,
         ) -> str:
-            """
-            Create capacity planning recommendations for resource scaling.
+            """Create capacity planning recommendations for resource scaling.
 
             Args:
                 resource_type: Type of resource to plan for
@@ -408,6 +412,7 @@ class PredictiveAutomationTools:
 
             Returns:
                 JSON string with capacity plan and scaling recommendations
+
             """
             try:
                 # Validate inputs
@@ -457,15 +462,15 @@ class PredictiveAutomationTools:
 
             except Exception as e:
                 self.logger.error(f"Capacity planning failed: {e}")
-                return f"Error: Capacity planning failed - {str(e)}"
+                return f"Error: Capacity planning failed - {e!s}"
 
         @mcp.tool()
         async def km_get_prediction_status() -> str:
-            """
-            Get comprehensive status of the predictive automation system.
+            """Get comprehensive status of the predictive automation system.
 
             Returns:
                 JSON string with system status and statistics
+
             """
             try:
                 # Get statistics from all components
@@ -511,7 +516,7 @@ class PredictiveAutomationTools:
                         "alert_system": {
                             "active_alerts": len(active_alerts),
                             "alert_types": list(
-                                {alert.alert_type for alert in active_alerts}
+                                {alert.alert_type for alert in active_alerts},
                             ),
                         },
                     },
@@ -526,7 +531,7 @@ class PredictiveAutomationTools:
 
             except Exception as e:
                 self.logger.error(f"Status retrieval failed: {e}")
-                return f"Error: Status retrieval failed - {str(e)}"
+                return f"Error: Status retrieval failed - {e!s}"
 
         self.logger.info("Registered predictive automation MCP tools successfully")
 

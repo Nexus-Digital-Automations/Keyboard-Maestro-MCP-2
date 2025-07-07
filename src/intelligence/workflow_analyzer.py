@@ -1,5 +1,4 @@
-"""
-Core workflow analysis engine for intelligent workflow processing and optimization.
+"""Core workflow analysis engine for intelligent workflow processing and optimization.
 
 This module provides comprehensive workflow analysis including pattern recognition,
 performance prediction, quality assessment, and optimization recommendations.
@@ -53,8 +52,7 @@ class AnalysisMetrics:
 
 
 class WorkflowAnalyzer:
-    """
-    Core workflow analysis engine with AI-powered insights.
+    """Core workflow analysis engine with AI-powered insights.
 
     Provides comprehensive workflow analysis including complexity assessment,
     performance prediction, pattern recognition, and optimization recommendations.
@@ -99,7 +97,7 @@ class WorkflowAnalyzer:
         # Initialize common patterns
         self._initialize_pattern_library()
 
-    def _initialize_pattern_library(self):
+    def _initialize_pattern_library(self) -> None:
         """Initialize common workflow patterns for recognition."""
         # Sequential processing pattern
         sequential_pattern = WorkflowPattern(
@@ -135,7 +133,7 @@ class WorkflowAnalyzer:
         )
         self.pattern_library["error_handling"] = error_handling_pattern
 
-    @require(lambda self, workflow_data: workflow_data is not None)
+    @require(lambda __self, workflow_data: workflow_data is not None)
     @ensure(lambda result: isinstance(result, Either))
     async def analyze_workflow(
         self,
@@ -152,7 +150,7 @@ class WorkflowAnalyzer:
             components = self._extract_workflow_components(workflow_data)
             if not components:
                 return Either.left(
-                    ValidationError("workflow_data", "no valid components found")
+                    ValidationError("workflow_data", "no valid components found"),
                 )
 
             # Collect analysis metrics
@@ -166,12 +164,14 @@ class WorkflowAnalyzer:
 
             # Predict performance
             performance_prediction = await self._predict_performance(
-                components, metrics
+                components,
+                metrics,
             )
 
             # Identify patterns
             identified_patterns = await self._identify_patterns(
-                components, workflow_data
+                components,
+                workflow_data,
             )
 
             # Detect anti-patterns
@@ -179,7 +179,9 @@ class WorkflowAnalyzer:
 
             # Generate optimization recommendations
             optimizations = await self._generate_optimizations(
-                components, metrics, optimization_goals or [OptimizationGoal.EFFICIENCY]
+                components,
+                metrics,
+                optimization_goals or [OptimizationGoal.EFFICIENCY],
             )
 
             # Analyze cross-tool dependencies
@@ -196,19 +198,24 @@ class WorkflowAnalyzer:
 
             # Generate improvement suggestions
             improvement_suggestions = await self._generate_improvement_suggestions(
-                components, metrics, identified_patterns, anti_patterns
+                components,
+                metrics,
+                identified_patterns,
+                anti_patterns,
             )
 
             # Generate alternative designs
             alternative_designs = await self._generate_alternative_designs(
-                components, optimization_goals or [OptimizationGoal.EFFICIENCY]
+                components,
+                optimization_goals or [OptimizationGoal.EFFICIENCY],
             )
 
             # Create analysis result
             result = WorkflowAnalysisResult(
                 analysis_id=analysis_id,
                 workflow_id=workflow_data.get(
-                    "workflow_id", f"workflow_{uuid.uuid4().hex[:8]}"
+                    "workflow_id",
+                    f"workflow_{uuid.uuid4().hex[:8]}",
                 ),
                 analysis_depth=analysis_depth,
                 quality_score=quality_score,
@@ -253,11 +260,12 @@ class WorkflowAnalyzer:
         except Exception as e:
             self.logger.error(f"Workflow analysis failed: {e}")
             return Either.left(
-                ValidationError("workflow_analysis", str(e), "analysis failed")
+                ValidationError("workflow_analysis", str(e), "analysis failed"),
             )
 
     def _extract_workflow_components(
-        self, workflow_data: dict[str, Any]
+        self,
+        workflow_data: dict[str, Any],
     ) -> list[WorkflowComponent]:
         """Extract workflow components from workflow data."""
         components = []
@@ -281,7 +289,7 @@ class WorkflowAnalyzer:
                     parameters=action_data.get("parameters", {}),
                     dependencies=action_data.get("dependencies", []),
                     estimated_execution_time=timedelta(
-                        milliseconds=action_data.get("execution_time_ms", 500)
+                        milliseconds=action_data.get("execution_time_ms", 500),
                     ),
                     reliability_score=action_data.get("reliability", 0.9),
                     complexity_score=action_data.get("complexity", 0.3),
@@ -291,13 +299,15 @@ class WorkflowAnalyzer:
         return components
 
     def _create_component_from_data(
-        self, comp_data: dict[str, Any]
+        self,
+        comp_data: dict[str, Any],
     ) -> WorkflowComponent | None:
         """Create a WorkflowComponent from component data dictionary."""
         try:
             return WorkflowComponent(
                 component_id=comp_data.get(
-                    "component_id", f"comp_{uuid.uuid4().hex[:8]}"
+                    "component_id",
+                    f"comp_{uuid.uuid4().hex[:8]}",
                 ),
                 component_type=comp_data.get("component_type", "action"),
                 name=comp_data.get("name", "Component"),
@@ -305,7 +315,7 @@ class WorkflowAnalyzer:
                 parameters=comp_data.get("parameters", {}),
                 dependencies=comp_data.get("dependencies", []),
                 estimated_execution_time=timedelta(
-                    milliseconds=comp_data.get("execution_time_ms", 500)
+                    milliseconds=comp_data.get("execution_time_ms", 500),
                 ),
                 reliability_score=comp_data.get("reliability_score", 0.9),
                 complexity_score=comp_data.get("complexity_score", 0.3),
@@ -315,7 +325,8 @@ class WorkflowAnalyzer:
             return None
 
     async def _collect_analysis_metrics(
-        self, components: list[WorkflowComponent]
+        self,
+        components: list[WorkflowComponent],
     ) -> AnalysisMetrics:
         """Collect metrics for workflow analysis."""
         # Component analysis
@@ -352,7 +363,8 @@ class WorkflowAnalyzer:
         )
 
     def _calculate_dependency_depth(
-        self, dependency_graph: dict[str, list[str]]
+        self,
+        dependency_graph: dict[str, list[str]],
     ) -> int:
         """Calculate the maximum dependency depth in the workflow."""
 
@@ -377,7 +389,8 @@ class WorkflowAnalyzer:
         return max_depth
 
     def _detect_cyclic_dependencies(
-        self, dependency_graph: dict[str, list[str]]
+        self,
+        dependency_graph: dict[str, list[str]],
     ) -> bool:
         """Detect cyclic dependencies in the workflow."""
 
@@ -403,7 +416,8 @@ class WorkflowAnalyzer:
         return False
 
     def _detect_resource_conflicts(
-        self, components: list[WorkflowComponent]
+        self,
+        components: list[WorkflowComponent],
     ) -> list[str]:
         """Detect potential resource conflicts between components."""
         conflicts = []
@@ -412,7 +426,8 @@ class WorkflowAnalyzer:
         file_resources = defaultdict(list)
         for comp in components:
             file_paths = comp.parameters.get(
-                "file_path", comp.parameters.get("file_paths", [])
+                "file_path",
+                comp.parameters.get("file_paths", []),
             )
             if isinstance(file_paths, str):
                 file_paths = [file_paths]
@@ -423,14 +438,15 @@ class WorkflowAnalyzer:
         for path, comp_ids in file_resources.items():
             if len(comp_ids) > 1:
                 conflicts.append(
-                    f"File resource conflict: {path} used by {', '.join(comp_ids)}"
+                    f"File resource conflict: {path} used by {', '.join(comp_ids)}",
                 )
 
         # Check for application conflicts
         app_resources = defaultdict(list)
         for comp in components:
             apps = comp.parameters.get(
-                "application", comp.parameters.get("applications", [])
+                "application",
+                comp.parameters.get("applications", []),
             )
             if isinstance(apps, str):
                 apps = [apps]
@@ -441,13 +457,14 @@ class WorkflowAnalyzer:
         for app, comp_ids in app_resources.items():
             if len(comp_ids) > 1:
                 conflicts.append(
-                    f"Application resource conflict: {app} used by {', '.join(comp_ids)}"
+                    f"Application resource conflict: {app} used by {', '.join(comp_ids)}",
                 )
 
         return conflicts
 
     def _identify_performance_bottlenecks(
-        self, components: list[WorkflowComponent]
+        self,
+        components: list[WorkflowComponent],
     ) -> list[str]:
         """Identify potential performance bottlenecks."""
         bottlenecks = []
@@ -461,7 +478,7 @@ class WorkflowAnalyzer:
             for comp in components:
                 if comp.estimated_execution_time.total_seconds() > avg_time * 3:
                     bottlenecks.append(
-                        f"Slow component: {comp.name} ({comp.estimated_execution_time.total_seconds():.2f}s)"
+                        f"Slow component: {comp.name} ({comp.estimated_execution_time.total_seconds():.2f}s)",
                     )
 
         # Check for sequential operations that could be parallelized
@@ -472,13 +489,14 @@ class WorkflowAnalyzer:
         ]
         if len(sequential_actions) > 3:
             bottlenecks.append(
-                f"Potential parallelization opportunity: {len(sequential_actions)} independent actions"
+                f"Potential parallelization opportunity: {len(sequential_actions)} independent actions",
             )
 
         return bottlenecks
 
     def _identify_reliability_concerns(
-        self, components: list[WorkflowComponent]
+        self,
+        components: list[WorkflowComponent],
     ) -> list[str]:
         """Identify reliability concerns in the workflow."""
         concerns = []
@@ -487,7 +505,7 @@ class WorkflowAnalyzer:
         for comp in components:
             if comp.reliability_score < 0.8:
                 concerns.append(
-                    f"Low reliability component: {comp.name} ({comp.reliability_score:.2f})"
+                    f"Low reliability component: {comp.name} ({comp.reliability_score:.2f})",
                 )
 
         # Check for missing error handling
@@ -500,7 +518,9 @@ class WorkflowAnalyzer:
         return concerns
 
     async def _assess_workflow_quality(
-        self, components: list[WorkflowComponent], metrics: AnalysisMetrics
+        self,
+        components: list[WorkflowComponent],
+        metrics: AnalysisMetrics,
     ) -> float:
         """Assess overall workflow quality score."""
         quality_factors = []
@@ -508,7 +528,7 @@ class WorkflowAnalyzer:
         # Component reliability factor
         if components:
             avg_reliability = statistics.mean(
-                [comp.reliability_score for comp in components]
+                [comp.reliability_score for comp in components],
             )
             quality_factors.append(avg_reliability)
 
@@ -545,7 +565,9 @@ class WorkflowAnalyzer:
         return round(min(1.0, max(0.0, weighted_score)), 2)
 
     async def _analyze_complexity(
-        self, components: list[WorkflowComponent], metrics: AnalysisMetrics
+        self,
+        components: list[WorkflowComponent],
+        metrics: AnalysisMetrics,
     ) -> dict[str, Any]:
         """Analyze workflow complexity in detail."""
         complexity_score = calculate_workflow_complexity_score(components)
@@ -575,7 +597,9 @@ class WorkflowAnalyzer:
         }
 
     async def _predict_performance(
-        self, components: list[WorkflowComponent], metrics: AnalysisMetrics
+        self,
+        components: list[WorkflowComponent],
+        metrics: AnalysisMetrics,
     ) -> dict[str, float]:
         """Predict workflow performance characteristics."""
         # Estimate execution time
@@ -596,7 +620,7 @@ class WorkflowAnalyzer:
         # Predict success rate
         if components:
             avg_reliability = statistics.mean(
-                [comp.reliability_score for comp in components]
+                [comp.reliability_score for comp in components],
             )
             # Success rate decreases with more components
             success_rate = avg_reliability * (0.99 ** len(components))
@@ -613,7 +637,9 @@ class WorkflowAnalyzer:
         }
 
     async def _identify_patterns(
-        self, components: list[WorkflowComponent], workflow_data: dict[str, Any]
+        self,
+        components: list[WorkflowComponent],
+        workflow_data: dict[str, Any],
     ) -> list[WorkflowPattern]:
         """Identify workflow patterns using pattern recognition."""
         identified_patterns = []
@@ -644,7 +670,8 @@ class WorkflowAnalyzer:
         return independent_count >= len(components) * 0.7
 
     def _matches_error_handling_pattern(
-        self, components: list[WorkflowComponent]
+        self,
+        components: list[WorkflowComponent],
     ) -> bool:
         """Check if workflow has good error handling pattern."""
         condition_count = sum(
@@ -660,7 +687,8 @@ class WorkflowAnalyzer:
         return False
 
     async def _discover_custom_patterns(
-        self, components: list[WorkflowComponent]
+        self,
+        components: list[WorkflowComponent],
     ) -> list[WorkflowPattern]:
         """Discover custom patterns in the workflow."""
         custom_patterns = []
@@ -691,7 +719,9 @@ class WorkflowAnalyzer:
         return custom_patterns
 
     async def _detect_anti_patterns(
-        self, components: list[WorkflowComponent], metrics: AnalysisMetrics
+        self,
+        components: list[WorkflowComponent],
+        metrics: AnalysisMetrics,
     ) -> list[WorkflowPattern]:
         """Detect anti-patterns in the workflow."""
         anti_patterns = []
@@ -717,7 +747,7 @@ class WorkflowAnalyzer:
 
         # Anti-pattern: No error handling
         if len(metrics.reliability_concerns) > 0 and "error handling" in str(
-            metrics.reliability_concerns
+            metrics.reliability_concerns,
         ):
             anti_pattern = WorkflowPattern(
                 pattern_id=create_pattern_id(PatternType.ANTI_PATTERN),
@@ -749,7 +779,8 @@ class WorkflowAnalyzer:
         for goal in optimization_goals:
             if goal == OptimizationGoal.PERFORMANCE:
                 perf_optimizations = await self._generate_performance_optimizations(
-                    components, metrics
+                    components,
+                    metrics,
                 )
                 optimizations.extend(perf_optimizations)
 
@@ -768,7 +799,9 @@ class WorkflowAnalyzer:
         return optimizations
 
     async def _generate_performance_optimizations(
-        self, components: list[WorkflowComponent], metrics: AnalysisMetrics
+        self,
+        components: list[WorkflowComponent],
+        metrics: AnalysisMetrics,
     ) -> list[OptimizationRecommendation]:
         """Generate performance-focused optimizations."""
         optimizations = []
@@ -810,7 +843,9 @@ class WorkflowAnalyzer:
         return optimizations
 
     async def _generate_efficiency_optimizations(
-        self, components: list[WorkflowComponent], metrics: AnalysisMetrics
+        self,
+        components: list[WorkflowComponent],
+        metrics: AnalysisMetrics,
     ) -> list[OptimizationRecommendation]:
         """Generate efficiency-focused optimizations."""
         optimizations = []
@@ -849,7 +884,9 @@ class WorkflowAnalyzer:
         return optimizations
 
     async def _generate_reliability_optimizations(
-        self, components: list[WorkflowComponent], metrics: AnalysisMetrics
+        self,
+        components: list[WorkflowComponent],
+        metrics: AnalysisMetrics,
     ) -> list[OptimizationRecommendation]:
         """Generate reliability-focused optimizations."""
         optimizations = []
@@ -886,7 +923,8 @@ class WorkflowAnalyzer:
         return optimizations
 
     def _find_similar_components(
-        self, components: list[WorkflowComponent]
+        self,
+        components: list[WorkflowComponent],
     ) -> list[WorkflowComponent]:
         """Find similar components that could be consolidated."""
         similar_components = []
@@ -906,7 +944,8 @@ class WorkflowAnalyzer:
         return similar_components
 
     def _analyze_cross_tool_dependencies(
-        self, components: list[WorkflowComponent]
+        self,
+        components: list[WorkflowComponent],
     ) -> dict[str, list[str]]:
         """Analyze dependencies across different tools."""
         tool_dependencies = defaultdict(set)
@@ -928,7 +967,8 @@ class WorkflowAnalyzer:
         return {tool: list(deps) for tool, deps in tool_dependencies.items()}
 
     async def _assess_resource_requirements(
-        self, components: list[WorkflowComponent]
+        self,
+        components: list[WorkflowComponent],
     ) -> dict[str, Any]:
         """Assess resource requirements for the workflow."""
         # Estimate computational requirements
@@ -957,16 +997,18 @@ class WorkflowAnalyzer:
             "network_mb": network_requirement,
             "storage_mb": storage_requirement,
             "parallel_execution_capable": len(
-                [c for c in components if not c.dependencies]
+                [c for c in components if not c.dependencies],
             )
             > 1,
             "external_dependencies": len(
-                [c for c in components if "url" in str(c.parameters)]
+                [c for c in components if "url" in str(c.parameters)],
             ),
         }
 
     def _assess_reliability(
-        self, components: list[WorkflowComponent], metrics: AnalysisMetrics
+        self,
+        components: list[WorkflowComponent],
+        metrics: AnalysisMetrics,
     ) -> dict[str, float]:
         """Assess workflow reliability characteristics."""
         if not components:
@@ -974,7 +1016,7 @@ class WorkflowAnalyzer:
 
         # Overall reliability based on component reliability
         component_reliability = statistics.mean(
-            [comp.reliability_score for comp in components]
+            [comp.reliability_score for comp in components],
         )
 
         # Adjust for workflow structure
@@ -998,7 +1040,9 @@ class WorkflowAnalyzer:
         }
 
     def _calculate_maintainability(
-        self, components: list[WorkflowComponent], metrics: AnalysisMetrics
+        self,
+        components: list[WorkflowComponent],
+        metrics: AnalysisMetrics,
     ) -> float:
         """Calculate workflow maintainability score."""
         maintainability_factors = []
@@ -1024,7 +1068,8 @@ class WorkflowAnalyzer:
 
         # Modularity factor
         modularity_factor = min(
-            1.0, metrics.unique_component_types / max(1, metrics.total_components)
+            1.0,
+            metrics.unique_component_types / max(1, metrics.total_components),
         )
         maintainability_factors.append(modularity_factor)
 
@@ -1050,7 +1095,7 @@ class WorkflowAnalyzer:
         # Suggestions based on quality issues
         if len(metrics.resource_conflicts) > 0:
             suggestions.append(
-                "Resolve resource conflicts to prevent workflow failures"
+                "Resolve resource conflicts to prevent workflow failures",
             )
 
         if len(metrics.performance_bottlenecks) > 0:
@@ -1058,7 +1103,7 @@ class WorkflowAnalyzer:
 
         if metrics.cyclic_dependencies:
             suggestions.append(
-                "Resolve cyclic dependencies to improve workflow stability"
+                "Resolve cyclic dependencies to improve workflow stability",
             )
 
         # Suggestions based on anti-patterns
@@ -1070,7 +1115,7 @@ class WorkflowAnalyzer:
         complexity_score = calculate_workflow_complexity_score(components)
         if complexity_score > 0.8:
             suggestions.append(
-                "Consider breaking down complex workflow into smaller, manageable parts"
+                "Consider breaking down complex workflow into smaller, manageable parts",
             )
 
         # Suggestions based on reliability
@@ -1079,13 +1124,13 @@ class WorkflowAnalyzer:
         ]
         if low_reliability_components:
             suggestions.append(
-                f"Improve reliability of {len(low_reliability_components)} components"
+                f"Improve reliability of {len(low_reliability_components)} components",
             )
 
         # Default suggestion if no issues found
         if not suggestions:
             suggestions.append(
-                "Workflow appears well-structured. Consider adding monitoring and logging."
+                "Workflow appears well-structured. Consider adding monitoring and logging.",
             )
 
         return suggestions[:5]  # Limit to top 5 suggestions
@@ -1113,7 +1158,7 @@ class WorkflowAnalyzer:
                         "maintainability": 25.0,
                     },
                     "trade_offs": ["Reduced functionality", "Improved simplicity"],
-                }
+                },
             )
 
         # Alternative 2: Performance-optimized version
@@ -1128,7 +1173,7 @@ class WorkflowAnalyzer:
                         "resource_usage": 20.0,
                     },
                     "trade_offs": ["Increased complexity", "Higher resource usage"],
-                }
+                },
             )
 
         # Alternative 3: Reliability-focused version
@@ -1144,7 +1189,7 @@ class WorkflowAnalyzer:
                         "error_recovery": 50.0,
                     },
                     "trade_offs": ["Increased complexity", "Longer execution time"],
-                }
+                },
             )
 
         return alternatives
@@ -1155,7 +1200,7 @@ class WorkflowAnalyzer:
         quality_score: float,
         patterns_found: int,
         optimizations_count: int,
-    ):
+    ) -> Any:
         """Update analysis performance statistics."""
         self.analysis_stats["total_analyses"] += 1
         self.analysis_stats["patterns_identified"] += patterns_found

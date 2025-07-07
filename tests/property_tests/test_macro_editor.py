@@ -1,15 +1,19 @@
-"""
-Property-based tests for macro editor functionality.
+"""Property-based tests for macro editor functionality.
 
 Comprehensive testing of macro editing operations using hypothesis to validate
 behavior across all input ranges with security validation and error handling.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from fastmcp.exceptions import ToolError
 from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
+from src.core.errors import ContractViolationError, ValidationError
 from src.core.macro_editor import (
     DebugSession,
     EditOperation,
@@ -26,14 +30,14 @@ class TestMacroEditorProperties:
     """Property-based tests for macro editor functionality."""
 
     @given(st.text(min_size=1, max_size=100).filter(lambda x: x.strip() != ""))
-    def test_macro_editor_initialization_properties(self, macro_id):
+    def test_macro_editor_initialization_properties(self, macro_id) -> None:
         """Property: All valid macro IDs should create valid editor instances."""
         editor = MacroEditor(macro_id)
         assert editor.macro_id == macro_id
         assert len(editor.get_modifications()) == 0
 
     @pytest.mark.skip(
-        reason="Contract system issue with multiple @require decorators - needs investigation"
+        reason="Contract system issue with multiple @require decorators - needs investigation",
     )
     @given(
         st.text(
@@ -57,7 +61,7 @@ class TestMacroEditorProperties:
         ),  # Valid config with proper keys/values
         st.integers(min_value=0, max_value=10),  # Reasonable position range
     )
-    def test_add_action_properties(self, action_type, config, position):
+    def test_add_action_properties(self, action_type, config, position) -> None:
         """Property: Adding actions should preserve order and configuration."""
         editor = MacroEditor("test_macro")
 
@@ -72,7 +76,7 @@ class TestMacroEditorProperties:
             assert modifications[0].position == position
 
     @pytest.mark.skip(
-        reason="Contract system issue with multiple @require decorators - needs investigation"
+        reason="Contract system issue with multiple @require decorators - needs investigation",
     )
     @given(
         st.lists(
@@ -82,9 +86,9 @@ class TestMacroEditorProperties:
             ),
             min_size=1,
             max_size=10,
-        )
+        ),
     )
-    def test_multiple_modifications_properties(self, action_specs):
+    def test_multiple_modifications_properties(self, action_specs) -> None:
         """Property: Multiple modifications should maintain order and integrity."""
         editor = MacroEditor("test_macro")
 
@@ -108,8 +112,12 @@ class TestMacroEditorProperties:
         st.integers(min_value=1, max_value=300),
     )
     def test_debug_session_properties(
-        self, macro_id, breakpoints, watch_variables, timeout
-    ):
+        self,
+        macro_id,
+        breakpoints,
+        watch_variables,
+        timeout,
+    ) -> None:
         """Property: Debug sessions should validate configuration properly."""
         assume(len(breakpoints) <= 50)
         assume(len(watch_variables) <= 20)
@@ -128,7 +136,7 @@ class TestMacroEditorProperties:
         assert debug_session.timeout_seconds == timeout
 
     @given(st.integers(min_value=-10, max_value=400))
-    def test_debug_session_timeout_validation(self, timeout):
+    def test_debug_session_timeout_validation(self, timeout) -> None:
         """Property: Debug session timeout validation should work correctly."""
         if 1 <= timeout <= 300:
             # Should succeed
@@ -147,9 +155,9 @@ class TestMacroEditorProperties:
             st.one_of(st.text(), st.integers(), st.booleans()),
             min_size=0,
             max_size=20,
-        )
+        ),
     )
-    def test_action_validation_properties(self, action_config):
+    def test_action_validation_properties(self, action_config) -> None:
         """Property: Action validation should handle all configuration types."""
         result = MacroEditorValidator.validate_action_modification(action_config)
 
@@ -168,9 +176,9 @@ class TestMacroEditorProperties:
             st.one_of(st.text(), st.integers(), st.lists(st.text())),
             min_size=0,
             max_size=15,
-        )
+        ),
     )
-    def test_debug_config_validation_properties(self, debug_config):
+    def test_debug_config_validation_properties(self, debug_config) -> None:
         """Property: Debug configuration validation should be comprehensive."""
         result = MacroEditorValidator.validate_debug_session(debug_config)
 
@@ -197,9 +205,9 @@ class TestMacroEditorProperties:
             ),
             min_size=0,
             max_size=20,
-        )
+        ),
     )
-    def test_macro_complexity_calculation_properties(self, macro_data):
+    def test_macro_complexity_calculation_properties(self, macro_data) -> None:
         """Property: Complexity calculation should be bounded and consistent."""
         complexity = calculate_macro_complexity(macro_data)
 
@@ -223,9 +231,9 @@ class TestMacroEditorProperties:
             ),
             min_size=0,
             max_size=20,
-        )
+        ),
     )
-    def test_macro_health_calculation_properties(self, macro_data):
+    def test_macro_health_calculation_properties(self, macro_data) -> None:
         """Property: Health calculation should be bounded and meaningful."""
         health = calculate_macro_health(macro_data)
 
@@ -242,7 +250,7 @@ class TestMacroDebuggerProperties:
     """Property-based tests for macro debugger functionality."""
 
     @pytest.fixture
-    def debugger(self):
+    def debugger(self) -> None:
         """Provide debugger instance for tests."""
         return MacroDebugger()
 
@@ -265,11 +273,17 @@ class TestMacroDebuggerProperties:
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
     async def test_debug_session_lifecycle_properties(
-        self, debugger, macro_id, breakpoints, timeout
-    ):
+        self,
+        debugger,
+        macro_id,
+        breakpoints,
+        timeout,
+    ) -> None:
         """Property: Debug session lifecycle should be consistent."""
         debug_session = DebugSession(
-            macro_id=macro_id, breakpoints=breakpoints, timeout_seconds=timeout
+            macro_id=macro_id,
+            breakpoints=breakpoints,
+            timeout_seconds=timeout,
         )
 
         # Start session
@@ -302,7 +316,7 @@ class TestMacroDebuggerProperties:
     @given(st.integers(min_value=1, max_value=20))
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_step_execution_properties(self, debugger, step_count):
+    async def test_step_execution_properties(self, debugger, step_count) -> None:
         """Property: Step execution should maintain consistency."""
         debug_session = DebugSession(macro_id="test_macro")
 
@@ -332,8 +346,10 @@ class TestMacroEditorToolProperties:
     )
     @pytest.mark.asyncio
     async def test_macro_editor_tool_operation_validation(
-        self, macro_identifier, operation
-    ):
+        self,
+        macro_identifier,
+        operation,
+    ) -> None:
         """Property: Tool should validate operations consistently."""
         # Mock the underlying components
         with patch("src.server.tools.macro_editor_tools.km_editor") as mock_editor:
@@ -362,7 +378,8 @@ class TestMacroEditorToolProperties:
                 mock_editor.inspect_macro = AsyncMock(return_value=mock_result)
 
                 result = await km_macro_editor(
-                    macro_identifier=macro_identifier, operation=operation
+                    macro_identifier=macro_identifier,
+                    operation=operation,
                 )
 
                 assert result["success"] is True
@@ -371,24 +388,38 @@ class TestMacroEditorToolProperties:
 
     @given(st.text(max_size=0))
     @pytest.mark.asyncio
-    async def test_empty_macro_identifier_validation(self, empty_identifier):
+    async def test_empty_macro_identifier_validation(self, empty_identifier) -> None:
         """Property: Empty macro identifiers should be rejected."""
         assume(len(empty_identifier.strip()) == 0)
 
-        with pytest.raises(Exception):  # Should raise validation error
+        with pytest.raises(
+            (
+                ToolError,
+                ValidationError,
+                ContractViolationError,
+            ),
+        ):  # Should raise specific validation error
             await km_macro_editor(
-                macro_identifier=empty_identifier, operation="inspect"
+                macro_identifier=empty_identifier,
+                operation="inspect",
             )
 
     @given(st.text(min_size=1, max_size=50))
     @pytest.mark.asyncio
-    async def test_invalid_operation_validation(self, macro_identifier):
+    async def test_invalid_operation_validation(self, macro_identifier) -> None:
         """Property: Invalid operations should be rejected."""
         invalid_operation = "invalid_operation_that_does_not_exist"
 
-        with pytest.raises(Exception):  # Should raise ToolError
+        with pytest.raises(
+            (
+                ToolError,
+                ValidationError,
+                ContractViolationError,
+            ),
+        ):  # Should raise specific validation error
             await km_macro_editor(
-                macro_identifier=macro_identifier, operation=invalid_operation
+                macro_identifier=macro_identifier,
+                operation=invalid_operation,
             )
 
 
@@ -397,7 +428,7 @@ class TestSecurityProperties:
 
     @settings(max_examples=50, deadline=5000)  # Adjust for performance
     @given(st.dictionaries(st.text(), st.text(), min_size=1, max_size=10))
-    def test_dangerous_script_detection(self, action_config):
+    def test_dangerous_script_detection(self, action_config) -> None:
         """Property: Dangerous scripts should be detected and blocked."""
         # Add dangerous content
         dangerous_patterns = ["rm -rf", "sudo", "eval", "exec"]
@@ -413,16 +444,18 @@ class TestSecurityProperties:
                 assert result.is_left()
 
     @given(st.text(min_size=1, max_size=100).filter(lambda x: x.strip() != ""))
-    def test_system_macro_protection(self, macro_id):
+    def test_system_macro_protection(self, macro_id) -> None:
         """Property: System macros should be protected from modification."""
         if macro_id.startswith("com.stairways.keyboardmaestro."):
             result = MacroEditorValidator.validate_modification_permissions(
-                macro_id, EditOperation.MODIFY_ACTION
+                macro_id,
+                EditOperation.MODIFY_ACTION,
             )
             assert result.is_left()
         else:
             result = MacroEditorValidator.validate_modification_permissions(
-                macro_id, EditOperation.MODIFY_ACTION
+                macro_id,
+                EditOperation.MODIFY_ACTION,
             )
             # Non-system macros should be allowed
             assert result.is_right()
@@ -433,8 +466,11 @@ class TestSecurityProperties:
         st.integers(min_value=0, max_value=500),
     )
     def test_debug_session_limits_enforcement(
-        self, breakpoints, watch_variables, timeout
-    ):
+        self,
+        breakpoints,
+        watch_variables,
+        timeout,
+    ) -> None:
         """Property: Debug session limits should be enforced."""
         debug_config = {
             "breakpoints": breakpoints,

@@ -1,5 +1,4 @@
-"""
-Keyboard Maestro Mathematical Integration
+"""Keyboard Maestro Mathematical Integration.
 
 Provides integration with Keyboard Maestro's built-in calculation engine
 for processing mathematical expressions with KM token support.
@@ -19,7 +18,9 @@ class KMCalculationEngine:
         self.timeout = timeout
 
     async def evaluate_with_km(
-        self, expression: str, variables: dict[str, str] | None = None
+        self,
+        expression: str,
+        variables: dict[str, str] | None = None,
     ) -> Either[KMError, str]:
         """Evaluate expression using KM's calculation engine."""
         try:
@@ -35,7 +36,7 @@ class KMCalculationEngine:
             # Build AppleScript to use KM's calculate function
             escaped_expression = self._escape_for_applescript(expression)
 
-            script = f'''
+            script = f"""
             tell application "Keyboard Maestro Engine"
                 try
                     {variable_setup}
@@ -45,7 +46,7 @@ class KMCalculationEngine:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             # Execute AppleScript asynchronously
             process = await asyncio.create_subprocess_exec(
@@ -57,7 +58,8 @@ class KMCalculationEngine:
             )
 
             stdout, stderr = await asyncio.wait_for(
-                process.communicate(), timeout=self.timeout
+                process.communicate(),
+                timeout=self.timeout,
             )
 
             if process.returncode != 0:
@@ -65,7 +67,7 @@ class KMCalculationEngine:
                     stderr.decode().strip() if stderr else "Unknown AppleScript error"
                 )
                 return Either.left(
-                    KMError.execution_error(f"KM calculation failed: {error_msg}")
+                    KMError.execution_error(f"KM calculation failed: {error_msg}"),
                 )
 
             output = stdout.decode().strip()
@@ -78,7 +80,7 @@ class KMCalculationEngine:
             return Either.left(KMError.timeout_error("KM calculation timeout"))
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"KM calculation error: {str(e)}")
+                KMError.execution_error(f"KM calculation error: {e!s}"),
             )
 
     def _escape_for_applescript(self, text: str) -> str:
@@ -115,7 +117,8 @@ class KMVariableResolver:
     """Resolve KM variables for mathematical expressions."""
 
     async def resolve_variables(
-        self, variable_names: list[str]
+        self,
+        variable_names: list[str],
     ) -> Either[KMError, dict[str, str]]:
         """Resolve multiple KM variables."""
         try:
@@ -131,7 +134,7 @@ class KMVariableResolver:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Variable resolution failed: {str(e)}")
+                KMError.execution_error(f"Variable resolution failed: {e!s}"),
             )
 
     async def _resolve_single_variable(self, var_name: str) -> Either[KMError, str]:
@@ -140,7 +143,7 @@ class KMVariableResolver:
             # Sanitize variable name
             safe_name = self._sanitize_variable_name(var_name)
 
-            script = f'''
+            script = f"""
             tell application "Keyboard Maestro Engine"
                 try
                     set varValue to getvariable "{safe_name}"
@@ -149,7 +152,7 @@ class KMVariableResolver:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             process = await asyncio.create_subprocess_exec(
                 "osascript",
@@ -164,8 +167,8 @@ class KMVariableResolver:
             if process.returncode != 0:
                 return Either.left(
                     KMError.execution_error(
-                        f"Variable resolution failed: {stderr.decode()}"
-                    )
+                        f"Variable resolution failed: {stderr.decode()}",
+                    ),
                 )
 
             output = stdout.decode().strip()
@@ -178,7 +181,7 @@ class KMVariableResolver:
             return Either.left(KMError.timeout_error("Variable resolution timeout"))
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Variable resolution error: {str(e)}")
+                KMError.execution_error(f"Variable resolution error: {e!s}"),
             )
 
     def _sanitize_variable_name(self, name: str) -> str:
@@ -198,7 +201,9 @@ class KMTokenCalculator:
         self.variable_resolver = KMVariableResolver()
 
     async def calculate_with_tokens(
-        self, expression: str, context: str = "calculation"
+        self,
+        expression: str,
+        context: str = "calculation",
     ) -> Either[KMError, str]:
         """Calculate expression that may contain KM tokens."""
         try:
@@ -215,7 +220,7 @@ class KMTokenCalculator:
 
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Token calculation error: {str(e)}")
+                KMError.execution_error(f"Token calculation error: {e!s}"),
             )
 
     async def _process_tokens(self, text: str, context: str) -> Either[KMError, str]:
@@ -227,7 +232,7 @@ class KMTokenCalculator:
                 f" for {context}" if context and context != "calculation" else ""
             )
 
-            script = f'''
+            script = f"""
             tell application "Keyboard Maestro Engine"
                 try
                     set result to process tokens "{escaped_text}"{context_param}
@@ -236,7 +241,7 @@ class KMTokenCalculator:
                     return "ERROR: " & errorMessage
                 end try
             end tell
-            '''
+            """
 
             process = await asyncio.create_subprocess_exec(
                 "osascript",
@@ -251,8 +256,8 @@ class KMTokenCalculator:
             if process.returncode != 0:
                 return Either.left(
                     KMError.execution_error(
-                        f"Token processing failed: {stderr.decode()}"
-                    )
+                        f"Token processing failed: {stderr.decode()}",
+                    ),
                 )
 
             output = stdout.decode().strip()
@@ -265,5 +270,5 @@ class KMTokenCalculator:
             return Either.left(KMError.timeout_error("Token processing timeout"))
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Token processing error: {str(e)}")
+                KMError.execution_error(f"Token processing error: {e!s}"),
             )

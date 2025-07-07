@@ -1,5 +1,4 @@
-"""
-Failure Predictor - TASK_59 Phase 4 Advanced Modeling Implementation
+"""Failure Predictor - TASK_59 Phase 4 Advanced Modeling Implementation.
 
 Predictive failure detection and early warning system for automation workflows.
 Provides ML-powered failure prediction, mitigation strategies, and preventive recommendations.
@@ -169,7 +168,7 @@ class FailurePattern:
     def __post_init__(self):
         if not (0.0 <= self.confidence <= 1.0):
             raise ValueError(
-                f"Confidence must be between 0.0 and 1.0, got {self.confidence}"
+                f"Confidence must be between 0.0 and 1.0, got {self.confidence}",
             )
 
 
@@ -187,7 +186,7 @@ class PredictionModel:
     def __post_init__(self):
         if not (0.0 <= self.accuracy <= 1.0):
             raise ValueError(
-                f"Accuracy must be between 0.0 and 1.0, got {self.accuracy}"
+                f"Accuracy must be between 0.0 and 1.0, got {self.accuracy}",
             )
 
 
@@ -209,7 +208,7 @@ class FailurePredictor:
         self._initialize_default_thresholds()
         self._initialize_mitigation_templates()
 
-    def _initialize_default_thresholds(self):
+    def _initialize_default_thresholds(self) -> None:
         """Initialize default failure indicator thresholds."""
         self.indicator_thresholds = {
             "cpu_usage": {"warning": 80.0, "critical": 90.0, "emergency": 95.0},
@@ -224,7 +223,7 @@ class FailurePredictor:
             "disk_usage": {"warning": 80.0, "critical": 90.0, "emergency": 95.0},
         }
 
-    def _initialize_mitigation_templates(self):
+    def _initialize_mitigation_templates(self) -> None:
         """Initialize default mitigation strategy templates."""
         self.mitigation_templates[FailureType.RESOURCE_EXHAUSTION] = [
             MitigationPlan(
@@ -246,7 +245,7 @@ class FailurePredictor:
                     "resource_utilization_below_80%",
                     "no_resource_exhaustion_alerts",
                 ],
-            )
+            ),
         ]
 
         self.mitigation_templates[FailureType.PERFORMANCE_DEGRADATION] = [
@@ -266,14 +265,14 @@ class FailurePredictor:
                 estimated_duration=timedelta(hours=2),
                 success_probability=0.8,
                 success_metrics=["response_time_improvement", "throughput_increase"],
-            )
+            ),
         ]
 
     @require(lambda target_id: target_id is not None and target_id.strip() != "")
     @require(lambda prediction_window: prediction_window > timedelta(0))
     @ensure(
         lambda result: result.is_right()
-        or isinstance(result.left_value, FailurePredictionError)
+        or isinstance(result.left_value, FailurePredictionError),
     )
     async def predict_failures(
         self,
@@ -293,7 +292,9 @@ class FailurePredictor:
             for failure_type in failure_types:
                 # Get current indicators
                 indicators = await self._analyze_failure_indicators(
-                    target_id, target_type, failure_type
+                    target_id,
+                    target_type,
+                    failure_type,
                 )
 
                 if not indicators:
@@ -301,7 +302,8 @@ class FailurePredictor:
 
                 # Calculate failure probability
                 probability = self._calculate_failure_probability(
-                    indicators, failure_type
+                    indicators,
+                    failure_type,
                 )
 
                 if probability < confidence_threshold:
@@ -309,14 +311,16 @@ class FailurePredictor:
 
                 # Determine failure time and confidence
                 predicted_time = self._estimate_failure_time(
-                    indicators, prediction_window
+                    indicators,
+                    prediction_window,
                 )
                 confidence_level = self._determine_confidence_level(probability)
                 severity = self._assess_failure_severity(indicators, failure_type)
 
                 # Generate mitigation strategies
                 mitigation_plans = self._generate_mitigation_strategies(
-                    failure_type, indicators
+                    failure_type,
+                    indicators,
                 )
 
                 # Create prediction
@@ -333,10 +337,11 @@ class FailurePredictor:
                     mitigation_strategies=mitigation_plans,
                     early_warning_triggers=self._generate_warning_triggers(indicators),
                     impact_assessment=self._assess_failure_impact(
-                        failure_type, severity
+                        failure_type,
+                        severity,
                     ),
                     prevention_window=timedelta(
-                        hours=max(1, predicted_time.hour - datetime.now(UTC).hour)
+                        hours=max(1, predicted_time.hour - datetime.now(UTC).hour),
                     ),
                 )
 
@@ -350,20 +355,24 @@ class FailurePredictor:
                     "target_id": target_id,
                     "predictions_count": len(predictions),
                     "max_probability": max(
-                        [p.probability for p in predictions], default=0.0
+                        [p.probability for p in predictions],
+                        default=0.0,
                     ),
-                }
+                },
             )
 
             return Either.right(predictions)
 
         except Exception as e:
             return Either.left(
-                FailurePredictionError(f"Failure prediction failed: {str(e)}")
+                FailurePredictionError(f"Failure prediction failed: {e!s}"),
             )
 
     async def _analyze_failure_indicators(
-        self, target_id: str, target_type: str, failure_type: FailureType
+        self,
+        target_id: str,
+        target_type: str,
+        failure_type: FailureType,
     ) -> list[FailureIndicator]:
         """Analyze current indicators for specific failure type."""
         indicators = []
@@ -388,13 +397,15 @@ class FailurePredictor:
         }
 
         relevant_indicators = indicator_configs.get(
-            failure_type, ["cpu_usage", "memory_usage"]
+            failure_type,
+            ["cpu_usage", "memory_usage"],
         )
 
         for indicator_name in relevant_indicators:
             # Get current value (simulated)
             current_value = await self._get_current_indicator_value(
-                target_id, indicator_name
+                target_id,
+                indicator_name,
             )
             thresholds = self.indicator_thresholds.get(indicator_name, {})
 
@@ -433,7 +444,9 @@ class FailurePredictor:
                 confidence=confidence,
                 trend_direction=trend,
                 time_to_threshold=self._estimate_time_to_threshold(
-                    current_value, threshold_value, trend
+                    current_value,
+                    threshold_value,
+                    trend,
                 ),
                 historical_context={
                     "target_id": target_id,
@@ -446,11 +459,13 @@ class FailurePredictor:
         return indicators
 
     async def _get_current_indicator_value(
-        self, target_id: str, indicator_name: str
+        self,
+        target_id: str,
+        indicator_name: str,
     ) -> float:
         """Get current value for a failure indicator."""
         # Simulate getting real indicator values
-        import random
+        import secrets
 
         base_values = {
             "cpu_usage": 45.0,
@@ -462,20 +477,29 @@ class FailurePredictor:
         }
 
         base = base_values.get(indicator_name, 50.0)
-        return base + random.uniform(-10, 30)  # Add some variance
+        # Use cryptographically secure random for enterprise security
+        secure_random = secrets.SystemRandom()
+        return base + secure_random.uniform(-10, 30)  # Add secure variance
 
     async def _analyze_indicator_trend(
-        self, target_id: str, indicator_name: str
+        self,
+        target_id: str,
+        indicator_name: str,
     ) -> str:
         """Analyze trend direction for an indicator."""
         # Simulate trend analysis (replace with real historical data analysis)
-        import random
+        import secrets
 
         trends = ["increasing", "decreasing", "stable", "volatile"]
-        return random.choice(trends)
+        # Use cryptographically secure random for enterprise security
+        secure_random = secrets.SystemRandom()
+        return secure_random.choice(trends)
 
     def _estimate_time_to_threshold(
-        self, current_value: float, threshold_value: float, trend: str
+        self,
+        current_value: float,
+        threshold_value: float,
+        trend: str,
     ) -> timedelta | None:
         """Estimate time until threshold is reached."""
         if trend == "stable" or current_value >= threshold_value:
@@ -493,7 +517,9 @@ class FailurePredictor:
         return None
 
     def _calculate_failure_probability(
-        self, indicators: list[FailureIndicator], failure_type: FailureType
+        self,
+        indicators: list[FailureIndicator],
+        failure_type: FailureType,
     ) -> float:
         """Calculate overall failure probability based on indicators."""
         if not indicators:
@@ -535,7 +561,9 @@ class FailurePredictor:
         return min(1.0, base_probability * multiplier)
 
     def _get_indicator_weight(
-        self, indicator_name: str, failure_type: FailureType
+        self,
+        indicator_name: str,
+        failure_type: FailureType,
     ) -> float:
         """Get weight for an indicator based on failure type."""
         weights = {
@@ -555,7 +583,9 @@ class FailurePredictor:
         return type_weights.get(indicator_name, 0.1)
 
     def _estimate_failure_time(
-        self, indicators: list[FailureIndicator], prediction_window: timedelta
+        self,
+        indicators: list[FailureIndicator],
+        prediction_window: timedelta,
     ) -> datetime:
         """Estimate when failure is likely to occur."""
         current_time = datetime.now(UTC)
@@ -581,15 +611,16 @@ class FailurePredictor:
         """Determine confidence level based on probability."""
         if probability >= 0.9:
             return ConfidenceLevel.VERY_HIGH
-        elif probability >= 0.75:
+        if probability >= 0.75:
             return ConfidenceLevel.HIGH
-        elif probability >= 0.6:
+        if probability >= 0.6:
             return ConfidenceLevel.MEDIUM
-        else:
-            return ConfidenceLevel.LOW
+        return ConfidenceLevel.LOW
 
     def _assess_failure_severity(
-        self, indicators: list[FailureIndicator], failure_type: FailureType
+        self,
+        indicators: list[FailureIndicator],
+        failure_type: FailureType,
     ) -> FailureSeverity:
         """Assess the severity of the predicted failure."""
         if not indicators:
@@ -613,7 +644,9 @@ class FailurePredictor:
         return severity_values[new_index]
 
     def _generate_mitigation_strategies(
-        self, failure_type: FailureType, indicators: list[FailureIndicator]
+        self,
+        failure_type: FailureType,
+        indicators: list[FailureIndicator],
     ) -> list[MitigationPlan]:
         """Generate appropriate mitigation strategies."""
         strategies = []
@@ -629,14 +662,16 @@ class FailurePredictor:
         # Add indicator-specific strategies
         for indicator in indicators:
             specific_strategies = self._generate_indicator_specific_strategies(
-                indicator
+                indicator,
             )
             strategies.extend(specific_strategies)
 
         return strategies[:5]  # Limit to top 5 strategies
 
     def _customize_mitigation_plan(
-        self, template: MitigationPlan, indicators: list[FailureIndicator]
+        self,
+        template: MitigationPlan,
+        indicators: list[FailureIndicator],
     ) -> MitigationPlan:
         """Customize a mitigation plan template based on current indicators."""
         # For now, return the template as-is
@@ -644,7 +679,8 @@ class FailurePredictor:
         return template
 
     def _generate_indicator_specific_strategies(
-        self, indicator: FailureIndicator
+        self,
+        indicator: FailureIndicator,
     ) -> list[MitigationPlan]:
         """Generate mitigation strategies specific to an indicator."""
         strategies = []
@@ -667,13 +703,14 @@ class FailurePredictor:
                     estimated_effort="low",
                     estimated_duration=timedelta(minutes=15),
                     success_probability=0.85,
-                )
+                ),
             )
 
         return strategies
 
     def _generate_warning_triggers(
-        self, indicators: list[FailureIndicator]
+        self,
+        indicators: list[FailureIndicator],
     ) -> list[str]:
         """Generate early warning triggers based on indicators."""
         triggers = []
@@ -688,7 +725,9 @@ class FailurePredictor:
         return triggers
 
     def _assess_failure_impact(
-        self, failure_type: FailureType, severity: FailureSeverity
+        self,
+        failure_type: FailureType,
+        severity: FailureSeverity,
     ) -> dict[str, Any]:
         """Assess the potential impact of a failure."""
         impact_base = {
@@ -715,7 +754,8 @@ class FailurePredictor:
         }
 
         base_impact = impact_base.get(
-            failure_type, {"availability": 0.2, "performance": 0.2, "cost": 0.1}
+            failure_type,
+            {"availability": 0.2, "performance": 0.2, "cost": 0.1},
         )
 
         # Scale by severity
@@ -739,14 +779,16 @@ class FailurePredictor:
 
     @require(lambda prediction_id: prediction_id is not None)
     async def generate_early_warning(
-        self, prediction_id: str, alert_level: str = "warning"
+        self,
+        prediction_id: str,
+        alert_level: str = "warning",
     ) -> Either[FailurePredictionError, EarlyWarningAlert]:
         """Generate early warning alert for a prediction."""
         try:
             prediction = self.active_predictions.get(prediction_id)
             if not prediction:
                 return Either.left(
-                    FailurePredictionError(f"Prediction {prediction_id} not found")
+                    FailurePredictionError(f"Prediction {prediction_id} not found"),
                 )
 
             # Generate alert message
@@ -773,11 +815,13 @@ class FailurePredictor:
 
         except Exception as e:
             return Either.left(
-                FailurePredictionError(f"Early warning generation failed: {str(e)}")
+                FailurePredictionError(f"Early warning generation failed: {e!s}"),
             )
 
     def _generate_alert_message(
-        self, prediction: FailurePrediction, alert_level: str
+        self,
+        prediction: FailurePrediction,
+        alert_level: str,
     ) -> str:
         """Generate human-readable alert message."""
         time_str = prediction.predicted_failure_time.strftime("%Y-%m-%d %H:%M:%S UTC")

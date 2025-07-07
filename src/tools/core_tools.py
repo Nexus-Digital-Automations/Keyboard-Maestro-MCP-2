@@ -1,5 +1,4 @@
-"""
-Core MCP Tools for Keyboard Maestro
+"""Core MCP Tools for Keyboard Maestro.
 
 Basic macro operations: execution, listing, and variable management.
 """
@@ -24,7 +23,7 @@ from src.core import (
 logger = logging.getLogger(__name__)
 
 
-def register_core_tools(mcp):
+def register_core_tools(mcp) -> None:
     """Register core tools with the MCP server."""
 
     @mcp.tool()
@@ -64,8 +63,7 @@ def register_core_tools(mcp):
         ] = 30,
         ctx: Context = None,
     ) -> dict[str, Any]:
-        """
-        Execute a Keyboard Maestro macro with comprehensive error handling and validation.
+        """Execute a Keyboard Maestro macro with comprehensive error handling and validation.
 
         Supports multiple execution methods:
         - applescript: Direct AppleScript communication (recommended)
@@ -105,13 +103,15 @@ def register_core_tools(mcp):
                 await ctx.report_progress(50, 100, "Executing macro")
 
             result = await asyncio.to_thread(
-                engine.execute_macro, macro_def, timeout=timeout
+                engine.execute_macro,
+                macro_def,
+                timeout=timeout,
             )
 
             if ctx:
                 await ctx.report_progress(100, 100, "Execution completed")
                 await ctx.info(
-                    f"Macro executed successfully in {result.execution_time:.3f}s"
+                    f"Macro executed successfully in {result.execution_time:.3f}s",
                 )
 
             return {
@@ -207,7 +207,8 @@ def register_core_tools(mcp):
             ),
         ] = None,
         enabled_only: Annotated[
-            bool, Field(default=True, description="Only return enabled macros")
+            bool,
+            Field(default=True, description="Only return enabled macros"),
         ] = True,
         sort_by: Annotated[
             str,
@@ -222,8 +223,7 @@ def register_core_tools(mcp):
         ] = 20,
         ctx: Context = None,
     ) -> dict[str, Any]:
-        """
-        List and filter Keyboard Maestro macros with comprehensive search capabilities.
+        """List and filter Keyboard Maestro macros with comprehensive search capabilities.
 
         NOW RETURNS REAL USER MACROS from Keyboard Maestro instead of mock data.
         Supports filtering by multiple groups, enabled status, and custom sorting.
@@ -233,6 +233,7 @@ def register_core_tools(mcp):
         - group_filters=["Email", "Text"] - macros from Email OR Text groups
         - group_filters=["Utilities"] - macros from Utilities group only
         - group_filters=None - macros from all groups
+
         """
         if ctx:
             groups_desc = (
@@ -252,7 +253,8 @@ def register_core_tools(mcp):
 
             # Query real macros using multiple API methods
             macros_result = await km_client.list_macros_async(
-                group_filters=group_filters, enabled_only=enabled_only
+                group_filters=group_filters,
+                enabled_only=enabled_only,
             )
 
             if macros_result.is_left():
@@ -294,7 +296,7 @@ def register_core_tools(mcp):
             if ctx:
                 await ctx.report_progress(100, 100, "Macro listing complete")
                 await ctx.info(
-                    f"Found {len(limited_macros)} macros (total: {len(all_macros)})"
+                    f"Found {len(limited_macros)} macros (total: {len(all_macros)})",
                 )
 
             return {
@@ -341,7 +343,8 @@ def register_core_tools(mcp):
     @mcp.tool()
     async def km_variable_manager(
         operation: Annotated[
-            str, Field(description="Operation: get, set, delete, or list")
+            str,
+            Field(description="Operation: get, set, delete, or list"),
         ],
         name: Annotated[
             str | None,
@@ -353,7 +356,8 @@ def register_core_tools(mcp):
         value: Annotated[
             str | None,
             Field(
-                default=None, description="Variable value (required for set operation)"
+                default=None,
+                description="Variable value (required for set operation)",
             ),
         ] = None,
         scope: Annotated[
@@ -369,8 +373,7 @@ def register_core_tools(mcp):
         ] = None,
         ctx: Context = None,
     ) -> dict[str, Any]:
-        """
-        Comprehensive Keyboard Maestro variable management with type safety.
+        """Comprehensive Keyboard Maestro variable management with type safety.
 
         Supports all variable scopes:
         - global: Persistent across sessions, accessible to all macros
@@ -382,25 +385,28 @@ def register_core_tools(mcp):
         """
         if ctx:
             await ctx.info(
-                f"Variable operation: {operation} on {name or 'all variables'}"
+                f"Variable operation: {operation} on {name or 'all variables'}",
             )
 
         try:
             if operation in ["get", "set", "delete"] and not name:
                 raise ValidationError(
-                    "Variable name is required for get, set, and delete operations"
+                    "Variable name is required for get, set, and delete operations",
                 )
 
             if operation == "set" and value is None:
                 raise ValidationError("Variable value is required for set operation")
 
-            # Validate variable name format
-            if name and not name.replace("_", "").replace(" ", "").isalnum():
-                if not (
+            # SIM102 fix: Combine nested if statements
+            if (
+                name
+                and not name.replace("_", "").replace(" ", "").isalnum()
+                and not (
                     scope == "password"
                     and ("password" in name.lower() or "pw" in name.lower())
-                ):
-                    raise ValidationError("Invalid variable name format")
+                )
+            ):
+                raise ValidationError("Invalid variable name format")
 
             # Mock implementation - would integrate with actual KM variable system
             if operation == "get":
@@ -422,7 +428,7 @@ def register_core_tools(mcp):
                     },
                 }
 
-            elif operation == "set":
+            if operation == "set":
                 if ctx:
                     await ctx.info(f"Setting variable '{name}' in {scope} scope")
 
@@ -437,7 +443,7 @@ def register_core_tools(mcp):
                     },
                 }
 
-            elif operation == "delete":
+            if operation == "delete":
                 if ctx:
                     await ctx.info(f"Deleting variable '{name}' from {scope} scope")
 
@@ -451,7 +457,7 @@ def register_core_tools(mcp):
                     },
                 }
 
-            elif operation == "list":
+            if operation == "list":
                 if ctx:
                     await ctx.info(f"Listing variables in {scope} scope")
 
@@ -477,8 +483,7 @@ def register_core_tools(mcp):
                     },
                 }
 
-            else:
-                raise ValidationError(f"Unknown operation: {operation}")
+            raise ValidationError(f"Unknown operation: {operation}")
 
         except ValidationError as e:
             if ctx:

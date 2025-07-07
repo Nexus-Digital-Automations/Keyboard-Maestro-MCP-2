@@ -1,5 +1,4 @@
-"""
-Keyboard Maestro control flow integration.
+"""Keyboard Maestro control flow integration.
 
 Handles the generation of safe AppleScript and XML for Keyboard Maestro
 control flow structures with comprehensive security validation.
@@ -7,7 +6,19 @@ control flow structures with comprehensive security validation.
 
 import re
 import uuid
-import xml.etree.ElementTree as ET
+
+try:
+    from defusedxml import ElementTree as ET
+except ImportError:
+    # Fallback with security warning if defusedxml not available
+    import warnings
+    import xml.etree.ElementTree as ET
+
+    warnings.warn(
+        "defusedxml not available, using standard xml library",
+        RuntimeWarning,
+        stacklevel=2,
+    )
 
 from ..core.control_flow import (
     ActionBlock,
@@ -43,10 +54,11 @@ class KMControlFlowGenerator:
         ]
 
     def generate_control_flow_xml(
-        self, node: ControlFlowNodeType, macro_id: str
+        self,
+        node: ControlFlowNodeType,
+        macro_id: str,
     ) -> str:
-        """
-        Generate secure XML for Keyboard Maestro control flow structures.
+        """Generate secure XML for Keyboard Maestro control flow structures.
 
         Creates properly formatted XML that Keyboard Maestro can import and execute,
         with comprehensive security validation and injection prevention.
@@ -54,21 +66,20 @@ class KMControlFlowGenerator:
         try:
             if isinstance(node, IfThenElseNode):
                 return self._generate_if_then_else_xml(node, macro_id)
-            elif isinstance(node, ForLoopNode):
+            if isinstance(node, ForLoopNode):
                 return self._generate_for_loop_xml(node, macro_id)
-            elif isinstance(node, WhileLoopNode):
+            if isinstance(node, WhileLoopNode):
                 return self._generate_while_loop_xml(node, macro_id)
-            elif isinstance(node, SwitchCaseNode):
+            if isinstance(node, SwitchCaseNode):
                 return self._generate_switch_case_xml(node, macro_id)
-            elif isinstance(node, TryCatchNode):
+            if isinstance(node, TryCatchNode):
                 return self._generate_try_catch_xml(node, macro_id)
-            else:
-                raise ValidationError(
-                    f"Unsupported control flow node type: {type(node)}"
-                )
+            raise ValidationError(
+                f"Unsupported control flow node type: {type(node)}",
+            )
 
         except Exception as e:
-            raise ValidationError(f"Failed to generate XML: {e}")
+            raise ValidationError(f"Failed to generate XML: {e}") from e
 
     def _generate_if_then_else_xml(self, node: IfThenElseNode, macro_id: str) -> str:
         """Generate XML for If/Then/Else structure."""
@@ -358,12 +369,12 @@ class KMControlFlowGenerator:
             xml_string = re.sub(r"\s+", " ", xml_string.strip())
 
             # Basic XML validation by parsing
-            ET.fromstring(f"<root>{xml_string}</root>")
+            ET.fromstring(f"<root>{xml_string}</root>")  # noqa: S314 # Using defusedxml import
 
             return xml_string
 
         except ET.ParseError as e:
-            raise ValidationError(f"Generated XML is invalid: {e}")
+            raise ValidationError(f"Generated XML is invalid: {e}") from e
 
 
 class KMAppleScriptGenerator:
@@ -382,10 +393,11 @@ class KMAppleScriptGenerator:
         ]
 
     def generate_control_flow_applescript(
-        self, node: ControlFlowNodeType, macro_id: str
+        self,
+        node: ControlFlowNodeType,
+        macro_id: str,
     ) -> str:
         """Generate AppleScript to add control flow to macro."""
-
         # Generate the XML representation
         generator = KMControlFlowGenerator()
         xml_content = generator.generate_control_flow_xml(node, macro_id)
@@ -393,13 +405,13 @@ class KMAppleScriptGenerator:
         # Escape XML for AppleScript
         escaped_xml = self._escape_applescript_string(xml_content)
 
-        applescript = f'''
+        applescript = f"""
         tell application "Keyboard Maestro"
             tell macro id "{macro_id}"
                 make new action with properties {{xml:"{escaped_xml}"}}
             end tell
         end tell
-        '''
+        """
 
         # Validate AppleScript for security
         self._validate_applescript_security(applescript)
@@ -438,7 +450,8 @@ def generate_km_control_flow_xml(node: ControlFlowNodeType, macro_id: str) -> st
 
 
 def generate_km_control_flow_applescript(
-    node: ControlFlowNodeType, macro_id: str
+    node: ControlFlowNodeType,
+    macro_id: str,
 ) -> str:
     """Generate AppleScript to add control flow to macro."""
     generator = KMAppleScriptGenerator()

@@ -1,5 +1,4 @@
-"""
-Developer toolkit MCP tools for DevOps integration and automation.
+"""Developer toolkit MCP tools for DevOps integration and automation.
 
 This module provides comprehensive MCP tools for developer workflow automation including:
 - Git operations and version control integration
@@ -49,25 +48,29 @@ async def km_git_operations(
         Field(description="Git operation (clone|commit|push|pull|branch|merge|status)"),
     ],
     repository_url: Annotated[
-        str | None, Field(description="Git repository URL")
+        str | None,
+        Field(description="Git repository URL"),
     ] = None,
     local_path: Annotated[
-        str | None, Field(description="Local repository path")
+        str | None,
+        Field(description="Local repository path"),
     ] = None,
     branch_name: Annotated[
-        str | None, Field(description="Branch name for operations")
+        str | None,
+        Field(description="Branch name for operations"),
     ] = None,
     commit_message: Annotated[str | None, Field(description="Commit message")] = None,
     authentication: Annotated[
-        dict[str, str], Field(description="Git authentication credentials")
+        dict[str, str],
+        Field(description="Git authentication credentials"),
     ] = None,
     include_submodules: Annotated[
-        bool, Field(description="Include git submodules")
+        bool,
+        Field(description="Include git submodules"),
     ] = False,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Perform Git operations for version control automation.
+    """Perform Git operations for version control automation.
 
     Provides comprehensive Git integration including repository management, branching,
     merging, and collaboration workflows with enterprise authentication support.
@@ -166,7 +169,9 @@ async def km_git_operations(
                 }
 
             result = await git_connector.merge_branch(
-                branch_name, MergeStrategy.FAST_FORWARD, commit_message
+                branch_name,
+                MergeStrategy.FAST_FORWARD,
+                commit_message,
             )
 
         else:
@@ -213,15 +218,15 @@ async def km_git_operations(
                         "deleted_files": status.deleted_files,
                         "ahead_commits": status.ahead_commits,
                         "behind_commits": status.behind_commits,
-                    }
-                }
+                    },
+                },
             )
         elif git_op == GitOperation.COMMIT:
             response.update(
                 {
                     "commit_hash": operation_result.commit_hash,
                     "files_affected": operation_result.files_affected,
-                }
+                },
             )
         elif git_op == GitOperation.CLONE:
             response.update(
@@ -229,7 +234,7 @@ async def km_git_operations(
                     "local_path": local_path,
                     "repository_url": repository_url,
                     "includes_submodules": include_submodules,
-                }
+                },
             )
 
         logger.info(
@@ -247,7 +252,7 @@ async def km_git_operations(
         logger.error(f"Git operation failed: {e}")
         return {
             "success": False,
-            "error": f"Git operation failed: {str(e)}",
+            "error": f"Git operation failed: {e!s}",
             "error_type": "system_error",
             "operation": operation,
         }
@@ -256,30 +261,36 @@ async def km_git_operations(
 @mcp.tool()
 async def km_cicd_pipeline(
     action: Annotated[
-        str, Field(description="Pipeline action (create|execute|monitor|configure)")
+        str,
+        Field(description="Pipeline action (create|execute|monitor|configure)"),
     ],
     pipeline_config: Annotated[
-        dict[str, Any], Field(description="CI/CD pipeline configuration")
+        dict[str, Any],
+        Field(description="CI/CD pipeline configuration"),
     ],
     target_environment: Annotated[
-        str, Field(description="Target deployment environment")
+        str,
+        Field(description="Target deployment environment"),
     ] = "staging",
     build_triggers: Annotated[
-        list[str], Field(description="Build trigger conditions")
+        list[str],
+        Field(description="Build trigger conditions"),
     ] = None,
     testing_strategy: Annotated[
-        str, Field(description="Testing strategy (unit|integration|e2e|all)")
+        str,
+        Field(description="Testing strategy (unit|integration|e2e|all)"),
     ] = "all",
     deployment_strategy: Annotated[
-        str, Field(description="Deployment strategy (rolling|blue_green|canary)")
+        str,
+        Field(description="Deployment strategy (rolling|blue_green|canary)"),
     ] = "rolling",
     notification_channels: Annotated[
-        list[str], Field(description="Notification channels for pipeline events")
+        list[str],
+        Field(description="Notification channels for pipeline events"),
     ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Manage CI/CD pipelines for automated development workflows.
+    """Manage CI/CD pipelines for automated development workflows.
 
     Creates, executes, and monitors CI/CD pipelines with comprehensive testing,
     deployment automation, and notification integration.
@@ -465,7 +476,7 @@ async def km_cicd_pipeline(
         logger.error(f"CI/CD pipeline operation failed: {e}")
         return {
             "success": False,
-            "error": f"Pipeline operation failed: {str(e)}",
+            "error": f"Pipeline operation failed: {e!s}",
             "error_type": "system_error",
             "action": action,
         }
@@ -474,30 +485,36 @@ async def km_cicd_pipeline(
 @mcp.tool()
 async def km_api_management(
     operation: Annotated[
-        str, Field(description="API operation (discover|document|test|govern|monitor)")
+        str,
+        Field(description="API operation (discover|document|test|govern|monitor)"),
     ],
     api_source: Annotated[
-        str, Field(description="API source (code|openapi|postman|swagger)")
+        str,
+        Field(description="API source (code|openapi|postman|swagger)"),
     ],
     api_config: Annotated[
-        dict[str, Any], Field(description="API configuration and metadata")
+        dict[str, Any],
+        Field(description="API configuration and metadata"),
     ] = None,
     documentation_format: Annotated[
-        str, Field(description="Documentation format (openapi|postman|markdown)")
+        str,
+        Field(description="Documentation format (openapi|postman|markdown)"),
     ] = "openapi",
     testing_scenarios: Annotated[
-        list[str], Field(description="API testing scenarios")
+        list[str],
+        Field(description="API testing scenarios"),
     ] = None,
     governance_rules: Annotated[
-        dict[str, Any], Field(description="API governance rules and policies")
+        dict[str, Any],
+        Field(description="API governance rules and policies"),
     ] = None,
     monitoring_enabled: Annotated[
-        bool, Field(description="Enable API monitoring and analytics")
+        bool,
+        Field(description="Enable API monitoring and analytics"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Comprehensive API management including discovery, documentation, and governance.
+    """Comprehensive API management including discovery, documentation, and governance.
 
     Provides automated API discovery, documentation generation, testing automation,
     and governance workflows for enterprise API lifecycle management.
@@ -576,7 +593,8 @@ async def km_api_management(
                         "title": api_config.get("title", "API Documentation"),
                         "version": api_config.get("version", "1.0.0"),
                         "description": api_config.get(
-                            "description", "Auto-generated API documentation"
+                            "description",
+                            "Auto-generated API documentation",
                         ),
                     },
                     "servers": [
@@ -594,14 +612,14 @@ async def km_api_management(
                             "get": {
                                 "summary": "List users",
                                 "responses": {
-                                    "200": {"description": "Successful response"}
+                                    "200": {"description": "Successful response"},
                                 },
                             },
                             "post": {
                                 "summary": "Create user",
                                 "responses": {"201": {"description": "User created"}},
                             },
-                        }
+                        },
                     },
                 }
             else:
@@ -634,7 +652,7 @@ async def km_api_management(
                             "tests_failed": 2,
                             "coverage_percentage": 92.0,
                             "duration_seconds": 45,
-                        }
+                        },
                     )
                 elif scenario == "security":
                     test_results.append(
@@ -646,7 +664,7 @@ async def km_api_management(
                             "vulnerabilities_found": 1,
                             "security_score": 85.0,
                             "duration_seconds": 30,
-                        }
+                        },
                     )
                 elif scenario == "performance":
                     test_results.append(
@@ -659,7 +677,7 @@ async def km_api_management(
                             "max_response_time_ms": 1200,
                             "throughput_rps": 450,
                             "duration_seconds": 120,
-                        }
+                        },
                     )
 
             result = {
@@ -693,7 +711,7 @@ async def km_api_management(
                         "severity": "medium",
                         "description": "Some endpoints missing authentication",
                         "recommendation": "Add authentication to all data manipulation endpoints",
-                    }
+                    },
                 ],
                 "remediation_plan": [
                     "Review and update authentication requirements",
@@ -758,7 +776,7 @@ async def km_api_management(
         logger.error(f"API management operation failed: {e}")
         return {
             "success": False,
-            "error": f"API management failed: {str(e)}",
+            "error": f"API management failed: {e!s}",
             "error_type": "system_error",
             "operation": operation,
         }
@@ -767,30 +785,36 @@ async def km_api_management(
 @mcp.tool()
 async def km_code_quality_automation(
     analysis_scope: Annotated[
-        str, Field(description="Analysis scope (repository|branch|commit|files)")
+        str,
+        Field(description="Analysis scope (repository|branch|commit|files)"),
     ],
     quality_checks: Annotated[
-        list[str], Field(description="Quality checks to perform")
+        list[str],
+        Field(description="Quality checks to perform"),
     ] = None,
     code_standards: Annotated[
-        dict[str, str], Field(description="Code standards and style configurations")
+        dict[str, str],
+        Field(description="Code standards and style configurations"),
     ] = None,
     security_scanning: Annotated[
-        bool, Field(description="Enable security vulnerability scanning")
+        bool,
+        Field(description="Enable security vulnerability scanning"),
     ] = True,
     performance_analysis: Annotated[
-        bool, Field(description="Enable performance and optimization analysis")
+        bool,
+        Field(description="Enable performance and optimization analysis"),
     ] = True,
     generate_reports: Annotated[
-        bool, Field(description="Generate detailed quality reports")
+        bool,
+        Field(description="Generate detailed quality reports"),
     ] = True,
     integration_mode: Annotated[
-        str, Field(description="Integration mode (ci|ide|standalone)")
+        str,
+        Field(description="Integration mode (ci|ide|standalone)"),
     ] = "ci",
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Automated code quality analysis and security scanning.
+    """Automated code quality analysis and security scanning.
 
     Provides comprehensive code quality automation including linting, security scanning,
     complexity analysis, and performance optimization recommendations.
@@ -955,7 +979,8 @@ async def km_code_quality_automation(
                     for result in quality_results.values()
                 ),
                 "files_analyzed": quality_results.get("linting", {}).get(
-                    "files_analyzed", 0
+                    "files_analyzed",
+                    0,
                 ),
                 "integration_mode": integration_mode,
             },
@@ -990,7 +1015,7 @@ async def km_code_quality_automation(
         logger.error(f"Code quality analysis failed: {e}")
         return {
             "success": False,
-            "error": f"Quality analysis failed: {str(e)}",
+            "error": f"Quality analysis failed: {e!s}",
             "error_type": "system_error",
             "analysis_scope": analysis_scope,
         }

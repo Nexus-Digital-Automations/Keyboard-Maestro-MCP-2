@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for enterprise sync tools module.
+"""Comprehensive tests for enterprise sync tools module.
 
 Tests cover LDAP/Active Directory integration, SSO authentication, enterprise database
 connectivity, API integration, and security validation with property-based testing.
@@ -17,7 +16,7 @@ from src.server.tools.enterprise_sync_tools import km_enterprise_sync
 
 # Test data generators
 @st.composite
-def enterprise_operation_strategy(draw):
+def enterprise_operation_strategy(draw) -> Any:
     """Generate valid enterprise sync operations."""
     operations = [
         "connect",
@@ -33,7 +32,7 @@ def enterprise_operation_strategy(draw):
 
 
 @st.composite
-def integration_type_strategy(draw):
+def integration_type_strategy(draw) -> Any:
     """Generate valid integration types."""
     integration_types = [
         "ldap",
@@ -48,7 +47,7 @@ def integration_type_strategy(draw):
 
 
 @st.composite
-def connection_config_strategy(draw):
+def connection_config_strategy(draw) -> None:
     """Generate valid connection configurations."""
     hosts = [
         "ldap.enterprise.com",
@@ -60,7 +59,7 @@ def connection_config_strategy(draw):
 
     return {
         "connection_id": draw(
-            st.text(min_size=5, max_size=50).filter(lambda x: x.isalnum())
+            st.text(min_size=5, max_size=50).filter(lambda x: x.isalnum()),
         ),
         "host": draw(st.sampled_from(hosts)),
         "port": draw(st.sampled_from(ports)),
@@ -68,29 +67,29 @@ def connection_config_strategy(draw):
         "ssl_verify": draw(st.booleans()),
         "base_dn": draw(
             st.text(min_size=10, max_size=100).filter(
-                lambda x: "dc=" in x.lower() or len(x) > 0
-            )
+                lambda x: "dc=" in x.lower() or len(x) > 0,
+            ),
         ),
         "domain": draw(
-            st.text(min_size=5, max_size=30).filter(lambda x: "." in x or len(x) > 0)
+            st.text(min_size=5, max_size=30).filter(lambda x: "." in x or len(x) > 0),
         ),
         "api_version": draw(st.text(min_size=1, max_size=10)),
     }
 
 
 @st.composite
-def authentication_strategy(draw):
+def authentication_strategy(draw) -> Any:
     """Generate valid authentication configurations."""
     auth_methods = ["simple_bind", "sasl", "certificate", "token", "api_key"]
 
     return {
         "method": draw(st.sampled_from(auth_methods)),
         "username": draw(
-            st.text(min_size=3, max_size=50).filter(lambda x: x.isalnum())
+            st.text(min_size=3, max_size=50).filter(lambda x: x.isalnum()),
         ),
         "password": draw(st.text(min_size=8, max_size=128)),
         "domain": draw(
-            st.text(min_size=3, max_size=50).filter(lambda x: "." in x or len(x) > 0)
+            st.text(min_size=3, max_size=50).filter(lambda x: "." in x or len(x) > 0),
         ),
         "certificate_path": draw(st.text(min_size=5, max_size=100)),
         "token": draw(st.text(min_size=10, max_size=256)),
@@ -99,15 +98,15 @@ def authentication_strategy(draw):
 
 
 @st.composite
-def sync_options_strategy(draw):
+def sync_options_strategy(draw) -> None:
     """Generate valid sync options."""
     return {
         "connection_id": draw(
-            st.text(min_size=5, max_size=50).filter(lambda x: x.isalnum())
+            st.text(min_size=5, max_size=50).filter(lambda x: x.isalnum()),
         ),
         "sync_type": draw(st.sampled_from(["full", "incremental", "delta"])),
         "target_entities": draw(
-            st.lists(st.text(min_size=3, max_size=30), min_size=1, max_size=10)
+            st.lists(st.text(min_size=3, max_size=30), min_size=1, max_size=10),
         ),
         "filters": draw(
             st.dictionaries(
@@ -115,7 +114,7 @@ def sync_options_strategy(draw):
                 st.text(min_size=1, max_size=50),
                 min_size=0,
                 max_size=5,
-            )
+            ),
         ),
         "mapping_rules": draw(
             st.dictionaries(
@@ -123,13 +122,13 @@ def sync_options_strategy(draw):
                 st.text(min_size=1, max_size=50),
                 min_size=0,
                 max_size=10,
-            )
+            ),
         ),
     }
 
 
 @st.composite
-def query_filter_strategy(draw):
+def query_filter_strategy(draw) -> Any:
     """Generate valid query filters."""
     ldap_filters = [
         "(objectClass=user)",
@@ -153,19 +152,19 @@ def query_filter_strategy(draw):
 
 
 @st.composite
-def timeout_strategy(draw):
+def timeout_strategy(draw) -> Any:
     """Generate valid timeout values."""
     return draw(st.integers(min_value=5, max_value=300))
 
 
 @st.composite
-def batch_size_strategy(draw):
+def batch_size_strategy(draw) -> Any:
     """Generate valid batch sizes."""
     return draw(st.integers(min_value=10, max_value=1000))
 
 
 @st.composite
-def invalid_integration_type_strategy(draw):
+def invalid_integration_type_strategy(draw) -> Any:
     """Generate invalid integration types."""
     invalid_types = [
         "invalid",
@@ -181,7 +180,7 @@ def invalid_integration_type_strategy(draw):
 
 
 @st.composite
-def sso_config_strategy(draw):
+def sso_config_strategy(draw) -> Any:
     """Generate valid SSO configurations."""
     # Use simpler strategies to avoid filter issues
     provider_names = ["SampleProvider", "TestSSO", "EnterpriseAuth", "CompanySSO"]
@@ -196,30 +195,36 @@ def sso_config_strategy(draw):
                     "https://sso.company.com",
                     "https://auth.enterprise.io",
                     "https://saml.provider.com",
-                ]
-            )
+                ],
+            ),
         ),
         "metadata_url": draw(
             st.sampled_from(
                 [
                     "https://sso.company.com/metadata",
                     "https://auth.enterprise.io/metadata",
-                ]
-            )
+                ],
+            ),
         ),
         "certificate": draw(
             st.sampled_from(
-                ["-----BEGIN CERTIFICATE-----test", "-----BEGIN CERTIFICATE-----sample"]
-            )
+                [
+                    "-----BEGIN CERTIFICATE-----test",
+                    "-----BEGIN CERTIFICATE-----sample",
+                ],
+            ),
         ),
         "client_id": draw(st.sampled_from(["client123", "app456", "enterprise789"])),
         "client_secret": draw(
-            st.sampled_from(["secret123456789", "clientsecret987654321"])
+            st.sampled_from(["secret123456789", "clientsecret987654321"]),
         ),
         "redirect_uri": draw(
             st.sampled_from(
-                ["https://app.company.com/callback", "https://app.enterprise.io/auth"]
-            )
+                [
+                    "https://app.company.com/callback",
+                    "https://app.enterprise.io/auth",
+                ],
+            ),
         ),
     }
 
@@ -227,7 +232,7 @@ def sso_config_strategy(draw):
 class TestEnterpriseSyncDependencies:
     """Test enterprise sync dependencies and imports."""
 
-    def test_enterprise_sync_manager_import(self):
+    def test_enterprise_sync_manager_import(self) -> None:
         """Test importing enterprise sync dependencies."""
         try:
             from src.audit.audit_system_manager import get_audit_system
@@ -256,7 +261,7 @@ class TestEnterpriseSyncParameterValidation:
     """Test enterprise sync parameter validation."""
 
     @given(enterprise_operation_strategy())
-    def test_valid_operations(self, operation: str):
+    def test_valid_operations(self, operation: str) -> None:
         """Test that valid operations are accepted."""
         valid_operations = [
             "connect",
@@ -271,7 +276,7 @@ class TestEnterpriseSyncParameterValidation:
         assert operation in valid_operations
 
     @given(integration_type_strategy())
-    def test_integration_type_validation(self, integration_type: str):
+    def test_integration_type_validation(self, integration_type: str) -> None:
         """Test integration type validation."""
         valid_types = [
             "ldap",
@@ -285,7 +290,7 @@ class TestEnterpriseSyncParameterValidation:
         assert integration_type in valid_types
 
     @given(connection_config_strategy())
-    def test_connection_config_validation(self, config: dict[str, Any]):
+    def test_connection_config_validation(self, config: dict[str, Any]) -> None:
         """Test connection configuration validation."""
         # Required fields should be present
         assert "host" in config
@@ -294,23 +299,23 @@ class TestEnterpriseSyncParameterValidation:
         assert config["port"] > 0
 
     @given(authentication_strategy())
-    def test_authentication_validation(self, auth: dict[str, Any]):
+    def test_authentication_validation(self, auth: dict[str, Any]) -> None:
         """Test authentication configuration validation."""
         assert "method" in auth
         valid_methods = ["simple_bind", "sasl", "certificate", "token", "api_key"]
         assert auth["method"] in valid_methods
 
     @given(timeout_strategy())
-    def test_timeout_validation(self, timeout: int):
+    def test_timeout_validation(self, timeout: int) -> None:
         """Test timeout parameter validation."""
         assert 5 <= timeout <= 300
 
     @given(batch_size_strategy())
-    def test_batch_size_validation(self, batch_size: int):
+    def test_batch_size_validation(self, batch_size: int) -> None:
         """Test batch size parameter validation."""
         assert 10 <= batch_size <= 1000
 
-    def test_invalid_operations(self):
+    def test_invalid_operations(self) -> None:
         """Test that invalid operations are rejected."""
         invalid_operations = [
             "invalid",
@@ -339,23 +344,23 @@ class TestEnterpriseSyncConnectOperationMocked:
     """Test enterprise sync connect operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_connect_ldap_success(self):
+    async def test_connect_ldap_success(self) -> None:
         """Test successful LDAP connection establishment."""
         with (
             patch(
-                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager"
+                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager",
             ) as mock_get_manager,
             patch(
-                "src.server.tools.enterprise_sync_tools.IntegrationType"
+                "src.server.tools.enterprise_sync_tools.IntegrationType",
             ) as mock_integration_type,
             patch(
-                "src.server.tools.enterprise_sync_tools.create_enterprise_connection"
+                "src.server.tools.enterprise_sync_tools.create_enterprise_connection",
             ) as mock_create_connection,
             patch(
-                "src.server.tools.enterprise_sync_tools.create_enterprise_credentials"
+                "src.server.tools.enterprise_sync_tools.create_enterprise_credentials",
             ) as mock_create_credentials,
             patch(
-                "src.server.tools.enterprise_sync_tools.AuthenticationMethod"
+                "src.server.tools.enterprise_sync_tools.AuthenticationMethod",
             ) as mock_auth_method,
         ):
             # Setup mocks for successful LDAP connection
@@ -406,7 +411,7 @@ class TestEnterpriseSyncConnectOperationMocked:
             assert result["metadata"]["ssl_enabled"] is True
 
     @pytest.mark.asyncio
-    async def test_connect_missing_config_error(self):
+    async def test_connect_missing_config_error(self) -> None:
         """Test connect operation with missing connection config."""
         # Execute connect without connection config
         result = await km_enterprise_sync(
@@ -426,7 +431,7 @@ class TestEnterpriseSyncConnectOperationMocked:
         assert "Connection configuration required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_connect_missing_authentication_error(self):
+    async def test_connect_missing_authentication_error(self) -> None:
         """Test connect operation with missing authentication."""
         # Execute connect without authentication
         result = await km_enterprise_sync(
@@ -442,14 +447,14 @@ class TestEnterpriseSyncConnectOperationMocked:
         assert "Authentication credentials required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_connect_invalid_config_error(self):
+    async def test_connect_invalid_config_error(self) -> None:
         """Test connect operation with invalid connection config."""
         # Execute connect with missing host/port
         result = await km_enterprise_sync(
             operation="connect",
             integration_type="ldap",
             connection_config={
-                "base_dn": "dc=company,dc=com"
+                "base_dn": "dc=company,dc=com",
                 # host and port are missing
             },
             authentication={
@@ -469,14 +474,14 @@ class TestEnterpriseSyncSyncOperationMocked:
     """Test enterprise sync synchronization operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_sync_operation_success(self):
+    async def test_sync_operation_success(self) -> None:
         """Test successful enterprise data synchronization."""
         with (
             patch(
-                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager"
+                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager",
             ) as mock_get_manager,
             patch(
-                "src.server.tools.enterprise_sync_tools.IntegrationType"
+                "src.server.tools.enterprise_sync_tools.IntegrationType",
             ) as mock_integration_type,
         ):
             # Setup mocks for successful sync
@@ -528,7 +533,7 @@ class TestEnterpriseSyncSyncOperationMocked:
             assert result["metadata"]["has_errors"] is True
 
     @pytest.mark.asyncio
-    async def test_sync_missing_options_error(self):
+    async def test_sync_missing_options_error(self) -> None:
         """Test sync operation with missing sync options."""
         # Execute sync without sync options
         result = await km_enterprise_sync(
@@ -543,14 +548,14 @@ class TestEnterpriseSyncSyncOperationMocked:
         assert "Sync options required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_sync_missing_connection_id_error(self):
+    async def test_sync_missing_connection_id_error(self) -> None:
         """Test sync operation with missing connection ID."""
         # Execute sync without connection ID
         result = await km_enterprise_sync(
             operation="sync",
             integration_type="ldap",
             sync_options={
-                "sync_type": "full"
+                "sync_type": "full",
                 # connection_id is missing
             },
         )
@@ -565,14 +570,14 @@ class TestEnterpriseSyncQueryOperationMocked:
     """Test enterprise sync query operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_query_ldap_success(self):
+    async def test_query_ldap_success(self) -> None:
         """Test successful LDAP query operation."""
         with (
             patch(
-                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager"
+                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager",
             ) as mock_get_manager,
             patch(
-                "src.server.tools.enterprise_sync_tools.IntegrationType"
+                "src.server.tools.enterprise_sync_tools.IntegrationType",
             ) as mock_integration_type,
         ):
             # Setup mocks for successful LDAP query
@@ -621,14 +626,14 @@ class TestEnterpriseSyncQueryOperationMocked:
             assert result["metadata"]["has_results"] is True
 
     @pytest.mark.asyncio
-    async def test_query_database_success(self):
+    async def test_query_database_success(self) -> None:
         """Test successful database query operation."""
         with (
             patch(
-                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager"
+                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager",
             ) as mock_get_manager,
             patch(
-                "src.server.tools.enterprise_sync_tools.IntegrationType"
+                "src.server.tools.enterprise_sync_tools.IntegrationType",
             ) as mock_integration_type,
         ):
             # Setup mocks for successful database query
@@ -666,14 +671,14 @@ class TestEnterpriseSyncSSOOperationMocked:
     """Test enterprise sync SSO operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_sso_config_saml_success(self):
+    async def test_sso_config_saml_success(self) -> None:
         """Test successful SAML SSO configuration."""
         with (
             patch(
-                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager"
+                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager",
             ) as mock_get_manager,
             patch(
-                "src.server.tools.enterprise_sync_tools.IntegrationType"
+                "src.server.tools.enterprise_sync_tools.IntegrationType",
             ) as mock_integration_type,
         ):
             # Setup mocks for successful SAML config - interface alignment fix
@@ -693,7 +698,7 @@ class TestEnterpriseSyncSSOOperationMocked:
             mock_result.get_right.return_value = "saml_provider_001"
 
             mock_manager.sso_manager.configure_saml_provider = AsyncMock(
-                return_value=mock_result
+                return_value=mock_result,
             )
             mock_get_manager.return_value = mock_manager
 
@@ -718,14 +723,14 @@ class TestEnterpriseSyncSSOOperationMocked:
             assert result["metadata"]["provider_configured"] is True
 
     @pytest.mark.asyncio
-    async def test_sso_login_oauth_success(self):
+    async def test_sso_login_oauth_success(self) -> None:
         """Test successful OAuth SSO login initiation."""
         with (
             patch(
-                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager"
+                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager",
             ) as mock_get_manager,
             patch(
-                "src.server.tools.enterprise_sync_tools.IntegrationType"
+                "src.server.tools.enterprise_sync_tools.IntegrationType",
             ) as mock_integration_type,
         ):
             # Setup mocks for successful OAuth login - interface alignment fix
@@ -751,7 +756,7 @@ class TestEnterpriseSyncSSOOperationMocked:
             mock_result.get_right.return_value = mock_login_data
 
             mock_manager.sso_manager.initiate_sso_login = AsyncMock(
-                return_value=mock_result
+                return_value=mock_result,
             )
             mock_get_manager.return_value = mock_manager
 
@@ -775,7 +780,7 @@ class TestEnterpriseSyncSSOOperationMocked:
             assert result["metadata"]["requires_redirect"] is True
 
     @pytest.mark.asyncio
-    async def test_sso_config_invalid_type_error(self):
+    async def test_sso_config_invalid_type_error(self) -> None:
         """Test SSO config with invalid integration type."""
         # Execute SSO config with non-SSO type
         result = await km_enterprise_sync(
@@ -794,14 +799,15 @@ class TestEnterpriseSyncErrorHandling:
     """Test enterprise sync error handling."""
 
     @pytest.mark.asyncio
-    async def test_invalid_operation_error(self):
+    async def test_invalid_operation_error(self) -> None:
         """Test handling of invalid operations."""
         from src.core.errors import ContractViolationError
 
         # Execute invalid operation - should trigger contract violation
         with pytest.raises(ContractViolationError) as exc_info:
             await km_enterprise_sync(
-                operation="invalid_operation", integration_type="ldap"
+                operation="invalid_operation",
+                integration_type="ldap",
             )
 
         # Verify contract violation for invalid operation
@@ -810,11 +816,12 @@ class TestEnterpriseSyncErrorHandling:
         assert "Precondition failed" in str(error)
 
     @pytest.mark.asyncio
-    async def test_invalid_integration_type_error(self):
+    async def test_invalid_integration_type_error(self) -> None:
         """Test handling of invalid integration types."""
         # Execute with invalid integration type
         result = await km_enterprise_sync(
-            operation="connect", integration_type="invalid_type"
+            operation="connect",
+            integration_type="invalid_type",
         )
 
         # Verify invalid integration type error
@@ -823,17 +830,18 @@ class TestEnterpriseSyncErrorHandling:
         assert "Invalid integration type" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_system_error_handling(self):
+    async def test_system_error_handling(self) -> None:
         """Test handling of system errors."""
         with patch(
-            "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager"
+            "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager",
         ) as mock_get_manager:
             # Setup system error
             mock_get_manager.side_effect = RuntimeError("System failure")
 
             # Execute operation that should trigger system error
             result = await km_enterprise_sync(
-                operation="status", integration_type="ldap"
+                operation="status",
+                integration_type="ldap",
             )
 
             # Verify system error handling
@@ -846,10 +854,10 @@ class TestEnterpriseSyncStatusOperationMocked:
     """Test enterprise sync status operations with mocked dependencies."""
 
     @pytest.mark.asyncio
-    async def test_status_operation_success(self):
+    async def test_status_operation_success(self) -> None:
         """Test successful enterprise system status retrieval."""
         with patch(
-            "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager"
+            "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager",
         ) as mock_get_manager:
             # Setup mocks for successful status - interface alignment fix
             mock_manager = Mock()  # Should be Mock, not AsyncMock for get_system_status
@@ -871,7 +879,8 @@ class TestEnterpriseSyncStatusOperationMocked:
 
             # Execute status operation
             result = await km_enterprise_sync(
-                operation="status", integration_type="ldap"
+                operation="status",
+                integration_type="ldap",
             )
 
             # Verify successful status
@@ -888,23 +897,23 @@ class TestEnterpriseSyncIntegration:
     """Integration tests for enterprise sync operations."""
 
     @pytest.mark.asyncio
-    async def test_complete_enterprise_workflow(self):
+    async def test_complete_enterprise_workflow(self) -> None:
         """Test complete enterprise integration workflow."""
         with (
             patch(
-                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager"
+                "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager",
             ) as mock_get_manager,
             patch(
-                "src.server.tools.enterprise_sync_tools.IntegrationType"
+                "src.server.tools.enterprise_sync_tools.IntegrationType",
             ) as mock_integration_type,
             patch(
-                "src.server.tools.enterprise_sync_tools.create_enterprise_connection"
+                "src.server.tools.enterprise_sync_tools.create_enterprise_connection",
             ) as mock_create_connection,
             patch(
-                "src.server.tools.enterprise_sync_tools.create_enterprise_credentials"
+                "src.server.tools.enterprise_sync_tools.create_enterprise_credentials",
             ) as mock_create_credentials,
             patch(
-                "src.server.tools.enterprise_sync_tools.AuthenticationMethod"
+                "src.server.tools.enterprise_sync_tools.AuthenticationMethod",
             ) as mock_auth_method,
         ):
             # Setup mocks for complete workflow
@@ -945,7 +954,7 @@ class TestEnterpriseSyncIntegration:
             query_result = Mock()
             query_result.is_left.return_value = False
             query_result.get_right.return_value = [
-                {"cn": "workflow.user", "mail": "workflow@company.com"}
+                {"cn": "workflow.user", "mail": "workflow@company.com"},
             ]
 
             mock_manager.establish_connection = AsyncMock(return_value=connect_result)
@@ -991,7 +1000,7 @@ class TestEnterpriseSyncIntegration:
             mock_manager.query_enterprise_data.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_enterprise_sync_with_context(self):
+    async def test_enterprise_sync_with_context(self) -> None:
         """Test enterprise sync with FastMCP context integration."""
         mock_context = Mock()
         mock_context.info = AsyncMock()
@@ -999,7 +1008,7 @@ class TestEnterpriseSyncIntegration:
         mock_context.error = AsyncMock()
 
         with patch(
-            "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager"
+            "src.server.tools.enterprise_sync_tools.get_enterprise_sync_manager",
         ) as mock_get_manager:
             # Setup mocks for context testing - interface alignment fix
             mock_manager = Mock()  # Should be Mock, not AsyncMock for get_system_status
@@ -1011,7 +1020,9 @@ class TestEnterpriseSyncIntegration:
 
             # Execute operation with context
             result = await km_enterprise_sync(
-                operation="status", integration_type="ldap", ctx=mock_context
+                operation="status",
+                integration_type="ldap",
+                ctx=mock_context,
             )
 
             # Verify context integration
@@ -1033,8 +1044,12 @@ class TestEnterpriseSyncProperties:
         batch_size_strategy(),
     )
     def test_enterprise_sync_parameter_validation_properties(
-        self, operation: str, integration_type: str, timeout: int, batch_size: int
-    ):
+        self,
+        operation: str,
+        integration_type: str,
+        timeout: int,
+        batch_size: int,
+    ) -> None:
         """Property test for enterprise sync parameter validation."""
         # Properties that should always hold
         valid_operations = [
@@ -1063,7 +1078,7 @@ class TestEnterpriseSyncProperties:
         assert 10 <= batch_size <= 1000
 
     @given(connection_config_strategy())
-    def test_connection_config_properties(self, config: dict[str, Any]):
+    def test_connection_config_properties(self, config: dict[str, Any]) -> None:
         """Property test for connection configuration validation."""
         # Properties that should always hold for connection configs
         assert isinstance(config, dict)
@@ -1078,7 +1093,7 @@ class TestEnterpriseSyncProperties:
             assert isinstance(config["ssl_verify"], bool)
 
     @given(authentication_strategy())
-    def test_authentication_properties(self, auth: dict[str, Any]):
+    def test_authentication_properties(self, auth: dict[str, Any]) -> None:
         """Property test for authentication configuration validation."""
         # Properties that should always hold for authentication
         assert isinstance(auth, dict)
@@ -1098,7 +1113,7 @@ class TestEnterpriseSyncProperties:
             assert "api_key" in auth
 
     @given(query_filter_strategy())
-    def test_query_filter_properties(self, query_filter: str):
+    def test_query_filter_properties(self, query_filter: str) -> None:
         """Property test for query filter validation."""
         # Properties that should always hold for query filters
         assert isinstance(query_filter, str)
@@ -1120,7 +1135,7 @@ class TestEnterpriseSyncProperties:
             assert len(query_filter) > 1
 
     @given(sso_config_strategy())
-    def test_sso_config_properties(self, sso_config: dict[str, Any]):
+    def test_sso_config_properties(self, sso_config: dict[str, Any]) -> None:
         """Property test for SSO configuration validation."""
         # Properties that should always hold for SSO configs
         assert isinstance(sso_config, dict)
@@ -1141,7 +1156,7 @@ class TestEnterpriseSyncProperties:
             assert len(sso_config["certificate"]) > 0
 
     @given(invalid_integration_type_strategy())
-    def test_security_validation_properties(self, invalid_type: str):
+    def test_security_validation_properties(self, invalid_type: str) -> None:
         """Property test for security validation behavior."""
         # Invalid integration types should be detectable
         valid_types = [

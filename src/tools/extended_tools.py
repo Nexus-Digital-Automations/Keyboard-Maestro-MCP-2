@@ -1,5 +1,4 @@
-"""
-Extended tools registration for additional Keyboard Maestro functionality.
+"""Extended tools registration for additional Keyboard Maestro functionality.
 
 Registers search, property management, dictionary, engine control,
 interface automation, and notification tools.
@@ -15,8 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def register_extended_tools(mcp: "FastMCP") -> None:
-    """
-    Register extended MCP tools for comprehensive Keyboard Maestro automation.
+    """Register extended MCP tools for comprehensive Keyboard Maestro automation.
 
     Includes:
     - km_search_actions: Search for actions within macros
@@ -28,6 +26,7 @@ def register_extended_tools(mcp: "FastMCP") -> None:
 
     Args:
         mcp: FastMCP server instance
+
     """
     try:
         # Import tools from server.tools package

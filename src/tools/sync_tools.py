@@ -1,5 +1,4 @@
-"""
-Real-time Synchronization MCP Tools
+"""Real-time Synchronization MCP Tools.
 
 Tools for managing real-time macro library synchronization and monitoring.
 """
@@ -16,7 +15,7 @@ from ..core.types import Duration
 logger = logging.getLogger(__name__)
 
 
-def register_sync_tools(mcp):
+def register_sync_tools(mcp) -> None:
     """Register synchronization tools with the MCP server."""
 
     @mcp.tool()
@@ -31,13 +30,15 @@ def register_sync_tools(mcp):
         poll_interval_seconds: Annotated[
             int,
             Field(
-                default=30, ge=5, le=300, description="Base polling interval in seconds"
+                default=30,
+                ge=5,
+                le=300,
+                description="Base polling interval in seconds",
             ),
         ] = 30,
         ctx: Context = None,
     ) -> dict[str, Any]:
-        """
-        Start real-time macro library synchronization and monitoring.
+        """Start real-time macro library synchronization and monitoring.
 
         TASK_7 IMPLEMENTATION: Real-time state synchronization with intelligent
         polling, file monitoring, and change detection for live macro updates.
@@ -69,10 +70,10 @@ def register_sync_tools(mcp):
             # Update configuration if provided
             if poll_interval_seconds != 30:
                 sync_mgr.config.base_poll_interval = Duration.from_seconds(
-                    poll_interval_seconds
+                    poll_interval_seconds,
                 )
                 sync_mgr.config.slow_poll_interval = Duration.from_seconds(
-                    poll_interval_seconds * 4
+                    poll_interval_seconds * 4,
                 )
 
             # Start synchronization
@@ -107,7 +108,7 @@ def register_sync_tools(mcp):
                     file_monitor_status = "unavailable"
                     if ctx:
                         await ctx.warn(
-                            "File monitoring unavailable - using polling only"
+                            "File monitoring unavailable - using polling only",
                         )
             else:
                 file_monitor_status = "disabled"
@@ -159,8 +160,7 @@ def register_sync_tools(mcp):
 
     @mcp.tool()
     async def km_stop_realtime_sync(ctx: Context = None) -> dict[str, Any]:
-        """
-        Stop real-time macro library synchronization and monitoring.
+        """Stop real-time macro library synchronization and monitoring.
 
         TASK_7 IMPLEMENTATION: Gracefully stop all real-time sync processes.
         """
@@ -233,9 +233,9 @@ def register_sync_tools(mcp):
         ] = True,
         ctx: Context = None,
     ) -> dict[str, Any]:
-        """
-        Get current status of real-time macro synchronization including
-        performance metrics, change detection, and monitoring health.
+        """Get current status of real-time macro synchronization.
+
+        Including performance metrics, change detection, and monitoring health.
 
         TASK_7 IMPLEMENTATION: Comprehensive sync status with diagnostics.
         """
@@ -270,10 +270,12 @@ def register_sync_tools(mcp):
             if include_performance_metrics:
                 status_data["performance"] = {
                     "average_sync_time": sync_status.get(
-                        "average_sync_time_seconds", 0.0
+                        "average_sync_time_seconds",
+                        0.0,
                     ),
                     "poll_interval_seconds": sync_status.get(
-                        "current_poll_interval_seconds", 30
+                        "current_poll_interval_seconds",
+                        30,
                     ),
                     "changes_per_hour": "unknown",  # Could calculate this
                     "cache_hit_rate": "unknown",  # Could track this
@@ -295,17 +297,17 @@ def register_sync_tools(mcp):
             # Add recommendations
             if sync_status["status"] == "error":
                 status_data["health"]["recommendations"].append(
-                    "Check Keyboard Maestro connection"
+                    "Check Keyboard Maestro connection",
                 )
 
             if sync_status["consecutive_errors"] > 0:
                 status_data["health"]["recommendations"].append(
-                    "Monitor error logs for connection issues"
+                    "Monitor error logs for connection issues",
                 )
 
             if not file_status["is_monitoring"] and WATCHDOG_AVAILABLE:
                 status_data["health"]["recommendations"].append(
-                    "Enable file monitoring for faster change detection"
+                    "Enable file monitoring for faster change detection",
                 )
 
             return {
@@ -342,8 +344,7 @@ def register_sync_tools(mcp):
         ] = False,
         ctx: Context = None,
     ) -> dict[str, Any]:
-        """
-        Force immediate synchronization of macro library state.
+        """Force immediate synchronization of macro library state.
 
         TASK_7 IMPLEMENTATION: Manual sync trigger for immediate updates.
         """

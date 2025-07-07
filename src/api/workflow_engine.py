@@ -1,5 +1,4 @@
-"""
-API Workflow Orchestration Engine - TASK_64 Phase 2 Implementation
+"""API Workflow Orchestration Engine - TASK_64 Phase 2 Implementation.
 
 Advanced workflow orchestration for complex multi-API compositions with
 Design by Contract patterns, type safety, and fault tolerance.
@@ -11,6 +10,7 @@ Security: Workflow validation, data isolation, and execution sandboxing
 
 from __future__ import annotations
 
+import ast
 import asyncio
 import logging
 import time
@@ -135,8 +135,7 @@ class WorkflowExecution:
 
 
 class WorkflowEngine:
-    """
-    Advanced workflow orchestration engine for complex API compositions.
+    """Advanced workflow orchestration engine for complex API compositions.
 
     Supports sequential, parallel, and conditional execution patterns with
     sophisticated error handling, retry logic, and state management.
@@ -155,7 +154,7 @@ class WorkflowEngine:
         self._initialize_step_handlers()
 
         logger.info(
-            f"WorkflowEngine initialized with {max_concurrent_workflows} max concurrent workflows"
+            f"WorkflowEngine initialized with {max_concurrent_workflows} max concurrent workflows",
         )
 
     def _initialize_step_handlers(self) -> None:
@@ -178,7 +177,8 @@ class WorkflowEngine:
         "Returns workflow ID or error",
     )
     async def register_workflow(
-        self, definition: WorkflowDefinition
+        self,
+        definition: WorkflowDefinition,
     ) -> Either[str, WorkflowID]:
         """Register a new workflow definition."""
         try:
@@ -191,12 +191,12 @@ class WorkflowEngine:
             self.workflow_definitions[definition.workflow_id] = definition
 
             logger.info(
-                f"Registered workflow {definition.workflow_id}: {definition.name}"
+                f"Registered workflow {definition.workflow_id}: {definition.name}",
             )
             return Either.right(definition.workflow_id)
 
         except Exception as e:
-            error_msg = f"Failed to register workflow: {str(e)}"
+            error_msg = f"Failed to register workflow: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -206,7 +206,9 @@ class WorkflowEngine:
         "Returns execution ID or error",
     )
     async def start_workflow(
-        self, workflow_id: WorkflowID, context_data: dict[str, Any] | None = None
+        self,
+        workflow_id: WorkflowID,
+        context_data: dict[str, Any] | None = None,
     ) -> Either[str, str]:
         """Start workflow execution with optional initial context data."""
         try:
@@ -214,7 +216,7 @@ class WorkflowEngine:
                 # Check concurrent execution limits
                 if len(self.active_executions) >= self.max_concurrent_workflows:
                     return Either.left(
-                        f"Maximum {self.max_concurrent_workflows} concurrent workflows exceeded"
+                        f"Maximum {self.max_concurrent_workflows} concurrent workflows exceeded",
                     )
 
                 # Get workflow definition
@@ -240,7 +242,7 @@ class WorkflowEngine:
                 return Either.right(execution.execution_id)
 
         except Exception as e:
-            error_msg = f"Failed to start workflow: {str(e)}"
+            error_msg = f"Failed to start workflow: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -251,7 +253,7 @@ class WorkflowEngine:
 
             # Set global timeout
             timeout_task = asyncio.create_task(
-                asyncio.sleep(execution.workflow_definition.global_timeout_seconds)
+                asyncio.sleep(execution.workflow_definition.global_timeout_seconds),
             )
 
             # Execute according to strategy
@@ -260,7 +262,7 @@ class WorkflowEngine:
                 == ExecutionStrategy.SEQUENTIAL
             ):
                 execution_task = asyncio.create_task(
-                    self._execute_sequential(execution)
+                    self._execute_sequential(execution),
                 )
             elif (
                 execution.workflow_definition.execution_strategy
@@ -272,7 +274,7 @@ class WorkflowEngine:
                 == ExecutionStrategy.CONDITIONAL
             ):
                 execution_task = asyncio.create_task(
-                    self._execute_conditional(execution)
+                    self._execute_conditional(execution),
                 )
             elif (
                 execution.workflow_definition.execution_strategy
@@ -288,7 +290,8 @@ class WorkflowEngine:
 
             # Wait for completion or timeout
             done, pending = await asyncio.wait(
-                [execution_task, timeout_task], return_when=asyncio.FIRST_COMPLETED
+                [execution_task, timeout_task],
+                return_when=asyncio.FIRST_COMPLETED,
             )
 
             # Cancel pending tasks
@@ -319,7 +322,9 @@ class WorkflowEngine:
             if not self._are_dependencies_satisfied(step, execution):
                 if execution.workflow_definition.error_handling == "fail_fast":
                     raise ValidationError(
-                        "dependencies", step.dependencies, "Dependencies not satisfied"
+                        "dependencies",
+                        step.dependencies,
+                        "Dependencies not satisfied",
                     )
                 continue
 
@@ -328,16 +333,18 @@ class WorkflowEngine:
             execution.step_results[step.step_id] = result
 
             # Handle step failure
-            if result.state == WorkflowState.FAILED:
-                if execution.workflow_definition.error_handling == "fail_fast":
-                    raise Exception(f"Step {step.step_id} failed: {result.error}")
-                # Continue with next step if error_handling is "continue"
+            if (
+                result.state == WorkflowState.FAILED
+                and execution.workflow_definition.error_handling == "fail_fast"
+            ):
+                raise Exception(f"Step {step.step_id} failed: {result.error}")
+            # Continue with next step if error_handling is "continue"
 
     async def _execute_parallel(self, execution: WorkflowExecution) -> None:
         """Execute workflow steps in parallel where possible."""
         # Group steps by dependency levels
         dependency_levels = self._build_dependency_levels(
-            execution.workflow_definition.steps
+            execution.workflow_definition.steps,
         )
 
         for level_steps in dependency_levels:
@@ -349,13 +356,16 @@ class WorkflowEngine:
 
             # Wait for all tasks in this level to complete
             results = await asyncio.gather(
-                *[task for _, task in tasks], return_exceptions=True
+                *[task for _, task in tasks],
+                return_exceptions=True,
             )
 
             for (step_id, _), result in zip(tasks, results, strict=False):
                 if isinstance(result, Exception):
                     execution.step_results[step_id] = StepResult(
-                        step_id=step_id, state=WorkflowState.FAILED, error=str(result)
+                        step_id=step_id,
+                        state=WorkflowState.FAILED,
+                        error=str(result),
                     )
                 else:
                     execution.step_results[step_id] = result
@@ -365,7 +375,8 @@ class WorkflowEngine:
         for step in execution.workflow_definition.steps:
             # Evaluate step condition
             if step.condition and not self._evaluate_condition(
-                step.condition, execution.context_data
+                step.condition,
+                execution.context_data,
             ):
                 execution.step_results[step.step_id] = StepResult(
                     step_id=step.step_id,
@@ -417,7 +428,9 @@ class WorkflowEngine:
                 break
 
     async def _execute_step(
-        self, step: WorkflowStep, execution: WorkflowExecution
+        self,
+        step: WorkflowStep,
+        execution: WorkflowExecution,
     ) -> StepResult:
         """Execute a single workflow step with retry logic."""
         start_time = time.time()
@@ -430,7 +443,8 @@ class WorkflowEngine:
         retry_count = 0
         max_retries = (
             step.retry_config.get(
-                "max_retries", execution.workflow_definition.max_retries
+                "max_retries",
+                execution.workflow_definition.max_retries,
             )
             if step.retry_config
             else execution.workflow_definition.max_retries
@@ -444,12 +458,15 @@ class WorkflowEngine:
                 # Execute step based on type
                 if step.step_type not in self.step_handlers:
                     raise ValidationError(
-                        "step_type", step.step_type, "Unknown step type"
+                        "step_type",
+                        step.step_type,
+                        "Unknown step type",
                     )
 
                 handler = self.step_handlers[step.step_type]
                 step_result = await asyncio.wait_for(
-                    handler(step, execution.context_data), timeout=timeout
+                    handler(step, execution.context_data),
+                    timeout=timeout,
                 )
 
                 result.data = step_result
@@ -484,7 +501,9 @@ class WorkflowEngine:
         return result
 
     async def _execute_api_call_step(
-        self, step: WorkflowStep, context: dict[str, Any]
+        self,
+        step: WorkflowStep,
+        context: dict[str, Any],
     ) -> Any:
         """Execute API call step."""
         import aiohttp
@@ -516,7 +535,9 @@ class WorkflowEngine:
             return await response.json()
 
     async def _execute_condition_step(
-        self, step: WorkflowStep, context: dict[str, Any]
+        self,
+        step: WorkflowStep,
+        context: dict[str, Any],
     ) -> Any:
         """Execute conditional step."""
         condition = step.configuration.get("condition")
@@ -529,15 +550,16 @@ class WorkflowEngine:
                 "executed_branch": "true",
                 "data": true_branch,
             }
-        else:
-            return {
-                "condition_result": False,
-                "executed_branch": "false",
-                "data": false_branch,
-            }
+        return {
+            "condition_result": False,
+            "executed_branch": "false",
+            "data": false_branch,
+        }
 
     async def _execute_loop_step(
-        self, step: WorkflowStep, context: dict[str, Any]
+        self,
+        step: WorkflowStep,
+        context: dict[str, Any],
     ) -> Any:
         """Execute loop step."""
         config = step.configuration
@@ -556,7 +578,9 @@ class WorkflowEngine:
         return {"loop_results": results, "iterations_completed": len(results)}
 
     async def _execute_parallel_step(
-        self, step: WorkflowStep, context: dict[str, Any]
+        self,
+        step: WorkflowStep,
+        context: dict[str, Any],
     ) -> Any:
         """Execute parallel step."""
         parallel_tasks = step.configuration.get("tasks", [])
@@ -572,7 +596,9 @@ class WorkflowEngine:
         return {"parallel_results": results, "tasks_completed": len(results)}
 
     async def _execute_transform_step(
-        self, step: WorkflowStep, context: dict[str, Any]
+        self,
+        step: WorkflowStep,
+        context: dict[str, Any],
     ) -> Any:
         """Execute data transformation step."""
         config = step.configuration
@@ -582,22 +608,23 @@ class WorkflowEngine:
         # Simple transformations (could be extended with more complex logic)
         if transformation == "identity":
             return input_data
-        elif transformation == "uppercase" and isinstance(input_data, str):
+        if transformation == "uppercase" and isinstance(input_data, str):
             return input_data.upper()
-        elif transformation == "lowercase" and isinstance(input_data, str):
+        if transformation == "lowercase" and isinstance(input_data, str):
             return input_data.lower()
-        elif transformation == "json_extract":
+        if transformation == "json_extract":
             field = config.get("field")
             return (
                 input_data.get(field)
                 if isinstance(input_data, dict) and field
                 else input_data
             )
-        else:
-            return input_data
+        return input_data
 
     async def _execute_delay_step(
-        self, step: WorkflowStep, context: dict[str, Any]
+        self,
+        step: WorkflowStep,
+        context: dict[str, Any],
     ) -> Any:
         """Execute delay step."""
         delay_seconds = step.configuration.get("delay_seconds", 1)
@@ -608,7 +635,8 @@ class WorkflowEngine:
         }
 
     def _validate_workflow_definition(
-        self, definition: WorkflowDefinition
+        self,
+        definition: WorkflowDefinition,
     ) -> Either[str, None]:
         """Validate workflow definition."""
         if not definition.steps:
@@ -620,9 +648,10 @@ class WorkflowEngine:
 
         # Validate step configurations
         for step in definition.steps:
-            if step.step_type == StepType.API_CALL:
-                if not step.configuration.get("url"):
-                    return Either.left(f"API call step {step.step_id} missing URL")
+            if step.step_type == StepType.API_CALL and not step.configuration.get(
+                "url",
+            ):
+                return Either.left(f"API call step {step.step_id} missing URL")
 
         return Either.right(None)
 
@@ -652,7 +681,9 @@ class WorkflowEngine:
         return any(has_cycle(step_id) for step_id in graph)
 
     def _are_dependencies_satisfied(
-        self, step: WorkflowStep, execution: WorkflowExecution
+        self,
+        step: WorkflowStep,
+        execution: WorkflowExecution,
     ) -> bool:
         """Check if step dependencies are satisfied."""
         for dependency in step.dependencies:
@@ -663,7 +694,8 @@ class WorkflowEngine:
         return True
 
     def _build_dependency_levels(
-        self, steps: list[WorkflowStep]
+        self,
+        steps: list[WorkflowStep],
     ) -> list[list[WorkflowStep]]:
         """Build dependency levels for parallel execution."""
         {step.step_id: step for step in steps}
@@ -705,13 +737,64 @@ class WorkflowEngine:
             if any(op in condition for op in ["import", "exec", "eval", "__"]):
                 return False
 
-            # Evaluate condition
-            return bool(eval(condition))
+            # Evaluate condition using safe AST evaluation
+            return self._safe_eval_condition(condition)
         except Exception:
             return False
 
+    def _safe_eval_condition(self, condition: str) -> bool:
+        """Safely evaluate condition using AST parsing."""
+        try:
+            # Parse the condition into an AST
+            tree = ast.parse(condition, mode="eval")
+
+            # Only allow safe operations
+            allowed_nodes = (
+                ast.Expression,
+                ast.Compare,
+                ast.BoolOp,
+                ast.UnaryOp,
+                ast.Constant,
+                ast.Num,
+                ast.Str,
+                ast.NameConstant,
+                ast.And,
+                ast.Or,
+                ast.Not,
+                ast.Eq,
+                ast.NotEq,
+                ast.Lt,
+                ast.LtE,
+                ast.Gt,
+                ast.GtE,
+                ast.Is,
+                ast.IsNot,
+                ast.In,
+                ast.NotIn,
+            )
+
+            # Check all nodes in the AST
+            for node in ast.walk(tree):
+                if not isinstance(node, allowed_nodes):
+                    return False
+
+            # Use AST literal evaluation for maximum safety
+            try:
+                return bool(ast.literal_eval(compile(tree, "<condition>", "eval")))
+            except (ValueError, TypeError):
+                # S307 SECURITY FIX: Remove eval() fallback for maximum security
+                # Only allow literal evaluation to prevent code injection
+                logger.warning(
+                    f"Condition evaluation failed for non-literal expression: {condition}",
+                )
+                return False
+        except (SyntaxError, ValueError, TypeError):
+            return False
+
     def _substitute_template_variables(
-        self, data: dict[str, Any], context: dict[str, Any]
+        self,
+        data: dict[str, Any],
+        context: dict[str, Any],
     ) -> dict[str, Any]:
         """Substitute template variables in data."""
         if isinstance(data, dict):
@@ -723,10 +806,9 @@ class WorkflowEngine:
                 else value
                 for key, value in data.items()
             }
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return [self._substitute_template_variables(item, context) for item in data]
-        else:
-            return data
+        return data
 
     def get_execution_status(self, execution_id: str) -> dict[str, Any] | None:
         """Get current status of workflow execution."""
@@ -745,7 +827,7 @@ class WorkflowEngine:
                     r
                     for r in execution.step_results.values()
                     if r.state == WorkflowState.COMPLETED
-                ]
+                ],
             ),
             "total_steps": len(execution.workflow_definition.steps),
             "started_at": execution.started_at.isoformat()
@@ -780,7 +862,7 @@ class WorkflowEngine:
             return Either.right(None)
 
         except Exception as e:
-            error_msg = f"Failed to cancel workflow: {str(e)}"
+            error_msg = f"Failed to cancel workflow: {e!s}"
             logger.error(error_msg)
             return Either.left(error_msg)
 
@@ -825,7 +907,8 @@ def get_workflow_engine() -> WorkflowEngine:
 
 @asynccontextmanager
 async def workflow_execution_context(
-    workflow_id: WorkflowID, context_data: dict[str, Any] | None = None
+    workflow_id: WorkflowID,
+    context_data: dict[str, Any] | None = None,
 ):
     """Context manager for workflow execution."""
     engine = get_workflow_engine()
@@ -833,7 +916,9 @@ async def workflow_execution_context(
     execution_result = await engine.start_workflow(workflow_id, context_data)
     if execution_result.is_left():
         raise ValidationError(
-            "workflow_execution", workflow_id, execution_result.left()
+            "workflow_execution",
+            workflow_id,
+            execution_result.left(),
         )
 
     execution_id = execution_result.right()

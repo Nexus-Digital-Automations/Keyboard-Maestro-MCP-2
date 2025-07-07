@@ -1,5 +1,4 @@
-"""
-Advanced visual automation types and processing framework.
+"""Advanced visual automation types and processing framework.
 
 This module implements sophisticated visual automation capabilities including OCR,
 image recognition, screen analysis, and UI element detection for Keyboard Maestro.
@@ -274,10 +273,10 @@ class ColorInfo:
     """Color analysis information."""
 
     dominant_colors: list[tuple[int, int, int]] = field(
-        default_factory=list
+        default_factory=list,
     )  # RGB tuples
     color_palette: list[tuple[int, int, int, float]] = field(
-        default_factory=list
+        default_factory=list,
     )  # RGB + percentage
     average_color: tuple[int, int, int] = (0, 0, 0)
     brightness: float = 0.0  # 0.0 to 1.0
@@ -322,7 +321,10 @@ class VisualError(Exception):
     """Base class for visual processing errors."""
 
     def __init__(
-        self, error_type: str, message: str, details: dict[str, Any] | None = None
+        self,
+        error_type: str,
+        message: str,
+        details: dict[str, Any] | None = None,
     ):
         self.error_type = error_type
         self.message = message
@@ -370,7 +372,11 @@ class PrivacyError(VisualError):
 
 # Utility functions for visual processing
 def create_screen_region(
-    x: int, y: int, width: int, height: int, display_id: int | None = None
+    x: int,
+    y: int,
+    width: int,
+    height: int,
+    display_id: int | None = None,
 ) -> ScreenRegion:
     """Create a validated screen region."""
     return ScreenRegion(x=x, y=y, width=width, height=height, display_id=display_id)

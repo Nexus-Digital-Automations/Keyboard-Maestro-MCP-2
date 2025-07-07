@@ -1,5 +1,4 @@
-"""
-Comprehensive audit system management and coordination.
+"""Comprehensive audit system management and coordination.
 
 This module provides the main audit system manager that coordinates all audit
 components including event logging, compliance monitoring, report generation,
@@ -44,7 +43,8 @@ class AuditSystemManager:
         self.event_logger = EventLogger(self.config)
         self.compliance_monitor = ComplianceMonitor()
         self.report_generator = ReportGenerator(
-            self.event_logger, self.compliance_monitor
+            self.event_logger,
+            self.compliance_monitor,
         )
         self.violation_notifier = ViolationNotifier()
 
@@ -63,15 +63,17 @@ class AuditSystemManager:
 
         # Setup violation notification
         self.violation_notifier.register_channel(
-            "log", self.violation_notifier.log_notification
+            "log",
+            self.violation_notifier.log_notification,
         )
         self.compliance_monitor.add_violation_callback(
-            self.violation_notifier.notify_violation
+            self.violation_notifier.notify_violation,
         )
 
-    @require(lambda self, compliance_standards: isinstance(compliance_standards, list))
+    @require(lambda __self, compliance_standards: isinstance(compliance_standards, list))
     async def initialize(
-        self, compliance_standards: list[ComplianceStandard] | None = None
+        self,
+        compliance_standards: list[ComplianceStandard] | None = None,
     ) -> Either[AuditError, None]:
         """Initialize audit system with compliance standards and background services."""
         try:
@@ -95,7 +97,7 @@ class AuditSystemManager:
             self.initialized = True
 
             logger.info(
-                f"Audit system initialized with {len(standards_to_load)} compliance standards"
+                f"Audit system initialized with {len(standards_to_load)} compliance standards",
             )
             return Either.right(None)
 
@@ -126,11 +128,11 @@ class AuditSystemManager:
             logger.error(f"Error during audit system shutdown: {e}")
 
     @require(
-        lambda self, tool_name: isinstance(tool_name, str)
-        and len(tool_name.strip()) > 0
+        lambda _self, tool_name: isinstance(tool_name, str)
+        and len(tool_name.strip()) > 0,
     )
     @require(
-        lambda self, user_id: isinstance(user_id, str) and len(user_id.strip()) > 0
+        lambda _self, user_id: isinstance(user_id, str) and len(user_id.strip()) > 0,
     )
     async def audit_tool_execution(
         self,
@@ -152,7 +154,9 @@ class AuditSystemManager:
 
             # Extract compliance tags
             compliance_tags = self._extract_compliance_tags(
-                tool_name, parameters, result
+                tool_name,
+                parameters,
+                result,
             )
 
             # Determine result status
@@ -212,7 +216,7 @@ class AuditSystemManager:
                 if violations:
                     logger.warning(
                         f"Compliance violations detected for tool {tool_name}: "
-                        f"{[v.name for v in violations]}"
+                        f"{[v.name for v in violations]}",
                     )
 
             # Track performance
@@ -231,9 +235,9 @@ class AuditSystemManager:
             logger.error(f"Error auditing tool execution for {tool_name}: {e}")
             return Either.left(AuditError.logging_failed(str(e)))
 
-    @require(lambda self, event_type: isinstance(event_type, AuditEventType))
+    @require(lambda __self, event_type: isinstance(event_type, AuditEventType))
     @require(
-        lambda self, user_id: isinstance(user_id, str) and len(user_id.strip()) > 0
+        lambda _self, user_id: isinstance(user_id, str) and len(user_id.strip()) > 0,
     )
     async def audit_user_action(
         self,
@@ -274,12 +278,17 @@ class AuditSystemManager:
             return Either.left(AuditError.logging_failed(str(e)))
 
     async def generate_compliance_report(
-        self, standard: ComplianceStandard, period_start: datetime, period_end: datetime
+        self,
+        standard: ComplianceStandard,
+        period_start: datetime,
+        period_end: datetime,
     ) -> Either[AuditError, dict[str, Any]]:
         """Generate compliance report and return formatted results."""
         try:
             report_result = await self.report_generator.generate_compliance_report(
-                standard, period_start, period_end
+                standard,
+                period_start,
+                period_end,
             )
 
             if report_result.is_left():
@@ -377,7 +386,7 @@ class AuditSystemManager:
             avg_latency = 0.0
             if self.performance_metrics["audit_latency"]:
                 avg_latency = sum(self.performance_metrics["audit_latency"]) / len(
-                    self.performance_metrics["audit_latency"]
+                    self.performance_metrics["audit_latency"],
                 )
 
             return {
@@ -399,7 +408,7 @@ class AuditSystemManager:
                 },
                 "background_services": {
                     "active_tasks": len(
-                        [t for t in self.background_tasks if not t.done()]
+                        [t for t in self.background_tasks if not t.done()],
                     ),
                     "total_tasks": len(self.background_tasks),
                 },
@@ -410,7 +419,10 @@ class AuditSystemManager:
             return {"error": str(e)}
 
     def _assess_tool_risk(
-        self, tool_name: str, parameters: dict[str, Any], result: dict[str, Any]
+        self,
+        tool_name: str,
+        parameters: dict[str, Any],
+        result: dict[str, Any],
     ) -> RiskLevel:
         """Assess risk level of tool execution."""
         # High-risk tools that require elevated monitoring
@@ -464,7 +476,10 @@ class AuditSystemManager:
         return base_risk
 
     def _extract_compliance_tags(
-        self, tool_name: str, parameters: dict[str, Any], result: dict[str, Any]
+        self,
+        tool_name: str,
+        parameters: dict[str, Any],
+        result: dict[str, Any],
     ) -> set[str]:
         """Extract compliance-relevant tags from tool execution."""
         tags = set()
@@ -572,12 +587,12 @@ class AuditSystemManager:
                 avg_latency = 0.0
                 if self.performance_metrics["audit_latency"]:
                     avg_latency = sum(self.performance_metrics["audit_latency"]) / len(
-                        self.performance_metrics["audit_latency"]
+                        self.performance_metrics["audit_latency"],
                     )
 
                 if avg_latency > 0.1:  # Alert if audit latency > 100ms
                     logger.warning(
-                        f"High audit latency detected: {avg_latency * 1000:.1f}ms"
+                        f"High audit latency detected: {avg_latency * 1000:.1f}ms",
                     )
 
         except asyncio.CancelledError:
@@ -607,7 +622,7 @@ class AuditSystemManager:
 
                 if expired_keys:
                     logger.info(
-                        f"Cleaned up {len(expired_keys)} expired report cache entries"
+                        f"Cleaned up {len(expired_keys)} expired report cache entries",
                     )
 
         except asyncio.CancelledError:

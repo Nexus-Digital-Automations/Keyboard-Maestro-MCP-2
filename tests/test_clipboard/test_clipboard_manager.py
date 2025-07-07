@@ -1,10 +1,12 @@
-"""
-Property-Based Tests for Clipboard Manager
+"""Property-Based Tests for Clipboard Manager.
 
 This module implements comprehensive property-based testing for the clipboard
 management system using Hypothesis for security validation and edge case detection.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import time
 
 import pytest
@@ -18,18 +20,18 @@ class TestClipboardManager:
     """Test suite for ClipboardManager with property-based validation."""
 
     @pytest.fixture
-    def clipboard_manager(self):
+    def clipboard_manager(self) -> Any:
         """Create clipboard manager instance for testing."""
         return ClipboardManager()
 
     @pytest.fixture
-    def named_manager(self):
+    def named_manager(self) -> Any:
         """Create named clipboard manager for testing."""
         return NamedClipboardManager()
 
     @pytest.mark.asyncio
     @given(st.text(min_size=1, max_size=1000))
-    async def test_clipboard_content_detection(self, clipboard_manager, content: str):
+    async def test_clipboard_content_detection(self, clipboard_manager, content: str) -> None:
         """Property: Sensitive content detection should be consistent."""
         assume(len(content.encode("utf-8")) <= 1_000_000)
 
@@ -45,7 +47,7 @@ class TestClipboardManager:
 
     @pytest.mark.asyncio
     @given(st.text(max_size=50))
-    async def test_format_detection_consistency(self, clipboard_manager, content: str):
+    async def test_format_detection_consistency(self, clipboard_manager, content: str) -> None:
         """Property: Format detection should be consistent and valid."""
         format_type = clipboard_manager._detect_format(content)
 
@@ -62,7 +64,7 @@ class TestClipboardManager:
 
     @pytest.mark.asyncio
     @given(st.integers(min_value=0, max_value=199))
-    async def test_history_bounds_checking(self, clipboard_manager, index: int):
+    async def test_history_bounds_checking(self, clipboard_manager, index: int) -> None:
         """Property: History access should respect bounds."""
         # This will typically fail as we don't have real clipboard history
         # but validates the bounds checking logic
@@ -75,7 +77,7 @@ class TestClipboardManager:
 
     @pytest.mark.asyncio
     @given(st.text(min_size=1, max_size=100).filter(lambda x: x.strip()))
-    async def test_named_clipboard_validation(self, named_manager, name: str):
+    async def test_named_clipboard_validation(self, named_manager, name: str) -> None:
         """Property: Named clipboard names should be validated consistently."""
         # Clean the name to test validation
         cleaned_name = "".join(c for c in name if c.isalnum() or c in " _-").strip()
@@ -116,10 +118,11 @@ class TestClipboardManager:
     @pytest.mark.asyncio
     @given(
         st.sets(
-            st.text(min_size=1, max_size=20).filter(lambda x: x.isalnum()), max_size=10
-        )
+            st.text(min_size=1, max_size=20).filter(lambda x: x.isalnum()),
+            max_size=10,
+        ),
     )
-    async def test_named_clipboard_tags(self, named_manager, tags: set[str]):
+    async def test_named_clipboard_tags(self, named_manager, tags: set[str]) -> None:
         """Property: Tags should be properly validated and stored."""
         name = f"test_tags_{int(time.time())}"
 
@@ -131,7 +134,9 @@ class TestClipboardManager:
         )
 
         result = await named_manager.create_named_clipboard(
-            name, test_content, tags=tags
+            name,
+            test_content,
+            tags=tags,
         )
 
         if result.is_right():
@@ -148,7 +153,7 @@ class TestClipboardManager:
             await named_manager.delete_named_clipboard(name)
 
     @pytest.mark.asyncio
-    async def test_sensitive_content_patterns(self, clipboard_manager):
+    async def test_sensitive_content_patterns(self, clipboard_manager) -> None:
         """Test specific sensitive content patterns."""
         sensitive_patterns = [
             "password=secret123",
@@ -180,7 +185,7 @@ class TestClipboardManager:
             )
 
     @pytest.mark.asyncio
-    async def test_clipboard_content_immutability(self):
+    async def test_clipboard_content_immutability(self) -> None:
         """Test that ClipboardContent is properly immutable."""
         content = ClipboardContent(
             content="test",
@@ -197,7 +202,7 @@ class TestClipboardManager:
             content.format = ClipboardFormat.URL
 
     @pytest.mark.asyncio
-    async def test_named_clipboard_access_tracking(self, named_manager):
+    async def test_named_clipboard_access_tracking(self, named_manager) -> None:
         """Test that access tracking works correctly."""
         name = f"test_access_{int(time.time())}"
 
@@ -224,7 +229,7 @@ class TestClipboardManager:
         await named_manager.delete_named_clipboard(name)
 
     @pytest.mark.asyncio
-    async def test_clipboard_preview_safety(self):
+    async def test_clipboard_preview_safety(self) -> None:
         """Test that clipboard preview respects sensitivity settings."""
         # Sensitive content
         sensitive_content = ClipboardContent(
@@ -264,7 +269,7 @@ class TestClipboardManager:
 
     @pytest.mark.asyncio
     @given(st.text(min_size=1, max_size=20))
-    async def test_search_functionality(self, named_manager, query: str):
+    async def test_search_functionality(self, named_manager, query: str) -> None:
         """Property: Search should be case-insensitive and consistent."""
         # Create some test clipboards
         test_data = [
@@ -284,7 +289,8 @@ class TestClipboardManager:
             )
 
             result = await named_manager.create_named_clipboard(
-                unique_name, test_content
+                unique_name,
+                test_content,
             )
             if result.is_right():
                 created_names.append(unique_name)
@@ -292,7 +298,8 @@ class TestClipboardManager:
         # Perform search
         if created_names and query.strip():
             search_result = await named_manager.search_named_clipboards(
-                query, search_content=True
+                query,
+                search_content=True,
             )
 
             if search_result.is_right():
@@ -321,7 +328,7 @@ class TestClipboardSecurity:
 
     @given(st.text(min_size=1, max_size=10000))
     @settings(max_examples=50, deadline=None)
-    async def test_content_size_limits(self, content: str):
+    async def test_content_size_limits(self, content: str) -> None:
         """Property: Content size limits should be enforced."""
         ClipboardManager()
 
@@ -337,8 +344,8 @@ class TestClipboardSecurity:
             )
             assert clipboard_content.size_bytes == len(content_bytes)
         else:
-            # Should fail validation
-            with pytest.raises(Exception):
+            # Should fail validation - B017 fix: Use specific exception type
+            with pytest.raises((ValueError, TypeError)):
                 ClipboardContent(
                     content=content,
                     format=ClipboardFormat.TEXT,
@@ -347,7 +354,7 @@ class TestClipboardSecurity:
                 )
 
     @given(st.text(min_size=1, max_size=1000))
-    async def test_applescript_injection_prevention(self, content: str):
+    async def test_applescript_injection_prevention(self, content: str) -> None:
         """Property: AppleScript strings should be properly escaped."""
         clipboard_manager = ClipboardManager()
 
@@ -361,7 +368,7 @@ class TestClipboardSecurity:
         assert "\\t" in escaped or "\t" not in content
 
     @given(st.lists(st.text(min_size=1, max_size=20), min_size=1, max_size=100))
-    async def test_storage_limits(self, clipboard_names: list[str]):
+    async def test_storage_limits(self, clipboard_names: list[str]) -> None:
         """Property: Named clipboard storage should respect limits."""
         named_manager = NamedClipboardManager()
 
@@ -380,7 +387,8 @@ class TestClipboardSecurity:
             )
 
             result = await named_manager.create_named_clipboard(
-                clean_name, test_content
+                clean_name,
+                test_content,
             )
 
             if result.is_right():

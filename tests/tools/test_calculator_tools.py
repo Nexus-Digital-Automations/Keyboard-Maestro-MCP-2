@@ -1,13 +1,14 @@
-"""
-Comprehensive test suite for calculator tools using systematic MCP tool test pattern.
+"""Comprehensive test suite for calculator tools using systematic MCP tool test pattern.
 
 Tests the complete calculator tool functionality including expression evaluation,
 security validation, KM integration, and all formatting options.
 Tests follow the proven systematic pattern that achieved 100% success across 23+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
-from datetime import UTC, datetime
 from unittest.mock import Mock, patch
 
 import pytest
@@ -17,14 +18,7 @@ from hypothesis import strategies as st
 # Import actual implementation modules - SYSTEMATIC PATTERN ALIGNMENT
 from src.server.tools.calculator_tools import (
     km_calculator,
-    km_calculate_expression, 
-    km_calculate_math_function,
-    km_convert_number_format,
-    km_evaluate_formula
 )
-from src.calculations.calculator import Calculator, CalculationExpression, NumberFormat
-from src.calculations.km_math_integration import KMTokenCalculator
-
 
 # SYSTEMATIC PATTERN ALIGNMENT: Use real implementation functions
 # Import functions are already available from actual modules at top of file
@@ -34,9 +28,10 @@ class TestKMCalculator:
     """Test calculator tool core functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         from unittest.mock import AsyncMock
+
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-calc-001"}
         # Make info method async-compatible for real implementation
@@ -44,7 +39,7 @@ class TestKMCalculator:
         return context
 
     @pytest.mark.asyncio
-    async def test_basic_arithmetic_expression(self, mock_context):
+    async def test_basic_arithmetic_expression(self, mock_context) -> None:
         """Test basic arithmetic calculations - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Test actual km_calculator implementation
         result = await km_calculator(
@@ -73,11 +68,11 @@ class TestKMCalculator:
             # Verify it's the expected contract issue, not a different error
             assert result["error"]["code"] == "CALCULATION_ERROR"
             assert "Precondition" in result["error"]["message"]
-            
+
         # Test passes regardless - we're verifying the real source code is being used
 
     @pytest.mark.asyncio
-    async def test_expression_with_variables(self, mock_context):
+    async def test_expression_with_variables(self, mock_context) -> None:
         """Test expressions with variable substitution."""
         result = await km_calculator(
             expression="x + y",
@@ -103,7 +98,7 @@ class TestKMCalculator:
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_scientific_notation_formatting(self, mock_context):
+    async def test_scientific_notation_formatting(self, mock_context) -> None:
         """Test scientific notation result formatting."""
         result = await km_calculator(
             expression="1000000 * 1000000",
@@ -115,18 +110,22 @@ class TestKMCalculator:
             ctx=mock_context,
         )
 
-        # SYSTEMATIC ALIGNMENT: Handle actual response structure  
+        # SYSTEMATIC ALIGNMENT: Handle actual response structure
         if result["success"]:
             assert "calculation" in result
-            assert result["calculation"]["result"] == 1000000000000.0  # 1e12 actual result
+            assert (
+                result["calculation"]["result"] == 1000000000000.0
+            )  # 1e12 actual result
             # Scientific notation formatting from actual implementation
-            assert ("e+" in result["calculation"]["formatted_result"] or 
-                   "1" in result["calculation"]["formatted_result"])
+            assert (
+                "e+" in result["calculation"]["formatted_result"]
+                or "1" in result["calculation"]["formatted_result"]
+            )
         else:
             assert "error" in result and result["error"]["code"] == "CALCULATION_ERROR"
 
     @pytest.mark.asyncio
-    async def test_percentage_formatting(self, mock_context):
+    async def test_percentage_formatting(self, mock_context) -> None:
         """Test percentage result formatting."""
         result = await km_calculator(
             expression="0.25",
@@ -147,7 +146,7 @@ class TestKMCalculator:
             assert "error" in result and result["error"]["code"] == "CALCULATION_ERROR"
 
     @pytest.mark.asyncio
-    async def test_validation_only_mode(self, mock_context):
+    async def test_validation_only_mode(self, mock_context) -> None:
         """Test validation mode without evaluation."""
         result = await km_calculator(
             expression="2 + 2",
@@ -166,7 +165,7 @@ class TestKMCalculator:
         assert "calculation" not in result  # No actual calculation in validation mode
 
     @pytest.mark.asyncio
-    async def test_invalid_expression_security(self, mock_context):
+    async def test_invalid_expression_security(self, mock_context) -> None:
         """Test security validation for malicious expressions."""
         result = await km_calculator(
             expression="__import__('os').system('rm -rf /')",
@@ -180,11 +179,14 @@ class TestKMCalculator:
         # SYSTEMATIC ALIGNMENT: Actual implementation uses different error codes
         assert not result["success"]
         # Real implementation returns EXPRESSION_VALIDATION_ERROR for security issues
-        assert result["error"]["code"] in ["SECURITY_VIOLATION", "EXPRESSION_VALIDATION_ERROR"]
+        assert result["error"]["code"] in [
+            "SECURITY_VIOLATION",
+            "EXPRESSION_VALIDATION_ERROR",
+        ]
         assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_division_by_zero_handling(self, mock_context):
+    async def test_division_by_zero_handling(self, mock_context) -> None:
         """Test division by zero error handling."""
         result = await km_calculator(
             expression="10 / 0",
@@ -203,7 +205,7 @@ class TestKMCalculator:
         assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_undefined_variable_error(self, mock_context):
+    async def test_undefined_variable_error(self, mock_context) -> None:
         """Test undefined variable error handling."""
         result = await km_calculator(
             expression="x + y",
@@ -223,11 +225,15 @@ class TestKMCalculator:
         else:
             # Error case - real implementation detects undefined variables
             assert "error" in result
-            assert result["error"]["code"] in ["CALCULATION_ERROR", "VARIABLE_ERROR", "VALIDATION_ERROR"]
+            assert result["error"]["code"] in [
+                "CALCULATION_ERROR",
+                "VARIABLE_ERROR",
+                "VALIDATION_ERROR",
+            ]
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_complex_mathematical_functions(self, mock_context):
+    async def test_complex_mathematical_functions(self, mock_context) -> None:
         """Test complex mathematical functions."""
         result = await km_calculator(
             expression="sin(30)",
@@ -252,7 +258,7 @@ class TestKMCalculator:
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_precision_control(self, mock_context):
+    async def test_precision_control(self, mock_context) -> None:
         """Test precision control in results - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Handle both success and contract validation cases
         result = await km_calculator(
@@ -277,16 +283,22 @@ class TestKMCalculator:
             assert "error" in result
             assert "code" in result["error"]
             # Common contract violation patterns from real implementation
-            expected_codes = ["CALCULATION_ERROR", "EXPRESSION_VALIDATION_ERROR", "SECURITY_ERROR"]
+            expected_codes = [
+                "CALCULATION_ERROR",
+                "EXPRESSION_VALIDATION_ERROR",
+                "SECURITY_ERROR",
+            ]
             assert result["error"]["code"] in expected_codes
-            print(f"Contract validation detected: {result['error']['code']}: {result['error']['message']}")
+            print(
+                f"Contract validation detected: {result['error']['code']}: {result['error']['message']}",
+            )
             # For contract violations, test still passes - we've confirmed real source code execution
 
     @pytest.mark.asyncio
     @patch("src.server.tools.calculator_tools.KMTokenCalculator")
-    async def test_km_engine_integration(self, mock_km_calc, mock_context):
+    async def test_km_engine_integration(self, mock_km_calc, mock_context) -> None:
         """Test Keyboard Maestro engine integration - SYSTEMATIC PATTERN ALIGNMENT."""
-        # Setup mock for KM engine integration  
+        # Setup mock for KM engine integration
         mock_km_calc.return_value.calculate_with_tokens.return_value = {
             "result": 42.0,
             "formatted": "42.00",
@@ -314,13 +326,19 @@ class TestKMCalculator:
             assert "error" in result
             assert "code" in result["error"]
             # Common contract violation patterns from real implementation
-            expected_codes = ["CALCULATION_ERROR", "EXPRESSION_VALIDATION_ERROR", "SECURITY_ERROR"]
+            expected_codes = [
+                "CALCULATION_ERROR",
+                "EXPRESSION_VALIDATION_ERROR",
+                "SECURITY_ERROR",
+            ]
             assert result["error"]["code"] in expected_codes
-            print(f"Contract validation detected: {result['error']['code']}: {result['error']['message']}")
+            print(
+                f"Contract validation detected: {result['error']['code']}: {result['error']['message']}",
+            )
             # For contract violations, test still passes - we've confirmed real source code execution
 
     @pytest.mark.asyncio
-    async def test_currency_formatting(self, mock_context):
+    async def test_currency_formatting(self, mock_context) -> None:
         """Test currency result formatting - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Handle both success and contract validation cases
         result = await km_calculator(
@@ -345,13 +363,19 @@ class TestKMCalculator:
             assert "error" in result
             assert "code" in result["error"]
             # Common contract violation patterns from real implementation
-            expected_codes = ["CALCULATION_ERROR", "EXPRESSION_VALIDATION_ERROR", "SECURITY_ERROR"]
+            expected_codes = [
+                "CALCULATION_ERROR",
+                "EXPRESSION_VALIDATION_ERROR",
+                "SECURITY_ERROR",
+            ]
             assert result["error"]["code"] in expected_codes
-            print(f"Contract validation detected: {result['error']['code']}: {result['error']['message']}")
+            print(
+                f"Contract validation detected: {result['error']['code']}: {result['error']['message']}",
+            )
             # For contract violations, test still passes - we've confirmed real source code execution
 
     @pytest.mark.asyncio
-    async def test_hexadecimal_formatting(self, mock_context):
+    async def test_hexadecimal_formatting(self, mock_context) -> None:
         """Test hexadecimal result formatting - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Handle both success and contract validation cases
         result = await km_calculator(
@@ -376,13 +400,19 @@ class TestKMCalculator:
             assert "error" in result
             assert "code" in result["error"]
             # Common contract violation patterns from real implementation
-            expected_codes = ["CALCULATION_ERROR", "EXPRESSION_VALIDATION_ERROR", "SECURITY_ERROR"]
+            expected_codes = [
+                "CALCULATION_ERROR",
+                "EXPRESSION_VALIDATION_ERROR",
+                "SECURITY_ERROR",
+            ]
             assert result["error"]["code"] in expected_codes
-            print(f"Contract validation detected: {result['error']['code']}: {result['error']['message']}")
+            print(
+                f"Contract validation detected: {result['error']['code']}: {result['error']['message']}",
+            )
             # For contract violations, test still passes - we've confirmed real source code execution
 
     @pytest.mark.asyncio
-    async def test_binary_formatting(self, mock_context):
+    async def test_binary_formatting(self, mock_context) -> None:
         """Test binary result formatting - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Handle both success and contract validation cases
         result = await km_calculator(
@@ -407,9 +437,15 @@ class TestKMCalculator:
             assert "error" in result
             assert "code" in result["error"]
             # Common contract violation patterns from real implementation
-            expected_codes = ["CALCULATION_ERROR", "EXPRESSION_VALIDATION_ERROR", "SECURITY_ERROR"]
+            expected_codes = [
+                "CALCULATION_ERROR",
+                "EXPRESSION_VALIDATION_ERROR",
+                "SECURITY_ERROR",
+            ]
             assert result["error"]["code"] in expected_codes
-            print(f"Contract validation detected: {result['error']['code']}: {result['error']['message']}")
+            print(
+                f"Contract validation detected: {result['error']['code']}: {result['error']['message']}",
+            )
             # For contract violations, test still passes - we've confirmed real source code execution
 
 
@@ -417,9 +453,10 @@ class TestCalculatorSecurity:
     """Test calculator security validation."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         from unittest.mock import AsyncMock
+
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-calc-security-001"}
         # Make info method async-compatible for real implementation
@@ -427,7 +464,7 @@ class TestCalculatorSecurity:
         return context
 
     @pytest.mark.asyncio
-    async def test_code_injection_prevention(self, mock_context):
+    async def test_code_injection_prevention(self, mock_context) -> None:
         """Test prevention of code injection attacks."""
         malicious_expressions = [
             "exec('import os; os.system(\"rm -rf /\")')",
@@ -450,10 +487,13 @@ class TestCalculatorSecurity:
             # SYSTEMATIC ALIGNMENT: Handle actual implementation response structure
             assert not result["success"]
             # Real implementation returns EXPRESSION_VALIDATION_ERROR for security issues
-            assert result["error"]["code"] in ["SECURITY_VIOLATION", "EXPRESSION_VALIDATION_ERROR"]
+            assert result["error"]["code"] in [
+                "SECURITY_VIOLATION",
+                "EXPRESSION_VALIDATION_ERROR",
+            ]
 
     @pytest.mark.asyncio
-    async def test_function_whitelist_enforcement(self, mock_context):
+    async def test_function_whitelist_enforcement(self, mock_context) -> None:
         """Test that only whitelisted functions are allowed."""
         # These should work (whitelisted)
         safe_functions = [
@@ -482,10 +522,13 @@ class TestCalculatorSecurity:
             else:
                 # Contract violation case - verify error structure
                 assert "error" in result
-                assert result["error"]["code"] in ["CALCULATION_ERROR", "EXPRESSION_VALIDATION_ERROR"]
+                assert result["error"]["code"] in [
+                    "CALCULATION_ERROR",
+                    "EXPRESSION_VALIDATION_ERROR",
+                ]
 
     @pytest.mark.asyncio
-    async def test_variable_injection_prevention(self, mock_context):
+    async def test_variable_injection_prevention(self, mock_context) -> None:
         """Test prevention of malicious variable values."""
         result = await km_calculator(
             expression="x + 1",
@@ -507,7 +550,7 @@ class TestCalculatorSecurity:
             assert result["error"]["code"] in ["CALCULATION_ERROR", "VALIDATION_ERROR"]
 
     @pytest.mark.asyncio
-    async def test_expression_length_limits(self, mock_context):
+    async def test_expression_length_limits(self, mock_context) -> None:
         """Test expression length security limits."""
         very_long_expression = "1 + " * 10000 + "1"  # Very long expression
 
@@ -528,19 +571,24 @@ class TestCalculatorSecurity:
         else:
             # Error case - real implementation may reject very long expressions for security
             assert "error" in result
-            assert result["error"]["code"] in ["EXPRESSION_VALIDATION_ERROR", "SECURITY_ERROR", "CALCULATION_ERROR"]
+            assert result["error"]["code"] in [
+                "EXPRESSION_VALIDATION_ERROR",
+                "SECURITY_ERROR",
+                "CALCULATION_ERROR",
+            ]
 
 
 class TestCalculatorProperties:
     """Property-based testing for calculator functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         from unittest.mock import AsyncMock
+
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-calc-properties-001"
+            "request_id": "test-request-calc-properties-001",
         }
         # Make info method async-compatible for real implementation
         context.info = AsyncMock()
@@ -548,15 +596,19 @@ class TestCalculatorProperties:
 
     @given(
         st.floats(
-            min_value=-1000, max_value=1000, allow_nan=False, allow_infinity=False
-        )
+            min_value=-1000,
+            max_value=1000,
+            allow_nan=False,
+            allow_infinity=False,
+        ),
     )
     @settings(max_examples=20, deadline=2000)
     @pytest.mark.asyncio
-    async def test_number_preservation_property(self, number):
+    async def test_number_preservation_property(self, number) -> None:
         """Property: Calculator should preserve number values exactly."""
         # Create context within test since Hypothesis doesn't support fixtures
         from unittest.mock import AsyncMock
+
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-property-001"}
         context.info = AsyncMock()
@@ -578,7 +630,10 @@ class TestCalculatorProperties:
         else:
             # Contract violation case - verify error structure
             assert "error" in result
-            assert result["error"]["code"] in ["CALCULATION_ERROR", "EXPRESSION_VALIDATION_ERROR"]
+            assert result["error"]["code"] in [
+                "CALCULATION_ERROR",
+                "EXPRESSION_VALIDATION_ERROR",
+            ]
 
     @given(
         st.floats(min_value=-100, max_value=100, allow_nan=False, allow_infinity=False),
@@ -586,10 +641,11 @@ class TestCalculatorProperties:
     )
     @settings(max_examples=15, deadline=2000)
     @pytest.mark.asyncio
-    async def test_addition_commutativity_property(self, a, b):
+    async def test_addition_commutativity_property(self, a, b) -> None:
         """Property: Addition should be commutative (a + b = b + a)."""
         # Create context within test since Hypothesis doesn't support fixtures
         from unittest.mock import AsyncMock
+
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-property-002"}
         context.info = AsyncMock()
@@ -619,13 +675,18 @@ class TestCalculatorProperties:
             # Success case - commutativity property verification
             assert "calculation" in result1 and "calculation" in result2
             # For real implementation, verify commutativity if both succeed
-            if "result" in result1["calculation"] and "result" in result2["calculation"]:
-                assert result1["calculation"]["result"] == result2["calculation"]["result"]
+            if (
+                "result" in result1["calculation"]
+                and "result" in result2["calculation"]
+            ):
+                assert (
+                    result1["calculation"]["result"] == result2["calculation"]["result"]
+                )
 
     @given(st.text(min_size=1, max_size=50, alphabet="abcdefghijklmnopqrstuvwxyz"))
     @settings(max_examples=10, deadline=2000)
     @pytest.mark.asyncio
-    async def test_variable_name_validation_property(self, var_name):
+    async def test_variable_name_validation_property(self, var_name) -> None:
         """Property: Valid variable names should be accepted."""
         # Skip names that might be reserved words
         if var_name in ["sin", "cos", "tan", "abs", "round", "sqrt", "exp", "log"]:
@@ -633,6 +694,7 @@ class TestCalculatorProperties:
 
         # Create context within test since Hypothesis doesn't support fixtures
         from unittest.mock import AsyncMock
+
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-property-003"}
         context.info = AsyncMock()
@@ -654,26 +716,30 @@ class TestCalculatorProperties:
         else:
             # Contract violation case - verify error structure
             assert "error" in result
-            assert result["error"]["code"] in ["CALCULATION_ERROR", "EXPRESSION_VALIDATION_ERROR"]
+            assert result["error"]["code"] in [
+                "CALCULATION_ERROR",
+                "EXPRESSION_VALIDATION_ERROR",
+            ]
 
 
 class TestCalculatorIntegration:
     """Test calculator integration with other components."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Mock FastMCP context using systematic pattern."""
         from unittest.mock import AsyncMock
+
         context = Mock()
         context.get_meta.return_value = {
-            "request_id": "test-request-calc-integration-001"
+            "request_id": "test-request-calc-integration-001",
         }
         # Make info method async-compatible for real implementation
         context.info = AsyncMock()
         return context
 
     @pytest.mark.asyncio
-    async def test_metadata_generation(self, mock_context):
+    async def test_metadata_generation(self, mock_context) -> None:
         """Test calculation metadata generation."""
         result = await km_calculator(
             expression="2 + 2",
@@ -695,12 +761,15 @@ class TestCalculatorIntegration:
         else:
             # Contract violation case - verify error structure and metadata presence
             assert "error" in result
-            assert result["error"]["code"] in ["CALCULATION_ERROR", "EXPRESSION_VALIDATION_ERROR"]
+            assert result["error"]["code"] in [
+                "CALCULATION_ERROR",
+                "EXPRESSION_VALIDATION_ERROR",
+            ]
             # Metadata should still be present even on errors
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_error_recovery_suggestions(self, mock_context):
+    async def test_error_recovery_suggestions(self, mock_context) -> None:
         """Test error recovery suggestions."""
         result = await km_calculator(
             expression="",  # Empty expression to trigger error
@@ -715,10 +784,14 @@ class TestCalculatorIntegration:
         # SYSTEMATIC ALIGNMENT: Handle actual implementation response structure
         assert not result["success"]
         # Real implementation may return different error codes for empty expressions
-        assert result["error"]["code"] in ["INVALID_EXPRESSION", "EXPRESSION_VALIDATION_ERROR", "CALCULATION_ERROR"]
+        assert result["error"]["code"] in [
+            "INVALID_EXPRESSION",
+            "EXPRESSION_VALIDATION_ERROR",
+            "CALCULATION_ERROR",
+        ]
 
     @pytest.mark.asyncio
-    async def test_calculation_history(self, mock_context):
+    async def test_calculation_history(self, mock_context) -> None:
         """Test calculation history tracking."""
         expressions = ["1 + 1", "2 * 3", "10 / 2"]
 
@@ -739,10 +812,13 @@ class TestCalculatorIntegration:
             else:
                 # Contract violation case - verify error structure
                 assert "error" in result
-                assert result["error"]["code"] in ["CALCULATION_ERROR", "EXPRESSION_VALIDATION_ERROR"]
+                assert result["error"]["code"] in [
+                    "CALCULATION_ERROR",
+                    "EXPRESSION_VALIDATION_ERROR",
+                ]
 
     @pytest.mark.asyncio
-    async def test_concurrent_calculations(self, mock_context):
+    async def test_concurrent_calculations(self, mock_context) -> None:
         """Test concurrent calculation handling."""
         expressions = [f"{i} + {i}" for i in range(5)]
 
@@ -771,4 +847,7 @@ class TestCalculatorIntegration:
             else:
                 # Contract violation case - verify error structure
                 assert "error" in result
-                assert result["error"]["code"] in ["CALCULATION_ERROR", "EXPRESSION_VALIDATION_ERROR"]
+                assert result["error"]["code"] in [
+                    "CALCULATION_ERROR",
+                    "EXPRESSION_VALIDATION_ERROR",
+                ]

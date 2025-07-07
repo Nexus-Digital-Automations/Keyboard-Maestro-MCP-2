@@ -1,21 +1,26 @@
-"""
-Comprehensive Test Suite for Intelligent Automation Tools (TASK_21-23).
+"""Comprehensive Test Suite for Intelligent Automation Tools (TASK_21-23).
 
 This module provides systematic testing for intelligent automation MCP tools including
 conditional logic, control flow, and advanced trigger systems with focus on complex
 automation scenarios, logic validation, and decision-making patterns.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
+import logging
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+
+logger = logging.getLogger(__name__)
 
 
 class TestIntelligentAutomationFoundation:
     """Test foundation for intelligent automation MCP tools from TASK_21-23."""
 
     @pytest.fixture
-    def execution_context(self):
+    def execution_context(self) -> Any:
         """Create mock execution context for testing."""
         context = AsyncMock()
         context.session_id = "test-session-intelligent-automation"
@@ -25,7 +30,7 @@ class TestIntelligentAutomationFoundation:
         return context
 
     @pytest.fixture
-    def sample_condition_data(self):
+    def sample_condition_data(self) -> Any:
         """Sample condition data for testing."""
         return {
             "macro_identifier": "TestMacro",
@@ -37,7 +42,7 @@ class TestIntelligentAutomationFoundation:
         }
 
     @pytest.fixture
-    def sample_control_flow_data(self):
+    def sample_control_flow_data(self) -> Any:
         """Sample control flow data for testing."""
         return {
             "macro_identifier": "TestMacro",
@@ -50,7 +55,7 @@ class TestIntelligentAutomationFoundation:
         }
 
     @pytest.fixture
-    def sample_trigger_data(self):
+    def sample_trigger_data(self) -> Any:
         """Sample advanced trigger data for testing."""
         return {
             "macro_identifier": "TestMacro",
@@ -62,7 +67,7 @@ class TestIntelligentAutomationFoundation:
 class TestConditionTools:
     """Test condition tools from TASK_21: km_add_condition."""
 
-    def test_condition_tools_import(self):
+    def test_condition_tools_import(self) -> None:
         """Test that condition tools can be imported successfully."""
         try:
             from src.server.tools import condition_tools
@@ -74,8 +79,10 @@ class TestConditionTools:
 
     @pytest.mark.asyncio
     async def test_text_condition_creation(
-        self, execution_context, sample_condition_data
-    ):
+        self,
+        execution_context,
+        sample_condition_data,
+    ) -> None:
         """Test text condition creation functionality."""
         try:
             from src.server.tools.condition_tools import km_add_condition
@@ -83,10 +90,10 @@ class TestConditionTools:
             # Mock condition builder and integrator
             with (
                 patch(
-                    "src.server.tools.condition_tools.ConditionBuilder"
+                    "src.server.tools.condition_tools.ConditionBuilder",
                 ) as mock_builder_class,
                 patch(
-                    "src.server.tools.condition_tools.KMConditionIntegrator"
+                    "src.server.tools.condition_tools.KMConditionIntegrator",
                 ) as mock_integrator_class,
             ):
                 mock_builder = Mock()
@@ -105,7 +112,7 @@ class TestConditionTools:
                         return_value={
                             "success": True,
                             "condition_id": "test-condition-123",
-                        }
+                        },
                     ),
                 )
                 mock_integrator_class.return_value = mock_integrator
@@ -127,14 +134,14 @@ class TestConditionTools:
             pytest.skip("Condition tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_application_condition_creation(self, execution_context):
+    async def test_application_condition_creation(self, execution_context) -> None:
         """Test application condition creation functionality."""
         try:
             from src.server.tools.condition_tools import km_add_condition
 
             # Mock for application condition
             with patch(
-                "src.server.tools.condition_tools.ConditionBuilder"
+                "src.server.tools.condition_tools.ConditionBuilder",
             ) as mock_builder_class:
                 mock_builder = Mock()
                 mock_condition = Mock()
@@ -159,7 +166,7 @@ class TestConditionTools:
             pytest.skip("Condition tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_condition_validation_handling(self, execution_context):
+    async def test_condition_validation_handling(self, execution_context) -> None:
         """Test condition validation error handling."""
         try:
             from src.server.tools.condition_tools import km_add_condition
@@ -186,7 +193,7 @@ class TestConditionTools:
 class TestControlFlowTools:
     """Test control flow tools from TASK_22: km_control_flow."""
 
-    def test_control_flow_tools_import(self):
+    def test_control_flow_tools_import(self) -> None:
         """Test that control flow tools can be imported successfully."""
         try:
             from src.server.tools import control_flow_tools
@@ -198,15 +205,17 @@ class TestControlFlowTools:
 
     @pytest.mark.asyncio
     async def test_if_then_else_creation(
-        self, execution_context, sample_control_flow_data
-    ):
+        self,
+        execution_context,
+        sample_control_flow_data,
+    ) -> None:
         """Test if/then/else control flow creation."""
         try:
             from src.server.tools.control_flow_tools import km_control_flow
 
             # Mock control flow builder
             with patch(
-                "src.server.tools.control_flow_tools.ControlFlowBuilder"
+                "src.server.tools.control_flow_tools.ControlFlowBuilder",
             ) as mock_builder_class:
                 mock_builder = Mock()
                 mock_if_node = Mock()
@@ -234,14 +243,14 @@ class TestControlFlowTools:
             pytest.skip("Control flow tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_for_loop_creation(self, execution_context):
+    async def test_for_loop_creation(self, execution_context) -> None:
         """Test for loop control flow creation."""
         try:
             from src.server.tools.control_flow_tools import km_control_flow
 
             # Mock for loop creation
             with patch(
-                "src.server.tools.control_flow_tools.ControlFlowBuilder"
+                "src.server.tools.control_flow_tools.ControlFlowBuilder",
             ) as mock_builder_class:
                 mock_builder = Mock()
                 mock_loop_node = Mock()
@@ -268,14 +277,14 @@ class TestControlFlowTools:
             pytest.skip("Control flow tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_while_loop_creation(self, execution_context):
+    async def test_while_loop_creation(self, execution_context) -> None:
         """Test while loop control flow creation."""
         try:
             from src.server.tools.control_flow_tools import km_control_flow
 
             # Mock while loop creation
             with patch(
-                "src.server.tools.control_flow_tools.ControlFlowBuilder"
+                "src.server.tools.control_flow_tools.ControlFlowBuilder",
             ) as mock_builder_class:
                 mock_builder = Mock()
                 mock_while_node = Mock()
@@ -301,14 +310,14 @@ class TestControlFlowTools:
             pytest.skip("Control flow tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_switch_case_creation(self, execution_context):
+    async def test_switch_case_creation(self, execution_context) -> None:
         """Test switch/case control flow creation."""
         try:
             from src.server.tools.control_flow_tools import km_control_flow
 
             # Mock switch/case creation
             with patch(
-                "src.server.tools.control_flow_tools.ControlFlowBuilder"
+                "src.server.tools.control_flow_tools.ControlFlowBuilder",
             ) as mock_builder_class:
                 mock_builder = Mock()
                 mock_switch_node = Mock()
@@ -348,7 +357,7 @@ class TestControlFlowTools:
 class TestAdvancedTriggerTools:
     """Test advanced trigger tools from TASK_23: km_create_trigger_advanced."""
 
-    def test_advanced_trigger_tools_import(self):
+    def test_advanced_trigger_tools_import(self) -> None:
         """Test that advanced trigger tools can be imported successfully."""
         try:
             from src.server.tools import advanced_trigger_tools
@@ -359,7 +368,7 @@ class TestAdvancedTriggerTools:
             pytest.skip(f"Advanced trigger tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_time_trigger_creation(self, execution_context, sample_trigger_data):
+    async def test_time_trigger_creation(self, execution_context, sample_trigger_data) -> None:
         """Test time-based trigger creation."""
         try:
             from src.server.tools.advanced_trigger_tools import (
@@ -368,7 +377,7 @@ class TestAdvancedTriggerTools:
 
             # Mock trigger builder and processor
             with patch(
-                "src.server.tools.advanced_trigger_tools.AdvancedTriggerProcessor"
+                "src.server.tools.advanced_trigger_tools.AdvancedTriggerProcessor",
             ) as mock_processor_class:
                 mock_processor = Mock()
                 mock_trigger = Mock()
@@ -392,7 +401,7 @@ class TestAdvancedTriggerTools:
             pytest.skip("Advanced trigger tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_file_system_trigger_creation(self, execution_context):
+    async def test_file_system_trigger_creation(self, execution_context) -> None:
         """Test file system trigger creation."""
         try:
             from src.server.tools.advanced_trigger_tools import (
@@ -401,7 +410,7 @@ class TestAdvancedTriggerTools:
 
             # Mock file system trigger
             with patch(
-                "src.server.tools.advanced_trigger_tools.AdvancedTriggerProcessor"
+                "src.server.tools.advanced_trigger_tools.AdvancedTriggerProcessor",
             ) as mock_processor_class:
                 mock_processor = Mock()
                 mock_trigger = Mock()
@@ -411,27 +420,32 @@ class TestAdvancedTriggerTools:
                 mock_processor.create_advanced_trigger.return_value = mock_trigger
                 mock_processor_class.return_value = mock_processor
 
-                file_config = {
-                    "watch_path": "/tmp/test",
-                    "events": ["created", "modified"],
-                    "file_pattern": "*.txt",
-                }
+                # S108 fix: Use secure temporary directory
+                import tempfile
 
-                result = await km_create_trigger_advanced(
-                    macro_identifier="TestMacro",
-                    trigger_type="file",
-                    file_config=file_config,
-                    ctx=execution_context,
-                )
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    test_path = f"{temp_dir}/test"
+                    file_config = {
+                        "watch_path": test_path,
+                        "events": ["created", "modified"],
+                        "file_pattern": "*.txt",
+                    }
 
-                assert isinstance(result, dict)
-                assert "success" in result
+                    result = await km_create_trigger_advanced(
+                        macro_identifier="TestMacro",
+                        trigger_type="file",
+                        file_config=file_config,
+                        ctx=execution_context,
+                    )
+
+                    assert isinstance(result, dict)
+                    assert "success" in result
 
         except ImportError:
             pytest.skip("Advanced trigger tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_application_trigger_creation(self, execution_context):
+    async def test_application_trigger_creation(self, execution_context) -> None:
         """Test application lifecycle trigger creation."""
         try:
             from src.server.tools.advanced_trigger_tools import (
@@ -440,7 +454,7 @@ class TestAdvancedTriggerTools:
 
             # Mock application trigger
             with patch(
-                "src.server.tools.advanced_trigger_tools.AdvancedTriggerProcessor"
+                "src.server.tools.advanced_trigger_tools.AdvancedTriggerProcessor",
             ) as mock_processor_class:
                 mock_processor = Mock()
                 mock_trigger = Mock()
@@ -470,7 +484,7 @@ class TestAdvancedTriggerTools:
             pytest.skip("Advanced trigger tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_system_trigger_creation(self, execution_context):
+    async def test_system_trigger_creation(self, execution_context) -> None:
         """Test system event trigger creation."""
         try:
             from src.server.tools.advanced_trigger_tools import (
@@ -479,7 +493,7 @@ class TestAdvancedTriggerTools:
 
             # Mock system trigger
             with patch(
-                "src.server.tools.advanced_trigger_tools.AdvancedTriggerProcessor"
+                "src.server.tools.advanced_trigger_tools.AdvancedTriggerProcessor",
             ) as mock_processor_class:
                 mock_processor = Mock()
                 mock_trigger = Mock()
@@ -513,7 +527,7 @@ class TestIntelligentAutomationIntegration:
     """Test integration patterns across intelligent automation tools."""
 
     @pytest.mark.asyncio
-    async def test_condition_control_flow_integration(self, execution_context):
+    async def test_condition_control_flow_integration(self, execution_context) -> None:
         """Test integration between condition and control flow systems."""
         tools_to_test = [
             ("src.server.tools.condition_tools", "km_add_condition"),
@@ -541,7 +555,7 @@ class TestIntelligentAutomationIntegration:
                 continue
 
     @pytest.mark.asyncio
-    async def test_automation_tool_response_consistency(self, execution_context):
+    async def test_automation_tool_response_consistency(self, execution_context) -> None:
         """Test that all automation tools return consistent response structure."""
         automation_tools = [
             (
@@ -564,7 +578,8 @@ class TestIntelligentAutomationIntegration:
                 # Verify basic function structure
                 assert callable(tool_func)
                 assert hasattr(tool_func, "__annotations__") or hasattr(
-                    tool_func, "__doc__"
+                    tool_func,
+                    "__doc__",
                 )
 
                 # For async functions, check they're properly defined
@@ -581,7 +596,7 @@ class TestIntelligentAutomationIntegration:
                 print(f"Warning: {tool_name} had issue: {e}")
 
     @pytest.mark.asyncio
-    async def test_automation_security_patterns(self, execution_context):
+    async def test_automation_security_patterns(self, execution_context) -> None:
         """Test that automation tools implement security patterns."""
         try:
             from src.server.tools.condition_tools import km_add_condition
@@ -607,7 +622,7 @@ class TestPropertyBasedAutomationTesting:
     """Property-based testing for intelligent automation tools using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_condition_logic_properties(self, execution_context):
+    async def test_condition_logic_properties(self, execution_context) -> None:
         """Property: Condition results should be deterministic and logical."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -619,8 +634,11 @@ class TestPropertyBasedAutomationTesting:
             negate=st.booleans(),
         )
         async def test_condition_properties(
-            condition_type, operator, case_sensitive, negate
-        ):
+            condition_type,
+            operator,
+            case_sensitive,
+            negate,
+        ) -> None:
             """Test condition logic properties."""
             try:
                 from src.server.tools.condition_tools import km_add_condition
@@ -646,29 +664,34 @@ class TestPropertyBasedAutomationTesting:
                     if "negate" in data:
                         assert data["negate"] == negate
 
-            except Exception:
-                # Tools may fail with invalid combinations, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
-        # Run a test case
         await test_condition_properties("text", "equals", True, False)
 
     @pytest.mark.asyncio
-    async def test_control_flow_structure_properties(self, execution_context):
+    async def test_control_flow_structure_properties(self, execution_context) -> None:
         """Property: Control flow structures should maintain logical integrity."""
         from hypothesis import given
         from hypothesis import strategies as st
 
         @given(
             control_type=st.sampled_from(
-                ["if_then_else", "for_loop", "while_loop", "switch_case"]
+                [
+                    "if_then_else",
+                    "for_loop",
+                    "while_loop",
+                    "switch_case",
+                ],
             ),
             max_iterations=st.integers(min_value=1, max_value=1000),
             case_sensitive=st.booleans(),
         )
         async def test_control_flow_properties(
-            control_type, max_iterations, case_sensitive
-        ):
+            control_type,
+            max_iterations,
+            case_sensitive,
+        ) -> None:
             """Test control flow structure properties."""
             try:
                 from src.server.tools.control_flow_tools import km_control_flow
@@ -691,9 +714,7 @@ class TestPropertyBasedAutomationTesting:
                     if "max_iterations" in data:
                         assert data["max_iterations"] <= max_iterations
 
-            except Exception:
-                # Tools may fail with invalid combinations, which is acceptable
-                pass
+            except Exception as e:
+                logger.debug(f"Operation failed during operation: {e}")
 
-        # Run a test case
         await test_control_flow_properties("if_then_else", 100, True)

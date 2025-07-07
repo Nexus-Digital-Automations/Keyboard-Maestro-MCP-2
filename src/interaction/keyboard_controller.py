@@ -1,5 +1,4 @@
-"""
-Keyboard interaction controller for hardware automation.
+"""Keyboard interaction controller for hardware automation.
 
 This module implements comprehensive keyboard control capabilities including text
 input, key combinations, and special key handling with security validation and
@@ -40,10 +39,10 @@ class KeyboardController:
         self.typing_speed_chars_per_minute = 600  # Adjustable typing speed
         self.modifier_state: dict[ModifierKey, bool] = {}
 
-    @require(lambda self, text: isinstance(text, str))
+    @require(lambda __self, text: isinstance(text, str))
     @ensure(
         lambda result: result.is_right()
-        or result.get_left().error_code.startswith("KEYBOARD_")
+        or result.get_left().error_code.startswith("KEYBOARD_"),
     )
     async def type_text(
         self,
@@ -51,8 +50,7 @@ class KeyboardController:
         delay_between_chars: int | None = None,
         preserve_case: bool = True,
     ) -> Either[SecurityError, dict[str, Any]]:
-        """
-        Type text with character-by-character timing and security validation.
+        """Type text with character-by-character timing and security validation.
 
         Args:
             text: Text content to type
@@ -61,6 +59,7 @@ class KeyboardController:
 
         Returns:
             Either security error or operation result with typing statistics
+
         """
         try:
             logger.info(f"Typing text: {text[:50]}{'...' if len(text) > 50 else ''}")
@@ -76,7 +75,7 @@ class KeyboardController:
                     SecurityError(
                         "TEXT_TOO_LONG",
                         f"Text length {len(text)} exceeds maximum (10000 characters)",
-                    )
+                    ),
                 )
 
             # Rate limit check
@@ -88,17 +87,21 @@ class KeyboardController:
             if delay_between_chars is None:
                 # Calculate based on typing speed (default 600 CPM = 10 CPS = 100ms per char)
                 delay_between_chars = max(
-                    20, int(60000 / self.typing_speed_chars_per_minute)
+                    20,
+                    int(60000 / self.typing_speed_chars_per_minute),
                 )
 
             # Create keyboard event
             keyboard_event = KeyboardEvent(
-                operation="type", text_content=text, duration_ms=delay_between_chars
+                operation="type",
+                text_content=text,
+                duration_ms=delay_between_chars,
             )
 
             # Execute text typing
             execution_result = await self._execute_text_typing(
-                keyboard_event, delay_between_chars
+                keyboard_event,
+                delay_between_chars,
             )
             if execution_result.is_left():
                 return execution_result
@@ -111,10 +114,12 @@ class KeyboardController:
                 "delay_between_chars": delay_between_chars,
                 "estimated_duration_ms": len(text) * delay_between_chars,
                 "execution_time_ms": execution_result.get_right().get(
-                    "execution_time_ms", 0
+                    "execution_time_ms",
+                    0,
                 ),
                 "characters_typed": execution_result.get_right().get(
-                    "characters_typed", 0
+                    "characters_typed",
+                    0,
                 ),
                 "event_id": keyboard_event.event_id,
                 "timestamp": datetime.now().isoformat(),
@@ -124,21 +129,23 @@ class KeyboardController:
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Error in text typing: {str(e)}")
+            logger.error(f"Error in text typing: {e!s}")
             return Either.left(
-                SecurityError("KEYBOARD_TYPE_ERROR", f"Failed to type text: {str(e)}")
+                SecurityError("KEYBOARD_TYPE_ERROR", f"Failed to type text: {e!s}"),
             )
 
-    @require(lambda self, keys: isinstance(keys, list) and len(keys) > 0)
+    @require(lambda __self, keys: isinstance(keys, list) and len(keys) > 0)
     @ensure(
         lambda result: result.is_right()
-        or result.get_left().error_code.startswith("KEYBOARD_")
+        or result.get_left().error_code.startswith("KEYBOARD_"),
     )
     async def press_key_combination(
-        self, keys: list[str], duration_ms: int = 100, sequential: bool = False
+        self,
+        keys: list[str],
+        duration_ms: int = 100,
+        sequential: bool = False,
     ) -> Either[SecurityError, dict[str, Any]]:
-        """
-        Press key combination with proper modifier handling.
+        """Press key combination with proper modifier handling.
 
         Args:
             keys: List of keys to press (e.g., ["cmd", "shift", "4"])
@@ -147,6 +154,7 @@ class KeyboardController:
 
         Returns:
             Either security error or operation result with key details
+
         """
         try:
             logger.info(f"Key combination: {'+'.join(keys)}")
@@ -158,7 +166,7 @@ class KeyboardController:
 
             # Rate limit check
             rate_limit_result = self.rate_limiter.check_rate_limit(
-                "keyboard_combination"
+                "keyboard_combination",
             )
             if rate_limit_result.is_left():
                 return Either.left(rate_limit_result.get_left())
@@ -182,7 +190,8 @@ class KeyboardController:
 
             # Execute key combination
             execution_result = await self._execute_key_combination(
-                keyboard_event, sequential
+                keyboard_event,
+                sequential,
             )
             if execution_result.is_left():
                 return execution_result
@@ -196,7 +205,8 @@ class KeyboardController:
                 "duration_ms": duration_ms,
                 "sequential": sequential,
                 "execution_time_ms": execution_result.get_right().get(
-                    "execution_time_ms", 0
+                    "execution_time_ms",
+                    0,
                 ),
                 "event_id": keyboard_event.event_id,
                 "timestamp": datetime.now().isoformat(),
@@ -206,23 +216,22 @@ class KeyboardController:
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Error in key combination: {str(e)}")
+            logger.error(f"Error in key combination: {e!s}")
             return Either.left(
                 SecurityError(
                     "KEYBOARD_COMBINATION_ERROR",
-                    f"Failed to press key combination: {str(e)}",
-                )
+                    f"Failed to press key combination: {e!s}",
+                ),
             )
 
-    @require(lambda self, key_code: isinstance(key_code, KeyCode | str))
+    @require(lambda __self, key_code: isinstance(key_code, KeyCode | str))
     async def press_special_key(
         self,
         key_code: KeyCode | str,
         modifiers: list[ModifierKey] | None = None,
         duration_ms: int = 100,
     ) -> Either[SecurityError, dict[str, Any]]:
-        """
-        Press a special key (function keys, arrow keys, etc.) with optional modifiers.
+        """Press a special key (function keys, arrow keys, etc.) with optional modifiers.
 
         Args:
             key_code: Special key to press
@@ -231,6 +240,7 @@ class KeyboardController:
 
         Returns:
             Either security error or operation result
+
         """
         try:
             if isinstance(key_code, str):
@@ -239,8 +249,9 @@ class KeyboardController:
                 except ValueError:
                     return Either.left(
                         SecurityError(
-                            "INVALID_KEY_CODE", f"Invalid key code: {key_code}"
-                        )
+                            "INVALID_KEY_CODE",
+                            f"Invalid key code: {key_code}",
+                        ),
                     )
 
             logger.info(f"Special key press: {key_code.value}")
@@ -270,7 +281,8 @@ class KeyboardController:
                 "modifiers": [m.value for m in (modifiers or [])],
                 "duration_ms": duration_ms,
                 "execution_time_ms": execution_result.get_right().get(
-                    "execution_time_ms", 0
+                    "execution_time_ms",
+                    0,
                 ),
                 "event_id": keyboard_event.event_id,
                 "timestamp": datetime.now().isoformat(),
@@ -280,15 +292,17 @@ class KeyboardController:
             return Either.right(result)
 
         except Exception as e:
-            logger.error(f"Error in special key press: {str(e)}")
+            logger.error(f"Error in special key press: {e!s}")
             return Either.left(
                 SecurityError(
-                    "KEYBOARD_SPECIAL_ERROR", f"Failed to press special key: {str(e)}"
-                )
+                    "KEYBOARD_SPECIAL_ERROR",
+                    f"Failed to press special key: {e!s}",
+                ),
             )
 
     def _parse_key_combination(
-        self, keys: list[str]
+        self,
+        keys: list[str],
     ) -> tuple[list[ModifierKey], list[str]]:
         """Parse key combination into modifiers and regular keys."""
         modifiers = []
@@ -315,7 +329,9 @@ class KeyboardController:
         return modifiers, regular_keys
 
     async def _execute_text_typing(
-        self, keyboard_event: KeyboardEvent, char_delay: int
+        self,
+        keyboard_event: KeyboardEvent,
+        char_delay: int,
     ) -> Either[IntegrationError, dict[str, Any]]:
         """Execute text typing with character-by-character timing."""
         try:
@@ -344,18 +360,21 @@ class KeyboardController:
                     "execution_time_ms": execution_time,
                     "characters_typed": characters_typed,
                     "typing_executed": True,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
                 IntegrationError(
-                    "TEXT_TYPING_ERROR", f"Failed to execute text typing: {str(e)}"
-                )
+                    "TEXT_TYPING_ERROR",
+                    f"Failed to execute text typing: {e!s}",
+                ),
             )
 
     async def _execute_key_combination(
-        self, keyboard_event: KeyboardEvent, sequential: bool
+        self,
+        keyboard_event: KeyboardEvent,
+        sequential: bool,
     ) -> Either[IntegrationError, dict[str, Any]]:
         """Execute key combination with proper modifier handling."""
         try:
@@ -383,19 +402,20 @@ class KeyboardController:
                     "applescript_generated": True,
                     "execution_time_ms": execution_time,
                     "combination_executed": True,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
                 IntegrationError(
                     "KEY_COMBINATION_ERROR",
-                    f"Failed to execute key combination: {str(e)}",
-                )
+                    f"Failed to execute key combination: {e!s}",
+                ),
             )
 
     async def _execute_special_key(
-        self, keyboard_event: KeyboardEvent
+        self,
+        keyboard_event: KeyboardEvent,
     ) -> Either[IntegrationError, dict[str, Any]]:
         """Execute special key press."""
         try:
@@ -414,14 +434,15 @@ class KeyboardController:
                     "applescript_generated": True,
                     "execution_time_ms": execution_time,
                     "special_key_executed": True,
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
                 IntegrationError(
-                    "SPECIAL_KEY_ERROR", f"Failed to execute special key: {str(e)}"
-                )
+                    "SPECIAL_KEY_ERROR",
+                    f"Failed to execute special key: {e!s}",
+                ),
             )
 
     def _generate_text_typing_applescript(self, text: str, char_delay: int) -> str:
@@ -430,7 +451,7 @@ class KeyboardController:
         escaped_text = text.replace("\\", "\\\\").replace('"', '\\"')
         delay_seconds = char_delay / 1000.0
 
-        applescript = f'''
+        applescript = f"""
 tell application "System Events"
     try
         -- Type text character by character
@@ -446,11 +467,13 @@ tell application "System Events"
         return "ERROR: " & errorMessage
     end try
 end tell
-'''
+"""
         return applescript
 
     def _generate_key_combination_applescript(
-        self, keyboard_event: KeyboardEvent, sequential: bool
+        self,
+        keyboard_event: KeyboardEvent,
+        sequential: bool,
     ) -> str:
         """Generate AppleScript for key combination."""
         modifiers = []
@@ -474,7 +497,7 @@ end tell
 
         modifier_string = " using {" + ", ".join(modifiers) + "}" if modifiers else ""
 
-        applescript = f'''
+        applescript = f"""
 tell application "System Events"
     try
         -- Press key combination
@@ -485,7 +508,7 @@ tell application "System Events"
         return "ERROR: " & errorMessage
     end try
 end tell
-'''
+"""
         return applescript
 
     def _generate_special_key_applescript(self, keyboard_event: KeyboardEvent) -> str:
@@ -531,7 +554,7 @@ end tell
 
         modifier_string = " using {" + ", ".join(modifiers) + "}" if modifiers else ""
 
-        applescript = f'''
+        applescript = f"""
 tell application "System Events"
     try
         -- Press special key
@@ -542,7 +565,7 @@ tell application "System Events"
         return "ERROR: " & errorMessage
     end try
 end tell
-'''
+"""
         return applescript
 
     def set_typing_speed(self, chars_per_minute: int) -> None:
@@ -552,7 +575,7 @@ end tell
             logger.info(f"Typing speed set to {chars_per_minute} characters per minute")
         else:
             logger.warning(
-                f"Invalid typing speed {chars_per_minute}, keeping current speed"
+                f"Invalid typing speed {chars_per_minute}, keeping current speed",
             )
 
     def get_typing_speed(self) -> int:

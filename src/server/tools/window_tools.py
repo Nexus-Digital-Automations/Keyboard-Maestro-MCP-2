@@ -1,11 +1,11 @@
-"""
-Window Management MCP Tool
+"""Window Management MCP Tool.
 
 Comprehensive window control with multi-monitor support, coordinate validation,
 and security boundaries for AI-assisted workspace automation.
 """
 
 import logging
+import re
 from typing import Annotated, Any
 
 # MCP context import
@@ -51,7 +51,8 @@ async def km_window_manager(
     size: Annotated[
         dict[str, int] | None,
         Field(
-            default=None, description="Target size {width, height} for resize operation"
+            default=None,
+            description="Target size {width, height} for resize operation",
         ),
     ] = None,
     screen: Annotated[
@@ -89,8 +90,7 @@ async def km_window_manager(
     ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """
-    Comprehensive window management with multi-monitor support and validation.
+    """Comprehensive window management with multi-monitor support and validation.
 
     Operations:
     - move: Position window at specific coordinates with screen targeting
@@ -125,7 +125,6 @@ async def km_window_manager(
 
     Returns comprehensive window operation results with position, size, and metadata.
     """
-
     # Input validation and sanitization
     try:
         # Security: Validate application identifier format
@@ -143,37 +142,47 @@ async def km_window_manager(
         # Route to appropriate operation handler
         if operation == "move":
             return await _handle_move_operation(
-                app_id, position, window_index, screen, ctx
+                app_id,
+                position,
+                window_index,
+                screen,
+                ctx,
             )
-        elif operation == "resize":
+        if operation == "resize":
             return await _handle_resize_operation(app_id, size, window_index, ctx)
-        elif operation in ["minimize", "maximize", "restore"]:
+        if operation in ["minimize", "maximize", "restore"]:
             target_state = _map_operation_to_state(operation, state)
             return await _handle_state_operation(
-                app_id, target_state, window_index, ctx
+                app_id,
+                target_state,
+                window_index,
+                ctx,
             )
-        elif operation == "arrange":
+        if operation == "arrange":
             return await _handle_arrange_operation(
-                app_id, arrangement, window_index, screen, ctx
+                app_id,
+                arrangement,
+                window_index,
+                screen,
+                ctx,
             )
-        elif operation == "get_info":
+        if operation == "get_info":
             return await _handle_get_info_operation(app_id, window_index, ctx)
-        elif operation == "get_screens":
+        if operation == "get_screens":
             return await _handle_get_screens_operation(ctx)
-        else:
-            return {
-                "success": False,
-                "error": "INVALID_OPERATION",
-                "message": f"Unsupported operation: {operation}",
-                "timestamp": _get_timestamp(),
-            }
+        return {
+            "success": False,
+            "error": "INVALID_OPERATION",
+            "message": f"Unsupported operation: {operation}",
+            "timestamp": _get_timestamp(),
+        }
 
     except Exception as e:
-        logger.error(f"Window manager operation failed: {str(e)}")
+        logger.error(f"Window manager operation failed: {e!s}")
         return {
             "success": False,
             "error": "EXECUTION_ERROR",
-            "message": f"Operation failed: {str(e)}",
+            "message": f"Operation failed: {e!s}",
             "timestamp": _get_timestamp(),
         }
 
@@ -186,7 +195,6 @@ async def _handle_move_operation(
     ctx: Context | None,
 ) -> dict[str, Any]:
     """Handle window move operation with validation."""
-
     if not position_dict or "x" not in position_dict or "y" not in position_dict:
         return {
             "success": False,
@@ -201,7 +209,10 @@ async def _handle_move_operation(
 
         # Execute move operation
         result = await _window_manager.move_window(
-            app_id.primary_identifier(), position, window_index, screen
+            app_id.primary_identifier(),
+            position,
+            window_index,
+            screen,
         )
 
         if result.is_right():
@@ -211,25 +222,24 @@ async def _handle_move_operation(
                 "operation": "move",
                 "window": _format_window_info(operation_result.window_info),
                 "execution_time_ms": int(
-                    operation_result.operation_time.total_seconds() * 1000
+                    operation_result.operation_time.total_seconds() * 1000,
                 ),
                 "details": operation_result.details,
                 "timestamp": _get_timestamp(),
             }
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.code,
-                "message": error.message,
-                "timestamp": _get_timestamp(),
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.code,
+            "message": error.message,
+            "timestamp": _get_timestamp(),
+        }
 
     except ValueError as e:
         return {
             "success": False,
             "error": "INVALID_POSITION",
-            "message": f"Invalid position coordinates: {str(e)}",
+            "message": f"Invalid position coordinates: {e!s}",
             "timestamp": _get_timestamp(),
         }
 
@@ -241,7 +251,6 @@ async def _handle_resize_operation(
     ctx: Context | None,
 ) -> dict[str, Any]:
     """Handle window resize operation with validation."""
-
     if not size_dict or "width" not in size_dict or "height" not in size_dict:
         return {
             "success": False,
@@ -256,7 +265,9 @@ async def _handle_resize_operation(
 
         # Execute resize operation
         result = await _window_manager.resize_window(
-            app_id.primary_identifier(), size, window_index
+            app_id.primary_identifier(),
+            size,
+            window_index,
         )
 
         if result.is_right():
@@ -266,25 +277,24 @@ async def _handle_resize_operation(
                 "operation": "resize",
                 "window": _format_window_info(operation_result.window_info),
                 "execution_time_ms": int(
-                    operation_result.operation_time.total_seconds() * 1000
+                    operation_result.operation_time.total_seconds() * 1000,
                 ),
                 "details": operation_result.details,
                 "timestamp": _get_timestamp(),
             }
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.code,
-                "message": error.message,
-                "timestamp": _get_timestamp(),
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.code,
+            "message": error.message,
+            "timestamp": _get_timestamp(),
+        }
 
     except ValueError as e:
         return {
             "success": False,
             "error": "INVALID_SIZE",
-            "message": f"Invalid size dimensions: {str(e)}",
+            "message": f"Invalid size dimensions: {e!s}",
             "timestamp": _get_timestamp(),
         }
 
@@ -296,11 +306,12 @@ async def _handle_state_operation(
     ctx: Context | None,
 ) -> dict[str, Any]:
     """Handle window state change operation."""
-
     try:
         # Execute state change operation
         result = await _window_manager.set_window_state(
-            app_id.primary_identifier(), target_state, window_index
+            app_id.primary_identifier(),
+            target_state,
+            window_index,
         )
 
         if result.is_right():
@@ -310,25 +321,24 @@ async def _handle_state_operation(
                 "operation": f"set_state_{target_state.value}",
                 "window": _format_window_info(operation_result.window_info),
                 "execution_time_ms": int(
-                    operation_result.operation_time.total_seconds() * 1000
+                    operation_result.operation_time.total_seconds() * 1000,
                 ),
                 "details": operation_result.details,
                 "timestamp": _get_timestamp(),
             }
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.code,
-                "message": error.message,
-                "timestamp": _get_timestamp(),
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.code,
+            "message": error.message,
+            "timestamp": _get_timestamp(),
+        }
 
     except Exception as e:
         return {
             "success": False,
             "error": "STATE_CHANGE_ERROR",
-            "message": f"State change failed: {str(e)}",
+            "message": f"State change failed: {e!s}",
             "timestamp": _get_timestamp(),
         }
 
@@ -341,7 +351,6 @@ async def _handle_arrange_operation(
     ctx: Context | None,
 ) -> dict[str, Any]:
     """Handle window arrangement operation."""
-
     if not arrangement_str:
         return {
             "success": False,
@@ -356,7 +365,10 @@ async def _handle_arrange_operation(
 
         # Execute arrangement operation
         result = await _window_manager.arrange_window(
-            app_id.primary_identifier(), arrangement, window_index, screen
+            app_id.primary_identifier(),
+            arrangement,
+            window_index,
+            screen,
         )
 
         if result.is_right():
@@ -366,20 +378,19 @@ async def _handle_arrange_operation(
                 "operation": f"arrange_{arrangement_str}",
                 "window": _format_window_info(operation_result.window_info),
                 "execution_time_ms": int(
-                    operation_result.operation_time.total_seconds() * 1000
+                    operation_result.operation_time.total_seconds() * 1000,
                 ),
                 "details": operation_result.details,
                 "screen": screen,
                 "timestamp": _get_timestamp(),
             }
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.code,
-                "message": error.message,
-                "timestamp": _get_timestamp(),
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.code,
+            "message": error.message,
+            "timestamp": _get_timestamp(),
+        }
 
     except ValueError:
         return {
@@ -391,14 +402,16 @@ async def _handle_arrange_operation(
 
 
 async def _handle_get_info_operation(
-    app_id: AppIdentifier, window_index: int, ctx: Context | None
+    app_id: AppIdentifier,
+    window_index: int,
+    ctx: Context | None,
 ) -> dict[str, Any]:
     """Handle get window info operation."""
-
     try:
         # Get window information
         result = await _window_manager.get_window_info(
-            app_id.primary_identifier(), window_index
+            app_id.primary_identifier(),
+            window_index,
         )
 
         if result.is_right():
@@ -409,27 +422,25 @@ async def _handle_get_info_operation(
                 "window": _format_window_info(window_info),
                 "timestamp": _get_timestamp(),
             }
-        else:
-            error = result.get_left()
-            return {
-                "success": False,
-                "error": error.code,
-                "message": error.message,
-                "timestamp": _get_timestamp(),
-            }
+        error = result.get_left()
+        return {
+            "success": False,
+            "error": error.code,
+            "message": error.message,
+            "timestamp": _get_timestamp(),
+        }
 
     except Exception as e:
         return {
             "success": False,
             "error": "INFO_QUERY_ERROR",
-            "message": f"Window info query failed: {str(e)}",
+            "message": f"Window info query failed: {e!s}",
             "timestamp": _get_timestamp(),
         }
 
 
 async def _handle_get_screens_operation(ctx: Context | None) -> dict[str, Any]:
     """Handle get screens operation."""
-
     try:
         # Get screen information
         screens = await _window_manager.get_screen_info()
@@ -446,7 +457,7 @@ async def _handle_get_screens_operation(ctx: Context | None) -> dict[str, Any]:
         return {
             "success": False,
             "error": "SCREEN_QUERY_ERROR",
-            "message": f"Screen info query failed: {str(e)}",
+            "message": f"Screen info query failed: {e!s}",
             "timestamp": _get_timestamp(),
         }
 
@@ -480,9 +491,8 @@ def _create_app_identifier(identifier: str) -> AppIdentifier:
     ):
         # Likely a bundle ID
         return AppIdentifier(bundle_id=identifier)
-    else:
-        # Treat as app name
-        return AppIdentifier(app_name=identifier)
+    # Treat as app name
+    return AppIdentifier(app_name=identifier)
 
 
 def _map_operation_to_state(operation: str, state_override: str | None) -> WindowState:
@@ -490,14 +500,13 @@ def _map_operation_to_state(operation: str, state_override: str | None) -> Windo
     if state_override:
         return WindowState(state_override)
 
-    if operation == "minimize":
-        return WindowState.MINIMIZED
-    elif operation == "maximize":
-        return WindowState.MAXIMIZED
-    elif operation == "restore":
-        return WindowState.NORMAL
-    else:
-        return WindowState.NORMAL
+    # SIM116 fix: Use dictionary instead of consecutive if statements
+    operation_states = {
+        "minimize": WindowState.MINIMIZED,
+        "maximize": WindowState.MAXIMIZED,
+        "restore": WindowState.NORMAL,
+    }
+    return operation_states.get(operation, WindowState.NORMAL)
 
 
 def _format_window_info(window_info) -> dict[str, Any]:
@@ -547,7 +556,3 @@ def _get_timestamp() -> str:
     from datetime import datetime
 
     return datetime.now().isoformat()
-
-
-# Add missing import for regex
-import re

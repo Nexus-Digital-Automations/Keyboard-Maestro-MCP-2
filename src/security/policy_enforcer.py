@@ -1,5 +1,4 @@
-"""
-Policy Enforcer - TASK_62 Phase 2 Core Security Engine
+"""Policy Enforcer - TASK_62 Phase 2 Core Security Engine.
 
 Dynamic security policy enforcement and compliance monitoring for zero trust security.
 Provides real-time policy evaluation, enforcement actions, and compliance tracking.
@@ -167,13 +166,14 @@ class PolicyEnforcer:
         self.cache_hit_rate = 0.0
         self.violation_rate = 0.0
 
-    @require(lambda self, policy: isinstance(policy, SecurityPolicy))
+    @require(lambda __self, policy: isinstance(policy, SecurityPolicy))
     @ensure(
-        lambda self, result: result.is_right()
-        or isinstance(result.get_left(), PolicyEnforcementError)
+        lambda _self, result: result.is_right()
+        or isinstance(result.get_left(), PolicyEnforcementError),
     )
     async def register_policy(
-        self, policy: SecurityPolicy
+        self,
+        policy: SecurityPolicy,
     ) -> Either[PolicyEnforcementError, PolicyId]:
         """Register a new security policy."""
         try:
@@ -198,20 +198,21 @@ class PolicyEnforcer:
         except Exception as e:
             return Either.left(
                 PolicyEnforcementError(
-                    f"Failed to register policy: {str(e)}",
+                    f"Failed to register policy: {e!s}",
                     "POLICY_REGISTRATION_ERROR",
                     SecurityOperation.ENFORCE,
                     {"policy_id": policy.policy_id},
-                )
+                ),
             )
 
-    @require(lambda self, request: isinstance(request, PolicyEvaluationRequest))
+    @require(lambda __self, request: isinstance(request, PolicyEvaluationRequest))
     @ensure(
-        lambda self, result: result.is_right()
-        or isinstance(result.get_left(), PolicyEnforcementError)
+        lambda _self, result: result.is_right()
+        or isinstance(result.get_left(), PolicyEnforcementError),
     )
     async def evaluate_policies(
-        self, request: PolicyEvaluationRequest
+        self,
+        request: PolicyEvaluationRequest,
     ) -> Either[PolicyEnforcementError, PolicyEvaluationResult]:
         """Evaluate security policies for access request."""
         try:
@@ -288,20 +289,22 @@ class PolicyEnforcer:
         except Exception as e:
             return Either.left(
                 PolicyEnforcementError(
-                    f"Policy evaluation failed: {str(e)}",
+                    f"Policy evaluation failed: {e!s}",
                     "EVALUATION_ERROR",
                     SecurityOperation.ENFORCE,
                     {"request_id": request.request_id},
-                )
+                ),
             )
 
     @require(
-        lambda self, evaluation_result: isinstance(
-            evaluation_result, PolicyEvaluationResult
-        )
+        lambda _self, evaluation_result: isinstance(
+            evaluation_result,
+            PolicyEvaluationResult,
+        ),
     )
     async def enforce_decision(
-        self, evaluation_result: PolicyEvaluationResult
+        self,
+        evaluation_result: PolicyEvaluationResult,
     ) -> Either[PolicyEnforcementError, list[EnforcementAction]]:
         """Enforce policy decision with appropriate actions."""
         try:
@@ -329,7 +332,7 @@ class PolicyEnforcer:
             elif evaluation_result.decision == EnforcementResult.REQUIRES_APPROVAL:
                 # Escalate for approval
                 escalation_action = await self._create_escalation_action(
-                    evaluation_result
+                    evaluation_result,
                 )
                 if escalation_action.is_right():
                     enforcement_actions.append(escalation_action.get_right())
@@ -346,15 +349,17 @@ class PolicyEnforcer:
         except Exception as e:
             return Either.left(
                 PolicyEnforcementError(
-                    f"Policy enforcement failed: {str(e)}",
+                    f"Policy enforcement failed: {e!s}",
                     "ENFORCEMENT_ERROR",
                     SecurityOperation.ENFORCE,
                     {"request_id": evaluation_result.request_id},
-                )
+                ),
             )
 
     async def assess_compliance(
-        self, framework: ComplianceFramework, target_scope: str
+        self,
+        framework: ComplianceFramework,
+        target_scope: str,
     ) -> Either[ComplianceError, ComplianceAssessment]:
         """Assess compliance against specific framework."""
         try:
@@ -370,7 +375,7 @@ class PolicyEnforcer:
                         "NO_COMPLIANCE_RULES",
                         SecurityOperation.AUDIT,
                         {"framework": framework.value},
-                    )
+                    ),
                 )
 
             # Evaluate each compliance rule
@@ -380,7 +385,8 @@ class PolicyEnforcer:
 
             for rule in framework_rules:
                 compliance_result = await self._evaluate_compliance_rule(
-                    rule, target_scope
+                    rule,
+                    target_scope,
                 )
 
                 if compliance_result.is_right():
@@ -395,7 +401,7 @@ class PolicyEnforcer:
                                 "description": rule.description,
                                 "severity": rule.severity.value,
                                 "status": "non_compliant",
-                            }
+                            },
                         )
                 else:
                     # Rule evaluation failed
@@ -407,7 +413,7 @@ class PolicyEnforcer:
                             "severity": rule.severity.value,
                             "status": "evaluation_failed",
                             "error": str(compliance_result.get_left()),
-                        }
+                        },
                     )
 
             # Calculate compliance score
@@ -426,7 +432,7 @@ class PolicyEnforcer:
                     requirements_met=requirements_met,
                     total_requirements=total_requirements,
                     findings=findings,
-                )
+                ),
             )
 
             # Create assessment
@@ -456,15 +462,16 @@ class PolicyEnforcer:
         except Exception as e:
             return Either.left(
                 ComplianceError(
-                    f"Compliance assessment failed: {str(e)}",
+                    f"Compliance assessment failed: {e!s}",
                     "ASSESSMENT_ERROR",
                     SecurityOperation.AUDIT,
                     {"framework": framework.value, "target_scope": target_scope},
-                )
+                ),
             )
 
     async def register_compliance_rule(
-        self, rule: ComplianceRule
+        self,
+        rule: ComplianceRule,
     ) -> Either[ComplianceError, str]:
         """Register a new compliance rule."""
         try:
@@ -475,7 +482,7 @@ class PolicyEnforcer:
                         "Compliance rule must have rule_id and requirement_id",
                         "INVALID_COMPLIANCE_RULE",
                         SecurityOperation.AUDIT,
-                    )
+                    ),
                 )
 
             # Check for duplicate rules
@@ -486,27 +493,28 @@ class PolicyEnforcer:
                         "DUPLICATE_COMPLIANCE_RULE",
                         SecurityOperation.AUDIT,
                         {"rule_id": rule.rule_id},
-                    )
+                    ),
                 )
 
             # Register rule
             self.compliance_rules[rule.rule_id] = rule
 
             return Either.right(
-                f"Compliance rule {rule.rule_id} registered successfully"
+                f"Compliance rule {rule.rule_id} registered successfully",
             )
 
         except Exception as e:
             return Either.left(
                 ComplianceError(
-                    f"Failed to register compliance rule: {str(e)}",
+                    f"Failed to register compliance rule: {e!s}",
                     "RULE_REGISTRATION_ERROR",
                     SecurityOperation.AUDIT,
-                )
+                ),
             )
 
     def _validate_policy(
-        self, policy: SecurityPolicy
+        self,
+        policy: SecurityPolicy,
     ) -> Either[PolicyEnforcementError, None]:
         """Validate security policy configuration."""
         # Check required fields
@@ -516,7 +524,7 @@ class PolicyEnforcer:
                     "Policy must have ID and name",
                     "INVALID_POLICY",
                     SecurityOperation.ENFORCE,
-                )
+                ),
             )
 
         # Validate conditions
@@ -526,7 +534,7 @@ class PolicyEnforcer:
                     "Policy must have conditions",
                     "MISSING_CONDITIONS",
                     SecurityOperation.ENFORCE,
-                )
+                ),
             )
 
         # Validate actions
@@ -536,61 +544,67 @@ class PolicyEnforcer:
                     "Policy must have actions",
                     "MISSING_ACTIONS",
                     SecurityOperation.ENFORCE,
-                )
+                ),
             )
 
         return Either.right(None)
 
     def _check_policy_conflicts(
-        self, new_policy: SecurityPolicy
+        self,
+        new_policy: SecurityPolicy,
     ) -> Either[PolicyEnforcementError, None]:
         """Check for conflicts with existing policies."""
         for existing_policy in self.active_policies.values():
             # Check for overlapping scope and conflicting actions
+            # SIM102 fix: Combine nested if statements
             if (
                 existing_policy.policy_type == new_policy.policy_type
                 and set(existing_policy.scope) & set(new_policy.scope)
                 and existing_policy.priority == new_policy.priority
+                and existing_policy.enforcement_mode == EnforcementMode.BLOCK
+                and new_policy.enforcement_mode == EnforcementMode.MONITOR
             ):
-                # Check for conflicting enforcement modes
-                if (
-                    existing_policy.enforcement_mode == EnforcementMode.BLOCK
-                    and new_policy.enforcement_mode == EnforcementMode.MONITOR
-                ):
-                    return Either.left(
-                        PolicyEnforcementError(
-                            f"Policy conflict with {existing_policy.policy_id}",
-                            "POLICY_CONFLICT",
-                            SecurityOperation.ENFORCE,
-                            {"conflicting_policy": existing_policy.policy_id},
-                        )
-                    )
+                return Either.left(
+                    PolicyEnforcementError(
+                        f"Policy conflict with {existing_policy.policy_id}",
+                        "POLICY_CONFLICT",
+                        SecurityOperation.ENFORCE,
+                        {"conflicting_policy": existing_policy.policy_id},
+                    ),
+                )
 
         return Either.right(None)
 
     def _find_applicable_policies(
-        self, request: PolicyEvaluationRequest
+        self,
+        request: PolicyEvaluationRequest,
     ) -> list[PolicyId]:
         """Find policies applicable to the request."""
         applicable_policies = []
 
         for policy_id, policy in self.active_policies.items():
             if self.policy_status.get(
-                policy_id
+                policy_id,
             ) == PolicyStatus.ACTIVE and is_policy_applicable(
-                policy, request.context, request.resource, request.action
+                policy,
+                request.context,
+                request.resource,
+                request.action,
             ):
                 applicable_policies.append(policy_id)
 
         # Sort by priority (higher priority first)
         applicable_policies.sort(
-            key=lambda pid: self.active_policies[pid].priority, reverse=True
+            key=lambda pid: self.active_policies[pid].priority,
+            reverse=True,
         )
 
         return applicable_policies
 
     async def _evaluate_single_policy(
-        self, policy: SecurityPolicy, request: PolicyEvaluationRequest
+        self,
+        policy: SecurityPolicy,
+        request: PolicyEvaluationRequest,
     ) -> Either[PolicyEnforcementError, EnforcementResult]:
         """Evaluate a single policy against the request."""
         try:
@@ -604,35 +618,36 @@ class PolicyEnforcer:
             # Policy applies - determine enforcement action
             if policy.enforcement_mode == EnforcementMode.BLOCK:
                 return Either.right(EnforcementResult.DENIED)
-            elif policy.enforcement_mode == EnforcementMode.MONITOR:
+            if policy.enforcement_mode == EnforcementMode.MONITOR:
                 return Either.right(EnforcementResult.ALLOWED)
-            elif policy.enforcement_mode == EnforcementMode.WARN:
+            if policy.enforcement_mode == EnforcementMode.WARN:
                 return Either.right(EnforcementResult.CONDITIONAL)
-            elif policy.enforcement_mode == EnforcementMode.REMEDIATE:
+            if policy.enforcement_mode == EnforcementMode.REMEDIATE:
                 return Either.right(EnforcementResult.REMEDIATED)
-            elif policy.enforcement_mode == EnforcementMode.ADAPTIVE:
+            if policy.enforcement_mode == EnforcementMode.ADAPTIVE:
                 # Adaptive enforcement based on context
                 if request.context.trust_level == TrustLevel.HIGH:
                     return Either.right(EnforcementResult.ALLOWED)
-                elif request.context.trust_level == TrustLevel.LOW:
+                if request.context.trust_level == TrustLevel.LOW:
                     return Either.right(EnforcementResult.DENIED)
-                else:
-                    return Either.right(EnforcementResult.CONDITIONAL)
+                return Either.right(EnforcementResult.CONDITIONAL)
 
             return Either.right(EnforcementResult.ALLOWED)
 
         except Exception as e:
             return Either.left(
                 PolicyEnforcementError(
-                    f"Policy evaluation failed: {str(e)}",
+                    f"Policy evaluation failed: {e!s}",
                     "POLICY_EVALUATION_ERROR",
                     SecurityOperation.ENFORCE,
                     {"policy_id": policy.policy_id},
-                )
+                ),
             )
 
     def _evaluate_policy_conditions(
-        self, policy: SecurityPolicy, request: PolicyEvaluationRequest
+        self,
+        policy: SecurityPolicy,
+        request: PolicyEvaluationRequest,
     ) -> bool:
         """Evaluate policy conditions against request."""
         try:
@@ -740,7 +755,7 @@ class PolicyEnforcer:
             ]
             return f"Access denied by policies: {', '.join(blocking_policies)}"
 
-        elif final_decision == EnforcementResult.CONDITIONAL:
+        if final_decision == EnforcementResult.CONDITIONAL:
             conditional_policies = [
                 policy_id
                 for policy_id, result in policy_results
@@ -748,14 +763,14 @@ class PolicyEnforcer:
             ]
             return f"Conditional access granted with restrictions from policies: {', '.join(conditional_policies)}"
 
-        elif final_decision == EnforcementResult.ALLOWED:
+        if final_decision == EnforcementResult.ALLOWED:
             return "Access allowed by policy evaluation"
 
-        else:
-            return f"Access {final_decision.value} by policy evaluation"
+        return f"Access {final_decision.value} by policy evaluation"
 
     def _calculate_decision_confidence(
-        self, policy_results: list[tuple[PolicyId, EnforcementResult]]
+        self,
+        policy_results: list[tuple[PolicyId, EnforcementResult]],
     ) -> float:
         """Calculate confidence in the enforcement decision."""
         if not policy_results:
@@ -774,13 +789,16 @@ class PolicyEnforcer:
         # Base confidence on consistency and number of policies
         base_confidence = consistency_ratio
         policy_factor = min(
-            1.0, total_policies / 5.0
+            1.0,
+            total_policies / 5.0,
         )  # More policies = higher confidence
 
         return min(1.0, base_confidence * policy_factor)
 
     def _create_policy_violation(
-        self, policy: SecurityPolicy, request: PolicyEvaluationRequest
+        self,
+        policy: SecurityPolicy,
+        request: PolicyEvaluationRequest,
     ) -> PolicyViolation:
         """Create policy violation record."""
         return PolicyViolation(
@@ -801,7 +819,8 @@ class PolicyEnforcer:
         )
 
     async def _create_block_action(
-        self, evaluation_result: PolicyEvaluationResult
+        self,
+        evaluation_result: PolicyEvaluationResult,
     ) -> Either[PolicyEnforcementError, EnforcementAction]:
         """Create blocking enforcement action."""
         try:
@@ -825,14 +844,15 @@ class PolicyEnforcer:
         except Exception as e:
             return Either.left(
                 PolicyEnforcementError(
-                    f"Failed to create block action: {str(e)}",
+                    f"Failed to create block action: {e!s}",
                     "BLOCK_ACTION_ERROR",
                     SecurityOperation.ENFORCE,
-                )
+                ),
             )
 
     async def _handle_policy_violation(
-        self, violation: PolicyViolation
+        self,
+        violation: PolicyViolation,
     ) -> Either[PolicyEnforcementError, list[EnforcementAction]]:
         """Handle policy violation with appropriate actions."""
         try:
@@ -871,14 +891,15 @@ class PolicyEnforcer:
         except Exception as e:
             return Either.left(
                 PolicyEnforcementError(
-                    f"Failed to handle violation: {str(e)}",
+                    f"Failed to handle violation: {e!s}",
                     "VIOLATION_HANDLING_ERROR",
                     SecurityOperation.ENFORCE,
-                )
+                ),
             )
 
     async def _apply_conditions(
-        self, evaluation_result: PolicyEvaluationResult
+        self,
+        evaluation_result: PolicyEvaluationResult,
     ) -> Either[PolicyEnforcementError, list[EnforcementAction]]:
         """Apply conditional access conditions."""
         try:
@@ -904,14 +925,15 @@ class PolicyEnforcer:
         except Exception as e:
             return Either.left(
                 PolicyEnforcementError(
-                    f"Failed to apply conditions: {str(e)}",
+                    f"Failed to apply conditions: {e!s}",
                     "CONDITION_APPLICATION_ERROR",
                     SecurityOperation.ENFORCE,
-                )
+                ),
             )
 
     async def _create_escalation_action(
-        self, evaluation_result: PolicyEvaluationResult
+        self,
+        evaluation_result: PolicyEvaluationResult,
     ) -> Either[PolicyEnforcementError, EnforcementAction]:
         """Create escalation action for manual approval."""
         try:
@@ -934,14 +956,15 @@ class PolicyEnforcer:
         except Exception as e:
             return Either.left(
                 PolicyEnforcementError(
-                    f"Failed to create escalation action: {str(e)}",
+                    f"Failed to create escalation action: {e!s}",
                     "ESCALATION_ACTION_ERROR",
                     SecurityOperation.ENFORCE,
-                )
+                ),
             )
 
     async def _execute_enforcement_action(
-        self, action: EnforcementAction
+        self,
+        action: EnforcementAction,
     ) -> Either[PolicyEnforcementError, EnforcementAction]:
         """Execute enforcement action."""
         try:
@@ -977,7 +1000,8 @@ class PolicyEnforcer:
             return Either.right(failed_action)  # Return failed action for logging
 
     def _get_compliance_rules_for_framework(
-        self, framework: ComplianceFramework
+        self,
+        framework: ComplianceFramework,
     ) -> list[ComplianceRule]:
         """Get compliance rules for specific framework."""
         return [
@@ -987,7 +1011,9 @@ class PolicyEnforcer:
         ]
 
     async def _evaluate_compliance_rule(
-        self, rule: ComplianceRule, target_scope: str
+        self,
+        rule: ComplianceRule,
+        target_scope: str,
     ) -> Either[ComplianceError, bool]:
         """Evaluate single compliance rule."""
         try:
@@ -1008,11 +1034,11 @@ class PolicyEnforcer:
         except Exception as e:
             return Either.left(
                 ComplianceError(
-                    f"Compliance rule evaluation failed: {str(e)}",
+                    f"Compliance rule evaluation failed: {e!s}",
                     "RULE_EVALUATION_ERROR",
                     SecurityOperation.AUDIT,
                     {"rule_id": rule.rule_id},
-                )
+                ),
             )
 
     def _generate_cache_key(self, request: PolicyEvaluationRequest) -> str:
@@ -1040,7 +1066,9 @@ class PolicyEnforcer:
         return None
 
     def _cache_evaluation_result(
-        self, cache_key: str, result: PolicyEvaluationResult
+        self,
+        cache_key: str,
+        result: PolicyEvaluationResult,
     ) -> None:
         """Cache policy evaluation result."""
         # Store simplified result in cache
@@ -1057,7 +1085,9 @@ class PolicyEnforcer:
                 del self.enforcement_cache[key]
 
     def _update_evaluation_metrics(
-        self, evaluation_time: float, had_violations: bool
+        self,
+        evaluation_time: float,
+        had_violations: bool,
     ) -> None:
         """Update policy evaluation metrics."""
         self.evaluation_count += 1
@@ -1095,13 +1125,17 @@ class PolicyEnforcer:
 
         # Simple validation logic for test compatibility
         for policy_id, policy in self.active_policies.items():
-            if self.policy_status.get(policy_id) == PolicyStatus.ACTIVE:
-                # Check basic policy rules
-                if hasattr(policy, "rules") and policy.rules:
-                    violations.extend(self._check_policy_rules(policy, data))
+            # SIM102 fix: Combine nested if statements
+            if (
+                self.policy_status.get(policy_id) == PolicyStatus.ACTIVE
+                and hasattr(policy, "rules")
+                and policy.rules
+            ):
+                violations.extend(self._check_policy_rules(policy, data))
 
         return PolicyValidationResult(
-            is_valid=len(violations) == 0, violations=violations
+            is_valid=len(violations) == 0,
+            violations=violations,
         )
 
     def enforce_policies(self, request_data: dict[str, Any]) -> None:
@@ -1111,7 +1145,7 @@ class PolicyEnforcer:
             from src.core.errors import SecurityViolationError
 
             violations_str = "; ".join(
-                [v.description for v in validation_result.violations]
+                [v.description for v in validation_result.violations],
             )
             raise SecurityViolationError(
                 violation_type="policy_enforcement",
@@ -1119,7 +1153,9 @@ class PolicyEnforcer:
             )
 
     def _check_policy_rules(
-        self, policy: SecurityPolicy, data: dict[str, Any]
+        self,
+        policy: SecurityPolicy,
+        data: dict[str, Any],
     ) -> list[PolicyViolation]:
         """Check data against policy rules."""
         violations = []
@@ -1282,7 +1318,7 @@ class SecurityPolicy:
     name: str  # Test expects 'name' not 'policy_name'
     description: str
     rules: dict[str, Any] = field(
-        default_factory=dict
+        default_factory=dict,
     )  # Test expects 'rules' not 'conditions'
     enforcement_level: str = "standard"
     enabled: bool = True

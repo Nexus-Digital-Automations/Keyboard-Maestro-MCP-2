@@ -1,5 +1,4 @@
-"""
-Communication types and protocols for the Keyboard Maestro MCP macro engine.
+"""Communication types and protocols for the Keyboard Maestro MCP macro engine.
 
 This module defines comprehensive communication capabilities including email, SMS,
 and messaging with type-safe validation and security boundaries.
@@ -259,13 +258,13 @@ class MessageTemplate:
                 field_name="template_variables",
                 value=str(e),
                 constraint="all template variables must be provided",
-            )
+            ) from e
         except Exception as e:
             raise ValidationError(
                 field_name="template",
                 value=str(e),
                 constraint="template must be valid and renderable",
-            )
+            ) from e
 
     def _contains_injection_patterns(self, value: str) -> bool:
         """Check for potential injection patterns in variable values."""
@@ -425,8 +424,7 @@ class CommunicationResult:
 
         if self.was_successful():
             return f"{type_name} sent successfully to {recipient_count} recipient(s)"
-        else:
-            return f"{type_name} failed: {self.error_details or 'Unknown error'}"
+        return f"{type_name} failed: {self.error_details or 'Unknown error'}"
 
 
 # Required permissions for communication operations

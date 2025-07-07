@@ -1,11 +1,13 @@
-"""
-Comprehensive test suite for zero trust security tools using systematic MCP tool test pattern.
+"""Comprehensive test suite for zero trust security tools using systematic MCP tool test pattern.
 
 Tests the complete zero trust security functionality including trust validation, security policy
 enforcement, security posture monitoring, and access control management capabilities.
 Tests follow the proven systematic pattern that achieved 100% success across 36+ tool suites.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import Mock
 
@@ -125,7 +127,7 @@ async def mock_km_validate_trust(
                 ],
                 "anomalies_detected": 0,
                 "last_verified": datetime.now(UTC).isoformat(),
-            }
+            },
         )
 
     # Threat modeling results
@@ -737,12 +739,12 @@ class TestKMValidateTrust:
     """Test class for zero trust validation functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_validate_trust_comprehensive(self, mock_context):
+    async def test_validate_trust_comprehensive(self, mock_context) -> None:
         """Test comprehensive zero trust validation."""
         trust_subjects = [
             "user_identity",
@@ -768,7 +770,7 @@ class TestKMValidateTrust:
         assert len(validation["validation_results"]) == 4
 
     @pytest.mark.asyncio
-    async def test_validate_trust_with_threat_modeling(self, mock_context):
+    async def test_validate_trust_with_threat_modeling(self, mock_context) -> None:
         """Test zero trust validation with threat modeling."""
         result = await mock_km_validate_trust(
             validation_scope="network",
@@ -786,7 +788,7 @@ class TestKMValidateTrust:
         assert validation["trust_scores"]["behavioral_trust"] is not None
 
     @pytest.mark.asyncio
-    async def test_validate_trust_compliance_frameworks(self, mock_context):
+    async def test_validate_trust_compliance_frameworks(self, mock_context) -> None:
         """Test zero trust validation with specific compliance frameworks."""
         frameworks = ["SOC2", "NIST_CSF"]
         result = await mock_km_validate_trust(
@@ -804,10 +806,11 @@ class TestKMValidateTrust:
         assert len(compliance["compliance_gaps"]) == 2
 
     @pytest.mark.asyncio
-    async def test_validate_trust_invalid_scope(self, mock_context):
+    async def test_validate_trust_invalid_scope(self, mock_context) -> None:
         """Test zero trust validation with invalid scope."""
         result = await mock_km_validate_trust(
-            validation_scope="invalid_scope", ctx=mock_context
+            validation_scope="invalid_scope",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -815,7 +818,7 @@ class TestKMValidateTrust:
         assert "Invalid validation scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_validate_trust_invalid_level(self, mock_context):
+    async def test_validate_trust_invalid_level(self, mock_context) -> None:
         """Test zero trust validation with invalid level."""
         result = await mock_km_validate_trust(
             validation_scope="comprehensive",
@@ -828,7 +831,7 @@ class TestKMValidateTrust:
         assert "Invalid validation level" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_validate_trust_continuous_validation(self, mock_context):
+    async def test_validate_trust_continuous_validation(self, mock_context) -> None:
         """Test zero trust validation with continuous validation enabled."""
         result = await mock_km_validate_trust(
             validation_scope="device",
@@ -848,12 +851,12 @@ class TestKMEnforceSecurityPolicy:
     """Test class for security policy enforcement functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_enforce_security_policy_monitor(self, mock_context):
+    async def test_enforce_security_policy_monitor(self, mock_context) -> None:
         """Test security policy enforcement in monitor mode."""
         policies = ["access_control", "data_protection", "network_security"]
         result = await mock_km_enforce_security_policy(
@@ -873,7 +876,7 @@ class TestKMEnforceSecurityPolicy:
         assert len(enforcement["policy_violations"]) == 2
 
     @pytest.mark.asyncio
-    async def test_enforce_security_policy_with_remediation(self, mock_context):
+    async def test_enforce_security_policy_with_remediation(self, mock_context) -> None:
         """Test security policy enforcement with auto-remediation."""
         result = await mock_km_enforce_security_policy(
             policy_enforcement="block",
@@ -893,7 +896,7 @@ class TestKMEnforceSecurityPolicy:
         assert enforcement["enforcement_summary"]["blocked_attempts"] == 3
 
     @pytest.mark.asyncio
-    async def test_enforce_security_policy_compliance_validation(self, mock_context):
+    async def test_enforce_security_policy_compliance_validation(self, mock_context) -> None:
         """Test security policy enforcement with compliance validation."""
         result = await mock_km_enforce_security_policy(
             policy_enforcement="enforce",
@@ -912,10 +915,11 @@ class TestKMEnforceSecurityPolicy:
         assert framework_compliance["SOC2"] == "compliant"
 
     @pytest.mark.asyncio
-    async def test_enforce_security_policy_invalid_action(self, mock_context):
+    async def test_enforce_security_policy_invalid_action(self, mock_context) -> None:
         """Test security policy enforcement with invalid action."""
         result = await mock_km_enforce_security_policy(
-            policy_enforcement="invalid_action", ctx=mock_context
+            policy_enforcement="invalid_action",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -923,7 +927,7 @@ class TestKMEnforceSecurityPolicy:
         assert "Invalid policy enforcement action" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_enforce_security_policy_invalid_scope(self, mock_context):
+    async def test_enforce_security_policy_invalid_scope(self, mock_context) -> None:
         """Test security policy enforcement with invalid scope."""
         result = await mock_km_enforce_security_policy(
             policy_enforcement="monitor",
@@ -936,7 +940,7 @@ class TestKMEnforceSecurityPolicy:
         assert "Invalid enforcement scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_enforce_security_policy_quarantine_mode(self, mock_context):
+    async def test_enforce_security_policy_quarantine_mode(self, mock_context) -> None:
         """Test security policy enforcement in quarantine mode."""
         result = await mock_km_enforce_security_policy(
             policy_enforcement="quarantine",
@@ -959,12 +963,12 @@ class TestKMMonitorSecurityPosture:
     """Test class for security posture monitoring functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_monitor_security_posture_comprehensive(self, mock_context):
+    async def test_monitor_security_posture_comprehensive(self, mock_context) -> None:
         """Test comprehensive security posture monitoring."""
         metrics = ["threat_detection", "vulnerability_assessment", "compliance_status"]
         result = await mock_km_monitor_security_posture(
@@ -985,8 +989,9 @@ class TestKMMonitorSecurityPosture:
 
     @pytest.mark.asyncio
     async def test_monitor_security_posture_with_threat_intelligence(
-        self, mock_context
-    ):
+        self,
+        mock_context,
+    ) -> None:
         """Test security posture monitoring with threat intelligence."""
         result = await mock_km_monitor_security_posture(
             monitoring_scope="network",
@@ -1004,7 +1009,7 @@ class TestKMMonitorSecurityPosture:
         assert threat_intel["intelligence_freshness"] == "real-time"
 
     @pytest.mark.asyncio
-    async def test_monitor_security_posture_anomaly_detection(self, mock_context):
+    async def test_monitor_security_posture_anomaly_detection(self, mock_context) -> None:
         """Test security posture monitoring with anomaly detection."""
         result = await mock_km_monitor_security_posture(
             monitoring_scope="endpoint",
@@ -1024,7 +1029,7 @@ class TestKMMonitorSecurityPosture:
         assert "+5.2%" in baseline["current_vs_baseline"]["security_score_change"]
 
     @pytest.mark.asyncio
-    async def test_monitor_security_posture_detailed_metrics(self, mock_context):
+    async def test_monitor_security_posture_detailed_metrics(self, mock_context) -> None:
         """Test security posture monitoring with detailed metrics analysis."""
         result = await mock_km_monitor_security_posture(
             monitoring_scope="application",
@@ -1055,10 +1060,11 @@ class TestKMMonitorSecurityPosture:
         assert compliance["audit_readiness"] == "high"
 
     @pytest.mark.asyncio
-    async def test_monitor_security_posture_invalid_scope(self, mock_context):
+    async def test_monitor_security_posture_invalid_scope(self, mock_context) -> None:
         """Test security posture monitoring with invalid scope."""
         result = await mock_km_monitor_security_posture(
-            monitoring_scope="invalid_scope", ctx=mock_context
+            monitoring_scope="invalid_scope",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1066,7 +1072,7 @@ class TestKMMonitorSecurityPosture:
         assert "Invalid monitoring scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_monitor_security_posture_invalid_duration(self, mock_context):
+    async def test_monitor_security_posture_invalid_duration(self, mock_context) -> None:
         """Test security posture monitoring with invalid duration."""
         result = await mock_km_monitor_security_posture(
             monitoring_scope="comprehensive",
@@ -1082,7 +1088,7 @@ class TestKMMonitorSecurityPosture:
         )
 
     @pytest.mark.asyncio
-    async def test_monitor_security_posture_invalid_format(self, mock_context):
+    async def test_monitor_security_posture_invalid_format(self, mock_context) -> None:
         """Test security posture monitoring with invalid reporting format."""
         result = await mock_km_monitor_security_posture(
             monitoring_scope="comprehensive",
@@ -1099,12 +1105,12 @@ class TestKMManageAccessControl:
     """Test class for access control management functionality."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_manage_access_control_validate(self, mock_context):
+    async def test_manage_access_control_validate(self, mock_context) -> None:
         """Test access control validation operation."""
         access_requests = [
             {"user_id": "user123", "resource": "database", "action": "read"},
@@ -1127,7 +1133,7 @@ class TestKMManageAccessControl:
         assert decisions[0]["confidence_score"] == 94.2
 
     @pytest.mark.asyncio
-    async def test_manage_access_control_with_risk_assessment(self, mock_context):
+    async def test_manage_access_control_with_risk_assessment(self, mock_context) -> None:
         """Test access control management with risk assessment."""
         result = await mock_km_manage_access_control(
             access_operation="grant",
@@ -1150,7 +1156,7 @@ class TestKMManageAccessControl:
             assert context["device_trust"] == "high"
 
     @pytest.mark.asyncio
-    async def test_manage_access_control_session_management(self, mock_context):
+    async def test_manage_access_control_session_management(self, mock_context) -> None:
         """Test access control with session management."""
         result = await mock_km_manage_access_control(
             access_operation="monitor",
@@ -1173,7 +1179,7 @@ class TestKMManageAccessControl:
         assert audit["real_time_monitoring"] is True
 
     @pytest.mark.asyncio
-    async def test_manage_access_control_emergency_access(self, mock_context):
+    async def test_manage_access_control_emergency_access(self, mock_context) -> None:
         """Test access control with emergency access procedures."""
         result = await mock_km_manage_access_control(
             access_operation="configure",
@@ -1191,10 +1197,11 @@ class TestKMManageAccessControl:
         assert emergency["emergency_approvers"] == 3
 
     @pytest.mark.asyncio
-    async def test_manage_access_control_invalid_operation(self, mock_context):
+    async def test_manage_access_control_invalid_operation(self, mock_context) -> None:
         """Test access control management with invalid operation."""
         result = await mock_km_manage_access_control(
-            access_operation="invalid_operation", ctx=mock_context
+            access_operation="invalid_operation",
+            ctx=mock_context,
         )
 
         assert result["success"] is False
@@ -1202,7 +1209,7 @@ class TestKMManageAccessControl:
         assert "Invalid access operation" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_manage_access_control_revoke_operation(self, mock_context):
+    async def test_manage_access_control_revoke_operation(self, mock_context) -> None:
         """Test access control revoke operation."""
         result = await mock_km_manage_access_control(
             access_operation="revoke",
@@ -1224,12 +1231,12 @@ class TestZeroTrustSecurityIntegration:
     """Test class for zero trust security integration workflows."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_complete_zero_trust_workflow(self, mock_context):
+    async def test_complete_zero_trust_workflow(self, mock_context) -> None:
         """Test complete zero trust security workflow integration."""
         # Step 1: Trust validation
         validation_result = await mock_km_validate_trust(
@@ -1240,7 +1247,9 @@ class TestZeroTrustSecurityIntegration:
 
         # Step 2: Policy enforcement
         enforcement_result = await mock_km_enforce_security_policy(
-            policy_enforcement="monitor", enforcement_scope="global", ctx=mock_context
+            policy_enforcement="monitor",
+            enforcement_scope="global",
+            ctx=mock_context,
         )
 
         # Step 3: Security monitoring
@@ -1252,7 +1261,9 @@ class TestZeroTrustSecurityIntegration:
 
         # Step 4: Access control
         access_result = await mock_km_manage_access_control(
-            access_operation="validate", risk_assessment=True, ctx=mock_context
+            access_operation="validate",
+            risk_assessment=True,
+            ctx=mock_context,
         )
 
         # Verify all operations succeeded
@@ -1277,18 +1288,20 @@ class TestZeroTrustSecurityProperties:
     """Test class for zero trust security property-based testing."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> Any:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_validation_scope_consistency(self, mock_context):
+    async def test_validation_scope_consistency(self, mock_context) -> None:
         """Test zero trust validation consistency across different scopes."""
         scopes = ["comprehensive", "identity", "device", "network"]
 
         for scope in scopes:
             result = await mock_km_validate_trust(
-                validation_scope=scope, validation_level="standard", ctx=mock_context
+                validation_scope=scope,
+                validation_level="standard",
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -1297,13 +1310,15 @@ class TestZeroTrustSecurityProperties:
             assert "validation_results" in result["trust_validation"]
 
     @pytest.mark.asyncio
-    async def test_enforcement_action_behavior(self, mock_context):
+    async def test_enforcement_action_behavior(self, mock_context) -> None:
         """Test policy enforcement behavior across different actions."""
         actions = ["monitor", "enforce", "block", "quarantine"]
 
         for action in actions:
             result = await mock_km_enforce_security_policy(
-                policy_enforcement=action, enforcement_scope="global", ctx=mock_context
+                policy_enforcement=action,
+                enforcement_scope="global",
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -1316,13 +1331,15 @@ class TestZeroTrustSecurityProperties:
                 assert summary["quarantined_items"] > 0
 
     @pytest.mark.asyncio
-    async def test_monitoring_scope_coverage(self, mock_context):
+    async def test_monitoring_scope_coverage(self, mock_context) -> None:
         """Test security monitoring coverage across different scopes."""
         scopes = ["comprehensive", "network", "endpoint", "application"]
 
         for scope in scopes:
             result = await mock_km_monitor_security_posture(
-                monitoring_scope=scope, monitoring_duration=3600, ctx=mock_context
+                monitoring_scope=scope,
+                monitoring_duration=3600,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -1331,13 +1348,15 @@ class TestZeroTrustSecurityProperties:
             assert "detailed_metrics" in result["security_monitoring"]
 
     @pytest.mark.asyncio
-    async def test_access_operation_consistency(self, mock_context):
+    async def test_access_operation_consistency(self, mock_context) -> None:
         """Test access control consistency across different operations."""
         operations = ["validate", "grant", "deny", "audit"]
 
         for operation in operations:
             result = await mock_km_manage_access_control(
-                access_operation=operation, identity_verification=True, ctx=mock_context
+                access_operation=operation,
+                identity_verification=True,
+                ctx=mock_context,
             )
 
             assert result["success"] is True
@@ -1346,7 +1365,7 @@ class TestZeroTrustSecurityProperties:
             assert "security_metrics" in result
 
     @pytest.mark.asyncio
-    async def test_security_feature_combinations(self, mock_context):
+    async def test_security_feature_combinations(self, mock_context) -> None:
         """Test combinations of security features work together."""
         feature_combinations = [
             {"threat_intelligence": True, "anomaly_detection": True},

@@ -1,10 +1,12 @@
-"""
-Basic coverage tests for high-impact server tools.
+"""Basic coverage tests for high-impact server tools.
 
 This test file provides basic coverage for tools that currently have 0% coverage
 to improve overall test coverage metrics.
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 from unittest.mock import Mock
 
 import pytest
@@ -13,7 +15,7 @@ import pytest
 class TestBasicToolsCoverage:
     """Basic coverage tests for core server tools."""
 
-    def test_calculator_tools_import(self):
+    def test_calculator_tools_import(self) -> None:
         """Test that calculator tools can be imported."""
         try:
             from src.server.tools.calculator_tools import km_calculate_expression
@@ -22,7 +24,7 @@ class TestBasicToolsCoverage:
         except ImportError:
             pytest.skip("Calculator tools not available")
 
-    def test_clipboard_tools_import(self):
+    def test_clipboard_tools_import(self) -> None:
         """Test that clipboard tools can be imported."""
         try:
             from src.server.tools.clipboard_tools import ClipboardTools
@@ -31,7 +33,7 @@ class TestBasicToolsCoverage:
         except ImportError:
             pytest.skip("Clipboard tools not available")
 
-    def test_app_control_tools_import(self):
+    def test_app_control_tools_import(self) -> None:
         """Test that app control tools can be imported."""
         try:
             from src.server.tools.app_control_tools import AppControlTools
@@ -40,7 +42,7 @@ class TestBasicToolsCoverage:
         except ImportError:
             pytest.skip("App control tools not available")
 
-    def test_window_tools_import(self):
+    def test_window_tools_import(self) -> None:
         """Test that window tools can be imported."""
         try:
             from src.server.tools.window_tools import WindowTools
@@ -49,7 +51,7 @@ class TestBasicToolsCoverage:
         except ImportError:
             pytest.skip("Window tools not available")
 
-    def test_notification_tools_import(self):
+    def test_notification_tools_import(self) -> None:
         """Test that notification tools can be imported."""
         try:
             from src.server.tools.notification_tools import NotificationTools
@@ -58,7 +60,7 @@ class TestBasicToolsCoverage:
         except ImportError:
             pytest.skip("Notification tools not available")
 
-    def test_condition_tools_import(self):
+    def test_condition_tools_import(self) -> None:
         """Test that condition tools can be imported."""
         try:
             from src.server.tools.condition_tools import ConditionTools
@@ -67,7 +69,7 @@ class TestBasicToolsCoverage:
         except ImportError:
             pytest.skip("Condition tools not available")
 
-    def test_control_flow_tools_import(self):
+    def test_control_flow_tools_import(self) -> None:
         """Test that control flow tools can be imported."""
         try:
             from src.server.tools.control_flow_tools import ControlFlowTools
@@ -76,7 +78,7 @@ class TestBasicToolsCoverage:
         except ImportError:
             pytest.skip("Control flow tools not available")
 
-    def test_dictionary_tools_import(self):
+    def test_dictionary_tools_import(self) -> None:
         """Test that dictionary tools can be imported."""
         try:
             from src.server.tools.dictionary_tools import DictionaryTools
@@ -85,7 +87,7 @@ class TestBasicToolsCoverage:
         except ImportError:
             pytest.skip("Dictionary tools not available")
 
-    def test_engine_tools_import(self):
+    def test_engine_tools_import(self) -> None:
         """Test that engine tools can be imported."""
         try:
             from src.server.tools.engine_tools import EngineTools
@@ -94,7 +96,7 @@ class TestBasicToolsCoverage:
         except ImportError:
             pytest.skip("Engine tools not available")
 
-    def test_search_tools_import(self):
+    def test_search_tools_import(self) -> None:
         """Test that search tools can be imported."""
         try:
             from src.server.tools.search_tools import SearchTools
@@ -103,7 +105,7 @@ class TestBasicToolsCoverage:
         except ImportError:
             pytest.skip("Search tools not available")
 
-    def test_sync_tools_import(self):
+    def test_sync_tools_import(self) -> None:
         """Test that sync tools can be imported."""
         try:
             from src.server.tools.sync_tools import SyncTools
@@ -112,7 +114,7 @@ class TestBasicToolsCoverage:
         except ImportError:
             pytest.skip("Sync tools not available")
 
-    def test_property_tools_import(self):
+    def test_property_tools_import(self) -> None:
         """Test that property tools can be imported."""
         try:
             from src.server.tools.property_tools import PropertyTools
@@ -126,13 +128,13 @@ class TestFastMCPIntegration:
     """Test basic FastMCP integration for tools."""
 
     @pytest.fixture
-    def mock_fastmcp(self):
+    def mock_fastmcp(self) -> Any:
         """Create a mock FastMCP instance."""
         mcp = Mock()
         mcp.tool = Mock(return_value=lambda func: func)
         return mcp
 
-    def test_calculator_tools_registration(self, mock_fastmcp):
+    def test_calculator_tools_registration(self, mock_fastmcp) -> None:
         """Test calculator tools can register with FastMCP."""
         try:
             from src.server.tools.calculator_tools import km_calculator
@@ -142,7 +144,7 @@ class TestFastMCPIntegration:
         except ImportError:
             pytest.skip("Calculator tools not available")
 
-    def test_core_tools_registration(self, mock_fastmcp):
+    def test_core_tools_registration(self, mock_fastmcp) -> None:
         """Test core tools can register with FastMCP."""
         try:
             from src.server.tools.core_tools import CoreTools
@@ -153,7 +155,7 @@ class TestFastMCPIntegration:
         except ImportError:
             pytest.skip("Core tools not available")
 
-    def test_action_tools_registration(self, mock_fastmcp):
+    def test_action_tools_registration(self, mock_fastmcp) -> None:
         """Test action tools can register with FastMCP."""
         try:
             from src.server.tools.action_tools import ActionTools
@@ -169,7 +171,7 @@ class TestToolBasicFunctionality:
     """Test basic functionality of individual tools."""
 
     @pytest.mark.asyncio
-    async def test_calculator_basic_operation(self):
+    async def test_calculator_basic_operation(self) -> None:
         """Test basic calculator operation."""
         try:
             from src.server.tools.calculator_tools import km_calculate_expression
@@ -181,7 +183,7 @@ class TestToolBasicFunctionality:
         except (ImportError, Exception):
             pytest.skip("Calculator not available or setup required")
 
-    def test_notification_tools_basic_creation(self):
+    def test_notification_tools_basic_creation(self) -> None:
         """Test notification tools basic creation."""
         try:
             from src.server.tools.notification_tools import NotificationTools
@@ -191,7 +193,7 @@ class TestToolBasicFunctionality:
         except (ImportError, Exception):
             pytest.skip("Notification tools not available")
 
-    def test_window_tools_basic_creation(self):
+    def test_window_tools_basic_creation(self) -> None:
         """Test window tools basic creation."""
         try:
             from src.server.tools.window_tools import WindowTools
@@ -201,7 +203,7 @@ class TestToolBasicFunctionality:
         except (ImportError, Exception):
             pytest.skip("Window tools not available")
 
-    def test_app_control_basic_creation(self):
+    def test_app_control_basic_creation(self) -> None:
         """Test app control tools basic creation."""
         try:
             from src.server.tools.app_control_tools import AppControlTools
@@ -211,7 +213,7 @@ class TestToolBasicFunctionality:
         except (ImportError, Exception):
             pytest.skip("App control tools not available")
 
-    def test_clipboard_basic_creation(self):
+    def test_clipboard_basic_creation(self) -> None:
         """Test clipboard tools basic creation."""
         try:
             from src.server.tools.clipboard_tools import ClipboardTools

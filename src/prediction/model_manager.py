@@ -1,5 +1,4 @@
-"""
-Predictive model management system with ML-powered pattern recognition and forecasting.
+"""Predictive model management system with ML-powered pattern recognition and forecasting.
 
 This module provides comprehensive ML model management for predictive automation,
 including model lifecycle management, training coordination, and inference orchestration.
@@ -60,19 +59,25 @@ class PredictiveModelError(Exception):
 
     @classmethod
     def training_failed(
-        cls, model_id: PredictiveModelId, reason: str
+        cls,
+        model_id: PredictiveModelId,
+        reason: str,
     ) -> "PredictiveModelError":
         return cls("training_failed", f"Model training failed for {model_id}: {reason}")
 
     @classmethod
     def prediction_failed(
-        cls, request_id: PredictionRequestId, reason: str
+        cls,
+        request_id: PredictionRequestId,
+        reason: str,
     ) -> "PredictiveModelError":
         return cls("prediction_failed", f"Prediction failed for {request_id}: {reason}")
 
     @classmethod
     def model_incompatible(
-        cls, model_id: PredictiveModelId, prediction_type: PredictionType
+        cls,
+        model_id: PredictiveModelId,
+        prediction_type: PredictionType,
     ) -> "PredictiveModelError":
         return cls(
             "model_incompatible",
@@ -197,7 +202,7 @@ class PredictiveModelManager:
             await self.register_model(resource_model)
 
             self.logger.info(
-                f"Initialized {len(self.registered_models)} default predictive models"
+                f"Initialized {len(self.registered_models)} default predictive models",
             )
 
         except Exception as e:
@@ -205,14 +210,15 @@ class PredictiveModelManager:
 
     @require(lambda model: model is not None)
     async def register_model(
-        self, model: PredictiveModel
+        self,
+        model: PredictiveModel,
     ) -> Either[PredictiveModelError, None]:
         """Register a new predictive model."""
         try:
             # Validate model configuration
             if model.model_id in self.registered_models:
                 self.logger.warning(
-                    f"Model {model.model_id} already registered, updating..."
+                    f"Model {model.model_id} already registered, updating...",
                 )
 
             # Create ML model instance based on type
@@ -235,17 +241,18 @@ class PredictiveModelManager:
             await self._save_model_to_storage(model)
 
             self.logger.info(
-                f"Registered predictive model: {model.name} ({model.model_id})"
+                f"Registered predictive model: {model.name} ({model.model_id})",
             )
             return Either.right(None)
 
         except Exception as e:
             return Either.left(
-                PredictiveModelError.training_failed(model.model_id, str(e))
+                PredictiveModelError.training_failed(model.model_id, str(e)),
             )
 
     async def _create_ml_model_instance(
-        self, model: PredictiveModel
+        self,
+        model: PredictiveModel,
     ) -> Either[PredictiveModelError, MLModel]:
         """Create ML model instance based on model type."""
         try:
@@ -270,8 +277,9 @@ class PredictiveModelManager:
         except Exception as e:
             return Either.left(
                 PredictiveModelError.training_failed(
-                    model.model_id, f"Failed to create ML instance: {e}"
-                )
+                    model.model_id,
+                    f"Failed to create ML instance: {e}",
+                ),
             )
 
     async def _save_model_to_storage(self, model: PredictiveModel) -> None:
@@ -319,7 +327,7 @@ class PredictiveModelManager:
                         version=model_data["version"],
                         accuracy_score=AccuracyScore(model_data["accuracy_score"]),
                         confidence_threshold=ConfidenceLevel(
-                            model_data["confidence_threshold"]
+                            model_data["confidence_threshold"],
                         ),
                         last_trained=datetime.fromisoformat(model_data["last_trained"]),
                         training_data_size=model_data["training_data_size"],
@@ -363,8 +371,9 @@ class PredictiveModelManager:
             if not suitable_models:
                 return Either.left(
                     PredictiveModelError.model_incompatible(
-                        PredictiveModelId("unknown"), prediction_type
-                    )
+                        PredictiveModelId("unknown"),
+                        prediction_type,
+                    ),
                 )
 
             # Apply confidence threshold filter
@@ -380,7 +389,7 @@ class PredictiveModelManager:
                     PredictiveModelError(
                         "insufficient_confidence",
                         f"No models meet confidence requirement for {prediction_type.value}",
-                    )
+                    ),
                 )
 
             # Score models based on performance and priority
@@ -393,7 +402,8 @@ class PredictiveModelManager:
 
                 # Boost score based on historical performance
                 success_rate = performance.get("successful_predictions", 0) / max(
-                    performance.get("predictions_made", 1), 1
+                    performance.get("predictions_made", 1),
+                    1,
                 )
                 score += success_rate * 0.2
 
@@ -415,20 +425,22 @@ class PredictiveModelManager:
             best_model = max(scored_models, key=lambda x: x[0])[1]
 
             self.logger.debug(
-                f"Selected model {best_model.name} for {prediction_type.value}"
+                f"Selected model {best_model.name} for {prediction_type.value}",
             )
             return Either.right(best_model)
 
         except Exception as e:
             return Either.left(
                 PredictiveModelError(
-                    "model_selection_failed", f"Model selection failed: {e}"
-                )
+                    "model_selection_failed",
+                    f"Model selection failed: {e}",
+                ),
             )
 
     @require(lambda request: request is not None)
     async def make_prediction(
-        self, request: PredictionRequest
+        self,
+        request: PredictionRequest,
     ) -> Either[PredictiveModelError, dict[str, Any]]:
         """Make a prediction using the specified model."""
         try:
@@ -437,15 +449,16 @@ class PredictiveModelManager:
             # Validate model exists and is compatible
             if request.model_id not in self.registered_models:
                 return Either.left(
-                    PredictiveModelError.model_not_found(request.model_id)
+                    PredictiveModelError.model_not_found(request.model_id),
                 )
 
             model = self.registered_models[request.model_id]
             if request.prediction_type not in model.supported_prediction_types:
                 return Either.left(
                     PredictiveModelError.model_incompatible(
-                        request.model_id, request.prediction_type
-                    )
+                        request.model_id,
+                        request.prediction_type,
+                    ),
                 )
 
             # Track active prediction
@@ -483,13 +496,14 @@ class PredictiveModelManager:
                     "created_at": datetime.now(UTC).isoformat(),
                     "confidence_level": request.confidence_level,
                     "forecast_horizon": request.forecast_horizon.total_seconds(),
-                }
+                },
             )
 
             # Update performance tracking
             self.successful_predictions += 1
             self._update_model_performance(
-                request.model_id, result_data.get("confidence", 0.5)
+                request.model_id,
+                result_data.get("confidence", 0.5),
             )
 
             # Clean up active prediction
@@ -504,7 +518,7 @@ class PredictiveModelManager:
                 self.active_predictions[request.request_id]["status"] = "error"
 
             return Either.left(
-                PredictiveModelError.prediction_failed(request.request_id, str(e))
+                PredictiveModelError.prediction_failed(request.request_id, str(e)),
             )
 
     async def _execute_prediction(
@@ -518,38 +532,45 @@ class PredictiveModelManager:
         try:
             if prediction_type == PredictionType.PERFORMANCE:
                 return await self._predict_performance(
-                    ml_model, input_data, forecast_horizon
+                    ml_model,
+                    input_data,
+                    forecast_horizon,
                 )
-            elif prediction_type == PredictionType.RESOURCE_USAGE:
+            if prediction_type == PredictionType.RESOURCE_USAGE:
                 return await self._predict_resource_usage(
-                    ml_model, input_data, forecast_horizon
+                    ml_model,
+                    input_data,
+                    forecast_horizon,
                 )
-            elif prediction_type == PredictionType.ANOMALY_DETECTION:
+            if prediction_type == PredictionType.ANOMALY_DETECTION:
                 return await self._predict_anomalies(ml_model, input_data)
-            elif prediction_type == PredictionType.USAGE_PATTERNS:
+            if prediction_type == PredictionType.USAGE_PATTERNS:
                 return await self._predict_usage_patterns(ml_model, input_data)
-            elif prediction_type == PredictionType.WORKFLOW_OPTIMIZATION:
+            if prediction_type == PredictionType.WORKFLOW_OPTIMIZATION:
                 return await self._predict_workflow_optimization(ml_model, input_data)
-            else:
-                # Generic prediction
-                prediction, confidence = await ml_model.predict(input_data)
-                return Either.right(
-                    {
-                        "prediction": prediction,
-                        "confidence": confidence,
-                        "prediction_type": prediction_type.value,
-                    }
-                )
+            # Generic prediction
+            prediction, confidence = await ml_model.predict(input_data)
+            return Either.right(
+                {
+                    "prediction": prediction,
+                    "confidence": confidence,
+                    "prediction_type": prediction_type.value,
+                },
+            )
 
         except Exception as e:
             return Either.left(
                 PredictiveModelError(
-                    "prediction_execution_failed", f"Prediction execution failed: {e}"
-                )
+                    "prediction_execution_failed",
+                    f"Prediction execution failed: {e}",
+                ),
             )
 
     async def _predict_performance(
-        self, ml_model: MLModel, input_data: dict[str, Any], horizon: timedelta
+        self,
+        ml_model: MLModel,
+        input_data: dict[str, Any],
+        horizon: timedelta,
     ) -> Either[PredictiveModelError, dict[str, Any]]:
         """Execute performance prediction."""
         try:
@@ -566,28 +587,30 @@ class PredictiveModelManager:
                         "confidence": forecast.get("model_confidence", 0.75),
                         "horizon_days": horizon.days,
                         "performance_trends": self._extract_performance_trends(
-                            forecast
+                            forecast,
                         ),
-                    }
+                    },
                 )
-            else:
-                # Fallback to generic prediction
-                prediction, confidence = await ml_model.predict(input_data)
-                return Either.right(
-                    {
-                        "prediction_type": "performance",
-                        "prediction": prediction,
-                        "confidence": confidence,
-                    }
-                )
+            # Fallback to generic prediction
+            prediction, confidence = await ml_model.predict(input_data)
+            return Either.right(
+                {
+                    "prediction_type": "performance",
+                    "prediction": prediction,
+                    "confidence": confidence,
+                },
+            )
 
         except Exception as e:
             return Either.left(
-                PredictiveModelError("performance_prediction_failed", str(e))
+                PredictiveModelError("performance_prediction_failed", str(e)),
             )
 
     async def _predict_resource_usage(
-        self, ml_model: MLModel, input_data: dict[str, Any], horizon: timedelta
+        self,
+        ml_model: MLModel,
+        input_data: dict[str, Any],
+        horizon: timedelta,
     ) -> Either[PredictiveModelError, dict[str, Any]]:
         """Execute resource usage prediction."""
         try:
@@ -604,27 +627,28 @@ class PredictiveModelManager:
                         "predicted_usage": forecast.get("forecasts", {}),
                         "confidence": forecast.get("model_confidence", 0.75),
                         "capacity_recommendations": self._generate_capacity_recommendations(
-                            forecast
+                            forecast,
                         ),
-                    }
+                    },
                 )
-            else:
-                prediction, confidence = await ml_model.predict(input_data)
-                return Either.right(
-                    {
-                        "prediction_type": "resource_usage",
-                        "prediction": prediction,
-                        "confidence": confidence,
-                    }
-                )
+            prediction, confidence = await ml_model.predict(input_data)
+            return Either.right(
+                {
+                    "prediction_type": "resource_usage",
+                    "prediction": prediction,
+                    "confidence": confidence,
+                },
+            )
 
         except Exception as e:
             return Either.left(
-                PredictiveModelError("resource_prediction_failed", str(e))
+                PredictiveModelError("resource_prediction_failed", str(e)),
             )
 
     async def _predict_anomalies(
-        self, ml_model: MLModel, input_data: dict[str, Any]
+        self,
+        ml_model: MLModel,
+        input_data: dict[str, Any],
     ) -> Either[PredictiveModelError, dict[str, Any]]:
         """Execute anomaly detection prediction."""
         try:
@@ -639,25 +663,26 @@ class PredictiveModelManager:
                         "confidence": 0.9 if anomalies else 0.1,
                         "anomaly_count": len(anomalies),
                         "severity_breakdown": self._analyze_anomaly_severity(anomalies),
-                    }
+                    },
                 )
-            else:
-                prediction, confidence = await ml_model.predict(input_data)
-                return Either.right(
-                    {
-                        "prediction_type": "anomaly_detection",
-                        "prediction": prediction,
-                        "confidence": confidence,
-                    }
-                )
+            prediction, confidence = await ml_model.predict(input_data)
+            return Either.right(
+                {
+                    "prediction_type": "anomaly_detection",
+                    "prediction": prediction,
+                    "confidence": confidence,
+                },
+            )
 
         except Exception as e:
             return Either.left(
-                PredictiveModelError("anomaly_prediction_failed", str(e))
+                PredictiveModelError("anomaly_prediction_failed", str(e)),
             )
 
     async def _predict_usage_patterns(
-        self, ml_model: MLModel, input_data: dict[str, Any]
+        self,
+        ml_model: MLModel,
+        input_data: dict[str, Any],
     ) -> Either[PredictiveModelError, dict[str, Any]]:
         """Execute usage pattern prediction."""
         try:
@@ -672,25 +697,26 @@ class PredictiveModelManager:
                         "confidence": 0.8 if patterns else 0.2,
                         "pattern_count": len(patterns),
                         "pattern_summary": self._summarize_patterns(patterns),
-                    }
+                    },
                 )
-            else:
-                prediction, confidence = await ml_model.predict(input_data)
-                return Either.right(
-                    {
-                        "prediction_type": "usage_patterns",
-                        "prediction": prediction,
-                        "confidence": confidence,
-                    }
-                )
+            prediction, confidence = await ml_model.predict(input_data)
+            return Either.right(
+                {
+                    "prediction_type": "usage_patterns",
+                    "prediction": prediction,
+                    "confidence": confidence,
+                },
+            )
 
         except Exception as e:
             return Either.left(
-                PredictiveModelError("pattern_prediction_failed", str(e))
+                PredictiveModelError("pattern_prediction_failed", str(e)),
             )
 
     async def _predict_workflow_optimization(
-        self, ml_model: MLModel, input_data: dict[str, Any]
+        self,
+        ml_model: MLModel,
+        input_data: dict[str, Any],
     ) -> Either[PredictiveModelError, dict[str, Any]]:
         """Execute workflow optimization prediction."""
         try:
@@ -701,7 +727,8 @@ class PredictiveModelManager:
 
             # Generate optimization suggestions
             optimization_suggestions = self._generate_optimization_suggestions(
-                workflow_data, current_performance
+                workflow_data,
+                current_performance,
             )
 
             return Either.right(
@@ -712,12 +739,12 @@ class PredictiveModelManager:
                     "predicted_improvement": prediction,
                     "confidence": confidence,
                     "implementation_priority": "high" if confidence > 0.8 else "medium",
-                }
+                },
             )
 
         except Exception as e:
             return Either.left(
-                PredictiveModelError("optimization_prediction_failed", str(e))
+                PredictiveModelError("optimization_prediction_failed", str(e)),
             )
 
     def _extract_performance_trends(self, forecast: dict[str, Any]) -> list[str]:
@@ -740,7 +767,8 @@ class PredictiveModelManager:
         return recommendations
 
     def _analyze_anomaly_severity(
-        self, anomalies: list[dict[str, Any]]
+        self,
+        anomalies: list[dict[str, Any]],
     ) -> dict[str, int]:
         """Analyze severity breakdown of detected anomalies."""
         severity_counts = {"high": 0, "medium": 0, "low": 0}
@@ -768,7 +796,9 @@ class PredictiveModelManager:
         }
 
     def _generate_optimization_suggestions(
-        self, workflow_data: dict[str, Any], current_performance: float
+        self,
+        workflow_data: dict[str, Any],
+        current_performance: float,
     ) -> list[str]:
         """Generate workflow optimization suggestions."""
         suggestions = []
@@ -780,7 +810,7 @@ class PredictiveModelManager:
 
         if response_time > 1000:  # > 1 second
             suggestions.append(
-                "Optimize response time through caching or async processing"
+                "Optimize response time through caching or async processing",
             )
 
         if error_rate > 0.05:  # > 5% error rate
@@ -791,13 +821,15 @@ class PredictiveModelManager:
 
         if current_performance < 70:  # Low performance score
             suggestions.append(
-                "Review workflow design for bottlenecks and inefficiencies"
+                "Review workflow design for bottlenecks and inefficiencies",
             )
 
         return suggestions or ["Current workflow appears well-optimized"]
 
     def _update_model_performance(
-        self, model_id: PredictiveModelId, confidence: float
+        self,
+        model_id: PredictiveModelId,
+        confidence: float,
     ) -> None:
         """Update model performance statistics."""
         if model_id not in self.model_performance:
@@ -837,7 +869,7 @@ class PredictiveModelManager:
                         m
                         for m in self.registered_models.values()
                         if m.model_type == model_type
-                    ]
+                    ],
                 )
                 for model_type in ModelType
             },
@@ -878,7 +910,7 @@ class PredictiveModelManager:
                         pt.value for pt in model.supported_prediction_types
                     ],
                     "performance": performance,
-                }
+                },
             )
 
         return sorted(models, key=lambda x: x["name"])

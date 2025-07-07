@@ -1,5 +1,4 @@
-"""
-Edge Computing Processor Tests - TASK_65 Phase 4 Testing
+"""Edge Computing Processor Tests - TASK_65 Phase 4 Testing.
 
 Comprehensive test suite for IoT edge computing processor with distributed processing,
 task scheduling, cluster management, and performance optimization validation.
@@ -9,6 +8,9 @@ Performance: <50ms local processing, <100ms edge analytics, <200ms distributed c
 Security: Edge encryption, secure processing, local data protection, edge authentication
 """
 
+from __future__ import annotations
+
+from typing import Any, Optional
 import asyncio
 from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
@@ -28,7 +30,7 @@ from src.iot.edge_processor import (
 class TestEdgeComputeTask:
     """Test EdgeComputeTask data structure and methods."""
 
-    def test_edge_task_creation(self):
+    def test_edge_task_creation(self) -> None:
         """Test edge compute task creation with valid parameters."""
         task = EdgeComputeTask(
             task_id="test_task_001",
@@ -52,7 +54,7 @@ class TestEdgeComputeTask:
         assert task.retry_count == 0
         assert task.max_retries == 3
 
-    def test_task_expiration_check(self):
+    def test_task_expiration_check(self) -> None:
         """Test task expiration validation."""
         # Task without deadline should not be expired
         task = EdgeComputeTask(
@@ -76,7 +78,7 @@ class TestEdgeComputeTask:
         task.deadline = datetime.now(UTC) - timedelta(minutes=1)
         assert task.is_expired()
 
-    def test_task_retry_logic(self):
+    def test_task_retry_logic(self) -> None:
         """Test task retry capability."""
         task = EdgeComputeTask(
             task_id="test_task_003",
@@ -109,7 +111,7 @@ class TestEdgeComputeTask:
 class TestEdgeCluster:
     """Test EdgeCluster data structure and methods."""
 
-    def test_edge_cluster_creation(self):
+    def test_edge_cluster_creation(self) -> None:
         """Test edge cluster creation with valid configuration."""
         cluster = EdgeCluster(
             cluster_id="cluster_001",
@@ -133,7 +135,7 @@ class TestEdgeCluster:
         assert cluster.load_balancing_enabled is True
         assert cluster.auto_scaling_enabled is True
 
-    def test_cluster_capacity_check(self):
+    def test_cluster_capacity_check(self) -> None:
         """Test cluster capacity validation for tasks."""
         cluster = EdgeCluster(
             cluster_id="capacity_test",
@@ -178,7 +180,7 @@ class TestEdgeCluster:
 class TestEdgeProcessor:
     """Test EdgeProcessor main functionality."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Setup test fixtures."""
         self.processor = EdgeProcessor()
         self.test_cluster = create_edge_cluster("test_cluster", node_count=3)
@@ -190,7 +192,7 @@ class TestEdgeProcessor:
         )
 
     @pytest.mark.asyncio
-    async def test_register_edge_cluster_success(self):
+    async def test_register_edge_cluster_success(self) -> None:
         """Test successful edge cluster registration."""
         result = await self.processor.register_edge_cluster(self.test_cluster)
 
@@ -204,7 +206,7 @@ class TestEdgeProcessor:
         assert "test_cluster" in self.processor.edge_clusters
 
     @pytest.mark.asyncio
-    async def test_register_cluster_invalid_capacity(self):
+    async def test_register_cluster_invalid_capacity(self) -> None:
         """Test cluster registration with invalid capacity."""
         invalid_cluster = EdgeCluster(
             cluster_id="invalid_cluster",
@@ -223,7 +225,7 @@ class TestEdgeProcessor:
         assert "compute capacity must be positive" in str(result.error_value)
 
     @pytest.mark.asyncio
-    async def test_register_cluster_low_health(self):
+    async def test_register_cluster_low_health(self) -> None:
         """Test cluster registration with low health score."""
         unhealthy_cluster = EdgeCluster(
             cluster_id="unhealthy_cluster",
@@ -242,7 +244,7 @@ class TestEdgeProcessor:
         assert "health too low" in str(result.error_value)
 
     @pytest.mark.asyncio
-    async def test_submit_processing_task_success(self):
+    async def test_submit_processing_task_success(self) -> None:
         """Test successful task submission."""
         # Register cluster first
         await self.processor.register_edge_cluster(self.test_cluster)
@@ -260,11 +262,12 @@ class TestEdgeProcessor:
         assert len(self.processor.task_queue) == 1
 
     @pytest.mark.asyncio
-    async def test_submit_expired_task(self):
+    async def test_submit_expired_task(self) -> None:
         """Test submission of expired task."""
         # Create expired task
         expired_task = create_edge_task(
-            device_id="expired_device", task_name="Expired Task"
+            device_id="expired_device",
+            task_name="Expired Task",
         )
         expired_task.deadline = datetime.now(UTC) - timedelta(minutes=1)
 
@@ -274,7 +277,7 @@ class TestEdgeProcessor:
         assert "expired" in str(result.error_value)
 
     @pytest.mark.asyncio
-    async def test_submit_oversized_task(self):
+    async def test_submit_oversized_task(self) -> None:
         """Test submission of task with excessive data size."""
         oversized_task = create_edge_task(
             device_id="oversized_device",
@@ -288,7 +291,7 @@ class TestEdgeProcessor:
         assert "data size too large" in str(result.error_value)
 
     @pytest.mark.asyncio
-    async def test_submit_task_no_suitable_cluster(self):
+    async def test_submit_task_no_suitable_cluster(self) -> None:
         """Test task submission when no suitable cluster exists."""
         # Don't register any clusters
         result = await self.processor.submit_processing_task(self.test_task)
@@ -297,7 +300,7 @@ class TestEdgeProcessor:
         assert "No suitable edge cluster available" in str(result.error_value)
 
     @pytest.mark.asyncio
-    async def test_task_queue_processing(self):
+    async def test_task_queue_processing(self) -> None:
         """Test task queue processing with multiple tasks."""
         # Register cluster
         await self.processor.register_edge_cluster(self.test_cluster)
@@ -330,20 +333,26 @@ class TestEdgeProcessor:
         assert self.processor.total_tasks_processed == 3
 
     @pytest.mark.asyncio
-    async def test_priority_based_scheduling(self):
+    async def test_priority_based_scheduling(self) -> None:
         """Test that tasks are processed based on priority."""
         # Register cluster
         await self.processor.register_edge_cluster(self.test_cluster)
 
         # Submit tasks with different priorities
         low_priority_task = create_edge_task(
-            "device_low", "Low Priority", priority=EdgeTaskPriority.LOW
+            "device_low",
+            "Low Priority",
+            priority=EdgeTaskPriority.LOW,
         )
         high_priority_task = create_edge_task(
-            "device_high", "High Priority", priority=EdgeTaskPriority.HIGH
+            "device_high",
+            "High Priority",
+            priority=EdgeTaskPriority.HIGH,
         )
         critical_task = create_edge_task(
-            "device_critical", "Critical Task", priority=EdgeTaskPriority.CRITICAL
+            "device_critical",
+            "Critical Task",
+            priority=EdgeTaskPriority.CRITICAL,
         )
 
         # Submit in reverse priority order
@@ -357,7 +366,7 @@ class TestEdgeProcessor:
         assert self.processor.task_queue[2].priority == EdgeTaskPriority.LOW
 
     @pytest.mark.asyncio
-    async def test_task_retry_mechanism(self):
+    async def test_task_retry_mechanism(self) -> None:
         """Test task retry mechanism when no cluster is available."""
         # Submit task without registering cluster
         result = await self.processor.submit_processing_task(self.test_task)
@@ -381,7 +390,7 @@ class TestEdgeProcessor:
         assert results[0].success
 
     @pytest.mark.asyncio
-    async def test_different_processing_modes(self):
+    async def test_different_processing_modes(self) -> None:
         """Test different edge processing modes."""
         # Register cluster
         await self.processor.register_edge_cluster(self.test_cluster)
@@ -396,7 +405,9 @@ class TestEdgeProcessor:
 
         for mode in modes:
             task = create_edge_task(
-                f"device_{mode.value}", f"Task {mode.value}", processing_mode=mode
+                f"device_{mode.value}",
+                f"Task {mode.value}",
+                processing_mode=mode,
             )
 
             result = await self.processor.submit_processing_task(task)
@@ -414,7 +425,7 @@ class TestEdgeProcessor:
         assert all(result.success for result in results)
 
     @pytest.mark.asyncio
-    async def test_performance_metrics_tracking(self):
+    async def test_performance_metrics_tracking(self) -> None:
         """Test performance metrics tracking."""
         # Register cluster and submit task
         await self.processor.register_edge_cluster(self.test_cluster)
@@ -432,7 +443,7 @@ class TestEdgeProcessor:
         assert self.processor.cluster_utilization >= 0
 
     @pytest.mark.asyncio
-    async def test_get_processing_status(self):
+    async def test_get_processing_status(self) -> None:
         """Test processing status retrieval."""
         # Register cluster
         await self.processor.register_edge_cluster(self.test_cluster)
@@ -450,7 +461,7 @@ class TestEdgeProcessor:
         assert "test_cluster" in status["cluster_health"]
 
     @pytest.mark.asyncio
-    async def test_processing_result_structure(self):
+    async def test_processing_result_structure(self) -> None:
         """Test processing result data structure."""
         # Register cluster and submit task
         await self.processor.register_edge_cluster(self.test_cluster)
@@ -488,7 +499,7 @@ class TestEdgeProcessor:
 class TestEdgeProcessorHelpers:
     """Test helper functions for edge processing."""
 
-    def test_create_edge_task_helper(self):
+    def test_create_edge_task_helper(self) -> None:
         """Test create_edge_task helper function."""
         task = create_edge_task(
             device_id="helper_device",
@@ -509,7 +520,7 @@ class TestEdgeProcessorHelpers:
         assert task.required_memory == 4096
         assert task.task_id.startswith("task_")
 
-    def test_create_edge_cluster_helper(self):
+    def test_create_edge_cluster_helper(self) -> None:
         """Test create_edge_cluster helper function."""
         cluster = create_edge_cluster(
             cluster_id="helper_cluster",
@@ -532,13 +543,13 @@ class TestEdgeProcessorHelpers:
 class TestEdgeProcessorConcurrency:
     """Test edge processor concurrency and thread safety."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Setup test fixtures."""
         self.processor = EdgeProcessor()
         self.test_cluster = create_edge_cluster("concurrent_cluster", node_count=4)
 
     @pytest.mark.asyncio
-    async def test_concurrent_task_submission(self):
+    async def test_concurrent_task_submission(self) -> None:
         """Test concurrent task submission."""
         # Register cluster
         await self.processor.register_edge_cluster(self.test_cluster)
@@ -550,7 +561,7 @@ class TestEdgeProcessorConcurrency:
         ]
 
         submission_results = await asyncio.gather(
-            *[self.processor.submit_processing_task(task) for task in tasks]
+            *[self.processor.submit_processing_task(task) for task in tasks],
         )
 
         # All submissions should succeed
@@ -559,7 +570,7 @@ class TestEdgeProcessorConcurrency:
         assert len(self.processor.task_queue) == 10
 
     @pytest.mark.asyncio
-    async def test_concurrent_cluster_registration(self):
+    async def test_concurrent_cluster_registration(self) -> None:
         """Test concurrent cluster registration."""
         clusters = [
             create_edge_cluster(f"concurrent_cluster_{i}", node_count=2)
@@ -567,7 +578,7 @@ class TestEdgeProcessorConcurrency:
         ]
 
         registration_results = await asyncio.gather(
-            *[self.processor.register_edge_cluster(cluster) for cluster in clusters]
+            *[self.processor.register_edge_cluster(cluster) for cluster in clusters],
         )
 
         # All registrations should succeed
@@ -575,7 +586,7 @@ class TestEdgeProcessorConcurrency:
         assert len(self.processor.edge_clusters) == 5
 
     @pytest.mark.asyncio
-    async def test_concurrent_processing_and_submission(self):
+    async def test_concurrent_processing_and_submission(self) -> None:
         """Test concurrent processing and task submission."""
         # Register cluster
         await self.processor.register_edge_cluster(self.test_cluster)
@@ -613,7 +624,8 @@ class TestEdgeProcessorConcurrency:
 
         # Run both operations concurrently
         processing_results, submission_results = await asyncio.gather(
-            process_tasks(), submit_more_tasks()
+            process_tasks(),
+            submit_more_tasks(),
         )
 
         assert len(processing_results) == 5
@@ -625,12 +637,12 @@ class TestEdgeProcessorConcurrency:
 class TestEdgeProcessorErrorHandling:
     """Test comprehensive error handling in edge processor."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Setup test fixtures."""
         self.processor = EdgeProcessor()
 
     @pytest.mark.asyncio
-    async def test_exception_handling_in_processing(self):
+    async def test_exception_handling_in_processing(self) -> None:
         """Test exception handling during task processing."""
         # Register cluster
         cluster = create_edge_cluster("error_cluster")
@@ -641,7 +653,9 @@ class TestEdgeProcessorErrorHandling:
 
         # Mock processing method to raise exception
         with patch.object(
-            self.processor, "_execute_task", side_effect=Exception("Processing error")
+            self.processor,
+            "_execute_task",
+            side_effect=Exception("Processing error"),
         ):
             await self.processor.submit_processing_task(error_task)
 
@@ -656,7 +670,7 @@ class TestEdgeProcessorErrorHandling:
             assert "Processing error" in str(results[0].error_value)
 
     @pytest.mark.asyncio
-    async def test_invalid_cluster_parameters(self):
+    async def test_invalid_cluster_parameters(self) -> None:
         """Test handling of invalid cluster parameters."""
         # Test negative memory
         invalid_cluster = EdgeCluster(
@@ -675,7 +689,7 @@ class TestEdgeProcessorErrorHandling:
         assert "memory must be positive" in str(result.error_value)
 
     @pytest.mark.asyncio
-    async def test_edge_processor_resource_limits(self):
+    async def test_edge_processor_resource_limits(self) -> None:
         """Test edge processor resource limit handling."""
         # Register small cluster
         small_cluster = EdgeCluster(

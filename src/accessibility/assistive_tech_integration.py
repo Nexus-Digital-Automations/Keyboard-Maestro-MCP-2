@@ -1,5 +1,4 @@
-"""
-Assistive Technology Integration - TASK_57 Phase 2 Implementation
+"""Assistive Technology Integration - TASK_57 Phase 2 Implementation.
 
 Screen reader, voice control, and accessibility tool support for automation workflows.
 Provides comprehensive assistive technology integration and compatibility testing.
@@ -11,6 +10,7 @@ Security: Safe assistive tech integration, secure voice processing
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
@@ -30,6 +30,8 @@ from src.core.accessibility_architecture import (
 )
 from src.core.contracts import require
 from src.core.either import Either
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -100,7 +102,7 @@ class AssistiveTechIntegrationManager:
         self.capabilities: dict[AssistiveTechnology, list[AssistiveTechCapability]] = {}
         self._initialize_default_configurations()
 
-    def _initialize_default_configurations(self):
+    def _initialize_default_configurations(self) -> bool:
         """Initialize default assistive technology configurations."""
         # Screen Reader Capabilities
         self.capabilities[AssistiveTechnology.SCREEN_READER] = [
@@ -182,7 +184,7 @@ class AssistiveTechIntegrationManager:
         # Default Test Scenarios
         self._initialize_default_test_scenarios()
 
-    def _initialize_default_voice_commands(self):
+    def _initialize_default_voice_commands(self) -> bool:
         """Initialize default voice commands for automation."""
         voice_commands = [
             VoiceCommand(
@@ -211,7 +213,7 @@ class AssistiveTechIntegrationManager:
         for command in voice_commands:
             self.voice_commands[command.command_id] = command
 
-    def _initialize_default_test_scenarios(self):
+    def _initialize_default_test_scenarios(self) -> bool:
         """Initialize default assistive technology test scenarios."""
         scenarios = [
             AssistiveTechTestScenario(
@@ -263,9 +265,10 @@ class AssistiveTechIntegrationManager:
         for scenario in scenarios:
             self.test_scenarios[scenario.scenario_id] = scenario
 
-    @require(lambda self, config: config.name.strip() != "")
+    @require(lambda __self, config: config.name.strip() != "")
     async def register_assistive_technology(
-        self, config: AssistiveTechConfig
+        self,
+        config: AssistiveTechConfig,
     ) -> Either[AssistiveTechError, AssistiveTechId]:
         """Register assistive technology configuration."""
         try:
@@ -293,36 +296,37 @@ class AssistiveTechIntegrationManager:
 
         except Exception as e:
             return Either.left(
-                AssistiveTechError(f"Failed to register assistive technology: {str(e)}")
+                AssistiveTechError(f"Failed to register assistive technology: {e!s}"),
             )
 
     async def _validate_assistive_tech_config(
-        self, config: AssistiveTechConfig
+        self,
+        config: AssistiveTechConfig,
     ) -> Either[AssistiveTechError, None]:
         """Validate assistive technology configuration."""
         try:
             # Check required fields
             if not config.name.strip():
                 return Either.left(
-                    AssistiveTechError("Assistive technology name is required")
+                    AssistiveTechError("Assistive technology name is required"),
                 )
 
             if not config.version.strip():
                 return Either.left(
-                    AssistiveTechError("Assistive technology version is required")
+                    AssistiveTechError("Assistive technology version is required"),
                 )
 
             # Validate technology type
             if config.technology not in AssistiveTechnology:
                 return Either.left(
                     AssistiveTechError(
-                        f"Unsupported assistive technology: {config.technology}"
-                    )
+                        f"Unsupported assistive technology: {config.technology}",
+                    ),
                 )
 
             # Validate settings based on technology type
             validation_result = await self._validate_technology_specific_settings(
-                config
+                config,
             )
             if validation_result.is_left():
                 return validation_result
@@ -331,31 +335,32 @@ class AssistiveTechIntegrationManager:
 
         except Exception as e:
             return Either.left(
-                AssistiveTechError(f"Configuration validation failed: {str(e)}")
+                AssistiveTechError(f"Configuration validation failed: {e!s}"),
             )
 
     async def _validate_technology_specific_settings(
-        self, config: AssistiveTechConfig
+        self,
+        config: AssistiveTechConfig,
     ) -> Either[AssistiveTechError, None]:
         """Validate technology-specific settings."""
         try:
             if config.technology == AssistiveTechnology.SCREEN_READER:
                 return await self._validate_screen_reader_settings(config.settings)
-            elif config.technology == AssistiveTechnology.VOICE_CONTROL:
+            if config.technology == AssistiveTechnology.VOICE_CONTROL:
                 return await self._validate_voice_control_settings(config.settings)
-            elif config.technology == AssistiveTechnology.SWITCH_ACCESS:
+            if config.technology == AssistiveTechnology.SWITCH_ACCESS:
                 return await self._validate_switch_access_settings(config.settings)
-            else:
-                # Generic validation for other technologies
-                return Either.right(None)
+            # Generic validation for other technologies
+            return Either.right(None)
 
         except Exception as e:
             return Either.left(
-                AssistiveTechError(f"Technology-specific validation failed: {str(e)}")
+                AssistiveTechError(f"Technology-specific validation failed: {e!s}"),
             )
 
     async def _validate_screen_reader_settings(
-        self, settings: dict[str, Any]
+        self,
+        settings: dict[str, Any],
     ) -> Either[AssistiveTechError, None]:
         """Validate screen reader specific settings."""
         try:
@@ -366,14 +371,14 @@ class AssistiveTechIntegrationManager:
                     rate = voice_settings["rate"]
                     if not isinstance(rate, int | float) or not (0 <= rate <= 100):
                         return Either.left(
-                            AssistiveTechError("Voice rate must be between 0 and 100")
+                            AssistiveTechError("Voice rate must be between 0 and 100"),
                         )
 
                 if "pitch" in voice_settings:
                     pitch = voice_settings["pitch"]
                     if not isinstance(pitch, int | float) or not (0 <= pitch <= 100):
                         return Either.left(
-                            AssistiveTechError("Voice pitch must be between 0 and 100")
+                            AssistiveTechError("Voice pitch must be between 0 and 100"),
                         )
 
             return Either.right(None)
@@ -381,12 +386,13 @@ class AssistiveTechIntegrationManager:
         except Exception as e:
             return Either.left(
                 AssistiveTechError(
-                    f"Screen reader settings validation failed: {str(e)}"
-                )
+                    f"Screen reader settings validation failed: {e!s}",
+                ),
             )
 
     async def _validate_voice_control_settings(
-        self, settings: dict[str, Any]
+        self,
+        settings: dict[str, Any],
     ) -> Either[AssistiveTechError, None]:
         """Validate voice control specific settings."""
         try:
@@ -400,8 +406,8 @@ class AssistiveTechIntegrationManager:
                     ):
                         return Either.left(
                             AssistiveTechError(
-                                "Microphone sensitivity must be between 0 and 100"
-                            )
+                                "Microphone sensitivity must be between 0 and 100",
+                            ),
                         )
 
             # Validate language settings
@@ -410,8 +416,8 @@ class AssistiveTechIntegrationManager:
                 if settings["language"] not in supported_languages:
                     return Either.left(
                         AssistiveTechError(
-                            f"Unsupported language: {settings['language']}"
-                        )
+                            f"Unsupported language: {settings['language']}",
+                        ),
                     )
 
             return Either.right(None)
@@ -419,12 +425,13 @@ class AssistiveTechIntegrationManager:
         except Exception as e:
             return Either.left(
                 AssistiveTechError(
-                    f"Voice control settings validation failed: {str(e)}"
-                )
+                    f"Voice control settings validation failed: {e!s}",
+                ),
             )
 
     async def _validate_switch_access_settings(
-        self, settings: dict[str, Any]
+        self,
+        settings: dict[str, Any],
     ) -> Either[AssistiveTechError, None]:
         """Validate switch access specific settings."""
         try:
@@ -438,8 +445,8 @@ class AssistiveTechIntegrationManager:
                     ):
                         return Either.left(
                             AssistiveTechError(
-                                "Scan speed must be between 0.1 and 10.0 seconds"
-                            )
+                                "Scan speed must be between 0.1 and 10.0 seconds",
+                            ),
                         )
 
             return Either.right(None)
@@ -447,8 +454,8 @@ class AssistiveTechIntegrationManager:
         except Exception as e:
             return Either.left(
                 AssistiveTechError(
-                    f"Switch access settings validation failed: {str(e)}"
-                )
+                    f"Switch access settings validation failed: {e!s}",
+                ),
             )
 
     @require(lambda self, tech_id: tech_id in self.registered_technologies)
@@ -478,7 +485,7 @@ class AssistiveTechIntegrationManager:
             # Execute compatibility tests
             test_result_id = create_test_result_id()
             test_id = AccessibilityTestId(
-                f"compat_{tech_id}_{datetime.now(UTC).timestamp()}"
+                f"compat_{tech_id}_{datetime.now(UTC).timestamp()}",
             )
 
             start_time = datetime.now(UTC)
@@ -491,7 +498,9 @@ class AssistiveTechIntegrationManager:
                 if scenario_id in self.test_scenarios:
                     scenario = self.test_scenarios[scenario_id]
                     scenario_result = await self._execute_test_scenario(
-                        scenario, automation_target, config
+                        scenario,
+                        automation_target,
+                        config,
                     )
 
                     if scenario_result.is_left():
@@ -537,7 +546,7 @@ class AssistiveTechIntegrationManager:
 
         except Exception as e:
             return Either.left(
-                AssistiveTechError(f"Compatibility testing failed: {str(e)}")
+                AssistiveTechError(f"Compatibility testing failed: {e!s}"),
             )
 
     async def _execute_test_scenario(
@@ -553,31 +562,38 @@ class AssistiveTechIntegrationManager:
 
             if scenario.technology == AssistiveTechnology.SCREEN_READER:
                 return await self._test_screen_reader_scenario(
-                    scenario, automation_target, config
+                    scenario,
+                    automation_target,
+                    config,
                 )
-            elif scenario.technology == AssistiveTechnology.VOICE_CONTROL:
+            if scenario.technology == AssistiveTechnology.VOICE_CONTROL:
                 return await self._test_voice_control_scenario(
-                    scenario, automation_target, config
+                    scenario,
+                    automation_target,
+                    config,
                 )
-            elif scenario.technology == AssistiveTechnology.SWITCH_ACCESS:
+            if scenario.technology == AssistiveTechnology.SWITCH_ACCESS:
                 return await self._test_switch_access_scenario(
-                    scenario, automation_target, config
+                    scenario,
+                    automation_target,
+                    config,
                 )
-            else:
-                return await self._test_generic_scenario(
-                    scenario, automation_target, config
-                )
+            return await self._test_generic_scenario(
+                scenario,
+                automation_target,
+                config,
+            )
 
         except Exception as e:
             return Either.left(
-                AssistiveTechError(f"Test scenario execution failed: {str(e)}")
+                AssistiveTechError(f"Test scenario execution failed: {e!s}"),
             )
 
     async def _test_screen_reader_scenario(
         self,
         scenario: AssistiveTechTestScenario,
-        automation_target: str,
-        config: AssistiveTechConfig,
+        _automation_target: str,  # ARG002 fix: Prefix unused parameter
+        _config: AssistiveTechConfig,  # ARG002 fix: Prefix unused parameter
     ) -> Either[AssistiveTechError, dict[str, Any]]:
         """Test screen reader compatibility scenario."""
         try:
@@ -595,23 +611,22 @@ class AssistiveTechIntegrationManager:
             success_rate = 0.9  # 90% success rate for this simulation
             if success_rate >= 0.8:  # 80% threshold for passing
                 return Either.right(results)
-            else:
-                return Either.left(
-                    AssistiveTechError(
-                        f"Screen reader scenario failed: {scenario.name}"
-                    )
-                )
+            return Either.left(
+                AssistiveTechError(
+                    f"Screen reader scenario failed: {scenario.name}",
+                ),
+            )
 
         except Exception as e:
             return Either.left(
-                AssistiveTechError(f"Screen reader scenario testing failed: {str(e)}")
+                AssistiveTechError(f"Screen reader scenario testing failed: {e!s}"),
             )
 
     async def _test_voice_control_scenario(
         self,
         scenario: AssistiveTechTestScenario,
-        automation_target: str,
-        config: AssistiveTechConfig,
+        _automation_target: str,  # ARG002 fix: Prefix unused parameter
+        _config: AssistiveTechConfig,  # ARG002 fix: Prefix unused parameter
     ) -> Either[AssistiveTechError, dict[str, Any]]:
         """Test voice control compatibility scenario."""
         try:
@@ -631,23 +646,22 @@ class AssistiveTechIntegrationManager:
                 and results["accuracy_rate"] >= 80
             ):
                 return Either.right(results)
-            else:
-                return Either.left(
-                    AssistiveTechError(
-                        f"Voice control scenario failed: {scenario.name}"
-                    )
-                )
+            return Either.left(
+                AssistiveTechError(
+                    f"Voice control scenario failed: {scenario.name}",
+                ),
+            )
 
         except Exception as e:
             return Either.left(
-                AssistiveTechError(f"Voice control scenario testing failed: {str(e)}")
+                AssistiveTechError(f"Voice control scenario testing failed: {e!s}"),
             )
 
     async def _test_switch_access_scenario(
         self,
         scenario: AssistiveTechTestScenario,
-        automation_target: str,
-        config: AssistiveTechConfig,
+        _automation_target: str,  # ARG002 fix: Prefix unused parameter
+        _config: AssistiveTechConfig,  # ARG002 fix: Prefix unused parameter
     ) -> Either[AssistiveTechError, dict[str, Any]]:
         """Test switch access compatibility scenario."""
         try:
@@ -664,23 +678,22 @@ class AssistiveTechIntegrationManager:
             # Check if results meet success criteria
             if results["scan_efficiency"] >= 75 and results["error_rate"] <= 10:
                 return Either.right(results)
-            else:
-                return Either.left(
-                    AssistiveTechError(
-                        f"Switch access scenario failed: {scenario.name}"
-                    )
-                )
+            return Either.left(
+                AssistiveTechError(
+                    f"Switch access scenario failed: {scenario.name}",
+                ),
+            )
 
         except Exception as e:
             return Either.left(
-                AssistiveTechError(f"Switch access scenario testing failed: {str(e)}")
+                AssistiveTechError(f"Switch access scenario testing failed: {e!s}"),
             )
 
     async def _test_generic_scenario(
         self,
         scenario: AssistiveTechTestScenario,
-        automation_target: str,
-        config: AssistiveTechConfig,
+        _automation_target: str,  # ARG002 fix: Prefix unused parameter
+        _config: AssistiveTechConfig,  # ARG002 fix: Prefix unused parameter
     ) -> Either[AssistiveTechError, dict[str, Any]]:
         """Test generic assistive technology scenario."""
         try:
@@ -695,14 +708,13 @@ class AssistiveTechIntegrationManager:
 
             if results["compatibility_score"] >= 70:
                 return Either.right(results)
-            else:
-                return Either.left(
-                    AssistiveTechError(f"Generic scenario failed: {scenario.name}")
-                )
+            return Either.left(
+                AssistiveTechError(f"Generic scenario failed: {scenario.name}"),
+            )
 
         except Exception as e:
             return Either.left(
-                AssistiveTechError(f"Generic scenario testing failed: {str(e)}")
+                AssistiveTechError(f"Generic scenario testing failed: {e!s}"),
             )
 
     def get_supported_technologies(self) -> list[AssistiveTechnology]:
@@ -710,7 +722,8 @@ class AssistiveTechIntegrationManager:
         return list(AssistiveTechnology)
 
     def get_technology_capabilities(
-        self, technology: AssistiveTechnology
+        self,
+        technology: AssistiveTechnology,
     ) -> list[AssistiveTechCapability]:
         """Get capabilities for a specific assistive technology."""
         return self.capabilities.get(technology, [])
@@ -724,7 +737,8 @@ class AssistiveTechIntegrationManager:
         return list(self.voice_commands.values())
 
     def get_test_scenarios(
-        self, technology: AssistiveTechnology | None = None
+        self,
+        technology: AssistiveTechnology | None = None,
     ) -> list[AssistiveTechTestScenario]:
         """Get test scenarios for a specific technology or all scenarios."""
         if technology is None:
@@ -736,17 +750,18 @@ class AssistiveTechIntegrationManager:
             if scenario.technology == technology
         ]
 
-    @require(lambda self, command: command.confidence_threshold >= 0.0)
+    @require(lambda __self, command: command.confidence_threshold >= 0.0)
     def add_voice_command(
-        self, command: VoiceCommand
+        self,
+        command: VoiceCommand,
     ) -> Either[AssistiveTechError, None]:
         """Add custom voice command for automation control."""
         try:
             if command.command_id in self.voice_commands:
                 return Either.left(
                     AssistiveTechError(
-                        f"Voice command {command.command_id} already exists"
-                    )
+                        f"Voice command {command.command_id} already exists",
+                    ),
                 )
 
             self.voice_commands[command.command_id] = command
@@ -754,7 +769,7 @@ class AssistiveTechIntegrationManager:
 
         except Exception as e:
             return Either.left(
-                AssistiveTechError(f"Failed to add voice command: {str(e)}")
+                AssistiveTechError(f"Failed to add voice command: {e!s}"),
             )
 
     def remove_voice_command(self, command_id: str) -> Either[AssistiveTechError, None]:
@@ -762,7 +777,7 @@ class AssistiveTechIntegrationManager:
         try:
             if command_id not in self.voice_commands:
                 return Either.left(
-                    AssistiveTechError(f"Voice command {command_id} not found")
+                    AssistiveTechError(f"Voice command {command_id} not found"),
                 )
 
             del self.voice_commands[command_id]
@@ -770,7 +785,7 @@ class AssistiveTechIntegrationManager:
 
         except Exception as e:
             return Either.left(
-                AssistiveTechError(f"Failed to remove voice command: {str(e)}")
+                AssistiveTechError(f"Failed to remove voice command: {e!s}"),
             )
 
 
@@ -781,7 +796,9 @@ class AccessibilityOptimizer:
         self.integration_manager = integration_manager
 
     async def optimize_for_assistive_tech(
-        self, automation_workflow: str, target_technologies: list[AssistiveTechnology]
+        self,
+        automation_workflow: str,
+        target_technologies: list[AssistiveTechnology],
     ) -> Either[AssistiveTechError, dict[str, Any]]:
         """Optimize automation workflow for assistive technology compatibility."""
         try:
@@ -789,7 +806,8 @@ class AccessibilityOptimizer:
 
             for technology in target_technologies:
                 tech_optimizations = await self._generate_technology_optimizations(
-                    automation_workflow, technology
+                    automation_workflow,
+                    technology,
                 )
 
                 if tech_optimizations.is_left():
@@ -802,14 +820,16 @@ class AccessibilityOptimizer:
                     "workflow": automation_workflow,
                     "optimizations": optimizations,
                     "optimization_timestamp": datetime.now(UTC).isoformat(),
-                }
+                },
             )
 
         except Exception as e:
-            return Either.left(AssistiveTechError(f"Optimization failed: {str(e)}"))
+            return Either.left(AssistiveTechError(f"Optimization failed: {e!s}"))
 
     async def _generate_technology_optimizations(
-        self, workflow: str, technology: AssistiveTechnology
+        self,
+        _workflow: str,
+        technology: AssistiveTechnology,  # ARG002 fix: Prefix unused parameter
     ) -> Either[AssistiveTechError, list[dict[str, Any]]]:
         """Generate optimizations for a specific assistive technology."""
         try:
@@ -830,7 +850,7 @@ class AccessibilityOptimizer:
                             "priority": "medium",
                             "implementation": "Use H1-H6 tags in logical order",
                         },
-                    ]
+                    ],
                 )
 
             elif technology == AssistiveTechnology.VOICE_CONTROL:
@@ -848,7 +868,7 @@ class AccessibilityOptimizer:
                             "priority": "medium",
                             "implementation": "Add speech synthesis for action confirmations",
                         },
-                    ]
+                    ],
                 )
 
             elif technology == AssistiveTechnology.KEYBOARD_NAVIGATION:
@@ -866,7 +886,7 @@ class AccessibilityOptimizer:
                             "priority": "high",
                             "implementation": "Enhance focus styling for better visibility",
                         },
-                    ]
+                    ],
                 )
 
             return Either.right(optimizations)
@@ -874,8 +894,8 @@ class AccessibilityOptimizer:
         except Exception as e:
             return Either.left(
                 AssistiveTechError(
-                    f"Technology optimization generation failed: {str(e)}"
-                )
+                    f"Technology optimization generation failed: {e!s}",
+                ),
             )
 
     def get_optimization_recommendations(
@@ -895,7 +915,9 @@ class AccessibilityOptimizer:
         return recommendations
 
     def _generate_issue_recommendation(
-        self, issue: AccessibilityIssue, technology: AssistiveTechnology
+        self,
+        issue: AccessibilityIssue,
+        technology: AssistiveTechnology,
     ) -> dict[str, Any] | None:
         """Generate recommendation for a specific issue and technology."""
         recommendation_mapping = {
@@ -924,7 +946,7 @@ class AccessibilityOptimizer:
                     "issue_id": issue.issue_id,
                     "technology": technology.value,
                     "severity": issue.severity.value,
-                }
+                },
             )
             return recommendation
 
