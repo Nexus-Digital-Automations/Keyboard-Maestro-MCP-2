@@ -9,8 +9,6 @@ Performance: <200ms tool responses, efficient knowledge operations
 Security: Access control, content validation, secure knowledge management
 """
 
-from __future__ import annotations
-
 import logging
 import uuid
 from datetime import UTC, datetime

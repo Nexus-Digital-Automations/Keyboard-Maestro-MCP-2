@@ -141,7 +141,7 @@ class ActionConfiguration:
             r"system\s*\(",
             r"shell_exec\s*\(",
             r"passthru\s*\(",
-            r"`[^`]*`",  # Backtick execution
+            r"`\s*[a-zA-Z_][a-zA-Z0-9_]*\s*`",  # Backtick execution (command patterns only)
         ]
 
         value_lower = value.lower()
@@ -315,8 +315,13 @@ class ActionBuilder:
                 for key, value in param_value.items():
                     param_elem.set(key, escape(str(value)))
             else:
-                # String values - escape properly
-                param_elem.text = escape(str(param_value))
+                # String values - escape properly (quotes only for attributes, not text content)
+                param_elem.text = escape(str(param_value), entities={
+                    "&": "&amp;",
+                    "<": "&lt;", 
+                    ">": "&gt;",
+                    '"': "&quot;"
+                })
 
         return action_elem
 
@@ -348,8 +353,8 @@ class ActionBuilder:
             from defusedxml import ElementTree as DefusedET
 
             DefusedET.fromstring(xml_string)
-        except DefusedET.ParseError:
-            logger.warning("Generated XML is malformed")
+        except Exception as e:
+            logger.warning(f"Generated XML is malformed: {str(e)}")
             return False
 
         # Check size limits

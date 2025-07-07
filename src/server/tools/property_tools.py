@@ -256,5 +256,6 @@ def _is_recently_modified(modification_date: str) -> bool:
         # Parse the date (format may vary)
         # This is a simplified check
         return "2024" in modification_date or "2025" in modification_date
-    except:
+    except (Exception) as e:
+        logger.debug(f"Operation failed during operation: {e}")
         return False

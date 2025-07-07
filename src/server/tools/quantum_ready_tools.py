@@ -9,8 +9,6 @@ Performance: <200ms tool execution, <1s quantum analysis, <2s migration planning
 Security: Post-quantum cryptography, quantum-safe operations, secure tool interface
 """
 
-from __future__ import annotations
-
 import logging
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any

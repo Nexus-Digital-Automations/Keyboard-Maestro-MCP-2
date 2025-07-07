@@ -11,6 +11,10 @@ Protocols: MQTT, CoAP, HTTP/HTTPS, Zigbee, Z-Wave, Bluetooth, WiFi, Thread, Matt
 
 from __future__ import annotations
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -748,9 +752,9 @@ class ProtocolMultiplexer:
                             result = await handler.receive_message(1)  # Short timeout
                             if result.is_success():
                                 return result
-                        except:
+                        except (Exception) as e:
+                            logger.debug(f"Operation failed during operation: {e}")
                             continue
-
                 return Either.error(IoTIntegrationError("No messages available"))
 
         except Exception as e:

@@ -172,7 +172,8 @@ class CacheManager:
         """Calculate size of value in bytes."""
         try:
             return len(pickle.dumps(value))
-        except:
+        except (pickle.PicklingError, TypeError, AttributeError) as e:
+            logger.debug(f"Failed to pickle value for size calculation: {e}")
             return len(str(value).encode("utf-8"))
 
     def _should_evict(self) -> bool:
@@ -505,7 +506,8 @@ class MultiLevelCache:
         try:
             pickled = pickle.dumps(value)
             return zlib.compress(pickled)
-        except:
+        except (zlib.error, pickle.PicklingError) as e:
+            logger.debug(f"Failed to compress value, using uncompressed: {e}")
             return pickle.dumps(value)
 
     def _decompress_value(self, compressed_data: bytes) -> Any:
@@ -514,7 +516,8 @@ class MultiLevelCache:
             decompressed = zlib.decompress(compressed_data)
             # Safe: pickle usage for internal caching only, no untrusted data
             return pickle.loads(decompressed)  # noqa: S301
-        except:
+        except (zlib.error, pickle.UnpicklingError) as e:
+            logger.debug(f"Failed to decompress value, trying direct unpickling: {e}")
             # Safe: pickle usage for internal caching only, no untrusted data
             return pickle.loads(compressed_data)  # noqa: S301
 
@@ -537,7 +540,8 @@ class MultiLevelCache:
                         return None
 
                 return cache_data["value"]
-        except:
+        except (FileNotFoundError, pickle.UnpicklingError, KeyError, OSError) as e:
+            logger.debug(f"Failed to load cache from disk: {e}")
             return None
 
         return None
@@ -567,9 +571,9 @@ class MultiLevelCache:
 
             with open(file_path, "wb") as f:
                 pickle.dump(cache_data, f)
-        except:
-            # Log error but don't fail the cache operation
-            pass
+        except (OSError, pickle.PicklingError, PermissionError) as e:
+            logger.warning(f"Failed to save cache to disk: {e}")
+            # Don't fail the cache operation - disk caching is optional
 
     def invalidate(
         self, key: CacheKey, namespace: CacheNamespace = CacheNamespace("default")
@@ -583,8 +587,8 @@ class MultiLevelCache:
             file_path = self.l3_cache_dir / f"{namespace}" / f"{key}.cache"
             if file_path.exists():
                 file_path.unlink()
-        except:
-            pass
+        except (OSError, PermissionError) as e:
+            logger.debug(f"Failed to remove cache file: {e}")
 
         return l1_result or l2_result
 
@@ -606,7 +610,8 @@ class MultiLevelCache:
             for file_path in self.l3_cache_dir.rglob("*.cache"):
                 total_size += file_path.stat().st_size
             return total_size
-        except:
+        except (OSError, PermissionError) as e:
+            logger.debug(f"Failed to calculate disk cache size: {e}")
             return 0
 
 

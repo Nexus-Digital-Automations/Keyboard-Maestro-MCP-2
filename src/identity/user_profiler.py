@@ -208,8 +208,8 @@ class UserProfiler:
                     profile_id = UserProfileId(user_identity)
                     if profile_id in self.user_profiles:
                         found_profile = self.user_profiles[profile_id]
-                except:
-                    pass
+                except (ValueError, TypeError) as e:
+                    logger.debug(f"Failed to parse profile ID '{user_identity}': {e}")
 
             # Search by email if context provided
             if not found_profile and context and context.get("email"):
@@ -612,7 +612,8 @@ class UserProfiler:
                 )
                 hour = timestamp.hour
                 hour_counts[hour] = hour_counts.get(hour, 0) + 1
-            except:
+            except (ValueError, KeyError, TypeError) as e:
+                logger.debug(f"Failed to parse interaction timestamp: {e}")
                 continue
 
         # Return top 3 peak hours

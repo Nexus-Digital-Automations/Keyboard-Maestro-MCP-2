@@ -9,8 +9,6 @@ Performance: <500ms command processing, <300ms intent recognition, <1s conversat
 Security: Safe text processing, validated inputs, comprehensive sanitization and audit logging
 """
 
-from __future__ import annotations
-
 import logging
 from datetime import UTC, datetime
 from typing import Annotated, Any

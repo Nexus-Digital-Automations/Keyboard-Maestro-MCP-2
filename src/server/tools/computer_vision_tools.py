@@ -9,8 +9,6 @@ Performance: <300ms object detection, <400ms scene analysis, <200ms image classi
 Security: Safe image processing, validated inputs, comprehensive sanitization and audit logging
 """
 
-from __future__ import annotations
-
 import base64
 import logging
 from datetime import UTC, datetime

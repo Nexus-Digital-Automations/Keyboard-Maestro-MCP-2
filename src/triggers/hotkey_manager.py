@@ -463,7 +463,8 @@ class HotkeyManager:
                     suggested_spec = self._parse_hotkey_string(suggestion_str, hotkey)
                     if suggested_spec and suggested_spec != hotkey:
                         suggestions.append(suggested_spec)
-                except:
+                except (ValidationError, SecurityViolationError, ValueError) as e:
+                    logger.debug(f"Skipping invalid hotkey suggestion: {e}")
                     continue  # Skip invalid suggestions
 
         return suggestions[:max_suggestions]
@@ -582,7 +583,8 @@ class HotkeyManager:
                 tap_count=reference.tap_count,
                 allow_repeat=reference.allow_repeat,
             )
-        except:
+        except (ValidationError, SecurityViolationError, ValueError) as e:
+            logger.debug(f"Failed to parse hotkey string '{hotkey_string}': {e}")
             return None
 
     def _conflict_to_dict(self, conflict: HotkeyConflict) -> dict[str, Any]:

@@ -9,8 +9,6 @@ Performance: <500ms prediction responses, <1s insight generation, <2s comprehens
 Security: Validated inputs, secure model access, comprehensive audit logging, data privacy protection
 """
 
-from __future__ import annotations
-
 import json
 import logging
 from datetime import UTC, datetime, timedelta

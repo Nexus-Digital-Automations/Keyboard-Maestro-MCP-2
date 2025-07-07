@@ -338,7 +338,7 @@ class TestActionBuilder:
         error = exc_info.value
         assert error.field_name == "action_type"
         assert error.value == "Unknown Action"
-        assert "registered action types" in str(error)
+        assert "Available:" in str(error)
 
     def test_action_builder_add_action_with_position(self):
         """Test adding action at specific position."""

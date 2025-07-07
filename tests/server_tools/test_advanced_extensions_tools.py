@@ -501,9 +501,9 @@ class TestAdvancedIntelligenceTools(TestAdvancedExtensionsFoundation):
     ):
         """Test predictive analytics functionality."""
         try:
-            from src.server.tools.predictive_analytics_tools import (
-                km_predict_automation_patterns,
-            )
+            import src.server.tools.predictive_analytics_tools as predictive_tools
+            # Use systematic pattern - access the actual function from FastMCP tool
+            km_predict_automation_patterns = predictive_tools.km_predict_automation_patterns.fn
 
             # Mock predictive analytics components
             with patch(
@@ -546,15 +546,15 @@ class TestAdvancedIntelligenceTools(TestAdvancedExtensionsFoundation):
                 )
 
                 result = await km_predict_automation_patterns(
-                    prediction_type=sample_intelligence_data["intelligence_type"],
-                    data_sources=sample_intelligence_data["data_sources"],
-                    prediction_horizon=sample_intelligence_data["training_parameters"][
-                        "prediction_horizon"
-                    ],
-                    confidence_threshold=sample_intelligence_data[
-                        "training_parameters"
-                    ]["confidence_threshold"],
-                    ctx=execution_context,
+                    prediction_scope="user",
+                    target_id="test-user-123",
+                    prediction_horizon=30,
+                    pattern_types=["productivity", "efficiency"],
+                    include_confidence_intervals=True,
+                    model_type="ensemble",
+                    include_external_factors=True,
+                    generate_visualizations=False,
+                    export_predictions=False,
                 )
 
                 assert isinstance(result, dict)
@@ -736,7 +736,7 @@ class TestIoTAndFutureTechTools(TestAdvancedExtensionsFoundation):
             )
 
             tools_to_check = [
-                (iot_integration_tools, ["km_control_iot_device", "km_manage_iot_hub"]),
+                (iot_integration_tools, ["km_control_iot_devices", "km_monitor_sensors"]),
                 (
                     voice_control_tools,
                     ["km_process_voice_commands", "km_configure_voice_control"],
@@ -750,7 +750,17 @@ class TestIoTAndFutureTechTools(TestAdvancedExtensionsFoundation):
             for module, expected_tools in tools_to_check:
                 for tool in expected_tools:
                     if hasattr(module, tool):
-                        assert callable(getattr(module, tool))
+                        # Handle both FastMCP tools and regular functions
+                        tool_obj = getattr(module, tool)
+                        if hasattr(tool_obj, 'fn'):
+                            # FastMCP tool - check the actual function
+                            assert callable(tool_obj.fn), f"Tool {tool}.fn should be callable"
+                        elif callable(tool_obj):
+                            # Regular function - already callable
+                            assert True
+                        else:
+                            # Neither callable nor FastMCP tool
+                            assert False, f"Tool {tool} is neither callable nor a FastMCP tool"
         except ImportError as e:
             pytest.skip(f"IoT and future tech tools not available: {e}")
 
@@ -833,7 +843,7 @@ class TestAdvancedExtensionsIntegration(TestAdvancedExtensionsFoundation):
                 "src.server.tools.predictive_analytics_tools",
                 "km_predict_automation_patterns",
             ),
-            ("src.server.tools.iot_integration_tools", "km_control_iot_device"),
+            ("src.server.tools.iot_integration_tools", "km_control_iot_devices"),
         ]
 
         for module_name, tool_name in advanced_extension_tools:
@@ -841,8 +851,16 @@ class TestAdvancedExtensionsIntegration(TestAdvancedExtensionsFoundation):
                 module = __import__(module_name, fromlist=[tool_name])
                 tool_func = getattr(module, tool_name)
 
-                # Verify function exists and is callable
-                assert callable(tool_func)
+                # Verify function exists and is callable - handle both FastMCP tools and regular functions
+                if hasattr(tool_func, 'fn'):
+                    # FastMCP tool - check the actual function
+                    assert callable(tool_func.fn)
+                elif callable(tool_func):
+                    # Regular function - already callable
+                    assert True
+                else:
+                    # Neither callable nor FastMCP tool
+                    assert False, f"Tool {tool_name} is neither callable nor a FastMCP tool"
 
                 # Check for proper async function definition
                 import inspect
@@ -909,29 +927,20 @@ class TestPropertyBasedAdvancedExtensionsTesting(TestAdvancedExtensionsFoundatio
         from hypothesis import given
         from hypothesis import strategies as st
 
-        @given(
-            content_length=st.integers(min_value=100, max_value=10000),
-            document_type=st.sampled_from(
-                ["guide", "reference", "tutorial", "specification"]
-            ),
-            export_format=st.sampled_from(["markdown", "html", "pdf", "json"]),
-        )
-        async def test_knowledge_properties(
-            content_length, document_type, export_format
-        ):
+        async def test_knowledge_properties():
             """Test knowledge management properties."""
             try:
-                from src.server.tools.knowledge_management_tools import (
-                    km_generate_documentation,
-                )
+                import src.server.tools.knowledge_management_tools as km_tools
+                # Use systematic pattern - access the actual function from FastMCP tool
+                km_generate_documentation = km_tools.km_generate_documentation.fn
 
-                # Generate content of specified length
-                content = "Sample content. " * (content_length // 16)
+                # Generate test content
+                content = "Sample content. " * 50
 
                 result = await km_generate_documentation(
-                    document_type=document_type,
+                    document_type="guide",
                     content_source=content,
-                    export_format=export_format,
+                    export_format="markdown",
                     ctx=execution_context,
                 )
 
@@ -951,8 +960,8 @@ class TestPropertyBasedAdvancedExtensionsTesting(TestAdvancedExtensionsFoundatio
                 # Tools may fail with invalid combinations, which is acceptable
                 pass
 
-        # Run a test case
-        await test_knowledge_properties(1000, "guide", "markdown")
+        # Run a test case manually (since we're not using Hypothesis execution here)
+        await test_knowledge_properties()
 
     @pytest.mark.asyncio
     async def test_accessibility_testing_properties(self, execution_context):
@@ -960,33 +969,17 @@ class TestPropertyBasedAdvancedExtensionsTesting(TestAdvancedExtensionsFoundatio
         from hypothesis import given
         from hypothesis import strategies as st
 
-        @given(
-            compliance_level=st.sampled_from(["A", "AA", "AAA"]),
-            test_categories=st.lists(
-                st.sampled_from(
-                    [
-                        "keyboard_navigation",
-                        "screen_reader",
-                        "color_contrast",
-                        "focus_management",
-                    ]
-                ),
-                min_size=1,
-                max_size=4,
-                unique=True,
-            ),
-        )
-        async def test_accessibility_properties(compliance_level, test_categories):
+        async def test_accessibility_properties():
             """Test accessibility testing properties."""
             try:
-                from src.server.tools.accessibility_engine_tools import (
-                    km_test_accessibility,
-                )
+                import src.server.tools.accessibility_engine_tools as acc_tools
+                # Use systematic pattern - access the actual function from FastMCP tool
+                km_test_accessibility = acc_tools.km_test_accessibility.fn
 
                 result = await km_test_accessibility(
                     test_scope="wcag_2_1_compliance",
-                    compliance_level=compliance_level,
-                    test_categories=test_categories,
+                    compliance_level="AA",
+                    test_categories=["keyboard_navigation", "screen_reader"],
                     ctx=execution_context,
                 )
 
@@ -1007,7 +1000,5 @@ class TestPropertyBasedAdvancedExtensionsTesting(TestAdvancedExtensionsFoundatio
                 # Tools may fail with invalid combinations, which is acceptable
                 pass
 
-        # Run a test case
-        await test_accessibility_properties(
-            "AA", ["keyboard_navigation", "screen_reader"]
-        )
+        # Run a test case manually (since we're not using Hypothesis execution here)
+        await test_accessibility_properties()
