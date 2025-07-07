@@ -325,7 +325,7 @@ class IntelligentCache:
             return True
         return False
 
-    async def _evict_entries(self, count: int):
+    async def _evict_entries(self, count: int) -> Any:
         """Evict entries based on current strategy."""
         if not self.cache:
             return
@@ -557,7 +557,7 @@ class PerformanceOptimizer:
 
         return int(base_ttl)
 
-    async def _analyze_and_optimize(self, profile: PerformanceProfile):
+    async def _analyze_and_optimize(self, profile: PerformanceProfile) -> Any:
         """Analyze performance profile and generate optimizations."""
         try:
             recommendations = []
@@ -703,7 +703,7 @@ class PerformanceOptimizer:
         # Ensure reasonable bounds
         return max(300, min(86400, base_ttl))  # 5 minutes to 24 hours
 
-    async def _optimization_loop(self):
+    async def _optimization_loop(self) -> Any:
         """Background optimization loop."""
         while True:
             try:
@@ -720,7 +720,7 @@ class PerformanceOptimizer:
             except Exception:
                 await asyncio.sleep(60)  # Error recovery
 
-    async def _apply_automatic_optimizations(self):
+    async def _apply_automatic_optimizations(self) -> Any:
         """Apply optimizations that are safe to auto-apply."""
         for rec in self.recommendations.values():
             if (
@@ -732,7 +732,7 @@ class PerformanceOptimizer:
                 # Apply optimization
                 await self._apply_recommendation(rec)
 
-    async def _apply_recommendation(self, recommendation: OptimizationRecommendation):
+    async def _apply_recommendation(self, recommendation: OptimizationRecommendation) -> Any:
         """Apply performance optimization recommendation."""
         try:
             # Simulate applying optimization
@@ -753,7 +753,7 @@ class PerformanceOptimizer:
         except Exception:
             recommendation.status = "failed"
 
-    async def _cleanup_old_recommendations(self):
+    async def _cleanup_old_recommendations(self) -> None:
         """Clean up old recommendations."""
         cutoff_time = datetime.now(UTC) - timedelta(days=7)
 

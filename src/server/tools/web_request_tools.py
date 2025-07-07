@@ -594,6 +594,6 @@ async def km_web_request(
 
 
 # Tool registration function for MCP server
-def register_web_request_tools(mcp) -> None:
+def register_web_request_tools(mcp: Any) -> None:
     """Register web request tools with the MCP server."""
     mcp.tool()(km_web_request)

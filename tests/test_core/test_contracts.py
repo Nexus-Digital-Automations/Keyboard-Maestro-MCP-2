@@ -6,7 +6,8 @@ for preconditions, postconditions, and invariants.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
+
 import pytest
 from src.core import (
     ContractViolationError,
@@ -31,7 +32,7 @@ class TestContractDecorators:
         """Test successful precondition validation."""
 
         @require(lambda x: x > 0, "x must be positive")
-        def sqrt(x) -> Any:
+        def sqrt(x: Any) -> Any:
             return x**0.5
 
         result = sqrt(4)
@@ -41,7 +42,7 @@ class TestContractDecorators:
         """Test precondition failure."""
 
         @require(lambda x: x > 0, "x must be positive")
-        def sqrt(x) -> Any:
+        def sqrt(x: Any) -> Any:
             return x**0.5
 
         with pytest.raises(ContractViolationError) as exc_info:
@@ -54,7 +55,7 @@ class TestContractDecorators:
         """Test successful postcondition validation."""
 
         @ensure(lambda x, result: result >= 0, "result must be non-negative")
-        def abs_value(x) -> Any:
+        def abs_value(x: Any) -> Any:
             return abs(x)
 
         result = abs_value(-5)
@@ -64,7 +65,7 @@ class TestContractDecorators:
         """Test postcondition failure."""
 
         @ensure(lambda x, result: result >= 0, "result must be non-negative")
-        def broken_abs(x) -> Any:
+        def broken_abs(x: Any) -> Any:
             return -abs(x)  # Intentionally broken
 
         with pytest.raises(ContractViolationError) as exc_info:
@@ -79,7 +80,7 @@ class TestContractDecorators:
         @require(lambda x: x >= 0, "x must be non-negative")
         @require(lambda x: isinstance(x, int | float), "x must be numeric")
         @ensure(lambda x, result: result >= 0, "result must be non-negative")
-        def sqrt(x) -> Any:
+        def sqrt(x: Any) -> Any:
             return x**0.5
 
         # Valid case
@@ -99,7 +100,7 @@ class TestContractDecorators:
 
         @require(lambda a, b: a > 0 and b > 0, "both parameters must be positive")
         @ensure(lambda a, b, result: result == a / b, "result must equal a/b")
-        def divide(a, b) -> Any:
+        def divide(a: Any, b: Any) -> Any:
             return a / b
 
         result = divide(10, 2)
@@ -117,13 +118,13 @@ class TestInvariantDecorator:
 
         @invariant(lambda self: self.balance >= 0, "balance cannot be negative")
         class Account:
-            def __init__(self, balance):
+            def __init__(self, balance: Any):
                 self.balance = balance
 
-            def deposit(self, amount) -> None:
+            def deposit(self, amount: Any) -> None:
                 self.balance += amount
 
-            def withdraw(self, amount) -> None:
+            def withdraw(self, amount: Any) -> None:
                 if amount <= self.balance:
                     self.balance -= amount
 
@@ -141,7 +142,7 @@ class TestInvariantDecorator:
 
         @invariant(lambda self: self.balance >= 0, "balance cannot be negative")
         class Account:
-            def __init__(self, balance):
+            def __init__(self, balance: Any):
                 self.balance = balance
 
         with pytest.raises(ContractViolationError):
@@ -152,10 +153,10 @@ class TestInvariantDecorator:
 
         @invariant(lambda self: self.balance >= 0, "balance cannot be negative")
         class Account:
-            def __init__(self, balance):
+            def __init__(self, balance: Any):
                 self.balance = balance
 
-            def bad_withdraw(self, amount) -> None:
+            def bad_withdraw(self, amount: Any) -> None:
                 self.balance -= amount  # No validation
 
         account = Account(100)
@@ -170,10 +171,10 @@ class TestConditionCombiners:
     def test_combine_conditions(self) -> bool:
         """Test combining conditions with AND logic."""
 
-        def is_positive(x) -> bool:
+        def is_positive(x: Any) -> bool:
             return x > 0
 
-        def is_even(x) -> bool:
+        def is_even(x: Any) -> bool:
             return x % 2 == 0
 
         combined = combine_conditions(is_positive, is_even)
@@ -186,10 +187,10 @@ class TestConditionCombiners:
     def test_any_condition(self) -> bool:
         """Test combining conditions with OR logic."""
 
-        def is_negative(x) -> bool:
+        def is_negative(x: Any) -> bool:
             return x < 0
 
-        def is_even(x) -> bool:
+        def is_even(x: Any) -> bool:
             return x % 2 == 0
 
         any_cond = any_condition(is_negative, is_even)
@@ -202,7 +203,7 @@ class TestConditionCombiners:
     def test_not_condition(self) -> bool:
         """Test negating a condition."""
 
-        def is_positive(x) -> bool:
+        def is_positive(x: Any) -> bool:
             return x > 0
 
         is_not_positive = not_condition(is_positive)
@@ -258,7 +259,7 @@ class TestContractInfo:
 
         @require(lambda x: x > 0, "x must be positive")
         @ensure(lambda x, result: result > 0, "result must be positive")
-        def sqrt(x) -> Any:
+        def sqrt(x: Any) -> Any:
             return x**0.5
 
         info = get_contract_info(sqrt)
@@ -273,7 +274,7 @@ class TestContractInfo:
 
         @invariant(lambda self: self.value >= 0, "value must be non-negative")
         class TestClass:
-            def __init__(self, value):
+            def __init__(self, value: Any):
                 self.value = value
 
         info = get_contract_info(TestClass)
@@ -286,7 +287,7 @@ class TestContractInfo:
     def test_get_contract_info_no_contracts(self) -> None:
         """Test getting contract info from function without contracts."""
 
-        def simple_function(x) -> Any:
+        def simple_function(x: Any) -> Any:
             return x * 2
 
         info = get_contract_info(simple_function)
@@ -304,7 +305,7 @@ class TestContractErrorHandling:
         """Test that contract errors contain proper details."""
 
         @require(lambda x: x > 0, "x must be positive")
-        def test_func(x) -> None:
+        def test_func(x: Any) -> None:
             return x
 
         with pytest.raises(ContractViolationError) as exc_info:
@@ -319,7 +320,7 @@ class TestContractErrorHandling:
         """Test that contract errors include execution context."""
 
         @require(lambda x, y: x > 0 and y > 0, "both parameters must be positive")
-        def test_func(x, y) -> None:
+        def test_func(x: Any, y: Any) -> None:
             return x + y
 
         with pytest.raises(ContractViolationError) as exc_info:

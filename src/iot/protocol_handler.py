@@ -237,7 +237,7 @@ class ProtocolHandler(ABC):
             self.message_handlers[message_type] = []
         self.message_handlers[message_type].append(handler)
 
-    async def handle_message(self, message: IoTMessage):
+    async def handle_message(self, message: IoTMessage) -> None:
         """Handle incoming message."""
         if message.message_type in self.message_handlers:
             for handler in self.message_handlers[message.message_type]:
@@ -606,7 +606,7 @@ class ProtocolMultiplexer:
         # Initialize default protocol handlers
         asyncio.create_task(self._initialize_protocols())
 
-    async def _initialize_protocols(self):
+    async def _initialize_protocols(self) -> None:
         """Initialize default protocol handlers."""
         # HTTP handler
         http_config = ProtocolConfiguration(
@@ -856,7 +856,7 @@ class ProtocolMultiplexer:
             current_avg * (total_messages - 1) + routing_time
         ) / total_messages
 
-    async def _process_message_queue(self):
+    async def _process_message_queue(self) -> None:
         """Background message queue processor."""
         while True:
             try:

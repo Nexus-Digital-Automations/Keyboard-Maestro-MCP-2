@@ -588,7 +588,7 @@ Respond in JSON format with each category as a key and confidence score as value
         operation: AIOperation,
         prompt: str,
         model: AIModel,
-        **kwargs,
+        **kwargs: Any,
     ) -> Either[AIError, AIRequest]:
         """Create AI request with proper configuration."""
         try:

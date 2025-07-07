@@ -6,7 +6,6 @@ by focusing on modules and APIs that are confirmed to exist and work.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 from unittest.mock import Mock, patch
 
@@ -92,7 +91,7 @@ class TestClipboardReliable:
     """Reliable tests for clipboard functionality."""
 
     @patch("subprocess.run")
-    def test_clipboard_manager_all_operations(self, mock_run) -> None:
+    def test_clipboard_manager_all_operations(self, mock_run: Any) -> None:
         """Test all ClipboardManager operations."""
         from src.clipboard.clipboard_manager import ClipboardManager
 
@@ -278,7 +277,7 @@ class TestApplicationsReliable:
     """Reliable tests for application modules."""
 
     @patch("subprocess.run")
-    def test_app_controller_basic(self, mock_run) -> None:
+    def test_app_controller_basic(self, mock_run: Any) -> None:
         """Basic AppController testing."""
         from src.applications.app_controller import AppController
 

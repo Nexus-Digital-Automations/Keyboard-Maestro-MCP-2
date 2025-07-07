@@ -8,7 +8,6 @@ data processing pipelines, and comprehensive system testing for maximum coverage
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import sys
 from pathlib import Path
 
@@ -422,11 +421,11 @@ def test_final_coverage_optimization_async_patterns() -> bool:
     """Test async patterns for final coverage optimization."""
 
     @pytest.mark.asyncio
-    async def async_optimization_test_helper():
+    async def async_optimization_test_helper() -> None:
         import asyncio
 
         # Test advanced async architectural patterns
-        async def mock_enterprise_orchestration():
+        async def mock_enterprise_orchestration() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "orchestration_id": "enterprise_001",
@@ -445,7 +444,7 @@ def test_final_coverage_optimization_async_patterns() -> bool:
                 },
             }
 
-        async def mock_ai_cloud_processing():
+        async def mock_ai_cloud_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "processing_id": "ai_cloud_001",
@@ -463,7 +462,7 @@ def test_final_coverage_optimization_async_patterns() -> bool:
                 },
             }
 
-        async def mock_security_workflow_enforcement():
+        async def mock_security_workflow_enforcement() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "enforcement_id": "security_wf_001",
@@ -495,7 +494,7 @@ def test_final_coverage_optimization_async_patterns() -> bool:
         assert security_result["security_result"]["enforcement_successful"] is True
 
         # Test enterprise-scale error handling
-        async def failing_enterprise_operation():
+        async def failing_enterprise_operation() -> Any:
             await asyncio.sleep(0.001)
             raise RuntimeError("Enterprise system failure")
 

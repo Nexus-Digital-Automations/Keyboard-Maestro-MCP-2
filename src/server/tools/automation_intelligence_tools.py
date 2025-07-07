@@ -98,7 +98,7 @@ async def km_automation_intelligence(
     enable_predictions: bool = True,  # Enable predictive capabilities
     data_retention: str = "30d",  # Data retention period for learning
     anonymize_data: bool = True,  # Anonymize behavioral data
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Advanced automation intelligence with behavioral analysis and adaptive learning.
 

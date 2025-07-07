@@ -7,8 +7,8 @@ Tests follow the proven systematic pattern that achieved 100% success across 23+
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -20,12 +20,12 @@ import pytest
 
 
 async def mock_km_analytics_engine(
-    operation,
-    scope="macro",
-    metrics=None,
-    configuration=None,
-    ctx=None,
-):
+    operation: str,
+    scope: Any="macro",
+    metrics: Any=None,
+    configuration: dict[str, Any]=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for analytics engine operations."""
     if operation not in [
         "initialize",
@@ -86,11 +86,11 @@ async def mock_km_analytics_engine(
 
 
 async def mock_km_collect_ecosystem_metrics(
-    scope,
-    target_ids,
-    metric_types=None,
-    ctx=None,
-):
+    scope: Any,
+    target_ids: str,
+    metric_types: Any=None,
+    ctx: Context | Any=None,
+) -> list[Any]:
     """Mock implementation for ecosystem metrics collection."""
     if not target_ids:
         return {
@@ -127,10 +127,10 @@ async def mock_km_collect_ecosystem_metrics(
 
 
 async def mock_km_generate_ml_insights(
-    data_source,
-    analysis_type="comprehensive",
-    ctx=None,
-):
+    data_source: Any,
+    analysis_type: str="comprehensive",
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for ML insights generation."""
     if analysis_type == "invalid_type":
         return {
@@ -163,10 +163,10 @@ async def mock_km_generate_ml_insights(
 
 
 async def mock_km_calculate_roi_metrics(
-    timeframe,
-    investment_categories=None,
-    ctx=None,
-):
+    timeframe: Any,
+    investment_categories: Any=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for ROI metrics calculation."""
     # Default success response
     return {
@@ -234,8 +234,8 @@ class TestKMAnalyticsEngine:
     @pytest.mark.asyncio
     async def test_analytics_engine_initialization(
         self,
-        mock_context,
-        sample_analytics_data,
+        mock_context: Any,
+        sample_analytics_data: Any,
     ) -> None:
         """Test successful analytics engine initialization."""
         test_data = sample_analytics_data["basic_operation"]
@@ -253,7 +253,7 @@ class TestKMAnalyticsEngine:
         assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_analytics_engine_validation_error(self, mock_context) -> None:
+    async def test_analytics_engine_validation_error(self, mock_context: Any) -> None:
         """Test analytics engine with invalid operation."""
         result = await km_analytics_engine(
             operation="invalid_operation",
@@ -268,8 +268,8 @@ class TestKMAnalyticsEngine:
     @pytest.mark.asyncio
     async def test_analytics_engine_metrics_collection(
         self,
-        mock_context,
-        sample_analytics_data,
+        mock_context: Any,
+        sample_analytics_data: Any,
     ) -> None:
         """Test analytics engine metrics collection operation."""
         test_data = sample_analytics_data["metrics_collection"]
@@ -312,8 +312,8 @@ class TestKMCollectEcosystemMetrics:
     @pytest.mark.asyncio
     async def test_ecosystem_metrics_collection_success(
         self,
-        mock_context,
-        sample_metrics_data,
+        mock_context: Any,
+        sample_metrics_data: Any,
     ) -> None:
         """Test successful ecosystem metrics collection."""
         result = await km_collect_ecosystem_metrics(
@@ -330,7 +330,7 @@ class TestKMCollectEcosystemMetrics:
         assert len(result["collected_metrics"]) == 3
 
     @pytest.mark.asyncio
-    async def test_ecosystem_metrics_validation_error(self, mock_context) -> None:
+    async def test_ecosystem_metrics_validation_error(self, mock_context: Any) -> None:
         """Test ecosystem metrics collection with empty target IDs."""
         result = await km_collect_ecosystem_metrics(
             scope="macro",
@@ -354,7 +354,7 @@ class TestKMGenerateMLInsights:
         return context
 
     @pytest.mark.asyncio
-    async def test_ml_insights_generation_success(self, mock_context) -> None:
+    async def test_ml_insights_generation_success(self, mock_context: Any) -> None:
         """Test successful ML insights generation."""
         result = await km_generate_ml_insights(
             data_source="ecosystem_metrics",
@@ -370,7 +370,7 @@ class TestKMGenerateMLInsights:
         assert result["model_performance"]["accuracy"] == 92.5
 
     @pytest.mark.asyncio
-    async def test_ml_insights_validation_error(self, mock_context) -> None:
+    async def test_ml_insights_validation_error(self, mock_context: Any) -> None:
         """Test ML insights generation with invalid analysis type."""
         result = await km_generate_ml_insights(
             data_source="ecosystem_metrics",
@@ -394,7 +394,7 @@ class TestKMCalculateROIMetrics:
         return context
 
     @pytest.mark.asyncio
-    async def test_roi_calculation_success(self, mock_context) -> None:
+    async def test_roi_calculation_success(self, mock_context: Any) -> None:
         """Test successful ROI metrics calculation."""
         result = await km_calculate_roi_metrics(
             timeframe="6_months",
@@ -422,7 +422,7 @@ class TestAnalyticsEngineIntegration:
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_analytics_workflow(self, mock_context) -> None:
+    async def test_complete_analytics_workflow(self, mock_context: Any) -> None:
         """Test complete analytics workflow integration."""
         # Execute workflow sequence
         init_result = await km_analytics_engine(

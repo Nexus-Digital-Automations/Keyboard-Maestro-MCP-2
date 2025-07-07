@@ -12,7 +12,8 @@ Targeting high-impact core modules with minimal dependencies:
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
+
 import pytest
 from src.core.contracts import ContractViolationError, ensure, require
 from src.core.either import Either
@@ -424,7 +425,7 @@ class TestEitherMonad:
     def test_either_flat_map_operations(self) -> None:
         """Test Either flat_map operations for chaining."""
 
-        def safe_divide(x, y) -> Any:
+        def safe_divide(x: Any, y: Any) -> Any:
             if y == 0:
                 return Either.left("Division by zero")
             return Either.right(x / y)
@@ -480,16 +481,16 @@ class TestEitherMonad:
     def test_either_chaining_complex(self) -> None:
         """Test complex Either chaining scenarios."""
 
-        def parse_int(s) -> Any:
+        def parse_int(s: int) -> Any:
             try:
                 return Either.right(int(s))
             except ValueError:
                 return Either.left(f"Cannot parse '{s}' as integer")
 
-        def multiply_by_two(x) -> Any:
+        def multiply_by_two(x: Any) -> Any:
             return Either.right(x * 2)
 
-        def ensure_positive(x) -> None:
+        def ensure_positive(x: Any) -> None:
             if x > 0:
                 return Either.right(x)
             return Either.left(f"Value {x} is not positive")
@@ -525,7 +526,7 @@ class TestContractSystem:
 
         @require(lambda x: x > 0, "x must be positive")
         @require(lambda x: isinstance(x, int | float), "x must be numeric")
-        def divide_ten_by(x) -> dict[str, Any]:
+        def divide_ten_by(x: Any) -> dict[str, Any]:
             return 10 / x
 
         # Test with valid input
@@ -540,7 +541,7 @@ class TestContractSystem:
 
         @require(lambda x: x > 0, "x must be positive")
         @require(lambda x: isinstance(x, int | float), "x must be numeric")
-        def divide_ten_by(x) -> dict[str, Any]:
+        def divide_ten_by(x: Any) -> dict[str, Any]:
             return 10 / x
 
         # Test with invalid input (negative)
@@ -591,7 +592,7 @@ class TestContractSystem:
 
         @require(lambda x, y: x > 0 and y > 0, "both inputs must be positive")
         @ensure(lambda result: result > 0, "result must be positive")
-        def multiply_positive(x, y) -> dict[str, Any]:
+        def multiply_positive(x: Any, y: Any) -> dict[str, Any]:
             return x * y
 
         # Test valid case
@@ -610,7 +611,7 @@ class TestContractSystem:
         @require(lambda a, b, c: isinstance(b, str), "b must be string")
         @require(lambda a, b, c: c >= 0, "c must be non-negative")
         @ensure(lambda result: isinstance(result, dict), "result must be dict")
-        def process_data(a, b, c) -> dict[str, Any]:
+        def process_data(a: list[Any] | str, b: Any, c: Any) -> dict[str, Any]:
             return {"list_length": len(a), "string_value": b, "number_value": c}
 
         # Test valid case
@@ -634,7 +635,7 @@ class TestContractSystem:
 
         @require(lambda x: x >= 0, "x must be non-negative")
         @ensure(lambda result: result >= 0, "result must be non-negative")
-        async def async_sqrt(x):
+        async def async_sqrt(x: Any) -> Any:
             return x**0.5
 
         # Test async contract validation
@@ -653,7 +654,7 @@ class TestContractSystem:
         """Test ContractViolationError provides detailed information."""
 
         @require(lambda x: x > 10, "x must be greater than 10")
-        def test_function(x) -> None:
+        def test_function(x: Any) -> None:
             return x
 
         try:

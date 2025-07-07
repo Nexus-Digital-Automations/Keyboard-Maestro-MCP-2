@@ -266,7 +266,7 @@ def create_command_result(
     success: bool,
     output: str | None = None,
     error_message: str | None = None,
-    **metadata,
+    **metadata: Any,
 ) -> CommandResult:
     """Helper function to create standardized command results.
 

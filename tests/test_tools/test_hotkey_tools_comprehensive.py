@@ -6,7 +6,7 @@ key combination management, and integration with property-based testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -20,7 +20,7 @@ from src.server.tools.hotkey_tools import (
 
 # Test data generators
 @st.composite
-def hotkey_key_strategy(draw) -> Any:
+def hotkey_key_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid hotkey keys."""
     regular_keys = [chr(i) for i in range(ord("a"), ord("z") + 1)] + [
         str(i) for i in range(10)
@@ -62,7 +62,7 @@ def hotkey_key_strategy(draw) -> Any:
 
 
 @st.composite
-def hotkey_modifiers_strategy(draw) -> list[Any]:
+def hotkey_modifiers_strategy(draw: Callable[..., Any]) -> list[Any]:
     """Generate valid modifier combinations."""
     all_modifiers = ["cmd", "opt", "shift", "ctrl", "fn"]
     # Generate 0-3 modifiers (empty list is valid)
@@ -80,14 +80,14 @@ def hotkey_modifiers_strategy(draw) -> list[Any]:
 
 
 @st.composite
-def activation_mode_strategy(draw) -> Any:
+def activation_mode_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid activation modes."""
     modes = ["pressed", "released", "tapped", "held"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def macro_id_strategy(draw) -> Any:
+def macro_id_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid macro IDs."""
     # UUID format or descriptive name (systematic pattern alignment)
     # Ensure we always generate valid, non-empty strings
@@ -110,14 +110,14 @@ def macro_id_strategy(draw) -> Any:
 
 
 @st.composite
-def invalid_key_strategy(draw) -> Any:
+def invalid_key_strategy(draw: Callable[..., Any]) -> Any:
     """Generate invalid hotkey keys for testing."""
     invalid_keys = ["invalid", "ctrl+a", "cmd+space", "", "  ", "F13", "shift", "cmd"]
     return draw(st.sampled_from(invalid_keys))
 
 
 @st.composite
-def invalid_modifier_strategy(draw) -> Any:
+def invalid_modifier_strategy(draw: Callable[..., Any]) -> Any:
     """Generate invalid modifier combinations."""
     invalid_modifiers = ["invalid", "command", "alt", "control", "windows", "meta"]
     return draw(st.lists(st.sampled_from(invalid_modifiers), min_size=1, max_size=2))

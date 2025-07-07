@@ -770,7 +770,7 @@ class SensorManager:
         self,
         condition: AutomationCondition,
         reading: SensorReading,
-    ):
+    ) -> None:
         """Execute actions for triggered condition."""
         # Find associated actions (this would be implemented based on action-condition relationships)
         # For now, generate an alert
@@ -795,7 +795,7 @@ class SensorManager:
             with contextlib.suppress(Exception):
                 handler(alert)
 
-    async def _update_sensor_statistics(self, sensor_id: SensorId):
+    async def _update_sensor_statistics(self, sensor_id: SensorId) -> None:
         """Update sensor statistics."""
         if sensor_id in self.sensor_statistics and sensor_id in self.sensor_data:
             recent_readings = list(self.sensor_data[sensor_id])
@@ -832,12 +832,12 @@ class SensorManager:
 
     # Background services
 
-    async def _start_background_services(self):
+    async def _start_background_services(self) -> None:
         """Start background processing and analytics services."""
         self._processing_task = asyncio.create_task(self._background_processing_loop())
         self._analytics_task = asyncio.create_task(self._analytics_loop())
 
-    async def _background_processing_loop(self):
+    async def _background_processing_loop(self) -> None:
         """Background processing loop for periodic tasks."""
         while True:
             try:
@@ -854,7 +854,7 @@ class SensorManager:
             except Exception:
                 await asyncio.sleep(60)  # Error recovery
 
-    async def _analytics_loop(self):
+    async def _analytics_loop(self) -> Any:
         """Background analytics loop for advanced processing."""
         while True:
             try:
@@ -871,7 +871,7 @@ class SensorManager:
             except Exception:
                 await asyncio.sleep(60)  # Error recovery
 
-    async def _cleanup_old_data(self):
+    async def _cleanup_old_data(self) -> None:
         """Clean up old sensor data based on retention settings."""
         for sensor_id, config in self.sensors.items():
             if sensor_id in self.sensor_data:
@@ -884,7 +884,7 @@ class SensorManager:
                 while readings and readings[0].timestamp < cutoff_time:
                     readings.popleft()
 
-    async def _update_aggregations(self):
+    async def _update_aggregations(self) -> None:
         """Update aggregation results for all sensors."""
         for sensor_id in self.sensors:
             if sensor_id in self.sensor_data:
@@ -912,12 +912,12 @@ class SensorManager:
                         "last_updated": datetime.now(UTC).isoformat(),
                     }
 
-    async def _update_trend_analysis(self):
+    async def _update_trend_analysis(self) -> None:
         """Update trend analysis for all sensors."""
         for sensor_id in self.sensor_statistics:
             await self._update_sensor_statistics(sensor_id)
 
-    async def _cleanup_resolved_alerts(self):
+    async def _cleanup_resolved_alerts(self) -> None:
         """Clean up old resolved alerts."""
         cutoff_time = datetime.now(UTC) - timedelta(
             days=7,

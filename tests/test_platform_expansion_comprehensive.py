@@ -9,7 +9,6 @@ Following ADDER+ protocols for systematic coverage expansion with all advanced t
 
 import pytest
 from src.core.errors import ExecutionError, SecurityError, ValidationError
-from typing import Any
 
 # Core types and utilities
 from src.server.tools.interface_automation_tools import km_interface_automation

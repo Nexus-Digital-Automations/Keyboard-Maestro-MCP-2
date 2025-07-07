@@ -6,7 +6,7 @@ to improve overall test coverage metrics.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -134,7 +134,7 @@ class TestFastMCPIntegration:
         mcp.tool = Mock(return_value=lambda func: func)
         return mcp
 
-    def test_calculator_tools_registration(self, mock_fastmcp) -> None:
+    def test_calculator_tools_registration(self, mock_fastmcp: Any) -> None:
         """Test calculator tools can register with FastMCP."""
         try:
             from src.server.tools.calculator_tools import km_calculator
@@ -144,7 +144,7 @@ class TestFastMCPIntegration:
         except ImportError:
             pytest.skip("Calculator tools not available")
 
-    def test_core_tools_registration(self, mock_fastmcp) -> None:
+    def test_core_tools_registration(self, mock_fastmcp: Any) -> None:
         """Test core tools can register with FastMCP."""
         try:
             from src.server.tools.core_tools import CoreTools
@@ -155,7 +155,7 @@ class TestFastMCPIntegration:
         except ImportError:
             pytest.skip("Core tools not available")
 
-    def test_action_tools_registration(self, mock_fastmcp) -> None:
+    def test_action_tools_registration(self, mock_fastmcp: Any) -> None:
         """Test action tools can register with FastMCP."""
         try:
             from src.server.tools.action_tools import ActionTools

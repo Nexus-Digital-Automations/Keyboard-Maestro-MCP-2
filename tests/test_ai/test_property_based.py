@@ -14,10 +14,10 @@ Property Testing Coverage:
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import string
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from typing import Any
 
 import pytest
 from hypothesis import assume, given, settings
@@ -45,7 +45,7 @@ from src.core.ai_integration import (
 
 # Strategy definitions for property testing
 @st.composite
-def cache_keys(draw) -> Any:
+def cache_keys(draw: Callable[..., Any]) -> Any:
     """Generate valid cache keys."""
     key = draw(
         st.text(
@@ -58,7 +58,7 @@ def cache_keys(draw) -> Any:
 
 
 @st.composite
-def cache_namespaces(draw) -> Any:
+def cache_namespaces(draw: Callable[..., Any]) -> Any:
     """Generate valid cache namespaces."""
     namespace = draw(
         st.text(
@@ -71,7 +71,7 @@ def cache_namespaces(draw) -> Any:
 
 
 @st.composite
-def cache_values(draw) -> Any:
+def cache_values(draw: Callable[..., Any]) -> Any:
     """Generate valid cache values."""
     return draw(
         st.one_of(
@@ -92,7 +92,7 @@ def cache_values(draw) -> Any:
 
 
 @st.composite
-def budget_amounts(draw) -> Any:
+def budget_amounts(draw: Callable[..., Any]) -> Any:
     """Generate valid budget amounts."""
     amount = draw(
         st.decimals(
@@ -103,7 +103,7 @@ def budget_amounts(draw) -> Any:
 
 
 @st.composite
-def api_keys(draw) -> Any:
+def api_keys(draw: Callable[..., Any]) -> Any:
     """Generate various API key formats."""
     provider = draw(st.sampled_from(["openai", "anthropic", "google_ai"]))
 
@@ -139,7 +139,7 @@ class TestCacheProperties:
     """Property-based tests for cache system."""
 
     @given(key=cache_keys(), namespace=cache_namespaces(), value=cache_values())
-    def test_cache_put_get_roundtrip(self, key, namespace, value) -> None:
+    def test_cache_put_get_roundtrip(self, key: str, namespace: Any, value: Any) -> None:
         """Property: Any value put into cache should be retrievable."""
         cache_manager = CacheManager(max_size=1000)
 
@@ -162,7 +162,7 @@ class TestCacheProperties:
         ),
         namespace=cache_namespaces(),
     )
-    def test_cache_multiple_operations_consistency(self, keys_and_values, namespace) -> None:
+    def test_cache_multiple_operations_consistency(self, keys_and_values: list[Any] | str, namespace: Any) -> None:
         """Property: Multiple cache operations should maintain consistency."""
         cache_manager = CacheManager(max_size=100)
         stored_items = {}
@@ -191,7 +191,7 @@ class TestCacheProperties:
         ),
         namespace=cache_namespaces(),
     )
-    def test_cache_operation_sequence_properties(self, operations, namespace) -> None:
+    def test_cache_operation_sequence_properties(self, operations: list[Any], namespace: Any) -> None:
         """Property: Cache should maintain consistent state across operation sequences."""
         cache_manager = CacheManager(max_size=50)
         known_keys = set()
@@ -226,7 +226,7 @@ class TestCacheProperties:
         value=cache_values(),
         namespace=cache_namespaces(),
     )
-    def test_cache_ttl_properties(self, ttl_hours, key, value, namespace) -> None:
+    def test_cache_ttl_properties(self, ttl_hours: Any, key: str, value: Any, namespace: Any) -> None:
         """Property: Cache TTL should work correctly."""
         cache_manager = CacheManager(max_size=100)
 
@@ -261,7 +261,7 @@ class TestCostOptimizationProperties:
             unique=True,
         ).map(sorted),
     )
-    def test_budget_creation_properties(self, budget_name, amount, period, thresholds) -> None:
+    def test_budget_creation_properties(self, budget_name: str, amount: Any, period: Any, thresholds: Any) -> None:
         """Property: Valid budget parameters should create valid budgets."""
         cost_optimizer = CostOptimizer()
 
@@ -301,7 +301,7 @@ class TestCostOptimizationProperties:
             max_size=20,
         ),
     )
-    def test_usage_tracking_properties(self, usage_records) -> None:
+    def test_usage_tracking_properties(self, usage_records: list[Any] | str) -> None:
         """Property: Usage tracking should accumulate correctly."""
         cost_optimizer = CostOptimizer()
         total_expected_cost = 0.0
@@ -344,7 +344,7 @@ class TestCostOptimizationProperties:
             max_size=30,
         ),
     )
-    def test_cost_prediction_properties(self, costs) -> None:
+    def test_cost_prediction_properties(self, costs: list[Any] | str) -> None:
         """Property: Cost predictions should be reasonable based on historical data."""
         cost_optimizer = CostOptimizer()
 
@@ -377,7 +377,7 @@ class TestSecurityProperties:
     """Property-based tests for security components."""
 
     @given(api_key_data=api_keys())
-    def test_api_key_validation_properties(self, api_key_data) -> None:
+    def test_api_key_validation_properties(self, api_key_data: Any) -> None:
         """Property: API key validation should be consistent and secure."""
         provider, key = api_key_data
         api_key_manager = APIKeyManager()
@@ -409,7 +409,7 @@ class TestSecurityProperties:
             max_size=5,
         ),
     )
-    def test_key_storage_properties(self, provider, key, tags) -> None:
+    def test_key_storage_properties(self, provider: list[Any] | str, key: str, tags: Any) -> None:
         """Property: Key storage should preserve data integrity."""
         api_key_manager = APIKeyManager()
 
@@ -438,7 +438,7 @@ class TestProviderClientProperties:
         temperature=st.floats(min_value=0.0, max_value=2.0),
         max_tokens=st.integers(min_value=1, max_value=4096),
     )
-    def test_openai_client_parameter_handling(self, model, temperature, max_tokens) -> None:
+    def test_openai_client_parameter_handling(self, model: Any, temperature: int | float, max_tokens: Any) -> None:
         """Property: OpenAI client should handle valid parameters correctly."""
         client = OpenAIClient(api_key="sk-test-key-123", model=model, timeout=10.0)
 
@@ -465,7 +465,7 @@ class TestProviderClientProperties:
             assert payload["model"] == model
 
     @given(input_text=st.text(min_size=1, max_size=1000))
-    def test_token_counting_properties(self, input_text) -> None:
+    def test_token_counting_properties(self, input_text: list[Any] | str) -> None:
         """Property: Token counting should be consistent and reasonable."""
         client = OpenAIClient(api_key="sk-test-key-123", model="gpt-3.5-turbo")
 
@@ -496,14 +496,14 @@ class CacheStateMachine(RuleBasedStateMachine):
         self.stored_keys = set()
 
     @rule(key=cache_keys(), value=cache_values(), namespace=cache_namespaces())
-    def put_item(self, key, value, namespace) -> None:
+    def put_item(self, key: str, value: Any, namespace: Any) -> None:
         """Put an item in the cache."""
         success = self.cache.put(key, value, namespace=namespace)
         if success:
             self.stored_keys.add((key, namespace))
 
     @rule(key=cache_keys(), namespace=cache_namespaces())
-    def get_item(self, key, namespace) -> None:
+    def get_item(self, key: str, namespace: Any) -> None:
         """Get an item from the cache."""
         result = self.cache.get(key, namespace=namespace)
         # If we know the key is stored, it should be retrievable
@@ -511,7 +511,7 @@ class CacheStateMachine(RuleBasedStateMachine):
         return result
 
     @rule(key=cache_keys(), namespace=cache_namespaces())
-    def invalidate_item(self, key, namespace) -> None:
+    def invalidate_item(self, key: str, namespace: Any) -> None:
         """Invalidate an item in the cache."""
         self.cache.invalidate(key, namespace=namespace)
         self.stored_keys.discard((key, namespace))
@@ -539,7 +539,7 @@ class TestPerformanceProperties:
     """Property-based tests for performance characteristics."""
 
     @given(operation_count=st.integers(min_value=10, max_value=1000))
-    def test_cache_operation_performance_scaling(self, operation_count) -> None:
+    def test_cache_operation_performance_scaling(self, operation_count: int) -> None:
         """Property: Cache operations should scale linearly."""
         import time
 
@@ -568,7 +568,7 @@ class TestPerformanceProperties:
         )
 
     @given(record_count=st.integers(min_value=5, max_value=100))
-    def test_cost_tracking_performance_scaling(self, record_count) -> None:
+    def test_cost_tracking_performance_scaling(self, record_count: int) -> None:
         """Property: Cost tracking should handle increasing record counts efficiently."""
         import time
 

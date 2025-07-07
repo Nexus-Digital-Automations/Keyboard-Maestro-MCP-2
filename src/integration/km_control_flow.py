@@ -4,8 +4,11 @@ Handles the generation of safe AppleScript and XML for Keyboard Maestro
 control flow structures with comprehensive security validation.
 """
 
+from __future__ import annotations
+
 import re
 import uuid
+from collections.abc import Callable
 
 try:
     from defusedxml import ElementTree as ET
@@ -239,7 +242,7 @@ class KMControlFlowGenerator:
 
         return self._validate_and_clean_xml(xml_template)
 
-    def _generate_condition_xml(self, condition) -> str:
+    def _generate_condition_xml(self, condition: Callable[..., bool] | bool) -> str:
         """Generate secure XML for condition expressions."""
         # Escape and validate condition components
         expression = self._escape_xml(condition.expression)

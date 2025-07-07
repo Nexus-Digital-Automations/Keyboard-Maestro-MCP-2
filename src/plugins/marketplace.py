@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 from ..core.either import Either
 from ..core.plugin_architecture import (
@@ -693,7 +694,7 @@ class PluginMarketplace:
                 PluginError(f"File installation failed: {e!s}", "INSTALL_ERROR"),
             )
 
-    async def _record_installation(self, entry: MarketplaceEntry, plugin_path: Path):
+    async def _record_installation(self, entry: MarketplaceEntry, plugin_path: Path) -> Any:
         """Record successful plugin installation."""
         installation_record = {
             "plugin_id": entry.metadata.identifier,
@@ -716,7 +717,7 @@ class PluginMarketplace:
         with open(records_file, "w") as f:
             json.dump(records, f, indent=2, default=str)
 
-    async def _load_cache(self):
+    async def _load_cache(self) -> None:
         """Load cached marketplace data."""
         cache_file = self.cache_dir / "marketplace_cache.json"
         if cache_file.exists():
@@ -734,7 +735,7 @@ class PluginMarketplace:
         self,
         query: SearchQuery,
         results: list[MarketplaceEntry],
-    ):
+    ) -> list[Any]:
         """Cache search results for faster subsequent searches."""
         # Implementation would cache results with TTL
 

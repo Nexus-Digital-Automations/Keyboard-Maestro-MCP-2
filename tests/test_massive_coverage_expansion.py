@@ -7,9 +7,9 @@ testing of core infrastructure, analytics, security, and integration modules.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import json
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -670,7 +670,7 @@ class TestAsyncOperationsCoverage:
         """Test async workflow patterns across modules."""
 
         # Test basic async operations
-        async def mock_operation(delay: float = 0.01):
+        async def mock_operation(delay: float = 0.01) -> Any:
             await asyncio.sleep(delay)
             return {"status": "completed", "timestamp": "2025-01-01T00:00:00Z"}
 
@@ -688,7 +688,7 @@ class TestAsyncOperationsCoverage:
     async def test_async_error_handling(self) -> None:
         """Test async error handling patterns."""
 
-        async def failing_operation():
+        async def failing_operation() -> Any:
             await asyncio.sleep(0.01)
             raise ValueError("Test error")
 
@@ -707,7 +707,7 @@ class TestAsyncOperationsCoverage:
     async def test_async_timeout_handling(self) -> None:
         """Test async timeout handling patterns."""
 
-        async def slow_operation():
+        async def slow_operation() -> Any:
             await asyncio.sleep(10)  # Long operation
             return "completed"
 
@@ -795,7 +795,7 @@ class TestPerformanceCoverage:
         """Test memory-efficient operations."""
 
         # Test generator vs list creation
-        def generate_numbers(n) -> str:
+        def generate_numbers(n: Any) -> str:
             for i in range(n):
                 yield i * i
 
@@ -808,7 +808,7 @@ class TestPerformanceCoverage:
     async def test_concurrent_performance(self) -> None:
         """Test concurrent operation performance."""
 
-        async def cpu_bound_task(n: int):
+        async def cpu_bound_task(n: int) -> Any:
             # Simulate CPU-bound work
             total = 0
             for i in range(n):

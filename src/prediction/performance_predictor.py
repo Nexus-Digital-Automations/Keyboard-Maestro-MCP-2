@@ -213,28 +213,28 @@ class PerformancePredictor:
         if metric_name == "response_time":
             base_value = 250.0  # milliseconds
 
-            def daily_pattern(hour) -> None:
+            def daily_pattern(hour: Any) -> None:
                 return 1.0 + 0.3 * math.sin(2 * math.pi * hour / 24)
 
             noise_factor = 0.2
         elif metric_name == "throughput":
             base_value = 50.0  # requests per second
 
-            def daily_pattern(hour) -> None:
+            def daily_pattern(hour: Any) -> None:
                 return 1.0 + 0.4 * math.sin(2 * math.pi * (hour - 6) / 24)
 
             noise_factor = 0.3
         elif metric_name == "error_rate":
             base_value = 0.02  # 2% error rate
 
-            def daily_pattern(hour) -> None:
+            def daily_pattern(hour: Any) -> None:
                 return 1.0 + 0.1 * math.sin(2 * math.pi * hour / 24)
 
             noise_factor = 0.5
         elif metric_name == "health_score":
             base_value = 85.0  # Health score out of 100
 
-            def daily_pattern(hour) -> None:
+            def daily_pattern(hour: Any) -> None:
                 return 1.0 + 0.1 * math.sin(2 * math.pi * (hour - 12) / 24)
 
             noise_factor = 0.1
@@ -242,7 +242,7 @@ class PerformancePredictor:
             # Generic CPU/memory usage
             base_value = 0.6  # 60% utilization
 
-            def daily_pattern(hour) -> None:
+            def daily_pattern(hour: Any) -> None:
                 return 1.0 + 0.2 * math.sin(2 * math.pi * hour / 24)
 
             noise_factor = 0.2

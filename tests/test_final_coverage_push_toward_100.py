@@ -6,7 +6,6 @@ to push coverage as close to 100% as possible through systematic testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest

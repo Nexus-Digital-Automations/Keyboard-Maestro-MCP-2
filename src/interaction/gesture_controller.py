@@ -559,7 +559,7 @@ class GestureController:
                 ),
             )
 
-    async def _simulate_pinch_gesture(self, gesture: GestureEvent):
+    async def _simulate_pinch_gesture(self, gesture: GestureEvent) -> Any:
         """Simulate pinch gesture with realistic timing."""
         steps = max(10, int(gesture.duration_ms / 50))  # 50ms per step
         step_duration = gesture.duration_ms / steps / 1000.0
@@ -569,7 +569,7 @@ class GestureController:
             # Simulate finger positions expanding/contracting
             await asyncio.sleep(step_duration)
 
-    async def _simulate_rotate_gesture(self, gesture: GestureEvent):
+    async def _simulate_rotate_gesture(self, gesture: GestureEvent) -> Any:
         """Simulate rotate gesture with realistic timing."""
         steps = max(10, int(gesture.duration_ms / 50))
         step_duration = gesture.duration_ms / steps / 1000.0
@@ -579,7 +579,7 @@ class GestureController:
             # Simulate finger rotation around center
             await asyncio.sleep(step_duration)
 
-    async def _simulate_swipe_gesture(self, gesture: GestureEvent):
+    async def _simulate_swipe_gesture(self, gesture: GestureEvent) -> Any:
         """Simulate swipe gesture with realistic movement."""
         steps = max(5, int(gesture.duration_ms / 100))  # 100ms per step
         step_duration = gesture.duration_ms / steps / 1000.0
@@ -589,7 +589,7 @@ class GestureController:
             # Simulate finger movement in direction
             await asyncio.sleep(step_duration)
 
-    async def _simulate_scroll_gesture(self, gesture: GestureEvent):
+    async def _simulate_scroll_gesture(self, gesture: GestureEvent) -> Any:
         """Simulate two-finger scroll gesture."""
         steps = max(3, int(gesture.duration_ms / 150))  # 150ms per step
         step_duration = gesture.duration_ms / steps / 1000.0
@@ -602,7 +602,7 @@ class GestureController:
         operation: str,
         params: dict[str, Any],
         delay_ms: int,
-    ):
+    ) -> None:
         """Execute a single event in a timing sequence."""
         await asyncio.sleep(delay_ms / 1000.0)
         logger.debug(f"Executed sequence event: {operation}")

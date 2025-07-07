@@ -693,14 +693,14 @@ class AutomationHub:
 
     # Event handling methods
 
-    async def _handle_device_connected(self, device_id: DeviceId):
+    async def _handle_device_connected(self, device_id: DeviceId) -> None:
         """Handle device connected event."""
         await self._emit_event(
             "device_connected",
             {"device_id": device_id, "timestamp": datetime.now(UTC).isoformat()},
         )
 
-    async def _handle_device_disconnected(self, device_id: DeviceId):
+    async def _handle_device_disconnected(self, device_id: DeviceId) -> None:
         """Handle device disconnected event."""
         await self._emit_event(
             "device_disconnected",
@@ -712,7 +712,7 @@ class AutomationHub:
         device_id: DeviceId,
         action: Any,
         result: dict[str, Any],
-    ):
+    ) -> None:
         """Handle device command executed event."""
         await self._emit_event(
             "device_command_executed",
@@ -724,7 +724,7 @@ class AutomationHub:
             },
         )
 
-    async def _handle_sensor_reading(self, reading: SensorReading):
+    async def _handle_sensor_reading(self, reading: SensorReading) -> None:
         """Handle sensor reading received event."""
         await self._emit_event(
             "sensor_reading_received",
@@ -747,7 +747,7 @@ class AutomationHub:
         self,
         condition: AutomationCondition,
         reading: SensorReading,
-    ):
+    ) -> None:
         """Handle automation trigger activated event."""
         await self._emit_event(
             "automation_trigger_activated",
@@ -760,7 +760,7 @@ class AutomationHub:
             },
         )
 
-    async def _handle_sensor_alert(self, alert: Any):
+    async def _handle_sensor_alert(self, alert: Any) -> None:
         """Handle sensor alert generated event."""
         await self._emit_event(
             "sensor_alert_generated",
@@ -772,7 +772,7 @@ class AutomationHub:
             },
         )
 
-    async def _emit_event(self, event_type: str, event_data: dict[str, Any]):
+    async def _emit_event(self, event_type: str, event_data: dict[str, Any]) -> Any:
         """Emit automation event."""
         event = AutomationEvent(
             event_id=f"event_{int(datetime.now(UTC).timestamp() * 1000)}",
@@ -798,7 +798,7 @@ class AutomationHub:
 
     # Background services
 
-    async def _start_background_services(self):
+    async def _start_background_services(self) -> None:
         """Start background processing services."""
         self._event_processor_task = asyncio.create_task(self._event_processor_loop())
         self._rule_evaluator_task = asyncio.create_task(self._rule_evaluator_loop())
@@ -807,7 +807,7 @@ class AutomationHub:
         if self.optimization_enabled:
             self._optimizer_task = asyncio.create_task(self._optimizer_loop())
 
-    async def _event_processor_loop(self):
+    async def _event_processor_loop(self) -> None:
         """Background event processing loop."""
         while True:
             try:
@@ -840,7 +840,7 @@ class AutomationHub:
             except Exception:
                 await asyncio.sleep(1)  # Error recovery
 
-    async def _rule_evaluator_loop(self):
+    async def _rule_evaluator_loop(self) -> Any:
         """Background rule evaluation loop."""
         while True:
             try:
@@ -863,7 +863,7 @@ class AutomationHub:
             except Exception:
                 await asyncio.sleep(60)  # Error recovery
 
-    async def _scheduler_loop(self):
+    async def _scheduler_loop(self) -> Any:
         """Background scheduler loop."""
         while True:
             try:
@@ -884,7 +884,7 @@ class AutomationHub:
             except Exception:
                 await asyncio.sleep(60)  # Error recovery
 
-    async def _optimizer_loop(self):
+    async def _optimizer_loop(self) -> Any:
         """Background optimization loop."""
         while True:
             try:
@@ -911,11 +911,11 @@ class AutomationHub:
         # For now, just a placeholder
         return False
 
-    async def _schedule_rule(self, rule: AutomationRule):
+    async def _schedule_rule(self, rule: AutomationRule) -> Any:
         """Schedule rule for execution."""
         # This would implement rule scheduling based on cron expressions
 
-    async def _optimize_automation_rules(self):
+    async def _optimize_automation_rules(self) -> Any:
         """Optimize automation rules based on execution patterns."""
         # This would implement ML-based rule optimization
 

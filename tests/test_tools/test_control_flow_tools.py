@@ -6,7 +6,7 @@ validation, security checks, and Keyboard Maestro integration.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -39,7 +39,7 @@ class TestKMControlFlowTool:
         return context
 
     @pytest.mark.asyncio
-    async def test_if_then_else_success(self, mock_context) -> None:
+    async def test_if_then_else_success(self, mock_context: Any) -> None:
         """Test successful if/then/else creation."""
         with patch(
             "src.server.tools.control_flow_tools._apply_control_flow_to_macro",
@@ -67,7 +67,7 @@ class TestKMControlFlowTool:
         mock_context.info.assert_called()
 
     @pytest.mark.asyncio
-    async def test_for_loop_success(self, mock_context) -> None:
+    async def test_for_loop_success(self, mock_context: Any) -> None:
         """Test successful for loop creation."""
         with patch(
             "src.server.tools.control_flow_tools._apply_control_flow_to_macro",
@@ -93,7 +93,7 @@ class TestKMControlFlowTool:
         assert result["data"]["structure_info"]["max_iterations"] == 50
 
     @pytest.mark.asyncio
-    async def test_while_loop_success(self, mock_context) -> None:
+    async def test_while_loop_success(self, mock_context: Any) -> None:
         """Test successful while loop creation."""
         with patch(
             "src.server.tools.control_flow_tools._apply_control_flow_to_macro",
@@ -116,7 +116,7 @@ class TestKMControlFlowTool:
         assert result["data"]["structure_info"]["max_iterations"] == 20
 
     @pytest.mark.asyncio
-    async def test_switch_case_success(self, mock_context) -> None:
+    async def test_switch_case_success(self, mock_context: Any) -> None:
         """Test successful switch/case creation."""
         with patch(
             "src.server.tools.control_flow_tools._apply_control_flow_to_macro",
@@ -145,7 +145,7 @@ class TestKMControlFlowTool:
         assert result["data"]["structure_info"]["has_default"] is True
 
     @pytest.mark.asyncio
-    async def test_validation_error(self, mock_context) -> None:
+    async def test_validation_error(self, mock_context: Any) -> None:
         """Test validation error handling."""
         result = await km_control_flow(
             macro_identifier="",  # Invalid empty identifier
@@ -163,7 +163,7 @@ class TestKMControlFlowTool:
         mock_context.error.assert_called()
 
     @pytest.mark.asyncio
-    async def test_security_error(self, mock_context) -> None:
+    async def test_security_error(self, mock_context: Any) -> None:
         """Test security error handling."""
         result = await km_control_flow(
             macro_identifier="test_macro",
@@ -181,7 +181,7 @@ class TestKMControlFlowTool:
         mock_context.error.assert_called()
 
     @pytest.mark.asyncio
-    async def test_missing_required_parameters(self, mock_context) -> None:
+    async def test_missing_required_parameters(self, mock_context: Any) -> None:
         """Test missing required parameters."""
         # If/then/else without condition
         result1 = await km_control_flow(
@@ -206,7 +206,7 @@ class TestKMControlFlowTool:
         assert result2["error"]["code"] == "VALIDATION_ERROR"
 
     @pytest.mark.asyncio
-    async def test_security_bounds_validation(self, mock_context) -> None:
+    async def test_security_bounds_validation(self, mock_context: Any) -> None:
         """Test security bounds validation."""
         # Test max iterations limit
         result = await km_control_flow(
@@ -224,7 +224,7 @@ class TestKMControlFlowTool:
         assert "must be between 1 and 10000" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_timeout_validation(self, mock_context) -> None:
+    async def test_timeout_validation(self, mock_context: Any) -> None:
         """Test timeout validation."""
         result = await km_control_flow(
             macro_identifier="test_macro",

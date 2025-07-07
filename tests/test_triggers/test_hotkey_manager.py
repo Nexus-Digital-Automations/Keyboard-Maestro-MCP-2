@@ -6,7 +6,7 @@ hypothesis-driven property-based testing for comprehensive coverage.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -32,7 +32,7 @@ class TestHotkeySpecValidation:
     @given(
         st.text(min_size=1, max_size=1).filter(lambda x: x.isalnum() and x.isascii()),
     )
-    def test_valid_single_character_keys(self, key) -> None:
+    def test_valid_single_character_keys(self, key: str) -> None:
         """Property: Valid single character keys should create valid HotkeySpec."""
         spec = HotkeySpec(
             key=key.lower(),
@@ -45,7 +45,7 @@ class TestHotkeySpecValidation:
         assert spec.to_km_string() == key.lower()
 
     @given(st.sampled_from(list(VALID_SPECIAL_KEYS)))
-    def test_valid_special_keys(self, special_key) -> None:
+    def test_valid_special_keys(self, special_key: Any) -> None:
         """Property: All valid special keys should create valid HotkeySpec."""
         spec = HotkeySpec(
             key=special_key,
@@ -60,7 +60,7 @@ class TestHotkeySpecValidation:
     @given(
         st.text().filter(lambda x: len(x) != 1 and x.lower() not in VALID_SPECIAL_KEYS),
     )
-    def test_invalid_keys_raise_validation_error(self, invalid_key) -> None:
+    def test_invalid_keys_raise_validation_error(self, invalid_key: Any) -> None:
         """Property: Invalid keys should raise ValidationError."""
         assume(invalid_key)  # Ensure not empty
 
@@ -74,7 +74,7 @@ class TestHotkeySpecValidation:
             )
 
     @given(st.integers().filter(lambda x: x < 1 or x > 4))
-    def test_invalid_tap_count_raises_error(self, invalid_tap_count) -> None:
+    def test_invalid_tap_count_raises_error(self, invalid_tap_count: int) -> None:
         """Property: Tap counts outside 1-4 range should raise ValidationError."""
         with pytest.raises(ValidationError):
             HotkeySpec(
@@ -86,7 +86,7 @@ class TestHotkeySpecValidation:
             )
 
     @given(st.sets(st.sampled_from(ModifierKey), min_size=0, max_size=5))
-    def test_modifier_combinations(self, modifiers) -> None:
+    def test_modifier_combinations(self, modifiers: Any) -> None:
         """Property: Any combination of valid modifiers should be accepted."""
         spec = HotkeySpec(
             key="a",
@@ -110,7 +110,7 @@ class TestHotkeySpecValidation:
             )
 
     @given(st.text(min_size=1, max_size=5))
-    def test_display_string_formatting(self, key) -> None:
+    def test_display_string_formatting(self, key: str) -> None:
         """Property: Display strings should be consistently formatted."""
         assume(len(key) == 1 and key.isalnum() and key.isascii())
 
@@ -144,11 +144,11 @@ class TestCreateHotkeySpec:
     )
     def test_factory_function_creates_valid_specs(
         self,
-        key,
-        modifiers,
-        activation_mode,
-        tap_count,
-        allow_repeat,
+        key: str,
+        modifiers: Any,
+        activation_mode: Any,
+        tap_count: int,
+        allow_repeat: Any,
     ) -> None:
         """Property: Factory function should create valid HotkeySpec for valid inputs."""
         spec = create_hotkey_spec(
@@ -198,7 +198,7 @@ class TestHotkeyManager:
         return Mock(spec=KMClient)
 
     @pytest.fixture
-    def mock_trigger_manager(self, mock_km_client) -> Any:
+    def mock_trigger_manager(self, mock_km_client: Any) -> Any:
         """Mock TriggerRegistrationManager for testing."""
         manager = Mock(spec=TriggerRegistrationManager)
         manager.register_trigger = AsyncMock(
@@ -207,15 +207,15 @@ class TestHotkeyManager:
         return manager
 
     @pytest.fixture
-    def hotkey_manager(self, mock_km_client, mock_trigger_manager) -> Any:
+    def hotkey_manager(self, mock_km_client: Any, mock_trigger_manager: Any) -> Any:
         """Create HotkeyManager instance with mocked dependencies."""
         return HotkeyManager(mock_km_client, mock_trigger_manager)
 
     @pytest.mark.asyncio
     async def test_create_hotkey_trigger_success(
         self,
-        hotkey_manager,
-        mock_trigger_manager,
+        hotkey_manager: Any,
+        mock_trigger_manager: Any,
     ) -> None:
         """Test successful hotkey trigger creation."""
         macro_id = MacroId("test-macro")
@@ -241,7 +241,7 @@ class TestHotkeyManager:
         mock_trigger_manager.register_trigger.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_conflict_detection(self, hotkey_manager) -> None:
+    async def test_conflict_detection(self, hotkey_manager: Any) -> None:
         """Test hotkey conflict detection."""
         # Create a hotkey that conflicts with system shortcuts
         hotkey_spec = HotkeySpec(
@@ -259,7 +259,7 @@ class TestHotkeyManager:
         assert any(conflict.conflict_type == "system" for conflict in conflicts)
 
     @pytest.mark.asyncio
-    async def test_suggest_alternatives(self, hotkey_manager) -> None:
+    async def test_suggest_alternatives(self, hotkey_manager: Any) -> None:
         """Test alternative hotkey suggestions."""
         hotkey_spec = HotkeySpec(
             key="a",
@@ -279,7 +279,7 @@ class TestHotkeyManager:
             assert isinstance(alt, HotkeySpec)
             assert alt != hotkey_spec  # Should be different from original
 
-    def test_hotkey_availability_check(self, hotkey_manager) -> None:
+    def test_hotkey_availability_check(self, hotkey_manager: Any) -> None:
         """Test hotkey availability checking."""
         # Available hotkey
         available_hotkey = HotkeySpec(
@@ -358,7 +358,7 @@ class TestHotkeySecurityValidation:
     """Test security aspects of hotkey validation."""
 
     @given(st.text().filter(lambda x: not x.isascii() if x else False))
-    def test_non_ascii_keys_rejected(self, non_ascii_key) -> None:
+    def test_non_ascii_keys_rejected(self, non_ascii_key: list[Any] | str) -> None:
         """Property: Non-ASCII characters should be rejected for security."""
         assume(len(non_ascii_key) == 1)  # Single character
 
@@ -389,7 +389,7 @@ class TestHotkeySecurityValidation:
                 )
 
     @given(st.text(min_size=2, max_size=10).filter(lambda x: x.isascii()))
-    def test_multi_character_keys_validation(self, multi_char_key) -> None:
+    def test_multi_character_keys_validation(self, multi_char_key: Any) -> None:
         """Property: Multi-character keys must be in valid special keys list."""
         assume(multi_char_key.lower() not in VALID_SPECIAL_KEYS)
 

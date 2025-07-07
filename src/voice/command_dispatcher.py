@@ -825,7 +825,7 @@ class VoiceCommandDispatcher:
                 ),
             )
 
-    async def _process_command_queue(self):
+    async def _process_command_queue(self) -> None:
         """Background task to process command queue."""
         while True:
             try:
@@ -842,7 +842,7 @@ class VoiceCommandDispatcher:
                 logger.error(f"Command queue processing error: {e!s}")
                 await asyncio.sleep(5.0)
 
-    async def _cleanup_expired_commands(self):
+    async def _cleanup_expired_commands(self) -> None:
         """Clean up expired pending commands."""
         expired_commands = [
             command_id

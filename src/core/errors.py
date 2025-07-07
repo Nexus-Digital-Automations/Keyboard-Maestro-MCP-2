@@ -43,7 +43,7 @@ class ErrorContext:
     timestamp: str = field(default_factory=lambda: str(uuid.uuid4()))
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def with_metadata(self, **kwargs) -> ErrorContext:
+    def with_metadata(self, **kwargs: Any) -> ErrorContext:
         """Add metadata to error context."""
         new_metadata = self.metadata.copy()
         new_metadata.update(kwargs)
@@ -511,7 +511,7 @@ class AnalyticsError(MacroEngineError):
         )
 
 
-def create_error_context(operation: str, component: str, **metadata) -> ErrorContext:
+def create_error_context(operation: str, component: str, **metadata: Any) -> ErrorContext:
     """Create error context with metadata."""
     return ErrorContext(operation=operation, component=component, metadata=metadata)
 

@@ -7,7 +7,6 @@ layout algorithms for all display configurations and window arrangements.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 
 import pytest
@@ -33,7 +32,7 @@ class TestDisplayProperties:
         st.integers(min_value=1, max_value=4320),  # 8K height
         st.floats(min_value=0.5, max_value=4.0),  # Scale factor
     )
-    def test_display_info_properties(self, width, height, scale_factor) -> None:
+    def test_display_info_properties(self, width: int, height: int, scale_factor: Any) -> None:
         """Property: Display info should handle all valid dimensions and scale factors."""
         display = DisplayInfo(
             display_id=0,
@@ -60,7 +59,7 @@ class TestDisplayProperties:
         st.integers(min_value=100, max_value=2000),  # width
         st.integers(min_value=100, max_value=1500),  # height
     )
-    def test_display_contains_point_properties(self, x, y, width, height) -> None:
+    def test_display_contains_point_properties(self, x: Any, y: Any, width: int, height: int) -> None:
         """Property: Display point containment should work for all valid coordinates."""
         display = DisplayInfo(
             display_id=0,
@@ -94,7 +93,7 @@ class TestDisplayProperties:
             max_size=4,
         ),
     )
-    def test_display_topology_properties(self, display_specs) -> None:
+    def test_display_topology_properties(self, display_specs: Any) -> None:
         """Property: Display topology should handle all valid multi-monitor configurations."""
         displays = []
         for i, (width, height, x, y) in enumerate(display_specs):
@@ -161,7 +160,7 @@ class TestGridCalculationProperties:
             ],
         ),
     )
-    def test_grid_position_calculation_properties(self, window_count, padding, pattern) -> None:
+    def test_grid_position_calculation_properties(self, window_count: int, padding: Any, pattern: str) -> None:
         """Property: Grid calculations should produce valid positions for all inputs."""
         display = DisplayInfo(
             display_id=0,
@@ -209,7 +208,7 @@ class TestGridCalculationProperties:
         st.integers(min_value=1, max_value=16),  # window count
         st.integers(min_value=0, max_value=20),  # padding
     )
-    def test_standard_grid_properties(self, rows, columns, window_count, padding) -> None:
+    def test_standard_grid_properties(self, rows: list[Any], columns: list[Any], window_count: int, padding: int) -> None:
         """Property: Standard grid calculations should respect grid dimensions."""
         total_width = 1920
         total_height = 1080
@@ -247,7 +246,7 @@ class TestGridCalculationProperties:
                 assert overlap_x <= padding + 10 or overlap_y <= padding + 10
 
     @given(st.integers(min_value=1, max_value=20))
-    def test_window_position_properties(self, size) -> None:
+    def test_window_position_properties(self, size: int) -> None:
         """Property: Window position objects should maintain consistency."""
         x, y = 100, 100
         width, height = size * 50, size * 40
@@ -284,7 +283,7 @@ class TestAdvancedPositioningProperties:
         st.integers(min_value=100, max_value=800),  # window width
         st.integers(min_value=100, max_value=600),  # window height
     )
-    def test_relative_position_properties(self, rel_x, rel_y, width, height) -> None:
+    def test_relative_position_properties(self, rel_x: Any, rel_y: Any, width: int, height: int) -> None:
         """Property: Relative position calculations should preserve proportions."""
         source_display = DisplayInfo(
             display_id=0,
@@ -358,7 +357,7 @@ class TestAdvancedPositioningProperties:
             max_size=8,
         ),
     )
-    def test_smart_position_request_properties(self, window_names) -> None:
+    def test_smart_position_request_properties(self, window_names: list[Any] | str) -> None:
         """Property: Smart position requests should handle all valid window configurations."""
         requests = []
         for name in window_names:
@@ -400,7 +399,7 @@ class TestCoordinateMathProperties:
         st.integers(min_value=1, max_value=2000),  # width
         st.integers(min_value=1, max_value=1500),  # height
     )
-    def test_bounds_validation_properties(self, x, y, width, height) -> None:
+    def test_bounds_validation_properties(self, x: Callable[..., Any], y: Any, width: int, height: int) -> None:
         """Property: Bounds validation should correctly identify valid/invalid positions."""
         from src.window.grid_manager import GridCalculator
 
@@ -432,7 +431,7 @@ class TestCoordinateMathProperties:
         st.lists(st.integers(min_value=0, max_value=4), min_size=1, max_size=10),
         st.integers(min_value=1, max_value=5),
     )
-    def test_display_targeting_properties(self, display_indices, available_count) -> None:
+    def test_display_targeting_properties(self, display_indices: list[Any] | str, available_count: int) -> None:
         """Property: Display targeting should validate index bounds correctly."""
         # Create mock displays
         displays = []
@@ -466,7 +465,7 @@ class TestWindowManagementSystem:
         st.lists(st.text(min_size=1, max_size=20), min_size=1, max_size=5),
         st.sampled_from(list(WindowGridPattern)),
     )
-    def test_grid_manager_integration(self, window_ids, pattern) -> None:
+    def test_grid_manager_integration(self, window_ids: str, pattern: str) -> None:
         """Property: Grid manager should handle all valid window/pattern combinations."""
         if pattern == WindowGridPattern.CUSTOM:
             return  # Skip custom patterns in property testing
@@ -497,7 +496,7 @@ class TestWindowManagementSystem:
         assert all(isinstance(p, WindowGridPattern) for p in supported)
 
     @given(st.integers(min_value=1, max_value=10))
-    def test_workspace_name_generation(self, workspace_count) -> None:
+    def test_workspace_name_generation(self, workspace_count: int) -> None:
         """Property: Workspace management should handle naming correctly."""
         from src.core.displays import DisplayManager
         from src.window.advanced_positioning import WorkspaceManager
@@ -518,14 +517,14 @@ class TestWindowManagementSystem:
 
 
 # Async test helpers
-def run_async_test(coro) -> None:
+def run_async_test(coro: Any) -> None:
     """Helper to run async tests in property-based testing."""
     return asyncio.run(coro)
 
 
 # Pattern validation tests
 @given(st.sampled_from([p.value for p in WindowGridPattern]))
-def test_pattern_value_consistency(pattern_value) -> None:
+def test_pattern_value_consistency(pattern_value: Any) -> None:
     """Property: All grid pattern values should be valid enum values."""
     try:
         pattern = WindowGridPattern(pattern_value)
@@ -541,7 +540,7 @@ def test_pattern_value_consistency(pattern_value) -> None:
     st.integers(min_value=1, max_value=5),
     st.integers(min_value=1, max_value=5),
 )
-def test_grid_cell_properties(row, col, row_span, col_span) -> None:
+def test_grid_cell_properties(row: Any, col: Any, row_span: Any, col_span: Any) -> None:
     """Property: Grid cells should maintain valid dimensions."""
     cell = GridCell(row, col, row_span, col_span)
 

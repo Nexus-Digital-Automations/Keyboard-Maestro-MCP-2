@@ -6,7 +6,6 @@ and builder patterns with comprehensive edge case coverage.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import pytest
 from src.core.control_flow import (
     ActionBlock,

@@ -7,7 +7,6 @@ existing implementation.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import logging
 from unittest.mock import Mock, patch
@@ -233,7 +232,7 @@ class TestClipboardModulesTargeted:
 
     @patch("subprocess.run")
     @pytest.mark.asyncio
-    async def test_clipboard_manager_async(self, mock_run) -> None:
+    async def test_clipboard_manager_async(self, mock_run: Any) -> None:
         """Test ClipboardManager with async patterns."""
         from src.clipboard.clipboard_manager import ClipboardManager
 
@@ -299,7 +298,7 @@ class TestApplicationModulesTargeted:
     """Targeted tests for application modules."""
 
     @patch("subprocess.run")
-    def test_app_controller_comprehensive(self, mock_run) -> None:
+    def test_app_controller_comprehensive(self, mock_run: Any) -> None:
         """Comprehensive test for AppController."""
         from src.applications.app_controller import AppController
 
@@ -335,7 +334,7 @@ class TestApplicationModulesTargeted:
             assert isinstance(apps, list)
 
     @patch("subprocess.run")
-    def test_menu_navigator_targeted(self, mock_run) -> None:
+    def test_menu_navigator_targeted(self, mock_run: Any) -> None:
         """Targeted test for MenuNavigator."""
         from src.applications.menu_navigator import MenuNavigator
 

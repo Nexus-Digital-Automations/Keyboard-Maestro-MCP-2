@@ -7,7 +7,7 @@ Tests follow the proven systematic pattern that achieved 100% success across 21 
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -19,16 +19,16 @@ import pytest
 
 
 async def mock_km_run_comprehensive_tests(
-    test_scope,
-    target_ids,
-    test_types=None,
-    test_environment="development",
-    parallel_execution=True,
-    max_execution_time=1800,
-    include_performance_tests=True,
-    generate_coverage_report=True,
-    ctx=None,
-):
+    test_scope: Any,
+    target_ids: str,
+    test_types: Any=None,
+    test_environment: Any="development",
+    parallel_execution: Any=True,
+    max_execution_time: int | float=1800,
+    include_performance_tests: Any=True,
+    generate_coverage_report: Any=True,
+    ctx: Context | Any=None,
+) -> None:
     """Mock implementation for systematic testing."""
     if test_scope == "invalid_scope":
         return {
@@ -89,10 +89,10 @@ async def mock_km_run_comprehensive_tests(
 
 
 async def mock_km_validate_automation_quality(
-    execution_id,
-    quality_criteria=None,
-    ctx=None,
-):
+    execution_id: str,
+    quality_criteria: Any=None,
+    ctx: Context | Any=None,
+) -> None:
     """Mock implementation for quality validation."""
     if not execution_id:
         return {
@@ -139,11 +139,11 @@ async def mock_km_validate_automation_quality(
 
 
 async def mock_km_detect_regressions(
-    current_execution,
-    baseline_execution,
-    comparison_metrics=None,
-    ctx=None,
-):
+    current_execution: Any,
+    baseline_execution: Any,
+    comparison_metrics: Any=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for regression detection."""
     # Regression detected scenario - use specific IDs that trigger regression
     if current_execution == "exec-test-004" and baseline_execution == "exec-test-001":
@@ -177,12 +177,12 @@ async def mock_km_detect_regressions(
 
 
 async def mock_km_generate_test_reports(
-    execution_ids,
-    report_type="comprehensive",
-    include_sections=None,
-    output_format="json",
-    ctx=None,
-):
+    execution_ids: str,
+    report_type: str="comprehensive",
+    include_sections: Any=None,
+    output_format: Any="json",
+    ctx: Context | Any=None,
+) -> None:
     """Mock implementation for test report generation."""
     if not execution_ids:
         return {
@@ -245,8 +245,8 @@ class TestKMRunComprehensiveTests:
     @pytest.mark.asyncio
     async def test_comprehensive_tests_success_basic(
         self,
-        mock_context,
-        sample_test_data,
+        mock_context: Any,
+        sample_test_data: Any,
     ) -> None:
         """Test successful comprehensive test execution with basic configuration."""
         test_data = sample_test_data["basic_test"]
@@ -266,7 +266,7 @@ class TestKMRunComprehensiveTests:
         assert "quality_gates" in result
 
     @pytest.mark.asyncio
-    async def test_comprehensive_tests_validation_error(self, mock_context) -> None:
+    async def test_comprehensive_tests_validation_error(self, mock_context: Any) -> None:
         """Test comprehensive tests with validation error."""
         result = await km_run_comprehensive_tests(
             test_scope="invalid_scope",
@@ -281,8 +281,8 @@ class TestKMRunComprehensiveTests:
     @pytest.mark.asyncio
     async def test_comprehensive_tests_execution_error(
         self,
-        mock_context,
-        sample_test_data,
+        mock_context: Any,
+        sample_test_data: Any,
     ) -> None:
         """Test comprehensive tests with execution error."""
         test_data = sample_test_data["advanced_test"]
@@ -331,7 +331,7 @@ class TestKMValidateAutomationQuality:
         }
 
     @pytest.mark.asyncio
-    async def test_quality_validation_success(self, mock_context, sample_quality_data) -> None:
+    async def test_quality_validation_success(self, mock_context: Any, sample_quality_data: Any) -> None:
         """Test successful quality validation."""
         result = await km_validate_automation_quality(
             execution_id=sample_quality_data["execution_id"],
@@ -347,7 +347,7 @@ class TestKMValidateAutomationQuality:
         assert "recommendations" in result
 
     @pytest.mark.asyncio
-    async def test_quality_validation_failure(self, mock_context) -> None:
+    async def test_quality_validation_failure(self, mock_context: Any) -> None:
         """Test quality validation with failing criteria."""
         result = await km_validate_automation_quality(
             execution_id="exec-test-002",
@@ -384,8 +384,8 @@ class TestKMDetectRegressions:
     @pytest.mark.asyncio
     async def test_regression_detection_no_regressions(
         self,
-        mock_context,
-        sample_regression_data,
+        mock_context: Any,
+        sample_regression_data: Any,
     ) -> None:
         """Test regression detection with no regressions found."""
         result = await km_detect_regressions(
@@ -404,8 +404,8 @@ class TestKMDetectRegressions:
     @pytest.mark.asyncio
     async def test_regression_detection_with_regressions(
         self,
-        mock_context,
-        sample_regression_data,
+        mock_context: Any,
+        sample_regression_data: Any,
     ) -> None:
         """Test regression detection with regressions found."""
         result = await km_detect_regressions(
@@ -449,7 +449,7 @@ class TestKMGenerateTestReports:
         }
 
     @pytest.mark.asyncio
-    async def test_report_generation_success(self, mock_context, sample_report_data) -> None:
+    async def test_report_generation_success(self, mock_context: Any, sample_report_data: Any) -> None:
         """Test successful test report generation."""
         result = await km_generate_test_reports(
             execution_ids=sample_report_data["execution_ids"],
@@ -468,7 +468,7 @@ class TestKMGenerateTestReports:
         assert "recommendations" in result
 
     @pytest.mark.asyncio
-    async def test_report_generation_validation_error(self, mock_context) -> None:
+    async def test_report_generation_validation_error(self, mock_context: Any) -> None:
         """Test report generation with validation error."""
         result = await km_generate_test_reports(
             execution_ids=[],
@@ -493,7 +493,7 @@ class TestTestingAutomationIntegration:
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_testing_workflow(self, mock_context) -> None:
+    async def test_complete_testing_workflow(self, mock_context: Any) -> None:
         """Test complete testing automation workflow integration."""
         # Execute workflow sequence
         test_result = await km_run_comprehensive_tests(

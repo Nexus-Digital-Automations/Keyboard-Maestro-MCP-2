@@ -695,7 +695,7 @@ class ServiceCoordinator:
         self,
         service_id: ServiceId,
         endpoint_id: str,
-    ):
+    ) -> Any:
         """Record successful call for circuit breaker."""
         if service_id in self.service_registry.circuit_breakers:
             cb_state = self.service_registry.circuit_breakers[service_id].get(
@@ -709,7 +709,7 @@ class ServiceCoordinator:
         self,
         service_id: ServiceId,
         endpoint_id: str,
-    ):
+    ) -> Any:
         """Record failed call for circuit breaker."""
         if service_id in self.service_registry.circuit_breakers:
             cb_state = self.service_registry.circuit_breakers[service_id].get(

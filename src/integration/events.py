@@ -122,7 +122,7 @@ class EventProcessingResult:
         event: KMEvent,
         execution_token: ExecutionToken | None = None,
         duration_ms: float | None = None,
-        **metadata,
+        **metadata: Any,
     ) -> EventProcessingResult:
         """Create successful processing result."""
         return cls(
@@ -138,7 +138,7 @@ class EventProcessingResult:
         cls,
         error_message: str,
         duration_ms: float | None = None,
-        **metadata,
+        **metadata: Any,
     ) -> EventProcessingResult:
         """Create failed processing result."""
         return cls(

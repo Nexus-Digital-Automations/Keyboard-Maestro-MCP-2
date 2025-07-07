@@ -26,7 +26,7 @@ async def km_ai_intelligence(
     privacy_level: str = "standard",  # minimal|standard|strict|paranoid
     enable_caching: bool = True,  # Cache intelligent insights
     timeout: int = 30,  # Processing timeout
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """AI-powered intelligent automation with context awareness and adaptive learning.
 
@@ -159,7 +159,7 @@ async def km_ai_intelligence(
 
 async def _process_context_analysis(
     input_data: Any,
-    context_engine,
+    context_engine: Any,
     intelligence_type: str,
     context_dimensions: list[str] | None,
     privacy_level: str,
@@ -225,7 +225,7 @@ async def _process_context_analysis(
 
 async def _process_smart_trigger(
     input_data: Any,
-    automation_engine,
+    automation_engine: Any,
     confidence_threshold: float,
     learning_enabled: bool,
 ) -> dict[str, Any]:
@@ -276,7 +276,7 @@ async def _process_smart_trigger(
 
 async def _process_adaptive_workflow(
     input_data: Any,
-    automation_engine,
+    automation_engine: Any,
     adaptation_mode: str,
     learning_enabled: bool,
     context_dimensions: list[str] | None,
@@ -341,7 +341,7 @@ async def _process_adaptive_workflow(
 
 async def _process_decision_engine(
     input_data: Any,
-    automation_engine,
+    automation_engine: Any,
     confidence_threshold: float,
     intelligence_type: str,
 ) -> dict[str, Any]:
@@ -402,8 +402,8 @@ async def _process_decision_engine(
 
 async def _process_pattern_detection(
     input_data: Any,
-    automation_engine,
-    context_engine,
+    automation_engine: Any,
+    context_engine: Any,
     learning_enabled: bool,
     privacy_level: str,
 ) -> dict[str, Any]:
@@ -484,7 +484,7 @@ async def km_ai_batch(
     enable_checkpointing: bool = True,  # Enable job checkpointing
     auto_retry_failed: bool = True,  # Auto-retry failed tasks
     timeout_hours: int = 1,  # Total job timeout
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Advanced batch processing for AI operations with enterprise-grade management.
 

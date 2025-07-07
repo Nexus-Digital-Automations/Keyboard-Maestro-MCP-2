@@ -307,7 +307,7 @@ class SelfHealingEngine:
         self,
         agent_id: AgentId,
         recovery_action: RecoveryAction,
-        agent_manager=None,
+        agent_manager: Any=None,
     ) -> Either[AutonomousAgentError, dict[str, Any]]:
         """Execute the planned recovery action."""
         try:
@@ -595,7 +595,7 @@ class SelfHealingEngine:
         error_type: ErrorType,
         success: bool,
         duration: timedelta,
-    ):
+    ) -> None:
         """Update healing patterns with recovery results."""
         # Find or create pattern
         pattern_key = f"{error_type.value}_{strategy.value}"
@@ -651,7 +651,7 @@ class SelfHealingEngine:
         self,
         agent_id: AgentId,
         parameters: dict[str, Any],
-        agent_manager,
+        agent_manager: Any,
     ) -> dict[str, Any]:
         """Execute reconfiguration recovery strategy."""
         if not agent_manager:
@@ -669,7 +669,7 @@ class SelfHealingEngine:
     async def _execute_restart(
         self,
         agent_id: AgentId,
-        agent_manager,
+        agent_manager: Any,
     ) -> dict[str, Any]:
         """Execute restart recovery strategy."""
         if not agent_manager:
@@ -685,7 +685,7 @@ class SelfHealingEngine:
     async def _execute_isolate(
         self,
         agent_id: AgentId,
-        agent_manager,
+        agent_manager: Any,
     ) -> dict[str, Any]:
         """Execute isolation recovery strategy."""
         # In production, would isolate agent from other components
@@ -731,7 +731,7 @@ class SelfHealingEngine:
         self,
         agent_id: AgentId,
         parameters: dict[str, Any],
-        agent_manager,
+        agent_manager: Any,
     ) -> dict[str, Any]:
         """Execute graceful degradation recovery strategy."""
         # In production, would reduce agent capabilities gracefully

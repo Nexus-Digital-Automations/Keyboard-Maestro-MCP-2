@@ -11,7 +11,6 @@ Type Safety: Tests validate type system integrity and contract compliance.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import re
 
 import pytest

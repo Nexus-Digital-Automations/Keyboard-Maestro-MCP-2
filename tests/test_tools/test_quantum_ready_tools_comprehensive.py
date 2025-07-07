@@ -8,7 +8,7 @@ across 24+ tool suites.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -28,77 +28,77 @@ km_simulate_quantum_algorithms = quantum_tools.km_simulate_quantum_algorithms.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def analysis_scope_strategy(draw) -> Any:
+def analysis_scope_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid analysis scopes."""
     scopes = ["system", "application", "cryptography", "protocols"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def security_level_strategy(draw) -> Any:
+def security_level_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid security levels."""
     levels = ["current", "post_quantum", "quantum_safe"]
     return draw(st.sampled_from(levels))
 
 
 @st.composite
-def upgrade_scope_strategy(draw) -> Any:
+def upgrade_scope_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid upgrade scopes."""
     scopes = ["selective", "comprehensive", "critical_only"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def migration_strategy_strategy(draw) -> Any:
+def migration_strategy_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid migration strategies."""
     strategies = ["hybrid", "full_replacement", "gradual"]
     return draw(st.sampled_from(strategies))
 
 
 @st.composite
-def interface_type_strategy(draw) -> Any:
+def interface_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid interface types."""
     types = ["computing", "communication", "simulation", "hybrid"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def quantum_platform_strategy(draw) -> Any:
+def quantum_platform_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid quantum platforms."""
     platforms = ["ibm", "google", "amazon", "microsoft", "universal"]
     return draw(st.sampled_from(platforms))
 
 
 @st.composite
-def security_operation_strategy(draw) -> Any:
+def security_operation_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid security operations."""
     operations = ["policy", "keys", "protocols", "monitoring"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def key_management_strategy(draw) -> Any:
+def key_management_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid key management modes."""
     modes = ["classical", "quantum", "hybrid"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def algorithm_type_strategy(draw) -> Any:
+def algorithm_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid algorithm types."""
     types = ["shor", "grover", "quantum_ml", "optimization", "custom"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def simulation_mode_strategy(draw) -> Any:
+def simulation_mode_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid simulation modes."""
     modes = ["ideal", "noisy", "hardware_accurate"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def post_quantum_algorithm_strategy(draw) -> None:
+def post_quantum_algorithm_strategy(draw: Callable[..., Any]) -> None:
     """Generate valid post-quantum algorithms."""
     algorithms = ["kyber", "dilithium", "falcon", "sphincs", "ntru"]
     return draw(
@@ -127,43 +127,43 @@ class TestQuantumReadyParameterValidation:
     """Test parameter validation for quantum ready operations."""
 
     @given(analysis_scope_strategy())
-    def test_valid_analysis_scopes(self, scope) -> None:
+    def test_valid_analysis_scopes(self, scope: Any) -> None:
         """Test that analysis scopes are properly validated."""
         valid_scopes = ["system", "application", "cryptography", "protocols"]
         assert scope in valid_scopes
 
     @given(security_level_strategy())
-    def test_valid_security_levels(self, level) -> None:
+    def test_valid_security_levels(self, level: int) -> None:
         """Test that security levels are properly validated."""
         valid_levels = ["current", "post_quantum", "quantum_safe"]
         assert level in valid_levels
 
     @given(upgrade_scope_strategy())
-    def test_valid_upgrade_scopes(self, scope) -> None:
+    def test_valid_upgrade_scopes(self, scope: Any) -> None:
         """Test that upgrade scopes are properly validated."""
         valid_scopes = ["selective", "comprehensive", "critical_only"]
         assert scope in valid_scopes
 
     @given(migration_strategy_strategy())
-    def test_valid_migration_strategies(self, strategy) -> None:
+    def test_valid_migration_strategies(self, strategy: Any) -> None:
         """Test that migration strategies are properly validated."""
         valid_strategies = ["hybrid", "full_replacement", "gradual"]
         assert strategy in valid_strategies
 
     @given(interface_type_strategy())
-    def test_valid_interface_types(self, interface_type) -> None:
+    def test_valid_interface_types(self, interface_type: str) -> None:
         """Test that interface types are properly validated."""
         valid_types = ["computing", "communication", "simulation", "hybrid"]
         assert interface_type in valid_types
 
     @given(quantum_platform_strategy())
-    def test_valid_quantum_platforms(self, platform) -> None:
+    def test_valid_quantum_platforms(self, platform: Any) -> None:
         """Test that quantum platforms are properly validated."""
         valid_platforms = ["ibm", "google", "amazon", "microsoft", "universal"]
         assert platform in valid_platforms
 
     @given(post_quantum_algorithm_strategy())
-    def test_valid_post_quantum_algorithms(self, algorithms) -> None:
+    def test_valid_post_quantum_algorithms(self, algorithms: list[Any] | str) -> None:
         """Test that post-quantum algorithms are properly validated."""
         valid_algorithms = ["kyber", "dilithium", "falcon", "sphincs", "ntru"]
         assert all(alg in valid_algorithms for alg in algorithms)
@@ -1312,7 +1312,7 @@ class TestQuantumReadyProperties:
 
     @given(analysis_scope_strategy(), security_level_strategy())
     @pytest.mark.asyncio
-    async def test_quantum_readiness_analysis_properties(self, scope, security_level) -> None:
+    async def test_quantum_readiness_analysis_properties(self, scope: Any, security_level: Any) -> None:
         """Test properties of quantum readiness analysis."""
         # Mock basic dependencies to avoid exceptions
         with (
@@ -1349,7 +1349,7 @@ class TestQuantumReadyProperties:
 
     @given(upgrade_scope_strategy(), migration_strategy_strategy())
     @pytest.mark.asyncio
-    async def test_post_quantum_upgrade_properties(self, scope, strategy) -> None:
+    async def test_post_quantum_upgrade_properties(self, scope: Any, strategy: Any) -> None:
         """Test properties of post-quantum upgrade operations."""
         # Mock basic dependencies
         with patch.object(quantum_tools, "security_upgrader") as mock_upgrader:
@@ -1375,7 +1375,7 @@ class TestQuantumReadyProperties:
 
     @given(interface_type_strategy(), quantum_platform_strategy())
     @pytest.mark.asyncio
-    async def test_quantum_interface_properties(self, interface_type, platform) -> None:
+    async def test_quantum_interface_properties(self, interface_type: str, platform: Any) -> None:
         """Test properties of quantum interface preparation."""
         # Mock basic dependencies
         with patch.object(quantum_tools, "quantum_interface_manager") as mock_manager:
@@ -1403,7 +1403,7 @@ class TestQuantumReadyProperties:
 
     @given(algorithm_type_strategy(), simulation_mode_strategy())
     @pytest.mark.asyncio
-    async def test_quantum_simulation_properties(self, algorithm_type, simulation_mode) -> None:
+    async def test_quantum_simulation_properties(self, algorithm_type: str, simulation_mode: Any) -> None:
         """Test properties of quantum algorithm simulation."""
         assume(
             algorithm_type

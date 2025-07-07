@@ -5,9 +5,9 @@ Shared utilities and singleton instances for the MCP server.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import logging
+from typing import Any
 
 from .core import get_default_engine
 from .core.types import Duration

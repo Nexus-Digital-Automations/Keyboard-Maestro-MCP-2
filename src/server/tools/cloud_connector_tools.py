@@ -194,7 +194,7 @@ async def km_cloud_connector(
 
 
 async def _handle_connect_operation(
-    cloud_manager,
+    cloud_manager: Any,
     provider: CloudProvider,
     authentication: dict | None,
     region: str | None,
@@ -294,7 +294,7 @@ async def _handle_connect_operation(
 
 
 async def _handle_deploy_operation(
-    cloud_manager,
+    cloud_manager: Any,
     provider: CloudProvider,
     service_type: CloudServiceType,
     resource_config: dict[str, Any],
@@ -411,7 +411,7 @@ async def _handle_deploy_operation(
 
 
 async def _handle_sync_operation(
-    cloud_manager,
+    cloud_manager: Any,
     provider: CloudProvider,
     sync_options: dict | None,
     ctx: Context | None,
@@ -483,7 +483,7 @@ async def _handle_sync_operation(
 
 
 async def _handle_monitor_operation(
-    cloud_manager,
+    cloud_manager: Any,
     provider: CloudProvider,
     monitoring_config: dict | None,
     ctx: Context | None,
@@ -541,7 +541,7 @@ async def _handle_monitor_operation(
 
 
 async def _handle_optimize_operation(
-    cloud_manager,
+    cloud_manager: Any,
     provider: CloudProvider,
     cost_limits: dict | None,
     ctx: Context | None,
@@ -608,7 +608,7 @@ async def _handle_optimize_operation(
 
 
 async def _handle_orchestrate_operation(
-    cloud_manager,
+    cloud_manager: Any,
     orchestration_plan: dict | None,
     ctx: Context | None,
 ) -> dict[str, Any]:
@@ -673,7 +673,7 @@ async def _handle_orchestrate_operation(
 
 
 async def _deploy_storage_resource(
-    cloud_manager,
+    cloud_manager: Any,
     provider: CloudProvider,
     session_id: str,
     resource_name: str,
@@ -701,7 +701,7 @@ async def _deploy_storage_resource(
 
 
 async def _deploy_compute_resource(
-    cloud_manager,
+    cloud_manager: Any,
     provider: CloudProvider,
     session_id: str,
     resource_name: str,

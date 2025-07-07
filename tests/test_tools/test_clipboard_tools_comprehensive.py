@@ -6,8 +6,8 @@ history tracking, and integration with property-based testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import time
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -22,7 +22,7 @@ from src.server.tools.clipboard_tools import (
 
 # Test data generators
 @st.composite
-def clipboard_operation_strategy(draw) -> Any:
+def clipboard_operation_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid clipboard operations."""
     operations = [
         "get",
@@ -37,7 +37,7 @@ def clipboard_operation_strategy(draw) -> Any:
 
 
 @st.composite
-def clipboard_content_strategy(draw) -> Any:
+def clipboard_content_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid clipboard content."""
     content_types = [
         # Regular text content (ensure non-empty)
@@ -65,7 +65,7 @@ def clipboard_content_strategy(draw) -> Any:
 
 
 @st.composite
-def clipboard_name_strategy(draw) -> str:
+def clipboard_name_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid clipboard names."""
     # Valid pattern: ^[a-zA-Z0-9_\-\s]*$
     # Generate from allowed character set only
@@ -83,7 +83,7 @@ def clipboard_name_strategy(draw) -> str:
 
 
 @st.composite
-def sensitive_content_strategy(draw) -> Any:
+def sensitive_content_strategy(draw: Callable[..., Any]) -> Any:
     """Generate potentially sensitive content for testing."""
     sensitive_patterns = [
         "password: " + draw(st.text(min_size=8, max_size=20)),
@@ -100,14 +100,14 @@ def sensitive_content_strategy(draw) -> Any:
 
 
 @st.composite
-def format_filter_strategy(draw) -> None:
+def format_filter_strategy(draw: Callable[..., Any]) -> None:
     """Generate valid format filters."""
     formats = ["text", "image", "file", "url", "all"]
     return draw(st.sampled_from(formats))
 
 
 @st.composite
-def sort_field_strategy(draw) -> list[Any]:
+def sort_field_strategy(draw: Callable[..., Any]) -> list[Any]:
     """Generate valid sort fields."""
     fields = ["name", "created_at", "accessed_at", "access_count"]
     return draw(st.sampled_from(fields))

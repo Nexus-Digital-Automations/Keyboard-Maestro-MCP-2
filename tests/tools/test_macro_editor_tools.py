@@ -7,8 +7,8 @@ Tests follow the proven systematic pattern that achieved 100% success across 25+
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -20,15 +20,15 @@ import pytest
 
 
 async def mock_km_macro_editor(
-    macro_identifier,
-    operation,
-    modification_spec=None,
-    debug_options=None,
-    comparison_target=None,
-    validation_level="standard",
-    create_backup=True,
-    ctx=None,
-):
+    macro_identifier: str,
+    operation: str,
+    modification_spec: Any=None,
+    debug_options: dict[str, Any]=None,
+    comparison_target: Any=None,
+    validation_level: Any="standard",
+    create_backup: Any=True,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for macro editor testing."""
     if not macro_identifier or not macro_identifier.strip():
         return {
@@ -312,7 +312,7 @@ class TestKMMacroEditor:
         }
 
     @pytest.mark.asyncio
-    async def test_macro_inspect_operation(self, mock_context) -> None:
+    async def test_macro_inspect_operation(self, mock_context: Any) -> None:
         """Test macro inspection operation."""
         result = await km_macro_editor(
             macro_identifier="test_macro_001",
@@ -332,7 +332,7 @@ class TestKMMacroEditor:
         assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_macro_modify_operation(self, mock_context, sample_modification_spec) -> None:
+    async def test_macro_modify_operation(self, mock_context: Any, sample_modification_spec: Any) -> None:
         """Test macro modification operation."""
         result = await km_macro_editor(
             macro_identifier="test_macro_002",
@@ -353,7 +353,7 @@ class TestKMMacroEditor:
         assert result["modification_result"]["rollback_available"] is True
 
     @pytest.mark.asyncio
-    async def test_macro_debug_operation(self, mock_context, sample_debug_options) -> None:
+    async def test_macro_debug_operation(self, mock_context: Any, sample_debug_options: dict[str, Any]) -> None:
         """Test macro debugging operation."""
         result = await km_macro_editor(
             macro_identifier="test_macro_003",
@@ -373,7 +373,7 @@ class TestKMMacroEditor:
         assert result["debug_result"]["errors_detected"] == 0
 
     @pytest.mark.asyncio
-    async def test_macro_compare_operation(self, mock_context) -> None:
+    async def test_macro_compare_operation(self, mock_context: Any) -> None:
         """Test macro comparison operation."""
         result = await km_macro_editor(
             macro_identifier="test_macro_004",
@@ -394,7 +394,7 @@ class TestKMMacroEditor:
         assert "detailed_diff" in result["comparison_result"]
 
     @pytest.mark.asyncio
-    async def test_macro_validate_operation(self, mock_context) -> None:
+    async def test_macro_validate_operation(self, mock_context: Any) -> None:
         """Test macro validation operation."""
         result = await km_macro_editor(
             macro_identifier="test_macro_006",
@@ -418,7 +418,7 @@ class TestKMMacroEditor:
         assert "recommendations" in result["validation_result"]
 
     @pytest.mark.asyncio
-    async def test_macro_editor_empty_identifier(self, mock_context) -> None:
+    async def test_macro_editor_empty_identifier(self, mock_context: Any) -> None:
         """Test macro editor with empty identifier."""
         result = await km_macro_editor(
             macro_identifier="",
@@ -431,7 +431,7 @@ class TestKMMacroEditor:
         assert "required" in result["error"]["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_macro_editor_invalid_operation(self, mock_context) -> None:
+    async def test_macro_editor_invalid_operation(self, mock_context: Any) -> None:
         """Test macro editor with invalid operation."""
         result = await km_macro_editor(
             macro_identifier="test_macro_007",
@@ -444,7 +444,7 @@ class TestKMMacroEditor:
         assert "Invalid operation" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_macro_editor_nonexistent_macro(self, mock_context) -> None:
+    async def test_macro_editor_nonexistent_macro(self, mock_context: Any) -> None:
         """Test macro editor with nonexistent macro."""
         result = await km_macro_editor(
             macro_identifier="nonexistent_macro_123",
@@ -457,7 +457,7 @@ class TestKMMacroEditor:
         assert "not found" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_macro_modify_without_spec(self, mock_context) -> None:
+    async def test_macro_modify_without_spec(self, mock_context: Any) -> None:
         """Test macro modification without modification specification."""
         result = await km_macro_editor(
             macro_identifier="test_macro_008",
@@ -470,7 +470,7 @@ class TestKMMacroEditor:
         assert "Modification specification is required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_macro_compare_without_target(self, mock_context) -> None:
+    async def test_macro_compare_without_target(self, mock_context: Any) -> None:
         """Test macro comparison without target."""
         result = await km_macro_editor(
             macro_identifier="test_macro_009",
@@ -485,8 +485,8 @@ class TestKMMacroEditor:
     @pytest.mark.asyncio
     async def test_macro_modify_without_backup(
         self,
-        mock_context,
-        sample_modification_spec,
+        mock_context: Any,
+        sample_modification_spec: Any,
     ) -> None:
         """Test macro modification without creating backup."""
         result = await km_macro_editor(
@@ -503,7 +503,7 @@ class TestKMMacroEditor:
         assert result["modification_result"]["rollback_available"] is False
 
     @pytest.mark.asyncio
-    async def test_macro_debug_default_options(self, mock_context) -> None:
+    async def test_macro_debug_default_options(self, mock_context: Any) -> None:
         """Test macro debugging with default options."""
         result = await km_macro_editor(
             macro_identifier="test_macro_011",
@@ -517,7 +517,7 @@ class TestKMMacroEditor:
         assert result["metadata"]["debug_mode"] == "standard"
 
     @pytest.mark.asyncio
-    async def test_macro_validate_different_levels(self, mock_context) -> None:
+    async def test_macro_validate_different_levels(self, mock_context: Any) -> None:
         """Test macro validation with different validation levels."""
         validation_levels = ["basic", "standard", "comprehensive", "strict"]
 
@@ -547,7 +547,7 @@ class TestMacroEditorIntegration:
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_macro_editing_workflow(self, mock_context) -> None:
+    async def test_complete_macro_editing_workflow(self, mock_context: Any) -> None:
         """Test complete macro editing workflow integration."""
         macro_id = "workflow_test_macro"
 
@@ -616,7 +616,7 @@ class TestMacroEditorProperties:
         return context
 
     @pytest.mark.asyncio
-    async def test_macro_editor_with_various_identifiers(self, mock_context) -> None:
+    async def test_macro_editor_with_various_identifiers(self, mock_context: Any) -> None:
         """Test macro editor with various identifier formats."""
         test_identifiers = [
             "simple_macro",
@@ -637,7 +637,7 @@ class TestMacroEditorProperties:
             assert result["inspection_result"]["macro_identifier"] == identifier
 
     @pytest.mark.asyncio
-    async def test_all_operations_consistency(self, mock_context) -> None:
+    async def test_all_operations_consistency(self, mock_context: Any) -> None:
         """Test consistency across all operations."""
         operations = ["inspect", "modify", "debug", "compare", "validate"]
         macro_id = "consistency_test_macro"
@@ -671,7 +671,7 @@ class TestMacroEditorProperties:
                 assert result["validation_result"]["macro_identifier"] == macro_id
 
     @pytest.mark.asyncio
-    async def test_validation_levels_consistency(self, mock_context) -> None:
+    async def test_validation_levels_consistency(self, mock_context: Any) -> None:
         """Test validation level consistency."""
         validation_levels = ["basic", "standard", "comprehensive", "strict"]
 

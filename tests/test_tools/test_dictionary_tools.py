@@ -5,7 +5,7 @@ Following the proven systematic pattern with proper mocking for actual implement
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -51,7 +51,7 @@ class TestDictionaryOperations:
     """Test core km_dictionary_manager functionality."""
 
     @pytest.mark.asyncio
-    async def test_create_dictionary_success(self, mock_context, mock_km_client) -> None:
+    async def test_create_dictionary_success(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test successful dictionary creation."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -69,7 +69,7 @@ class TestDictionaryOperations:
             assert "timestamp" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_get_dictionary_value_success(self, mock_context, mock_km_client) -> None:
+    async def test_get_dictionary_value_success(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test successful dictionary value retrieval."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -91,7 +91,7 @@ class TestDictionaryOperations:
             assert "timestamp" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_set_dictionary_value_success(self, mock_context, mock_km_client) -> None:
+    async def test_set_dictionary_value_success(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test successful dictionary value setting."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -112,7 +112,7 @@ class TestDictionaryOperations:
             assert "timestamp" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_delete_dictionary_key_success(self, mock_context, mock_km_client) -> None:
+    async def test_delete_dictionary_key_success(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test successful dictionary key deletion."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -135,7 +135,7 @@ class TestDictionaryOperations:
             )
 
     @pytest.mark.asyncio
-    async def test_delete_entire_dictionary_success(self, mock_context, mock_km_client) -> None:
+    async def test_delete_entire_dictionary_success(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test successful entire dictionary deletion."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -154,7 +154,7 @@ class TestDictionaryOperations:
             assert "Deleted dictionary 'TestDict'" in result["data"]["message"]
 
     @pytest.mark.asyncio
-    async def test_list_dictionaries_success(self, mock_context, mock_km_client) -> None:
+    async def test_list_dictionaries_success(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test successful dictionary listing."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -173,7 +173,7 @@ class TestDictionaryOperations:
             assert "timestamp" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_list_dictionary_keys_success(self, mock_context, mock_km_client) -> None:
+    async def test_list_dictionary_keys_success(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test successful dictionary key listing."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -194,7 +194,7 @@ class TestDictionaryOperations:
             assert "timestamp" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_export_dictionary_success(self, mock_context, mock_km_client) -> None:
+    async def test_export_dictionary_success(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test successful dictionary export."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -213,7 +213,7 @@ class TestDictionaryOperations:
             assert "timestamp" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_import_dictionary_success(self, mock_context, mock_km_client) -> None:
+    async def test_import_dictionary_success(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test successful dictionary import."""
         import_data = {"key1": "value1", "key2": "value2", "key3": "value3"}
 
@@ -240,7 +240,7 @@ class TestDictionaryErrorHandling:
     """Test dictionary tools error handling scenarios."""
 
     @pytest.mark.asyncio
-    async def test_missing_dictionary_name_error(self, mock_context) -> None:
+    async def test_missing_dictionary_name_error(self, mock_context: Any) -> None:
         """Test error when dictionary name is missing for required operations."""
         with patch("src.server.tools.dictionary_tools.get_km_client"):
             result = await km_dictionary_manager(
@@ -255,7 +255,7 @@ class TestDictionaryErrorHandling:
             assert "Dictionary name required" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_missing_key_for_get_operation(self, mock_context) -> None:
+    async def test_missing_key_for_get_operation(self, mock_context: Any) -> None:
         """Test error when key is missing for get operation."""
         with patch("src.server.tools.dictionary_tools.get_km_client"):
             result = await km_dictionary_manager(
@@ -270,7 +270,7 @@ class TestDictionaryErrorHandling:
             assert "Key required" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_missing_value_for_set_operation(self, mock_context) -> None:
+    async def test_missing_value_for_set_operation(self, mock_context: Any) -> None:
         """Test error when value is missing for set operation."""
         with patch("src.server.tools.dictionary_tools.get_km_client"):
             result = await km_dictionary_manager(
@@ -286,7 +286,7 @@ class TestDictionaryErrorHandling:
             assert "Value required" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_km_connection_failure(self, mock_context, mock_km_client) -> None:
+    async def test_km_connection_failure(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test handling of KM connection failure."""
         # Mock connection failure
         mock_connection_result = Mock()
@@ -311,7 +311,7 @@ class TestDictionaryErrorHandling:
             )
 
     @pytest.mark.asyncio
-    async def test_invalid_dictionary_name(self, mock_context, mock_km_client) -> None:
+    async def test_invalid_dictionary_name(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test validation error for invalid dictionary name."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -328,7 +328,7 @@ class TestDictionaryErrorHandling:
             assert "alphanumeric characters" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_invalid_key_name(self, mock_context, mock_km_client) -> None:
+    async def test_invalid_key_name(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test validation error for invalid key name."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -352,7 +352,7 @@ class TestDictionaryIntegration:
     """Test dictionary tools integration scenarios."""
 
     @pytest.mark.asyncio
-    async def test_complete_dictionary_workflow(self, mock_context, mock_km_client) -> None:
+    async def test_complete_dictionary_workflow(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test complete dictionary workflow with multiple operations."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -387,7 +387,7 @@ class TestDictionaryIntegration:
             assert get_result["data"]["value"] == "dark_mode"  # Mock implementation
 
     @pytest.mark.asyncio
-    async def test_bulk_operations_workflow(self, mock_context, mock_km_client) -> None:
+    async def test_bulk_operations_workflow(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test bulk dictionary operations workflow."""
         bulk_data = {"config1": "value1", "config2": "value2", "config3": "value3"}
 
@@ -420,7 +420,7 @@ class TestDictionaryContext:
     """Test dictionary tools context integration."""
 
     @pytest.mark.asyncio
-    async def test_context_info_logging(self, mock_context, mock_km_client) -> None:
+    async def test_context_info_logging(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test context info logging during execution."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -439,7 +439,7 @@ class TestDictionaryContext:
             mock_context.report_progress.assert_called()
 
     @pytest.mark.asyncio
-    async def test_context_error_logging(self, mock_context, mock_km_client) -> None:
+    async def test_context_error_logging(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test context error logging during failures."""
         # Mock connection failure to trigger error
         mock_connection_result = Mock()
@@ -459,7 +459,7 @@ class TestDictionaryContext:
             assert result["success"] is False
 
     @pytest.mark.asyncio
-    async def test_without_context(self, mock_km_client) -> None:
+    async def test_without_context(self, mock_km_client: Any) -> None:
         """Test operation without context provided."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -479,7 +479,7 @@ class TestDictionarySecurity:
     """Test dictionary tools security validation."""
 
     @pytest.mark.asyncio
-    async def test_dictionary_name_validation(self, mock_context, mock_km_client) -> None:
+    async def test_dictionary_name_validation(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test dictionary name validation."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -495,7 +495,7 @@ class TestDictionarySecurity:
             assert "alphanumeric characters" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_key_name_validation(self, mock_context, mock_km_client) -> None:
+    async def test_key_name_validation(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test key name validation."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -513,7 +513,7 @@ class TestDictionarySecurity:
             assert "alphanumeric characters" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_json_data_validation(self, mock_context, mock_km_client) -> None:
+    async def test_json_data_validation(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test JSON data validation for import operations."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -535,7 +535,7 @@ class TestDictionaryPropertyBased:
     """Property-based testing for dictionary tools with Hypothesis."""
 
     @composite
-    def valid_dictionary_names(draw) -> Any:
+    def valid_dictionary_names(draw: Callable[..., Any]) -> Any:
         """Generate valid dictionary names."""
         # Only alphanumeric, spaces, hyphens, underscores
         alphabet = st.characters(
@@ -549,7 +549,7 @@ class TestDictionaryPropertyBased:
         )
 
     @composite
-    def valid_operations(draw) -> Any:
+    def valid_operations(draw: Callable[..., Any]) -> Any:
         """Generate valid operations."""
         return draw(
             st.sampled_from(
@@ -568,7 +568,7 @@ class TestDictionaryPropertyBased:
 
     @given(valid_operations())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    def test_operation_validation_property(self, operation) -> None:
+    def test_operation_validation_property(self, operation: str) -> None:
         """Property: Valid operations should be accepted."""
         assert operation in [
             "create",
@@ -589,8 +589,8 @@ class TestDictionaryPerformance:
     @pytest.mark.asyncio
     async def test_dictionary_operation_response_time(
         self,
-        mock_context,
-        mock_km_client,
+        mock_context: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test that dictionary operations complete within reasonable time."""
         import time
@@ -615,7 +615,7 @@ class TestDictionaryPerformance:
             assert result["success"] is True
 
     @pytest.mark.asyncio
-    async def test_bulk_operation_performance(self, mock_context, mock_km_client) -> None:
+    async def test_bulk_operation_performance(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test performance with large dictionary data."""
         import time
 
@@ -649,7 +649,7 @@ class TestDictionaryEdgeCases:
     """Test dictionary tools edge cases and boundary conditions."""
 
     @pytest.mark.asyncio
-    async def test_empty_import_data(self, mock_context, mock_km_client) -> None:
+    async def test_empty_import_data(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test import with empty data."""
         with patch(
             "src.server.tools.dictionary_tools.get_km_client",
@@ -666,7 +666,7 @@ class TestDictionaryEdgeCases:
             assert result["data"]["imported_keys"] == 0
 
     @pytest.mark.asyncio
-    async def test_unicode_dictionary_names(self, mock_context, mock_km_client) -> None:
+    async def test_unicode_dictionary_names(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test handling of Unicode dictionary names."""
         # Valid Unicode characters (letters and allowed symbols)
         unicode_name = "测试字典"
@@ -685,7 +685,7 @@ class TestDictionaryEdgeCases:
             assert result["success"] is False
 
     @pytest.mark.asyncio
-    async def test_special_characters_in_keys(self, mock_context, mock_km_client) -> None:
+    async def test_special_characters_in_keys(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test handling of special characters in keys."""
         # Valid key with allowed special characters
         special_key = "key-with.underscore_chars"
@@ -706,7 +706,7 @@ class TestDictionaryEdgeCases:
             assert result["data"]["key"] == special_key
 
     @pytest.mark.asyncio
-    async def test_large_value_handling(self, mock_context, mock_km_client) -> None:
+    async def test_large_value_handling(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test handling of large values."""
         large_value = "x" * 10000  # 10KB string
 

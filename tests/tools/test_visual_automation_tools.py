@@ -7,8 +7,8 @@ Tests follow the proven systematic pattern that achieved 100% success across 33+
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -21,20 +21,20 @@ from src.server.tools.visual_automation_tools import km_visual_automation
 
 
 async def mock_km_visual_automation(
-    operation="ocr_text",
-    region=None,
-    image_template=None,
-    image_data=None,
-    ocr_language="en",
-    confidence_threshold=0.8,
-    include_coordinates=True,
-    privacy_mode=True,
-    timeout_seconds=30,
-    cache_results=True,
-    max_results=10,
-    processing_options=None,
-    ctx=None,
-):
+    operation: str="ocr_text",
+    region: Any=None,
+    image_template: Any=None,
+    image_data: Any=None,
+    ocr_language: Any="en",
+    confidence_threshold: Any=0.8,
+    include_coordinates: Any=True,
+    privacy_mode: Any=True,
+    timeout_seconds: Any=30,
+    cache_results: Either[Any, Any] | Any=True,
+    max_results: Either[Any, Any] | Any=10,
+    processing_options: dict[str, Any]=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for visual automation operations."""
     if not operation or not operation.strip():
         return {
@@ -372,7 +372,7 @@ class TestKMVisualAutomationOCR:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_visual_automation_ocr_text(self, mock_context) -> None:
+    async def test_visual_automation_ocr_text(self, mock_context: Any) -> None:
         """Test OCR text extraction operation."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         # Handle ToolError exceptions from real implementation validation
@@ -406,7 +406,7 @@ class TestKMVisualAutomationOCR:
             # Test passes - we've confirmed real source code execution
 
     @pytest.mark.asyncio
-    async def test_visual_automation_ocr_handwriting(self, mock_context) -> None:
+    async def test_visual_automation_ocr_handwriting(self, mock_context: Any) -> None:
         """Test OCR handwriting recognition."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         try:
@@ -436,7 +436,7 @@ class TestKMVisualAutomationOCR:
         # SYSTEMATIC ALIGNMENT: Old mock assertions removed - real implementation tested above
 
     @pytest.mark.asyncio
-    async def test_visual_automation_ocr_document(self, mock_context) -> None:
+    async def test_visual_automation_ocr_document(self, mock_context: Any) -> None:
         """Test OCR document processing."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         try:
@@ -472,7 +472,7 @@ class TestKMVisualAutomationImageRecognition:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_visual_automation_find_image(self, mock_context) -> None:
+    async def test_visual_automation_find_image(self, mock_context: Any) -> None:
         """Test image template matching."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         try:
@@ -500,7 +500,7 @@ class TestKMVisualAutomationImageRecognition:
         # SYSTEMATIC ALIGNMENT: Old mock assertions removed - real implementation tested above
 
     @pytest.mark.asyncio
-    async def test_visual_automation_template_match(self, mock_context) -> None:
+    async def test_visual_automation_template_match(self, mock_context: Any) -> None:
         """Test advanced template matching."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         try:
@@ -528,7 +528,7 @@ class TestKMVisualAutomationImageRecognition:
         # SYSTEMATIC ALIGNMENT: Old mock assertions removed - real implementation tested above
 
     @pytest.mark.asyncio
-    async def test_visual_automation_feature_detection(self, mock_context) -> None:
+    async def test_visual_automation_feature_detection(self, mock_context: Any) -> None:
         """Test feature detection image recognition."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         try:
@@ -571,7 +571,7 @@ class TestKMVisualAutomationScreenAnalysis:
         return context
 
     @pytest.mark.asyncio
-    async def test_visual_automation_capture_screen(self, mock_context) -> None:
+    async def test_visual_automation_capture_screen(self, mock_context: Any) -> None:
         """Test screen capture operation."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         # Remove ctx parameter following proven TASK_85-100 methodology
@@ -599,7 +599,7 @@ class TestKMVisualAutomationScreenAnalysis:
         # SYSTEMATIC ALIGNMENT: Real implementation tested with proper validation error handling
 
     @pytest.mark.asyncio
-    async def test_visual_automation_analyze_window(self, mock_context) -> None:
+    async def test_visual_automation_analyze_window(self, mock_context: Any) -> None:
         """Test window analysis operation."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         try:
@@ -626,7 +626,7 @@ class TestKMVisualAutomationScreenAnalysis:
         # SYSTEMATIC ALIGNMENT: Old mock assertions removed - real implementation tested above
 
     @pytest.mark.asyncio
-    async def test_visual_automation_monitor_changes(self, mock_context) -> None:
+    async def test_visual_automation_monitor_changes(self, mock_context: Any) -> None:
         """Test change monitoring operation."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         try:
@@ -662,7 +662,7 @@ class TestKMVisualAutomationAdvanced:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_visual_automation_ui_element_detection(self, mock_context) -> None:
+    async def test_visual_automation_ui_element_detection(self, mock_context: Any) -> None:
         """Test UI element detection."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         try:
@@ -689,7 +689,7 @@ class TestKMVisualAutomationAdvanced:
         # SYSTEMATIC ALIGNMENT: Old mock assertions removed - real implementation tested above
 
     @pytest.mark.asyncio
-    async def test_visual_automation_color_analysis(self, mock_context) -> None:
+    async def test_visual_automation_color_analysis(self, mock_context: Any) -> None:
         """Test color analysis operation."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         try:
@@ -715,7 +715,7 @@ class TestKMVisualAutomationAdvanced:
         # SYSTEMATIC ALIGNMENT: Old mock assertions removed - real implementation tested above
 
     @pytest.mark.asyncio
-    async def test_visual_automation_motion_detection(self, mock_context) -> None:
+    async def test_visual_automation_motion_detection(self, mock_context: Any) -> None:
         """Test motion detection operation."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         try:
@@ -751,7 +751,7 @@ class TestKMVisualAutomationValidation:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_visual_automation_invalid_operation(self, mock_context) -> None:
+    async def test_visual_automation_invalid_operation(self, mock_context: Any) -> None:
         """Test visual automation with invalid operation."""
         result = await mock_km_visual_automation(
             operation="invalid_operation",
@@ -763,7 +763,7 @@ class TestKMVisualAutomationValidation:
         assert "Invalid visual operation" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_visual_automation_invalid_confidence(self, mock_context) -> None:
+    async def test_visual_automation_invalid_confidence(self, mock_context: Any) -> None:
         """Test visual automation with invalid confidence threshold."""
         result = await mock_km_visual_automation(
             operation="ocr_text",
@@ -779,7 +779,7 @@ class TestKMVisualAutomationValidation:
         )
 
     @pytest.mark.asyncio
-    async def test_visual_automation_invalid_timeout(self, mock_context) -> None:
+    async def test_visual_automation_invalid_timeout(self, mock_context: Any) -> None:
         """Test visual automation with invalid timeout."""
         result = await mock_km_visual_automation(
             operation="capture_screen",
@@ -792,7 +792,7 @@ class TestKMVisualAutomationValidation:
         assert "Timeout must be between 1 and 300 seconds" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_visual_automation_invalid_max_results(self, mock_context) -> None:
+    async def test_visual_automation_invalid_max_results(self, mock_context: Any) -> None:
         """Test visual automation with invalid max results."""
         result = await mock_km_visual_automation(
             operation="find_image",
@@ -805,7 +805,7 @@ class TestKMVisualAutomationValidation:
         assert "Max results must be between 1 and 100" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_visual_automation_invalid_region(self, mock_context) -> None:
+    async def test_visual_automation_invalid_region(self, mock_context: Any) -> None:
         """Test visual automation with invalid region."""
         result = await mock_km_visual_automation(
             operation="ocr_text",
@@ -818,7 +818,7 @@ class TestKMVisualAutomationValidation:
         assert "Region width and height must be positive" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_visual_automation_missing_region_field(self, mock_context) -> None:
+    async def test_visual_automation_missing_region_field(self, mock_context: Any) -> None:
         """Test visual automation with incomplete region."""
         result = await mock_km_visual_automation(
             operation="capture_screen",
@@ -840,7 +840,7 @@ class TestVisualAutomationIntegration:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_complete_visual_workflow(self, mock_context) -> None:
+    async def test_complete_visual_workflow(self, mock_context: Any) -> None:
         """Test complete visual automation workflow."""
         # Step 1: Capture screen
         capture_result = await mock_km_visual_automation(
@@ -893,7 +893,7 @@ class TestVisualAutomationProperties:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_visual_operation_consistency(self, mock_context) -> None:
+    async def test_visual_operation_consistency(self, mock_context: Any) -> None:
         """Test visual operations consistency across different operations."""
         operations = [
             "ocr_text",
@@ -917,7 +917,7 @@ class TestVisualAutomationProperties:
             assert result["security_validation"]["privacy_protected"] is True
 
     @pytest.mark.asyncio
-    async def test_confidence_threshold_behavior(self, mock_context) -> None:
+    async def test_confidence_threshold_behavior(self, mock_context: Any) -> None:
         """Test visual automation behavior across confidence thresholds."""
         thresholds = [0.5, 0.7, 0.9]
 
@@ -937,7 +937,7 @@ class TestVisualAutomationProperties:
                 assert matches[0]["match_type"] == "exact"
 
     @pytest.mark.asyncio
-    async def test_privacy_mode_consistency(self, mock_context) -> None:
+    async def test_privacy_mode_consistency(self, mock_context: Any) -> None:
         """Test privacy mode behavior across operations."""
         privacy_modes = [True, False]
 
@@ -954,7 +954,7 @@ class TestVisualAutomationProperties:
             assert result["security_validation"]["content_filtered"] == privacy_mode
 
     @pytest.mark.asyncio
-    async def test_max_results_limiting(self, mock_context) -> None:
+    async def test_max_results_limiting(self, mock_context: Any) -> None:
         """Test max results parameter behavior."""
         max_results_values = [1, 5, 10]
 

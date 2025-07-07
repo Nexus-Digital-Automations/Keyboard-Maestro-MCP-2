@@ -568,7 +568,7 @@ async def km_ai_processing(
     cost_limit: float | None = None,  # Maximum cost per operation
     privacy_mode: bool = True,  # Enable privacy protection
     timeout: int = 60,  # Processing timeout
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """AI/ML model integration for intelligent automation and decision-making.
 
@@ -663,7 +663,7 @@ async def km_ai_status(
     include_cache: bool = True,  # Include cache information
     include_models: bool = True,  # Include available models
     reset_cache: bool = False,  # Clear request cache
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Get AI processing system status and statistics.
 

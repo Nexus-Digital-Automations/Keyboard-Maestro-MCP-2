@@ -11,7 +11,7 @@ import logging
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -268,22 +268,22 @@ if WATCHDOG_AVAILABLE:
             super().__init__()
             self.callback = callback
 
-        def on_modified(self, event) -> None:
+        def on_modified(self, event: Any) -> None:
             self.callback(event)
 
-        def on_created(self, event) -> None:
+        def on_created(self, event: Any) -> None:
             self.callback(event)
 
-        def on_deleted(self, event) -> None:
+        def on_deleted(self, event: Any) -> None:
             self.callback(event)
 
-        def on_moved(self, event) -> None:
+        def on_moved(self, event: Any) -> None:
             self.callback(event)
 
 else:
     # Fallback implementation when watchdog is not available
     class KMFileEventHandler:
-        def __init__(self, callback):
+        def __init__(self, callback: Callable[..., Any]):
             self.callback = callback
             logger.warning("KMFileEventHandler created without watchdog support")
 
@@ -298,7 +298,7 @@ class SimpleFileMonitor:
         self._file_states: dict = {}
         self._check_interval = 10.0  # Check every 10 seconds
 
-    async def start_monitoring(self, paths: list[Path]):
+    async def start_monitoring(self, paths: list[Path]) -> None:
         """Start simple file monitoring."""
         logger.info(f"Starting simple file monitoring for {len(paths)} paths")
 
@@ -311,7 +311,7 @@ class SimpleFileMonitor:
         self._monitor_task = asyncio.create_task(self._monitor_loop(paths))
         return True
 
-    async def stop_monitoring(self):
+    async def stop_monitoring(self) -> None:
         """Stop simple file monitoring."""
         if self._monitor_task:
             self._stop_event.set()
@@ -322,7 +322,7 @@ class SimpleFileMonitor:
             self._monitor_task = None
             logger.info("Simple file monitoring stopped")
 
-    async def _monitor_loop(self, paths: list[Path]):
+    async def _monitor_loop(self, paths: list[Path]) -> Any:
         """Simple monitoring loop."""
         while not self._stop_event.is_set():
             try:

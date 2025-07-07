@@ -207,7 +207,7 @@ class ActionBuilder:
         self,
         text: str,
         by_typing: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ) -> "ActionBuilder":
         """Convenience method for adding text input actions."""
         return self.add_action(
@@ -216,7 +216,7 @@ class ActionBuilder:
             **kwargs,
         )
 
-    def add_pause_action(self, duration: Duration, **kwargs) -> "ActionBuilder":
+    def add_pause_action(self, duration: Duration, **kwargs: Any) -> "ActionBuilder":
         """Convenience method for adding pause actions."""
         return self.add_action(
             "Pause",
@@ -224,7 +224,7 @@ class ActionBuilder:
             **kwargs,
         )
 
-    def add_if_action(self, condition: dict[str, Any], **kwargs) -> "ActionBuilder":
+    def add_if_action(self, condition: dict[str, Any], **kwargs: Any) -> "ActionBuilder":
         """Convenience method for adding conditional actions."""
         return self.add_action("If Then Else", {"condition": condition}, **kwargs)
 
@@ -232,7 +232,7 @@ class ActionBuilder:
         self,
         variable_name: str,
         value: str,
-        **kwargs,
+        **kwargs: Any,
     ) -> "ActionBuilder":
         """Convenience method for setting variables."""
         return self.add_action(
@@ -245,7 +245,7 @@ class ActionBuilder:
         self,
         application: str,
         bring_all_windows: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> "ActionBuilder":
         """Convenience method for activating applications."""
         return self.add_action(

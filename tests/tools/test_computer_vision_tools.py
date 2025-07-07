@@ -7,7 +7,7 @@ Tests follow the proven systematic pattern that achieved 100% success across 31+
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -42,7 +42,7 @@ class TestKMDetectObjects:
         context.get_meta.return_value = {"request_id": "test-request-detect-001"}
 
         # Make info method async-compatible
-        async def mock_info(message):
+        async def mock_info(message: str) -> None:
             return f"Info: {message}"
 
         context.info = mock_info
@@ -55,7 +55,7 @@ class TestKMDetectObjects:
         return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAGAWvuMLwAAAABJRU5ErkJggg=="
 
     @pytest.mark.asyncio
-    async def test_detect_objects_comprehensive(self, mock_context, sample_image_data) -> None:
+    async def test_detect_objects_comprehensive(self, mock_context: Any, sample_image_data: Any) -> None:
         """Test comprehensive object detection - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Test actual km_detect_objects implementation
         result = await km_detect_objects(
@@ -97,8 +97,8 @@ class TestKMDetectObjects:
     @pytest.mark.asyncio
     async def test_detect_objects_with_confidence_threshold(
         self,
-        mock_context,
-        sample_image_data,
+        mock_context: Any,
+        sample_image_data: Any,
     ) -> None:
         """Test object detection with custom confidence threshold."""
         result = await km_detect_objects(
@@ -129,8 +129,8 @@ class TestKMDetectObjects:
     @pytest.mark.asyncio
     async def test_detect_objects_invalid_confidence(
         self,
-        mock_context,
-        sample_image_data,
+        mock_context: Any,
+        sample_image_data: Any,
     ) -> None:
         """Test object detection with invalid confidence threshold."""
         result = await km_detect_objects(
@@ -160,7 +160,7 @@ class TestKMDetectObjects:
             ]
 
     @pytest.mark.asyncio
-    async def test_detect_objects_empty_image_data(self, mock_context) -> None:
+    async def test_detect_objects_empty_image_data(self, mock_context: Any) -> None:
         """Test object detection with empty image data."""
         result = await km_detect_objects(
             image_data="",
@@ -193,8 +193,8 @@ class TestKMDetectObjects:
     @pytest.mark.asyncio
     async def test_detect_objects_invalid_max_detections(
         self,
-        mock_context,
-        sample_image_data,
+        mock_context: Any,
+        sample_image_data: Any,
     ) -> None:
         """Test object detection with invalid max detections."""
         result = await km_detect_objects(
@@ -236,7 +236,7 @@ class TestKMAnalyzeScene:
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-scene-001"}
 
-        async def mock_info(message):
+        async def mock_info(message: str) -> None:
             return f"Info: {message}"
 
         context.info = mock_info
@@ -248,7 +248,7 @@ class TestKMAnalyzeScene:
         return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAGAWvuMLwAAAABJRU5ErkJggg=="
 
     @pytest.mark.asyncio
-    async def test_analyze_scene_comprehensive(self, mock_context, sample_image_data) -> None:
+    async def test_analyze_scene_comprehensive(self, mock_context: Any, sample_image_data: Any) -> None:
         """Test comprehensive scene analysis - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_analyze_scene(
             image_data=sample_image_data,
@@ -277,7 +277,7 @@ class TestKMAnalyzeScene:
                 ]
 
     @pytest.mark.asyncio
-    async def test_analyze_scene_with_emotions(self, mock_context, sample_image_data) -> None:
+    async def test_analyze_scene_with_emotions(self, mock_context: Any, sample_image_data: Any) -> None:
         """Test scene analysis with detailed analysis."""
         result = await km_analyze_scene(
             image_data=sample_image_data,
@@ -303,7 +303,7 @@ class TestKMAnalyzeScene:
                 ]
 
     @pytest.mark.asyncio
-    async def test_analyze_scene_invalid_level(self, mock_context, sample_image_data) -> None:
+    async def test_analyze_scene_invalid_level(self, mock_context: Any, sample_image_data: Any) -> None:
         """Test scene analysis with invalid analysis level."""
         result = await km_analyze_scene(
             image_data=sample_image_data,
@@ -338,7 +338,7 @@ class TestKMClassifyImageContent:
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-classify-001"}
 
-        async def mock_info(message):
+        async def mock_info(message: str) -> None:
             return f"Info: {message}"
 
         context.info = mock_info
@@ -352,8 +352,8 @@ class TestKMClassifyImageContent:
     @pytest.mark.asyncio
     async def test_classify_image_content_comprehensive(
         self,
-        mock_context,
-        sample_image_data,
+        mock_context: Any,
+        sample_image_data: Any,
     ) -> None:
         """Test comprehensive image classification - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_classify_image_content(
@@ -385,8 +385,8 @@ class TestKMClassifyImageContent:
     @pytest.mark.asyncio
     async def test_classify_image_content_invalid_threshold(
         self,
-        mock_context,
-        sample_image_data,
+        mock_context: Any,
+        sample_image_data: Any,
     ) -> None:
         """Test image classification with invalid confidence threshold."""
         result = await km_classify_image_content(
@@ -422,7 +422,7 @@ class TestKMExtractTextFromImage:
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-ocr-001"}
 
-        async def mock_info(message):
+        async def mock_info(message: str) -> None:
             return f"Info: {message}"
 
         context.info = mock_info
@@ -436,8 +436,8 @@ class TestKMExtractTextFromImage:
     @pytest.mark.asyncio
     async def test_extract_text_from_image_comprehensive(
         self,
-        mock_context,
-        sample_image_data,
+        mock_context: Any,
+        sample_image_data: Any,
     ) -> None:
         """Test comprehensive text extraction - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_extract_text_from_image(
@@ -467,7 +467,7 @@ class TestKMExtractTextFromImage:
                 ]
 
     @pytest.mark.asyncio
-    async def test_extract_text_invalid_mode(self, mock_context, sample_image_data) -> None:
+    async def test_extract_text_invalid_mode(self, mock_context: Any, sample_image_data: Any) -> None:
         """Test text extraction with invalid OCR mode."""
         result = await km_extract_text_from_image(
             image_data=sample_image_data,
@@ -502,14 +502,14 @@ class TestKMComputerVisionMetrics:
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-metrics-001"}
 
-        async def mock_info(message):
+        async def mock_info(message: str) -> None:
             return f"Info: {message}"
 
         context.info = mock_info
         return context
 
     @pytest.mark.asyncio
-    async def test_computer_vision_metrics_complete(self, mock_context) -> None:
+    async def test_computer_vision_metrics_complete(self, mock_context: Any) -> None:
         """Test complete computer vision metrics retrieval - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_computer_vision_metrics()
 
@@ -536,7 +536,7 @@ class TestKMComputerVisionMetrics:
                 ]
 
     @pytest.mark.asyncio
-    async def test_computer_vision_metrics_performance(self, mock_context) -> None:
+    async def test_computer_vision_metrics_performance(self, mock_context: Any) -> None:
         """Test computer vision performance metrics."""
         result = await km_computer_vision_metrics()
 

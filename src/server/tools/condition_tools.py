@@ -41,7 +41,7 @@ async def km_add_condition(
     action_on_true: str | None = None,  # Action for true condition
     action_on_false: str | None = None,  # Action for false condition
     timeout_seconds: int = 10,  # Condition evaluation timeout
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Add conditional logic to a Keyboard Maestro macro for intelligent automation.
 
@@ -269,7 +269,7 @@ def _apply_operator(
 
 
 def _perform_security_validation(
-    condition_spec,
+    condition_spec: Any,
     operand: str,
 ) -> Either[SecurityError, None]:
     """Perform additional security validation on the condition."""

@@ -6,7 +6,6 @@ all major modules of the codebase, targeting high-impact areas first.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import Mock, patch
 
 import pytest
@@ -217,7 +216,7 @@ class TestIntegrationModulesExpansion:
     """Expand coverage for integration modules - KM connectivity."""
 
     @patch("subprocess.run")
-    def test_km_client_comprehensive(self, mock_run) -> None:
+    def test_km_client_comprehensive(self, mock_run: Any) -> None:
         """Comprehensive test for KM client integration."""
         from src.integration.km_client import KMClient
 
@@ -392,7 +391,7 @@ class TestCommunicationModulesExpansion:
     """Expand coverage for communication modules - messaging."""
 
     @patch("subprocess.run")
-    def test_email_manager_advanced(self, mock_run) -> None:
+    def test_email_manager_advanced(self, mock_run: Any) -> None:
         """Advanced test for email management."""
         from src.communication.email_manager import EmailManager
 
@@ -438,7 +437,7 @@ class TestCommunicationModulesExpansion:
             assert manager.validate_email(email) is False
 
     @patch("subprocess.run")
-    def test_sms_manager_advanced(self, mock_run) -> None:
+    def test_sms_manager_advanced(self, mock_run: Any) -> None:
         """Advanced test for SMS management."""
         from src.communication.sms_manager import SMSManager
 
@@ -497,7 +496,7 @@ class TestFileSystemModulesExpansion:
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.read_text")
     @patch("pathlib.Path.write_text")
-    def test_file_operations_comprehensive(self, mock_write, mock_read, mock_exists) -> None:
+    def test_file_operations_comprehensive(self, mock_write: Any, mock_read: Any, mock_exists: Any) -> None:
         """Comprehensive test for file operations."""
         from src.filesystem.file_operations import FileOperations
 
@@ -581,7 +580,7 @@ class TestWebAndAPIModulesExpansion:
     """Expand coverage for web and API modules - network operations."""
 
     @patch("httpx.Client")
-    def test_http_client_comprehensive(self, mock_client) -> None:
+    def test_http_client_comprehensive(self, mock_client: Any) -> None:
         """Comprehensive test for HTTP client operations."""
         from src.core.http_client import HTTPClient
 
@@ -631,7 +630,7 @@ class TestClipboardModulesExpansion:
     """Expand coverage for clipboard modules - data management."""
 
     @patch("subprocess.run")
-    def test_clipboard_manager_advanced(self, mock_run) -> None:
+    def test_clipboard_manager_advanced(self, mock_run: Any) -> None:
         """Advanced test for clipboard management."""
         from src.clipboard.clipboard_manager import ClipboardManager
 
@@ -677,7 +676,7 @@ class TestClipboardModulesExpansion:
         assert result is not None  # Should handle large content
 
     @patch("subprocess.run")
-    def test_named_clipboards_advanced(self, mock_run) -> None:
+    def test_named_clipboards_advanced(self, mock_run: Any) -> None:
         """Advanced test for named clipboards."""
         from src.clipboard.named_clipboards import NamedClipboards
 

@@ -239,7 +239,7 @@ class MetricsCollector:
         metric_id: MetricId,
         value: Any,
         source_tool: str,
-    ):
+    ) -> Any:
         """Store metric value with privacy protection."""
         if self.privacy_mode == PrivacyMode.STRICT:
             # Anonymize data for strict privacy
@@ -279,7 +279,7 @@ class MetricsCollector:
             )
         return value
 
-    async def _process_metric_batch(self):
+    async def _process_metric_batch(self) -> None:
         """Process batched metrics for efficiency."""
         if not self.metric_buffer:
             return
@@ -393,7 +393,7 @@ class MetricsCollector:
             "privacy_mode": self.privacy_mode.value,
         }
 
-    async def cleanup_old_metrics(self, retention_days: int = 365):
+    async def cleanup_old_metrics(self, retention_days: int = 365) -> None:
         """Clean up old metrics based on retention policy."""
         cutoff_date = datetime.now(UTC) - timedelta(days=retention_days)
 

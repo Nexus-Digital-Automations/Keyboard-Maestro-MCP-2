@@ -7,7 +7,6 @@ most likely to be used in production.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 
 import pytest
@@ -279,7 +278,7 @@ class TestIntegrationHighCoverage:
         assert manager is not None
 
         # Test event registration
-        def dummy_handler(event) -> None:
+        def dummy_handler(event: Any) -> None:
             pass
 
         manager.register_handler("test_event", dummy_handler)
@@ -415,7 +414,7 @@ class TestPropertyBasedCoverage:
         from src.filesystem.path_security import PathSecurity
 
         @given(st.text(min_size=1, max_size=50))
-        def test_sanitize_never_crashes(path_input) -> None:
+        def test_sanitize_never_crashes(path_input: Any) -> None:
             try:
                 result = PathSecurity.sanitize_path(path_input)
                 assert result is None or isinstance(result, str)
@@ -441,7 +440,7 @@ class TestPropertyBasedCoverage:
             st.text(min_size=1, max_size=100),
             st.integers(min_value=0, max_value=2**31 - 1),
         )
-        def test_execution_context_creation(macro_id, user_id, timestamp) -> None:
+        def test_execution_context_creation(macro_id: str, user_id: str, timestamp: int | float | str) -> None:
             context = ExecutionContext(
                 macro_id=macro_id,
                 user_id=user_id,

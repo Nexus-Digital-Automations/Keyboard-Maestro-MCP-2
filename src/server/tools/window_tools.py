@@ -509,7 +509,7 @@ def _map_operation_to_state(operation: str, state_override: str | None) -> Windo
     return operation_states.get(operation, WindowState.NORMAL)
 
 
-def _format_window_info(window_info) -> dict[str, Any]:
+def _format_window_info(window_info: Any) -> dict[str, Any]:
     """Format window information for response."""
     if not window_info:
         return {}
@@ -530,7 +530,7 @@ def _format_window_info(window_info) -> dict[str, Any]:
     }
 
 
-def _format_screen_info(screen_info) -> dict[str, Any]:
+def _format_screen_info(screen_info: Any) -> dict[str, Any]:
     """Format screen information for response."""
     return {
         "screen_id": screen_info.screen_id,

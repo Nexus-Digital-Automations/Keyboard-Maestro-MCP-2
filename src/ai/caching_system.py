@@ -635,7 +635,7 @@ class MultiLevelCache:
 class IntelligentCacheManager:
     """AI-powered intelligent cache management with predictive capabilities."""
 
-    def __init__(self, ai_manager=None):
+    def __init__(self, ai_manager: Any=None):
         self.cache = MultiLevelCache()
         self.ai_manager = ai_manager
         self.access_patterns: dict[str, list[datetime]] = {}

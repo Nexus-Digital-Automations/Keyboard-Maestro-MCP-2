@@ -6,7 +6,6 @@ in core infrastructure modules to achieve substantial coverage improvements.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 
 import pytest
@@ -209,7 +208,7 @@ class TestMassiveCoreInfrastructureCoverage:
             assert result.get_right() == 11
 
             # Test failure in chain
-            def fail_on_large(x) -> bool:
+            def fail_on_large(x: Any) -> bool:
                 if x > 10:
                     return Left("too large")
                 return Right(x)

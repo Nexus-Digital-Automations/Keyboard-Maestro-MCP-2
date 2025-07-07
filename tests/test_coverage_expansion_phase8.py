@@ -8,7 +8,6 @@ for maximum coverage gain toward the 95% target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -565,11 +564,11 @@ def test_infrastructure_async_functionality() -> bool:
     """Test async functionality patterns for infrastructure systems."""
 
     @pytest.mark.asyncio
-    async def async_infrastructure_test_helper():
+    async def async_infrastructure_test_helper() -> None:
         import asyncio
 
         # Test async infrastructure operations
-        async def mock_backup_operation():
+        async def mock_backup_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "backup_id": "backup_001",
@@ -586,7 +585,7 @@ def test_infrastructure_async_functionality() -> bool:
                 },
             }
 
-        async def mock_km_client_operation():
+        async def mock_km_client_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "operation_id": "km_op_001",
@@ -602,7 +601,7 @@ def test_infrastructure_async_functionality() -> bool:
                 },
             }
 
-        async def mock_security_operation():
+        async def mock_security_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "security_id": "sec_001",
@@ -629,7 +628,7 @@ def test_infrastructure_async_functionality() -> bool:
         assert security_result["access_control"]["access_granted"] is True
 
         # Test async error handling for infrastructure systems
-        async def failing_infrastructure_operation():
+        async def failing_infrastructure_operation() -> Any:
             await asyncio.sleep(0.001)
             raise RuntimeError("Infrastructure system unavailable")
 

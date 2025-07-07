@@ -22,7 +22,7 @@ Testing Strategy:
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -157,7 +157,7 @@ def sample_actions_data() -> Any:
 
 
 @composite
-def valid_search_parameters(draw) -> Any:
+def valid_search_parameters(draw: Callable[..., Any]) -> Any:
     """Generate valid search parameters for property-based testing."""
     params = {}
 
@@ -233,7 +233,7 @@ def valid_search_parameters(draw) -> Any:
 
 
 @composite
-def malicious_search_inputs(draw) -> Any:
+def malicious_search_inputs(draw: Callable[..., Any]) -> Any:
     """Generate potentially malicious search inputs for security testing."""
     malicious_patterns = [
         "'; DROP TABLE macros; --",
@@ -262,9 +262,9 @@ class TestKMSearchActions:
     @pytest.mark.asyncio
     async def test_search_actions_success_basic(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test successful basic action search."""
         # Setup
@@ -300,9 +300,9 @@ class TestKMSearchActions:
     @pytest.mark.asyncio
     async def test_search_actions_with_action_type_filter(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test search with action type filter."""
         # Setup
@@ -335,9 +335,9 @@ class TestKMSearchActions:
     @pytest.mark.asyncio
     async def test_search_actions_with_macro_filter(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test search with macro filter."""
         # Setup
@@ -367,9 +367,9 @@ class TestKMSearchActions:
     @pytest.mark.asyncio
     async def test_search_actions_with_content_search(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test search with content search."""
         # Setup
@@ -395,9 +395,9 @@ class TestKMSearchActions:
     @pytest.mark.asyncio
     async def test_search_actions_include_disabled(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test search including disabled macros."""
         # Setup
@@ -426,9 +426,9 @@ class TestKMSearchActions:
     @pytest.mark.asyncio
     async def test_search_actions_with_category_filter(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test search with category filter."""
         # Setup
@@ -454,9 +454,9 @@ class TestKMSearchActions:
     @pytest.mark.asyncio
     async def test_search_actions_with_limit(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test search with result limit."""
         # Setup
@@ -482,9 +482,9 @@ class TestKMSearchActions:
     @pytest.mark.asyncio
     async def test_search_actions_combined_filters(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test search with multiple filters combined."""
         # Setup
@@ -522,7 +522,7 @@ class TestKMSearchActions:
             assert len(result["data"]["actions"]) <= 10
 
     @pytest.mark.asyncio
-    async def test_search_actions_macro_fetch_error(self, mock_context, mock_km_client) -> None:
+    async def test_search_actions_macro_fetch_error(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test search when macro fetch fails."""
         # Setup
         mock_error = Mock()
@@ -549,7 +549,7 @@ class TestKMSearchActions:
             assert str(mock_error) in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_search_actions_empty_results(self, mock_context, mock_km_client) -> None:
+    async def test_search_actions_empty_results(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test search with no matching results."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -573,8 +573,8 @@ class TestKMSearchActions:
     @pytest.mark.asyncio
     async def test_search_actions_exception_handling(
         self,
-        mock_context,
-        mock_km_client,
+        mock_context: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test search with unexpected exception."""
         # Setup
@@ -602,9 +602,9 @@ class TestKMSearchActions:
     @pytest.mark.asyncio
     async def test_search_actions_result_sorting(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test that search results are properly sorted."""
         # Setup
@@ -779,7 +779,7 @@ class TestSearchToolsIntegration:
     """Test complex search workflow integration scenarios."""
 
     @pytest.mark.asyncio
-    async def test_complex_search_workflow(self, mock_context, mock_km_client) -> None:
+    async def test_complex_search_workflow(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test complex search workflow with multiple operations."""
         # Setup large macro list
         large_macro_list = []
@@ -848,7 +848,7 @@ class TestSearchToolsIntegration:
             assert result3["data"]["search_criteria"]["include_disabled"] is True
 
     @pytest.mark.asyncio
-    async def test_search_pagination_behavior(self, mock_context, mock_km_client) -> None:
+    async def test_search_pagination_behavior(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test search pagination with different limits."""
         # Setup
         macro_list = []
@@ -891,9 +891,9 @@ class TestSearchToolsIntegration:
     @pytest.mark.asyncio
     async def test_search_with_progress_reporting(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test that search properly reports progress."""
         # Setup
@@ -933,9 +933,9 @@ class TestSearchToolsSecurity:
     @pytest.mark.asyncio
     async def test_search_input_validation(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test input validation for search parameters."""
         # Setup
@@ -966,9 +966,9 @@ class TestSearchToolsSecurity:
     @pytest.mark.asyncio
     async def test_search_malicious_input_handling(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test handling of potentially malicious search inputs."""
         # Setup
@@ -1011,9 +1011,9 @@ class TestSearchToolsSecurity:
     @pytest.mark.asyncio
     async def test_search_category_validation(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test category parameter validation."""
         # Setup
@@ -1048,9 +1048,9 @@ class TestSearchToolsSecurity:
     @pytest.mark.asyncio
     async def test_search_limit_validation(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test limit parameter validation."""
         # Setup
@@ -1086,9 +1086,9 @@ class TestSearchToolsPropertyBased:
     )
     async def test_search_with_valid_parameters(
         self,
-        search_params,
-        mock_context,
-        mock_km_client,
+        search_params: dict[str, Any],
+        mock_context: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test search with randomly generated valid parameters."""
         # Setup
@@ -1147,9 +1147,9 @@ class TestSearchToolsPropertyBased:
     )
     async def test_search_security_with_malicious_inputs(
         self,
-        malicious_params,
-        mock_context,
-        mock_km_client,
+        malicious_params: dict[str, Any],
+        mock_context: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test search security with potentially malicious inputs."""
         # Setup
@@ -1175,7 +1175,7 @@ class TestSearchToolsPropertyBased:
                 assert isinstance(result["data"], dict)
 
     @given(st.text(min_size=1, max_size=100))
-    def test_generate_mock_actions_property(self, macro_name) -> None:
+    def test_generate_mock_actions_property(self, macro_name: str) -> None:
         """Test mock action generation with various macro names."""
         # Execute
         actions = _generate_mock_actions(macro_name, "test-id")
@@ -1201,8 +1201,8 @@ class TestSearchToolsPerformance:
     @pytest.mark.asyncio
     async def test_search_performance_with_large_dataset(
         self,
-        mock_context,
-        mock_km_client,
+        mock_context: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test search performance with large number of macros."""
         # Setup large dataset
@@ -1256,7 +1256,7 @@ class TestSearchToolsPerformance:
             assert execution_time < 5.0
 
     @pytest.mark.asyncio
-    async def test_search_limit_enforcement(self, mock_context, mock_km_client) -> None:
+    async def test_search_limit_enforcement(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test that search limits are properly enforced."""
         # Setup
         macro_list = []
@@ -1297,7 +1297,7 @@ class TestSearchToolsPerformance:
                 assert result["data"]["total_found"] <= limit
 
     @pytest.mark.asyncio
-    async def test_search_memory_efficiency(self, mock_context, mock_km_client) -> None:
+    async def test_search_memory_efficiency(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test that search doesn't consume excessive memory."""
         # Setup
         macro_list = []
@@ -1352,9 +1352,9 @@ class TestSearchToolsEdgeCases:
     @pytest.mark.asyncio
     async def test_search_with_unicode_content(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test search with unicode characters in content."""
         # Setup
@@ -1385,7 +1385,7 @@ class TestSearchToolsEdgeCases:
             )
 
     @pytest.mark.asyncio
-    async def test_search_with_empty_macro_list(self, mock_context, mock_km_client) -> None:
+    async def test_search_with_empty_macro_list(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test search with empty macro list."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -1407,7 +1407,7 @@ class TestSearchToolsEdgeCases:
             assert result["data"]["actions"] == []
 
     @pytest.mark.asyncio
-    async def test_search_without_context(self, mock_km_client, sample_macros_list) -> None:
+    async def test_search_without_context(self, mock_km_client: Any, sample_macros_list: list[Any]) -> None:
         """Test search without providing context."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -1433,9 +1433,9 @@ class TestSearchToolsEdgeCases:
     @pytest.mark.asyncio
     async def test_search_with_special_characters_in_filters(
         self,
-        mock_context,
-        mock_km_client,
-        sample_macros_list,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
     ) -> None:
         """Test search with special characters in filter parameters."""
         # Setup

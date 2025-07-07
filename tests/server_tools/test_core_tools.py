@@ -7,7 +7,6 @@ validation and error handling.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 from unittest.mock import AsyncMock, Mock, patch
 

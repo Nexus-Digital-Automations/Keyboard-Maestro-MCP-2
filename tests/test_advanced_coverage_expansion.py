@@ -6,7 +6,6 @@ impact to rapidly push toward the near 100% coverage target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 from datetime import datetime
 from unittest.mock import Mock, patch

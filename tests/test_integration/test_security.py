@@ -6,7 +6,8 @@ sanitization, and threat prevention for KM integration.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
+
 import pytest
 from src.core.types import Permission
 from src.integration.security import (
@@ -94,7 +95,7 @@ class TestSecurityViolation:
 class TestValidationResult:
     """Test validation result creation and handling."""
 
-    def test_safe_result_creation(self, clean_input) -> None:
+    def test_safe_result_creation(self, clean_input: Any) -> None:
         """Test creating safe validation results."""
         result = ValidationResult.safe(clean_input)
 
@@ -124,7 +125,7 @@ class TestValidationResult:
 class TestInputValidation:
     """Test comprehensive input validation."""
 
-    def test_clean_input_validation(self, clean_input) -> None:
+    def test_clean_input_validation(self, clean_input: Any) -> None:
         """Test validation of clean input."""
         result = validate_km_input(clean_input, SecurityLevel.STANDARD)
 
@@ -132,7 +133,7 @@ class TestInputValidation:
         assert len(result.violations) == 0
         assert result.sanitized_data is not None
 
-    def test_script_injection_detection(self, malicious_input) -> None:
+    def test_script_injection_detection(self, malicious_input: Any) -> None:
         """Test detection of script injection attempts."""
         result = validate_km_input(malicious_input, SecurityLevel.STANDARD)
 
@@ -143,7 +144,7 @@ class TestInputValidation:
         assert len(script_violations) > 0
         assert any("script" in v.violation_text.lower() for v in script_violations)
 
-    def test_command_injection_detection(self, malicious_input) -> None:
+    def test_command_injection_detection(self, malicious_input: Any) -> None:
         """Test detection of command injection attempts."""
         result = validate_km_input(malicious_input, SecurityLevel.STANDARD)
 
@@ -155,7 +156,7 @@ class TestInputValidation:
         assert len(command_violations) > 0
         assert any("rm" in v.violation_text for v in command_violations)
 
-    def test_path_traversal_detection(self, path_traversal_input) -> None:
+    def test_path_traversal_detection(self, path_traversal_input: Any) -> None:
         """Test detection of path traversal attempts."""
         result = validate_km_input(path_traversal_input, SecurityLevel.STANDARD)
 
@@ -168,7 +169,7 @@ class TestInputValidation:
             "path traversal" in v.violation_text.lower() for v in path_violations
         )
 
-    def test_sql_injection_detection(self, malicious_input) -> None:
+    def test_sql_injection_detection(self, malicious_input: Any) -> None:
         """Test detection of SQL injection attempts."""
         result = validate_km_input(malicious_input, SecurityLevel.STANDARD)
 
@@ -179,7 +180,7 @@ class TestInputValidation:
         # Check for SQL injection pattern detection in violation descriptions
         assert any("sql injection" in v.violation_text.lower() for v in sql_violations)
 
-    def test_applescript_danger_detection(self, malicious_input) -> None:
+    def test_applescript_danger_detection(self, malicious_input: Any) -> None:
         """Test detection of dangerous AppleScript commands."""
         result = validate_km_input(malicious_input, SecurityLevel.STANDARD)
 
@@ -194,7 +195,7 @@ class TestInputValidation:
 class TestSecurityLevels:
     """Test different security validation levels."""
 
-    def test_minimal_security_level(self, malicious_input) -> None:
+    def test_minimal_security_level(self, malicious_input: Any) -> None:
         """Test minimal security level (most permissive)."""
         result = validate_km_input(malicious_input, SecurityLevel.MINIMAL)
 
@@ -205,7 +206,7 @@ class TestSecurityLevels:
             if isinstance(value, str):
                 assert len(value) <= 1000
 
-    def test_standard_security_level(self, malicious_input) -> None:
+    def test_standard_security_level(self, malicious_input: Any) -> None:
         """Test standard security level."""
         result = validate_km_input(malicious_input, SecurityLevel.STANDARD)
 
@@ -219,7 +220,7 @@ class TestSecurityLevels:
                 assert "<script" not in value  # Should be escaped
                 assert len(value) <= 1000
 
-    def test_strict_security_level(self, malicious_input) -> None:
+    def test_strict_security_level(self, malicious_input: Any) -> None:
         """Test strict security level."""
         result = validate_km_input(malicious_input, SecurityLevel.STRICT)
 
@@ -234,7 +235,7 @@ class TestSecurityLevels:
                 assert "javascript:" not in value
                 assert len(value) <= 500
 
-    def test_paranoid_security_level(self, malicious_input) -> None:
+    def test_paranoid_security_level(self, malicious_input: Any) -> None:
         """Test paranoid security level (most restrictive)."""
         result = validate_km_input(malicious_input, SecurityLevel.PARANOID)
 
@@ -253,7 +254,7 @@ class TestSecurityLevels:
 class TestTriggerDataSanitization:
     """Test trigger-specific data sanitization."""
 
-    def test_sanitize_clean_trigger_data(self, clean_input) -> None:
+    def test_sanitize_clean_trigger_data(self, clean_input: Any) -> None:
         """Test sanitizing clean trigger data."""
         result = sanitize_trigger_data(clean_input, SecurityLevel.STANDARD)
 
@@ -262,7 +263,7 @@ class TestTriggerDataSanitization:
         assert result.safety_level == SecurityLevel.STANDARD
         assert len(result.permissions_required) > 0
 
-    def test_sanitize_malicious_trigger_data(self, malicious_input) -> None:
+    def test_sanitize_malicious_trigger_data(self, malicious_input: Any) -> None:
         """Test sanitizing malicious trigger data."""
         result = sanitize_trigger_data(malicious_input, SecurityLevel.STANDARD)
 
@@ -330,7 +331,7 @@ class TestTriggerDataSanitization:
 class TestKMFormatValidation:
     """Test KM format validation functions."""
 
-    def test_valid_km_format(self, clean_input) -> None:
+    def test_valid_km_format(self, clean_input: Any) -> None:
         """Test validation of correct KM format."""
         assert is_valid_km_format(clean_input)
 
@@ -391,7 +392,7 @@ class TestSanitizationValidation:
 class TestContractValidation:
     """Test contract-based validation functions."""
 
-    def test_process_km_event_success(self, clean_input) -> None:
+    def test_process_km_event_success(self, clean_input: Any) -> None:
         """Test successful KM event processing with contracts."""
         result = process_km_event(clean_input)
 
@@ -409,7 +410,7 @@ class TestContractValidation:
 class TestTriggerManagementSecurity:
     """Test security functions for trigger management."""
 
-    def test_validate_trigger_input(self, clean_input) -> None:
+    def test_validate_trigger_input(self, clean_input: dict[str, Any] | list[Any]) -> None:
         """Test trigger input validation."""
         config = clean_input["configuration"]
         assert validate_trigger_input(config)
@@ -418,7 +419,7 @@ class TestTriggerManagementSecurity:
         invalid_config = {"script": "<script>alert('xss')</script>"}
         assert not validate_trigger_input(invalid_config)
 
-    def test_sanitize_trigger_configuration(self, malicious_input) -> None:
+    def test_sanitize_trigger_configuration(self, malicious_input: dict[str, Any] | list[Any]) -> None:
         """Test trigger configuration sanitization."""
         config = malicious_input["configuration"]
         sanitized = sanitize_trigger_configuration(config)
@@ -476,7 +477,7 @@ class TestSecurityUtilities:
 
 # Property-based testing for security robustness
 @pytest.mark.parametrize("security_level", list(SecurityLevel))
-def test_validation_robustness_across_levels(security_level, clean_input) -> None:
+def test_validation_robustness_across_levels(security_level: Any, clean_input: Any) -> None:
     """Property test: Clean input should always validate across security levels."""
     result = validate_km_input(clean_input, security_level)
 
@@ -496,7 +497,7 @@ def test_validation_robustness_across_levels(security_level, clean_input) -> Non
         'do shell script "dangerous command"',
     ],
 )
-def test_malicious_content_detection(malicious_content) -> None:
+def test_malicious_content_detection(malicious_content: Any) -> None:
     """Property test: Various malicious content should be detected."""
     test_input = {
         "trigger_type": "hotkey",
@@ -524,7 +525,7 @@ def test_malicious_content_detection(malicious_content) -> None:
         ("system", Permission.SYSTEM_CONTROL),
     ],
 )
-def test_permission_mapping_consistency(trigger_type, expected_permission) -> None:
+def test_permission_mapping_consistency(trigger_type: str, expected_permission: Any) -> None:
     """Property test: Trigger types should consistently map to permissions."""
     test_data = {"trigger_type": trigger_type, "configuration": {}}
 

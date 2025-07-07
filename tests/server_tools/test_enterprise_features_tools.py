@@ -7,9 +7,9 @@ advanced automation capabilities and enterprise-grade functionality.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 from datetime import datetime, timedelta
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -108,7 +108,7 @@ class TestAIEnhancementTools:
             pytest.skip(f"AI enhancement tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_predictive_automation(self, execution_context, sample_ai_data) -> None:
+    async def test_predictive_automation(self, execution_context: Context | Any, sample_ai_data: Any) -> None:
         """Test predictive automation functionality."""
         try:
             from src.server.tools.ai_enhancement_tools import km_ai_automation
@@ -169,7 +169,7 @@ class TestAIEnhancementTools:
             pytest.skip("AI automation tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_adaptive_learning_system(self, execution_context, sample_ai_data) -> None:
+    async def test_adaptive_learning_system(self, execution_context: Context | Any, sample_ai_data: Any) -> None:
         """Test adaptive learning functionality."""
         try:
             from src.server.tools.ai_enhancement_tools import km_adaptive_learning
@@ -224,7 +224,7 @@ class TestAIEnhancementTools:
             pytest.skip("Adaptive learning tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_smart_suggestions_engine(self, execution_context) -> None:
+    async def test_smart_suggestions_engine(self, execution_context: Context | Any) -> None:
         """Test smart suggestions functionality."""
         try:
             from src.server.tools.ai_enhancement_tools import km_predictive_suggestions
@@ -303,8 +303,8 @@ class TestAnalyticsTools:
     @pytest.mark.asyncio
     async def test_performance_analytics(
         self,
-        execution_context,
-        sample_analytics_data,
+        execution_context: Context | Any,
+        sample_analytics_data: Any,
     ) -> None:
         """Test performance analytics functionality."""
         try:
@@ -373,8 +373,8 @@ class TestAnalyticsTools:
     @pytest.mark.asyncio
     async def test_usage_insights_generation(
         self,
-        execution_context,
-        sample_analytics_data,
+        execution_context: Context | Any,
+        sample_analytics_data: Any,
     ) -> None:
         """Test usage insights generation functionality."""
         try:
@@ -456,7 +456,7 @@ class TestWorkflowIntelligenceTools:
             pytest.skip(f"Workflow intelligence tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_workflow_optimization(self, execution_context, sample_workflow_data) -> None:
+    async def test_workflow_optimization(self, execution_context: Context | Any, sample_workflow_data: Any) -> None:
         """Test workflow optimization functionality."""
         try:
             from src.server.tools.workflow_intelligence_tools import (
@@ -518,7 +518,7 @@ class TestWorkflowIntelligenceTools:
             pytest.skip("Workflow optimization tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_intelligent_routing(self, execution_context) -> None:
+    async def test_intelligent_routing(self, execution_context: Context | Any) -> None:
         """Test intelligent routing functionality."""
         try:
             from src.server.tools.workflow_intelligence_tools import (
@@ -601,7 +601,7 @@ class TestEnterpriseIntegrationTools:
             pytest.skip(f"Enterprise integration tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_enterprise_synchronization(self, execution_context) -> None:
+    async def test_enterprise_synchronization(self, execution_context: Context | Any) -> None:
         """Test enterprise synchronization functionality."""
         try:
             from src.server.tools.enterprise_sync_tools import km_enterprise_sync
@@ -659,7 +659,7 @@ class TestEnterpriseFeaturesIntegration:
     """Test integration patterns across enterprise feature tools."""
 
     @pytest.mark.asyncio
-    async def test_ai_analytics_integration(self, execution_context) -> None:
+    async def test_ai_analytics_integration(self, execution_context: Context | Any) -> None:
         """Test integration between AI and analytics tools."""
         enterprise_tools = [
             ("src.server.tools.ai_enhancement_tools", "km_ai_automation"),
@@ -686,7 +686,7 @@ class TestEnterpriseFeaturesIntegration:
                 continue
 
     @pytest.mark.asyncio
-    async def test_enterprise_tool_response_consistency(self, execution_context) -> None:
+    async def test_enterprise_tool_response_consistency(self, execution_context: Context | Any) -> None:
         """Test that all enterprise tools return consistent response structure."""
         enterprise_tools = [
             (
@@ -742,7 +742,7 @@ class TestPropertyBasedEnterpriseTesting:
     """Property-based testing for enterprise features using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_ai_learning_properties(self, execution_context) -> None:
+    async def test_ai_learning_properties(self, execution_context: Context | Any) -> None:
         """Property: AI learning should improve over time with valid data."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -753,9 +753,9 @@ class TestPropertyBasedEnterpriseTesting:
             pattern_count=st.integers(min_value=10, max_value=1000),
         )
         async def test_ai_properties(
-            confidence_threshold,
-            learning_rate,
-            pattern_count,
+            confidence_threshold: Any,
+            learning_rate: int | float,
+            pattern_count: int,
         ) -> None:
             """Test AI learning properties."""
             try:
@@ -795,7 +795,7 @@ class TestPropertyBasedEnterpriseTesting:
         await test_ai_properties(0.8, 0.1, 100)
 
     @pytest.mark.asyncio
-    async def test_analytics_time_range_properties(self, execution_context) -> None:
+    async def test_analytics_time_range_properties(self, execution_context: Context | Any) -> None:
         """Property: Analytics should handle various time ranges correctly."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -804,7 +804,7 @@ class TestPropertyBasedEnterpriseTesting:
             days_back=st.integers(min_value=1, max_value=365),
             aggregation=st.sampled_from(["hourly", "daily", "weekly", "monthly"]),
         )
-        async def test_analytics_properties(days_back, aggregation) -> None:
+        async def test_analytics_properties(days_back: Any, aggregation: Any) -> None:
             """Test analytics time range properties."""
             try:
                 from src.server.tools.analytics_tools import km_performance_analysis

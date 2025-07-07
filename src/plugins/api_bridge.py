@@ -142,7 +142,7 @@ class PluginAPIBridge:
                 PluginError.initialization_failed(f"API bridge init failed: {e!s}"),
             )
 
-    async def _discover_mcp_tools(self):
+    async def _discover_mcp_tools(self) -> Any:
         """Discover all available MCP tools from the codebase."""
         # Define all 38+ MCP tools available in the system
         self.available_tools = {
@@ -352,7 +352,7 @@ class PluginAPIBridge:
             # This represents the comprehensive set of 38+ tools available
         }
 
-    async def _load_tool_modules(self):
+    async def _load_tool_modules(self) -> None:
         """Load all tool modules dynamically."""
         for tool_name, tool_def in self.available_tools.items():
             try:
@@ -369,8 +369,8 @@ class PluginAPIBridge:
         """Create mock tool module for testing."""
 
         class MockModule:
-            def __getattr__(self, name):
-                def mock_function(*args, **kwargs) -> dict[str, Any]:
+            def __getattr__(self, name: str):
+                def mock_function(*args: Any, **kwargs: Any) -> dict[str, Any]:
                     return {"success": True, "mock": True, "tool": tool_name}
 
                 return mock_function

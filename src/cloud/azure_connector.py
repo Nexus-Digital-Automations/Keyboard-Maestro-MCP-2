@@ -62,7 +62,7 @@ class AzureSession:
     created_at: datetime
     last_used: datetime
 
-    def get_client(self, service_type: str, **kwargs) -> Any:
+    def get_client(self, service_type: str, **kwargs: Any) -> Any:
         """Get Azure service client with credential."""
         if service_type == "storage":
             from azure.mgmt.storage import StorageManagementClient

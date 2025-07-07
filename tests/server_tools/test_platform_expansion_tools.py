@@ -7,8 +7,8 @@ plugin management, and extension frameworks with comprehensive integration patte
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -101,8 +101,8 @@ class TestCommunicationTools:
     @pytest.mark.asyncio
     async def test_notification_sending(
         self,
-        execution_context,
-        sample_communication_data,
+        execution_context: Context | Any,
+        sample_communication_data: Any,
     ) -> None:
         """Test notification sending functionality."""
         try:
@@ -142,7 +142,7 @@ class TestCommunicationTools:
             pytest.skip("Notification tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_message_routing(self, execution_context) -> None:
+    async def test_message_routing(self, execution_context: Context | Any) -> None:
         """Test message routing and delivery functionality."""
         try:
             from src.server.tools.communication_tools import km_send_message
@@ -180,7 +180,7 @@ class TestCommunicationTools:
             pytest.skip("Message routing tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_alert_configuration(self, execution_context) -> None:
+    async def test_alert_configuration(self, execution_context: Context | Any) -> None:
         """Test alert configuration and management."""
         try:
             from src.server.tools.communication_tools import km_configure_alerts
@@ -242,8 +242,8 @@ class TestVisualAutomationTools:
     @pytest.mark.asyncio
     async def test_screen_capture_functionality(
         self,
-        execution_context,
-        sample_visual_data,
+        execution_context: Context | Any,
+        sample_visual_data: Any,
     ) -> None:
         """Test screen capture and image processing."""
         try:
@@ -289,8 +289,8 @@ class TestVisualAutomationTools:
     @pytest.mark.asyncio
     async def test_visual_element_recognition(
         self,
-        execution_context,
-        sample_visual_data,
+        execution_context: Context | Any,
+        sample_visual_data: Any,
     ) -> None:
         """Test visual element recognition and matching."""
         try:
@@ -348,8 +348,8 @@ class TestVisualAutomationTools:
     @pytest.mark.asyncio
     async def test_visual_automation_workflow(
         self,
-        execution_context,
-        sample_visual_data,
+        execution_context: Context | Any,
+        sample_visual_data: Any,
     ) -> None:
         """Test complete visual automation workflow."""
         try:
@@ -418,7 +418,7 @@ class TestPluginSystemTools:
             pytest.skip(f"Plugin system not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_plugin_installation(self, execution_context, sample_plugin_data) -> None:
+    async def test_plugin_installation(self, execution_context: Context | Any, sample_plugin_data: Any) -> None:
         """Test plugin installation and validation."""
         try:
             from src.server.tools.plugin_tools import km_install_plugin
@@ -457,7 +457,7 @@ class TestPluginSystemTools:
             pytest.skip("Plugin installation tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_plugin_management(self, execution_context) -> None:
+    async def test_plugin_management(self, execution_context: Context | Any) -> None:
         """Test plugin lifecycle management."""
         try:
             from src.server.tools.plugin_tools import km_manage_plugins
@@ -505,7 +505,7 @@ class TestPluginSystemTools:
             pytest.skip("Plugin management tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_plugin_registry_operations(self, execution_context) -> None:
+    async def test_plugin_registry_operations(self, execution_context: Context | Any) -> None:
         """Test plugin registry and discovery functionality."""
         try:
             from src.server.tools.plugin_tools import km_plugin_registry
@@ -555,7 +555,7 @@ class TestPlatformExpansionIntegration:
     """Test integration patterns across platform expansion tools."""
 
     @pytest.mark.asyncio
-    async def test_communication_visual_integration(self, execution_context) -> None:
+    async def test_communication_visual_integration(self, execution_context: Context | Any) -> None:
         """Test integration between communication and visual tools."""
         platform_tools = [
             ("src.server.tools.communication_tools", "km_send_notification"),
@@ -582,7 +582,7 @@ class TestPlatformExpansionIntegration:
                 continue
 
     @pytest.mark.asyncio
-    async def test_platform_tool_response_consistency(self, execution_context) -> None:
+    async def test_platform_tool_response_consistency(self, execution_context: Context | Any) -> None:
         """Test that all platform tools return consistent response structure."""
         platform_tools = [
             (
@@ -632,7 +632,7 @@ class TestPlatformExpansionIntegration:
                 print(f"Warning: {tool_name} had issue: {e}")
 
     @pytest.mark.asyncio
-    async def test_platform_security_patterns(self, execution_context) -> None:
+    async def test_platform_security_patterns(self, execution_context: Context | Any) -> None:
         """Test that platform tools implement security patterns."""
         try:
             from src.server.tools.plugin_tools import km_install_plugin
@@ -656,7 +656,7 @@ class TestPropertyBasedPlatformTesting:
     """Property-based testing for platform expansion tools using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_communication_properties(self, execution_context) -> None:
+    async def test_communication_properties(self, execution_context: Context | Any) -> None:
         """Property: Communication tools should handle various message types securely."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -666,7 +666,7 @@ class TestPropertyBasedPlatformTesting:
             priority=st.sampled_from(["low", "normal", "high", "urgent"]),
             channel_count=st.integers(min_value=1, max_value=5),
         )
-        async def test_communication_properties(message_type, priority, channel_count) -> None:
+        async def test_communication_properties(message_type: str, priority: int, channel_count: int) -> None:
             """Test communication properties."""
             try:
                 from src.server.tools.communication_tools import km_send_notification
@@ -700,7 +700,7 @@ class TestPropertyBasedPlatformTesting:
         await test_communication_properties("info", "normal", 2)
 
     @pytest.mark.asyncio
-    async def test_visual_automation_properties(self, execution_context) -> None:
+    async def test_visual_automation_properties(self, execution_context: Context | Any) -> None:
         """Property: Visual automation should maintain coordinate bounds."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -711,7 +711,7 @@ class TestPropertyBasedPlatformTesting:
             width=st.integers(min_value=1, max_value=800),
             height=st.integers(min_value=1, max_value=600),
         )
-        async def test_visual_properties(x, y, width, height) -> None:
+        async def test_visual_properties(x: Any, y: Any, width: int, height: int) -> None:
             """Test visual automation properties."""
             try:
                 from src.server.tools.visual_tools import km_capture_screen

@@ -6,7 +6,7 @@ to maximize coverage of the 1533-line km_client.py module.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -65,7 +65,7 @@ class TestEitherMonad:
     def test_either_flat_map(self) -> None:
         """Test flat mapping for chaining operations."""
 
-        def double_if_even(x) -> Any:
+        def double_if_even(x: Any) -> Any:
             if x % 2 == 0:
                 return Either.right(x * 2)
             return Either.left("odd number")
@@ -162,7 +162,7 @@ class TestKMClientOperations:
         return connection
 
     @pytest.fixture
-    def km_client(self, mock_connection) -> Any:
+    def km_client(self, mock_connection: Any) -> Any:
         """Create KM client with mock connection."""
         config = ConnectionConfig(
             method=ConnectionMethod.APPLESCRIPT,
@@ -171,7 +171,7 @@ class TestKMClientOperations:
         client = KMClient(connection_config=config)
         return client
 
-    def test_client_initialization(self, mock_connection) -> None:
+    def test_client_initialization(self, mock_connection: Any) -> None:
         """Test client initialization with connection."""
         # Create a simple config for initialization
         config = ConnectionConfig(
@@ -184,7 +184,7 @@ class TestKMClientOperations:
         assert client.config.method == ConnectionMethod.APPLESCRIPT
 
     @pytest.mark.asyncio
-    async def test_execute_macro_by_id(self, km_client, mock_connection) -> None:
+    async def test_execute_macro_by_id(self, km_client: Any, mock_connection: Any) -> None:
         """Test executing macro by ID."""
         macro_id = MacroId("test-macro-123")
 
@@ -205,7 +205,7 @@ class TestKMClientOperations:
             assert execution_result["duration"] == 1.5
 
     @pytest.mark.asyncio
-    async def test_execute_macro_with_parameters(self, km_client) -> None:
+    async def test_execute_macro_with_parameters(self, km_client: Any) -> None:
         """Test executing macro with parameters."""
         macro_id = MacroId("param-macro")
         parameters = {"input_text": "Hello", "count": 5}
@@ -226,7 +226,7 @@ class TestKMClientOperations:
             assert execution_result["parameters_used"] == parameters
 
     @pytest.mark.asyncio
-    async def test_list_macros_with_filtering(self, km_client) -> None:
+    async def test_list_macros_with_filtering(self, km_client: Any) -> None:
         """Test listing macros with filters."""
         with patch.object(km_client, "get_macro_list") as mock_list:
             mock_list.return_value = Either.right(
@@ -251,7 +251,7 @@ class TestKMClientOperations:
             assert any(macro["enabled"] for macro in enabled_macros)
 
     @pytest.mark.asyncio
-    async def test_trigger_management(self, km_client) -> None:
+    async def test_trigger_management(self, km_client: Any) -> None:
         """Test trigger creation and management."""
         trigger_config = {
             "type": "hotkey",

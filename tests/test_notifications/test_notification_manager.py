@@ -7,7 +7,6 @@ user interaction tracking.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -36,7 +35,7 @@ class TestNotificationManager:
         return km_client
 
     @pytest.fixture
-    def notification_manager(self, mock_km_client) -> bool:
+    def notification_manager(self, mock_km_client: Any) -> bool:
         """NotificationManager instance with mocked dependencies."""
         return NotificationManager(mock_km_client)
 
@@ -47,9 +46,9 @@ class TestNotificationManager:
     )
     async def test_notification_spec_creation_properties(
         self,
-        title,
-        message,
-        duration,
+        title: str,
+        message: str,
+        duration: int | float,
     ) -> None:
         """Property test: NotificationSpec creation with valid inputs."""
         assume(len(title.strip()) > 0 and len(message.strip()) > 0)
@@ -70,7 +69,7 @@ class TestNotificationManager:
         title=st.text(min_size=101) | st.text(max_size=0),
         message=st.text(min_size=501) | st.text(max_size=0),
     )
-    def test_notification_spec_validation_failures(self, title, message) -> bool:
+    def test_notification_spec_validation_failures(self, title: str, message: str) -> bool:
         """Property test: NotificationSpec validation with invalid inputs."""
         with pytest.raises(ValueError):
             NotificationSpec(
@@ -82,8 +81,8 @@ class TestNotificationManager:
     @pytest.mark.asyncio
     async def test_system_notification_display(
         self,
-        notification_manager,
-        mock_km_client,
+        notification_manager: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test system notification display with AppleScript execution."""
         # Setup mock response
@@ -113,8 +112,8 @@ class TestNotificationManager:
     @pytest.mark.asyncio
     async def test_alert_dialog_with_buttons(
         self,
-        notification_manager,
-        mock_km_client,
+        notification_manager: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test alert dialog with user interaction buttons."""
         # Setup mock response with button click
@@ -141,8 +140,8 @@ class TestNotificationManager:
     @pytest.mark.asyncio
     async def test_hud_display_with_positioning(
         self,
-        notification_manager,
-        mock_km_client,
+        notification_manager: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test HUD display with custom positioning and duration."""
         # Setup mock response
@@ -177,7 +176,7 @@ class TestNotificationManager:
         mock_sleep.assert_called_once_with(2.0)
 
     @pytest.mark.asyncio
-    async def test_sound_notification(self, notification_manager, mock_km_client) -> None:
+    async def test_sound_notification(self, notification_manager: Any, mock_km_client: Any) -> None:
         """Test sound notification with custom audio file."""
         # Setup mock response
         mock_km_client.play_sound.return_value = Mock(
@@ -219,7 +218,7 @@ class TestNotificationManager:
             ),
         ),
     )
-    def test_content_validation_security(self, notification_manager, content) -> bool:
+    def test_content_validation_security(self, notification_manager: Any, content: str) -> bool:
         """Property test: Content validation prevents dangerous patterns."""
         is_valid = notification_manager._validate_notification_content(content)
 
@@ -234,14 +233,14 @@ class TestNotificationManager:
             ),
         ),
     )
-    def test_content_validation_safe_content(self, notification_manager, content) -> bool:
+    def test_content_validation_safe_content(self, notification_manager: Any, content: str) -> bool:
         """Property test: Safe content passes validation."""
         assume(len(content.strip()) > 0)
 
         is_valid = notification_manager._validate_notification_content(content)
         assert is_valid
 
-    def test_applescript_string_escaping(self, notification_manager) -> bool:
+    def test_applescript_string_escaping(self, notification_manager: Any) -> bool:
         """Test AppleScript string escaping for security."""
         dangerous_text = 'Text with "quotes" and \\backslashes'
         escaped = notification_manager._escape_applescript_string(dangerous_text)
@@ -249,7 +248,7 @@ class TestNotificationManager:
         assert '\\"' in escaped  # Quotes should be escaped
         assert "\\\\" in escaped  # Backslashes should be escaped
 
-    def test_hud_position_mapping(self, notification_manager) -> bool:
+    def test_hud_position_mapping(self, notification_manager: Any) -> bool:
         """Test HUD position enum to KM value mapping."""
         position_tests = [
             (NotificationPosition.CENTER, "Center"),
@@ -262,7 +261,7 @@ class TestNotificationManager:
             assert km_value == expected
 
     @pytest.mark.asyncio
-    async def test_notification_tracking(self, notification_manager, mock_km_client) -> None:
+    async def test_notification_tracking(self, notification_manager: Any, mock_km_client: Any) -> None:
         """Test active notification tracking and management."""
         # Setup mock response
         mock_km_client.execute_applescript.return_value = Mock(
@@ -297,8 +296,8 @@ class TestNotificationManager:
     @pytest.mark.asyncio
     async def test_error_handling_km_client_failure(
         self,
-        notification_manager,
-        mock_km_client,
+        notification_manager: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test error handling when KM client operations fail."""
         # Setup mock to return error
@@ -324,7 +323,7 @@ class TestNotificationManager:
         assert returned_error.code == "APPLESCRIPT_ERROR"
 
     @given(sound_name=st.text(min_size=1))
-    def test_sound_validation_properties(self, sound_name) -> None:
+    def test_sound_validation_properties(self, sound_name: str) -> None:
         """Property test: Sound validation for various inputs."""
         spec = NotificationSpec.__new__(NotificationSpec)  # Skip __post_init__
         spec.notification_type = NotificationType.SOUND

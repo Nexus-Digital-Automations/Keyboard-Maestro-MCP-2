@@ -239,7 +239,7 @@ class RealtimePredictor:
         self._running = False
         self._background_tasks: list[asyncio.Task] = []
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the real-time prediction system."""
         if self._running:
             return
@@ -254,7 +254,7 @@ class RealtimePredictor:
             asyncio.create_task(self._cache_cleanup()),
         ]
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Stop the real-time prediction system."""
         self._running = False
 
@@ -647,7 +647,7 @@ class RealtimePredictor:
             result = await self.predict(request)
             yield result
 
-    async def _prediction_worker(self):
+    async def _prediction_worker(self) -> Any:
         """Background worker for processing prediction queue."""
         while self._running:
             try:
@@ -674,7 +674,7 @@ class RealtimePredictor:
                 print(f"Prediction worker error: {e}")
                 await asyncio.sleep(1.0)
 
-    async def _metrics_updater(self):
+    async def _metrics_updater(self) -> None:
         """Background task to update model metrics."""
         while self._running:
             try:
@@ -741,7 +741,7 @@ class RealtimePredictor:
                 print(f"Metrics updater error: {e}")
                 await asyncio.sleep(10.0)
 
-    async def _model_health_monitor(self):
+    async def _model_health_monitor(self) -> Any:
         """Monitor model health and performance."""
         while self._running:
             try:
@@ -773,7 +773,7 @@ class RealtimePredictor:
                 print(f"Health monitor error: {e}")
                 await asyncio.sleep(30.0)
 
-    async def _cache_cleanup(self):
+    async def _cache_cleanup(self) -> None:
         """Clean up expired cache entries."""
         while self._running:
             try:

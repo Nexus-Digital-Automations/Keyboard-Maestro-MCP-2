@@ -6,7 +6,6 @@ meets timing requirements and scales appropriately under load.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -163,7 +162,7 @@ class TestConcurrencyPerformance:
             ExecutionContext.create_test_context() for _ in range(num_concurrent)
         ]
 
-        def execute_macro(macro_context_pair) -> None:
+        def execute_macro(macro_context_pair: Context | Any) -> None:
             macro, context = macro_context_pair
             start_time = time.perf_counter()
             result = engine.execute_macro(macro, context)
@@ -383,7 +382,7 @@ class TestIntegrationPerformance:
 
         import asyncio
 
-        async def async_operations():
+        async def async_operations() -> Any:
             tasks = []
 
             for i in range(10):

@@ -105,7 +105,7 @@ class AuditSystemManager:
             logger.error(f"Failed to initialize audit system: {e}")
             return Either.left(AuditError.initialization_failed(str(e)))
 
-    async def shutdown(self):
+    async def shutdown(self) -> Any:
         """Gracefully shutdown audit system and background services."""
         try:
             logger.info("Shutting down audit system...")
@@ -245,7 +245,7 @@ class AuditSystemManager:
         user_id: str,
         action: str,
         result: str,
-        **kwargs,
+        **kwargs: Any,
     ) -> Either[AuditError, str]:
         """Audit general user actions for comprehensive activity tracking."""
         try:
@@ -558,7 +558,7 @@ class AuditSystemManager:
 
         return sanitized
 
-    async def _start_background_services(self):
+    async def _start_background_services(self) -> None:
         """Start background services for audit system maintenance."""
         try:
             # Start performance monitoring task
@@ -574,7 +574,7 @@ class AuditSystemManager:
         except Exception as e:
             logger.error(f"Error starting background services: {e}")
 
-    async def _performance_monitoring_loop(self):
+    async def _performance_monitoring_loop(self) -> None:
         """Background task for performance monitoring."""
         try:
             while True:
@@ -600,7 +600,7 @@ class AuditSystemManager:
         except Exception as e:
             logger.error(f"Error in performance monitoring loop: {e}")
 
-    async def _cache_cleanup_loop(self):
+    async def _cache_cleanup_loop(self) -> None:
         """Background task for cache cleanup."""
         try:
             while True:
@@ -630,7 +630,7 @@ class AuditSystemManager:
         except Exception as e:
             logger.error(f"Error in cache cleanup loop: {e}")
 
-    async def _register_tool_audit_hooks(self):
+    async def _register_tool_audit_hooks(self) -> None:
         """Register audit hooks with existing tools (placeholder)."""
         # In a real implementation, this would register hooks with all existing tools
         # to automatically audit their execution
@@ -663,7 +663,7 @@ async def initialize_audit_system(
     return Either.right(_audit_system)
 
 
-async def shutdown_audit_system():
+async def shutdown_audit_system() -> Any:
     """Shutdown global audit system."""
     global _audit_system
 

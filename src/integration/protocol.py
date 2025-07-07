@@ -428,7 +428,7 @@ class MCPProtocolHandler:
 # Utility functions for MCP protocol handling
 
 
-def create_mcp_request(method: MCPMethod, **params) -> MCPMessage:
+def create_mcp_request(method: MCPMethod, **params: Any) -> MCPMessage:
     """Create MCP request message with method enum."""
     return MCPMessage.create_request(method.value, params)
 

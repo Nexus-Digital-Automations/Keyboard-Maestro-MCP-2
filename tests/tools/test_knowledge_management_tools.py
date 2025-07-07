@@ -7,8 +7,8 @@ Tests follow the proven systematic pattern that achieved 100% success across 21+
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -36,15 +36,15 @@ km_schedule_content_review = km_tools.km_schedule_content_review.fn
 
 
 async def mock_km_generate_documentation(
-    target_type,
-    target_id,
-    documentation_type="comprehensive",
-    template_id=None,
-    include_sections=None,
-    output_format="markdown",
-    quality_level="standard",
-    ctx=None,
-):
+    target_type: str,
+    target_id: str,
+    documentation_type: str="comprehensive",
+    template_id: str=None,
+    include_sections: Any=None,
+    output_format: Any="markdown",
+    quality_level: Any="standard",
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for documentation generation."""
     if not target_id:
         return {
@@ -96,12 +96,12 @@ async def mock_km_generate_documentation(
 
 
 async def mock_km_manage_knowledge_base(
-    operation,
-    knowledge_base_id=None,
-    configuration=None,
-    backup_options=None,
-    ctx=None,
-):
+    operation: str,
+    knowledge_base_id: str=None,
+    configuration: dict[str, Any]=None,
+    backup_options: dict[str, Any]=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for knowledge base management."""
     if operation not in ["create", "update", "delete", "backup", "restore", "optimize"]:
         return {
@@ -145,15 +145,15 @@ async def mock_km_manage_knowledge_base(
 
 
 async def mock_km_search_knowledge(
-    query,
-    search_scope=None,
-    content_types=None,
-    date_range=None,
-    max_results=20,
-    include_snippets=True,
-    quality_threshold=0.7,
-    ctx=None,
-):
+    query: str,
+    search_scope: Any=None,
+    content_types: Any=None,
+    date_range: Any=None,
+    max_results: Either[Any, Any] | Any=20,
+    include_snippets: Any=True,
+    quality_threshold: Any=0.7,
+    ctx: Context | Any=None,
+) -> list[Any]:
     """Mock implementation for knowledge search."""
     if not query or len(query.strip()) == 0:
         return {
@@ -232,12 +232,12 @@ async def mock_km_search_knowledge(
 
 
 async def mock_km_update_documentation(
-    document_id,
-    update_data,
-    version_control=True,
-    notify_subscribers=False,
-    ctx=None,
-):
+    document_id: str,
+    update_data: Any,
+    version_control: Any=True,
+    notify_subscribers: Any=False,
+    ctx: Context | Any=None,
+) -> None:
     """Mock implementation for documentation updates."""
     if not document_id:
         return {
@@ -284,14 +284,14 @@ async def mock_km_update_documentation(
 
 
 async def mock_km_create_content_template(
-    template_name,
-    template_type,
-    template_structure,
-    category="general",
-    access_level="public",
-    validation_rules=None,
-    ctx=None,
-):
+    template_name: str,
+    template_type: str,
+    template_structure: Any,
+    category: str="general",
+    access_level: Any="public",
+    validation_rules: Any=None,
+    ctx: Context | Any=None,
+) -> None:
     """Mock implementation for content template creation."""
     if not template_name or len(template_name.strip()) == 0:
         return {
@@ -343,12 +343,12 @@ async def mock_km_create_content_template(
 
 
 async def mock_km_analyze_content_quality(
-    content_id,
-    analysis_type="comprehensive",
-    quality_metrics=None,
-    comparison_baseline=None,
-    ctx=None,
-):
+    content_id: str,
+    analysis_type: str="comprehensive",
+    quality_metrics: Any=None,
+    comparison_baseline: Any=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for content quality analysis."""
     if not content_id:
         return {
@@ -420,13 +420,13 @@ async def mock_km_analyze_content_quality(
 
 
 async def mock_km_export_knowledge(
-    export_scope,
-    format_type="json",
-    include_metadata=True,
-    compression=True,
-    export_filters=None,
-    ctx=None,
-):
+    export_scope: Any,
+    format_type: str="json",
+    include_metadata: Any=True,
+    compression: Any=True,
+    export_filters: Any=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for knowledge export."""
     if export_scope not in ["all", "knowledge_base", "category", "documents"]:
         return {
@@ -476,13 +476,13 @@ async def mock_km_export_knowledge(
 
 
 async def mock_km_schedule_content_review(
-    review_type,
-    target_items,
-    schedule_config,
-    reviewer_assignments=None,
-    notification_settings=None,
-    ctx=None,
-):
+    review_type: str,
+    target_items: Any,
+    schedule_config: dict[str, Any],
+    reviewer_assignments: Any=None,
+    notification_settings: dict[str, Any]=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for content review scheduling."""
     if not target_items or len(target_items) == 0:
         return {
@@ -568,8 +568,8 @@ class TestKMGenerateDocumentation:
     @pytest.mark.asyncio
     async def test_documentation_generation_success(
         self,
-        mock_context,
-        sample_documentation_data,
+        mock_context: Any,
+        sample_documentation_data: Any,
     ) -> None:
         """Test successful documentation generation - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_generate_documentation(
@@ -601,7 +601,7 @@ class TestKMGenerateDocumentation:
             # Test that real source code validation logic executed successfully
 
     @pytest.mark.asyncio
-    async def test_documentation_generation_validation_error(self, mock_context) -> None:
+    async def test_documentation_generation_validation_error(self, mock_context: Any) -> None:
         """Test documentation generation with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_generate_documentation(
             source_type="macro",  # ALIGNED: source_type (not target_type)
@@ -619,7 +619,7 @@ class TestKMGenerateDocumentation:
             # Real implementation may have different error format than mock expected
 
     @pytest.mark.asyncio
-    async def test_documentation_generation_failure(self, mock_context) -> None:
+    async def test_documentation_generation_failure(self, mock_context: Any) -> None:
         """Test documentation generation with generation failure - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_generate_documentation(
             source_type="macro",  # ALIGNED: source_type (not target_type)
@@ -669,8 +669,8 @@ class TestKMManageKnowledgeBase:
     @pytest.mark.asyncio
     async def test_knowledge_base_management_success(
         self,
-        mock_context,
-        sample_kb_data,
+        mock_context: Any,
+        sample_kb_data: Any,
     ) -> None:
         """Test successful knowledge base management - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_manage_knowledge_base(
@@ -701,7 +701,7 @@ class TestKMManageKnowledgeBase:
             # Test that real source code validation logic executed successfully
 
     @pytest.mark.asyncio
-    async def test_knowledge_base_management_validation_error(self, mock_context) -> None:
+    async def test_knowledge_base_management_validation_error(self, mock_context: Any) -> None:
         """Test knowledge base management with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_manage_knowledge_base(
             operation="invalid_operation",  # ALIGNED: Invalid operation to test validation
@@ -719,7 +719,7 @@ class TestKMManageKnowledgeBase:
             # Real implementation may have different error format than mock expected
 
     @pytest.mark.asyncio
-    async def test_knowledge_base_backup_failure(self, mock_context) -> None:
+    async def test_knowledge_base_backup_failure(self, mock_context: Any) -> None:
         """Test knowledge base backup with failure - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_manage_knowledge_base(
             operation="export",  # ALIGNED: Use valid operation from actual function (export instead of backup)
@@ -761,7 +761,7 @@ class TestKMSearchKnowledge:
         }
 
     @pytest.mark.asyncio
-    async def test_knowledge_search_success(self, mock_context, sample_search_data) -> None:
+    async def test_knowledge_search_success(self, mock_context: Any, sample_search_data: Any) -> None:
         """Test successful knowledge search - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_search_knowledge implementation
         result = await km_search_knowledge(
@@ -797,7 +797,7 @@ class TestKMSearchKnowledge:
             # Verify error structure matches source code implementation
 
     @pytest.mark.asyncio
-    async def test_knowledge_search_validation_error(self, mock_context) -> None:
+    async def test_knowledge_search_validation_error(self, mock_context: Any) -> None:
         """Test knowledge search with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_search_knowledge validation
         result = await km_search_knowledge(
@@ -814,7 +814,7 @@ class TestKMSearchKnowledge:
         assert "Query text" in result["error"] or "empty" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_knowledge_search_no_results(self, mock_context) -> None:
+    async def test_knowledge_search_no_results(self, mock_context: Any) -> None:
         """Test knowledge search with no results found - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_search_knowledge with realistic query
         result = await km_search_knowledge(
@@ -864,7 +864,7 @@ class TestKMUpdateDocumentation:
         }
 
     @pytest.mark.asyncio
-    async def test_documentation_update_success(self, mock_context, sample_update_data) -> None:
+    async def test_documentation_update_success(self, mock_context: Any, sample_update_data: Any) -> None:
         """Test successful documentation update - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_update_documentation implementation
         result = await km_update_documentation(
@@ -895,7 +895,7 @@ class TestKMUpdateDocumentation:
             # For systematic alignment, we accept contract validation requirements
 
     @pytest.mark.asyncio
-    async def test_documentation_update_validation_error(self, mock_context) -> None:
+    async def test_documentation_update_validation_error(self, mock_context: Any) -> None:
         """Test documentation update with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_update_documentation validation
         result = await km_update_documentation(
@@ -917,7 +917,7 @@ class TestKMUpdateDocumentation:
         )
 
     @pytest.mark.asyncio
-    async def test_documentation_update_not_found(self, mock_context) -> None:
+    async def test_documentation_update_not_found(self, mock_context: Any) -> None:
         """Test documentation update with document not found - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_update_documentation with realistic document ID
         result = await km_update_documentation(
@@ -971,8 +971,8 @@ class TestKMCreateContentTemplate:
     @pytest.mark.asyncio
     async def test_content_template_creation_success(
         self,
-        mock_context,
-        sample_template_data,
+        mock_context: Any,
+        sample_template_data: Any,
     ) -> None:
         """Test successful content template creation - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_create_content_template implementation
@@ -1002,7 +1002,7 @@ class TestKMCreateContentTemplate:
             # For systematic alignment, we accept contract validation requirements
 
     @pytest.mark.asyncio
-    async def test_content_template_validation_error(self, mock_context) -> None:
+    async def test_content_template_validation_error(self, mock_context: Any) -> None:
         """Test content template creation with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_create_content_template validation
         result = await km_create_content_template(
@@ -1024,7 +1024,7 @@ class TestKMCreateContentTemplate:
         )
 
     @pytest.mark.asyncio
-    async def test_content_template_conflict_error(self, mock_context) -> None:
+    async def test_content_template_conflict_error(self, mock_context: Any) -> None:
         """Test content template creation with conflict error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_create_content_template with realistic template name
         result = await km_create_content_template(
@@ -1068,8 +1068,8 @@ class TestKMAnalyzeContentQuality:
     @pytest.mark.asyncio
     async def test_content_quality_analysis_success(
         self,
-        mock_context,
-        sample_analysis_data,
+        mock_context: Any,
+        sample_analysis_data: Any,
     ) -> None:
         """Test successful content quality analysis - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_analyze_content_quality implementation
@@ -1096,7 +1096,7 @@ class TestKMAnalyzeContentQuality:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_content_quality_analysis_validation_error(self, mock_context) -> None:
+    async def test_content_quality_analysis_validation_error(self, mock_context: Any) -> None:
         """Test content quality analysis with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_analyze_content_quality validation
         result = await km_analyze_content_quality(
@@ -1115,7 +1115,7 @@ class TestKMAnalyzeContentQuality:
         )
 
     @pytest.mark.asyncio
-    async def test_content_quality_analysis_low_quality(self, mock_context) -> None:
+    async def test_content_quality_analysis_low_quality(self, mock_context: Any) -> None:
         """Test content quality analysis with low quality content - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_analyze_content_quality with realistic content ID
         result = await km_analyze_content_quality(
@@ -1161,7 +1161,7 @@ class TestKMExportKnowledge:
         }
 
     @pytest.mark.asyncio
-    async def test_knowledge_export_success(self, mock_context, sample_export_data) -> None:
+    async def test_knowledge_export_success(self, mock_context: Any, sample_export_data: Any) -> None:
         """Test successful knowledge export - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_export_knowledge implementation
         result = await km_export_knowledge(
@@ -1186,7 +1186,7 @@ class TestKMExportKnowledge:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_knowledge_export_validation_error(self, mock_context) -> None:
+    async def test_knowledge_export_validation_error(self, mock_context: Any) -> None:
         """Test knowledge export with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_export_knowledge validation
         result = await km_export_knowledge(
@@ -1202,7 +1202,7 @@ class TestKMExportKnowledge:
         assert "scope" in result["error"] or "invalid" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_knowledge_export_size_limit_error(self, mock_context) -> None:
+    async def test_knowledge_export_size_limit_error(self, mock_context: Any) -> None:
         """Test knowledge export with size limit error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_export_knowledge with realistic parameters
         result = await km_export_knowledge(
@@ -1257,8 +1257,8 @@ class TestKMScheduleContentReview:
     @pytest.mark.asyncio
     async def test_content_review_scheduling_success(
         self,
-        mock_context,
-        sample_review_data,
+        mock_context: Any,
+        sample_review_data: Any,
     ) -> None:
         """Test successful content review scheduling - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_schedule_content_review implementation
@@ -1288,7 +1288,7 @@ class TestKMScheduleContentReview:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_content_review_scheduling_validation_error(self, mock_context) -> None:
+    async def test_content_review_scheduling_validation_error(self, mock_context: Any) -> None:
         """Test content review scheduling with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_schedule_content_review validation
         result = await km_schedule_content_review(
@@ -1309,7 +1309,7 @@ class TestKMScheduleContentReview:
         )
 
     @pytest.mark.asyncio
-    async def test_content_review_scheduling_error(self, mock_context) -> None:
+    async def test_content_review_scheduling_error(self, mock_context: Any) -> None:
         """Test content review scheduling with scheduling error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_schedule_content_review with realistic parameters
         result = await km_schedule_content_review(
@@ -1342,7 +1342,7 @@ class TestKnowledgeManagementIntegration:
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_knowledge_workflow(self, mock_context) -> None:
+    async def test_complete_knowledge_workflow(self, mock_context: Any) -> None:
         """Test complete knowledge management workflow integration."""
         # Step 1: Generate documentation
         doc_result = await km_generate_documentation(

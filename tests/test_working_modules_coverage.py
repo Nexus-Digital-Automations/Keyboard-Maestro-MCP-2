@@ -6,7 +6,6 @@ expanding their test coverage systematically toward near 100%.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 from unittest.mock import Mock, patch
 
@@ -278,7 +277,7 @@ class TestApplicationControllerDeepCoverage:
     """Deep coverage expansion for AppController."""
 
     @patch("subprocess.run")
-    def test_app_controller_extensive_scenarios(self, mock_run) -> None:
+    def test_app_controller_extensive_scenarios(self, mock_run: Any) -> None:
         """Extensive test scenarios for AppController."""
         from src.applications.app_controller import AppController
 
@@ -519,7 +518,7 @@ class TestMenuNavigatorDeepCoverage:
     """Deep coverage expansion for MenuNavigator."""
 
     @patch("subprocess.run")
-    def test_menu_navigator_extensive_scenarios(self, mock_run) -> None:
+    def test_menu_navigator_extensive_scenarios(self, mock_run: Any) -> None:
         """Extensive test scenarios for MenuNavigator."""
         from src.applications.menu_navigator import MenuNavigator
 

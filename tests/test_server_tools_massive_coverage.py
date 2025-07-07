@@ -6,7 +6,6 @@ to achieve substantial overall coverage gains through systematic functional test
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import patch
 
 import pytest

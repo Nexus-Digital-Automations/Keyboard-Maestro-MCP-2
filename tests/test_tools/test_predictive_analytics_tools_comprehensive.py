@@ -7,8 +7,8 @@ enterprise-grade validation using the proven pattern that achieved 100% success 
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -28,27 +28,27 @@ km_get_analytics_status = predictive_tools.km_get_analytics_status.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def prediction_scope_strategy(draw) -> Any:
+def prediction_scope_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid prediction scopes."""
     scopes = ["user", "macro", "system", "workflow"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def time_horizon_strategy(draw) -> Any:
+def time_horizon_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid time horizons in days."""
     return draw(st.integers(min_value=1, max_value=365))
 
 
 @st.composite
-def pattern_types_strategy(draw) -> Any:
+def pattern_types_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid pattern types."""
     types = ["usage", "performance", "errors", "workflow", "resource", "seasonal"]
     return draw(st.lists(st.sampled_from(types), min_size=1, max_size=4, unique=True))
 
 
 @st.composite
-def resource_types_strategy(draw) -> Any:
+def resource_types_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid resource types."""
     types = [
         "cpu",
@@ -62,28 +62,28 @@ def resource_types_strategy(draw) -> Any:
 
 
 @st.composite
-def granularity_strategy(draw) -> Any:
+def granularity_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid forecast granularities."""
     granularities = ["hourly", "daily", "weekly"]
     return draw(st.sampled_from(granularities))
 
 
 @st.composite
-def analysis_scope_strategy(draw) -> Any:
+def analysis_scope_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid analysis scopes."""
     scopes = ["automation", "performance", "usage", "efficiency"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def data_timeframe_strategy(draw) -> dict[str, Any]:
+def data_timeframe_strategy(draw: Callable[..., Any]) -> dict[str, Any]:
     """Generate valid data timeframes."""
     timeframes = ["week", "month", "quarter", "year"]
     return draw(st.sampled_from(timeframes))
 
 
 @st.composite
-def insight_types_strategy(draw) -> Any:
+def insight_types_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid insight types."""
     types = [
         "optimization",
@@ -98,21 +98,21 @@ def insight_types_strategy(draw) -> Any:
 
 
 @st.composite
-def trend_scope_strategy(draw) -> Any:
+def trend_scope_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid trend analysis scopes."""
     scopes = ["usage", "performance", "errors", "efficiency"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def analysis_period_strategy(draw) -> Any:
+def analysis_period_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid analysis periods."""
     periods = ["month", "quarter", "year", "custom"]
     return draw(st.sampled_from(periods))
 
 
 @st.composite
-def sensitivity_strategy(draw) -> Any:
+def sensitivity_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid trend detection sensitivities."""
     sensitivities = ["low", "medium", "high"]
     return draw(st.sampled_from(sensitivities))
@@ -135,12 +135,12 @@ class TestPredictiveAnalyticsParameterValidation:
     """Test parameter validation for predictive analytics operations."""
 
     @given(prediction_scope_strategy())
-    def test_valid_prediction_scopes(self, scope) -> None:
+    def test_valid_prediction_scopes(self, scope: Any) -> None:
         """Test that valid prediction scopes are accepted."""
         assert scope in ["user", "macro", "system", "workflow"]
 
     @given(pattern_types_strategy())
-    def test_valid_pattern_types(self, pattern_types) -> None:
+    def test_valid_pattern_types(self, pattern_types: list[Any] | str) -> None:
         """Test that valid pattern types are accepted."""
         valid_types = [
             "usage",
@@ -154,7 +154,7 @@ class TestPredictiveAnalyticsParameterValidation:
             assert pattern_type in valid_types
 
     @given(resource_types_strategy())
-    def test_valid_resource_types(self, resource_types) -> None:
+    def test_valid_resource_types(self, resource_types: list[Any] | str) -> None:
         """Test that valid resource types are accepted."""
         valid_types = [
             "cpu",
@@ -168,17 +168,17 @@ class TestPredictiveAnalyticsParameterValidation:
             assert resource_type in valid_types
 
     @given(granularity_strategy())
-    def test_valid_granularities(self, granularity) -> None:
+    def test_valid_granularities(self, granularity: Any) -> None:
         """Test that valid granularities are accepted."""
         assert granularity in ["hourly", "daily", "weekly"]
 
     @given(analysis_scope_strategy())
-    def test_valid_analysis_scopes(self, scope) -> None:
+    def test_valid_analysis_scopes(self, scope: Any) -> None:
         """Test that valid analysis scopes are accepted."""
         assert scope in ["automation", "performance", "usage", "efficiency"]
 
     @given(insight_types_strategy())
-    def test_valid_insight_types(self, insight_types) -> None:
+    def test_valid_insight_types(self, insight_types: list[Any] | str) -> None:
         """Test that valid insight types are accepted."""
         valid_types = [
             "optimization",
@@ -973,7 +973,7 @@ class TestPredictiveAnalyticsProperties:
 
     @given(prediction_scope_strategy(), time_horizon_strategy())
     @pytest.mark.asyncio
-    async def test_pattern_prediction_properties(self, scope, horizon) -> None:
+    async def test_pattern_prediction_properties(self, scope: Any, horizon: Any) -> None:
         """Test properties of pattern prediction operations."""
         assume(1 <= horizon <= 365)
 
@@ -1039,7 +1039,7 @@ class TestPredictiveAnalyticsProperties:
 
     @given(resource_types_strategy(), granularity_strategy())
     @pytest.mark.asyncio
-    async def test_forecasting_properties(self, resource_types, granularity) -> None:
+    async def test_forecasting_properties(self, resource_types: list[Any] | str, granularity: Any) -> None:
         """Test properties of resource forecasting operations."""
         with (
             patch(
@@ -1107,7 +1107,7 @@ class TestPredictiveAnalyticsProperties:
     @given(analysis_scope_strategy(), insight_types_strategy())
     @pytest.mark.asyncio
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    async def test_insights_generation_properties(self, scope, insight_types) -> None:
+    async def test_insights_generation_properties(self, scope: Any, insight_types: list[Any] | str) -> None:
         """Test properties of insights generation operations."""
         # Use the successful test pattern with comprehensive AsyncMock setup
         with (

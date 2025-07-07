@@ -6,7 +6,8 @@ transformations, error handling, and property-based testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
+
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
@@ -277,7 +278,7 @@ class TestPropertyBasedEither:
     """Property-based tests for Either laws and invariants."""
 
     @given(st.integers())
-    def test_right_identity_law(self, value) -> None:
+    def test_right_identity_law(self, value: Any) -> None:
         """Test that Right values preserve identity under map with identity function."""
         right = Right(value)
         mapped = right.map(lambda x: x)
@@ -285,7 +286,7 @@ class TestPropertyBasedEither:
         assert mapped == right
 
     @given(st.text())
-    def test_left_identity_law(self, error) -> None:
+    def test_left_identity_law(self, error: str | Exception) -> None:
         """Test that Left values preserve identity under map."""
         left = Left(error)
         mapped = left.map(lambda x: x * 2)
@@ -293,14 +294,14 @@ class TestPropertyBasedEither:
         assert mapped == left
 
     @given(st.integers())
-    def test_composition_law(self, value) -> None:
+    def test_composition_law(self, value: Any) -> None:
         """Test that map composition is associative."""
         right = Right(value)
 
-        def f(x) -> Any:
+        def f(x: int) -> Any:
             return x + 1
 
-        def g(x) -> Any:
+        def g(x: Any) -> Any:
             return x * 2
 
         # map(g ∘ f) == map(g).map(f)
@@ -310,7 +311,7 @@ class TestPropertyBasedEither:
         assert composed1 == composed2
 
     @given(st.integers())
-    def test_flat_map_identity_law(self, value) -> None:
+    def test_flat_map_identity_law(self, value: Any) -> None:
         """Test flat_map identity law: Right(a).flat_map(Right) == Right(a)."""
         right = Right(value)
         flat_mapped = right.flat_map(lambda x: Right(x))
@@ -318,7 +319,7 @@ class TestPropertyBasedEither:
         assert flat_mapped == right
 
     @given(st.text())
-    def test_left_flat_map_invariant(self, error) -> None:
+    def test_left_flat_map_invariant(self, error: str | Exception) -> None:
         """Test that flat_map on Left values returns the same Left."""
         left = Left(error)
         flat_mapped = left.flat_map(lambda x: Right(x * 2))
@@ -326,14 +327,14 @@ class TestPropertyBasedEither:
         assert flat_mapped == left
 
     @given(st.integers(), st.integers())
-    def test_associativity_law(self, value, multiplier) -> None:
+    def test_associativity_law(self, value: Any, multiplier: int | float) -> None:
         """Test flat_map associativity law."""
         right = Right(value)
 
-        def f(x) -> Any:
+        def f(x: int) -> Any:
             return Right(x + 1)
 
-        def g(x) -> Any:
+        def g(x: Any) -> Any:
             return Right(x * multiplier)
 
         # right.flat_map(f).flat_map(g) == right.flat_map(lambda x: f(x).flat_map(g))

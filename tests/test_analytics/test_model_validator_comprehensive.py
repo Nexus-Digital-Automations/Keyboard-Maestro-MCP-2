@@ -7,8 +7,8 @@ ValidationMetrics, and complete ModelValidator functionality.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 
 import pytest
 from hypothesis import given
@@ -33,25 +33,25 @@ from src.core.predictive_modeling import (
 
 # Test data generators
 @st.composite
-def validation_method_strategy(draw) -> Any:
+def validation_method_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid validation methods."""
     return draw(st.sampled_from(list(ValidationMethod)))
 
 
 @st.composite
-def validation_metric_strategy(draw) -> Any:
+def validation_metric_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid validation metrics."""
     return draw(st.sampled_from(list(ValidationMetric)))
 
 
 @st.composite
-def model_type_strategy(draw) -> Any:
+def model_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid model types."""
     return draw(st.sampled_from(list(ModelType)))
 
 
 @st.composite
-def validation_dataset_strategy(draw) -> Any:
+def validation_dataset_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid validation datasets."""
     feature_count = draw(st.integers(min_value=2, max_value=5))
     sample_count = draw(st.integers(min_value=10, max_value=50))
@@ -100,7 +100,7 @@ def validation_dataset_strategy(draw) -> Any:
 
 
 @st.composite
-def validation_configuration_strategy(draw) -> Any:
+def validation_configuration_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid validation configurations."""
     model_id = create_model_id()
     return ValidationConfiguration(
@@ -261,7 +261,7 @@ class TestValidationDataset:
             )
 
     @given(validation_dataset_strategy())
-    def test_validation_dataset_property_based_creation(self, dataset) -> None:
+    def test_validation_dataset_property_based_creation(self, dataset: list[Any] | str) -> None:
         """Property-based test for ValidationDataset creation."""
         assert dataset.dataset_id is not None
         assert len(dataset.features) > 0
@@ -342,7 +342,7 @@ class TestValidationConfiguration:
             )
 
     @given(validation_configuration_strategy())
-    def test_validation_configuration_property_based_creation(self, config) -> None:
+    def test_validation_configuration_property_based_creation(self, config: dict[str, Any]) -> None:
         """Property-based test for ValidationConfiguration creation."""
         assert config.config_id is not None
         assert config.model_id is not None

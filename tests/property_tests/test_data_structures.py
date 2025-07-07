@@ -6,7 +6,6 @@ ensuring data validation, security boundaries, and operation correctness.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import json
 import re
@@ -42,7 +41,7 @@ class TestDictionaryPathProperties:
             max_size=10,
         ),
     )
-    def test_path_segments_properties(self, segments) -> None:
+    def test_path_segments_properties(self, segments: list[Any] | str) -> None:
         """Property: Path segments should be preserved correctly."""
         path_str = ".".join(segments)
 
@@ -81,7 +80,7 @@ class TestDictionaryPathProperties:
             alphabet="abcdefghijklmnopqrstuvwxyz0123456789_.",
         ),
     )
-    def test_path_validation_properties(self, path_str) -> None:
+    def test_path_validation_properties(self, path_str: str) -> None:
         """Property: Path validation should be consistent."""
         try:
             path = DictionaryPath(path_str)
@@ -140,7 +139,7 @@ class TestDataSchemaProperties:
             max_size=5,
         ),
     )
-    def test_object_schema_properties(self, properties) -> None:
+    def test_object_schema_properties(self, properties: list[str]) -> None:
         """Property: Object schemas should handle all valid property definitions."""
         try:
             schema = DataSchema.create_object_schema(properties)
@@ -176,7 +175,7 @@ class TestDataSchemaProperties:
             max_size=10,
         ),
     )
-    def test_schema_validation_properties(self, test_data) -> None:
+    def test_schema_validation_properties(self, test_data: Any) -> None:
         """Property: Schema validation should handle all JSON-serializable data."""
         # Create a permissive schema
         schema_dict = {"type": "object", "additionalProperties": True}
@@ -208,7 +207,7 @@ class TestSecurityValidationProperties:
             alphabet="abcdefghijklmnopqrstuvwxyz0123456789_-.",
         ),
     )
-    def test_dictionary_name_validation_properties(self, name) -> None:
+    def test_dictionary_name_validation_properties(self, name: str) -> None:
         """Property: Dictionary name validation should be consistent."""
         result = DataSecurityManager.validate_dictionary_name(name)
 
@@ -244,7 +243,7 @@ class TestSecurityValidationProperties:
             max_leaves=20,
         ),
     )
-    def test_content_validation_properties(self, test_data) -> None:
+    def test_content_validation_properties(self, test_data: Any) -> None:
         """Property: Content validation should handle all JSON structures."""
         result = DataSecurityManager.validate_value_content(test_data)
 
@@ -281,7 +280,7 @@ class TestSecurityValidationProperties:
     @given(
         st.integers(min_value=0, max_value=20),
     )  # Limit to DEFAULT_SECURITY_LIMITS.max_nesting_depth
-    def test_depth_calculation_properties(self, depth_target) -> None:
+    def test_depth_calculation_properties(self, depth_target: Any) -> None:
         """Property: Depth calculation should be accurate for nested structures."""
         # Create nested structure of specified depth
         if depth_target == 0:
@@ -295,7 +294,7 @@ class TestSecurityValidationProperties:
         assert calculated_depth == depth_target
 
     @given(st.lists(st.integers(min_value=1, max_value=1000), min_size=1, max_size=10))
-    def test_size_validation_properties(self, sizes) -> None:
+    def test_size_validation_properties(self, sizes: list[Any] | str) -> None:
         """Property: Size validation should respect limits."""
         limits = SecurityLimits(
             max_dictionary_size=max(sizes) + 100,
@@ -341,7 +340,7 @@ class TestJSONProcessorProperties:
             max_size=10,
         ),
     )
-    def test_json_round_trip_properties(self, test_data) -> None:
+    def test_json_round_trip_properties(self, test_data: Any) -> None:
         """Property: JSON serialization/deserialization should be round-trip safe."""
         processor = JSONProcessor()
 
@@ -366,7 +365,7 @@ class TestJSONProcessorProperties:
             pytest.skip(f"Data not serializable or exceeds limits: {e}")
 
     @given(st.text(max_size=1000))
-    def test_json_security_validation_properties(self, json_content) -> None:
+    def test_json_security_validation_properties(self, json_content: Any) -> None:
         """Property: JSON security validation should catch dangerous patterns."""
         processor = JSONProcessor()
 
@@ -402,7 +401,7 @@ class TestDictionaryEngineProperties:
             alphabet="abcdefghijklmnopqrstuvwxyz0123456789_",
         ),
     )
-    def test_dictionary_lifecycle_properties(self, dict_name) -> None:
+    def test_dictionary_lifecycle_properties(self, dict_name: str) -> None:
         """Property: Dictionary creation and basic operations should work."""
         engine = DictionaryEngine()
 
@@ -436,7 +435,7 @@ class TestDictionaryEngineProperties:
             max_size=5,
         ),
     )
-    def test_dictionary_data_operations_properties(self, dict_name, test_data) -> None:
+    def test_dictionary_data_operations_properties(self, dict_name: str, test_data: Any) -> None:
         """Property: Dictionary data operations should preserve data integrity."""
         engine = DictionaryEngine()
 
@@ -467,7 +466,7 @@ settings.load_profile("fast")
 
 # Additional focused property tests
 @given(st.sampled_from([op.value for op in DataOperation]))
-def test_data_operation_enum_consistency(operation_value) -> None:
+def test_data_operation_enum_consistency(operation_value: Any) -> None:
     """Property: All data operation values should be valid enum values."""
     try:
         operation = DataOperation(operation_value)
@@ -477,7 +476,7 @@ def test_data_operation_enum_consistency(operation_value) -> None:
 
 
 @given(st.sampled_from([strategy.value for strategy in MergeStrategy]))
-def test_merge_strategy_enum_consistency(strategy_value) -> None:
+def test_merge_strategy_enum_consistency(strategy_value: Any) -> None:
     """Property: All merge strategy values should be valid enum values."""
     try:
         strategy = MergeStrategy(strategy_value)
@@ -487,7 +486,7 @@ def test_merge_strategy_enum_consistency(strategy_value) -> None:
 
 
 @given(st.text(min_size=1, max_size=50))
-def test_schema_id_creation_properties(schema_name) -> None:
+def test_schema_id_creation_properties(schema_name: str) -> None:
     """Property: Schema IDs should be unique and reproducible."""
     schema_id1 = SchemaId(f"schema_{schema_name}")
     schema_id2 = SchemaId(f"schema_{schema_name}")

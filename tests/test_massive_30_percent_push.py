@@ -6,7 +6,6 @@ to achieve the maximum possible coverage boost toward 30%+ through advanced test
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import Mock, patch
 
 import pytest

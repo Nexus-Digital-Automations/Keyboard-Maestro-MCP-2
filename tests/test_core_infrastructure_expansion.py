@@ -7,12 +7,12 @@ explicit "near 100%" coverage target through comprehensive testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import json
 import logging
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import pytest
 from hypothesis import given
@@ -174,7 +174,7 @@ class TestCoreEitherExpansion:
             assert mapped_left.get_left() == "error"
 
             # Test flat mapping
-            def make_right(x) -> Any:
+            def make_right(x: Any) -> Any:
                 return Right(x * 2)
 
             flat_mapped = right_value.flat_map(make_right)
@@ -190,7 +190,7 @@ class TestCoreEitherExpansion:
             from src.core.either import Left, Right
 
             # Test error propagation
-            def divide(a, b) -> Any:
+            def divide(a: Any, b: Any) -> Any:
                 if b == 0:
                     return Left("Division by zero")
                 return Right(a / b)
@@ -282,7 +282,7 @@ class TestCoreContractsExpansion:
 
             # Test precondition contracts
             @require(lambda x: x > 0, "Input must be positive")
-            def positive_function(x) -> Any:
+            def positive_function(x: Any) -> Any:
                 return x * 2
 
             # Test valid input
@@ -295,7 +295,7 @@ class TestCoreContractsExpansion:
 
             # Test postcondition contracts
             @ensure(lambda result: result > 0, "Result must be positive")
-            def always_positive(x) -> Any:
+            def always_positive(x: Any) -> Any:
                 return abs(x)
 
             # Test postcondition success
@@ -313,7 +313,7 @@ class TestCoreContractsExpansion:
 
             @require(lambda x, y: x >= 0 and y >= 0, "Inputs must be non-negative")
             @ensure(lambda result: result >= 0, "Result must be non-negative")
-            def safe_multiply(x, y) -> Any:
+            def safe_multiply(x: Any, y: Any) -> Any:
                 return x * y
 
             # Test valid operation
@@ -549,7 +549,7 @@ class TestIntegrationEventsExpansion:
             # Test event handler registration
             handler_called = []
 
-            def test_handler(event_data) -> None:
+            def test_handler(event_data: Any) -> None:
                 handler_called.append(event_data)
 
             manager.register_handler("test_event", test_handler)
@@ -570,7 +570,7 @@ class TestIntegrationEventsExpansion:
             # Test multiple handlers
             handler2_called = []
 
-            def test_handler2(event_data) -> None:
+            def test_handler2(event_data: Any) -> None:
                 handler2_called.append(event_data)
 
             manager.register_handler("test_event", test_handler2)
@@ -679,7 +679,7 @@ class TestAsyncInfrastructure:
                 self.entered = True
                 return self
 
-            async def __aexit__(self, exc_type, exc_val, exc_tb):
+            async def __aexit__(self, exc_type: str, exc_val: Exception | str, exc_tb: Exception | str):
                 await asyncio.sleep(0.01)
                 self.exited = True
 
@@ -695,7 +695,7 @@ class TestAsyncInfrastructure:
         """Test async iterator patterns."""
 
         class AsyncIterator:
-            def __init__(self, items):
+            def __init__(self, items: list[Any]):
                 self.items = items
                 self.index = 0
 
@@ -723,11 +723,11 @@ class TestAsyncInfrastructure:
     async def test_async_error_propagation(self) -> None:
         """Test async error propagation patterns."""
 
-        async def failing_coroutine():
+        async def failing_coroutine() -> Any:
             await asyncio.sleep(0.01)
             raise ValueError("Test error")
 
-        async def catching_coroutine():
+        async def catching_coroutine() -> Any:
             try:
                 await failing_coroutine()
                 return "success"

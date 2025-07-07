@@ -6,7 +6,6 @@ and proper contract enforcement.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import patch
 
 import pytest
@@ -279,7 +278,7 @@ class TestLoopCommand:
         assert cmd.validate() is False
 
     @patch("time.sleep")  # Mock sleep to speed up tests
-    def test_loop_execution_for_count(self, mock_sleep) -> None:
+    def test_loop_execution_for_count(self, mock_sleep: Any) -> None:
         """Test loop execution with for_count type."""
         params = CommandParameters(
             {
@@ -304,7 +303,7 @@ class TestLoopCommand:
         assert result.metadata["total_errors"] == 0
 
     @patch("time.sleep")
-    def test_loop_execution_for_each(self, mock_sleep) -> None:
+    def test_loop_execution_for_each(self, mock_sleep: Any) -> None:
         """Test loop execution with for_each type."""
         params = CommandParameters(
             {
@@ -327,7 +326,7 @@ class TestLoopCommand:
         assert result.metadata["iterations_completed"] == 2
 
     @patch("time.sleep")
-    def test_loop_execution_while_condition(self, mock_sleep) -> None:
+    def test_loop_execution_while_condition(self, mock_sleep: Any) -> None:
         """Test loop execution with while_condition type."""
         params = CommandParameters(
             {

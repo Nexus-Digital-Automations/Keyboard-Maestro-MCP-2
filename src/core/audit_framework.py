@@ -614,7 +614,7 @@ def create_audit_event(
     user_id: str,
     action: str,
     result: str,
-    **kwargs,
+    **kwargs: Any,
 ) -> AuditEvent:
     """Factory function to create audit events with proper validation.
 

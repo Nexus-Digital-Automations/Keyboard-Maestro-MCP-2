@@ -344,7 +344,7 @@ class AutomationIntelligenceManager:
             "is_recent": pattern.is_recent(),
         }
 
-    def _serialize_suggestion(self, suggestion) -> dict[str, Any]:
+    def _serialize_suggestion(self, suggestion: Any) -> dict[str, Any]:
         """Serialize automation suggestion for response."""
         return {
             "suggestion_id": suggestion.suggestion_id,

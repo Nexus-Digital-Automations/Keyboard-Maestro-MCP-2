@@ -7,7 +7,6 @@ Implements property-based testing for robust validation.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import json
 from datetime import UTC, datetime
 

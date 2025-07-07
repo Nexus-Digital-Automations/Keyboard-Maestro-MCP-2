@@ -6,7 +6,6 @@ communication hub, and safety validation with property-based testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 from datetime import UTC, datetime, timedelta
 
@@ -653,7 +652,7 @@ class TestSafetyValidator:
 
 # Property-based tests
 @given(st.sampled_from(list(AgentType)))
-def test_agent_type_properties(agent_type) -> None:
+def test_agent_type_properties(agent_type: str) -> None:
     """Property: All agent types should have valid configurations."""
     config = get_default_config(agent_type)
 
@@ -665,7 +664,7 @@ def test_agent_type_properties(agent_type) -> None:
 
 
 @given(st.floats(min_value=0.0, max_value=1.0), st.floats(min_value=0.0, max_value=1.0))
-def test_confidence_impact_properties(confidence, impact) -> None:
+def test_confidence_impact_properties(confidence: Any, impact: Any) -> None:
     """Property: Action risk calculation should be bounded."""
     action = AgentAction(
         action_id=create_action_id(),
@@ -681,7 +680,7 @@ def test_confidence_impact_properties(confidence, impact) -> None:
 
 
 @given(st.sampled_from(list(GoalPriority)))
-def test_goal_priority_ordering(priority) -> None:
+def test_goal_priority_ordering(priority: int) -> None:
     """Property: Goal priorities should maintain proper ordering."""
     goal = AgentGoal(
         goal_id=create_goal_id(),
@@ -709,7 +708,7 @@ def test_goal_priority_ordering(priority) -> None:
         max_size=4,
     ),
 )
-def test_resource_allocation_properties(requirements) -> None:
+def test_resource_allocation_properties(requirements: list[Any] | str) -> None:
     """Property: Resource allocation should never exceed limits."""
     # Convert string keys to ResourceType
     typed_requirements = {ResourceType(k): v for k, v in requirements.items()}

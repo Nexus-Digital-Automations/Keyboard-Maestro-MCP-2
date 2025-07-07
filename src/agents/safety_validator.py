@@ -173,7 +173,7 @@ class SafetyValidator:
 
     async def validate_action_safety(
         self,
-        agent,
+        agent: Any,
         action: AgentAction,
     ) -> Either[AutonomousAgentError, None]:
         """Validate action safety constraints."""

@@ -16,7 +16,7 @@ from src.server.tools.enterprise_sync_tools import km_enterprise_sync
 
 # Test data generators
 @st.composite
-def enterprise_operation_strategy(draw) -> Any:
+def enterprise_operation_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid enterprise sync operations."""
     operations = [
         "connect",
@@ -32,7 +32,7 @@ def enterprise_operation_strategy(draw) -> Any:
 
 
 @st.composite
-def integration_type_strategy(draw) -> Any:
+def integration_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid integration types."""
     integration_types = [
         "ldap",
@@ -47,7 +47,7 @@ def integration_type_strategy(draw) -> Any:
 
 
 @st.composite
-def connection_config_strategy(draw) -> None:
+def connection_config_strategy(draw: Callable[..., Any]) -> None:
     """Generate valid connection configurations."""
     hosts = [
         "ldap.enterprise.com",
@@ -78,7 +78,7 @@ def connection_config_strategy(draw) -> None:
 
 
 @st.composite
-def authentication_strategy(draw) -> Any:
+def authentication_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid authentication configurations."""
     auth_methods = ["simple_bind", "sasl", "certificate", "token", "api_key"]
 
@@ -98,7 +98,7 @@ def authentication_strategy(draw) -> Any:
 
 
 @st.composite
-def sync_options_strategy(draw) -> None:
+def sync_options_strategy(draw: Callable[..., Any]) -> None:
     """Generate valid sync options."""
     return {
         "connection_id": draw(
@@ -128,7 +128,7 @@ def sync_options_strategy(draw) -> None:
 
 
 @st.composite
-def query_filter_strategy(draw) -> Any:
+def query_filter_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid query filters."""
     ldap_filters = [
         "(objectClass=user)",
@@ -152,19 +152,19 @@ def query_filter_strategy(draw) -> Any:
 
 
 @st.composite
-def timeout_strategy(draw) -> Any:
+def timeout_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid timeout values."""
     return draw(st.integers(min_value=5, max_value=300))
 
 
 @st.composite
-def batch_size_strategy(draw) -> Any:
+def batch_size_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid batch sizes."""
     return draw(st.integers(min_value=10, max_value=1000))
 
 
 @st.composite
-def invalid_integration_type_strategy(draw) -> Any:
+def invalid_integration_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate invalid integration types."""
     invalid_types = [
         "invalid",
@@ -180,7 +180,7 @@ def invalid_integration_type_strategy(draw) -> Any:
 
 
 @st.composite
-def sso_config_strategy(draw) -> Any:
+def sso_config_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid SSO configurations."""
     # Use simpler strategies to avoid filter issues
     provider_names = ["SampleProvider", "TestSSO", "EnterpriseAuth", "CompanySSO"]

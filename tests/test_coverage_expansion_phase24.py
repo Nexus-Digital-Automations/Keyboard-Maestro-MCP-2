@@ -8,7 +8,6 @@ event-driven systems, and advanced orchestration patterns for continued systemat
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -569,11 +568,11 @@ def test_advanced_enterprise_async_functionality() -> bool:
     """Test advanced async functionality for Phase 24 enterprise architecture modules."""
 
     @pytest.mark.asyncio
-    async def async_enterprise_test_helper():
+    async def async_enterprise_test_helper() -> None:
         import asyncio
 
         # Test advanced async operations for Phase 24 enterprise architecture modules
-        async def mock_enterprise_architecture_processing():
+        async def mock_enterprise_architecture_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "architecture_id": "enterprise_arch_001",
@@ -592,7 +591,7 @@ def test_advanced_enterprise_async_functionality() -> bool:
                 },
             }
 
-        async def mock_system_orchestration_operation():
+        async def mock_system_orchestration_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "orchestration_id": "system_orch_001",
@@ -611,7 +610,7 @@ def test_advanced_enterprise_async_functionality() -> bool:
                 },
             }
 
-        async def mock_distributed_system_processing():
+        async def mock_distributed_system_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "distributed_id": "distributed_sys_001",
@@ -648,7 +647,7 @@ def test_advanced_enterprise_async_functionality() -> bool:
         )
 
         # Test enterprise architecture async error handling
-        async def failing_enterprise_operation():
+        async def failing_enterprise_operation() -> Any:
             await asyncio.sleep(0.001)
             raise RuntimeError("Enterprise architecture failure")
 

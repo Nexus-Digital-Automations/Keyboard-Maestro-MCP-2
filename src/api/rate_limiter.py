@@ -195,7 +195,7 @@ class AdvancedRateLimiter:
         # Start background tasks
         asyncio.create_task(self._start_background_tasks())
 
-    async def _start_background_tasks(self):
+    async def _start_background_tasks(self) -> None:
         """Start background maintenance tasks."""
         await asyncio.gather(
             self._process_request_queue(),
@@ -650,7 +650,7 @@ class AdvancedRateLimiter:
             return timedelta(days=1)
         return timedelta(minutes=1)  # Default
 
-    async def _process_request_queue(self):
+    async def _process_request_queue(self) -> None:
         """Process delayed/queued requests."""
         self.queue_processor_active = True
 
@@ -667,7 +667,7 @@ class AdvancedRateLimiter:
             except Exception:
                 await asyncio.sleep(1)  # Error recovery
 
-    async def _adaptive_adjustment_loop(self):
+    async def _adaptive_adjustment_loop(self) -> Any:
         """Periodically adjust adaptive rate limits."""
         while True:
             try:
@@ -678,7 +678,7 @@ class AdvancedRateLimiter:
             except Exception:
                 await asyncio.sleep(30)  # Error recovery
 
-    async def _adjust_adaptive_limits(self):
+    async def _adjust_adaptive_limits(self) -> Any:
         """Adjust adaptive rate limits based on performance."""
         now = datetime.now(UTC)
 
@@ -724,7 +724,7 @@ class AdvancedRateLimiter:
 
         self.last_adaptive_adjustment = now
 
-    async def _cleanup_expired_states(self):
+    async def _cleanup_expired_states(self) -> None:
         """Clean up expired rate limit states."""
         while True:
             try:

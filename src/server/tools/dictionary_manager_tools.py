@@ -43,7 +43,7 @@ class DictionaryManagerTools:
         format_output: str = "json",
         validate_schema: bool = True,
         timeout_seconds: int = 30,
-        ctx=None,
+        ctx: Any=None,
     ) -> dict[str, Any]:
         """Comprehensive dictionary and JSON management tool.
 

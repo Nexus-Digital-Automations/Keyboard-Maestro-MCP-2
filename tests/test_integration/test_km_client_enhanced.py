@@ -26,7 +26,7 @@ from src.security.policy_enforcer import SecurityPolicy
 
 # Test data generators
 @st.composite
-def macro_info_data(draw) -> Any:
+def macro_info_data(draw: Callable[..., Any]) -> Any:
     """Generate test macro information."""
     return {
         "id": draw(st.text(min_size=1, max_size=50)),
@@ -38,7 +38,7 @@ def macro_info_data(draw) -> Any:
 
 
 @st.composite
-def security_test_data(draw) -> Any:
+def security_test_data(draw: Callable[..., Any]) -> Any:
     """Generate test data for security validation."""
     safe_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ._-"
     unsafe_patterns = ["';", "<script>", "$(", "../", "DROP TABLE", "rm -rf"]
@@ -1216,7 +1216,7 @@ class TestKMClientIntegration:
         assert client.config is not None
         assert hasattr(client, "_config")
 
-        async def mock_execute_async(macro_id):
+        async def mock_execute_async(macro_id: str) -> None:
             # Simulate async execution
             await asyncio.sleep(0.1)
             return {

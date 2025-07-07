@@ -15,7 +15,7 @@ from ..core.types import Duration
 logger = logging.getLogger(__name__)
 
 
-def register_sync_tools(mcp) -> None:
+def register_sync_tools(mcp: Any) -> None:
     """Register synchronization tools with the MCP server."""
 
     @mcp.tool()

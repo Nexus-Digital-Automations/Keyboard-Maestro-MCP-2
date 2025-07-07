@@ -16,6 +16,7 @@ from typing import Annotated, Any
 
 from fastmcp import FastMCP
 from fastmcp.prompts import Message
+from fastmcp.utilities import Context
 from pydantic import Field
 
 # Import modular components
@@ -97,7 +98,7 @@ async def km_execute_macro(
         int,
         Field(default=30, description="Maximum execution time in seconds"),
     ] = 30,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Execute a Keyboard Maestro macro with comprehensive error handling."""
     from .server.tools.core_tools import km_execute_macro as _km_execute_macro
@@ -117,7 +118,7 @@ async def km_list_macros(
     ] = True,
     sort_by: Annotated[str, Field(default="name", description="Sort field")] = "name",
     limit: Annotated[int, Field(default=20, description="Maximum results")] = 20,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """List and filter Keyboard Maestro macros."""
     from .server.tools.core_tools import km_list_macros as _km_list_macros
@@ -144,7 +145,7 @@ async def km_variable_manager(
         str,
         Field(default="", description="Instance ID for local variables"),
     ] = "",
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Manage Keyboard Maestro variables across all scopes."""
     from .server.tools.core_tools import km_variable_manager as _km_variable_manager
@@ -175,7 +176,7 @@ async def km_search_macros_advanced(
         str,
         Field(default="name", description="Sort criteria"),
     ] = "name",
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Advanced macro search with comprehensive filtering and metadata analysis."""
     from .server.tools.advanced_tools import (
@@ -200,7 +201,7 @@ async def km_analyze_macro_metadata(
         bool,
         Field(default=True, description="Include relationship analysis"),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Deep analysis of individual macro metadata and patterns."""
     from .server.tools.advanced_tools import (
@@ -220,7 +221,7 @@ async def km_start_realtime_sync(
         int,
         Field(default=30, description="Base polling interval"),
     ] = 30,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Start real-time macro library synchronization and monitoring."""
     from .server.tools.sync_tools import (
@@ -235,7 +236,7 @@ async def km_start_realtime_sync(
 
 
 @mcp.tool()
-async def km_stop_realtime_sync(ctx=None) -> dict[str, Any]:
+async def km_stop_realtime_sync(ctx: Context | Any=None) -> dict[str, Any]:
     """Stop real-time macro library synchronization and monitoring."""
     from .server.tools.sync_tools import km_stop_realtime_sync as _km_stop_realtime_sync
 
@@ -248,7 +249,7 @@ async def km_sync_status(
         bool,
         Field(default=True, description="Include performance metrics"),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Get current status of real-time synchronization with performance metrics."""
     from .server.tools.sync_tools import km_sync_status as _km_sync_status
@@ -262,7 +263,7 @@ async def km_force_sync(
         bool,
         Field(default=False, description="Force complete resynchronization"),
     ] = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Force immediate synchronization of macro library state."""
     from .server.tools.sync_tools import km_force_sync as _km_force_sync
@@ -284,7 +285,7 @@ async def km_list_macro_groups(
         str,
         Field(default="name", description="Sort criteria"),
     ] = "name",
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """List all macro groups from Keyboard Maestro with comprehensive statistics."""
     from .server.tools.group_tools import km_list_macro_groups as _km_list_macro_groups
@@ -327,7 +328,7 @@ async def km_create_macro(
         dict[str, Any],
         Field(default_factory=dict, description="Template-specific parameters"),
     ] = None,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Create a new Keyboard Maestro macro with comprehensive validation and security."""
     from .server.tools.creation_tools import km_create_macro as _km_create_macro
@@ -338,7 +339,7 @@ async def km_create_macro(
 
 
 @mcp.tool()
-async def km_list_templates(ctx=None) -> dict[str, Any]:
+async def km_list_templates(ctx: Context | Any=None) -> dict[str, Any]:
     """List available macro templates with descriptions and parameter requirements."""
     from .server.tools.creation_tools import km_list_templates as _km_list_templates
 
@@ -387,7 +388,7 @@ async def km_app_control(
         bool,
         Field(default=False, description="Hide application after launch"),
     ] = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Comprehensive application control with security validation and error handling."""
     from .server.tools.app_control_tools import km_app_control as _km_app_control
@@ -428,7 +429,7 @@ async def km_clipboard_manager(
     description: Annotated[str | None, Field(default=None, max_length=500)] = None,
     search_query: Annotated[str | None, Field(default=None, max_length=200)] = None,
     overwrite: Annotated[bool, Field(default=False)] = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Comprehensive clipboard management with security validation and named clipboard support."""
     from .server.tools.clipboard_tools import (
@@ -493,7 +494,7 @@ async def km_file_operations(
             description="Use secure deletion (multiple overwrite passes)",
         ),
     ] = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Secure file system operations with comprehensive validation and safety features."""
     from .server.tools.file_operation_tools import (
@@ -575,7 +576,7 @@ async def km_create_hotkey_trigger(
             description="Provide alternative suggestions if conflicts are found",
         ),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Create hotkey trigger for macro with comprehensive validation and conflict detection."""
     from .server.tools.hotkey_tools import (
@@ -614,7 +615,7 @@ async def km_list_hotkey_triggers(
             description="Include conflict information for each hotkey",
         ),
     ] = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """List all registered hotkey triggers with optional filtering and conflict information."""
     from .server.tools.hotkey_tools import (
@@ -656,7 +657,7 @@ async def km_move_macro_to_group(
         int,
         Field(default=30, ge=5, le=120, description="Operation timeout in seconds"),
     ] = 30,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Move a macro from one group to another with comprehensive validation and conflict resolution."""
     from .server.tools.macro_move_tools import (
@@ -746,7 +747,7 @@ async def km_notifications(
             description="Whether notification can be dismissed by user",
         ),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Display user notifications with comprehensive formatting and interaction support."""
     from .server.tools.notification_tools import km_notifications as _km_notifications
@@ -776,7 +777,7 @@ async def km_notification_status(
             description="Notification ID to check status for (optional)",
         ),
     ] = None,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Get status of active notifications with detailed information."""
     from .server.tools.notification_tools import (
@@ -795,7 +796,7 @@ async def km_dismiss_notifications(
             description="Specific notification ID to dismiss (optional - dismisses all if not provided)",
         ),
     ] = None,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Dismiss active notifications with optional ID filtering."""
     from .server.tools.notification_tools import (
@@ -847,7 +848,7 @@ async def km_calculator(
         bool,
         Field(default=False, description="Validate expression without evaluation"),
     ] = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Evaluate mathematical expressions with comprehensive security and token support."""
     from .server.tools.calculator_tools import km_calculator as _km_calculator
@@ -909,7 +910,7 @@ async def km_token_processor(
             pattern=r"^(minimal|standard|strict)$",
         ),
     ] = "standard",
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Process Keyboard Maestro tokens with comprehensive security and context support."""
     from .server.tools.token_tools import km_token_processor as _km_token_processor
@@ -928,7 +929,7 @@ async def km_token_processor(
 
 
 @mcp.tool()
-async def km_token_stats(ctx=None) -> dict[str, Any]:
+async def km_token_stats(ctx: Context | Any=None) -> dict[str, Any]:
     """Get token processing statistics and system status."""
     from .server.tools.token_tools import km_token_stats as _km_token_stats
 
@@ -996,7 +997,7 @@ async def km_window_manager(
             pattern=r"^(normal|minimized|maximized|fullscreen)$",
         ),
     ] = None,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Comprehensive window management with multi-monitor support and coordinate validation."""
     from .server.tools.window_tools import km_window_manager as _km_window_manager
@@ -1079,7 +1080,7 @@ async def km_window_manager_advanced(
         bool,
         Field(default=False, description="Save current layout as named workspace"),
     ] = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Advanced multi-monitor window management with grid layouts, intelligent positioning, and workspace management."""
     from .server.tools.advanced_window_tools import AdvancedWindowProcessor
@@ -1169,7 +1170,7 @@ async def km_dictionary_manager(
         int,
         Field(default=30, description="Operation timeout in seconds", ge=1, le=300),
     ] = 30,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Advanced dictionary and JSON data management with schema validation, querying, and transformation capabilities."""
     from .server.tools.dictionary_manager_tools import dictionary_manager_tools
@@ -1246,7 +1247,7 @@ async def km_add_condition(
             le=60,
         ),
     ] = 10,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Add conditional logic to Keyboard Maestro macro for intelligent automation workflows."""
     from .server.tools.condition_tools import km_add_condition as _km_add_condition
@@ -1375,7 +1376,7 @@ async def km_control_flow(
         bool,
         Field(default=False, description="Whether to negate the condition result"),
     ] = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Add sophisticated control flow structures (if/then/else, loops, switch/case) to Keyboard Maestro macros for intelligent automation workflows."""
     from .server.tools.control_flow_tools import km_control_flow as _km_control_flow
@@ -1469,7 +1470,7 @@ async def km_create_trigger_advanced(
             description="Whether to replace existing triggers on the macro",
         ),
     ] = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Create advanced event-driven triggers for intelligent automation that responds automatically to environmental changes."""
     from .server.tools.advanced_trigger_tools import (
@@ -1591,7 +1592,7 @@ async def km_plugin_ecosystem(
         int,
         Field(default=60, description="Operation timeout in seconds", ge=5, le=300),
     ] = 60,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Comprehensive plugin ecosystem management for custom action creation, installation, and execution."""
     from .server.tools.plugin_ecosystem_tools import PluginEcosystemTools
@@ -1691,7 +1692,7 @@ async def km_audit_system(
         bool,
         Field(default=True, description="Enable audit log encryption"),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Advanced audit logging and compliance reporting system for enterprise security and regulatory compliance."""
     from .server.tools.audit_system_tools import km_audit_system as _km_audit_system
@@ -1801,7 +1802,7 @@ async def km_analytics_engine(
         bool,
         Field(default=True, description="Enable enterprise system integration"),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Comprehensive automation analytics engine for deep insights and business intelligence.
 
@@ -1875,7 +1876,7 @@ async def km_analyze_workflow_intelligence(
         bool,
         Field(description="Enable cross-tool optimization analysis"),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Analyze workflow intelligence with AI-powered insights and optimization recommendations.
 
@@ -1933,7 +1934,7 @@ async def km_create_workflow_from_description(
         bool,
         Field(description="Generate visual workflow design"),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Create intelligent workflow from natural language description.
 
@@ -1996,7 +1997,7 @@ async def km_control_iot_devices(
         bool,
         Field(description="Verify action completion"),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Control IoT devices with support for multiple protocols and device types."""
     from .server.tools.iot_integration_tools import (
@@ -2050,7 +2051,7 @@ async def km_monitor_sensors(
         bool,
         Field(description="Enable real-time alerting"),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Monitor sensor data and trigger automation workflows based on readings and conditions."""
     from .server.tools.iot_integration_tools import (
@@ -2104,7 +2105,7 @@ async def km_manage_smart_home(
         bool,
         Field(description="Enable adaptive automation based on usage patterns"),
     ] = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Manage smart home automation with scenes, scheduling, and adaptive optimization."""
     from .server.tools.iot_integration_tools import (
@@ -2155,7 +2156,7 @@ async def km_coordinate_iot_workflows(
         bool,
         Field(description="Enable learning from workflow execution"),
     ] = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Coordinate complex IoT automation workflows with device dependencies and optimization."""
     from .server.tools.iot_integration_tools import (

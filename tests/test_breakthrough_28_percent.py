@@ -6,7 +6,6 @@ focusing on achieving 28-30% coverage through comprehensive testing of accessibl
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 from unittest.mock import Mock, patch
 

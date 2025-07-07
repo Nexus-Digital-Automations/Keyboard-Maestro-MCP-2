@@ -7,7 +7,6 @@ to achieve maximum coverage gain efficiently.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import os
 import sys
 from pathlib import Path
@@ -431,7 +430,7 @@ async def test_async_module_functionality() -> None:
     import asyncio
 
     # Test basic async patterns
-    async def mock_async_operation():
+    async def mock_async_operation() -> Any:
         await asyncio.sleep(0.001)  # Minimal async operation
         return {"status": "success", "data": "test_result"}
 
@@ -447,7 +446,7 @@ async def test_async_module_functionality() -> None:
     assert result["processed"] is True
 
     # Test async error handling
-    async def failing_operation():
+    async def failing_operation() -> Any:
         raise ValueError("Async operation failed")
 
     try:

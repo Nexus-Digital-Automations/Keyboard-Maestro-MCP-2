@@ -681,7 +681,7 @@ class CloudIntegrationManager:
 
         return encrypted_creds
 
-    async def _setup_rate_limiting(self, connection: CloudConnection):
+    async def _setup_rate_limiting(self, connection: CloudConnection) -> None:
         """Set up rate limiting for cloud connection."""
         # Initialize rate limiting counters
         if connection.provider not in self.rate_limiters:
@@ -802,7 +802,7 @@ class CloudIntegrationManager:
         self,
         batch_data: list[dict[str, Any]],
         config: SyncConfiguration,
-    ):
+    ) -> None:
         """Process a batch of data for cloud synchronization."""
         # Apply filters, compression, encryption to batch
         processed_batch = batch_data

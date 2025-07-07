@@ -63,7 +63,7 @@ class GCPSession:
     created_at: datetime
     last_used: datetime
 
-    def get_client(self, service_type: str, **kwargs) -> Any:
+    def get_client(self, service_type: str, **kwargs: Any) -> Any:
         """Get GCP service client with credentials."""
         if service_type == "storage":
             from google.cloud import storage

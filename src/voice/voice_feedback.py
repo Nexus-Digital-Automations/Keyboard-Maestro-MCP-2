@@ -542,7 +542,7 @@ class VoiceFeedbackSystem:
         key_data = f"{request.text}_{request.voice_settings.voice_id}_{request.voice_settings.speech_rate}_{request.voice_settings.pitch}_{request.voice_settings.tone.value}"
         return hashlib.sha256(key_data.encode()).hexdigest()
 
-    async def _stop_current_playback(self):
+    async def _stop_current_playback(self) -> None:
         """Stop current speech playback."""
         if self.current_playback:
             try:
@@ -703,7 +703,7 @@ class VoiceFeedbackSystem:
     async def provide_feedback(
         self,
         message: str,
-        settings,
+        settings: Any,
     ) -> Either[VoiceControlError, Any]:
         """Provide voice feedback with text-to-speech."""
         try:
@@ -737,7 +737,7 @@ class VoiceFeedbackSystem:
 
     async def configure_feedback(
         self,
-        configuration,
+        configuration: dict[str, Any],
     ) -> Either[VoiceControlError, dict[str, Any]]:
         """Configure voice feedback settings."""
         try:

@@ -31,7 +31,7 @@ class PluginEcosystemTools:
         self.api_bridge = PluginAPIBridge()
         self._initialized = False
 
-    async def _ensure_initialized(self):
+    async def _ensure_initialized(self) -> None:
         """Ensure plugin manager is initialized."""
         if not self._initialized:
             init_result = await self.plugin_manager.initialize()
@@ -55,7 +55,7 @@ class PluginEcosystemTools:
         dependency_resolution: bool = True,
         validation_level: str = "strict",
         timeout: int = 60,
-        ctx=None,
+        ctx: Any=None,
     ) -> dict[str, Any]:
         """Comprehensive plugin ecosystem management tool.
 
@@ -866,7 +866,7 @@ async def km_plugin_ecosystem(
     dependency_resolution: bool = True,
     validation_level: str = "strict",
     timeout: int = 60,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Standalone wrapper for plugin ecosystem operations.
 

@@ -277,7 +277,7 @@ class TestMacroMovementExecution:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"SUCCESS\n", b""))
 
-        async def mock_wait_for(coro, timeout):
+        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: int | float) -> Any:
             return await coro
 
         with (
@@ -312,7 +312,7 @@ class TestMacroMovementExecution:
             return_value=(b"ERROR: Macro not found\n", b""),
         )
 
-        async def mock_wait_for(coro, timeout):
+        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: int | float) -> Any:
             return await coro
 
         with (
@@ -374,7 +374,7 @@ class TestFullMacroMovementWorkflow:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"SUCCESS\n", b""))
 
-        async def mock_wait_for(coro, timeout):
+        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: int | float) -> Any:
             return await coro
 
         with (
@@ -448,7 +448,7 @@ class TestFullMacroMovementWorkflow:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"SUCCESS\n", b""))
 
-        async def mock_wait_for(coro, timeout):
+        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: int | float) -> Any:
             return await coro
 
         with (
@@ -514,7 +514,7 @@ class TestPropertyBasedScenarios:
         ),
     )
     @settings(max_examples=50)
-    def test_sanitization_properties(self, macro_name, source_group, target_group) -> None:
+    def test_sanitization_properties(self, macro_name: str, source_group: Any, target_group: Any) -> None:
         """Property: Valid inputs should always pass sanitization.
 
         Invalid inputs should always be rejected with clear error messages.
@@ -560,7 +560,7 @@ class TestPropertyBasedScenarios:
         ),
     )
     @settings(max_examples=30)
-    def test_security_constraints_properties(self, valid_macro, valid_group) -> None:
+    def test_security_constraints_properties(self, valid_macro: Any, valid_group: Any) -> None:
         """Property: Security validation should consistently apply rules.
 
         Valid inputs should pass, system groups should be blocked.
@@ -591,7 +591,7 @@ class TestErrorHandlingAndRecovery:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"SUCCESS\n", b""))
 
-        async def mock_wait_for(coro, timeout):
+        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: int | float) -> Any:
             return await coro
 
         with (
@@ -703,7 +703,7 @@ class TestPerformanceAndBenchmarks:
 
         start_time = datetime.now()
 
-        async def mock_wait_for(coro, timeout):
+        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: int | float) -> Any:
             return await coro
 
         with (

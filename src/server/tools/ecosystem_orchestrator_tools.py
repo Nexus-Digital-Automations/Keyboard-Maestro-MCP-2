@@ -38,7 +38,7 @@ async def km_ecosystem_orchestrator(
     strategic_planning: bool = True,  # Enable strategic automation planning
     ml_optimization: bool = True,  # Enable ML-based optimization
     timeout: int = 600,  # Orchestration timeout
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Master orchestration system for coordinating all 48 ecosystem tools.
 
@@ -541,7 +541,7 @@ async def _get_predictive_insights(
     }
 
 
-def _identify_coordination_clusters(tool_registry) -> list[dict[str, Any]]:
+def _identify_coordination_clusters(tool_registry: dict[str, Any] | Any) -> list[dict[str, Any]]:
     """Identify clusters of tools that work well together."""
     clusters = []
 
@@ -610,7 +610,7 @@ def _generate_recommended_workflows(
     return workflows
 
 
-def _analyze_ecosystem_capabilities(tool_registry) -> dict[str, Any]:
+def _analyze_ecosystem_capabilities(tool_registry: dict[str, Any] | Any) -> dict[str, Any]:
     """Analyze comprehensive ecosystem capabilities."""
     all_capabilities = set()
     capability_coverage = {}
@@ -680,7 +680,7 @@ async def _analyze_ecosystem_performance(
         }
 
 
-def _analyze_integration_patterns(tool_registry) -> dict[str, Any]:
+def _analyze_integration_patterns(tool_registry: dict[str, Any] | Any) -> dict[str, Any]:
     """Analyze integration patterns across tools."""
     integration_analysis = {
         "cross_category_integrations": 0,

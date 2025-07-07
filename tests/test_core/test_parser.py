@@ -6,7 +6,6 @@ and security boundary enforcement.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import json
 
 import pytest

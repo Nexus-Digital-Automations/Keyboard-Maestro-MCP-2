@@ -8,7 +8,6 @@ for maximum coverage gain toward the 95% target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -656,11 +655,11 @@ def test_medium_scale_async_functionality() -> bool:
     """Test async functionality patterns for medium-scale strategic systems."""
 
     @pytest.mark.asyncio
-    async def async_medium_scale_test_helper():
+    async def async_medium_scale_test_helper() -> None:
         import asyncio
 
         # Test async medium-scale operations
-        async def mock_context_operation():
+        async def mock_context_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "context_id": "ctx_async_001",
@@ -677,7 +676,7 @@ def test_medium_scale_async_functionality() -> bool:
                 },
             }
 
-        async def mock_security_validation():
+        async def mock_security_validation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "validation_id": "sec_async_001",
@@ -694,7 +693,7 @@ def test_medium_scale_async_functionality() -> bool:
                 },
             }
 
-        async def mock_workflow_analysis():
+        async def mock_workflow_analysis() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "analysis_id": "wf_async_001",
@@ -721,7 +720,7 @@ def test_medium_scale_async_functionality() -> bool:
         assert workflow_result["workflow_result"]["analysis_complete"] is True
 
         # Test async error handling for medium-scale systems
-        async def failing_medium_scale_operation():
+        async def failing_medium_scale_operation() -> Any:
             await asyncio.sleep(0.001)
             raise ValueError("Medium-scale system error")
 

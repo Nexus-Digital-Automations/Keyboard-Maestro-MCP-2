@@ -8,7 +8,6 @@ and other strategic 500-700 line modules for maximum coverage gain toward the 95
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -660,11 +659,11 @@ def test_strategic_systems_async_functionality() -> bool:
     """Test async functionality patterns for high-value strategic systems."""
 
     @pytest.mark.asyncio
-    async def async_strategic_test_helper():
+    async def async_strategic_test_helper() -> None:
         import asyncio
 
         # Test async strategic operations
-        async def mock_sso_authentication():
+        async def mock_sso_authentication() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "auth_id": "auth_001",
@@ -681,7 +680,7 @@ def test_strategic_systems_async_functionality() -> bool:
                 },
             }
 
-        async def mock_workflow_component_operation():
+        async def mock_workflow_component_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "operation_id": "workflow_op_001",
@@ -701,7 +700,7 @@ def test_strategic_systems_async_functionality() -> bool:
                 },
             }
 
-        async def mock_voice_synthesis_operation():
+        async def mock_voice_synthesis_operation() -> bool:
             await asyncio.sleep(0.001)
             return {
                 "synthesis_id": "voice_001",
@@ -728,7 +727,7 @@ def test_strategic_systems_async_functionality() -> bool:
         assert voice_result["voice_result"]["audio_generated"] is True
 
         # Test async error handling for strategic systems
-        async def failing_strategic_operation():
+        async def failing_strategic_operation() -> Any:
             await asyncio.sleep(0.001)
             raise ValueError("Strategic system error")
 

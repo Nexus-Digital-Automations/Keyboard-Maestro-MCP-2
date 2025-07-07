@@ -7,8 +7,8 @@ Tests ensure correctness, security, and performance across all input ranges.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import datetime
+from typing import Any
 
 import pytest
 from hypothesis import assume, given, settings
@@ -41,7 +41,7 @@ from src.vision.screen_analysis import (
 
 # Strategy generators for visual automation testing
 @composite
-def screen_regions(draw) -> Any:
+def screen_regions(draw: Callable[..., Any]) -> Any:
     """Generate valid screen regions with reasonable bounds."""
     x = draw(st.integers(min_value=0, max_value=3840))
     y = draw(st.integers(min_value=0, max_value=2160))
@@ -52,14 +52,14 @@ def screen_regions(draw) -> Any:
 
 
 @composite
-def confidence_scores(draw) -> bool:
+def confidence_scores(draw: Callable[..., Any]) -> bool:
     """Generate valid confidence scores."""
     confidence = draw(st.floats(min_value=0.0, max_value=1.0, allow_nan=False))
     return ConfidenceScore(confidence)
 
 
 @composite
-def image_data_samples(draw) -> Any:
+def image_data_samples(draw: Callable[..., Any]) -> Any:
     """Generate simulated image data."""
     # Create minimal valid image headers
     formats = [
@@ -74,7 +74,7 @@ def image_data_samples(draw) -> Any:
 
 
 @composite
-def ocr_results(draw) -> Any:
+def ocr_results(draw: Callable[..., Any]) -> Any:
     """Generate valid OCR results."""
     text = draw(st.text(min_size=1, max_size=1000))
     confidence = draw(confidence_scores())
@@ -91,7 +91,7 @@ def ocr_results(draw) -> Any:
 
 
 @composite
-def visual_elements(draw) -> bool:
+def visual_elements(draw: Callable[..., Any]) -> bool:
     """Generate valid visual elements."""
     element_type = draw(st.sampled_from(list(ElementType)))
     confidence = draw(confidence_scores())
@@ -112,7 +112,7 @@ class TestScreenRegionProperties:
     """Test properties of screen region handling."""
 
     @given(screen_regions())
-    def test_screen_region_creation_properties(self, region) -> None:
+    def test_screen_region_creation_properties(self, region: Any) -> None:
         """Property: Screen regions should maintain valid state."""
         assert region.x >= 0
         assert region.y >= 0
@@ -124,7 +124,7 @@ class TestScreenRegionProperties:
         assert region.center[1] == region.y + region.height // 2
 
     @given(screen_regions(), st.integers(), st.integers())
-    def test_contains_point_properties(self, region, x, y) -> None:
+    def test_contains_point_properties(self, region: Any, x: Any, y: Any) -> None:
         """Property: Point containment should be consistent with bounds."""
         contains = region.contains_point(x, y)
 
@@ -138,14 +138,14 @@ class TestScreenRegionProperties:
             )
 
     @given(screen_regions(), screen_regions())
-    def test_overlap_properties(self, region1, region2) -> None:
+    def test_overlap_properties(self, region1: Any, region2: Any) -> None:
         """Property: Region overlap should be symmetric."""
         overlap1 = region1.overlaps_with(region2)
         overlap2 = region2.overlaps_with(region1)
         assert overlap1 == overlap2
 
     @given(screen_regions())
-    def test_region_serialization_properties(self, region) -> None:
+    def test_region_serialization_properties(self, region: Any) -> None:
         """Property: Region serialization should be reversible."""
         region_dict = region.to_dict()
         reconstructed = ScreenRegion.from_dict(region_dict)
@@ -161,7 +161,7 @@ class TestConfidenceScoreProperties:
     """Test properties of confidence score handling."""
 
     @given(st.floats(min_value=-10.0, max_value=10.0, allow_nan=False))
-    def test_confidence_normalization_properties(self, raw_confidence) -> None:
+    def test_confidence_normalization_properties(self, raw_confidence: Any) -> None:
         """Property: Confidence normalization should always produce valid range."""
         normalized = normalize_confidence(raw_confidence)
         assert 0.0 <= float(normalized) <= 1.0
@@ -175,12 +175,12 @@ class TestConfidenceScoreProperties:
             assert abs(float(normalized) - raw_confidence) < 1e-10
 
     @given(confidence_scores())
-    def test_confidence_properties(self, confidence) -> None:
+    def test_confidence_properties(self, confidence: Any) -> None:
         """Property: Confidence scores should maintain valid range."""
         assert 0.0 <= float(confidence) <= 1.0
 
     @given(confidence_scores(), confidence_scores())
-    def test_confidence_comparison_properties(self, conf1, conf2) -> None:
+    def test_confidence_comparison_properties(self, conf1: Any, conf2: Any) -> None:
         """Property: Confidence comparison should be consistent."""
         if float(conf1) > float(conf2):
             assert float(conf1) >= float(conf2)
@@ -194,7 +194,7 @@ class TestImageDataValidationProperties:
     """Test properties of image data validation."""
 
     @given(image_data_samples())
-    def test_valid_image_data_properties(self, image_data) -> None:
+    def test_valid_image_data_properties(self, image_data: Any) -> None:
         """Property: Valid image data should pass validation."""
         result = validate_image_data(bytes(image_data))
         assert result.is_right()
@@ -204,7 +204,7 @@ class TestImageDataValidationProperties:
         assert bytes(validated_data) == bytes(image_data)
 
     @given(st.binary(min_size=0, max_size=10))
-    def test_invalid_image_data_properties(self, invalid_data) -> None:
+    def test_invalid_image_data_properties(self, invalid_data: Any) -> None:
         """Property: Invalid image data should be rejected."""
         assume(
             len(invalid_data) < 3
@@ -226,7 +226,7 @@ class TestImageDataValidationProperties:
             assert result.is_left()
 
     @given(st.binary(min_size=50 * 1024 * 1024 + 1, max_size=100 * 1024 * 1024))
-    def test_oversized_image_rejection(self, large_data) -> None:
+    def test_oversized_image_rejection(self, large_data: Any) -> None:
         """Property: Oversized images should be rejected."""
         result = validate_image_data(large_data)
         assert result.is_left()
@@ -237,7 +237,7 @@ class TestOCREngineProperties:
 
     @pytest.mark.asyncio
     @given(image_data_samples(), st.sampled_from(["en", "es", "fr", "de"]))
-    async def test_ocr_extraction_properties(self, image_data, language) -> None:
+    async def test_ocr_extraction_properties(self, image_data: Any, language: str) -> None:
         """Property: OCR extraction should handle all valid inputs."""
         engine = OCREngine(cache_enabled=False)  # Disable cache for testing
 
@@ -255,7 +255,7 @@ class TestOCREngineProperties:
             assert hasattr(error, "message")
 
     @given(st.text(min_size=1, max_size=10000))
-    def test_privacy_filter_properties(self, text_input) -> None:
+    def test_privacy_filter_properties(self, text_input: list[Any] | str) -> None:
         """Property: Privacy filtering should be consistent and safe."""
         filtered_text, detected_categories = OCRPrivacyFilter.filter_sensitive_content(
             text_input,
@@ -276,7 +276,7 @@ class TestOCREngineProperties:
             assert "[REDACTED]" in filtered_text
 
     @given(ocr_results())
-    def test_ocr_result_properties(self, ocr_result) -> None:
+    def test_ocr_result_properties(self, ocr_result: Either[Any, Any] | Any) -> None:
         """Property: OCR results should maintain consistent state."""
         assert len(ocr_result.text) > 0
         assert 0.0 <= float(ocr_result.confidence) <= 1.0
@@ -299,9 +299,9 @@ class TestImageRecognitionProperties:
     )
     async def test_template_matching_properties(
         self,
-        screen_data,
-        template_data,
-        search_region,
+        screen_data: Any,
+        template_data: Any,
+        search_region: Any,
     ) -> None:
         """Property: Template matching should handle all valid combinations."""
         engine = ImageRecognitionEngine(cache_enabled=False)
@@ -330,7 +330,7 @@ class TestImageRecognitionProperties:
             assert hasattr(error, "message")
 
     @given(visual_elements())
-    def test_visual_element_properties(self, element) -> None:
+    def test_visual_element_properties(self, element: Any) -> None:
         """Property: Visual elements should maintain valid state."""
         assert isinstance(element.element_type, ElementType)
         assert 0.0 <= float(element.confidence) <= 1.0
@@ -361,7 +361,7 @@ class TestScreenAnalysisProperties:
 
     @pytest.mark.asyncio
     @given(screen_regions())
-    async def test_screen_capture_properties(self, region) -> None:
+    async def test_screen_capture_properties(self, region: Callable[..., Any]) -> None:
         """Property: Screen capture should handle all valid regions."""
         engine = ScreenAnalysisEngine(enable_privacy_protection=True)
 
@@ -384,7 +384,7 @@ class TestScreenAnalysisProperties:
 
     @pytest.mark.asyncio
     @given(screen_regions(), st.floats(min_value=0.0, max_value=1.0))
-    async def test_change_detection_properties(self, region, sensitivity) -> None:
+    async def test_change_detection_properties(self, region: Any, sensitivity: Any) -> None:
         """Property: Change detection should handle all valid parameters."""
         engine = ScreenAnalysisEngine()
 
@@ -417,7 +417,7 @@ class TestVisualAutomationSecurityProperties:
                 min_size=1,
             ),
         )
-        def check_region_validation(region_dict) -> None:
+        def check_region_validation(region_dict: dict[str, Any]) -> None:
             result = security.validate_region(region_dict)
 
             # Should validate consistently
@@ -442,7 +442,7 @@ class TestVisualAutomationSecurityProperties:
             st.binary(min_size=1, max_size=1000),
         ),
     )
-    def test_image_validation_properties(self, image_input) -> None:
+    def test_image_validation_properties(self, image_input: Any) -> None:
         """Property: Image validation should handle diverse inputs."""
         security = VisualAutomationSecurityManager()
 
@@ -463,7 +463,7 @@ class TestVisualAutomationSecurityProperties:
         st.sampled_from(["ocr_text", "find_image", "capture_screen", "analyze_window"]),
         st.text(min_size=1, max_size=50),
     )
-    def test_rate_limiting_properties(self, operation, client_id) -> None:
+    def test_rate_limiting_properties(self, operation: str, client_id: str) -> None:
         """Property: Rate limiting should be consistent and fair."""
         security = VisualAutomationSecurityManager()
 
@@ -484,7 +484,7 @@ class TestVisualProcessorIntegrationProperties:
 
     @pytest.mark.asyncio
     @given(st.sampled_from(list(VisualOperation)))
-    async def test_processor_operation_handling(self, operation) -> None:
+    async def test_processor_operation_handling(self, operation: str) -> None:
         """Property: Processor should handle all supported operations."""
         processor = VisualAutomationProcessor()
 
@@ -544,7 +544,7 @@ class TestVisualAutomationEndToEndProperties:
         screen_regions(),
         st.booleans(),
     )
-    async def test_end_to_end_visual_operations(self, operation, region, privacy_mode) -> None:
+    async def test_end_to_end_visual_operations(self, operation: str, region: Any, privacy_mode: Any) -> None:
         """Property: End-to-end operations should be robust."""
         from src.server.tools.visual_automation_tools import km_visual_automation
 
@@ -575,7 +575,7 @@ class TestVisualAutomationEndToEndProperties:
 
     @pytest.mark.asyncio
     @given(st.text(min_size=1, max_size=100))
-    async def test_error_handling_properties(self, invalid_operation) -> None:
+    async def test_error_handling_properties(self, invalid_operation: Any) -> None:
         """Property: Invalid operations should be handled gracefully."""
         assume(invalid_operation not in [op.value for op in VisualOperation])
 
@@ -596,7 +596,7 @@ class TestVisualAutomationPerformanceProperties:
 
     @pytest.mark.asyncio
     @given(screen_regions())
-    async def test_processing_time_properties(self, region) -> None:
+    async def test_processing_time_properties(self, region: Any) -> None:
         """Property: Processing times should be reasonable."""
         processor = VisualAutomationProcessor()
 
@@ -629,7 +629,7 @@ class TestVisualAutomationPerformanceProperties:
                 assert response["processing_time_ms"] >= 0
 
     @given(st.integers(min_value=1, max_value=10))
-    def test_cache_efficiency_properties(self, cache_size) -> None:
+    def test_cache_efficiency_properties(self, cache_size: int) -> None:
         """Property: Caching should improve performance consistency."""
         # Test with caching enabled
         engine_cached = ImageRecognitionEngine(

@@ -8,8 +8,8 @@ comprehensive coverage for next-generation automation capabilities.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -242,8 +242,8 @@ class TestAccessibilityTools(TestAdvancedExtensionsFoundation):
     @pytest.mark.asyncio
     async def test_accessibility_compliance_testing(
         self,
-        execution_context,
-        sample_accessibility_data,
+        execution_context: Context | Any,
+        sample_accessibility_data: Any,
     ) -> None:
         """Test accessibility compliance testing functionality."""
         try:
@@ -309,8 +309,8 @@ class TestAccessibilityTools(TestAdvancedExtensionsFoundation):
     @pytest.mark.asyncio
     async def test_assistive_technology_integration(
         self,
-        execution_context,
-        sample_accessibility_data,
+        execution_context: Context | Any,
+        sample_accessibility_data: Any,
     ) -> None:
         """Test assistive technology integration functionality."""
         try:
@@ -400,8 +400,8 @@ class TestTestingAutomationTools(TestAdvancedExtensionsFoundation):
     @pytest.mark.asyncio
     async def test_macro_testing_framework(
         self,
-        execution_context,
-        sample_testing_data,
+        execution_context: Context | Any,
+        sample_testing_data: Any,
     ) -> None:
         """Test comprehensive macro testing framework."""
         try:
@@ -512,8 +512,8 @@ class TestAdvancedIntelligenceTools(TestAdvancedExtensionsFoundation):
     @pytest.mark.asyncio
     async def test_predictive_analytics(
         self,
-        execution_context,
-        sample_intelligence_data,
+        execution_context: Context | Any,
+        sample_intelligence_data: Any,
     ) -> None:
         """Test predictive analytics functionality."""
         try:
@@ -585,8 +585,8 @@ class TestAdvancedIntelligenceTools(TestAdvancedExtensionsFoundation):
     @pytest.mark.asyncio
     async def test_natural_language_processing(
         self,
-        execution_context,
-        sample_intelligence_data,
+        execution_context: Context | Any,
+        sample_intelligence_data: Any,
     ) -> None:
         """Test natural language processing functionality."""
         try:
@@ -685,7 +685,7 @@ class TestEnterpriseSecurityTools(TestAdvancedExtensionsFoundation):
             pytest.skip(f"Enterprise security tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_zero_trust_security(self, execution_context) -> None:
+    async def test_zero_trust_security(self, execution_context: Context | Any) -> None:
         """Test zero trust security framework functionality."""
         try:
             from src.server.tools.zero_trust_security_tools import (
@@ -793,7 +793,7 @@ class TestIoTAndFutureTechTools(TestAdvancedExtensionsFoundation):
             pytest.skip(f"IoT and future tech tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_iot_device_integration(self, execution_context) -> None:
+    async def test_iot_device_integration(self, execution_context: Context | Any) -> None:
         """Test IoT device integration functionality."""
         try:
             from src.server.tools.iot_integration_tools import km_control_iot_device
@@ -858,7 +858,7 @@ class TestAdvancedExtensionsIntegration(TestAdvancedExtensionsFoundation):
     """Test integration patterns across advanced extension tools."""
 
     @pytest.mark.asyncio
-    async def test_cross_extension_integration(self, execution_context) -> None:
+    async def test_cross_extension_integration(self, execution_context: Context | Any) -> None:
         """Test integration between different advanced extension categories."""
         advanced_extension_tools = [
             (
@@ -903,7 +903,7 @@ class TestAdvancedExtensionsIntegration(TestAdvancedExtensionsFoundation):
                 continue
 
     @pytest.mark.asyncio
-    async def test_advanced_tool_response_consistency(self, execution_context) -> None:
+    async def test_advanced_tool_response_consistency(self, execution_context: Context | Any) -> None:
         """Test that all advanced extension tools return consistent response structure."""
         advanced_extension_tools = [
             (
@@ -953,7 +953,7 @@ class TestPropertyBasedAdvancedExtensionsTesting(TestAdvancedExtensionsFoundatio
     """Property-based testing for advanced extension tools using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_knowledge_management_properties(self, execution_context) -> None:
+    async def test_knowledge_management_properties(self, execution_context: Context | Any) -> None:
         """Property: Knowledge management should handle various content types consistently."""
 
         async def test_knowledge_properties() -> None:
@@ -992,7 +992,7 @@ class TestPropertyBasedAdvancedExtensionsTesting(TestAdvancedExtensionsFoundatio
         await test_knowledge_properties()
 
     @pytest.mark.asyncio
-    async def test_accessibility_testing_properties(self, execution_context) -> None:
+    async def test_accessibility_testing_properties(self, execution_context: Context | Any) -> None:
         """Property: Accessibility testing should maintain consistent scoring."""
 
         async def test_accessibility_properties() -> None:

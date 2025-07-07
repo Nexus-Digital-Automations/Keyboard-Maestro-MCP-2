@@ -9,7 +9,6 @@ for maximum coverage gain toward the 95% target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -648,11 +647,11 @@ def test_domain_systems_async_functionality() -> bool:
     """Test async functionality patterns for strategic domain systems."""
 
     @pytest.mark.asyncio
-    async def async_domain_test_helper():
+    async def async_domain_test_helper() -> None:
         import asyncio
 
         # Test async domain operations
-        async def mock_accessibility_scan():
+        async def mock_accessibility_scan() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "scan_id": "access_scan_001",
@@ -669,7 +668,7 @@ def test_domain_systems_async_functionality() -> bool:
                 },
             }
 
-        async def mock_plugin_operation():
+        async def mock_plugin_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "operation_id": "plugin_op_001",
@@ -686,7 +685,7 @@ def test_domain_systems_async_functionality() -> bool:
                 },
             }
 
-        async def mock_forecasting_operation():
+        async def mock_forecasting_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "forecast_id": "forecast_001",
@@ -712,7 +711,7 @@ def test_domain_systems_async_functionality() -> bool:
         assert forecast_result["usage_predictions"]["next_hour"]["cpu"] == 0.72
 
         # Test async error handling for domain systems
-        async def failing_domain_operation():
+        async def failing_domain_operation() -> Any:
             await asyncio.sleep(0.001)
             raise ValueError("Domain system error")
 

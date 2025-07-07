@@ -8,7 +8,6 @@ advanced integration patterns, and remaining high-value components for systemati
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -553,11 +552,11 @@ def test_advanced_infrastructure_async_functionality() -> bool:
     """Test advanced async functionality for Phase 23 infrastructure modules."""
 
     @pytest.mark.asyncio
-    async def async_infrastructure_test_helper():
+    async def async_infrastructure_test_helper() -> None:
         import asyncio
 
         # Test advanced async operations for Phase 23 infrastructure modules
-        async def mock_infrastructure_management_processing():
+        async def mock_infrastructure_management_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "infrastructure_id": "infra_mgmt_001",
@@ -576,7 +575,7 @@ def test_advanced_infrastructure_async_functionality() -> bool:
                 },
             }
 
-        async def mock_enterprise_service_operation():
+        async def mock_enterprise_service_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "service_id": "enterprise_srv_001",
@@ -595,7 +594,7 @@ def test_advanced_infrastructure_async_functionality() -> bool:
                 },
             }
 
-        async def mock_specialized_component_processing():
+        async def mock_specialized_component_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "component_id": "specialized_comp_001",
@@ -630,7 +629,7 @@ def test_advanced_infrastructure_async_functionality() -> bool:
         )
 
         # Test infrastructure async error handling
-        async def failing_infrastructure_operation():
+        async def failing_infrastructure_operation() -> Any:
             await asyncio.sleep(0.001)
             raise RuntimeError("Infrastructure system failure")
 

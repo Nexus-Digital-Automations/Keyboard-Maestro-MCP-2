@@ -23,7 +23,7 @@ from src.core import (
 logger = logging.getLogger(__name__)
 
 
-def register_core_tools(mcp) -> None:
+def register_core_tools(mcp: Any) -> None:
     """Register core tools with the MCP server."""
 
     @mcp.tool()

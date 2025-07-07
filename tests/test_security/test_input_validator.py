@@ -5,7 +5,6 @@ Tests all validation methods, threat detection, sanitization, and edge cases.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from hypothesis import given
 from hypothesis import strategies as st
 from src.security.input_validator import InputValidator, ThreatType, ValidationResult
@@ -192,7 +191,7 @@ class TestSQLValidation:
         ) < malicious_input.count("--")
 
     @given(st.text(min_size=1, max_size=100))
-    def test_sql_validation_properties(self, text_input) -> None:
+    def test_sql_validation_properties(self, text_input: Any) -> None:
         """Property-based test for SQL validation."""
         result = self.validator.validate_sql_input(text_input)
 
@@ -273,7 +272,7 @@ class TestHTMLValidation:
         )
 
     @given(st.text(min_size=1, max_size=100))
-    def test_html_validation_properties(self, text_input) -> None:
+    def test_html_validation_properties(self, text_input: Any) -> None:
         """Property-based test for HTML validation."""
         result = self.validator.validate_html_input(text_input)
 
@@ -344,7 +343,7 @@ class TestCommandValidation:
             assert expected_block in result.sanitized_input
 
     @given(st.text(min_size=1, max_size=100))
-    def test_command_validation_properties(self, text_input) -> None:
+    def test_command_validation_properties(self, text_input: Any) -> None:
         """Property-based test for command validation."""
         result = self.validator.validate_command_input(text_input)
 
@@ -416,7 +415,7 @@ class TestPathValidation:
             assert "[BLOCKED_SYSTEM_PATH]" in result.sanitized_input
 
     @given(st.text(min_size=1, max_size=100))
-    def test_path_validation_properties(self, text_input) -> None:
+    def test_path_validation_properties(self, text_input: Any) -> None:
         """Property-based test for path validation."""
         result = self.validator.validate_file_path(text_input)
 

@@ -7,7 +7,7 @@ using the proven pattern that achieved 100% success across 18+ tool suites.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -30,21 +30,21 @@ km_generate_workflow_recommendations = (
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def workflow_source_strategy(draw) -> Any:
+def workflow_source_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid workflow sources."""
     sources = ["description", "existing", "template"]
     return draw(st.sampled_from(sources))
 
 
 @st.composite
-def analysis_depth_strategy(draw) -> Any:
+def analysis_depth_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid analysis depths."""
     depths = ["basic", "comprehensive", "ai_enhanced"]
     return draw(st.sampled_from(depths))
 
 
 @st.composite
-def optimization_focus_strategy(draw) -> Any:
+def optimization_focus_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid optimization focus areas."""
     focuses = [
         "performance",
@@ -58,7 +58,7 @@ def optimization_focus_strategy(draw) -> Any:
 
 
 @st.composite
-def workflow_description_strategy(draw) -> Any:
+def workflow_description_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid workflow descriptions."""
     descriptions = [
         "Create a macro that opens Safari and navigates to Google",
@@ -71,14 +71,14 @@ def workflow_description_strategy(draw) -> Any:
 
 
 @st.composite
-def complexity_level_strategy(draw) -> Any:
+def complexity_level_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid complexity levels."""
     levels = ["simple", "moderate", "complex", "advanced"]
     return draw(st.sampled_from(levels))
 
 
 @st.composite
-def performance_criteria_strategy(draw) -> None:
+def performance_criteria_strategy(draw: Callable[..., Any]) -> None:
     """Generate valid performance criteria."""
     criteria = ["speed", "reliability", "resource_usage", "accuracy", "scalability"]
     return draw(
@@ -87,7 +87,7 @@ def performance_criteria_strategy(draw) -> None:
 
 
 @st.composite
-def recommendation_type_strategy(draw) -> Any:
+def recommendation_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid recommendation types."""
     types = ["optimization", "alternative", "enhancement", "integration", "security"]
     return draw(st.sampled_from(types))
@@ -112,17 +112,17 @@ class TestWorkflowIntelligenceParameterValidation:
     """Test parameter validation for workflow intelligence functions."""
 
     @given(workflow_source_strategy())
-    def test_valid_workflow_sources(self, workflow_source) -> None:
+    def test_valid_workflow_sources(self, workflow_source: Any) -> None:
         """Test that valid workflow sources are accepted."""
         assert workflow_source in ["description", "existing", "template"]
 
     @given(analysis_depth_strategy())
-    def test_valid_analysis_depths(self, analysis_depth) -> None:
+    def test_valid_analysis_depths(self, analysis_depth: Any) -> None:
         """Test that valid analysis depths are accepted."""
         assert analysis_depth in ["basic", "comprehensive", "ai_enhanced"]
 
     @given(optimization_focus_strategy())
-    def test_valid_optimization_focuses(self, optimization_focus) -> None:
+    def test_valid_optimization_focuses(self, optimization_focus: list[Any] | str) -> None:
         """Test that valid optimization focuses are accepted."""
         valid_focuses = [
             "performance",
@@ -135,12 +135,12 @@ class TestWorkflowIntelligenceParameterValidation:
         assert all(focus in valid_focuses for focus in optimization_focus)
 
     @given(complexity_level_strategy())
-    def test_valid_complexity_levels(self, complexity_level) -> None:
+    def test_valid_complexity_levels(self, complexity_level: Any) -> None:
         """Test that valid complexity levels are accepted."""
         assert complexity_level in ["simple", "moderate", "complex", "advanced"]
 
     @given(performance_criteria_strategy())
-    def test_valid_performance_criteria(self, performance_criteria) -> None:
+    def test_valid_performance_criteria(self, performance_criteria: list[Any] | str) -> None:
         """Test that valid performance criteria are accepted."""
         valid_criteria = [
             "speed",
@@ -711,7 +711,7 @@ class TestWorkflowIntelligenceProperties:
 
     @given(workflow_description_strategy(), analysis_depth_strategy())
     @pytest.mark.asyncio
-    async def test_analysis_properties(self, description, depth) -> None:
+    async def test_analysis_properties(self, description: str, depth: int) -> None:
         """Test properties of workflow analysis operations."""
         with (
             patch(
@@ -802,7 +802,7 @@ class TestWorkflowIntelligenceProperties:
 
     @given(workflow_description_strategy(), complexity_level_strategy())
     @pytest.mark.asyncio
-    async def test_creation_properties(self, description, complexity) -> None:
+    async def test_creation_properties(self, description: str, complexity: Any) -> None:
         """Test properties of workflow creation operations."""
         with (
             patch(

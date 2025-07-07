@@ -8,9 +8,9 @@ and comprehensive enterprise-grade validation using the proven pattern that achi
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -28,56 +28,56 @@ km_analytics_engine = analytics_tools.km_analytics_engine.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def operation_strategy(draw) -> Any:
+def operation_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid analytics operations."""
     operations = ["collect", "analyze", "report", "predict", "dashboard", "optimize"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def analytics_scope_strategy(draw) -> Any:
+def analytics_scope_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid analytics scopes."""
     scopes = ["tool", "category", "ecosystem", "enterprise"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def time_range_strategy(draw) -> Any:
+def time_range_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid time ranges."""
     ranges = ["1h", "24h", "7d", "30d", "90d", "1y", "all"]
     return draw(st.sampled_from(ranges))
 
 
 @st.composite
-def analysis_depth_strategy(draw) -> Any:
+def analysis_depth_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid analysis depths."""
     depths = ["basic", "standard", "detailed", "comprehensive", "ml_enhanced"]
     return draw(st.sampled_from(depths))
 
 
 @st.composite
-def visualization_format_strategy(draw) -> Any:
+def visualization_format_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid visualization formats."""
     formats = ["raw", "table", "chart", "dashboard", "report", "executive_summary"]
     return draw(st.sampled_from(formats))
 
 
 @st.composite
-def privacy_mode_strategy(draw) -> Any:
+def privacy_mode_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid privacy modes."""
     modes = ["none", "basic", "compliant", "strict"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def metrics_types_strategy(draw) -> Any:
+def metrics_types_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid metrics types."""
     types = ["performance", "usage", "roi", "efficiency", "quality", "security"]
     return draw(st.lists(st.sampled_from(types), min_size=1, max_size=4, unique=True))
 
 
 @st.composite
-def export_format_strategy(draw) -> Any:
+def export_format_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid export formats."""
     formats = ["json", "csv", "pdf", "xlsx", "api"]
     return draw(st.sampled_from(formats))
@@ -98,7 +98,7 @@ class TestAnalyticsEngineParameterValidation:
     """Test parameter validation for analytics engine functions."""
 
     @given(operation_strategy())
-    def test_valid_operations(self, operation) -> None:
+    def test_valid_operations(self, operation: str) -> None:
         """Test that valid operations are accepted."""
         valid_operations = [
             "collect",
@@ -111,25 +111,25 @@ class TestAnalyticsEngineParameterValidation:
         assert operation in valid_operations
 
     @given(analytics_scope_strategy())
-    def test_valid_analytics_scopes(self, scope) -> None:
+    def test_valid_analytics_scopes(self, scope: Any) -> None:
         """Test that valid analytics scopes are accepted."""
         valid_scopes = ["tool", "category", "ecosystem", "enterprise"]
         assert scope in valid_scopes
 
     @given(time_range_strategy())
-    def test_valid_time_ranges(self, time_range) -> None:
+    def test_valid_time_ranges(self, time_range: Any) -> None:
         """Test that valid time ranges are accepted."""
         valid_ranges = ["1h", "24h", "7d", "30d", "90d", "1y", "all"]
         assert time_range in valid_ranges
 
     @given(analysis_depth_strategy())
-    def test_valid_analysis_depths(self, depth) -> None:
+    def test_valid_analysis_depths(self, depth: int) -> None:
         """Test that valid analysis depths are accepted."""
         valid_depths = ["basic", "standard", "detailed", "comprehensive", "ml_enhanced"]
         assert depth in valid_depths
 
     @given(visualization_format_strategy())
-    def test_valid_visualization_formats(self, viz_format) -> None:
+    def test_valid_visualization_formats(self, viz_format: Any) -> None:
         """Test that valid visualization formats are accepted."""
         valid_formats = [
             "raw",
@@ -142,7 +142,7 @@ class TestAnalyticsEngineParameterValidation:
         assert viz_format in valid_formats
 
     @given(metrics_types_strategy())
-    def test_valid_metrics_types(self, metrics_types) -> None:
+    def test_valid_metrics_types(self, metrics_types: list[Any] | str) -> None:
         """Test that valid metrics types are accepted."""
         valid_types = [
             "performance",
@@ -794,7 +794,7 @@ class TestAnalyticsEngineProperties:
 
     @given(operation_strategy(), analytics_scope_strategy())
     @pytest.mark.asyncio
-    async def test_analytics_engine_operation_properties(self, operation, scope) -> None:
+    async def test_analytics_engine_operation_properties(self, operation: str, scope: Any) -> None:
         """Test properties of analytics engine operations."""
         with patch(
             "src.server.tools.analytics_engine_tools.analytics_engine",
@@ -840,7 +840,7 @@ class TestAnalyticsEngineProperties:
 
     @given(time_range_strategy(), visualization_format_strategy())
     @pytest.mark.asyncio
-    async def test_dashboard_format_properties(self, time_range, viz_format) -> None:
+    async def test_dashboard_format_properties(self, time_range: Any, viz_format: Any) -> None:
         """Test properties of dashboard generation with different formats."""
         with patch(
             "src.server.tools.analytics_engine_tools.analytics_engine",

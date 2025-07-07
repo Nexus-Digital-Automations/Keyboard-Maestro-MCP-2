@@ -7,7 +7,6 @@ for systematic progression toward 20%+ coverage milestone through comprehensive 
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -538,11 +537,11 @@ def test_advanced_specialized_async_functionality() -> bool:
     """Test advanced async functionality for Phase 21 specialized modules."""
 
     @pytest.mark.asyncio
-    async def async_specialized_test_helper():
+    async def async_specialized_test_helper() -> None:
         import asyncio
 
         # Test advanced async operations for Phase 21 specialized modules
-        async def mock_voice_natural_language_processing():
+        async def mock_voice_natural_language_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "voice_id": "voice_nl_001",
@@ -561,7 +560,7 @@ def test_advanced_specialized_async_functionality() -> bool:
                 },
             }
 
-        async def mock_enterprise_security_authentication():
+        async def mock_enterprise_security_authentication() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "security_id": "enterprise_sec_001",
@@ -580,7 +579,7 @@ def test_advanced_specialized_async_functionality() -> bool:
                 },
             }
 
-        async def mock_vision_computer_analysis():
+        async def mock_vision_computer_analysis() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "vision_id": "vision_comp_001",
@@ -611,7 +610,7 @@ def test_advanced_specialized_async_functionality() -> bool:
         assert vision_result["vision_result"]["vision_analysis_complete"] is True
 
         # Test specialized async error handling
-        async def failing_specialized_operation():
+        async def failing_specialized_operation() -> Any:
             await asyncio.sleep(0.001)
             raise RuntimeError("Specialized system failure")
 

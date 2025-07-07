@@ -24,7 +24,7 @@ from src.server.tools.action_tools import (
 
 # Test data generators
 @st.composite
-def action_config_strategy(draw) -> Any:
+def action_config_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid action configurations."""
     config_types = [
         # Text actions
@@ -57,7 +57,7 @@ def action_config_strategy(draw) -> Any:
 
 
 @st.composite
-def macro_id_strategy(draw) -> Any:
+def macro_id_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid macro IDs."""
     id_types = [
         # UUID format
@@ -71,7 +71,7 @@ def macro_id_strategy(draw) -> Any:
 
 
 @st.composite
-def action_type_strategy(draw) -> Any:
+def action_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid action type names."""
     action_types = [
         "Type a String",
@@ -92,7 +92,7 @@ def action_type_strategy(draw) -> Any:
 
 
 @st.composite
-def search_term_strategy(draw) -> list[Any]:
+def search_term_strategy(draw: Callable[..., Any]) -> list[Any]:
     """Generate valid search terms."""
     search_terms = [
         draw(st.text(min_size=1, max_size=50)),

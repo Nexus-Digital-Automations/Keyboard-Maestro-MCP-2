@@ -10,9 +10,9 @@ Type Safety: Complete integration with ecosystem architecture testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 from datetime import UTC, datetime
+from typing import Any
 
 import pytest
 from hypothesis import given, settings
@@ -63,7 +63,7 @@ class TestToolDescriptor:
             ai_enhanced=False,
         )
 
-    def test_tool_descriptor_creation(self, sample_tool) -> bool:
+    def test_tool_descriptor_creation(self, sample_tool: Any) -> bool:
         """Test tool descriptor creation with valid parameters."""
         assert sample_tool.tool_id == "km_test_tool"
         assert sample_tool.category == ToolCategory.FOUNDATION
@@ -71,7 +71,7 @@ class TestToolDescriptor:
         assert sample_tool.enterprise_ready is True
         assert sample_tool.ai_enhanced is False
 
-    def test_tool_compatibility_check(self, sample_tool) -> bool:
+    def test_tool_compatibility_check(self, sample_tool: Any) -> bool:
         """Test tool compatibility validation."""
         compatible_tool = ToolDescriptor(
             tool_id="km_compatible",
@@ -103,7 +103,7 @@ class TestToolDescriptor:
 
         assert not sample_tool.is_compatible_with(conflicting_tool)
 
-    def test_tool_synergy_calculation(self, sample_tool) -> None:
+    def test_tool_synergy_calculation(self, sample_tool: Any) -> None:
         """Test synergy score calculation between tools."""
         synergistic_tool = ToolDescriptor(
             tool_id="km_synergistic",
@@ -126,7 +126,7 @@ class TestToolDescriptor:
         capabilities=st.sets(st.text(min_size=1, max_size=20), min_size=1, max_size=10),
     )
     @settings(max_examples=50)
-    def test_tool_descriptor_property_validation(self, tool_id, capabilities) -> None:
+    def test_tool_descriptor_property_validation(self, tool_id: str, capabilities: Any) -> None:
         """Property-based test for tool descriptor validation."""
         try:
             tool = ToolDescriptor(
@@ -192,7 +192,7 @@ class TestToolRegistry:
 
         return registry
 
-    def test_tool_registration(self, tool_registry) -> None:
+    def test_tool_registration(self, tool_registry: dict[str, Any] | Any) -> None:
         """Test tool registration and indexing."""
         assert len(tool_registry.tools) == 2
         assert "km_foundation" in tool_registry.tools
@@ -206,7 +206,7 @@ class TestToolRegistry:
         assert ToolCategory.FOUNDATION in tool_registry.category_index
         assert ToolCategory.INTELLIGENCE in tool_registry.category_index
 
-    def test_find_tools_by_capability(self, tool_registry) -> None:
+    def test_find_tools_by_capability(self, tool_registry: dict[str, Any] | Any) -> None:
         """Test finding tools by capability."""
         creation_tools = tool_registry.find_tools_by_capability("macro_creation")
         assert len(creation_tools) == 1
@@ -216,7 +216,7 @@ class TestToolRegistry:
         assert len(ai_tools) == 1
         assert ai_tools[0].tool_id == "km_intelligence"
 
-    def test_find_tools_by_category(self, tool_registry) -> None:
+    def test_find_tools_by_category(self, tool_registry: dict[str, Any] | Any) -> None:
         """Test finding tools by category."""
         foundation_tools = tool_registry.find_tools_by_category(ToolCategory.FOUNDATION)
         assert len(foundation_tools) == 1
@@ -228,7 +228,7 @@ class TestToolRegistry:
         assert len(intelligence_tools) == 1
         assert intelligence_tools[0].tool_id == "km_intelligence"
 
-    def test_tool_synergies(self, tool_registry) -> None:
+    def test_tool_synergies(self, tool_registry: dict[str, Any] | Any) -> None:
         """Test tool synergy identification."""
         synergies = tool_registry.get_tool_synergies("km_foundation")
         assert isinstance(synergies, list)
@@ -268,7 +268,7 @@ class TestWorkflowStep:
         retry_count=st.integers(min_value=0, max_value=10),
     )
     @settings(max_examples=50)
-    def test_workflow_step_property_validation(self, timeout, retry_count) -> None:
+    def test_workflow_step_property_validation(self, timeout: int | float, retry_count: int) -> None:
         """Property-based test for workflow step validation."""
         step = WorkflowStep(
             step_id=create_step_id(),
@@ -317,7 +317,7 @@ class TestEcosystemWorkflow:
             resource_requirements={"cpu": 0.6, "memory": 0.4},
         )
 
-    def test_workflow_creation(self, sample_workflow) -> None:
+    def test_workflow_creation(self, sample_workflow: Any) -> None:
         """Test workflow creation with valid parameters."""
         assert len(sample_workflow.workflow_id) > 0
         assert sample_workflow.name == "Test Workflow"
@@ -326,7 +326,7 @@ class TestEcosystemWorkflow:
         assert sample_workflow.optimization_target == OptimizationTarget.PERFORMANCE
         assert sample_workflow.expected_duration == 60.0
 
-    def test_workflow_tool_dependencies(self, sample_workflow) -> None:
+    def test_workflow_tool_dependencies(self, sample_workflow: Any) -> None:
         """Test workflow tool dependency analysis."""
         dependencies = sample_workflow.get_tool_dependencies()
         assert isinstance(dependencies, dict)
@@ -336,7 +336,7 @@ class TestEcosystemWorkflow:
         for tool_deps in dependencies.values():
             assert isinstance(tool_deps, list)
 
-    def test_workflow_parallel_groups(self, sample_workflow) -> None:
+    def test_workflow_parallel_groups(self, sample_workflow: Any) -> None:
         """Test workflow parallel group identification."""
         parallel_groups = sample_workflow.get_parallel_groups()
         assert isinstance(parallel_groups, dict)
@@ -410,10 +410,10 @@ class TestSystemPerformanceMetrics:
     @settings(max_examples=100)
     def test_health_score_properties(
         self,
-        success_rate,
-        error_rate,
-        response_time,
-        throughput,
+        success_rate: int | float,
+        error_rate: int | float,
+        response_time: int | float,
+        throughput: Any,
     ) -> None:
         """Property-based test for health score calculation."""
         metrics = SystemPerformanceMetrics(
@@ -472,7 +472,7 @@ class TestEcosystemPerformanceMonitor:
         return monitor
 
     @pytest.mark.asyncio
-    async def test_get_current_metrics(self, performance_monitor) -> None:
+    async def test_get_current_metrics(self, performance_monitor: Awaitable[Any] | Any) -> None:
         """Test current metrics retrieval."""
         metrics = await performance_monitor.get_current_metrics()
 
@@ -485,7 +485,7 @@ class TestEcosystemPerformanceMonitor:
         assert metrics.throughput >= 0.0
 
     @pytest.mark.asyncio
-    async def test_bottleneck_detection(self, performance_monitor) -> None:
+    async def test_bottleneck_detection(self, performance_monitor: Awaitable[Any] | Any) -> None:
         """Test bottleneck detection algorithm."""
         # Generate some metrics history
         for _ in range(5):
@@ -522,7 +522,7 @@ class TestMasterWorkflowEngine:
         return MasterWorkflowEngine(registry)
 
     @pytest.mark.asyncio
-    async def test_workflow_validation(self, workflow_engine) -> None:
+    async def test_workflow_validation(self, workflow_engine: Any) -> None:
         """Test workflow validation before execution."""
         # Valid workflow
         valid_workflow = EcosystemWorkflow(
@@ -568,7 +568,7 @@ class TestMasterWorkflowEngine:
         assert isinstance(result.get_left(), OrchestrationError)
 
     @pytest.mark.asyncio
-    async def test_execution_plan_optimization(self, workflow_engine) -> None:
+    async def test_execution_plan_optimization(self, workflow_engine: Awaitable[Any] | Any) -> None:
         """Test execution plan optimization."""
         workflow = EcosystemWorkflow(
             workflow_id=create_workflow_id(),
@@ -602,14 +602,14 @@ class TestEcosystemOptimization:
     """Test system optimization capabilities."""
 
     @pytest.fixture
-    async def ecosystem_orchestrator(self):
+    async def ecosystem_orchestrator(self) -> Any:
         """Create ecosystem orchestrator for testing."""
         orchestrator = EcosystemOrchestrator()
         await orchestrator.initialize()
         return orchestrator
 
     @pytest.mark.asyncio
-    async def test_optimization_plan_generation(self, ecosystem_orchestrator) -> None:
+    async def test_optimization_plan_generation(self, ecosystem_orchestrator: Awaitable[Any] | Any) -> None:
         """Test optimization plan generation for different targets."""
         metrics = SystemPerformanceMetrics(
             timestamp=datetime.now(UTC),
@@ -703,7 +703,7 @@ class TestEcosystemStrategicPlanner:
         return EcosystemStrategicPlanner(registry)
 
     @pytest.mark.asyncio
-    async def test_ecosystem_capabilities_analysis(self, strategic_planner) -> None:
+    async def test_ecosystem_capabilities_analysis(self, strategic_planner: Awaitable[Any] | Any) -> None:
         """Test ecosystem capabilities analysis."""
         analysis = await strategic_planner.analyze_ecosystem_capabilities()
 
@@ -719,7 +719,7 @@ class TestEcosystemStrategicPlanner:
         assert 0.0 <= analysis["ai_enhancement_level"] <= 1.0
 
     @pytest.mark.asyncio
-    async def test_automation_strategy_generation(self, strategic_planner) -> None:
+    async def test_automation_strategy_generation(self, strategic_planner: Awaitable[Any] | Any) -> None:
         """Test strategic automation plan generation."""
         capabilities = {
             "total_tools": 10,
@@ -761,7 +761,7 @@ class TestEcosystemOrchestrator:
         return EcosystemOrchestrator()
 
     @pytest.mark.asyncio
-    async def test_ecosystem_initialization(self, ecosystem_orchestrator) -> None:
+    async def test_ecosystem_initialization(self, ecosystem_orchestrator: Awaitable[Any] | Any) -> None:
         """Test ecosystem initialization."""
         result = await ecosystem_orchestrator.initialize_ecosystem()
 
@@ -778,7 +778,7 @@ class TestEcosystemOrchestrator:
         assert ecosystem_orchestrator.strategic_planner is not None
 
     @pytest.mark.asyncio
-    async def test_intelligent_workflow_orchestration(self, ecosystem_orchestrator) -> None:
+    async def test_intelligent_workflow_orchestration(self, ecosystem_orchestrator: Awaitable[Any] | Any) -> None:
         """Test intelligent workflow orchestration."""
         # Initialize ecosystem first
         await ecosystem_orchestrator.initialize_ecosystem()
@@ -812,7 +812,7 @@ class TestEcosystemOrchestrator:
             assert isinstance(error, OrchestrationError)
 
     @pytest.mark.asyncio
-    async def test_ecosystem_performance_optimization(self, ecosystem_orchestrator) -> None:
+    async def test_ecosystem_performance_optimization(self, ecosystem_orchestrator: Awaitable[Any] | Any) -> None:
         """Test ecosystem performance optimization."""
         # Initialize ecosystem first
         await ecosystem_orchestrator.initialize_ecosystem()
@@ -835,7 +835,7 @@ class TestEcosystemOrchestrator:
         assert isinstance(optimization_result["optimizations_applied"], list)
 
     @pytest.mark.asyncio
-    async def test_strategic_automation_planning(self, ecosystem_orchestrator) -> None:
+    async def test_strategic_automation_planning(self, ecosystem_orchestrator: Awaitable[Any] | Any) -> None:
         """Test strategic automation planning."""
         # Initialize ecosystem first
         await ecosystem_orchestrator.initialize_ecosystem()

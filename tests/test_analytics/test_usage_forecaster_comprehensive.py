@@ -6,9 +6,9 @@ UsageTrend, CapacityAnalysis, ForecastScenario, and complete UsageForecaster fun
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import math
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import pytest
 from hypothesis import given
@@ -34,25 +34,25 @@ from src.core.predictive_modeling import (
 
 # Test data generators
 @st.composite
-def resource_type_strategy(draw) -> Any:
+def resource_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid resource types."""
     return draw(st.sampled_from(list(ResourceType)))
 
 
 @st.composite
-def growth_pattern_strategy(draw) -> Any:
+def growth_pattern_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid growth patterns."""
     return draw(st.sampled_from(list(GrowthPattern)))
 
 
 @st.composite
-def capacity_status_strategy(draw) -> Any:
+def capacity_status_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid capacity statuses."""
     return draw(st.sampled_from(list(CapacityStatus)))
 
 
 @st.composite
-def usage_trend_strategy(draw) -> Any:
+def usage_trend_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid usage trends."""
     return UsageTrend(
         resource_type=draw(resource_type_strategy()),
@@ -67,7 +67,7 @@ def usage_trend_strategy(draw) -> Any:
 
 
 @st.composite
-def capacity_analysis_strategy(draw) -> Any:
+def capacity_analysis_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid capacity analyses."""
     current_capacity = draw(
         st.floats(min_value=1.0, max_value=10000.0, allow_nan=False),
@@ -105,7 +105,7 @@ def capacity_analysis_strategy(draw) -> Any:
 
 
 @st.composite
-def time_series_data_strategy(draw) -> Any:
+def time_series_data_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid time series data."""
     data_points = draw(
         st.lists(
@@ -290,7 +290,7 @@ class TestUsageTrend:
             )
 
     @given(usage_trend_strategy())
-    def test_usage_trend_property_based_creation(self, trend) -> None:
+    def test_usage_trend_property_based_creation(self, trend: Any) -> None:
         """Property-based test for UsageTrend creation."""
         assert isinstance(trend.resource_type, ResourceType)
         assert trend.trend_direction in ["increasing", "decreasing", "stable"]
@@ -344,7 +344,7 @@ class TestCapacityAnalysis:
             )
 
     @given(capacity_analysis_strategy())
-    def test_capacity_analysis_property_based_creation(self, analysis) -> None:
+    def test_capacity_analysis_property_based_creation(self, analysis: Any) -> None:
         """Property-based test for CapacityAnalysis creation."""
         assert isinstance(analysis.resource_type, ResourceType)
         assert analysis.current_capacity > 0

@@ -6,7 +6,6 @@ that doesn't require complex setup or external dependencies.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import pytest
 
 # Import core modules for basic testing

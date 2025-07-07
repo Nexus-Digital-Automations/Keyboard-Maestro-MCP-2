@@ -8,7 +8,6 @@ for maximum coverage gain toward the 95% target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -637,11 +636,11 @@ def test_smaller_scale_async_functionality() -> bool:
     """Test async functionality patterns for smaller-scale strategic systems."""
 
     @pytest.mark.asyncio
-    async def async_smaller_scale_test_helper():
+    async def async_smaller_scale_test_helper() -> None:
         import asyncio
 
         # Test async smaller-scale operations
-        async def mock_type_conversion_operation():
+        async def mock_type_conversion_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "conversion_id": "conv_001",
@@ -658,7 +657,7 @@ def test_smaller_scale_async_functionality() -> bool:
                 },
             }
 
-        async def mock_authorization_operation():
+        async def mock_authorization_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "auth_id": "auth_001",
@@ -675,7 +674,7 @@ def test_smaller_scale_async_functionality() -> bool:
                 },
             }
 
-        async def mock_data_processing_operation():
+        async def mock_data_processing_operation() -> None:
             await asyncio.sleep(0.001)
             return {
                 "processing_id": "proc_001",
@@ -702,7 +701,7 @@ def test_smaller_scale_async_functionality() -> bool:
         assert processing_result["processing_result"]["dataset_processed"] is True
 
         # Test async error handling for smaller-scale systems
-        async def failing_smaller_scale_operation():
+        async def failing_smaller_scale_operation() -> Any:
             await asyncio.sleep(0.001)
             raise ValueError("Smaller-scale system error")
 

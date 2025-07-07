@@ -9,9 +9,9 @@ with property-based testing and comprehensive enterprise-grade validation.
 # Mock the problematic mcp_server import to avoid dependency issues
 from __future__ import annotations
 
-from typing import Any, Optional
 import sys
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -45,7 +45,7 @@ km_schedule_content_review = km_tools.km_schedule_content_review
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def document_type_strategy(draw) -> Any:
+def document_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid document types."""
     types = [
         "macro",
@@ -60,28 +60,28 @@ def document_type_strategy(draw) -> Any:
 
 
 @st.composite
-def content_format_strategy(draw) -> Any:
+def content_format_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid content formats."""
     formats = ["markdown", "html", "json", "xml", "yaml", "text"]
     return draw(st.sampled_from(formats))
 
 
 @st.composite
-def operation_type_strategy(draw) -> Any:
+def operation_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid knowledge base operations."""
     operations = ["create", "read", "update", "delete", "list", "backup", "restore"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def search_type_strategy(draw) -> list[Any]:
+def search_type_strategy(draw: Callable[..., Any]) -> list[Any]:
     """Generate valid search types."""
     types = ["keyword", "semantic", "fuzzy", "exact", "category", "tag"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def quality_metric_strategy(draw) -> Any:
+def quality_metric_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid quality metrics."""
     metrics = [
         "completeness",
@@ -95,21 +95,21 @@ def quality_metric_strategy(draw) -> Any:
 
 
 @st.composite
-def export_format_strategy(draw) -> Any:
+def export_format_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid export formats."""
     formats = ["pdf", "html", "markdown", "json", "csv", "xml", "docx"]
     return draw(st.sampled_from(formats))
 
 
 @st.composite
-def review_type_strategy(draw) -> Any:
+def review_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid review types."""
     types = ["scheduled", "triggered", "manual", "automatic", "quality_check"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def knowledge_category_strategy(draw) -> Any:
+def knowledge_category_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid knowledge categories."""
     categories = [
         "automation",
@@ -123,7 +123,7 @@ def knowledge_category_strategy(draw) -> Any:
 
 
 @st.composite
-def documentation_config_strategy(draw) -> Any:
+def documentation_config_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid documentation configurations."""
     return {
         "source_type": draw(document_type_strategy()),
@@ -170,7 +170,7 @@ class TestKnowledgeManagementParameterValidation:
     """Test parameter validation for knowledge management operations."""
 
     @given(document_type_strategy())
-    def test_valid_document_types(self, doc_type) -> None:
+    def test_valid_document_types(self, doc_type: str) -> None:
         """Test that valid document types are accepted."""
         assert doc_type in [
             "macro",
@@ -183,12 +183,12 @@ class TestKnowledgeManagementParameterValidation:
         ]
 
     @given(content_format_strategy())
-    def test_valid_content_formats(self, format_type) -> None:
+    def test_valid_content_formats(self, format_type: str) -> None:
         """Test that valid content formats are accepted."""
         assert format_type in ["markdown", "html", "json", "xml", "yaml", "text"]
 
     @given(operation_type_strategy())
-    def test_valid_operation_types(self, operation) -> None:
+    def test_valid_operation_types(self, operation: str) -> None:
         """Test that valid knowledge base operations are accepted."""
         assert operation in [
             "create",
@@ -201,7 +201,7 @@ class TestKnowledgeManagementParameterValidation:
         ]
 
     @given(search_type_strategy())
-    def test_valid_search_types(self, search_type) -> None:
+    def test_valid_search_types(self, search_type: str) -> None:
         """Test that valid search types are accepted."""
         assert search_type in [
             "keyword",
@@ -213,7 +213,7 @@ class TestKnowledgeManagementParameterValidation:
         ]
 
     @given(quality_metric_strategy())
-    def test_valid_quality_metrics(self, metric) -> None:
+    def test_valid_quality_metrics(self, metric: Any) -> None:
         """Test that valid quality metrics are accepted."""
         assert metric in [
             "completeness",
@@ -225,7 +225,7 @@ class TestKnowledgeManagementParameterValidation:
         ]
 
     @given(export_format_strategy())
-    def test_valid_export_formats(self, export_format) -> None:
+    def test_valid_export_formats(self, export_format: Any) -> None:
         """Test that valid export formats are accepted."""
         assert export_format in [
             "pdf",
@@ -238,7 +238,7 @@ class TestKnowledgeManagementParameterValidation:
         ]
 
     @given(review_type_strategy())
-    def test_valid_review_types(self, review_type) -> None:
+    def test_valid_review_types(self, review_type: str) -> None:
         """Test that valid review types are accepted."""
         assert review_type in [
             "scheduled",
@@ -1051,7 +1051,7 @@ class TestKnowledgeManagementProperties:
 
     @given(documentation_config_strategy())
     @pytest.mark.asyncio
-    async def test_documentation_config_properties(self, config) -> None:
+    async def test_documentation_config_properties(self, config: dict[str, Any]) -> None:
         """Test properties of documentation configuration."""
         assume(len(config.get("sections", [])) > 0)
         assume(
@@ -1072,7 +1072,7 @@ class TestKnowledgeManagementProperties:
 
     @given(st.text(min_size=1, max_size=1000).filter(lambda x: x.strip()))
     @pytest.mark.asyncio
-    async def test_search_query_properties(self, query) -> None:
+    async def test_search_query_properties(self, query: str) -> None:
         """Test properties of search queries."""
         assume(len(query.strip()) > 0)
 

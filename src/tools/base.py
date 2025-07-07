@@ -4,9 +4,6 @@ Provides common imports and utilities to avoid circular dependencies.
 """
 from __future__ import annotations
 
-from typing import Any, Optional
-
-
 
 def get_server_utils() -> None:
     """Get server utilities with proper import handling."""

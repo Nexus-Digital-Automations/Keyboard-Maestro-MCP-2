@@ -7,11 +7,11 @@ large modules to achieve maximum coverage gain efficiently.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import os
 import sys
 from pathlib import Path
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -458,7 +458,7 @@ async def test_async_comprehensive_patterns() -> None:
     import asyncio
 
     # Test basic async/await patterns
-    async def simple_async_task():
+    async def simple_async_task() -> Any:
         await asyncio.sleep(0.001)
         return "async_result"
 
@@ -470,14 +470,14 @@ async def test_async_comprehensive_patterns() -> None:
         async def __aenter__(self):
             return self
 
-        async def __aexit__(self, exc_type, exc_val, exc_tb):
+        async def __aexit__(self, exc_type: str, exc_val: Exception | str, exc_tb: Exception | str):
             return None
 
     async with AsyncContextManager() as ctx:
         assert ctx is not None
 
     # Test async generators
-    async def async_generator():
+    async def async_generator() -> Any:
         for i in range(3):
             await asyncio.sleep(0.001)
             yield i
@@ -488,7 +488,7 @@ async def test_async_comprehensive_patterns() -> None:
     assert results == [0, 1, 2]
 
     # Test async exception handling
-    async def failing_async_task():
+    async def failing_async_task() -> Any:
         await asyncio.sleep(0.001)
         raise ValueError("Async error")
 

@@ -7,7 +7,6 @@ error handling, and edge cases.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import logging
 from unittest.mock import Mock, patch
@@ -123,7 +122,7 @@ class TestClipboardModuleCoverage:
     """Test clipboard module functionality."""
 
     @patch("subprocess.run")
-    def test_clipboard_manager_functionality(self, mock_run) -> None:
+    def test_clipboard_manager_functionality(self, mock_run: Any) -> None:
         """Test ClipboardManager core functionality."""
         from src.clipboard.clipboard_manager import ClipboardManager
 
@@ -155,7 +154,7 @@ class TestApplicationsModuleCoverage:
     """Test applications module functionality."""
 
     @patch("subprocess.run")
-    def test_app_controller_functionality(self, mock_run) -> None:
+    def test_app_controller_functionality(self, mock_run: Any) -> None:
         """Test AppController core functionality."""
         from src.applications.app_controller import AppController
 
@@ -170,7 +169,7 @@ class TestApplicationsModuleCoverage:
         assert result is not None
 
     @patch("subprocess.run")
-    def test_menu_navigator_functionality(self, mock_run) -> None:
+    def test_menu_navigator_functionality(self, mock_run: Any) -> None:
         """Test MenuNavigator functionality."""
         from src.applications.menu_navigator import MenuNavigator
 
@@ -189,7 +188,7 @@ class TestWindowsModuleCoverage:
     """Test windows module functionality."""
 
     @patch("subprocess.run")
-    def test_window_manager_functionality(self, mock_run) -> None:
+    def test_window_manager_functionality(self, mock_run: Any) -> None:
         """Test WindowManager core functionality."""
         from src.windows.window_manager import WindowManager
 
@@ -211,7 +210,7 @@ class TestTriggersModuleCoverage:
     """Test triggers module functionality."""
 
     @patch("subprocess.run")
-    def test_hotkey_manager_functionality(self, mock_run) -> None:
+    def test_hotkey_manager_functionality(self, mock_run: Any) -> None:
         """Test HotkeyManager functionality."""
         from src.triggers.hotkey_manager import HotkeyManager
 
@@ -295,7 +294,7 @@ class TestCoreEngineIntegration:
         assert value == "test_value"
 
     @patch("subprocess.run")
-    def test_core_engine_functionality(self, mock_run) -> None:
+    def test_core_engine_functionality(self, mock_run: Any) -> None:
         """Test core engine functionality if available."""
         try:
             from src.core.engine import MacroEngine
@@ -318,7 +317,7 @@ class TestCommunicationIntegration:
     """Test communication module integration."""
 
     @patch("subprocess.run")
-    def test_email_manager_integration(self, mock_run) -> None:
+    def test_email_manager_integration(self, mock_run: Any) -> None:
         """Test email manager integration."""
         from src.communication.email_manager import EmailManager
 
@@ -337,7 +336,7 @@ class TestCommunicationIntegration:
         assert result is not None
 
     @patch("subprocess.run")
-    def test_sms_manager_integration(self, mock_run) -> None:
+    def test_sms_manager_integration(self, mock_run: Any) -> None:
         """Test SMS manager integration."""
         from src.communication.sms_manager import SMSManager
 

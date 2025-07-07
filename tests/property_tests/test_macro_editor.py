@@ -6,7 +6,6 @@ behavior across all input ranges with security validation and error handling.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -30,7 +29,7 @@ class TestMacroEditorProperties:
     """Property-based tests for macro editor functionality."""
 
     @given(st.text(min_size=1, max_size=100).filter(lambda x: x.strip() != ""))
-    def test_macro_editor_initialization_properties(self, macro_id) -> None:
+    def test_macro_editor_initialization_properties(self, macro_id: str) -> None:
         """Property: All valid macro IDs should create valid editor instances."""
         editor = MacroEditor(macro_id)
         assert editor.macro_id == macro_id
@@ -61,7 +60,7 @@ class TestMacroEditorProperties:
         ),  # Valid config with proper keys/values
         st.integers(min_value=0, max_value=10),  # Reasonable position range
     )
-    def test_add_action_properties(self, action_type, config, position) -> None:
+    def test_add_action_properties(self, action_type: str, config: dict[str, Any], position: int | float) -> None:
         """Property: Adding actions should preserve order and configuration."""
         editor = MacroEditor("test_macro")
 
@@ -88,7 +87,7 @@ class TestMacroEditorProperties:
             max_size=10,
         ),
     )
-    def test_multiple_modifications_properties(self, action_specs) -> None:
+    def test_multiple_modifications_properties(self, action_specs: Any) -> None:
         """Property: Multiple modifications should maintain order and integrity."""
         editor = MacroEditor("test_macro")
 
@@ -113,10 +112,10 @@ class TestMacroEditorProperties:
     )
     def test_debug_session_properties(
         self,
-        macro_id,
-        breakpoints,
-        watch_variables,
-        timeout,
+        macro_id: str,
+        breakpoints: Any,
+        watch_variables: Any,
+        timeout: int | float,
     ) -> None:
         """Property: Debug sessions should validate configuration properly."""
         assume(len(breakpoints) <= 50)
@@ -136,7 +135,7 @@ class TestMacroEditorProperties:
         assert debug_session.timeout_seconds == timeout
 
     @given(st.integers(min_value=-10, max_value=400))
-    def test_debug_session_timeout_validation(self, timeout) -> None:
+    def test_debug_session_timeout_validation(self, timeout: int | float) -> None:
         """Property: Debug session timeout validation should work correctly."""
         if 1 <= timeout <= 300:
             # Should succeed
@@ -157,7 +156,7 @@ class TestMacroEditorProperties:
             max_size=20,
         ),
     )
-    def test_action_validation_properties(self, action_config) -> None:
+    def test_action_validation_properties(self, action_config: dict[str, Any]) -> None:
         """Property: Action validation should handle all configuration types."""
         result = MacroEditorValidator.validate_action_modification(action_config)
 
@@ -178,7 +177,7 @@ class TestMacroEditorProperties:
             max_size=15,
         ),
     )
-    def test_debug_config_validation_properties(self, debug_config) -> None:
+    def test_debug_config_validation_properties(self, debug_config: dict[str, Any]) -> None:
         """Property: Debug configuration validation should be comprehensive."""
         result = MacroEditorValidator.validate_debug_session(debug_config)
 
@@ -207,7 +206,7 @@ class TestMacroEditorProperties:
             max_size=20,
         ),
     )
-    def test_macro_complexity_calculation_properties(self, macro_data) -> None:
+    def test_macro_complexity_calculation_properties(self, macro_data: Any) -> None:
         """Property: Complexity calculation should be bounded and consistent."""
         complexity = calculate_macro_complexity(macro_data)
 
@@ -233,7 +232,7 @@ class TestMacroEditorProperties:
             max_size=20,
         ),
     )
-    def test_macro_health_calculation_properties(self, macro_data) -> None:
+    def test_macro_health_calculation_properties(self, macro_data: Any) -> None:
         """Property: Health calculation should be bounded and meaningful."""
         health = calculate_macro_health(macro_data)
 
@@ -274,10 +273,10 @@ class TestMacroDebuggerProperties:
     @pytest.mark.asyncio
     async def test_debug_session_lifecycle_properties(
         self,
-        debugger,
-        macro_id,
-        breakpoints,
-        timeout,
+        debugger: Any,
+        macro_id: str,
+        breakpoints: Any,
+        timeout: int | float,
     ) -> None:
         """Property: Debug session lifecycle should be consistent."""
         debug_session = DebugSession(
@@ -316,7 +315,7 @@ class TestMacroDebuggerProperties:
     @given(st.integers(min_value=1, max_value=20))
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_step_execution_properties(self, debugger, step_count) -> None:
+    async def test_step_execution_properties(self, debugger: Awaitable[Any] | Any, step_count: int) -> None:
         """Property: Step execution should maintain consistency."""
         debug_session = DebugSession(macro_id="test_macro")
 
@@ -347,8 +346,8 @@ class TestMacroEditorToolProperties:
     @pytest.mark.asyncio
     async def test_macro_editor_tool_operation_validation(
         self,
-        macro_identifier,
-        operation,
+        macro_identifier: str,
+        operation: str,
     ) -> None:
         """Property: Tool should validate operations consistently."""
         # Mock the underlying components
@@ -388,7 +387,7 @@ class TestMacroEditorToolProperties:
 
     @given(st.text(max_size=0))
     @pytest.mark.asyncio
-    async def test_empty_macro_identifier_validation(self, empty_identifier) -> None:
+    async def test_empty_macro_identifier_validation(self, empty_identifier: str) -> None:
         """Property: Empty macro identifiers should be rejected."""
         assume(len(empty_identifier.strip()) == 0)
 
@@ -406,7 +405,7 @@ class TestMacroEditorToolProperties:
 
     @given(st.text(min_size=1, max_size=50))
     @pytest.mark.asyncio
-    async def test_invalid_operation_validation(self, macro_identifier) -> None:
+    async def test_invalid_operation_validation(self, macro_identifier: str) -> None:
         """Property: Invalid operations should be rejected."""
         invalid_operation = "invalid_operation_that_does_not_exist"
 
@@ -428,7 +427,7 @@ class TestSecurityProperties:
 
     @settings(max_examples=50, deadline=5000)  # Adjust for performance
     @given(st.dictionaries(st.text(), st.text(), min_size=1, max_size=10))
-    def test_dangerous_script_detection(self, action_config) -> None:
+    def test_dangerous_script_detection(self, action_config: dict[str, Any]) -> None:
         """Property: Dangerous scripts should be detected and blocked."""
         # Add dangerous content
         dangerous_patterns = ["rm -rf", "sudo", "eval", "exec"]
@@ -444,7 +443,7 @@ class TestSecurityProperties:
                 assert result.is_left()
 
     @given(st.text(min_size=1, max_size=100).filter(lambda x: x.strip() != ""))
-    def test_system_macro_protection(self, macro_id) -> None:
+    def test_system_macro_protection(self, macro_id: str) -> None:
         """Property: System macros should be protected from modification."""
         if macro_id.startswith("com.stairways.keyboardmaestro."):
             result = MacroEditorValidator.validate_modification_permissions(
@@ -467,9 +466,9 @@ class TestSecurityProperties:
     )
     def test_debug_session_limits_enforcement(
         self,
-        breakpoints,
-        watch_variables,
-        timeout,
+        breakpoints: Any,
+        watch_variables: Any,
+        timeout: int | float,
     ) -> None:
         """Property: Debug session limits should be enforced."""
         debug_config = {

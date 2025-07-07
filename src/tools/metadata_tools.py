@@ -26,7 +26,7 @@ from ..integration.smart_filtering import (
 logger = logging.getLogger(__name__)
 
 
-def register_metadata_tools(mcp) -> None:
+def register_metadata_tools(mcp: Any) -> None:
     """Register metadata and analysis tools with the MCP server."""
 
     @mcp.tool()

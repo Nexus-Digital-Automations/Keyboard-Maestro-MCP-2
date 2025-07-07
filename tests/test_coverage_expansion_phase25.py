@@ -8,7 +8,6 @@ serverless computing, and cloud platform integrations for continued systematic p
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -537,11 +536,11 @@ def test_advanced_cloud_native_async_functionality() -> bool:
     """Test advanced async functionality for Phase 25 cloud-native modules."""
 
     @pytest.mark.asyncio
-    async def async_cloud_native_test_helper():
+    async def async_cloud_native_test_helper() -> None:
         import asyncio
 
         # Test advanced async operations for Phase 25 cloud-native modules
-        async def mock_cloud_native_architecture_processing():
+        async def mock_cloud_native_architecture_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "cloud_native_id": "cloud_native_001",
@@ -560,7 +559,7 @@ def test_advanced_cloud_native_async_functionality() -> bool:
                 },
             }
 
-        async def mock_microservices_orchestration_operation():
+        async def mock_microservices_orchestration_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "microservices_id": "microservices_orch_001",
@@ -579,7 +578,7 @@ def test_advanced_cloud_native_async_functionality() -> bool:
                 },
             }
 
-        async def mock_serverless_computing_processing():
+        async def mock_serverless_computing_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "serverless_id": "serverless_comp_001",
@@ -617,7 +616,7 @@ def test_advanced_cloud_native_async_functionality() -> bool:
         )
 
         # Test cloud-native async error handling
-        async def failing_cloud_native_operation():
+        async def failing_cloud_native_operation() -> Any:
             await asyncio.sleep(0.001)
             raise RuntimeError("Cloud-native system failure")
 

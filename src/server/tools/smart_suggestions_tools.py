@@ -44,7 +44,7 @@ class SmartSuggestionsManager:
         self.initialized = False
         self.ai_processor = None
 
-    async def initialize(self, ai_processor=None) -> Either[SuggestionError, None]:
+    async def initialize(self, ai_processor: Any=None) -> Either[SuggestionError, None]:
         """Initialize smart suggestions system with optional AI processor."""
         try:
             self.ai_processor = ai_processor
@@ -145,7 +145,7 @@ class SmartSuggestionsManager:
 _smart_suggestions_manager = SmartSuggestionsManager()
 
 
-async def _ensure_initialized():
+async def _ensure_initialized() -> None:
     """Ensure smart suggestions system is initialized."""
     if not _smart_suggestions_manager.initialized:
         init_result = await _smart_suggestions_manager.initialize()
@@ -168,7 +168,7 @@ async def km_smart_suggestions(
     time_horizon: str = "immediate",  # immediate|short_term|long_term
     learning_mode: bool = True,  # Enable learning from interaction
     privacy_level: str = "high",  # low|medium|high privacy protection
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """AI-powered smart suggestions for automation optimization and workflow improvement.
 

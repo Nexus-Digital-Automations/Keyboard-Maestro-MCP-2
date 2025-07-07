@@ -8,7 +8,8 @@ pattern that achieved 100% success across 22+ tool suites.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
+
 import pytest
 
 # Import FastMCP tool objects and extract underlying functions (systematic MCP pattern)
@@ -23,7 +24,7 @@ km_ai_batch = ai_intel_tools.km_ai_batch
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def intelligence_operation_strategy(draw) -> Any:
+def intelligence_operation_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid intelligence operations."""
     operations = [
         "analyze_context",
@@ -36,14 +37,14 @@ def intelligence_operation_strategy(draw) -> Any:
 
 
 @st.composite
-def intelligence_type_strategy(draw) -> Any:
+def intelligence_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid intelligence types."""
     types = ["adaptive", "predictive", "reactive", "proactive"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def context_dimensions_strategy(draw) -> Any:
+def context_dimensions_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid context dimensions."""
     dimensions = [
         "temporal",
@@ -65,34 +66,34 @@ def context_dimensions_strategy(draw) -> Any:
 
 
 @st.composite
-def confidence_threshold_strategy(draw) -> Any:
+def confidence_threshold_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid confidence thresholds."""
     return draw(st.floats(min_value=0.1, max_value=1.0))
 
 
 @st.composite
-def adaptation_mode_strategy(draw) -> Any:
+def adaptation_mode_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid adaptation modes."""
     modes = ["conservative", "moderate", "aggressive"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def privacy_level_strategy(draw) -> Any:
+def privacy_level_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid privacy levels."""
     levels = ["minimal", "standard", "strict", "paranoid"]
     return draw(st.sampled_from(levels))
 
 
 @st.composite
-def batch_operation_strategy(draw) -> Any:
+def batch_operation_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid batch operations."""
     operations = ["submit", "status", "cancel", "list"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def processing_mode_strategy(draw) -> None:
+def processing_mode_strategy(draw: Callable[..., Any]) -> None:
     """Generate valid processing modes."""
     modes = ["sequential", "parallel", "adaptive", "priority_based"]
     return draw(st.sampled_from(modes))
@@ -113,7 +114,7 @@ class TestAIIntelligenceParameterValidation:
     """Test parameter validation for AI intelligence operations."""
 
     @given(intelligence_operation_strategy())
-    def test_valid_intelligence_operations(self, operation) -> None:
+    def test_valid_intelligence_operations(self, operation: str) -> None:
         """Test that intelligence operations are properly validated."""
         valid_operations = [
             "analyze_context",
@@ -125,13 +126,13 @@ class TestAIIntelligenceParameterValidation:
         assert operation in valid_operations
 
     @given(intelligence_type_strategy())
-    def test_valid_intelligence_types(self, intelligence_type) -> None:
+    def test_valid_intelligence_types(self, intelligence_type: str) -> None:
         """Test that intelligence types are properly validated."""
         valid_types = ["adaptive", "predictive", "reactive", "proactive"]
         assert intelligence_type in valid_types
 
     @given(context_dimensions_strategy())
-    def test_valid_context_dimensions(self, dimensions) -> None:
+    def test_valid_context_dimensions(self, dimensions: list[Any] | str) -> None:
         """Test that context dimensions are properly validated."""
         valid_dimensions = [
             "temporal",
@@ -146,18 +147,18 @@ class TestAIIntelligenceParameterValidation:
         assert len(set(dimensions)) == len(dimensions)  # No duplicates
 
     @given(confidence_threshold_strategy())
-    def test_valid_confidence_thresholds(self, threshold) -> None:
+    def test_valid_confidence_thresholds(self, threshold: int | float) -> None:
         """Test that confidence thresholds are properly validated."""
         assert 0.1 <= threshold <= 1.0
 
     @given(adaptation_mode_strategy())
-    def test_valid_adaptation_modes(self, mode) -> None:
+    def test_valid_adaptation_modes(self, mode: str) -> None:
         """Test that adaptation modes are properly validated."""
         valid_modes = ["conservative", "moderate", "aggressive"]
         assert mode in valid_modes
 
     @given(privacy_level_strategy())
-    def test_valid_privacy_levels(self, level) -> None:
+    def test_valid_privacy_levels(self, level: int) -> None:
         """Test that privacy levels are properly validated."""
         valid_levels = ["minimal", "standard", "strict", "paranoid"]
         assert level in valid_levels
@@ -636,9 +637,9 @@ class TestAIIntelligenceProperties:
     @pytest.mark.asyncio
     async def test_ai_intelligence_properties(
         self,
-        operation,
-        confidence,
-        adaptation_mode,
+        operation: str,
+        confidence: Any,
+        adaptation_mode: Any,
     ) -> None:
         """Test properties of AI intelligence operations."""
         assume(confidence >= 0.1)  # Ensure valid confidence
@@ -722,7 +723,7 @@ class TestAIIntelligenceProperties:
 
     @given(batch_operation_strategy(), processing_mode_strategy())
     @pytest.mark.asyncio
-    async def test_ai_batch_properties(self, operation, processing_mode) -> None:
+    async def test_ai_batch_properties(self, operation: str, processing_mode: Any) -> None:
         """Test properties of AI batch operations."""
         # Prepare batch_data based on operation
         if operation == "submit":

@@ -6,7 +6,7 @@ source modules to drive toward the user's explicit "near 100%" coverage target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -335,7 +335,7 @@ class TestIntegrationCoverage:
                 result = await self._simulate_secure_analytics()
                 assert result is not None
 
-    async def _simulate_secure_analytics(self):
+    async def _simulate_secure_analytics(self) -> Any:
         """Simulate secure analytics workflow."""
         return {"status": "success", "data": "processed"}
 
@@ -397,15 +397,15 @@ class TestHighImpactCoverage:
                 # Allow operation errors but verify they're handled
                 assert "error" in str(e).lower() or "not implemented" in str(e).lower()
 
-    async def _test_scenario_async(self):
+    async def _test_scenario_async(self) -> None:
         """Test async scenario operations."""
         return {"status": "tested"}
 
-    async def _test_model_async(self):
+    async def _test_model_async(self) -> None:
         """Test async model operations."""
         return {"status": "tested"}
 
-    async def _test_security_async(self):
+    async def _test_security_async(self) -> None:
         """Test async security operations."""
         return {"status": "tested"}
 

@@ -6,7 +6,7 @@ security validation, XML generation, and comprehensive enterprise-grade validati
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import Mock, patch
 
 import defusedxml.ElementTree as ET
@@ -25,7 +25,7 @@ from src.core.types import Duration
 
 # Test data generators
 @st.composite
-def action_category_strategy(draw) -> Any:
+def action_category_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid action categories."""
     return draw(
         st.sampled_from(
@@ -48,13 +48,13 @@ def action_category_strategy(draw) -> Any:
 
 
 @st.composite
-def action_identifier_strategy(draw) -> Any:
+def action_identifier_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid action identifiers."""
     return draw(st.from_regex(r"^[a-zA-Z0-9_\s\-\./]+$", fullmatch=True))
 
 
 @st.composite
-def parameter_dict_strategy(draw) -> Any:
+def parameter_dict_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid parameter dictionaries."""
     return draw(
         st.dictionaries(
@@ -128,7 +128,7 @@ class TestActionType:
             )
 
     @given(action_identifier_strategy(), action_category_strategy())
-    def test_action_type_property_based_creation(self, identifier, category) -> None:
+    def test_action_type_property_based_creation(self, identifier: str, category: str) -> None:
         """Property-based test for ActionType creation."""
         assume(identifier and identifier.strip())
 
@@ -260,7 +260,7 @@ class TestActionConfiguration:
         assert config_long._validate_parameter_security() is False
 
     @given(parameter_dict_strategy())
-    def test_action_configuration_property_based_validation(self, parameters) -> None:
+    def test_action_configuration_property_based_validation(self, parameters: list[Any]) -> None:
         """Property-based test for ActionConfiguration validation."""
         action_type = ActionType(
             identifier="Test Action",
@@ -693,7 +693,7 @@ class TestActionBuilderIntegration:
         )
 
         # Configure registry mock
-        def get_action_type(action_name) -> bool:
+        def get_action_type(action_name: str) -> bool:
             mapping = {
                 "Type a String": text_action,
                 "Pause": pause_action,

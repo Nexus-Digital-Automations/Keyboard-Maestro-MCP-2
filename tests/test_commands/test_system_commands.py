@@ -6,7 +6,6 @@ and proper contract enforcement.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import time
 from unittest.mock import patch
 
@@ -148,7 +147,7 @@ class TestPlaySoundCommand:
         assert cmd.validate() is True
 
     @patch("subprocess.run")
-    def test_sound_execution_system_sound(self, mock_subprocess) -> None:
+    def test_sound_execution_system_sound(self, mock_subprocess: Any) -> None:
         """Test sound command execution with system sound."""
         mock_subprocess.return_value.returncode = 0
 
@@ -243,7 +242,7 @@ class TestSetVolumeCommand:
         assert fade_duration.seconds == 10.0
 
     @patch("subprocess.run")
-    def test_volume_execution(self, mock_subprocess) -> None:
+    def test_volume_execution(self, mock_subprocess: Any) -> None:
         """Test volume command execution."""
         mock_subprocess.return_value.returncode = 0
         mock_subprocess.return_value.stdout = "50"

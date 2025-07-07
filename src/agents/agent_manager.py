@@ -125,9 +125,9 @@ class AutonomousAgent:
 
     async def initialize(
         self,
-        ai_processor=None,
-        decision_engine=None,
-        safety_validator=None,
+        ai_processor: Any=None,
+        decision_engine: Any=None,
+        safety_validator: Any=None,
     ) -> Either[AutonomousAgentError, None]:
         """Initialize the autonomous agent with required components."""
         try:

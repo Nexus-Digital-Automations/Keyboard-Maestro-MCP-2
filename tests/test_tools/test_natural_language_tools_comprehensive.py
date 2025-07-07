@@ -8,7 +8,7 @@ testing and comprehensive enterprise-grade validation using the proven pattern t
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -28,7 +28,7 @@ km_nlp_performance_metrics = nl_tools.km_nlp_performance_metrics.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def command_text_strategy(draw) -> Any:
+def command_text_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid command text inputs."""
     commands = [
         "Open the calculator application",
@@ -42,7 +42,7 @@ def command_text_strategy(draw) -> Any:
 
 
 @st.composite
-def intent_text_strategy(draw) -> Any:
+def intent_text_strategy(draw: Callable[..., Any]) -> Any:
     """Generate text inputs for intent recognition."""
     intents = [
         "I want to automate my morning routine",
@@ -55,7 +55,7 @@ def intent_text_strategy(draw) -> Any:
 
 
 @st.composite
-def conversation_text_strategy(draw) -> Any:
+def conversation_text_strategy(draw: Callable[..., Any]) -> Any:
     """Generate conversation text inputs."""
     conversations = [
         "Hello, how can I automate my workflow?",
@@ -68,20 +68,20 @@ def conversation_text_strategy(draw) -> Any:
 
 
 @st.composite
-def language_code_strategy(draw) -> Any:
+def language_code_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid language codes."""
     languages = ["en", "es", "fr", "de", "it", "pt", "ja", "ko", "zh", "auto"]
     return draw(st.sampled_from(languages))
 
 
 @st.composite
-def confidence_threshold_strategy(draw) -> Any:
+def confidence_threshold_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid confidence thresholds."""
     return draw(st.floats(min_value=0.1, max_value=1.0))
 
 
 @st.composite
-def processing_mode_strategy(draw) -> None:
+def processing_mode_strategy(draw: Callable[..., Any]) -> None:
     """Generate valid processing modes."""
     modes = ["fast", "standard", "detailed", "conversational"]
     return draw(st.sampled_from(modes))
@@ -108,25 +108,25 @@ class TestNaturalLanguageParameterValidation:
     """Test parameter validation for natural language operations."""
 
     @given(command_text_strategy())
-    def test_valid_command_text(self, command_text) -> None:
+    def test_valid_command_text(self, command_text: list[Any] | str) -> None:
         """Test that command text inputs are properly validated."""
         assert isinstance(command_text, str)
         assert len(command_text) > 0
         assert len(command_text) < 1000  # Reasonable length limit
 
     @given(language_code_strategy())
-    def test_valid_language_codes(self, language_code) -> None:
+    def test_valid_language_codes(self, language_code: Any) -> None:
         """Test that language codes are properly validated."""
         valid_codes = ["en", "es", "fr", "de", "it", "pt", "ja", "ko", "zh", "auto"]
         assert language_code in valid_codes
 
     @given(confidence_threshold_strategy())
-    def test_valid_confidence_thresholds(self, threshold) -> None:
+    def test_valid_confidence_thresholds(self, threshold: int | float) -> None:
         """Test that confidence thresholds are properly validated."""
         assert 0.1 <= threshold <= 1.0
 
     @given(processing_mode_strategy())
-    def test_valid_processing_modes(self, mode) -> None:
+    def test_valid_processing_modes(self, mode: str) -> None:
         """Test that processing modes are properly validated."""
         valid_modes = ["fast", "standard", "detailed", "conversational"]
         assert mode in valid_modes
@@ -735,9 +735,9 @@ class TestNaturalLanguageProperties:
     @pytest.mark.asyncio
     async def test_command_interpretation_properties(
         self,
-        command_text,
-        processing_mode,
-        confidence_threshold,
+        command_text: Any,
+        processing_mode: Any,
+        confidence_threshold: Any,
     ) -> None:
         """Test properties of command interpretation operations."""
         assume(len(command_text.strip()) > 0)
@@ -792,7 +792,7 @@ class TestNaturalLanguageProperties:
 
     @given(intent_text_strategy(), language_code_strategy())
     @pytest.mark.asyncio
-    async def test_intent_recognition_properties(self, intent_text, language_code) -> None:
+    async def test_intent_recognition_properties(self, intent_text: str, language_code: Any) -> None:
         """Test properties of intent recognition operations."""
         assume(len(intent_text.strip()) > 0)
 

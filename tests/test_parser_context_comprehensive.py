@@ -207,7 +207,7 @@ class TestMacroParser:
         ),
     )
     @settings(max_examples=10)
-    def test_macro_name_parsing_property(self, macro_name) -> None:
+    def test_macro_name_parsing_property(self, macro_name: str) -> None:
         """Property-based test for macro name parsing."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Parser module not available")
@@ -542,7 +542,7 @@ class TestExecutionContext:
         st.one_of(st.text(), st.integers(), st.booleans()),
     )
     @settings(max_examples=20)
-    def test_variable_storage_property(self, var_name, var_value) -> None:
+    def test_variable_storage_property(self, var_name: str, var_value: Any) -> None:
         """Property-based test for variable storage."""
         if not PARSER_CONTEXT_AVAILABLE:
             pytest.skip("Context module not available")

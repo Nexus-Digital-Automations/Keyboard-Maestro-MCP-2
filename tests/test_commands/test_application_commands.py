@@ -6,7 +6,6 @@ and proper contract enforcement.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -85,7 +84,7 @@ class TestLaunchApplicationCommand:
     @patch(
         "src.commands.application.LaunchApplicationCommand._resolve_application_path",
     )
-    def test_launch_execution_success(self, mock_resolve, mock_popen) -> None:
+    def test_launch_execution_success(self, mock_resolve: Any, mock_popen: Any) -> None:
         """Test successful application launch."""
         mock_resolve.return_value = "/Applications/Calculator.app"
         mock_process = MagicMock()
@@ -115,7 +114,7 @@ class TestLaunchApplicationCommand:
     @patch(
         "src.commands.application.LaunchApplicationCommand._resolve_application_path",
     )
-    def test_launch_execution_app_not_found(self, mock_resolve) -> None:
+    def test_launch_execution_app_not_found(self, mock_resolve: Any) -> None:
         """Test launch execution when app is not found."""
         mock_resolve.return_value = None
 
@@ -207,7 +206,7 @@ class TestQuitApplicationCommand:
 
     @patch("subprocess.run")
     @patch("src.commands.application.QuitApplicationCommand._find_application_pids")
-    def test_quit_execution_success(self, mock_find_pids, mock_subprocess) -> None:
+    def test_quit_execution_success(self, mock_find_pids: Any, mock_subprocess: Any) -> None:
         """Test successful application quit."""
         mock_find_pids.return_value = [1234]
         mock_subprocess.return_value.returncode = 0
@@ -231,7 +230,7 @@ class TestQuitApplicationCommand:
         assert "Successfully quit 1 process" in result.output
 
     @patch("src.commands.application.QuitApplicationCommand._find_application_pids")
-    def test_quit_execution_app_not_running(self, mock_find_pids) -> None:
+    def test_quit_execution_app_not_running(self, mock_find_pids: Any) -> None:
         """Test quit execution when app is not running."""
         mock_find_pids.return_value = []
 
@@ -307,9 +306,9 @@ class TestActivateApplicationCommand:
     @patch("src.commands.application.ActivateApplicationCommand._activate_application")
     def test_activate_execution_success(
         self,
-        mock_activate,
-        mock_is_running,
-        mock_subprocess,
+        mock_activate: Any,
+        mock_is_running: Any,
+        mock_subprocess: Any,
     ) -> None:
         """Test successful application activation."""
         mock_is_running.return_value = True
@@ -331,7 +330,7 @@ class TestActivateApplicationCommand:
     @patch(
         "src.commands.application.ActivateApplicationCommand._is_application_running",
     )
-    def test_activate_execution_app_not_running(self, mock_is_running) -> None:
+    def test_activate_execution_app_not_running(self, mock_is_running: Any) -> None:
         """Test activate execution when app is not running."""
         mock_is_running.return_value = False
 

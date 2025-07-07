@@ -8,8 +8,8 @@ and comprehensive enterprise-grade validation using the proven pattern that achi
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -31,7 +31,7 @@ km_computer_vision_metrics = cv_tools.km_computer_vision_metrics.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def image_data_strategy(draw) -> Any:
+def image_data_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid base64 image data."""
     # Simple base64 encoded minimal image data for testing
     test_images = [
@@ -43,26 +43,26 @@ def image_data_strategy(draw) -> Any:
 
 
 @st.composite
-def confidence_strategy(draw) -> Any:
+def confidence_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid confidence thresholds."""
     return draw(st.floats(min_value=0.1, max_value=1.0))
 
 
 @st.composite
-def max_objects_strategy(draw) -> Any:
+def max_objects_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid max object counts."""
     return draw(st.integers(min_value=1, max_value=100))
 
 
 @st.composite
-def model_type_strategy(draw) -> Any:
+def model_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid model types."""
     models = ["yolo_v8", "detectron2", "custom"]
     return draw(st.sampled_from(models))
 
 
 @st.composite
-def roi_coordinates_strategy(draw) -> list[Any]:
+def roi_coordinates_strategy(draw: Callable[..., Any]) -> list[Any]:
     """Generate valid ROI coordinates."""
     # Normalized coordinates between 0.0 and 1.0
     x = draw(st.floats(min_value=0.0, max_value=0.8))
@@ -73,14 +73,14 @@ def roi_coordinates_strategy(draw) -> list[Any]:
 
 
 @st.composite
-def analysis_level_strategy(draw) -> Any:
+def analysis_level_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid analysis levels."""
     levels = ["basic", "standard", "detailed", "comprehensive"]
     return draw(st.sampled_from(levels))
 
 
 @st.composite
-def text_detection_mode_strategy(draw) -> Any:
+def text_detection_mode_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid text detection modes."""
     modes = ["fast", "accurate", "hybrid"]
     return draw(st.sampled_from(modes))
@@ -112,23 +112,23 @@ class TestComputerVisionParameterValidation:
     """Test parameter validation for computer vision functions."""
 
     @given(confidence_strategy())
-    def test_valid_confidence_thresholds(self, confidence) -> None:
+    def test_valid_confidence_thresholds(self, confidence: Any) -> None:
         """Test that valid confidence thresholds are accepted."""
         assert 0.1 <= confidence <= 1.0
 
     @given(max_objects_strategy())
-    def test_valid_max_objects(self, max_objects) -> None:
+    def test_valid_max_objects(self, max_objects: Any) -> None:
         """Test that valid max object counts are accepted."""
         assert 1 <= max_objects <= 100
 
     @given(model_type_strategy())
-    def test_valid_model_types(self, model_type) -> None:
+    def test_valid_model_types(self, model_type: str) -> None:
         """Test that valid model types are accepted."""
         valid_models = ["yolo_v8", "detectron2", "custom"]
         assert model_type in valid_models
 
     @given(roi_coordinates_strategy())
-    def test_valid_roi_coordinates(self, roi_coords) -> None:
+    def test_valid_roi_coordinates(self, roi_coords: list[Any] | str) -> None:
         """Test that valid ROI coordinates are accepted."""
         assert len(roi_coords) == 4
         assert all(0.0 <= coord <= 1.0 for coord in roi_coords)
@@ -138,13 +138,13 @@ class TestComputerVisionParameterValidation:
         assert y + height <= 1.0
 
     @given(analysis_level_strategy())
-    def test_valid_analysis_levels(self, analysis_level) -> None:
+    def test_valid_analysis_levels(self, analysis_level: Any) -> None:
         """Test that valid analysis levels are accepted."""
         valid_levels = ["basic", "standard", "detailed", "comprehensive"]
         assert analysis_level in valid_levels
 
     @given(text_detection_mode_strategy())
-    def test_valid_text_detection_modes(self, detection_mode) -> None:
+    def test_valid_text_detection_modes(self, detection_mode: Any) -> None:
         """Test that valid text detection modes are accepted."""
         valid_modes = ["fast", "accurate", "hybrid"]
         assert detection_mode in valid_modes
@@ -1059,7 +1059,7 @@ class TestComputerVisionProperties:
 
     @given(image_data_strategy(), confidence_strategy(), max_objects_strategy())
     @pytest.mark.asyncio
-    async def test_detect_objects_properties(self, image_data, confidence, max_objects) -> None:
+    async def test_detect_objects_properties(self, image_data: Any, confidence: Any, max_objects: Any) -> None:
         """Test properties of object detection operations."""
         with (
             patch(
@@ -1114,7 +1114,7 @@ class TestComputerVisionProperties:
 
     @given(analysis_level_strategy())
     @pytest.mark.asyncio
-    async def test_scene_analysis_properties(self, analysis_level) -> None:
+    async def test_scene_analysis_properties(self, analysis_level: Any) -> None:
         """Test properties of scene analysis operations."""
         with (
             patch(

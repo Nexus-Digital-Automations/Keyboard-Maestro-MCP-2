@@ -16,8 +16,8 @@ Testing Categories:
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import time
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -51,7 +51,7 @@ class TestNotificationManager:
         return client
 
     @pytest.fixture
-    def notification_manager(self, mock_km_client) -> Any:
+    def notification_manager(self, mock_km_client: Any) -> Any:
         """Create notification manager with mocked client."""
         return NotificationManager(mock_km_client)
 
@@ -181,8 +181,8 @@ class TestNotificationManager:
     @pytest.mark.asyncio
     async def test_display_system_notification_success(
         self,
-        notification_manager,
-        mock_km_client,
+        notification_manager: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test successful system notification display."""
         mock_km_client.execute_applescript.return_value = Mock()
@@ -208,8 +208,8 @@ class TestNotificationManager:
     @pytest.mark.asyncio
     async def test_display_alert_dialog_success(
         self,
-        notification_manager,
-        mock_km_client,
+        notification_manager: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test successful alert dialog display."""
         mock_km_client.execute_applescript.return_value = Mock()
@@ -234,7 +234,7 @@ class TestNotificationManager:
         assert notification_result.get_button_clicked() == "OK"
 
     @pytest.mark.asyncio
-    async def test_display_hud_success(self, notification_manager, mock_km_client) -> None:
+    async def test_display_hud_success(self, notification_manager: Any, mock_km_client: Any) -> None:
         """Test successful HUD display."""
         mock_km_client.display_hud_text.return_value = Mock()
         mock_km_client.display_hud_text.return_value.is_left.return_value = False
@@ -260,8 +260,8 @@ class TestNotificationManager:
     @pytest.mark.asyncio
     async def test_display_sound_notification_success(
         self,
-        notification_manager,
-        mock_km_client,
+        notification_manager: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test successful sound notification."""
         mock_km_client.play_sound.return_value = Mock()
@@ -282,7 +282,7 @@ class TestNotificationManager:
         assert notification_result.success
         assert "sound_file" in notification_result.interaction_data
 
-    def test_content_validation_security(self, notification_manager) -> None:
+    def test_content_validation_security(self, notification_manager: Any) -> None:
         """Test content validation for security threats."""
         # Script injection attempt
         assert not notification_manager._validate_notification_content(
@@ -307,7 +307,7 @@ class TestNotificationManager:
             "This is a safe notification message",
         )
 
-    def test_applescript_string_escaping(self, notification_manager) -> None:
+    def test_applescript_string_escaping(self, notification_manager: Any) -> None:
         """Test AppleScript string escaping for safety."""
         # Test quote escaping
         escaped = notification_manager._escape_applescript_string('Test "quoted" text')
@@ -323,7 +323,7 @@ class TestNotificationManager:
         )
         assert escaped == 'Test \\"path\\\\file\\" text'
 
-    def test_hud_position_mapping(self, notification_manager) -> None:
+    def test_hud_position_mapping(self, notification_manager: Any) -> None:
         """Test HUD position enum to KM value mapping."""
         position_tests = [
             (NotificationPosition.CENTER, "Center"),
@@ -335,7 +335,7 @@ class TestNotificationManager:
             actual_value = notification_manager._get_hud_position_value(position_enum)
             assert actual_value == expected_value
 
-    def test_active_notification_tracking(self, notification_manager) -> None:
+    def test_active_notification_tracking(self, notification_manager: Any) -> None:
         """Test active notification state management."""
         # Initially empty
         assert len(notification_manager.get_active_notifications()) == 0
@@ -366,7 +366,7 @@ class TestNotificationManager:
         success = notification_manager.clear_notification("non_existent")
         assert not success
 
-    def test_clear_all_notifications(self, notification_manager) -> None:
+    def test_clear_all_notifications(self, notification_manager: Any) -> None:
         """Test clearing all active notifications."""
         # Add multiple mock notifications
         for i in range(3):
@@ -648,7 +648,7 @@ class TestNotificationPropertyBasedTesting:
     """Property-based testing for notification system."""
 
     @composite
-    def notification_spec_strategy(draw) -> Any:
+    def notification_spec_strategy(draw: Callable[..., Any]) -> Any:
         """Generate valid notification specifications."""
         notification_type = draw(st.sampled_from(list(NotificationType)))
         title = draw(st.text(min_size=1, max_size=100).filter(lambda x: x.strip()))
@@ -682,7 +682,7 @@ class TestNotificationPropertyBasedTesting:
 
     @given(notification_spec_strategy())
     @settings(max_examples=50)
-    def test_notification_spec_creation_properties(self, spec) -> None:
+    def test_notification_spec_creation_properties(self, spec: Any) -> None:
         """Property: Valid specifications should always be createable."""
         # If we get here, the spec was created successfully
         assert spec.title is not None
@@ -701,7 +701,7 @@ class TestNotificationPropertyBasedTesting:
 
     @given(st.text(min_size=1, max_size=1000))
     @settings(max_examples=100)
-    def test_content_validation_properties(self, content) -> None:
+    def test_content_validation_properties(self, content: str) -> None:
         """Property: Content validation should be consistent and safe."""
         from src.notifications.notification_manager import NotificationManager
 
@@ -729,7 +729,7 @@ class TestNotificationPropertyBasedTesting:
 
     @given(st.text(max_size=200))
     @settings(max_examples=50)
-    def test_applescript_escaping_properties(self, text) -> None:
+    def test_applescript_escaping_properties(self, text: str) -> None:
         """Property: AppleScript escaping should be safe and reversible."""
         from src.notifications.notification_manager import NotificationManager
 

@@ -6,7 +6,6 @@ through execution to result validation with realistic scenarios.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import time
 
@@ -188,7 +187,7 @@ class TestCompleteWorkflows:
         results = []
         errors = []
 
-        def execute_macro(macro, context) -> None:
+        def execute_macro(macro: Callable[..., Any], context: dict[str, Any] | Any) -> None:
             try:
                 result = engine.execute_macro(macro, context)
                 return result

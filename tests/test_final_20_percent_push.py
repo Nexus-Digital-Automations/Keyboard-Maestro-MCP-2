@@ -6,7 +6,6 @@ to push coverage toward 20%+ and demonstrate substantial progress toward near 10
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 from unittest.mock import Mock, patch
 

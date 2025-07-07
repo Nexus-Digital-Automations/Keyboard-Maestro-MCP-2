@@ -6,7 +6,6 @@ ensuring robust behavior under all conditions and edge cases.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import string
 import time
 
@@ -198,7 +197,7 @@ class TestEngineProperties:
         ]
 
         # Test thread safety
-        def execute_single(macro, context) -> bool:
+        def execute_single(macro: Callable[..., Any], context: dict[str, Any] | Any) -> bool:
             return engine.execute_macro(macro, context)
 
         args_list = list(zip(macros, contexts, strict=False))

@@ -6,7 +6,6 @@ validation, error handling, and contract enforcement.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import time
 
 import pytest

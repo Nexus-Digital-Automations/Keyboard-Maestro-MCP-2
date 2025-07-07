@@ -651,7 +651,7 @@ class IntentProcessor:
 
     async def configure_commands(
         self,
-        configuration,
+        configuration: dict[str, Any],
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Configure command mappings."""
         try:

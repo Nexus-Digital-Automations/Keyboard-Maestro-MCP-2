@@ -664,7 +664,7 @@ async def km_autonomous_agent(
 
 
 # Register the tool
-def register_autonomous_agent_tools(mcp) -> None:
+def register_autonomous_agent_tools(mcp: Any) -> None:
     """Register autonomous agent tools with the MCP server."""
 
     @mcp.tool()

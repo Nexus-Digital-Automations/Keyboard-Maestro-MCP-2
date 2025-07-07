@@ -688,7 +688,7 @@ class IoTWorkflow:
         # Limit parallel execution
         semaphore = asyncio.Semaphore(self.parallel_limit)
 
-        async def execute_with_semaphore(action):
+        async def execute_with_semaphore(action: str) -> None:
             async with semaphore:
                 return await action.execute()
 

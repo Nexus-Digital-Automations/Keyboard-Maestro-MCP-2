@@ -42,7 +42,7 @@ vision_performance_metrics = {
 }
 
 
-async def initialize_computer_vision():
+async def initialize_computer_vision() -> None:
     """Initialize all computer vision components."""
     global object_detector, scene_analyzer
 
@@ -1020,7 +1020,7 @@ async def km_computer_vision_metrics() -> dict[str, Any]:
 
 
 # Startup hook to initialize components
-async def startup():
+async def startup() -> None:
     """Initialize computer vision components on startup."""
     success = await initialize_computer_vision()
     if not success:

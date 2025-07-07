@@ -789,7 +789,7 @@ class ScreenAnalysisEngine:
     def set_change_detection_baseline(self, region: ScreenRegion) -> None:
         """Set new baseline for change detection."""
 
-        async def _set_baseline():
+        async def _set_baseline() -> Any:
             capture_result = await self.capture_screen_region(
                 region,
                 CaptureMode.PERFORMANCE,

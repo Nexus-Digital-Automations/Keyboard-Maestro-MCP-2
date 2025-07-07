@@ -71,7 +71,7 @@ class ModelStorage:
 
             return key
 
-    def _secure_pickle_dump(self, obj: Any, file_handle) -> None:
+    def _secure_pickle_dump(self, obj: Any, file_handle: Any) -> None:
         """Securely serialize object with HMAC integrity validation."""
         # Serialize the object
         serialized_data = pickle.dumps(obj, protocol=pickle.HIGHEST_PROTOCOL)
@@ -87,7 +87,7 @@ class ModelStorage:
         file_handle.write(hmac_signature)
         file_handle.write(serialized_data)
 
-    def _secure_pickle_load(self, file_handle) -> Any:
+    def _secure_pickle_load(self, file_handle: Any) -> Any:
         """Securely deserialize object with HMAC integrity validation."""
         # Read HMAC signature (32 bytes for SHA256)
         stored_signature = file_handle.read(32)

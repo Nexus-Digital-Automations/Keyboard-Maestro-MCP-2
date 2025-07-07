@@ -7,8 +7,8 @@ Tests follow the proven systematic pattern that achieved 100% success across 34+
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -32,17 +32,17 @@ km_monitor_api_health = api_tools.km_monitor_api_health.fn
 
 
 async def mock_km_orchestrate_apis(
-    workflow_definition=None,
-    api_endpoints=None,
-    orchestration_strategy="sequential",
-    timeout_seconds=300,
-    enable_rollback=True,
-    load_balancing=None,
-    authentication=None,
-    error_handling="fail_fast",
-    monitoring_enabled=True,
-    ctx=None,
-):
+    workflow_definition: Any=None,
+    api_endpoints: Any=None,
+    orchestration_strategy: Any="sequential",
+    timeout_seconds: Any=300,
+    enable_rollback: Any=True,
+    load_balancing: Any=None,
+    authentication: Any=None,
+    error_handling: Exception | str="fail_fast",
+    monitoring_enabled: bool=True,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for API workflow orchestration."""
     if not workflow_definition:
         return {
@@ -220,16 +220,16 @@ async def mock_km_orchestrate_apis(
 
 
 async def mock_km_manage_service_mesh(
-    mesh_operation="status",
-    service_definitions=None,
-    mesh_configuration=None,
-    security_policies=None,
-    traffic_management=None,
-    observability_settings=None,
-    deployment_strategy="rolling",
-    namespace="default",
-    ctx=None,
-):
+    mesh_operation: Any="status",
+    service_definitions: Any=None,
+    mesh_configuration: dict[str, Any] | Any=None,
+    security_policies: Any=None,
+    traffic_management: Any=None,
+    observability_settings: dict[str, Any]=None,
+    deployment_strategy: Any="rolling",
+    namespace: Any="default",
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for service mesh management."""
     if not mesh_operation or not mesh_operation.strip():
         return {
@@ -402,16 +402,16 @@ async def mock_km_manage_service_mesh(
 
 
 async def mock_km_coordinate_microservices(
-    coordination_action="orchestrate",
-    service_registry=None,
-    service_dependencies=None,
-    scaling_policies=None,
-    health_monitoring=None,
-    service_discovery=None,
-    communication_patterns=None,
-    fault_tolerance=None,
-    ctx=None,
-):
+    coordination_action: Any="orchestrate",
+    service_registry: dict[str, Any] | Any=None,
+    service_dependencies: Any=None,
+    scaling_policies: Any=None,
+    health_monitoring: Any=None,
+    service_discovery: Any=None,
+    communication_patterns: Any=None,
+    fault_tolerance: Any=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for microservices coordination."""
     if not coordination_action or not coordination_action.strip():
         return {
@@ -583,16 +583,16 @@ async def mock_km_coordinate_microservices(
 
 
 async def mock_km_monitor_api_health(
-    monitoring_scope="all_apis",
-    health_check_endpoints=None,
-    monitoring_interval=30,
-    alert_thresholds=None,
-    reporting_format="json",
-    include_metrics=True,
-    dashboard_enabled=True,
-    historical_data=True,
-    ctx=None,
-):
+    monitoring_scope: Any="all_apis",
+    health_check_endpoints: Any=None,
+    monitoring_interval: Any=30,
+    alert_thresholds: Any=None,
+    reporting_format: Any="json",
+    include_metrics: Any=True,
+    dashboard_enabled: bool=True,
+    historical_data: Any=True,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for API health monitoring."""
     if not monitoring_scope or not monitoring_scope.strip():
         return {
@@ -778,7 +778,7 @@ class TestKMOrchestrateAPIs:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_orchestrate_apis_sequential(self, mock_context) -> None:
+    async def test_orchestrate_apis_sequential(self, mock_context: Any) -> None:
         """Test sequential API orchestration workflow."""
         workflow_def = {"name": "user_onboarding", "version": "1.0"}
         endpoints = [
@@ -804,7 +804,7 @@ class TestKMOrchestrateAPIs:
         assert not workflow["parallel_execution"]
 
     @pytest.mark.asyncio
-    async def test_orchestrate_apis_parallel(self, mock_context) -> None:
+    async def test_orchestrate_apis_parallel(self, mock_context: Any) -> None:
         """Test parallel API orchestration workflow."""
         workflow_def = {"name": "data_aggregation", "version": "2.1"}
         endpoints = [
@@ -828,7 +828,7 @@ class TestKMOrchestrateAPIs:
         assert workflow["execution_order"] == "optimized"
 
     @pytest.mark.asyncio
-    async def test_orchestrate_apis_invalid_strategy(self, mock_context) -> None:
+    async def test_orchestrate_apis_invalid_strategy(self, mock_context: Any) -> None:
         """Test API orchestration with invalid strategy."""
         result = await mock_km_orchestrate_apis(
             workflow_definition={"name": "test"},
@@ -842,7 +842,7 @@ class TestKMOrchestrateAPIs:
         assert "Invalid orchestration strategy" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_orchestrate_apis_missing_endpoints(self, mock_context) -> None:
+    async def test_orchestrate_apis_missing_endpoints(self, mock_context: Any) -> None:
         """Test API orchestration without endpoints."""
         result = await mock_km_orchestrate_apis(
             workflow_definition={"name": "test"},
@@ -864,7 +864,7 @@ class TestKMManageServiceMesh:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_manage_service_mesh_status(self, mock_context) -> None:
+    async def test_manage_service_mesh_status(self, mock_context: Any) -> None:
         """Test service mesh status operation."""
         result = await mock_km_manage_service_mesh(
             mesh_operation="status",
@@ -882,7 +882,7 @@ class TestKMManageServiceMesh:
         assert status["mtls_enabled"] is True
 
     @pytest.mark.asyncio
-    async def test_manage_service_mesh_deploy(self, mock_context) -> None:
+    async def test_manage_service_mesh_deploy(self, mock_context: Any) -> None:
         """Test service mesh deployment operation."""
         services = [
             {"name": "user-service", "version": "1.2"},
@@ -905,7 +905,7 @@ class TestKMManageServiceMesh:
         assert deployment["rollout_status"] == "completed"
 
     @pytest.mark.asyncio
-    async def test_manage_service_mesh_invalid_operation(self, mock_context) -> None:
+    async def test_manage_service_mesh_invalid_operation(self, mock_context: Any) -> None:
         """Test service mesh with invalid operation."""
         result = await mock_km_manage_service_mesh(
             mesh_operation="invalid_op",
@@ -917,7 +917,7 @@ class TestKMManageServiceMesh:
         assert "Invalid mesh operation" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_manage_service_mesh_security_policies(self, mock_context) -> None:
+    async def test_manage_service_mesh_security_policies(self, mock_context: Any) -> None:
         """Test service mesh with custom security policies."""
         security_policies = {
             "mtls": "permissive",
@@ -949,7 +949,7 @@ class TestKMCoordinateMicroservices:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_coordinate_microservices_orchestrate(self, mock_context) -> None:
+    async def test_coordinate_microservices_orchestrate(self, mock_context: Any) -> None:
         """Test microservices orchestration coordination."""
         dependencies = [
             {"service": "auth-service", "depends_on": ["db-service"]},
@@ -971,7 +971,7 @@ class TestKMCoordinateMicroservices:
         assert orch["coordination_pattern"] == "saga"
 
     @pytest.mark.asyncio
-    async def test_coordinate_microservices_discover(self, mock_context) -> None:
+    async def test_coordinate_microservices_discover(self, mock_context: Any) -> None:
         """Test microservices service discovery."""
         result = await mock_km_coordinate_microservices(
             coordination_action="discover",
@@ -987,7 +987,7 @@ class TestKMCoordinateMicroservices:
         assert discovery["discovery_latency"] == "45ms"
 
     @pytest.mark.asyncio
-    async def test_coordinate_microservices_scale(self, mock_context) -> None:
+    async def test_coordinate_microservices_scale(self, mock_context: Any) -> None:
         """Test microservices scaling coordination."""
         scaling_policies = {
             "auto_scaling": True,
@@ -1010,7 +1010,7 @@ class TestKMCoordinateMicroservices:
         assert scaling["scaling_strategy"] == "horizontal"
 
     @pytest.mark.asyncio
-    async def test_coordinate_microservices_invalid_action(self, mock_context) -> None:
+    async def test_coordinate_microservices_invalid_action(self, mock_context: Any) -> None:
         """Test microservices coordination with invalid action."""
         result = await mock_km_coordinate_microservices(
             coordination_action="invalid_action",
@@ -1031,7 +1031,7 @@ class TestKMMonitorAPIHealth:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_monitor_api_health_all_apis(self, mock_context) -> None:
+    async def test_monitor_api_health_all_apis(self, mock_context: Any) -> None:
         """Test comprehensive API health monitoring."""
         result = await mock_km_monitor_api_health(
             monitoring_scope="all_apis",
@@ -1049,7 +1049,7 @@ class TestKMMonitorAPIHealth:
         assert "performance_metrics" in monitor
 
     @pytest.mark.asyncio
-    async def test_monitor_api_health_critical_apis(self, mock_context) -> None:
+    async def test_monitor_api_health_critical_apis(self, mock_context: Any) -> None:
         """Test critical APIs health monitoring."""
         alert_thresholds = {
             "response_time": "200ms",
@@ -1073,7 +1073,7 @@ class TestKMMonitorAPIHealth:
         assert monitor["dashboard"]["real_time_updates"] is True
 
     @pytest.mark.asyncio
-    async def test_monitor_api_health_invalid_scope(self, mock_context) -> None:
+    async def test_monitor_api_health_invalid_scope(self, mock_context: Any) -> None:
         """Test API health monitoring with invalid scope."""
         result = await mock_km_monitor_api_health(
             monitoring_scope="invalid_scope",
@@ -1085,7 +1085,7 @@ class TestKMMonitorAPIHealth:
         assert "Invalid monitoring scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_monitor_api_health_invalid_interval(self, mock_context) -> None:
+    async def test_monitor_api_health_invalid_interval(self, mock_context: Any) -> None:
         """Test API health monitoring with invalid interval."""
         result = await mock_km_monitor_api_health(
             monitoring_scope="all_apis",
@@ -1110,7 +1110,7 @@ class TestAPIOrchestrationIntegration:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_complete_api_orchestration_workflow(self, mock_context) -> None:
+    async def test_complete_api_orchestration_workflow(self, mock_context: Any) -> None:
         """Test complete API orchestration workflow integration."""
         # Step 1: Set up service mesh
         mesh_result = await mock_km_manage_service_mesh(
@@ -1162,7 +1162,7 @@ class TestAPIOrchestrationProperties:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_orchestration_strategy_consistency(self, mock_context) -> None:
+    async def test_orchestration_strategy_consistency(self, mock_context: Any) -> None:
         """Test orchestration strategies consistency."""
         strategies = ["sequential", "parallel", "hybrid"]
 
@@ -1183,7 +1183,7 @@ class TestAPIOrchestrationProperties:
                 assert "parallel_execution" in workflow
 
     @pytest.mark.asyncio
-    async def test_mesh_deployment_strategies(self, mock_context) -> None:
+    async def test_mesh_deployment_strategies(self, mock_context: Any) -> None:
         """Test service mesh deployment strategies."""
         strategies = ["rolling", "blue_green", "canary"]
 
@@ -1199,7 +1199,7 @@ class TestAPIOrchestrationProperties:
             assert "operational_metrics" in result
 
     @pytest.mark.asyncio
-    async def test_coordination_action_coverage(self, mock_context) -> None:
+    async def test_coordination_action_coverage(self, mock_context: Any) -> None:
         """Test microservices coordination action coverage."""
         actions = ["orchestrate", "choreograph", "discover", "scale"]
 
@@ -1214,7 +1214,7 @@ class TestAPIOrchestrationProperties:
             assert "performance_metrics" in result
 
     @pytest.mark.asyncio
-    async def test_monitoring_scope_behavior(self, mock_context) -> None:
+    async def test_monitoring_scope_behavior(self, mock_context: Any) -> None:
         """Test API health monitoring scope behavior."""
         scopes = ["all_apis", "critical_apis", "external_apis"]
 

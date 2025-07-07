@@ -6,8 +6,8 @@ and event processing for Keyboard Maestro integration.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import datetime
+from typing import Any
 
 import pytest
 from src.core.types import MacroId, TriggerId
@@ -56,7 +56,7 @@ def malicious_event() -> Any:
 class TestKMEvent:
     """Test KMEvent immutable event structure."""
 
-    def test_event_creation(self, sample_event) -> None:
+    def test_event_creation(self, sample_event: Any) -> None:
         """Test basic event creation and properties."""
         assert sample_event.trigger_type == TriggerType.HOTKEY
         assert sample_event.trigger_id == TriggerId("test-trigger-123")
@@ -65,7 +65,7 @@ class TestKMEvent:
         assert sample_event.get_payload_value("key") == "cmd+space"
         assert sample_event.get_payload_value("nonexistent", "default") == "default"
 
-    def test_event_immutability(self, sample_event) -> None:
+    def test_event_immutability(self, sample_event: Any) -> None:
         """Test that events are immutable."""
         original_payload = sample_event.payload
         new_event = sample_event.with_payload("new_key", "new_value")
@@ -80,7 +80,7 @@ class TestKMEvent:
             new_event.get_payload_value("key") == "cmd+space"
         )  # Original data preserved
 
-    def test_priority_checking(self, sample_event) -> None:
+    def test_priority_checking(self, sample_event: Any) -> None:
         """Test priority level checking."""
         assert not sample_event.is_high_priority()
 
@@ -90,10 +90,10 @@ class TestKMEvent:
         critical_event = sample_event.with_priority(EventPriority.CRITICAL)
         assert critical_event.is_high_priority()
 
-    def test_event_transformation(self, sample_event) -> None:
+    def test_event_transformation(self, sample_event: Any) -> None:
         """Test functional event transformation."""
 
-        def add_timestamp(event) -> None:
+        def add_timestamp(event: Any) -> None:
             return event.with_payload("processed_at", "2025-06-28T10:00:00")
 
         transformed = sample_event.transform(add_timestamp)
@@ -104,7 +104,7 @@ class TestKMEvent:
 class TestEventProcessingResult:
     """Test event processing results."""
 
-    def test_success_result_creation(self, sample_event) -> None:
+    def test_success_result_creation(self, sample_event: Any) -> None:
         """Test creating successful processing results."""
         result = EventProcessingResult.success_result(
             sample_event,
@@ -134,16 +134,16 @@ class TestEventProcessingResult:
 class TestFunctionalComposition:
     """Test functional event handler composition."""
 
-    def test_compose_event_handlers(self, sample_event) -> None:
+    def test_compose_event_handlers(self, sample_event: Any) -> None:
         """Test composing multiple event handlers."""
 
-        def add_field1(event) -> None:
+        def add_field1(event: Any) -> None:
             return event.with_payload("field1", "value1")
 
-        def add_field2(event) -> None:
+        def add_field2(event: Any) -> None:
             return event.with_payload("field2", "value2")
 
-        def multiply_value(event) -> Any:
+        def multiply_value(event: Any) -> Any:
             value = event.get_payload_value("value", "")
             return event.with_payload("value", f"{value}_processed")
 
@@ -154,14 +154,14 @@ class TestFunctionalComposition:
         assert result.get_payload_value("field2") == "value2"
         assert result.get_payload_value("value") == "test_processed"
 
-    def test_empty_composition(self, sample_event) -> None:
+    def test_empty_composition(self, sample_event: Any) -> None:
         """Test composition with no handlers."""
         composed = compose_event_handlers()
         result = composed(sample_event)
 
         assert result == sample_event  # Identity function
 
-    def test_payload_transformer(self, sample_event) -> None:
+    def test_payload_transformer(self, sample_event: Any) -> None:
         """Test payload field transformation."""
         uppercase_key = create_payload_transformer("key", str.upper)
         result = uppercase_key(sample_event)
@@ -169,13 +169,13 @@ class TestFunctionalComposition:
         assert result.get_payload_value("key") == "CMD+SPACE"
         assert result.get_payload_value("value") == "test"  # Other fields unchanged
 
-    def test_conditional_handler(self, sample_event) -> None:
+    def test_conditional_handler(self, sample_event: Any) -> None:
         """Test conditional event handling."""
 
-        def is_hotkey_event(event) -> bool:
+        def is_hotkey_event(event: Any) -> bool:
             return event.trigger_type == TriggerType.HOTKEY
 
-        def add_hotkey_metadata(event) -> None:
+        def add_hotkey_metadata(event: Any) -> None:
             return event.with_payload("is_hotkey", True)
 
         conditional = create_conditional_handler(is_hotkey_event, add_hotkey_metadata)
@@ -198,7 +198,7 @@ class TestFunctionalComposition:
 class TestEventFilters:
     """Test event filtering functions."""
 
-    def test_priority_filter(self, sample_event) -> None:
+    def test_priority_filter(self, sample_event: Any) -> None:
         """Test priority-based filtering."""
         high_filter = create_priority_filter(EventPriority.HIGH)
 
@@ -213,7 +213,7 @@ class TestEventFilters:
         critical_event = sample_event.with_priority(EventPriority.CRITICAL)
         assert high_filter(critical_event)
 
-    def test_trigger_type_filter(self, sample_event) -> None:
+    def test_trigger_type_filter(self, sample_event: Any) -> None:
         """Test trigger type filtering."""
         from src.integration.events import create_trigger_type_filter
 
@@ -242,7 +242,7 @@ class TestEventFilters:
 class TestBuiltInTransformations:
     """Test built-in event transformation functions."""
 
-    def test_sanitize_event_payload(self, malicious_event) -> None:
+    def test_sanitize_event_payload(self, malicious_event: Any) -> None:
         """Test payload sanitization."""
         sanitized = sanitize_event_payload(malicious_event)
 
@@ -280,7 +280,7 @@ class TestBuiltInTransformations:
         assert normalized.get_payload_value("triggerValue") is None
         assert normalized.get_payload_value("macroUID") is None
 
-    def test_add_processing_timestamp(self, sample_event) -> None:
+    def test_add_processing_timestamp(self, sample_event: Any) -> None:
         """Test adding processing timestamp."""
         from src.integration.events import add_processing_timestamp
 
@@ -299,7 +299,7 @@ class TestBuiltInTransformations:
 class TestEventPipelines:
     """Test pre-built event processing pipelines."""
 
-    def test_default_pipeline(self, malicious_event) -> None:
+    def test_default_pipeline(self, malicious_event: Any) -> None:
         """Test default event processing pipeline."""
         # Get the actual pipeline function
         pipeline = DEFAULT_EVENT_PIPELINE()
@@ -312,7 +312,7 @@ class TestEventPipelines:
         # Should have processing timestamp
         assert result.get_payload_value("processing_timestamp") is not None
 
-    def test_security_focused_pipeline(self, sample_event) -> None:
+    def test_security_focused_pipeline(self, sample_event: Any) -> None:
         """Test security-focused pipeline."""
         # Get the actual pipeline function
         pipeline = SECURITY_FOCUSED_PIPELINE()
@@ -339,7 +339,7 @@ class TestEventPipelines:
         ("dict_field", {"nested": "value"}),
     ],
 )
-def test_event_immutability_property(sample_event, field_name, field_value) -> None:
+def test_event_immutability_property(sample_event: Any, field_name: str, field_value: Any) -> None:
     """Property test: Events should always remain immutable."""
     original_payload = sample_event.payload.copy()
 

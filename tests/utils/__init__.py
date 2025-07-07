@@ -10,7 +10,6 @@ This package provides comprehensive testing utilities including:
 # Import key utilities for easy access
 from __future__ import annotations
 
-from typing import Any, Optional
 from .assertions import (
     assert_command_failed,
     assert_command_successful,

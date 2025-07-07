@@ -726,7 +726,7 @@ async def _verify_movement_completion(
         return False
 
 
-async def _attempt_rollback(macro_id: str, source_group: str | None, target_group: str):
+async def _attempt_rollback(macro_id: str, source_group: str | None, target_group: str) -> Any:
     """Attempt to rollback a failed macro movement."""
     if not source_group:
         return

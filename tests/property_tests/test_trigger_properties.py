@@ -7,7 +7,6 @@ for all trigger types and configurations.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import re
 import tempfile
 from datetime import datetime, timedelta
@@ -31,7 +30,7 @@ class TestTriggerBuilderProperties:
     """Property-based tests for TriggerBuilder."""
 
     @given(st.integers(min_value=1, max_value=86400))
-    def test_time_interval_properties(self, seconds) -> None:
+    def test_time_interval_properties(self, seconds: Any) -> None:
         """Property: Time intervals should handle all valid durations."""
         interval = timedelta(seconds=seconds)
         result = TriggerBuilder().recurring_every(interval).build()
@@ -44,7 +43,7 @@ class TestTriggerBuilderProperties:
     @given(
         st.datetimes(min_value=datetime(2024, 1, 1), max_value=datetime(2030, 12, 31)),
     )
-    def test_scheduled_time_properties(self, schedule_time) -> None:
+    def test_scheduled_time_properties(self, schedule_time: int | float) -> None:
         """Property: Scheduled times should preserve datetime values."""
         result = TriggerBuilder().scheduled_at(schedule_time).build()
 
@@ -54,7 +53,7 @@ class TestTriggerBuilderProperties:
         assert trigger.config["schedule_time"] == schedule_time
 
     @given(st.integers(min_value=-10, max_value=10))
-    def test_priority_range_validation(self, priority) -> None:
+    def test_priority_range_validation(self, priority: int) -> None:
         """Property: Valid priority ranges should be accepted."""
         result = (
             TriggerBuilder()
@@ -68,7 +67,7 @@ class TestTriggerBuilderProperties:
         assert trigger.priority == priority
 
     @given(st.integers().filter(lambda x: x < -10 or x > 10))
-    def test_invalid_priority_rejected(self, invalid_priority) -> None:
+    def test_invalid_priority_rejected(self, invalid_priority: Any) -> None:
         """Property: Invalid priority values should be rejected."""
         with pytest.raises(ValueError, match="Priority must be between -10 and 10"):
             (
@@ -79,7 +78,7 @@ class TestTriggerBuilderProperties:
             )
 
     @given(st.integers(min_value=1, max_value=300))
-    def test_timeout_range_validation(self, timeout) -> None:
+    def test_timeout_range_validation(self, timeout: int | float) -> None:
         """Property: Valid timeout ranges should be accepted."""
         result = (
             TriggerBuilder()
@@ -93,7 +92,7 @@ class TestTriggerBuilderProperties:
         assert trigger.timeout_seconds == timeout
 
     @given(st.integers(min_value=1, max_value=10000))
-    def test_execution_limit_validation(self, max_executions) -> None:
+    def test_execution_limit_validation(self, max_executions: Any) -> None:
         """Property: Valid execution limits should be accepted."""
         result = (
             TriggerBuilder()
@@ -122,13 +121,13 @@ class TestSecurityProperties:
             ),
         ),
     )
-    def test_safe_file_paths_accepted(self, safe_path) -> None:
+    def test_safe_file_paths_accepted(self, safe_path: Any) -> None:
         """Property: Safe file paths should pass validation."""
         result = TriggerValidator.validate_file_path(safe_path)
         assert result.is_right()
 
     @given(st.just("test"))  # Use simpler test data
-    def test_dangerous_file_paths_rejected(self, base_path) -> None:
+    def test_dangerous_file_paths_rejected(self, base_path: Any) -> None:
         """Property: File paths with dangerous patterns should be rejected."""
         dangerous_patterns = [
             "/System/Library",
@@ -156,13 +155,13 @@ class TestSecurityProperties:
             and ".." not in x,
         ),
     )
-    def test_valid_app_identifiers_accepted(self, app_id) -> None:
+    def test_valid_app_identifiers_accepted(self, app_id: str) -> None:
         """Property: Valid application identifiers should be accepted."""
         result = TriggerValidator.validate_app_identifier(app_id)
         assert result.is_right()
 
     @given(st.text(min_size=1, max_size=100))
-    def test_invalid_app_identifiers_rejected(self, app_id) -> None:
+    def test_invalid_app_identifiers_rejected(self, app_id: str) -> None:
         """Property: Invalid application identifiers should be rejected."""
         # Add invalid characters
         invalid_id = app_id + "!@#$%^&*()"
@@ -188,7 +187,7 @@ class TestSecurityProperties:
             assert result.is_right()
 
     @given(st.text(min_size=1, max_size=50))
-    def test_invalid_cron_patterns_rejected(self, pattern) -> None:
+    def test_invalid_cron_patterns_rejected(self, pattern: str) -> None:
         """Property: Invalid cron patterns should be rejected."""
         # Add obviously invalid cron pattern
         invalid_pattern = pattern + " !@#$ INVALID CRON"
@@ -215,7 +214,7 @@ class TestTriggerValidationProperties:
         st.integers(min_value=1, max_value=300),
         st.integers(min_value=-10, max_value=10),
     )
-    def test_trigger_spec_creation_properties(self, trigger_type, timeout, priority) -> None:
+    def test_trigger_spec_creation_properties(self, trigger_type: str, timeout: int | float, priority: int) -> None:
         """Property: Valid trigger specs should be creatable."""
         builder = TriggerBuilder()
 
@@ -250,7 +249,7 @@ class TestTriggerValidationProperties:
             assert len(trigger.trigger_id) > 0
 
     @given(st.integers(min_value=0, max_value=100))
-    def test_battery_threshold_validation(self, threshold) -> None:
+    def test_battery_threshold_validation(self, threshold: int | float) -> None:
         """Property: Valid battery thresholds should be accepted."""
         result = TriggerBuilder().when_battery_low(threshold).build()
 
@@ -259,7 +258,7 @@ class TestTriggerValidationProperties:
         assert trigger.config["battery_threshold"] == threshold
 
     @given(st.integers(min_value=1, max_value=86400))
-    def test_idle_threshold_validation(self, threshold) -> None:
+    def test_idle_threshold_validation(self, threshold: int | float) -> None:
         """Property: Valid idle thresholds should be accepted."""
         result = TriggerBuilder().when_user_idle(threshold).build()
 
@@ -268,7 +267,7 @@ class TestTriggerValidationProperties:
         assert trigger.config["idle_threshold_seconds"] == threshold
 
     @given(st.booleans(), st.booleans())
-    def test_trigger_state_properties(self, enabled, recursive) -> None:
+    def test_trigger_state_properties(self, enabled: bool, recursive: bool) -> None:
         """Property: Trigger state should be preserved correctly."""
         # S108 fix: Use secure temporary directory instead of hardcoded path
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -298,7 +297,7 @@ class TestTriggerIntegrationProperties:
         st.integers(min_value=1, max_value=24),
         st.integers(min_value=0, max_value=59),
     )
-    def test_daily_trigger_creation(self, trigger_name, hour, minute) -> None:
+    def test_daily_trigger_creation(self, trigger_name: str, hour: Any, minute: Any) -> None:
         """Property: Daily triggers should be created with correct scheduling."""
         assume(0 <= hour <= 23)
         assume(0 <= minute <= 59)
@@ -318,7 +317,7 @@ class TestTriggerIntegrationProperties:
             and not any(c in x for c in ["<", ">", "&", ";", "|"]),
         ),
     )
-    def test_file_watcher_creation(self, directory) -> None:
+    def test_file_watcher_creation(self, directory: Any) -> None:
         """Property: File watchers should be created with safe paths."""
         # S108 fix: Use secure temporary directory with sanitized subdirectory
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -344,7 +343,7 @@ class TestTriggerIntegrationProperties:
             lambda x: ".." not in x and not x.startswith(".") and not x.endswith("."),
         ),
     )
-    def test_app_lifecycle_trigger_creation(self, app_id) -> None:
+    def test_app_lifecycle_trigger_creation(self, app_id: str) -> None:
         """Property: App lifecycle triggers should handle valid app IDs."""
         trigger_builder = create_app_lifecycle_trigger(app_id, on_launch=True)
         result = trigger_builder.build()
@@ -366,7 +365,7 @@ class TestTriggerIntegrationProperties:
             max_size=5,
         ),
     )
-    def test_condition_integration(self, conditions) -> None:
+    def test_condition_integration(self, conditions: list[Any] | str) -> None:
         """Property: Conditions should integrate properly with triggers."""
         builder = TriggerBuilder().scheduled_at(datetime(2024, 6, 1, 12, 0))
 
@@ -391,7 +390,7 @@ class TestResourceLimitProperties:
     """Property-based tests for resource limit validation."""
 
     @given(st.integers(min_value=1, max_value=300))
-    def test_timeout_limits_respected(self, timeout) -> None:
+    def test_timeout_limits_respected(self, timeout: int | float) -> None:
         """Property: Timeout limits should be enforced."""
         result = (
             TriggerBuilder()
@@ -408,7 +407,7 @@ class TestResourceLimitProperties:
         assert limit_result.is_right()
 
     @given(st.integers(min_value=1, max_value=10000))
-    def test_execution_limits_respected(self, max_executions) -> None:
+    def test_execution_limits_respected(self, max_executions: Any) -> None:
         """Property: Execution limits should be enforced."""
         result = (
             TriggerBuilder()
@@ -477,14 +476,14 @@ class TriggerStateMachine(RuleBasedStateMachine):
             max_value=datetime(2025, 12, 31),
         ),
     )
-    def set_scheduled_trigger(self, schedule_time) -> None:
+    def set_scheduled_trigger(self, schedule_time: int | float) -> None:
         """Add scheduled trigger to builder."""
         self.builder = self.builder.scheduled_at(schedule_time)
         self.has_trigger_type = True
         self.trigger_types_set.append("scheduled")
 
     @rule(interval_hours=st.integers(min_value=1, max_value=24))
-    def set_recurring_trigger(self, interval_hours) -> None:
+    def set_recurring_trigger(self, interval_hours: Any) -> None:
         """Add recurring trigger to builder."""
         interval = timedelta(hours=interval_hours)
         self.builder = self.builder.recurring_every(interval)
@@ -492,17 +491,17 @@ class TriggerStateMachine(RuleBasedStateMachine):
         self.trigger_types_set.append("recurring")
 
     @rule(priority=st.integers(min_value=-10, max_value=10))
-    def set_priority(self, priority) -> None:
+    def set_priority(self, priority: int) -> None:
         """Set trigger priority."""
         self.builder = self.builder.with_priority(priority)
 
     @rule(timeout=st.integers(min_value=1, max_value=300))
-    def set_timeout(self, timeout) -> None:
+    def set_timeout(self, timeout: int | float) -> None:
         """Set trigger timeout."""
         self.builder = self.builder.with_timeout(timeout)
 
     @rule(enabled=st.booleans())
-    def set_enabled_state(self, enabled) -> None:
+    def set_enabled_state(self, enabled: bool) -> None:
         """Set trigger enabled state."""
         self.builder = self.builder.enabled(enabled)
 
@@ -546,7 +545,7 @@ class TestTriggerSystemProperties:
         state_machine.execute()
 
     @given(st.text(min_size=1, max_size=50))
-    def test_metadata_preservation(self, metadata_value) -> None:
+    def test_metadata_preservation(self, metadata_value: Any) -> None:
         """Property: Metadata should be preserved in triggers."""
         result = (
             TriggerBuilder()
@@ -561,7 +560,7 @@ class TestTriggerSystemProperties:
             assert trigger.metadata["test_value"] == metadata_value
 
     @given(st.lists(st.text(min_size=1, max_size=20), min_size=1, max_size=10))
-    def test_trigger_id_uniqueness(self, trigger_names) -> None:
+    def test_trigger_id_uniqueness(self, trigger_names: Any) -> None:
         """Property: Trigger IDs should be unique across instances."""
         trigger_ids = set()
 

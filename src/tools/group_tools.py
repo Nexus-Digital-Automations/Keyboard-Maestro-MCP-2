@@ -13,7 +13,7 @@ from pydantic import Field
 logger = logging.getLogger(__name__)
 
 
-def register_group_tools(mcp) -> None:
+def register_group_tools(mcp: Any) -> None:
     """Register group management tools with the MCP server."""
 
     @mcp.tool()

@@ -226,7 +226,7 @@ class RealTimeProcessor:
         if self.processing_task is None:
             self.processing_task = asyncio.create_task(self._background_processor())
 
-    async def _background_processor(self):
+    async def _background_processor(self) -> None:
         """Background task for continuous event processing."""
         while True:
             try:
@@ -519,7 +519,7 @@ class RealTimeProcessor:
         event_stream = f"device_stream_{event.source_device}"
         return event_stream in processor.input_streams or "*" in processor.input_streams
 
-    async def _trigger_event_handlers(self, event: RealTimeEvent):
+    async def _trigger_event_handlers(self, event: RealTimeEvent) -> None:
         """Trigger registered event handlers."""
         handlers = self.event_handlers.get(event.event_type, [])
 
@@ -529,7 +529,7 @@ class RealTimeProcessor:
             except Exception as e:
                 logger.error(f"Event handler failed: {e!s}")
 
-    async def _check_automation_triggers(self, event: RealTimeEvent):
+    async def _check_automation_triggers(self, event: RealTimeEvent) -> None:
         """Check and execute automation triggers."""
         for trigger_id, trigger_config in self.automation_triggers.items():
             try:
@@ -574,7 +574,7 @@ class RealTimeProcessor:
 
         return True
 
-    async def _execute_automation_action(self, trigger_config: dict[str, Any]):
+    async def _execute_automation_action(self, trigger_config: dict[str, Any]) -> None:
         """Execute automation action."""
         action = trigger_config.get("action", {})
         action_type = action.get("type", "log")
@@ -589,7 +589,7 @@ class RealTimeProcessor:
             command = action.get("command")
             logger.info(f"Device control triggered: {device_id} -> {command}")
 
-    async def _process_pending_events(self):
+    async def _process_pending_events(self) -> None:
         """Process any pending events in the background."""
         # Process events from all streams
         for _stream_id, event_queue in self.event_streams.items():
@@ -600,7 +600,7 @@ class RealTimeProcessor:
                         event = event_queue.popleft()
                         await self._process_event_background(event)
 
-    async def _process_event_background(self, event: RealTimeEvent):
+    async def _process_event_background(self, event: RealTimeEvent) -> None:
         """Process event in background without blocking."""
         try:
             # Lightweight background processing
@@ -609,7 +609,7 @@ class RealTimeProcessor:
         except Exception as e:
             logger.error(f"Background event processing failed: {e!s}")
 
-    async def _update_metrics(self):
+    async def _update_metrics(self) -> None:
         """Update real-time processing metrics."""
         now = datetime.now(UTC)
         time_diff = (now - self.last_metrics_update).total_seconds()
@@ -629,7 +629,7 @@ class RealTimeProcessor:
 
             self.last_metrics_update = now
 
-    async def _cleanup_old_data(self):
+    async def _cleanup_old_data(self) -> None:
         """Clean up old data to prevent memory leaks."""
         cutoff_time = datetime.now(UTC) - timedelta(hours=1)
 

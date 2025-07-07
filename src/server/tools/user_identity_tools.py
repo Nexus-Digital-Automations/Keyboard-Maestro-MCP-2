@@ -43,7 +43,7 @@ session_manager = SessionManager()
 
 
 # Register components with each other
-async def initialize_identity_system():
+async def initialize_identity_system() -> None:
     """Initialize the integrated identity system."""
     # This would typically be called during server startup
 

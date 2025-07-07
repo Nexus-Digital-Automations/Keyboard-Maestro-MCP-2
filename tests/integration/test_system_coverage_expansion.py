@@ -6,7 +6,6 @@ to push coverage toward 25%+ through comprehensive testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import pytest
 
 

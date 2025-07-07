@@ -7,8 +7,8 @@ and comprehensive enterprise-grade AI integration using the proven pattern that 
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -25,7 +25,7 @@ km_ai_status = ai_core_tools.km_ai_status
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def ai_operation_strategy(draw) -> Any:
+def ai_operation_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid AI operations."""
     operations = [
         "analyze",
@@ -43,40 +43,40 @@ def ai_operation_strategy(draw) -> Any:
 
 
 @st.composite
-def model_type_strategy(draw) -> Any:
+def model_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid model types."""
     types = ["openai", "azure", "google", "anthropic", "local", "auto"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def processing_mode_strategy(draw) -> None:
+def processing_mode_strategy(draw: Callable[..., Any]) -> None:
     """Generate valid processing modes."""
     modes = ["fast", "balanced", "accurate", "creative", "cost_effective"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def output_format_strategy(draw) -> Any:
+def output_format_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid output formats."""
     formats = ["auto", "json", "text", "markdown", "html", "structured"]
     return draw(st.sampled_from(formats))
 
 
 @st.composite
-def temperature_strategy(draw) -> Any:
+def temperature_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid temperature values."""
     return draw(st.floats(min_value=0.0, max_value=2.0))
 
 
 @st.composite
-def cost_limit_strategy(draw) -> Any:
+def cost_limit_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid cost limits."""
     return draw(st.floats(min_value=0.01, max_value=10.0))
 
 
 @st.composite
-def timeout_strategy(draw) -> Any:
+def timeout_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid timeout values."""
     return draw(st.integers(min_value=10, max_value=300))
 
@@ -96,7 +96,7 @@ class TestAICoreParameterValidation:
     """Test parameter validation for AI core operations."""
 
     @given(ai_operation_strategy())
-    def test_valid_ai_operations(self, operation) -> None:
+    def test_valid_ai_operations(self, operation: str) -> None:
         """Test that AI operations are properly validated."""
         valid_operations = [
             "analyze",
@@ -113,30 +113,30 @@ class TestAICoreParameterValidation:
         assert operation in valid_operations
 
     @given(model_type_strategy())
-    def test_valid_model_types(self, model_type) -> None:
+    def test_valid_model_types(self, model_type: str) -> None:
         """Test that model types are properly validated."""
         valid_types = ["openai", "azure", "google", "anthropic", "local", "auto"]
         assert model_type in valid_types
 
     @given(processing_mode_strategy())
-    def test_valid_processing_modes(self, mode) -> None:
+    def test_valid_processing_modes(self, mode: str) -> None:
         """Test that processing modes are properly validated."""
         valid_modes = ["fast", "balanced", "accurate", "creative", "cost_effective"]
         assert mode in valid_modes
 
     @given(output_format_strategy())
-    def test_valid_output_formats(self, format) -> None:
+    def test_valid_output_formats(self, format: str) -> None:
         """Test that output formats are properly validated."""
         valid_formats = ["auto", "json", "text", "markdown", "html", "structured"]
         assert format in valid_formats
 
     @given(temperature_strategy())
-    def test_valid_temperature_range(self, temperature) -> None:
+    def test_valid_temperature_range(self, temperature: int | float) -> None:
         """Test that temperature values are in valid range."""
         assert 0.0 <= temperature <= 2.0
 
     @given(cost_limit_strategy())
-    def test_valid_cost_limits(self, cost_limit) -> None:
+    def test_valid_cost_limits(self, cost_limit: Any) -> None:
         """Test that cost limits are properly validated."""
         assert cost_limit > 0.0
 
@@ -155,7 +155,7 @@ class TestKMAIProcessingMocked:
             mock_manager.usage_history = []
 
             # Mock the process_ai_request method to return successful results
-            async def mock_process_request(*args, **kwargs):
+            async def mock_process_request(*args: Any, **kwargs: Any) -> None:
                 from src.core.either import Either
 
                 operation = kwargs.get("operation") or args[0]
@@ -246,7 +246,7 @@ class TestKMAIProcessingMocked:
             yield mock_manager
 
     @pytest.mark.asyncio
-    async def test_km_ai_processing_analyze_success(self, mock_ai_manager) -> None:
+    async def test_km_ai_processing_analyze_success(self, mock_ai_manager: Any) -> None:
         """Test successful AI analysis operation."""
         # Test data
         test_input = "This is a sample text for analysis."
@@ -283,7 +283,7 @@ class TestKMAIProcessingMocked:
         assert processing["processing_mode"] == "balanced"
 
     @pytest.mark.asyncio
-    async def test_km_ai_processing_generate_success(self, mock_ai_manager) -> None:
+    async def test_km_ai_processing_generate_success(self, mock_ai_manager: Any) -> None:
         """Test successful AI text generation operation."""
         # Test data (matching expected format from source code)
         generation_prompt = {
@@ -321,7 +321,7 @@ class TestKMAIProcessingMocked:
         assert metadata["generation_params"]["max_tokens"] == 500
 
     @pytest.mark.asyncio
-    async def test_km_ai_processing_classify_success(self, mock_ai_manager) -> None:
+    async def test_km_ai_processing_classify_success(self, mock_ai_manager: Any) -> None:
         """Test successful AI classification operation."""
         # Test data (matching expected format from source code)
         classification_data = {
@@ -360,7 +360,7 @@ class TestKMAIProcessingMocked:
         assert 0.0 <= classification["confidence"] <= 1.0
 
     @pytest.mark.asyncio
-    async def test_km_ai_processing_extract_success(self, mock_ai_manager) -> None:
+    async def test_km_ai_processing_extract_success(self, mock_ai_manager: Any) -> None:
         """Test successful AI information extraction operation."""
         # Test data
         extraction_text = "John Smith works at Tech Corp. His email is john@techcorp.com and phone is 555-123-4567."
@@ -410,7 +410,7 @@ class TestKMAIProcessingMocked:
         assert result["error"]["code"] == "validation_error"
 
     @pytest.mark.asyncio
-    async def test_km_ai_processing_cost_optimization(self, mock_ai_manager) -> None:
+    async def test_km_ai_processing_cost_optimization(self, mock_ai_manager: Any) -> None:
         """Test cost limit and optimization features."""
         result = await km_ai_processing(
             operation="summarize",
@@ -432,7 +432,7 @@ class TestKMAIProcessingMocked:
         assert cost_analysis["estimated_cost"] <= 0.50
 
     @pytest.mark.asyncio
-    async def test_km_ai_processing_privacy_mode(self, mock_ai_manager) -> None:
+    async def test_km_ai_processing_privacy_mode(self, mock_ai_manager: Any) -> None:
         """Test privacy protection features."""
         sensitive_data = "My SSN is 123-45-6789 and credit card is 4111-1111-1111-1111"
 
@@ -502,7 +502,7 @@ class TestKMAIStatusMocked:
             yield mock_manager
 
     @pytest.mark.asyncio
-    async def test_km_ai_status_basic(self, mock_ai_manager_status) -> None:
+    async def test_km_ai_status_basic(self, mock_ai_manager_status: Any) -> None:
         """Test basic AI system status check."""
         result = await km_ai_status()
 
@@ -532,7 +532,7 @@ class TestKMAIStatusMocked:
         assert len(models) > 0
 
     @pytest.mark.asyncio
-    async def test_km_ai_status_detailed(self, mock_ai_manager_status) -> None:
+    async def test_km_ai_status_detailed(self, mock_ai_manager_status: Any) -> None:
         """Test detailed AI system status with usage information."""
         result = await km_ai_status(
             include_models=True,
@@ -564,7 +564,7 @@ class TestKMAIStatusMocked:
         assert isinstance(status["recent_usage"], list)
 
     @pytest.mark.asyncio
-    async def test_km_ai_status_performance_monitoring(self, mock_ai_manager_status) -> None:
+    async def test_km_ai_status_performance_monitoring(self, mock_ai_manager_status: Any) -> None:
         """Test AI system performance monitoring."""
         result = await km_ai_status(include_cache=True, include_usage=True)
 
@@ -654,7 +654,7 @@ class TestAICoreIntegration:
             mock_manager.usage_history = []
 
             # Mock both methods
-            async def mock_process_request(*args, **kwargs):
+            async def mock_process_request(*args: Any, **kwargs: Any) -> None:
                 from src.core.either import Either
 
                 operation = kwargs.get("operation") or args[0]
@@ -675,7 +675,7 @@ class TestAICoreIntegration:
                     },
                 )
 
-            def mock_get_status(*args, **kwargs) -> Any:
+            def mock_get_status(*args: Any, **kwargs: Any) -> Any:
                 return {
                     "initialized": True,
                     "session_id": "test_session_123",
@@ -698,7 +698,7 @@ class TestAICoreIntegration:
             yield mock_manager
 
     @pytest.mark.asyncio
-    async def test_complete_ai_workflow(self, mock_ai_manager_integration) -> None:
+    async def test_complete_ai_workflow(self, mock_ai_manager_integration: Any) -> None:
         """Test complete AI processing workflow integration."""
         # Step 1: Check AI system status
         status_result = await km_ai_status(include_models=True)
@@ -750,7 +750,7 @@ class TestAICoreProperties:
         with patch.object(ai_core_tools, "ai_manager") as mock_manager:
             mock_manager.initialized = True
 
-            async def mock_process_request(*args, **kwargs):
+            async def mock_process_request(*args: Any, **kwargs: Any) -> None:
                 from src.core.either import Either
 
                 operation = kwargs.get("operation") or args[0]
@@ -772,7 +772,7 @@ class TestAICoreProperties:
                     },
                 )
 
-            def mock_get_status(*args, **kwargs) -> dict[str, Any]:
+            def mock_get_status(*args: Any, **kwargs: Any) -> dict[str, Any]:
                 return {"system_health": {"status": "healthy"}}
 
             mock_manager.process_ai_request = mock_process_request
@@ -788,10 +788,10 @@ class TestAICoreProperties:
     @pytest.mark.asyncio
     async def test_ai_processing_properties(
         self,
-        mock_ai_manager_properties,
-        operation,
-        processing_mode,
-        output_format,
+        mock_ai_manager_properties: Any,
+        operation: str,
+        processing_mode: Any,
+        output_format: Any,
     ) -> None:
         """Test properties of AI processing operations."""
         # Prepare operation-specific input data
@@ -843,9 +843,9 @@ class TestAICoreProperties:
     @pytest.mark.asyncio
     async def test_ai_model_properties(
         self,
-        mock_ai_manager_properties,
-        model_type,
-        temperature,
+        mock_ai_manager_properties: Any,
+        model_type: str,
+        temperature: int | float,
     ) -> None:
         """Test properties of AI model configurations."""
         result = await km_ai_processing(
@@ -867,7 +867,7 @@ class TestAICoreProperties:
             assert abs(processing["temperature_used"] - temperature) < 0.1
 
     @pytest.mark.asyncio
-    async def test_ai_status_consistency(self, mock_ai_manager_properties) -> None:
+    async def test_ai_status_consistency(self, mock_ai_manager_properties: Any) -> None:
         """Test AI status consistency across multiple calls."""
         results = []
 

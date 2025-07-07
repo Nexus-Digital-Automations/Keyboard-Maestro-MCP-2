@@ -6,7 +6,6 @@ modules to continue progress toward the near 100% coverage target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import json
 import logging
 from unittest.mock import Mock, patch

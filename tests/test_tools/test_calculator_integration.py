@@ -6,7 +6,6 @@ and expression evaluation with security validation.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -43,7 +42,7 @@ class TestCalculatorToolsIntegration:
         return mock
 
     @pytest.mark.asyncio
-    async def test_km_calculate_expression_success(self, mock_calculator) -> None:
+    async def test_km_calculate_expression_success(self, mock_calculator: Any) -> None:
         """Test successful expression calculation."""
         with patch(
             "src.server.tools.calculator_tools.Calculator",
@@ -87,7 +86,7 @@ class TestCalculatorToolsIntegration:
         assert "validation" in result["error"]["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_km_calculate_math_function_success(self, mock_calculator) -> None:
+    async def test_km_calculate_math_function_success(self, mock_calculator: Any) -> None:
         """Test successful math function calculation."""
         from src.calculations.calculator import CalculationResult, NumberFormat
         from src.integration.km_client import Either
@@ -127,7 +126,7 @@ class TestCalculatorToolsIntegration:
         assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_km_convert_number_format_success(self, mock_calculator) -> None:
+    async def test_km_convert_number_format_success(self, mock_calculator: Any) -> None:
         """Test successful number format conversion."""
         from src.calculations.calculator import CalculationResult, NumberFormat
         from src.integration.km_client import Either
@@ -173,7 +172,7 @@ class TestCalculatorToolsIntegration:
         assert "success" in result
 
     @pytest.mark.asyncio
-    async def test_km_evaluate_formula_success(self, mock_calculator) -> None:
+    async def test_km_evaluate_formula_success(self, mock_calculator: Any) -> None:
         """Test successful formula evaluation with variables."""
         from src.calculations.calculator import CalculationResult, NumberFormat
         from src.integration.km_client import Either
@@ -215,13 +214,13 @@ class TestCalculatorToolsIntegration:
         # but the validation happens at the Pydantic level in km_calculator
 
     @pytest.mark.asyncio
-    async def test_concurrent_calculations(self, mock_calculator) -> None:
+    async def test_concurrent_calculations(self, mock_calculator: Any) -> None:
         """Test concurrent calculator operations."""
         from src.calculations.calculator import CalculationResult, NumberFormat
         from src.integration.km_client import Either
 
         # Mock different results for different expressions
-        def mock_calculate_side_effect(calc_expression) -> bool:
+        def mock_calculate_side_effect(calc_expression: Any) -> bool:
             if "5 + 5" in calc_expression.expression:
                 return Either.right(
                     CalculationResult(
@@ -288,7 +287,7 @@ class TestCalculatorToolsIntegration:
         assert all(result["success"] for result in results)
 
     @pytest.mark.asyncio
-    async def test_calculator_error_handling(self, mock_calculator) -> None:
+    async def test_calculator_error_handling(self, mock_calculator: Any) -> None:
         """Test comprehensive error handling."""
         from src.integration.km_client import Either, KMError
 
@@ -311,7 +310,7 @@ class TestCalculatorToolsIntegration:
         )
 
     @pytest.mark.asyncio
-    async def test_calculator_precision_handling(self, mock_calculator) -> None:
+    async def test_calculator_precision_handling(self, mock_calculator: Any) -> None:
         """Test precision handling in calculations."""
         from src.calculations.calculator import CalculationResult, NumberFormat
         from src.integration.km_client import Either
@@ -338,7 +337,7 @@ class TestCalculatorToolsIntegration:
         assert len(str(result["calculation"]["result"]).split(".")[-1]) > 10
 
     @pytest.mark.asyncio
-    async def test_calculator_variable_substitution(self, mock_calculator) -> None:
+    async def test_calculator_variable_substitution(self, mock_calculator: Any) -> None:
         """Test variable substitution in formulas."""
         from src.calculations.calculator import CalculationResult, NumberFormat
         from src.integration.km_client import Either

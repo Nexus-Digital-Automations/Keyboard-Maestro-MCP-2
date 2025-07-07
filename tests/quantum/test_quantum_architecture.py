@@ -10,7 +10,6 @@ Security: Post-quantum algorithm validation, threat assessment testing, cryptogr
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from dataclasses import FrozenInstanceError
 from datetime import UTC, datetime, timedelta
 
@@ -826,7 +825,7 @@ try:
         """Property-based tests for quantum architecture components."""
 
         @given(st.integers(min_value=1, max_value=10000))
-        def test_key_size_always_positive(self, key_size) -> None:
+        def test_key_size_always_positive(self, key_size: int) -> None:
             """Test that valid key sizes are always positive."""
             asset = CryptographicAsset(
                 asset_id=CryptographicAssetId(f"test_{key_size}"),
@@ -842,7 +841,7 @@ try:
             assert asset.key_size > 0
 
         @given(st.integers(min_value=1, max_value=5))
-        def test_migration_priority_range(self, priority) -> None:
+        def test_migration_priority_range(self, priority: int) -> None:
             """Test that migration priorities are within valid range."""
             asset = CryptographicAsset(
                 asset_id=CryptographicAssetId(f"priority_{priority}"),
@@ -858,7 +857,7 @@ try:
             assert 1 <= asset.migration_priority <= 5
 
         @given(st.floats(min_value=0.0, max_value=1.0))
-        def test_readiness_score_range(self, score) -> None:
+        def test_readiness_score_range(self, score: int | float) -> None:
             """Test that readiness scores are within valid range."""
             assessment = QuantumReadinessAssessment(
                 assessment_id=f"score_{score}",

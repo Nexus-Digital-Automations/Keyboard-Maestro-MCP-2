@@ -580,7 +580,7 @@ def _build_trigger_spec(
 
 
 def _perform_security_validation(
-    trigger_spec,
+    trigger_spec: Any,
     config: dict[str, Any],
 ) -> Either[SecurityError, None]:
     """Perform additional security validation on the trigger."""
@@ -664,7 +664,7 @@ def _generate_trigger_examples(trigger_type: TriggerType) -> list[dict[str, Any]
     return examples
 
 
-def _suggest_next_actions(trigger_spec) -> list[str]:
+def _suggest_next_actions(trigger_spec: Any) -> list[str]:
     """Suggest next actions based on trigger type."""
     suggestions = [
         "Test the trigger by temporarily enabling it",

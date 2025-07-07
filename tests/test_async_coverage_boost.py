@@ -6,7 +6,6 @@ for systematic coverage expansion toward the near 100% target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import logging
 from datetime import datetime

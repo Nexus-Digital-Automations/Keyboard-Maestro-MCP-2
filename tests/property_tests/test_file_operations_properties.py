@@ -6,7 +6,6 @@ security boundaries, path validation, and transaction safety.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import shutil
 import tempfile
@@ -32,7 +31,7 @@ class TestFileOperationProperties:
     """Property-based tests for file operations with security validation."""
 
     @given(st.text(min_size=1, max_size=100))
-    def test_path_validation_rejects_dangerous_patterns(self, path_input) -> None:
+    def test_path_validation_rejects_dangerous_patterns(self, path_input: list[Any] | str) -> None:
         """Property: Dangerous path patterns should always be rejected."""
         # Skip if path contains null bytes (not valid for filesystem)
         assume("\x00" not in path_input)
@@ -65,7 +64,7 @@ class TestFileOperationProperties:
             ),
         ),
     )
-    def test_safe_filename_validation(self, filename) -> None:
+    def test_safe_filename_validation(self, filename: str) -> None:
         """Property: Safe filenames in allowed directories should pass validation."""
         assume(
             filename not in [".", "..", "CON", "PRN", "AUX", "NUL"],
@@ -87,7 +86,7 @@ class TestFileOperationProperties:
             assert not safe_path.startswith("/")
 
     @given(st.integers(min_value=0, max_value=1000000))
-    def test_file_size_handling_properties(self, file_size) -> None:
+    def test_file_size_handling_properties(self, file_size: int) -> None:
         """Property: File size calculations should be consistent and safe."""
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             # Write data of specified size
@@ -178,7 +177,7 @@ class FileOperationStateMachine(RuleBasedStateMachine):
             ),
         ),
     )
-    def create_file(self, filename) -> None:
+    def create_file(self, filename: str) -> None:
         """Create a test file."""
         assume(filename not in [".", ".."])
         assume(not filename.startswith("."))
@@ -251,7 +250,7 @@ class TestPathSecurityProperties:
     """Property-based tests specifically for path security validation."""
 
     @given(st.text())
-    def test_path_validation_never_crashes(self, path_input) -> None:
+    def test_path_validation_never_crashes(self, path_input: Any) -> None:
         """Property: Path validation should handle all inputs gracefully."""
         try:
             result = PathSecurity.validate_path(path_input)
@@ -265,7 +264,7 @@ class TestPathSecurityProperties:
             )
 
     @given(st.text(min_size=1))
-    def test_sanitization_safety(self, path_input) -> None:
+    def test_sanitization_safety(self, path_input: Any) -> None:
         """Property: Path sanitization should never make paths less safe."""
         assume("\x00" not in path_input)  # Skip null bytes
 
@@ -287,7 +286,7 @@ class TestPathSecurityProperties:
 
     @settings(max_examples=50)  # Reduce examples for performance
     @given(st.lists(st.text(min_size=1, max_size=20), min_size=1, max_size=5))
-    def test_path_joining_security(self, path_components) -> None:
+    def test_path_joining_security(self, path_components: list[Any] | str) -> None:
         """Property: Joining path components should maintain security."""
         # Clean components first
         clean_components = []

@@ -9,7 +9,6 @@ Performance: <100ms per test, parallel execution, comprehensive edge case covera
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import os
 import tempfile
 from unittest.mock import AsyncMock, Mock, patch
@@ -327,7 +326,7 @@ class TestServerResources:
 
     @given(st.text(min_size=1, max_size=50))
     @settings(max_examples=10)
-    def test_tool_help_property_based(self, tool_name) -> None:
+    def test_tool_help_property_based(self, tool_name: str) -> None:
         """Property-based test for tool help."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server resources module not available")
@@ -521,7 +520,7 @@ class TestServerUtils:
 
     @given(st.text(), st.one_of(st.none(), st.text(), st.integers(), st.booleans()))
     @settings(max_examples=20)
-    def test_sanitization_property_based(self, key, value) -> None:
+    def test_sanitization_property_based(self, key: str, value: Any) -> None:
         """Property-based test for sanitization."""
         if not MAIN_SERVER_AVAILABLE:
             pytest.skip("Server utils module not available")

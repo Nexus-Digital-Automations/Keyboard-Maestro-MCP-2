@@ -6,7 +6,6 @@ the platform can be deployed successfully without complex dependency issues.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import sys
 from pathlib import Path
 
@@ -120,7 +119,7 @@ class TestProductionReadiness:
         """Test that async functionality works correctly."""
         import asyncio
 
-        async def sample_async_function():
+        async def sample_async_function() -> Any:
             await asyncio.sleep(0.001)  # Minimal async operation
             return "async_works"
 

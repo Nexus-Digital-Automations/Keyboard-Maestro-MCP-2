@@ -366,7 +366,7 @@ class ConversationManager:
         if primary_intent.intent != "greeting":
             session.current_topic = primary_intent.intent
 
-    def _has_sufficient_info(self, intent) -> bool:
+    def _has_sufficient_info(self, intent: Any) -> bool:
         """Check if we have sufficient information to process the intent."""
         # Check if intent has required entities or parameters
         if intent.category.value == "automation_command":
@@ -446,7 +446,7 @@ class ConversationManager:
     def _select_response_template(
         self,
         state: ConversationState,
-        intent,
+        intent: Any,
         mode: ConversationMode,
     ) -> str:
         """Select appropriate response template."""
@@ -489,7 +489,7 @@ class ConversationManager:
     async def _generate_suggestions(
         self,
         session: ConversationSession,
-        intent,
+        intent: Any,
     ) -> list[str]:
         """Generate contextual suggestions for the user."""
         suggestions = []
@@ -521,7 +521,7 @@ class ConversationManager:
 
         return suggestions[:3]  # Limit to top 3 suggestions
 
-    def _generate_examples(self, intent, skill_level: str) -> list[str]:
+    def _generate_examples(self, intent: Any, skill_level: str) -> list[str]:
         """Generate relevant examples based on intent and skill level."""
         examples = []
 
@@ -548,7 +548,7 @@ class ConversationManager:
     def _generate_follow_up_questions(
         self,
         session: ConversationSession,
-        intent,
+        intent: Any,
     ) -> list[str]:
         """Generate follow-up questions to gather more information."""
         questions = []

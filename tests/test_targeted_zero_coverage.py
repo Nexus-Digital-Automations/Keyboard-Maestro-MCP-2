@@ -6,7 +6,6 @@ to maximize coverage gains with strategic testing of high-impact uncovered areas
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import Mock, patch
 
 import pytest

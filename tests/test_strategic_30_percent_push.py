@@ -6,7 +6,6 @@ to achieve the maximum possible coverage boost through systematic testing of cor
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 from datetime import datetime
 from unittest.mock import Mock, patch

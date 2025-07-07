@@ -571,14 +571,14 @@ class DeviceController:
 
     # Background services
 
-    async def _start_background_services(self):
+    async def _start_background_services(self) -> None:
         """Start background discovery and health check services."""
         if self.discovery_enabled:
             self._discovery_task = asyncio.create_task(self._discovery_loop())
 
         self._health_check_task = asyncio.create_task(self._health_check_loop())
 
-    async def _discovery_loop(self):
+    async def _discovery_loop(self) -> Any:
         """Background device discovery loop."""
         while True:
             try:
@@ -589,7 +589,7 @@ class DeviceController:
             except Exception:
                 await asyncio.sleep(60)  # Error recovery delay
 
-    async def _health_check_loop(self):
+    async def _health_check_loop(self) -> None:
         """Background device health check loop."""
         while True:
             try:
@@ -766,15 +766,15 @@ class DeviceController:
         await asyncio.sleep(2.0)  # Simulate scan time
         return []
 
-    async def _disconnect_http(self, device: IoTDevice, connection: DeviceConnection):
+    async def _disconnect_http(self, device: IoTDevice, connection: DeviceConnection) -> None:
         """Disconnect HTTP connection."""
         # Placeholder implementation
 
-    async def _disconnect_mqtt(self, device: IoTDevice, connection: DeviceConnection):
+    async def _disconnect_mqtt(self, device: IoTDevice, connection: DeviceConnection) -> None:
         """Disconnect MQTT connection."""
         # Placeholder implementation
 
-    async def _disconnect_coap(self, device: IoTDevice, connection: DeviceConnection):
+    async def _disconnect_coap(self, device: IoTDevice, connection: DeviceConnection) -> None:
         """Disconnect CoAP connection."""
         # Placeholder implementation
 

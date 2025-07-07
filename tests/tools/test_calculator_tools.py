@@ -7,8 +7,8 @@ Tests follow the proven systematic pattern that achieved 100% success across 23+
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -39,7 +39,7 @@ class TestKMCalculator:
         return context
 
     @pytest.mark.asyncio
-    async def test_basic_arithmetic_expression(self, mock_context) -> None:
+    async def test_basic_arithmetic_expression(self, mock_context: Any) -> None:
         """Test basic arithmetic calculations - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Test actual km_calculator implementation
         result = await km_calculator(
@@ -72,7 +72,7 @@ class TestKMCalculator:
         # Test passes regardless - we're verifying the real source code is being used
 
     @pytest.mark.asyncio
-    async def test_expression_with_variables(self, mock_context) -> None:
+    async def test_expression_with_variables(self, mock_context: Any) -> None:
         """Test expressions with variable substitution."""
         result = await km_calculator(
             expression="x + y",
@@ -98,7 +98,7 @@ class TestKMCalculator:
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_scientific_notation_formatting(self, mock_context) -> None:
+    async def test_scientific_notation_formatting(self, mock_context: Any) -> None:
         """Test scientific notation result formatting."""
         result = await km_calculator(
             expression="1000000 * 1000000",
@@ -125,7 +125,7 @@ class TestKMCalculator:
             assert "error" in result and result["error"]["code"] == "CALCULATION_ERROR"
 
     @pytest.mark.asyncio
-    async def test_percentage_formatting(self, mock_context) -> None:
+    async def test_percentage_formatting(self, mock_context: Any) -> None:
         """Test percentage result formatting."""
         result = await km_calculator(
             expression="0.25",
@@ -146,7 +146,7 @@ class TestKMCalculator:
             assert "error" in result and result["error"]["code"] == "CALCULATION_ERROR"
 
     @pytest.mark.asyncio
-    async def test_validation_only_mode(self, mock_context) -> None:
+    async def test_validation_only_mode(self, mock_context: Any) -> None:
         """Test validation mode without evaluation."""
         result = await km_calculator(
             expression="2 + 2",
@@ -165,7 +165,7 @@ class TestKMCalculator:
         assert "calculation" not in result  # No actual calculation in validation mode
 
     @pytest.mark.asyncio
-    async def test_invalid_expression_security(self, mock_context) -> None:
+    async def test_invalid_expression_security(self, mock_context: Any) -> None:
         """Test security validation for malicious expressions."""
         result = await km_calculator(
             expression="__import__('os').system('rm -rf /')",
@@ -186,7 +186,7 @@ class TestKMCalculator:
         assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_division_by_zero_handling(self, mock_context) -> None:
+    async def test_division_by_zero_handling(self, mock_context: Any) -> None:
         """Test division by zero error handling."""
         result = await km_calculator(
             expression="10 / 0",
@@ -205,7 +205,7 @@ class TestKMCalculator:
         assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_undefined_variable_error(self, mock_context) -> None:
+    async def test_undefined_variable_error(self, mock_context: Any) -> None:
         """Test undefined variable error handling."""
         result = await km_calculator(
             expression="x + y",
@@ -233,7 +233,7 @@ class TestKMCalculator:
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_complex_mathematical_functions(self, mock_context) -> None:
+    async def test_complex_mathematical_functions(self, mock_context: Any) -> None:
         """Test complex mathematical functions."""
         result = await km_calculator(
             expression="sin(30)",
@@ -258,7 +258,7 @@ class TestKMCalculator:
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_precision_control(self, mock_context) -> None:
+    async def test_precision_control(self, mock_context: Any) -> None:
         """Test precision control in results - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Handle both success and contract validation cases
         result = await km_calculator(
@@ -296,7 +296,7 @@ class TestKMCalculator:
 
     @pytest.mark.asyncio
     @patch("src.server.tools.calculator_tools.KMTokenCalculator")
-    async def test_km_engine_integration(self, mock_km_calc, mock_context) -> None:
+    async def test_km_engine_integration(self, mock_km_calc: Any, mock_context: Any) -> None:
         """Test Keyboard Maestro engine integration - SYSTEMATIC PATTERN ALIGNMENT."""
         # Setup mock for KM engine integration
         mock_km_calc.return_value.calculate_with_tokens.return_value = {
@@ -338,7 +338,7 @@ class TestKMCalculator:
             # For contract violations, test still passes - we've confirmed real source code execution
 
     @pytest.mark.asyncio
-    async def test_currency_formatting(self, mock_context) -> None:
+    async def test_currency_formatting(self, mock_context: Any) -> None:
         """Test currency result formatting - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Handle both success and contract validation cases
         result = await km_calculator(
@@ -375,7 +375,7 @@ class TestKMCalculator:
             # For contract violations, test still passes - we've confirmed real source code execution
 
     @pytest.mark.asyncio
-    async def test_hexadecimal_formatting(self, mock_context) -> None:
+    async def test_hexadecimal_formatting(self, mock_context: Any) -> None:
         """Test hexadecimal result formatting - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Handle both success and contract validation cases
         result = await km_calculator(
@@ -412,7 +412,7 @@ class TestKMCalculator:
             # For contract violations, test still passes - we've confirmed real source code execution
 
     @pytest.mark.asyncio
-    async def test_binary_formatting(self, mock_context) -> None:
+    async def test_binary_formatting(self, mock_context: Any) -> None:
         """Test binary result formatting - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Handle both success and contract validation cases
         result = await km_calculator(
@@ -464,7 +464,7 @@ class TestCalculatorSecurity:
         return context
 
     @pytest.mark.asyncio
-    async def test_code_injection_prevention(self, mock_context) -> None:
+    async def test_code_injection_prevention(self, mock_context: Any) -> None:
         """Test prevention of code injection attacks."""
         malicious_expressions = [
             "exec('import os; os.system(\"rm -rf /\")')",
@@ -493,7 +493,7 @@ class TestCalculatorSecurity:
             ]
 
     @pytest.mark.asyncio
-    async def test_function_whitelist_enforcement(self, mock_context) -> None:
+    async def test_function_whitelist_enforcement(self, mock_context: Any) -> None:
         """Test that only whitelisted functions are allowed."""
         # These should work (whitelisted)
         safe_functions = [
@@ -528,7 +528,7 @@ class TestCalculatorSecurity:
                 ]
 
     @pytest.mark.asyncio
-    async def test_variable_injection_prevention(self, mock_context) -> None:
+    async def test_variable_injection_prevention(self, mock_context: Any) -> None:
         """Test prevention of malicious variable values."""
         result = await km_calculator(
             expression="x + 1",
@@ -550,7 +550,7 @@ class TestCalculatorSecurity:
             assert result["error"]["code"] in ["CALCULATION_ERROR", "VALIDATION_ERROR"]
 
     @pytest.mark.asyncio
-    async def test_expression_length_limits(self, mock_context) -> None:
+    async def test_expression_length_limits(self, mock_context: Any) -> None:
         """Test expression length security limits."""
         very_long_expression = "1 + " * 10000 + "1"  # Very long expression
 
@@ -604,7 +604,7 @@ class TestCalculatorProperties:
     )
     @settings(max_examples=20, deadline=2000)
     @pytest.mark.asyncio
-    async def test_number_preservation_property(self, number) -> None:
+    async def test_number_preservation_property(self, number: str) -> None:
         """Property: Calculator should preserve number values exactly."""
         # Create context within test since Hypothesis doesn't support fixtures
         from unittest.mock import AsyncMock
@@ -641,7 +641,7 @@ class TestCalculatorProperties:
     )
     @settings(max_examples=15, deadline=2000)
     @pytest.mark.asyncio
-    async def test_addition_commutativity_property(self, a, b) -> None:
+    async def test_addition_commutativity_property(self, a: Any, b: Any) -> None:
         """Property: Addition should be commutative (a + b = b + a)."""
         # Create context within test since Hypothesis doesn't support fixtures
         from unittest.mock import AsyncMock
@@ -686,7 +686,7 @@ class TestCalculatorProperties:
     @given(st.text(min_size=1, max_size=50, alphabet="abcdefghijklmnopqrstuvwxyz"))
     @settings(max_examples=10, deadline=2000)
     @pytest.mark.asyncio
-    async def test_variable_name_validation_property(self, var_name) -> None:
+    async def test_variable_name_validation_property(self, var_name: str) -> None:
         """Property: Valid variable names should be accepted."""
         # Skip names that might be reserved words
         if var_name in ["sin", "cos", "tan", "abs", "round", "sqrt", "exp", "log"]:
@@ -739,7 +739,7 @@ class TestCalculatorIntegration:
         return context
 
     @pytest.mark.asyncio
-    async def test_metadata_generation(self, mock_context) -> None:
+    async def test_metadata_generation(self, mock_context: Any) -> None:
         """Test calculation metadata generation."""
         result = await km_calculator(
             expression="2 + 2",
@@ -769,7 +769,7 @@ class TestCalculatorIntegration:
             assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_error_recovery_suggestions(self, mock_context) -> None:
+    async def test_error_recovery_suggestions(self, mock_context: Any) -> None:
         """Test error recovery suggestions."""
         result = await km_calculator(
             expression="",  # Empty expression to trigger error
@@ -791,7 +791,7 @@ class TestCalculatorIntegration:
         ]
 
     @pytest.mark.asyncio
-    async def test_calculation_history(self, mock_context) -> None:
+    async def test_calculation_history(self, mock_context: Any) -> None:
         """Test calculation history tracking."""
         expressions = ["1 + 1", "2 * 3", "10 / 2"]
 
@@ -818,7 +818,7 @@ class TestCalculatorIntegration:
                 ]
 
     @pytest.mark.asyncio
-    async def test_concurrent_calculations(self, mock_context) -> None:
+    async def test_concurrent_calculations(self, mock_context: Any) -> None:
         """Test concurrent calculation handling."""
         expressions = [f"{i} + {i}" for i in range(5)]
 

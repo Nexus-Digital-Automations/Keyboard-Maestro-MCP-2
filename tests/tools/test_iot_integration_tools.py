@@ -6,7 +6,6 @@ and workflow coordination with comprehensive validation and error handling.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 

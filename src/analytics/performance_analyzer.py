@@ -201,7 +201,7 @@ class PerformanceAnalyzer:
 
         return filtered
 
-    async def _ensure_baselines(self, metrics: dict[MetricId, list[MetricValue]]):
+    async def _ensure_baselines(self, metrics: dict[MetricId, list[MetricValue]]) -> None:
         """Ensure performance baselines exist for all metrics."""
         for metric_id, values in metrics.items():
             if metric_id not in self.baselines and len(values) >= 10:

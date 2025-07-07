@@ -7,9 +7,9 @@ security, compliance, and integration reliability.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -45,10 +45,10 @@ class TestEnterpriseConnectionProperties:
     )
     def test_enterprise_connection_properties(
         self,
-        connection_id,
-        host,
-        port,
-        integration_type,
+        connection_id: str,
+        host: str,
+        port: int,
+        integration_type: str,
     ) -> None:
         """Property: Enterprise connections should handle various host and port combinations."""
         assume(connection_id.strip() != "")
@@ -85,7 +85,7 @@ class TestEnterpriseConnectionProperties:
         st.text(min_size=1, max_size=50),
         st.text(min_size=12, max_size=100),
     )
-    def test_enterprise_credentials_properties(self, auth_method, username, password) -> None:
+    def test_enterprise_credentials_properties(self, auth_method: Any, username: str, password: str) -> None:
         """Property: Enterprise credentials should handle various authentication methods."""
         assume(username.strip() != "")
         assume(password.strip() != "")
@@ -143,7 +143,7 @@ class TestEnterpriseConnectionProperties:
         st.booleans(),
         st.sets(st.text(min_size=1, max_size=20), max_size=10),
     )
-    def test_ldap_user_properties(self, username, display_name, is_active, groups) -> None:
+    def test_ldap_user_properties(self, username: str, display_name: str, is_active: bool, groups: list[Any] | str) -> None:
         """Property: LDAP users should handle various usernames and attributes."""
         assume(username.strip() != "")
 
@@ -184,10 +184,10 @@ class TestEnterpriseConnectionProperties:
     )
     def test_sync_result_properties(
         self,
-        successful,
-        failed,
-        duration,
-        integration_type,
+        successful: Any,
+        failed: bool,
+        duration: int | float,
+        integration_type: str,
     ) -> None:
         """Property: Sync results should handle various success/failure counts."""
         total_processed = successful + failed
@@ -236,11 +236,11 @@ class TestEnterpriseSecurityProperties:
     )
     def test_connection_security_validation_properties(
         self,
-        host,
-        port,
-        integration_type,
-        use_ssl,
-        ssl_verify,
+        host: str,
+        port: int,
+        integration_type: str,
+        use_ssl: Any,
+        ssl_verify: Any,
     ) -> None:
         """Property: Connection security validation should be consistent."""
         assume(host.strip() != "")
@@ -299,8 +299,8 @@ class TestEnterpriseSecurityProperties:
     )
     def test_ldap_search_filter_validation_properties(
         self,
-        base_filter,
-        standard_filter,
+        base_filter: Any,
+        standard_filter: Any,
     ) -> None:
         """Property: LDAP search filter validation should detect injection attacks."""
         validator = EnterpriseSecurityValidator()
@@ -342,10 +342,10 @@ class TestEnterpriseSecurityProperties:
     )
     def test_password_complexity_validation_properties(
         self,
-        upper_count,
-        lower_count,
-        digit_count,
-        special_count,
+        upper_count: int,
+        lower_count: int,
+        digit_count: int,
+        special_count: int,
     ) -> None:
         """Property: Password complexity validation should be consistent."""
         validator = EnterpriseSecurityValidator()
@@ -392,7 +392,7 @@ class TestLDAPConnectorProperties:
         st.integers(min_value=389, max_value=65535),
     )
     @pytest.mark.asyncio
-    async def test_ldap_connection_properties(self, connection_id, host, port) -> None:
+    async def test_ldap_connection_properties(self, connection_id: str, host: str, port: int) -> None:
         """Property: LDAP connection should handle various configurations."""
         assume(connection_id.strip() != "")
         assume(host.strip() != "")
@@ -465,9 +465,9 @@ class TestSSOManagerProperties:
     @pytest.mark.asyncio
     async def test_oauth_provider_configuration_properties(
         self,
-        provider_name,
-        client_id,
-        client_secret,
+        provider_name: str,
+        client_id: str,
+        client_secret: Any,
     ) -> None:
         """Property: OAuth provider configuration should handle various inputs."""
         assume(provider_name.strip() != "")
@@ -505,8 +505,8 @@ class TestSSOManagerProperties:
     @pytest.mark.asyncio
     async def test_saml_provider_configuration_properties(
         self,
-        provider_name,
-        entity_id,
+        provider_name: str,
+        entity_id: str,
     ) -> None:
         """Property: SAML provider configuration should handle various inputs."""
         assume(provider_name.strip() != "")
@@ -574,9 +574,9 @@ class TestEnterpriseSyncToolProperties:
     @pytest.mark.asyncio
     async def test_enterprise_sync_tool_properties(
         self,
-        operation,
-        integration_type,
-        host,
+        operation: str,
+        integration_type: str,
+        host: str,
     ) -> None:
         """Property: Enterprise sync tool should handle various operations."""
         assume(host.strip() != "")
@@ -632,7 +632,7 @@ class TestEnterpriseSyncToolProperties:
     @settings(max_examples=20, deadline=5000)
     @given(st.text(max_size=0))
     @pytest.mark.asyncio
-    async def test_invalid_parameters_validation_properties(self, empty_value) -> None:
+    async def test_invalid_parameters_validation_properties(self, empty_value: str) -> None:
         """Property: Empty or invalid parameters should be rejected gracefully."""
         assume(len(empty_value.strip()) == 0)
 
@@ -660,10 +660,10 @@ class TestEnterpriseIntegrationCompliance:
     )
     def test_enterprise_configuration_compliance_properties(
         self,
-        retention_days,
-        security_level,
-        use_ssl,
-        ssl_verify,
+        retention_days: Any,
+        security_level: Any,
+        use_ssl: Any,
+        ssl_verify: Any,
     ) -> None:
         """Property: Enterprise configurations should meet compliance requirements."""
         # Filter out invalid combinations using assume()
@@ -693,9 +693,9 @@ class TestEnterpriseIntegrationCompliance:
     )
     def test_enterprise_performance_properties(
         self,
-        records_count,
-        batch_size,
-        duration,
+        records_count: int,
+        batch_size: int,
+        duration: int | float,
     ) -> None:
         """Property: Enterprise operations should meet performance requirements."""
         assume(batch_size > 0)

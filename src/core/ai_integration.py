@@ -440,7 +440,7 @@ def create_ai_request(
     operation: AIOperation,
     input_data: str | dict | list,
     model_id: AIModelId | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> Either[ValidationError, AIRequest]:
     """Create and validate AI request with automatic model selection.
 

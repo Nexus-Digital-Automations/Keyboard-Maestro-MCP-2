@@ -6,7 +6,6 @@ Focuses on modules that were successfully tested in the strategic test.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import tempfile
 from pathlib import Path
@@ -229,7 +228,7 @@ class TestIntegrationComprehensive:
         # Test event registration and handling
         events_received = []
 
-        def test_handler(event) -> None:
+        def test_handler(event: Any) -> None:
             events_received.append(event)
 
         # Register handler

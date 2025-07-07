@@ -725,7 +725,7 @@ class SecurityManager:
 
         return encrypted_data
 
-    async def _generate_device_encryption_keys(self, device_id: DeviceId):
+    async def _generate_device_encryption_keys(self, device_id: DeviceId) -> Any:
         """Generate encryption keys for device communication."""
         # Generate secure random keys
         encryption_key = secrets.token_hex(32)  # 256-bit key
@@ -754,7 +754,7 @@ class SecurityManager:
         device_id: DeviceId,
         reason: str,
         source_ip: str | None,
-    ):
+    ) -> None:
         """Handle authentication failure and potential lockout."""
         self.failed_auths += 1
 
@@ -907,7 +907,7 @@ class SecurityManager:
         threat_level: ThreatLevel,
         details: dict[str, Any],
         source_ip: str | None = None,
-    ):
+    ) -> None:
         """Log security event for audit and analysis."""
         event_id = f"evt_{int(datetime.now(UTC).timestamp())}_{secrets.token_hex(4)}"
 

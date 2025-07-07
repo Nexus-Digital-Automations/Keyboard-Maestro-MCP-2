@@ -6,7 +6,6 @@ module and push coverage as close to 100% as possible with systematic testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import datetime
 from unittest.mock import patch
 

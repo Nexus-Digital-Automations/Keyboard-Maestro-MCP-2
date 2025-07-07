@@ -226,7 +226,7 @@ class TestCommandValidator:
         st.dictionaries(st.text(), st.one_of(st.text(), st.integers(), st.booleans())),
     )
     @settings(max_examples=20)
-    def test_validation_property_based(self, parameters) -> None:
+    def test_validation_property_based(self, parameters: list[Any]) -> None:
         """Property-based test for validation."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -666,7 +666,7 @@ class TestCommandIntegration:
             pytest.skip("Commands module not available")
 
         class MetadataCommand(BaseCommand):
-            def __init__(self, command_id: str, name: str, **metadata):
+            def __init__(self, command_id: str, name: str, **metadata: Any):
                 super().__init__(command_id, name)
                 self.metadata = metadata
 
@@ -695,7 +695,7 @@ class TestCommandProperties:
 
     @given(st.text(min_size=1, max_size=50), st.text(min_size=1, max_size=100))
     @settings(max_examples=20)
-    def test_command_creation_properties(self, command_id, name) -> bool:
+    def test_command_creation_properties(self, command_id: str, name: str) -> bool:
         """Test command creation properties."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")
@@ -715,7 +715,7 @@ class TestCommandProperties:
         st.dictionaries(st.text(), st.one_of(st.text(), st.integers(), st.booleans())),
     )
     @settings(max_examples=10)
-    def test_validation_result_properties(self, parameters) -> None:
+    def test_validation_result_properties(self, parameters: list[Any]) -> None:
         """Test validation result properties."""
         if not COMMANDS_AVAILABLE:
             pytest.skip("Commands module not available")

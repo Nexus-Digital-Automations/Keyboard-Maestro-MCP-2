@@ -841,7 +841,7 @@ class PerformanceMonitorTools:
 
         self.logger.info("Registered performance monitoring MCP tools successfully")
 
-    def _format_latest_metrics(self, metrics) -> dict[str, Any]:
+    def _format_latest_metrics(self, metrics: Any) -> dict[str, Any]:
         """Format latest metrics for response."""
         latest_data = {}
 
@@ -856,7 +856,7 @@ class PerformanceMonitorTools:
 
         return latest_data
 
-    def _format_time_range(self, metrics) -> str:
+    def _format_time_range(self, metrics: list[Any] | str) -> str:
         """Format time range of metrics."""
         if not metrics.metrics:
             return "No data"
@@ -867,7 +867,7 @@ class PerformanceMonitorTools:
 
         return f"{duration.total_seconds():.0f} seconds"
 
-    def _format_resource_utilization(self, metrics) -> dict[str, Any]:
+    def _format_resource_utilization(self, metrics: Any) -> dict[str, Any]:
         """Format resource utilization summary."""
         if not metrics.snapshots:
             return {}
@@ -881,7 +881,7 @@ class PerformanceMonitorTools:
             "timestamp": latest.timestamp.isoformat(),
         }
 
-    def _format_alert_summary(self, metrics) -> dict[str, Any]:
+    def _format_alert_summary(self, metrics: list[Any] | str) -> dict[str, Any]:
         """Format alert summary."""
         severity_counts = {}
         for alert in metrics.alerts:

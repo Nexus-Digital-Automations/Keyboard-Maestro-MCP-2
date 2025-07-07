@@ -6,7 +6,6 @@ to push them to 70%+ coverage for maximum overall impact.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 
 import pytest

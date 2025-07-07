@@ -555,7 +555,7 @@ def get_api_key_manager() -> APIKeyManager:
 def store_api_key(
     provider: str,
     key_value: str,
-    **kwargs,
+    **kwargs: Any,
 ) -> Either[ValidationError, str]:
     """Store API key using global manager."""
     manager = get_api_key_manager()

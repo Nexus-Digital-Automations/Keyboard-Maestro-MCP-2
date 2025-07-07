@@ -6,9 +6,9 @@ async operations, and security features with property-based testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import subprocess
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 # Test data generators
 @st.composite
-def connection_config_strategy(draw) -> None:
+def connection_config_strategy(draw: Callable[..., Any]) -> None:
     """Generate valid connection configurations."""
     method = draw(st.sampled_from(list(ConnectionMethod)))
     timeout = draw(st.floats(min_value=1.0, max_value=60.0))
@@ -57,7 +57,7 @@ def connection_config_strategy(draw) -> None:
 
 
 @st.composite
-def km_error_strategy(draw) -> Any:
+def km_error_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid KM errors."""
     error_codes = [
         "CONNECTION_ERROR",
@@ -85,14 +85,14 @@ def km_error_strategy(draw) -> Any:
 
 
 @st.composite
-def trigger_definition_strategy(draw) -> bool:
+def trigger_definition_strategy(draw: Callable[..., Any]) -> bool:
     """Generate valid trigger definitions."""
     trigger_id = draw(st.text(min_size=1, max_size=50))
     macro_id = draw(st.text(min_size=1, max_size=50))
 
     # Mock trigger type for testing (avoid circular import)
     class MockTriggerType:
-        def __init__(self, value):
+        def __init__(self, value: Any):
             self.value = value
 
     trigger_types = ["hotkey", "application", "timer", "usb_device"]
@@ -117,7 +117,7 @@ def trigger_definition_strategy(draw) -> bool:
 
 
 @st.composite
-def applescript_output_strategy(draw) -> str:
+def applescript_output_strategy(draw: Callable[..., Any]) -> str:
     """Generate AppleScript record format outputs for testing."""
     num_records = draw(st.integers(min_value=1, max_value=5))
     records = []
@@ -206,7 +206,7 @@ class TestEitherMonad:
         assert result == "default"
 
     @given(st.integers(), st.text())
-    def test_either_property_validation(self, value, error) -> None:
+    def test_either_property_validation(self, value: Any, error: str | Exception) -> None:
         """Property test for Either behavior."""
         # Right value properties
         right_either = Either.right(value)
@@ -369,7 +369,7 @@ class TestTriggerDefinition:
 
         # Mock trigger type to avoid circular import
         class MockTriggerType:
-            def __init__(self, value):
+            def __init__(self, value: Any):
                 self.value = value
 
         trigger_type = MockTriggerType("hotkey")
@@ -395,7 +395,7 @@ class TestTriggerDefinition:
         macro_id = MacroId("test_macro")
 
         class MockTriggerType:
-            def __init__(self, value):
+            def __init__(self, value: Any):
                 self.value = value
 
         trigger_type = MockTriggerType("application")
@@ -453,7 +453,7 @@ class TestKMClient:
         assert client._config == config
 
     @patch("subprocess.run")
-    def test_execute_macro_applescript_success(self, mock_run) -> None:
+    def test_execute_macro_applescript_success(self, mock_run: Any) -> None:
         """Test successful macro execution via AppleScript."""
         # Setup mock
         mock_run.return_value = Mock(
@@ -472,7 +472,7 @@ class TestKMClient:
         mock_run.assert_called_once()
 
     @patch("subprocess.run")
-    def test_execute_macro_applescript_failure(self, mock_run) -> None:
+    def test_execute_macro_applescript_failure(self, mock_run: Any) -> None:
         """Test failed macro execution via AppleScript."""
         # Setup mock
         mock_run.return_value = Mock(returncode=1, stdout="", stderr="Macro not found")
@@ -486,7 +486,7 @@ class TestKMClient:
         assert "Macro not found" in result.get_left().message
 
     @patch("subprocess.run")
-    def test_execute_macro_applescript_timeout(self, mock_run) -> None:
+    def test_execute_macro_applescript_timeout(self, mock_run: Any) -> None:
         """Test macro execution timeout via AppleScript."""
         # Setup mock to raise timeout
         mock_run.side_effect = subprocess.TimeoutExpired(["osascript"], 30)
@@ -500,7 +500,7 @@ class TestKMClient:
         assert result.get_left().code == "TIMEOUT_ERROR"
 
     @patch("subprocess.run")
-    def test_check_connection_applescript(self, mock_run) -> None:
+    def test_check_connection_applescript(self, mock_run: Any) -> None:
         """Test connection check via AppleScript."""
         # Setup mock for successful ping
         mock_run.return_value = Mock(returncode=0, stdout="true", stderr="")
@@ -514,7 +514,7 @@ class TestKMClient:
         assert result.get_right()
 
     @patch("subprocess.run")
-    def test_register_trigger_applescript(self, mock_run) -> None:
+    def test_register_trigger_applescript(self, mock_run: Any) -> None:
         """Test trigger registration via AppleScript."""
         # Setup mock
         mock_run.return_value = Mock(
@@ -528,7 +528,7 @@ class TestKMClient:
 
         # Mock trigger type
         class MockTriggerType:
-            def __init__(self, value):
+            def __init__(self, value: Any):
                 self.value = value
 
         trigger_def = TriggerDefinition(
@@ -544,7 +544,7 @@ class TestKMClient:
         assert result.get_right() == "test_trigger"
 
     @patch("subprocess.run")
-    def test_unregister_trigger_applescript(self, mock_run) -> None:
+    def test_unregister_trigger_applescript(self, mock_run: Any) -> None:
         """Test trigger unregistration via AppleScript."""
         # Setup mock
         mock_run.return_value = Mock(
@@ -603,7 +603,7 @@ class TestKMClientAsync:
         ):
             # Setup mocks for success path
             class MockTriggerType:
-                def __init__(self, value):
+                def __init__(self, value: Any):
                     self.value = value
 
             trigger_def = TriggerDefinition(
@@ -635,7 +635,7 @@ class TestKMClientAsync:
             )
 
             class MockTriggerType:
-                def __init__(self, value):
+                def __init__(self, value: Any):
                     self.value = value
 
             trigger_def = TriggerDefinition(
@@ -983,7 +983,7 @@ class TestFallbackClient:
     """Test fallback client functionality."""
 
     @patch("subprocess.run")
-    def test_fallback_client_primary_success(self, mock_run) -> None:
+    def test_fallback_client_primary_success(self, mock_run: Any) -> None:
         """Test fallback client when primary method succeeds."""
         # Setup primary method to succeed
         mock_run.return_value = Mock(returncode=0, stdout="Primary success", stderr="")
@@ -998,11 +998,11 @@ class TestFallbackClient:
         assert "success" in result.get_right()
 
     @patch("subprocess.run")
-    def test_fallback_client_primary_failure_fallback_success(self, mock_run) -> None:
+    def test_fallback_client_primary_failure_fallback_success(self, mock_run: Any) -> None:
         """Test fallback client when primary fails but fallback succeeds."""
         call_count = 0
 
-        def mock_run_side_effect(*args, **kwargs) -> Any:
+        def mock_run_side_effect(*args: Any, **kwargs: Any) -> Any:
             nonlocal call_count
             call_count += 1
             if call_count == 1:
@@ -1027,7 +1027,7 @@ class TestIntegration:
     """Integration tests for complete workflows."""
 
     @patch("subprocess.run")
-    def test_complete_macro_execution_workflow(self, mock_run) -> None:
+    def test_complete_macro_execution_workflow(self, mock_run: Any) -> None:
         """Test complete macro execution workflow."""
         # Setup successful macro execution
         mock_run.return_value = Mock(
@@ -1051,7 +1051,7 @@ class TestIntegration:
         assert "Macro executed successfully" in response["output"]
 
     @patch("subprocess.run")
-    def test_complete_trigger_management_workflow(self, mock_run) -> None:
+    def test_complete_trigger_management_workflow(self, mock_run: Any) -> None:
         """Test complete trigger management workflow."""
         # Setup successful trigger operations
         responses = [
@@ -1078,7 +1078,7 @@ class TestIntegration:
 
         # Mock trigger type
         class MockTriggerType:
-            def __init__(self, value):
+            def __init__(self, value: Any):
                 self.value = value
 
         trigger_def = TriggerDefinition(

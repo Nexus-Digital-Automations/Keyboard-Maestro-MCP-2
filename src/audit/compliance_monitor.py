@@ -391,7 +391,7 @@ class ComplianceMonitor:
         self,
         event: AuditEvent,
         rule: ComplianceRule,
-    ):
+    ) -> None:
         """Trigger violation callbacks asynchronously."""
         for callback in self.violation_callbacks:
             try:
@@ -402,7 +402,7 @@ class ComplianceMonitor:
             except Exception as e:
                 logger.error(f"Error in violation callback: {e}")
 
-    async def _cleanup_violation_cache(self):
+    async def _cleanup_violation_cache(self) -> None:
         """Clean up expired violation cache entries."""
         current_time = datetime.now(UTC)
         expired_keys = []
@@ -508,7 +508,7 @@ class ViolationNotifier:
         """Register notification channel."""
         self.notification_channels[name] = handler
 
-    async def notify_violation(self, event: AuditEvent, rule: ComplianceRule):
+    async def notify_violation(self, event: AuditEvent, rule: ComplianceRule) -> Any:
         """Send violation notification through all channels."""
         notification_level = self.severity_thresholds.get(rule.severity, "info")
 
@@ -535,17 +535,17 @@ class ViolationNotifier:
             except Exception as e:
                 logger.error(f"Error sending notification via {channel_name}: {e}")
 
-    async def send_email_notification(self, message: dict[str, Any]):
+    async def send_email_notification(self, message: dict[str, Any]) -> None:
         """Send email notification (placeholder)."""
         # In production, integrate with email service
         logger.info(f"Email notification: {message['rule_name']} violation")
 
-    async def send_slack_notification(self, message: dict[str, Any]):
+    async def send_slack_notification(self, message: dict[str, Any]) -> None:
         """Send Slack notification (placeholder)."""
         # In production, integrate with Slack API
         logger.info(f"Slack notification: {message['rule_name']} violation")
 
-    async def log_notification(self, message: dict[str, Any]):
+    async def log_notification(self, message: dict[str, Any]) -> None:
         """Log notification to system logs."""
         level = message["level"]
         text = f"Compliance violation: {message['rule_name']} - {message['details']}"

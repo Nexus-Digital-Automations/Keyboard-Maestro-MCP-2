@@ -6,11 +6,11 @@ mock frameworks, and reusable fixtures for property-based and integration testin
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import threading
 import time
 from datetime import datetime
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -182,7 +182,7 @@ def performance_timer() -> bool:
             self.start()
             return self
 
-        def __exit__(self, exc_type, exc_val, exc_tb):
+        def __exit__(self, exc_type: str, exc_val: Exception | str, exc_tb: Exception | str):
             self.stop()
 
     return PerformanceTimer()
@@ -264,11 +264,11 @@ def thread_safety_helper() -> Any:
             self.lock = threading.Lock()
             self.errors = []
 
-        def run_concurrent(self, func, args_list, max_workers=5) -> None:
+        def run_concurrent(self, func: Callable[..., Any], args_list: list[Any], max_workers: Any=5) -> None:
             """Run function concurrently with different arguments."""
             threads = []
 
-            def worker(args) -> Any:
+            def worker(args: list[Any]) -> Any:
                 try:
                     result = (
                         func(*args) if isinstance(args, list | tuple) else func(args)
@@ -293,7 +293,7 @@ def thread_safety_helper() -> Any:
 
 
 # Custom pytest markers
-def pytest_configure(config) -> None:
+def pytest_configure(config: dict[str, Any]) -> None:
     """Configure custom pytest markers."""
     config.addinivalue_line(
         "markers",
@@ -309,7 +309,7 @@ def pytest_configure(config) -> None:
 
 
 # Pytest collection hooks
-def pytest_collection_modifyitems(config, items) -> None:
+def pytest_collection_modifyitems(config: dict[str, Any], items: list[Any]) -> None:
     """Modify test collection to add markers automatically."""
     for item in items:
         # Add slow marker to tests that take longer than expected

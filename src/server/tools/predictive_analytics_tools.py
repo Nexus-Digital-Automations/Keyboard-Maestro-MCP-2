@@ -60,7 +60,7 @@ tool_performance_metrics = {
 }
 
 
-async def initialize_predictive_analytics():
+async def initialize_predictive_analytics() -> None:
     """Initialize all predictive analytics components."""
     global pattern_predictor, usage_forecaster, insight_generator, model_manager
 

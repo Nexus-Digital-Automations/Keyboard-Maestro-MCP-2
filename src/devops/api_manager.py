@@ -519,7 +519,7 @@ class APIManager:
             # Parse Postman collection
             endpoints = []
 
-            def extract_requests(items) -> Any:
+            def extract_requests(items: list[Any]) -> Any:
                 for item in items:
                     if "request" in item:
                         request = item["request"]

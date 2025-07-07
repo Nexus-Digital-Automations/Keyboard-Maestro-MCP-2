@@ -21,9 +21,9 @@ Testing Strategy:
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import uuid
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -153,7 +153,7 @@ def sample_action_configs() -> Any:
 
 # Hypothesis strategies for property-based testing
 @composite
-def valid_macro_identifiers(draw) -> Any:
+def valid_macro_identifiers(draw: Callable[..., Any]) -> Any:
     """Generate valid macro identifiers."""
     # Either UUID format or readable name
     if draw(st.booleans()):
@@ -171,7 +171,7 @@ def valid_macro_identifiers(draw) -> Any:
 
 
 @composite
-def valid_action_types(draw) -> Any:
+def valid_action_types(draw: Callable[..., Any]) -> Any:
     """Generate valid action type identifiers."""
     return draw(
         st.sampled_from(
@@ -190,7 +190,7 @@ def valid_action_types(draw) -> Any:
 
 
 @composite
-def valid_action_configs(draw) -> dict[str, Any]:
+def valid_action_configs(draw: Callable[..., Any]) -> dict[str, Any]:
     """Generate valid action configurations."""
     action_type = draw(valid_action_types())
 
@@ -226,10 +226,10 @@ class TestKMAddAction:
     @pytest.mark.asyncio
     async def test_add_action_success_basic(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
-        sample_action_configs,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
+        sample_action_configs: dict[str, Any] | Any,
     ) -> None:
         """Test successful action addition with basic configuration."""
         with (
@@ -268,10 +268,10 @@ class TestKMAddAction:
     @pytest.mark.asyncio
     async def test_add_action_success_with_position(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
-        sample_action_configs,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
+        sample_action_configs: dict[str, Any] | Any,
     ) -> None:
         """Test successful action addition with specific position."""
         with (
@@ -316,9 +316,9 @@ class TestKMAddAction:
     @pytest.mark.asyncio
     async def test_add_action_validation_error_invalid_action_type(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
     ) -> None:
         """Test action addition with invalid action type."""
         mock_action_registry.get_action_type.return_value = None
@@ -350,9 +350,9 @@ class TestKMAddAction:
     @pytest.mark.asyncio
     async def test_add_action_validation_error_invalid_parameters(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
     ) -> None:
         """Test action addition with invalid parameters."""
         mock_action_registry.validate_action_parameters.return_value = {
@@ -388,9 +388,9 @@ class TestKMAddAction:
     @pytest.mark.asyncio
     async def test_add_action_xml_generation_error(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
     ) -> None:
         """Test action addition with XML generation failure."""
         mock_action_builder.build_xml.return_value = {
@@ -425,9 +425,9 @@ class TestKMAddAction:
     @pytest.mark.asyncio
     async def test_add_action_builder_configuration_error(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
     ) -> None:
         """Test action addition with builder configuration failure."""
         mock_action_builder.add_action.side_effect = Exception(
@@ -462,9 +462,9 @@ class TestKMAddAction:
     @pytest.mark.asyncio
     async def test_add_action_permission_denied(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
     ) -> None:
         """Test action addition with permission denied."""
         # Create a proper PermissionDeniedError with required parameters
@@ -503,9 +503,9 @@ class TestKMAddAction:
     @pytest.mark.asyncio
     async def test_add_action_generic_error(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
     ) -> None:
         """Test action addition with generic error."""
         with (
@@ -549,12 +549,12 @@ class TestKMAddAction:
     )
     async def test_add_action_property_based_success(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
-        macro_id,
-        action_type,
-        action_config,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
+        macro_id: str,
+        action_type: str,
+        action_config: dict[str, Any],
     ) -> None:
         """Property-based test for successful action addition."""
         assume(len(macro_id) > 0)
@@ -601,13 +601,13 @@ class TestKMAddAction:
     )
     async def test_add_action_property_based_options(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
-        position,
-        timeout,
-        enabled,
-        abort_on_failure,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
+        position: int | float,
+        timeout: int | float,
+        enabled: bool,
+        abort_on_failure: Any,
     ) -> None:
         """Property-based test for action addition options."""
         with (
@@ -649,8 +649,8 @@ class TestKMListActionTypes:
     @pytest.mark.asyncio
     async def test_list_action_types_success_no_filters(
         self,
-        mock_context,
-        mock_action_registry,
+        mock_context: Any,
+        mock_action_registry: Any,
     ) -> None:
         """Test successful action type listing without filters."""
         with patch(
@@ -686,8 +686,8 @@ class TestKMListActionTypes:
     @pytest.mark.asyncio
     async def test_list_action_types_success_category_filter(
         self,
-        mock_context,
-        mock_action_registry,
+        mock_context: Any,
+        mock_action_registry: Any,
     ) -> None:
         """Test successful action type listing with category filter."""
         with patch(
@@ -707,8 +707,8 @@ class TestKMListActionTypes:
     @pytest.mark.asyncio
     async def test_list_action_types_success_search_filter(
         self,
-        mock_context,
-        mock_action_registry,
+        mock_context: Any,
+        mock_action_registry: Any,
     ) -> None:
         """Test successful action type listing with search filter."""
         # Create actions with identifiers that match search
@@ -735,8 +735,8 @@ class TestKMListActionTypes:
     @pytest.mark.asyncio
     async def test_list_action_types_success_limit_applied(
         self,
-        mock_context,
-        mock_action_registry,
+        mock_context: Any,
+        mock_action_registry: Any,
     ) -> None:
         """Test successful action type listing with limit."""
         with patch(
@@ -754,8 +754,8 @@ class TestKMListActionTypes:
     @pytest.mark.asyncio
     async def test_list_action_types_invalid_category(
         self,
-        mock_context,
-        mock_action_registry,
+        mock_context: Any,
+        mock_action_registry: Any,
     ) -> None:
         """Test action type listing with invalid category."""
         with patch(
@@ -775,8 +775,8 @@ class TestKMListActionTypes:
     @pytest.mark.asyncio
     async def test_list_action_types_registry_error(
         self,
-        mock_context,
-        mock_action_registry,
+        mock_context: Any,
+        mock_action_registry: Any,
     ) -> None:
         """Test action type listing with registry error."""
         mock_action_registry.list_all_actions.side_effect = Exception("Registry error")
@@ -808,11 +808,11 @@ class TestKMListActionTypes:
     )
     async def test_list_action_types_property_based(
         self,
-        mock_context,
-        mock_action_registry,
-        category,
-        search,
-        limit,
+        mock_context: Any,
+        mock_action_registry: Any,
+        category: str,
+        search: Any,
+        limit: int,
     ) -> None:
         """Property-based test for action type listing."""
         with patch(
@@ -840,9 +840,9 @@ class TestActionToolsIntegration:
     @pytest.mark.asyncio
     async def test_complete_action_workflow(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
     ) -> None:
         """Test complete workflow: list actions, then add action."""
         with (
@@ -880,9 +880,9 @@ class TestActionToolsIntegration:
     @pytest.mark.asyncio
     async def test_multiple_actions_same_macro(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
     ) -> None:
         """Test adding multiple actions to the same macro."""
         with (
@@ -939,9 +939,9 @@ class TestActionToolsSecurityValidation:
     @pytest.mark.asyncio
     async def test_add_action_xml_injection_prevention(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
     ) -> None:
         """Test XML injection prevention in action configuration."""
         malicious_config = {
@@ -992,10 +992,10 @@ class TestActionToolsSecurityValidation:
     )
     async def test_add_action_security_property_based(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
-        malicious_text,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
+        malicious_text: Any,
     ) -> None:
         """Property-based test for security validation."""
         assume(len(malicious_text) > 0)
@@ -1074,9 +1074,9 @@ class TestActionToolsPerformanceAndTimeouts:
     @pytest.mark.asyncio
     async def test_add_action_performance_measurement(
         self,
-        mock_context,
-        mock_action_registry,
-        mock_action_builder,
+        mock_context: Any,
+        mock_action_registry: Any,
+        mock_action_builder: Any,
     ) -> None:
         """Test that performance metrics are captured."""
         with (
@@ -1114,8 +1114,8 @@ class TestActionToolsPerformanceAndTimeouts:
     @pytest.mark.asyncio
     async def test_list_action_types_performance_measurement(
         self,
-        mock_context,
-        mock_action_registry,
+        mock_context: Any,
+        mock_action_registry: Any,
     ) -> None:
         """Test that performance metrics are captured for listing."""
         with patch(

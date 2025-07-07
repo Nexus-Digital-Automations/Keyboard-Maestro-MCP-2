@@ -6,7 +6,6 @@ to achieve substantial overall coverage gains through systematic testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import Mock
 
 import pytest

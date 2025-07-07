@@ -151,7 +151,7 @@ class AIPromptGenerator:
 class RecommendationEngine:
     """Advanced AI-powered recommendation generation system."""
 
-    def __init__(self, ai_processor, pattern_analyzer: PatternAnalyzer):
+    def __init__(self, ai_processor: Any, pattern_analyzer: PatternAnalyzer):
         self.ai_processor = ai_processor
         self.pattern_analyzer = pattern_analyzer
         self.security_validator = SuggestionSecurityValidator()

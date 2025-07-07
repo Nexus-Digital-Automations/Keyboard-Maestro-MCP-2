@@ -7,7 +7,6 @@ for maximum coverage gain toward the 95% target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -584,11 +583,11 @@ def test_micro_module_async_functionality() -> bool:
     """Test async functionality patterns for micro-modules."""
 
     @pytest.mark.asyncio
-    async def async_micro_module_test_helper():
+    async def async_micro_module_test_helper() -> None:
         import asyncio
 
         # Test async micro-module operations
-        async def mock_server_health_check():
+        async def mock_server_health_check() -> None:
             await asyncio.sleep(0.001)
             return {
                 "check_id": "health_001",
@@ -605,7 +604,7 @@ def test_micro_module_async_functionality() -> bool:
                 },
             }
 
-        async def mock_backup_operation():
+        async def mock_backup_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "backup_id": "backup_async_001",
@@ -622,7 +621,7 @@ def test_micro_module_async_functionality() -> bool:
                 },
             }
 
-        async def mock_token_validation():
+        async def mock_token_validation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "validation_id": "token_val_001",
@@ -649,7 +648,7 @@ def test_micro_module_async_functionality() -> bool:
         assert token_result["token_result"]["validation_success"] is True
 
         # Test async error handling for micro-modules
-        async def failing_micro_operation():
+        async def failing_micro_operation() -> Any:
             await asyncio.sleep(0.001)
             raise ValueError("Micro-module error")
 

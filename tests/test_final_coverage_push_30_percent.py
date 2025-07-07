@@ -6,7 +6,6 @@ beyond 30% and demonstrate continued progress toward the near 100% target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 from unittest.mock import Mock, patch
 

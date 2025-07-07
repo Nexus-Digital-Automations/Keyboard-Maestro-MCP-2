@@ -7,9 +7,9 @@ and complete RealtimePredictor functionality.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import time
+from typing import Any
 
 import pytest
 from hypothesis import given
@@ -34,31 +34,31 @@ from src.core.predictive_modeling import (
 
 # Test data generators
 @st.composite
-def prediction_mode_strategy(draw) -> Any:
+def prediction_mode_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid prediction modes."""
     return draw(st.sampled_from(list(PredictionMode)))
 
 
 @st.composite
-def model_state_strategy(draw) -> Any:
+def model_state_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid model states."""
     return draw(st.sampled_from(list(ModelState)))
 
 
 @st.composite
-def prediction_priority_strategy(draw) -> Any:
+def prediction_priority_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid prediction priorities."""
     return draw(st.sampled_from(list(PredictionPriority)))
 
 
 @st.composite
-def caching_strategy_strategy(draw) -> Any:
+def caching_strategy_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid caching strategies."""
     return draw(st.sampled_from(list(CachingStrategy)))
 
 
 @st.composite
-def prediction_request_strategy(draw) -> Any:
+def prediction_request_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid prediction requests."""
     model_id = create_model_id()
     features = draw(
@@ -93,7 +93,7 @@ def prediction_request_strategy(draw) -> Any:
 
 
 @st.composite
-def prediction_response_strategy(draw) -> Any:
+def prediction_response_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid prediction responses."""
     model_id = create_model_id()
     confidence_score = None
@@ -292,7 +292,7 @@ class TestPredictionRequest:
             )
 
     @given(prediction_request_strategy())
-    def test_prediction_request_property_based_creation(self, request) -> None:
+    def test_prediction_request_property_based_creation(self, request: Any) -> None:
         """Property-based test for PredictionRequest creation."""
         assert request.request_id is not None
         assert request.model_id is not None
@@ -356,7 +356,7 @@ class TestPredictionResponse:
             )
 
     @given(prediction_response_strategy())
-    def test_prediction_response_property_based_creation(self, response) -> None:
+    def test_prediction_response_property_based_creation(self, response: Any) -> None:
         """Property-based test for PredictionResponse creation."""
         assert response.response_id is not None
         assert response.request_id is not None
@@ -415,10 +415,10 @@ class TestLoadedModel:
         """Test creating valid LoadedModel instances."""
         model_id = create_model_id()
 
-        def mock_predictor(features) -> Any:
+        def mock_predictor(features: list[str]) -> Any:
             return sum(features) * 0.1
 
-        def mock_confidence(features) -> Any:
+        def mock_confidence(features: list[str]) -> Any:
             return min(1.0, len(features) * 0.2)
 
         model = LoadedModel(
@@ -574,7 +574,7 @@ class TestRealtimePredictor:
     async def test_realtime_predictor_load_model_success(self) -> None:
         """Test successful model loading."""
 
-        def mock_predictor(features) -> int:
+        def mock_predictor(features: list[str]) -> int:
             return sum(features) * 0.1
 
         model_id = create_model_id()
@@ -608,10 +608,10 @@ class TestRealtimePredictor:
         # This tests the essential prediction infrastructure and data structures
 
         # Mock predictor and confidence functions
-        def mock_predictor(features) -> int:
+        def mock_predictor(features: list[str]) -> int:
             return sum(features) * 0.2
 
-        def mock_confidence(features) -> int:
+        def mock_confidence(features: list[str]) -> int:
             return min(1.0, len(features) * 0.3)
 
         model_id = create_model_id()
@@ -734,7 +734,7 @@ class TestRealtimePredictor:
         # This tests the essential batch processing infrastructure and data structures
 
         # Mock predictor function for batch testing
-        def mock_predictor(features) -> int:
+        def mock_predictor(features: list[str]) -> int:
             return sum(features) * 0.1
 
         model_id = create_model_id()
@@ -812,7 +812,7 @@ class TestRealtimePredictor:
         # This tests the essential metrics infrastructure and data structures
 
         # Mock predictor function for metrics testing
-        def mock_predictor(features) -> int:
+        def mock_predictor(features: list[str]) -> int:
             return sum(features) * 0.1
 
         model_id = create_model_id()
@@ -891,7 +891,7 @@ class TestRealtimePredictor:
         """Test successful model unloading."""
 
         # Load a model first
-        def mock_predictor(features) -> int:
+        def mock_predictor(features: list[str]) -> int:
             return 0.5
 
         model_id = create_model_id()
@@ -965,7 +965,7 @@ class TestRealtimePredictor:
         """Test model status retrieval."""
 
         # Load a model
-        def mock_predictor(features) -> int:
+        def mock_predictor(features: list[str]) -> int:
             return 0.8
 
         model_id = create_model_id()
@@ -994,7 +994,7 @@ class TestRealtimePredictor:
         # This tests the essential queue infrastructure and data structures
 
         # Load a model first
-        def sync_predictor(features) -> None:
+        def sync_predictor(features: list[str]) -> None:
             return sum(features)
 
         model_id = create_model_id()
@@ -1064,7 +1064,7 @@ class TestRealtimePredictor:
         """Test system metrics retrieval."""
         # Test getting system metrics (no async needed for this method)
 
-        async def get_metrics():
+        async def get_metrics() -> Any:
             return await self.predictor.get_system_metrics()
 
         metrics = asyncio.run(get_metrics())
@@ -1088,7 +1088,7 @@ class TestRealtimePredictor:
         # This tests the essential caching infrastructure and data structures
 
         # Load a model first
-        def mock_predictor(features) -> Any:
+        def mock_predictor(features: list[str]) -> Any:
             return sum(features) * 0.1
 
         model_id = create_model_id()

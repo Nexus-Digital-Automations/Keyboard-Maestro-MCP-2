@@ -6,7 +6,6 @@ ensuring security boundaries, validation correctness, and functional properties.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import re
 
 import pytest
@@ -27,7 +26,7 @@ class TestConditionBuilderProperties:
     """Property-based tests for ConditionBuilder."""
 
     @given(st.text(min_size=1, max_size=100))
-    def test_text_condition_preserves_input(self, target_text) -> None:
+    def test_text_condition_preserves_input(self, target_text: str) -> None:
         """Property: Text conditions should preserve valid input text."""
         assume(len(target_text.strip()) > 0)
 
@@ -38,7 +37,7 @@ class TestConditionBuilderProperties:
         assert condition.metadata.get("target_text") == target_text
 
     @given(st.text(min_size=1, max_size=1000))
-    def test_operand_length_constraint(self, operand) -> None:
+    def test_operand_length_constraint(self, operand: list[Any] | str) -> None:
         """Property: Operands should respect length constraints."""
         builder = ConditionBuilder().text_condition("test")
 
@@ -51,7 +50,7 @@ class TestConditionBuilderProperties:
                 builder.equals(operand).build()
 
     @given(st.integers(min_value=1, max_value=60))
-    def test_timeout_range_validation(self, timeout) -> None:
+    def test_timeout_range_validation(self, timeout: int | float) -> None:
         """Property: Valid timeout ranges should be accepted."""
         result = (
             ConditionBuilder()
@@ -66,7 +65,7 @@ class TestConditionBuilderProperties:
         assert condition.timeout_seconds == timeout
 
     @given(st.integers().filter(lambda x: x < 1 or x > 60))
-    def test_invalid_timeout_rejected(self, invalid_timeout) -> None:
+    def test_invalid_timeout_rejected(self, invalid_timeout: int | float) -> None:
         """Property: Invalid timeout values should be rejected."""
         builder = ConditionBuilder().text_condition("test").equals("value")
 
@@ -91,14 +90,14 @@ class TestSecurityProperties:
             and not any(cmd_char in x for cmd_char in [";", "&", "|", "`", "$"]),
         ),
     )
-    def test_safe_text_passes_validation(self, safe_text) -> None:
+    def test_safe_text_passes_validation(self, safe_text: Any) -> None:
         """Property: Safe text should pass security validation."""
         sanitizer = InputSanitizer()
         result = sanitizer.sanitize_text_content(safe_text, strict_mode=True)
         assert result.is_right()
 
     @given(st.text(min_size=1, max_size=100))
-    def test_dangerous_patterns_rejected(self, base_text) -> None:
+    def test_dangerous_patterns_rejected(self, base_text: Any) -> None:
         """Property: Text with dangerous patterns should be rejected."""
         dangerous_patterns = [
             '<script>alert("xss")</script>',
@@ -128,14 +127,14 @@ class TestSecurityProperties:
             lambda x: len(x.strip()) > 0 and re.match(r"^[a-zA-Z0-9_\s\-\.]+$", x)
         ),
     )
-    def test_valid_identifiers_accepted(self, identifier) -> None:
+    def test_valid_identifiers_accepted(self, identifier: str) -> None:
         """Property: Valid macro identifiers should be accepted."""
         sanitizer = InputSanitizer()
         result = sanitizer.sanitize_macro_identifier(identifier)
         assert result.is_right()
 
     @given(st.text(min_size=1, max_size=500))
-    def test_regex_patterns_validated(self, pattern) -> None:
+    def test_regex_patterns_validated(self, pattern: str) -> None:
         """Property: Regex patterns should be validated for ReDoS attacks."""
         # Skip patterns that contain obviously dangerous constructs
         assume(
@@ -179,7 +178,7 @@ class TestConditionValidationProperties:
             and not any(cmd_char in x for cmd_char in [";", "&", "|", "`", "$"]),
         ),
     )
-    def test_condition_spec_creation(self, condition_type, operator, operand) -> None:
+    def test_condition_spec_creation(self, condition_type: str, operator: Any, operand: list[Any] | str) -> None:
         """Property: Valid condition specs should be creatable."""
         assume(len(operand) <= 1000)  # Respect operand length limit
 
@@ -229,7 +228,7 @@ class TestConditionValidationProperties:
             max_size=255,
         ).filter(lambda x: len(x.strip()) > 0 and re.match(r"^[a-zA-Z0-9_]+$", x)),
     )
-    def test_variable_name_validation(self, var_name) -> None:
+    def test_variable_name_validation(self, var_name: str) -> None:
         """Property: Valid variable names should be accepted."""
         # Valid variable names are alphanumeric with underscores
         sanitizer = InputSanitizer()
@@ -239,7 +238,7 @@ class TestConditionValidationProperties:
         assert clean_name == var_name.strip()
 
     @given(st.text(min_size=1, max_size=100))
-    def test_invalid_variable_names_rejected(self, var_name) -> None:
+    def test_invalid_variable_names_rejected(self, var_name: str) -> None:
         """Property: Invalid variable names should be rejected."""
         # Add invalid characters
         invalid_name = var_name + "!@#$%^&*()"
@@ -261,10 +260,10 @@ class TestConditionIntegrationProperties:
     )
     def test_condition_serialization_roundtrip(
         self,
-        target,
-        operand,
-        case_sensitive,
-        negate,
+        target: str,
+        operand: Any,
+        case_sensitive: Any,
+        negate: Any,
     ) -> None:
         """Property: Conditions should serialize and deserialize consistently."""
         assume(len(target.strip()) > 0 and len(operand.strip()) > 0)
@@ -301,25 +300,25 @@ class ConditionStateMachine(RuleBasedStateMachine):
         self.has_operator = False
 
     @rule(target_text=st.text(min_size=1, max_size=50))
-    def set_text_condition(self, target_text) -> None:
+    def set_text_condition(self, target_text: Any) -> None:
         """Add text condition to builder."""
         self.builder = self.builder.text_condition(target_text)
         self.has_condition_type = True
 
     @rule(app_id=st.text(min_size=1, max_size=50))
-    def set_app_condition(self, app_id) -> None:
+    def set_app_condition(self, app_id: str) -> None:
         """Add app condition to builder."""
         self.builder = self.builder.app_condition(app_id)
         self.has_condition_type = True
 
     @rule(value=st.text(min_size=1, max_size=50))
-    def set_equals_operator(self, value) -> None:
+    def set_equals_operator(self, value: Any) -> None:
         """Set equals operator."""
         self.builder = self.builder.equals(value)
         self.has_operator = True
 
     @rule(value=st.text(min_size=1, max_size=50))
-    def set_contains_operator(self, value) -> None:
+    def set_contains_operator(self, value: Any) -> None:
         """Set contains operator."""
         self.builder = self.builder.contains(value)
         self.has_operator = True
@@ -335,7 +334,7 @@ class ConditionStateMachine(RuleBasedStateMachine):
         self.builder = self.builder.negated()
 
     @rule(timeout=st.integers(min_value=1, max_value=60))
-    def set_timeout(self, timeout) -> None:
+    def set_timeout(self, timeout: int | float) -> None:
         """Set timeout value."""
         self.builder = self.builder.with_timeout(timeout)
 

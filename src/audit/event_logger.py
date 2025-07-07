@@ -196,12 +196,12 @@ class EventBuffer:
 
             return True
 
-    async def force_flush(self):
+    async def force_flush(self) -> Any:
         """Force flush of all buffered events."""
         async with self._lock:
             await self._flush_buffer()
 
-    async def _flush_buffer(self):
+    async def _flush_buffer(self) -> Any:
         """Internal flush implementation."""
         if not self.buffer:
             return
@@ -274,7 +274,7 @@ class EventLogger:
         user_id: str,
         action: str,
         result: str,
-        **kwargs,
+        **kwargs: Any,
     ) -> Either[AuditError, str]:
         """Log audit event with comprehensive validation and integrity protection."""
         try:
@@ -402,7 +402,7 @@ class EventLogger:
             logger.error(f"Error querying audit events: {e}")
             return []
 
-    async def _handle_buffer_flush(self, events: list[AuditEvent]):
+    async def _handle_buffer_flush(self, events: list[AuditEvent]) -> None:
         """Handle buffer flush by storing events."""
         for event in events:
             # Store encrypted event if encryption is enabled
@@ -418,7 +418,7 @@ class EventLogger:
         # Cleanup old events based on retention policy
         await self._cleanup_old_events()
 
-    async def _cleanup_old_events(self):
+    async def _cleanup_old_events(self) -> None:
         """Clean up events older than retention period."""
         if not self.config.retention_days:
             return
@@ -605,7 +605,7 @@ class RateLimiter:
         user_events.append(current_time)
         return True
 
-    async def _cleanup_old_entries(self):
+    async def _cleanup_old_entries(self) -> None:
         """Clean up old rate limiting entries."""
         current_time = time.time()
         cutoff_time = current_time - 60.0  # Keep last minute of data

@@ -44,7 +44,7 @@ async def km_plugin_manager(
     plugin_id: str | None = None,
     plugin_path: str | None = None,
     configuration: dict[str, Any] | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """Comprehensive plugin management operations.
 
@@ -195,7 +195,7 @@ async def km_plugin_marketplace(
     category: str | None = None,
     plugin_id: str | None = None,
     limit: int = 20,
-    **kwargs,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """Plugin marketplace operations for discovery and installation.
 
@@ -320,7 +320,7 @@ async def km_plugin_security(
     operation: str,
     plugin_path: str | None = None,
     plugin_id: str | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """Plugin security operations and validation.
 
@@ -394,7 +394,7 @@ async def km_plugin_actions(
     action_id: str | None = None,
     plugin_id: str | None = None,
     parameters: dict[str, Any] | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """Execute and manage custom plugin actions.
 
@@ -480,7 +480,7 @@ async def km_plugin_development(
     plugin_name: str | None = None,
     template_type: str = "utility",
     target_directory: str | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """Plugin development tools and templates.
 
@@ -560,7 +560,7 @@ async def km_plugin_development(
 # Helper functions
 
 
-async def _create_plugin_configuration(config_data: dict[str, Any]):
+async def _create_plugin_configuration(config_data: dict[str, Any]) -> None:
     """Create plugin configuration from data."""
     from ..core.plugin_architecture import PluginConfiguration
 
@@ -577,7 +577,7 @@ async def _create_plugin_configuration(config_data: dict[str, Any]):
     )
 
 
-def _serialize_marketplace_entry(entry) -> dict[str, Any]:
+def _serialize_marketplace_entry(entry: Any) -> dict[str, Any]:
     """Serialize marketplace entry for JSON response."""
     return {
         "plugin_id": entry.metadata.identifier,
@@ -604,7 +604,7 @@ async def _create_plugin_template(
     plugin_name: str,
     template_type: str,
     target_path: Path,
-):
+) -> None:
     """Create plugin template files."""
     target_path.mkdir(parents=True, exist_ok=True)
 
@@ -638,17 +638,17 @@ class Plugin(UtilityPlugin):
         )
         super().__init__(metadata)
 
-    async def on_initialize(self):
+    async def on_initialize(self) -> None:
         """Initialize the plugin."""
         self.logger.info("Plugin initializing")
         return Either.right(None)
 
-    async def on_activate(self):
+    async def on_activate(self) -> None:
         """Activate the plugin."""
         self.logger.info("Plugin activating")
         return Either.right(None)
 
-    async def on_deactivate(self):
+    async def on_deactivate(self) -> None:
         """Deactivate the plugin."""
         self.logger.info("Plugin deactivating")
         return Either.right(None)

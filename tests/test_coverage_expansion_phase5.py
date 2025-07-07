@@ -8,7 +8,6 @@ coverage gain toward the 95% target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -584,11 +583,11 @@ def test_mega_module_async_functionality() -> bool:
     """Test async functionality patterns for mega modules."""
 
     @pytest.mark.asyncio
-    async def async_mega_test_helper():
+    async def async_mega_test_helper() -> None:
         import asyncio
 
         # Test async patterns for mega modules
-        async def mock_analytics_operation():
+        async def mock_analytics_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "status": "success",
@@ -599,7 +598,7 @@ def test_mega_module_async_functionality() -> bool:
                 },
             }
 
-        async def mock_security_operation():
+        async def mock_security_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "status": "success",
@@ -620,7 +619,7 @@ def test_mega_module_async_functionality() -> bool:
         assert security_result["security_result"]["threats_detected"] == 2
 
         # Test async error handling
-        async def failing_mega_operation():
+        async def failing_mega_operation() -> Any:
             await asyncio.sleep(0.001)
             raise ValueError("Mega module operation failed")
 

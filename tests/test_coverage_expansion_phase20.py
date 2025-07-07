@@ -8,7 +8,6 @@ progression toward the 95% target through comprehensive advanced module testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -484,11 +483,11 @@ def test_advanced_async_functionality_comprehensive() -> bool:
     """Test advanced async functionality for Phase 20 modules."""
 
     @pytest.mark.asyncio
-    async def async_advanced_test_helper():
+    async def async_advanced_test_helper() -> None:
         import asyncio
 
         # Test advanced async operations for Phase 20 modules
-        async def mock_advanced_ai_processing():
+        async def mock_advanced_ai_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "ai_id": "advanced_ai_001",
@@ -507,7 +506,7 @@ def test_advanced_async_functionality_comprehensive() -> bool:
                 },
             }
 
-        async def mock_enterprise_integration_orchestration():
+        async def mock_enterprise_integration_orchestration() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "integration_id": "enterprise_int_001",
@@ -526,7 +525,7 @@ def test_advanced_async_functionality_comprehensive() -> bool:
                 },
             }
 
-        async def mock_specialized_tools_operation():
+        async def mock_specialized_tools_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "specialized_id": "specialized_001",
@@ -558,7 +557,7 @@ def test_advanced_async_functionality_comprehensive() -> bool:
         )
 
         # Test advanced async error handling
-        async def failing_advanced_operation():
+        async def failing_advanced_operation() -> Any:
             await asyncio.sleep(0.001)
             raise RuntimeError("Advanced system failure")
 

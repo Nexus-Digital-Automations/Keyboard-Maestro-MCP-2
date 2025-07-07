@@ -26,7 +26,7 @@ from src.core import (
 
 # Basic type generators
 @composite
-def macro_ids(draw) -> MacroId:
+def macro_ids(draw: Callable[..., Any]) -> MacroId:
     """Generate valid macro IDs."""
     # Generate alphanumeric identifiers with underscores
     identifier = draw(
@@ -40,7 +40,7 @@ def macro_ids(draw) -> MacroId:
 
 
 @composite
-def command_ids(draw) -> CommandId:
+def command_ids(draw: Callable[..., Any]) -> CommandId:
     """Generate valid command IDs."""
     identifier = draw(
         st.text(
@@ -53,7 +53,7 @@ def command_ids(draw) -> CommandId:
 
 
 @composite
-def execution_tokens(draw) -> ExecutionToken:
+def execution_tokens(draw: Callable[..., Any]) -> ExecutionToken:
     """Generate execution tokens (UUID-like strings)."""
     # Generate UUID-like tokens
     parts = [
@@ -67,7 +67,7 @@ def execution_tokens(draw) -> ExecutionToken:
 
 
 @composite
-def variable_names(draw) -> VariableName:
+def variable_names(draw: Callable[..., Any]) -> VariableName:
     """Generate valid variable names."""
     name = draw(
         st.text(
@@ -81,7 +81,7 @@ def variable_names(draw) -> VariableName:
 
 # Duration generators
 @composite
-def durations(draw, min_seconds: float = 0.1, max_seconds: float = 300.0) -> Duration:
+def durations(draw: Callable[..., Any], min_seconds: float = 0.1, max_seconds: float = 300.0) -> Duration:
     """Generate duration objects within reasonable bounds."""
     seconds = draw(
         st.floats(
@@ -97,7 +97,7 @@ def durations(draw, min_seconds: float = 0.1, max_seconds: float = 300.0) -> Dur
 # Permission generators
 @composite
 def permission_sets(
-    draw,
+    draw: Any,
     min_size: int = 0,
     max_size: int = 8,
 ) -> frozenset[Permission]:
@@ -115,7 +115,7 @@ def permission_sets(
 # Command parameter generators
 @composite
 def command_parameters(
-    draw,
+    draw: Any,
     command_type: CommandType | None = None,
 ) -> CommandParameters:
     """Generate command parameters based on command type."""
@@ -185,7 +185,7 @@ def command_parameters(
 
 # Text content generators
 @composite
-def safe_text_content(draw, min_length: int = 0, max_length: int = 1000) -> str:
+def safe_text_content(draw: Callable[..., Any], min_length: int = 0, max_length: int = 1000) -> str:
     """Generate safe text content without injection patterns."""
     # Generate text that doesn't contain dangerous patterns
     text = draw(
@@ -221,7 +221,7 @@ def safe_text_content(draw, min_length: int = 0, max_length: int = 1000) -> str:
 
 
 @composite
-def malicious_text_content(draw) -> str:
+def malicious_text_content(draw: Callable[..., Any]) -> str:
     """Generate text content with potential security threats."""
     malicious_patterns = [
         "<script>alert('xss')</script>",
@@ -251,7 +251,7 @@ def malicious_text_content(draw) -> str:
 # Execution context generators
 @composite
 def execution_contexts(
-    draw,
+    draw: Any,
     require_permissions: list[Permission] | None = None,
 ) -> ExecutionContext:
     """Generate valid execution contexts."""
@@ -281,7 +281,7 @@ def execution_contexts(
 
 # Macro definition generators
 @composite
-def simple_macro_definitions(draw) -> MacroDefinition:
+def simple_macro_definitions(draw: Callable[..., Any]) -> MacroDefinition:
     """Generate simple macro definitions with 1-3 commands."""
     macro_id = draw(macro_ids())
     name = draw(
@@ -335,7 +335,7 @@ def simple_macro_definitions(draw) -> MacroDefinition:
 
 
 @composite
-def complex_macro_definitions(draw) -> MacroDefinition:
+def complex_macro_definitions(draw: Callable[..., Any]) -> MacroDefinition:
     """Generate complex macro definitions with many commands."""
     macro_id = draw(macro_ids())
     name = draw(
@@ -383,7 +383,7 @@ def complex_macro_definitions(draw) -> MacroDefinition:
 
 # Input validation test generators
 @composite
-def invalid_identifiers(draw) -> str:
+def invalid_identifiers(draw: Callable[..., Any]) -> str:
     """Generate invalid identifiers for validation testing."""
     invalid_types = [
         # Empty strings
@@ -409,7 +409,7 @@ def invalid_identifiers(draw) -> str:
 
 
 @composite
-def edge_case_durations(draw) -> Duration:
+def edge_case_durations(draw: Callable[..., Any]) -> Duration:
     """Generate edge case durations for testing."""
     edge_cases = [
         0.0,  # Zero duration
@@ -429,7 +429,7 @@ def edge_case_durations(draw) -> Duration:
 
 # Generators for specific test scenarios
 @composite
-def concurrent_execution_scenarios(draw) -> list[dict[str, Any]]:
+def concurrent_execution_scenarios(draw: Callable[..., Any]) -> list[dict[str, Any]]:
     """Generate scenarios for concurrent execution testing."""
     num_scenarios = draw(st.integers(min_value=2, max_value=10))
     scenarios = []

@@ -8,7 +8,6 @@ for maximum coverage improvement toward the 95% target through systematic focuse
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import sys
 from pathlib import Path
 
@@ -449,11 +448,11 @@ def test_advanced_focused_async_functionality() -> bool:
     """Test advanced async functionality for focused high-value modules."""
 
     @pytest.mark.asyncio
-    async def async_focused_test_helper():
+    async def async_focused_test_helper() -> None:
         import asyncio
 
         # Test focused async operations for proven components
-        async def mock_proven_server_tool_operation():
+        async def mock_proven_server_tool_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "tool_id": "proven_server_001",
@@ -472,7 +471,7 @@ def test_advanced_focused_async_functionality() -> bool:
                 },
             }
 
-        async def mock_security_system_operation():
+        async def mock_security_system_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "security_id": "security_sys_001",
@@ -491,7 +490,7 @@ def test_advanced_focused_async_functionality() -> bool:
                 },
             }
 
-        async def mock_workflow_orchestration_operation():
+        async def mock_workflow_orchestration_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "workflow_id": "workflow_orch_001",
@@ -522,7 +521,7 @@ def test_advanced_focused_async_functionality() -> bool:
         assert workflow_result["workflow_result"]["orchestration_complete"] is True
 
         # Test focused async error handling
-        async def failing_focused_operation():
+        async def failing_focused_operation() -> Any:
             await asyncio.sleep(0.001)
             raise RuntimeError("Focused system failure")
 

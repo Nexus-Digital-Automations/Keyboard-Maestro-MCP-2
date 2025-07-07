@@ -26,7 +26,7 @@ AccessLevel = AccessResult
 
 # Security test data generators
 @st.composite
-def security_event_data(draw) -> Any:
+def security_event_data(draw: Callable[..., Any]) -> Any:
     """Generate test security event data."""
     event_types = [
         "access_attempt",
@@ -51,7 +51,7 @@ def security_event_data(draw) -> Any:
 
 
 @st.composite
-def malicious_input_data(draw) -> Any:
+def malicious_input_data(draw: Callable[..., Any]) -> Any:
     """Generate potentially malicious input data for testing."""
     injection_patterns = [
         "'; DROP TABLE users; --",
@@ -516,7 +516,7 @@ class TestSecurityMonitor:
         alert_triggered = False
         alert_event = None
 
-        def alert_handler(event) -> None:
+        def alert_handler(event: Any) -> None:
             nonlocal alert_triggered, alert_event
             alert_triggered = True
             alert_event = event

@@ -614,7 +614,7 @@ def get_metrics_collector() -> MetricsCollector:
 
 
 @asynccontextmanager
-async def metrics_collection_session(configuration: MonitoringConfiguration):
+async def metrics_collection_session(configuration: MonitoringConfiguration) -> Any:
     """Context manager for temporary metrics collection."""
     collector = get_metrics_collector()
 

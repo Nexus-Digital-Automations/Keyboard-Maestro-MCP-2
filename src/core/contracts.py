@@ -92,7 +92,7 @@ def require(
         import asyncio
 
         @wraps(func)
-        async def async_wrapper(*args, **kwargs):
+        async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             # Evaluate precondition
             if not ContractValidator.evaluate_condition(condition, args, kwargs):
                 context = create_error_context(
@@ -110,7 +110,7 @@ def require(
             return await func(*args, **kwargs)
 
         @wraps(func)
-        def sync_wrapper(*args, **kwargs) -> bool:
+        def sync_wrapper(*args: Any, **kwargs: Any) -> bool:
             # Evaluate precondition
             if not ContractValidator.evaluate_condition(condition, args, kwargs):
                 context = create_error_context(
@@ -165,7 +165,7 @@ def ensure(
         import asyncio
 
         @wraps(func)
-        async def async_wrapper(*args, **kwargs):
+        async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             # Execute the original async function
             result = await func(*args, **kwargs)
 
@@ -191,7 +191,7 @@ def ensure(
             return result
 
         @wraps(func)
-        def sync_wrapper(*args, **kwargs) -> bool:
+        def sync_wrapper(*args: Any, **kwargs: Any) -> bool:
             # Execute the original sync function
             result = func(*args, **kwargs)
 
@@ -261,7 +261,7 @@ def invariant(
             if not name.startswith("_") and callable(getattr(cls, name)):
                 original_methods[name] = getattr(cls, name)
 
-        def check_invariant(instance) -> bool:
+        def check_invariant(instance: Any) -> bool:
             """Check the class invariant."""
             if not condition(instance):
                 context = create_error_context(
@@ -278,14 +278,14 @@ def invariant(
 
         # Wrap __init__ to check invariant after construction
         @wraps(original_init)
-        def wrapped_init(self, *args, **kwargs) -> bool:
+        def wrapped_init(self: Any, *args: Any, **kwargs: Any) -> bool:
             original_init(self, *args, **kwargs)
             check_invariant(self)
 
         # Wrap public methods to check invariant before and after
-        def wrap_method(method_name, method) -> bool:
+        def wrap_method(method_name: str, method: Callable[..., Any] | str) -> bool:
             @wraps(method)
-            def wrapped_method(self, *args, **kwargs) -> bool:
+            def wrapped_method(self: Any, *args: Any, **kwargs: Any) -> bool:
                 # Check invariant before method execution
                 try:
                     check_invariant(self)
@@ -335,7 +335,7 @@ def combine_conditions(*conditions: Callable[..., bool]) -> Callable[..., bool]:
 
     """
 
-    def combined_condition(*args, **kwargs) -> bool:
+    def combined_condition(*args: Any, **kwargs: Any) -> bool:
         return all(cond(*args, **kwargs) for cond in conditions)
 
     return combined_condition
@@ -352,7 +352,7 @@ def any_condition(*conditions: Callable[..., bool]) -> Callable[..., bool]:
 
     """
 
-    def combined_condition(*args, **kwargs) -> bool:
+    def combined_condition(*args: Any, **kwargs: Any) -> bool:
         return any(cond(*args, **kwargs) for cond in conditions)
 
     return combined_condition
@@ -369,13 +369,13 @@ def not_condition(condition: Callable[..., bool]) -> Callable[..., bool]:
 
     """
 
-    def negated_condition(*args, **kwargs) -> bool:
+    def negated_condition(*args: Any, **kwargs: Any) -> bool:
         return not condition(*args, **kwargs)
 
     return negated_condition
 
 
-def get_contract_info(func_or_class) -> dict[str, Any]:
+def get_contract_info(func_or_class: Any) -> dict[str, Any]:
     """Extract contract information from a function or class.
 
     Args:

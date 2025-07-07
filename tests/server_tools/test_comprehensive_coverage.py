@@ -6,7 +6,7 @@ to improve coverage metrics meaningfully.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -219,7 +219,7 @@ class TestToolRegistration:
         mcp.tool = Mock(return_value=lambda func: func)
         return mcp
 
-    def test_performance_monitor_tools_registration(self, mock_mcp) -> None:
+    def test_performance_monitor_tools_registration(self, mock_mcp: Any) -> None:
         """Test performance monitor tools registration."""
         from src.server.tools.performance_monitor_tools import PerformanceMonitorTools
 
@@ -231,7 +231,7 @@ class TestToolRegistration:
         # Verify tool decorator was called
         assert mock_mcp.tool.called
 
-    def test_analytics_engine_tools_registration(self, mock_mcp) -> None:
+    def test_analytics_engine_tools_registration(self, mock_mcp: Any) -> None:
         """Test analytics engine tools registration."""
         from src.server.tools.analytics_engine_tools import AnalyticsEngineTools
 
@@ -243,7 +243,7 @@ class TestToolRegistration:
         # Verify tool decorator was called
         assert mock_mcp.tool.called
 
-    def test_visual_automation_tools_registration(self, mock_mcp) -> None:
+    def test_visual_automation_tools_registration(self, mock_mcp: Any) -> None:
         """Test visual automation tools registration."""
         from src.server.tools.visual_automation_tools import VisualAutomationTools
 
@@ -255,7 +255,7 @@ class TestToolRegistration:
         # Verify tool decorator was called
         assert mock_mcp.tool.called
 
-    def test_workflow_designer_tools_registration(self, mock_mcp) -> None:
+    def test_workflow_designer_tools_registration(self, mock_mcp: Any) -> None:
         """Test workflow designer tools registration."""
         from src.server.tools.workflow_designer_tools import WorkflowDesignerTools
 
@@ -267,7 +267,7 @@ class TestToolRegistration:
         # Verify tool decorator was called
         assert mock_mcp.tool.called
 
-    def test_zero_trust_security_tools_registration(self, mock_mcp) -> None:
+    def test_zero_trust_security_tools_registration(self, mock_mcp: Any) -> None:
         """Test zero trust security tools registration."""
         from src.server.tools.zero_trust_security_tools import ZeroTrustSecurityTools
 

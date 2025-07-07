@@ -7,7 +7,6 @@ coverage percentage toward the near 100% goal.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import Mock, patch
 
 import pytest

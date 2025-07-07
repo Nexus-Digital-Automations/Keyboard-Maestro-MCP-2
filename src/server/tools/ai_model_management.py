@@ -25,7 +25,7 @@ async def km_ai_cache(
     ttl_hours: int | None = None,  # Time to live in hours
     enable_compression: bool = True,  # Enable compression for L2/L3
     enable_prefetch: bool = True,  # Enable predictive prefetching
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Intelligent caching system for AI operations with multi-level hierarchy.
 
@@ -300,7 +300,7 @@ async def km_ai_cost_optimization(
     period: str = "monthly",  # hourly|daily|weekly|monthly|quarterly|yearly
     enable_auto_optimization: bool = False,  # Enable automatic optimization
     alert_thresholds: list[float] | None = None,  # Alert thresholds (0.0-1.0)
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Advanced cost optimization system for AI operations with enterprise controls.
 
@@ -594,7 +594,7 @@ async def km_ai_models(
     include_costs: bool = False,
     include_capabilities: bool = True,
     sort_by: str = "name",  # name|cost|performance|popularity
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """List available AI models with capabilities and usage information.
 

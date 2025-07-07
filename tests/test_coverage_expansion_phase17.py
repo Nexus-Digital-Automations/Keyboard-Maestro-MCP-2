@@ -7,7 +7,6 @@ for maximum coverage gain toward the 95% target through systematic remaining mod
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -437,11 +436,11 @@ def test_advanced_high_impact_async_functionality() -> bool:
     """Test advanced async functionality for high-impact remaining modules."""
 
     @pytest.mark.asyncio
-    async def async_high_impact_test_helper():
+    async def async_high_impact_test_helper() -> None:
         import asyncio
 
         # Test advanced async high-impact operations
-        async def mock_testing_automation_execution():
+        async def mock_testing_automation_execution() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "automation_id": "testing_auto_001",
@@ -460,7 +459,7 @@ def test_advanced_high_impact_async_functionality() -> bool:
                 },
             }
 
-        async def mock_predictive_analytics_processing():
+        async def mock_predictive_analytics_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "analytics_id": "pred_analytics_001",
@@ -479,7 +478,7 @@ def test_advanced_high_impact_async_functionality() -> bool:
                 },
             }
 
-        async def mock_visual_automation_operation():
+        async def mock_visual_automation_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "visual_id": "visual_auto_001",
@@ -507,7 +506,7 @@ def test_advanced_high_impact_async_functionality() -> bool:
         assert visual_result["visual_result"]["automation_success"] is True
 
         # Test high-impact async error handling
-        async def failing_high_impact_operation():
+        async def failing_high_impact_operation() -> Any:
             await asyncio.sleep(0.001)
             raise RuntimeError("High-impact system failure")
 

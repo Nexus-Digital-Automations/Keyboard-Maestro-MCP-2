@@ -511,7 +511,7 @@ def _parse_modification_spec(modification_spec: dict) -> list:
     return modifications
 
 
-def _perform_validation_checks(inspection, validation_level: str) -> dict[str, Any]:
+def _perform_validation_checks(inspection: Any, validation_level: str) -> dict[str, Any]:
     """Perform validation checks on macro inspection."""
     checks = []
 

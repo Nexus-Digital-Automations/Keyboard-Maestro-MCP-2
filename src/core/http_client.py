@@ -368,13 +368,13 @@ class HTTPClient:
         await self._ensure_client()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: str, exc_val: Exception | str, exc_tb: Exception | str):
         """Async context manager exit."""
         if self._client:
             await self._client.aclose()
             self._client = None
 
-    async def _ensure_client(self):
+    async def _ensure_client(self) -> None:
         """Ensure HTTP client is initialized."""
         if self._client is None:
             self._client = httpx.AsyncClient(

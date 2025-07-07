@@ -504,7 +504,7 @@ class PluginSandbox:
         self.monitor = ResourceMonitor(self.limits)
 
     @asynccontextmanager
-    async def execution_context(self):
+    async def execution_context(self) -> Any:
         """Context manager for sandboxed execution."""
         self.monitor.start_monitoring()
 

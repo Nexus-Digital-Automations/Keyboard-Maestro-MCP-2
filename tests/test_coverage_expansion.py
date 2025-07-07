@@ -6,7 +6,6 @@ to achieve maximum coverage gain efficiently.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import os
 import sys
@@ -249,7 +248,7 @@ async def test_async_functionality_coverage() -> None:
     """Test async functionality to cover async code paths."""
     try:
         # Test async patterns
-        async def mock_async_function():
+        async def mock_async_function() -> Any:
             return "test_result"
 
         result = await mock_async_function()
@@ -272,7 +271,7 @@ def test_property_based_coverage() -> None:
     from hypothesis import strategies as st
 
     @given(st.text(min_size=1, max_size=100))
-    def test_string_properties(text_input) -> None:
+    def test_string_properties(text_input: str) -> None:
         # Test string processing that's safe
         processed = text_input.strip().lower()
         assert isinstance(processed, str)

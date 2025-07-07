@@ -8,7 +8,6 @@ coverage gain toward the 95% target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -502,11 +501,11 @@ def test_async_functionality_comprehensive() -> bool:
     """Test async functionality patterns for comprehensive coverage."""
 
     @pytest.mark.asyncio
-    async def async_test_helper():
+    async def async_test_helper() -> None:
         # Test basic async patterns
         import asyncio
 
-        async def sample_async_operation():
+        async def sample_async_operation() -> Any:
             await asyncio.sleep(0.001)
             return {"status": "success", "data": "async_result"}
 

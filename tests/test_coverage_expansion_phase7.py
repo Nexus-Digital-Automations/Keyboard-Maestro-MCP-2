@@ -8,7 +8,6 @@ advanced modules for maximum coverage gain toward the 95% target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -625,11 +624,11 @@ def test_advanced_workflow_learning_patterns() -> bool:
     """Test advanced workflow and learning system patterns."""
 
     @pytest.mark.asyncio
-    async def async_learning_test_helper():
+    async def async_learning_test_helper() -> None:
         import asyncio
 
         # Test async learning operations
-        async def mock_pattern_learning():
+        async def mock_pattern_learning() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "learning_id": "learn_001",
@@ -644,7 +643,7 @@ def test_advanced_workflow_learning_patterns() -> bool:
                 ],
             }
 
-        async def mock_knowledge_application():
+        async def mock_knowledge_application() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "application_id": "app_001",
@@ -659,7 +658,7 @@ def test_advanced_workflow_learning_patterns() -> bool:
                 ],
             }
 
-        async def mock_enterprise_authentication():
+        async def mock_enterprise_authentication() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "auth_id": "auth_001",
@@ -686,7 +685,7 @@ def test_advanced_workflow_learning_patterns() -> bool:
         assert auth_result["authentication_result"]["status"] == "success"
 
         # Test async error handling for advanced systems
-        async def failing_advanced_operation():
+        async def failing_advanced_operation() -> Any:
             await asyncio.sleep(0.001)
             raise ValueError("Advanced system operation failed")
 

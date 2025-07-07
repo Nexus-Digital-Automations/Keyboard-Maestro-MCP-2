@@ -30,7 +30,7 @@ Key Mocking Pattern:
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -144,11 +144,11 @@ class TestHotkeyTriggerCreation:
     @pytest.mark.asyncio
     async def test_create_hotkey_trigger_success(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test successful hotkey trigger creation."""
         with (
@@ -185,11 +185,11 @@ class TestHotkeyTriggerCreation:
     @pytest.mark.asyncio
     async def test_create_hotkey_trigger_with_multiple_modifiers(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test hotkey creation with multiple modifiers."""
         with (
@@ -226,11 +226,11 @@ class TestHotkeyTriggerCreation:
     @pytest.mark.asyncio
     async def test_create_hotkey_trigger_special_keys(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test hotkey creation with special keys."""
         special_keys = ["space", "tab", "f1", "escape", "enter"]
@@ -267,11 +267,11 @@ class TestHotkeyTriggerCreation:
     @pytest.mark.asyncio
     async def test_create_hotkey_trigger_activation_modes(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test different activation modes."""
         activation_modes = ["pressed", "released", "tapped", "held"]
@@ -311,11 +311,11 @@ class TestHotkeyTriggerCreation:
     @pytest.mark.asyncio
     async def test_create_hotkey_trigger_tap_counts(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test different tap counts."""
         tap_counts = [1, 2, 3, 4]
@@ -353,11 +353,11 @@ class TestHotkeyTriggerCreation:
     @pytest.mark.asyncio
     async def test_create_hotkey_trigger_allow_repeat(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test allow_repeat option."""
         with (
@@ -397,11 +397,11 @@ class TestHotkeyConflictDetection:
     @pytest.mark.asyncio
     async def test_conflict_detection_with_conflicts(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test conflict detection when conflicts exist."""
         # Setup conflict detection to return conflicts
@@ -448,11 +448,11 @@ class TestHotkeyConflictDetection:
     @pytest.mark.asyncio
     async def test_conflict_detection_with_alternatives(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test conflict detection with alternative suggestions."""
         # Setup conflict
@@ -510,11 +510,11 @@ class TestHotkeyConflictDetection:
     @pytest.mark.asyncio
     async def test_conflict_detection_disabled(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test hotkey creation with conflict detection disabled."""
         with (
@@ -555,10 +555,10 @@ class TestHotkeyListing:
     @pytest.mark.asyncio
     async def test_list_all_hotkeys(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
     ) -> None:
         """Test listing all registered hotkeys."""
         with (
@@ -586,10 +586,10 @@ class TestHotkeyListing:
     @pytest.mark.asyncio
     async def test_list_hotkeys_filtered_by_macro(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
     ) -> None:
         """Test listing hotkeys filtered by macro ID."""
         with (
@@ -618,10 +618,10 @@ class TestHotkeyListing:
     @pytest.mark.asyncio
     async def test_list_hotkeys_with_conflicts(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
     ) -> None:
         """Test listing hotkeys with conflict information."""
         # Setup conflict for listing
@@ -661,7 +661,7 @@ class TestHotkeyToolsErrorHandling:
     """Test hotkey tools error handling scenarios."""
 
     @pytest.mark.asyncio
-    async def test_invalid_hotkey_specification_error(self, mock_context) -> None:
+    async def test_invalid_hotkey_specification_error(self, mock_context: Any) -> None:
         """Test handling of invalid hotkey specification."""
         with patch(
             "src.server.tools.hotkey_tools.create_hotkey_spec",
@@ -679,7 +679,7 @@ class TestHotkeyToolsErrorHandling:
             assert "Invalid hotkey specification" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_security_violation_error(self, mock_context) -> None:
+    async def test_security_violation_error(self, mock_context: Any) -> None:
         """Test handling of security violations."""
         with patch(
             "src.server.tools.hotkey_tools.create_hotkey_spec",
@@ -698,11 +698,11 @@ class TestHotkeyToolsErrorHandling:
     @pytest.mark.asyncio
     async def test_hotkey_manager_error_response(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test handling of HotkeyManager error responses."""
         # Configure mock to return error
@@ -746,7 +746,7 @@ class TestHotkeyToolsErrorHandling:
             assert result["error"]["message"] == "Failed to create trigger"
 
     @pytest.mark.asyncio
-    async def test_general_exception_handling(self, mock_context) -> None:
+    async def test_general_exception_handling(self, mock_context: Any) -> None:
         """Test general exception handling."""
         with patch(
             "src.server.tools.hotkey_tools.create_hotkey_spec",
@@ -764,7 +764,7 @@ class TestHotkeyToolsErrorHandling:
             assert "Unexpected error" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_list_hotkeys_exception_handling(self, mock_context) -> None:
+    async def test_list_hotkeys_exception_handling(self, mock_context: Any) -> None:
         """Test exception handling in list hotkeys."""
         with patch(
             "src.server.tools.hotkey_tools.KMClient",
@@ -784,11 +784,11 @@ class TestHotkeyToolsSecurity:
     @pytest.mark.asyncio
     async def test_macro_id_sanitization(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test macro ID input sanitization."""
         with (
@@ -824,11 +824,11 @@ class TestHotkeyToolsSecurity:
     @pytest.mark.asyncio
     async def test_key_sanitization(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test key input sanitization."""
         with (
@@ -863,11 +863,11 @@ class TestHotkeyToolsSecurity:
     @pytest.mark.asyncio
     async def test_modifier_sanitization(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test modifier input sanitization."""
         with (
@@ -900,7 +900,7 @@ class TestHotkeyToolsSecurity:
             # Verify modifiers were sanitized (empty/whitespace removed, lowercased)
 
     @pytest.mark.asyncio
-    async def test_injection_prevention_macro_id(self, mock_context) -> None:
+    async def test_injection_prevention_macro_id(self, mock_context: Any) -> None:
         """Test prevention of injection in macro ID."""
         malicious_ids = [
             "macro'; DROP TABLE macros; --",
@@ -937,11 +937,11 @@ class TestHotkeyToolsIntegration:
     @pytest.mark.asyncio
     async def test_create_and_list_workflow(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test combined create and list workflow."""
         with (
@@ -980,11 +980,11 @@ class TestHotkeyToolsIntegration:
     @pytest.mark.asyncio
     async def test_conflict_detection_workflow(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test complete conflict detection workflow."""
         # Setup conflict scenario
@@ -1049,7 +1049,7 @@ class TestHotkeyToolsPropertyBased:
     """Property-based testing for hotkey tools with Hypothesis."""
 
     @composite
-    def valid_keys(draw) -> Any:
+    def valid_keys(draw: Callable[..., Any]) -> Any:
         """Generate valid key identifiers."""
         letter_keys = st.sampled_from("abcdefghijklmnopqrstuvwxyz")
         number_keys = st.sampled_from("0123456789")
@@ -1090,13 +1090,13 @@ class TestHotkeyToolsPropertyBased:
         return draw(st.one_of(letter_keys, number_keys, special_keys))
 
     @composite
-    def valid_modifiers(draw) -> Any:
+    def valid_modifiers(draw: Callable[..., Any]) -> Any:
         """Generate valid modifier combinations."""
         modifiers = st.sampled_from(["cmd", "opt", "shift", "ctrl", "fn"])
         return draw(st.lists(modifiers, min_size=0, max_size=3, unique=True))
 
     @composite
-    def valid_macro_ids(draw) -> Any:
+    def valid_macro_ids(draw: Callable[..., Any]) -> Any:
         """Generate valid macro IDs."""
         # Generate macro IDs without dangerous characters
         chars = st.characters(
@@ -1107,7 +1107,7 @@ class TestHotkeyToolsPropertyBased:
 
     @given(valid_macro_ids(), valid_keys(), valid_modifiers())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    def test_input_sanitization_property(self, macro_id, key, modifiers) -> None:
+    def test_input_sanitization_property(self, macro_id: str, key: str, modifiers: list[Any] | str) -> None:
         """Property: All valid inputs should be properly sanitized."""
         assume(len(macro_id.strip()) > 0)  # Non-empty after strip
 
@@ -1129,9 +1129,9 @@ class TestHotkeyToolsPropertyBased:
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     async def test_hotkey_options_property(
         self,
-        activation_mode,
-        tap_count,
-        allow_repeat,
+        activation_mode: Any,
+        tap_count: int,
+        allow_repeat: Any,
     ) -> None:
         """Property: All valid option combinations should be accepted."""
         mock_context = Mock(spec=Context)
@@ -1187,11 +1187,11 @@ class TestHotkeyToolsPerformance:
     @pytest.mark.asyncio
     async def test_hotkey_creation_response_time(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test that hotkey creation completes within reasonable time."""
         import time
@@ -1233,11 +1233,11 @@ class TestHotkeyToolsPerformance:
     @pytest.mark.asyncio
     async def test_conflict_detection_performance(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test conflict detection performance."""
         import time
@@ -1292,10 +1292,10 @@ class TestHotkeyToolsPerformance:
     @pytest.mark.asyncio
     async def test_list_hotkeys_performance(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
     ) -> None:
         """Test hotkey listing performance with many hotkeys."""
         import time
@@ -1349,11 +1349,11 @@ class TestHotkeyToolsEdgeCases:
     @pytest.mark.asyncio
     async def test_empty_modifiers_list(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test hotkey creation with empty modifiers list."""
         with (
@@ -1386,11 +1386,11 @@ class TestHotkeyToolsEdgeCases:
     @pytest.mark.asyncio
     async def test_maximum_tap_count(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test hotkey creation with maximum tap count."""
         with (
@@ -1424,11 +1424,11 @@ class TestHotkeyToolsEdgeCases:
     @pytest.mark.asyncio
     async def test_unicode_macro_id(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test hotkey creation with Unicode macro ID."""
         with (
@@ -1461,11 +1461,11 @@ class TestHotkeyToolsEdgeCases:
     @pytest.mark.asyncio
     async def test_maximum_length_macro_id(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test hotkey creation with maximum length macro ID."""
         long_macro_id = "a" * 255  # Maximum allowed length
@@ -1500,11 +1500,11 @@ class TestHotkeyToolsEdgeCases:
     @pytest.mark.asyncio
     async def test_all_modifier_combinations(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
-        mock_hotkey_spec,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
+        mock_hotkey_spec: Any,
     ) -> None:
         """Test various modifier combinations."""
         modifier_combinations = [
@@ -1548,10 +1548,10 @@ class TestHotkeyToolsEdgeCases:
     @pytest.mark.asyncio
     async def test_list_empty_hotkeys(
         self,
-        mock_context,
-        mock_hotkey_manager,
-        mock_km_client,
-        mock_trigger_manager,
+        mock_context: Any,
+        mock_hotkey_manager: Any,
+        mock_km_client: Any,
+        mock_trigger_manager: Any,
     ) -> None:
         """Test listing when no hotkeys are registered."""
         mock_hotkey_manager.get_registered_hotkeys.return_value = {}

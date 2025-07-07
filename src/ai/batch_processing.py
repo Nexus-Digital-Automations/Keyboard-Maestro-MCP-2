@@ -374,7 +374,7 @@ class BatchJobState:
 class BatchProcessor:
     """High-performance batch processing engine for AI operations."""
 
-    def __init__(self, ai_processing_manager):
+    def __init__(self, ai_processing_manager: Any):
         self.ai_manager = ai_processing_manager
         self.active_jobs: dict[BatchJobId, BatchJobState] = {}
         self.job_queue: list[tuple[int, BatchJobId]] = []  # Priority queue

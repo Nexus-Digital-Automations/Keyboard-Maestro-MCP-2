@@ -101,7 +101,7 @@ async def km_manage_macro_properties(
 
 
 async def _get_macro_properties(
-    km_client,
+    km_client: Any,
     macro_id: str,
     ctx: Context = None,
 ) -> dict[str, Any]:
@@ -178,7 +178,7 @@ async def _get_macro_properties(
 
 
 async def _update_macro_properties(
-    km_client,
+    km_client: Any,
     macro_id: str,
     properties: dict[str, Any],
     ctx: Context = None,

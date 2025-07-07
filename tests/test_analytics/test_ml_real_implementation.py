@@ -6,8 +6,8 @@ machine learning algorithms instead of mock/simulated implementations.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import numpy as np
 import pytest
@@ -86,7 +86,7 @@ class TestPatternRecognitionModel:
     """Test real pattern recognition using scikit-learn."""
 
     @pytest.mark.asyncio
-    async def test_real_pattern_recognition_training(self, sample_metric_data) -> None:
+    async def test_real_pattern_recognition_training(self, sample_metric_data: Any) -> None:
         """Test that pattern recognition uses real ML algorithms."""
         model = PatternRecognitionModel("test_pattern_model")
 
@@ -104,7 +104,7 @@ class TestPatternRecognitionModel:
         assert len(model.trained_models) > 0  # Should have training results
 
     @pytest.mark.asyncio
-    async def test_pattern_finding_with_real_clustering(self, sample_metric_data) -> None:
+    async def test_pattern_finding_with_real_clustering(self, sample_metric_data: Any) -> None:
         """Test that pattern finding uses real clustering algorithms."""
         model = PatternRecognitionModel("test_pattern_model")
         await model.train(sample_metric_data)
@@ -122,7 +122,7 @@ class TestPatternRecognitionModel:
         assert "seasonality_strength" in pattern["cluster_info"]
 
     @pytest.mark.asyncio
-    async def test_pattern_model_accuracy_calculation(self, sample_metric_data) -> None:
+    async def test_pattern_model_accuracy_calculation(self, sample_metric_data: Any) -> None:
         """Test that model accuracy is calculated using real metrics."""
         model = PatternRecognitionModel("test_pattern_model")
         await model.train(sample_metric_data)
@@ -136,7 +136,7 @@ class TestAnomalyDetectionModel:
     """Test real anomaly detection using Isolation Forest and One-Class SVM."""
 
     @pytest.mark.asyncio
-    async def test_real_anomaly_detection_training(self, sample_metric_data) -> None:
+    async def test_real_anomaly_detection_training(self, sample_metric_data: Any) -> None:
         """Test that anomaly detection uses real ML algorithms."""
         model = AnomalyDetectionModel("test_anomaly_model")
 
@@ -152,7 +152,7 @@ class TestAnomalyDetectionModel:
         assert model.isolation_forest.n_features_in_ is not None  # Should be fitted
 
     @pytest.mark.asyncio
-    async def test_ml_based_anomaly_detection(self, anomaly_metric_data) -> None:
+    async def test_ml_based_anomaly_detection(self, anomaly_metric_data: Any) -> None:
         """Test that anomaly detection uses ML ensemble methods."""
         model = AnomalyDetectionModel("test_anomaly_model")
 
@@ -173,7 +173,7 @@ class TestAnomalyDetectionModel:
         assert "isolation_forest_outliers" in anomaly["model_stats"]
 
     @pytest.mark.asyncio
-    async def test_ensemble_scoring(self, anomaly_metric_data) -> None:
+    async def test_ensemble_scoring(self, anomaly_metric_data: Any) -> None:
         """Test that ensemble scoring combines multiple ML models."""
         model = AnomalyDetectionModel("test_anomaly_model")
         await model.train(anomaly_metric_data[:50])
@@ -193,7 +193,7 @@ class TestPredictiveAnalyticsModel:
     """Test real predictive analytics using ARIMA and regression."""
 
     @pytest.mark.asyncio
-    async def test_real_predictive_model_training(self, sample_metric_data) -> None:
+    async def test_real_predictive_model_training(self, sample_metric_data: Any) -> None:
         """Test that predictive analytics uses real time series models."""
         model = PredictiveAnalyticsModel("test_prediction_model")
 
@@ -208,7 +208,7 @@ class TestPredictiveAnalyticsModel:
         assert len(model.trained_models) > 0
 
     @pytest.mark.asyncio
-    async def test_arima_model_selection(self, sample_metric_data) -> None:
+    async def test_arima_model_selection(self, sample_metric_data: Any) -> None:
         """Test that ARIMA models are trained and selected based on AIC."""
         model = PredictiveAnalyticsModel("test_prediction_model")
         await model.train(sample_metric_data)
@@ -227,7 +227,7 @@ class TestPredictiveAnalyticsModel:
                 assert "aic" in model_info["performance"]["arima"]
 
     @pytest.mark.asyncio
-    async def test_real_forecasting_with_confidence_intervals(self, sample_metric_data) -> None:
+    async def test_real_forecasting_with_confidence_intervals(self, sample_metric_data: Any) -> None:
         """Test that forecasting provides real predictions with confidence intervals."""
         model = PredictiveAnalyticsModel("test_prediction_model")
         await model.train(sample_metric_data)
@@ -262,7 +262,7 @@ class TestMLInsightsEngine:
     """Test the complete ML insights engine with real implementations."""
 
     @pytest.mark.asyncio
-    async def test_comprehensive_ml_insights_generation(self, sample_metric_data) -> None:
+    async def test_comprehensive_ml_insights_generation(self, sample_metric_data: Any) -> None:
         """Test that the insights engine generates real ML insights."""
         engine = MLInsightsEngine(privacy_mode=PrivacyMode.COMPLIANT)
 
@@ -287,7 +287,7 @@ class TestMLInsightsEngine:
             assert insight.supporting_data is not None
 
     @pytest.mark.asyncio
-    async def test_model_performance_tracking(self, sample_metric_data) -> None:
+    async def test_model_performance_tracking(self, sample_metric_data: Any) -> None:
         """Test that model performance metrics are tracked."""
         engine = MLInsightsEngine(privacy_mode=PrivacyMode.COMPLIANT)
 
@@ -311,7 +311,7 @@ class TestMLInsightsEngine:
             assert model_info["training_data_size"] > 0
 
     @pytest.mark.asyncio
-    async def test_model_retraining_with_new_data(self, sample_metric_data) -> None:
+    async def test_model_retraining_with_new_data(self, sample_metric_data: Any) -> None:
         """Test that models can be retrained with new data."""
         engine = MLInsightsEngine()
 

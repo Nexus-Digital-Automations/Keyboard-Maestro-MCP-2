@@ -326,7 +326,7 @@ class EnterpriseSyncManager:
             "uptime_start": datetime.now(UTC),
         }
 
-    async def initialize(self, audit_logger=None) -> Either[EnterpriseError, None]:
+    async def initialize(self, audit_logger: Any=None) -> Either[EnterpriseError, None]:
         """Initialize enterprise sync system with audit integration."""
         try:
             self.audit_logger = audit_logger

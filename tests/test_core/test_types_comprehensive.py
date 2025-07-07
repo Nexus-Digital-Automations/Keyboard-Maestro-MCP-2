@@ -41,13 +41,13 @@ from src.core.types import (
 
 # Test data generators
 @st.composite
-def duration_strategy(draw) -> Any:
+def duration_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid duration values."""
     return draw(st.floats(min_value=0.0, max_value=3600.0))
 
 
 @st.composite
-def command_parameters_strategy(draw) -> Any:
+def command_parameters_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid command parameters."""
     params = draw(
         st.dictionaries(
@@ -60,7 +60,7 @@ def command_parameters_strategy(draw) -> Any:
 
 
 @st.composite
-def permission_set_strategy(draw) -> Any:
+def permission_set_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid permission sets."""
     permissions = draw(
         st.lists(st.sampled_from(list(Permission)), min_size=0, max_size=5),
@@ -69,7 +69,7 @@ def permission_set_strategy(draw) -> Any:
 
 
 @st.composite
-def variable_dict_strategy(draw) -> Any:
+def variable_dict_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid variable dictionaries."""
     return draw(
         st.dictionaries(

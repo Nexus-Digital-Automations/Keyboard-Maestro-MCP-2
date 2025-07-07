@@ -7,7 +7,6 @@ integration patterns for systematic progression toward 18%+ coverage milestone t
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -571,11 +570,11 @@ def test_advanced_comprehensive_async_functionality() -> bool:
     """Test advanced async functionality for Phase 22 comprehensive domain modules."""
 
     @pytest.mark.asyncio
-    async def async_comprehensive_test_helper():
+    async def async_comprehensive_test_helper() -> None:
         import asyncio
 
         # Test advanced async operations for Phase 22 comprehensive domain modules
-        async def mock_workflow_business_intelligence_processing():
+        async def mock_workflow_business_intelligence_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "workflow_bi_id": "workflow_bi_001",
@@ -594,7 +593,7 @@ def test_advanced_comprehensive_async_functionality() -> bool:
                 },
             }
 
-        async def mock_communication_collaboration_operation():
+        async def mock_communication_collaboration_operation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "comm_collab_id": "comm_collab_001",
@@ -613,7 +612,7 @@ def test_advanced_comprehensive_async_functionality() -> bool:
                 },
             }
 
-        async def mock_analytics_data_processing():
+        async def mock_analytics_data_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "analytics_data_id": "analytics_data_001",
@@ -648,7 +647,7 @@ def test_advanced_comprehensive_async_functionality() -> bool:
         )
 
         # Test comprehensive async error handling
-        async def failing_comprehensive_operation():
+        async def failing_comprehensive_operation() -> Any:
             await asyncio.sleep(0.001)
             raise RuntimeError("Comprehensive system failure")
 

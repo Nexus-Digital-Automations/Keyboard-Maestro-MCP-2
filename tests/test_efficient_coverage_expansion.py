@@ -6,7 +6,6 @@ to rapidly expand coverage without timeout issues or complex dependencies.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import Mock, patch
 
 import pytest

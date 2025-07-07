@@ -5,7 +5,8 @@ Tests focus on real API available in km_client.py to maximize coverage.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
+
 import pytest
 from src.core.types import Duration, MacroId, TriggerId
 from src.integration.km_client import (
@@ -60,7 +61,7 @@ class TestEitherMonad:
     def test_either_flat_map(self) -> None:
         """Test flat mapping for chaining operations."""
 
-        def double_if_positive(x) -> Any:
+        def double_if_positive(x: Any) -> Any:
             if x > 0:
                 return Either.right(x * 2)
             return Either.left("negative or zero")

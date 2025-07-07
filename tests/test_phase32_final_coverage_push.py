@@ -6,7 +6,6 @@ statement counts to push coverage as close to 100% as possible.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import Mock, patch
 
 import pytest

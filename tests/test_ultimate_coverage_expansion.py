@@ -6,7 +6,6 @@ coverage gains and drive toward near 100% comprehensive test coverage.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import Mock, patch
 
 import pytest

@@ -7,7 +7,6 @@ and final systematic coverage enhancement toward the 95% target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -502,11 +501,11 @@ def test_specialized_async_functionality() -> bool:
     """Test async functionality patterns for specialized remaining systems."""
 
     @pytest.mark.asyncio
-    async def async_specialized_test_helper():
+    async def async_specialized_test_helper() -> None:
         import asyncio
 
         # Test async specialized operations
-        async def mock_action_execution():
+        async def mock_action_execution() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "execution_id": "exec_001",
@@ -523,7 +522,7 @@ def test_specialized_async_functionality() -> bool:
                 },
             }
 
-        async def mock_agent_coordination():
+        async def mock_agent_coordination() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "coordination_id": "coord_001",
@@ -540,7 +539,7 @@ def test_specialized_async_functionality() -> bool:
                 },
             }
 
-        async def mock_analytics_processing():
+        async def mock_analytics_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "processing_id": "analytics_001",
@@ -567,7 +566,7 @@ def test_specialized_async_functionality() -> bool:
         assert analytics_result["analytics_result"]["processing_complete"] is True
 
         # Test async error handling for specialized systems
-        async def failing_specialized_operation():
+        async def failing_specialized_operation() -> Any:
             await asyncio.sleep(0.001)
             raise ValueError("Specialized system error")
 

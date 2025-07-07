@@ -43,7 +43,7 @@ tool_performance_metrics = {
 }
 
 
-async def initialize_nlp_tools():
+async def initialize_nlp_tools() -> None:
     """Initialize all natural language processing components."""
     global intent_classifier, command_processor, conversation_manager
 
@@ -136,7 +136,7 @@ async def km_process_natural_command(
         bool,
         Field(description="Learn from user interactions"),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Process natural language commands and convert them to executable automation workflows.
 
@@ -300,7 +300,7 @@ async def km_recognize_intent(
         bool,
         Field(description="Learn from user feedback"),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Recognize user intent from natural language input with entity extraction and sentiment analysis.
 
@@ -464,7 +464,7 @@ async def km_generate_from_description(
         str,
         Field(description="Export format (visual|code|template)"),
     ] = "visual",
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Generate automation workflows from natural language descriptions with optimization and validation.
 
@@ -640,7 +640,7 @@ async def km_conversational_interface(
         bool,
         Field(description="Maintain conversation context"),
     ] = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Provide conversational automation interface with context-aware responses and guidance.
 
@@ -759,7 +759,7 @@ async def km_conversational_interface(
 
 
 @mcp.tool()
-async def km_nlp_performance_metrics(ctx=None) -> dict[str, Any]:
+async def km_nlp_performance_metrics(ctx: Context | Any=None) -> dict[str, Any]:
     """Get performance metrics for natural language processing system.
 
     FastMCP Tool for NLP performance monitoring through Claude Desktop.
@@ -800,7 +800,7 @@ async def km_nlp_performance_metrics(ctx=None) -> dict[str, Any]:
 
 
 # Startup hook to initialize components
-async def startup():
+async def startup() -> None:
     """Initialize NLP components on startup."""
     success = await initialize_nlp_tools()
     if not success:

@@ -7,8 +7,8 @@ Tests follow the proven systematic pattern that achieved 100% success across 32+
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -20,18 +20,18 @@ import pytest
 
 
 async def mock_km_git_operations(
-    operation="status",
-    repository_url=None,
-    local_path=None,
-    branch_name=None,
-    commit_message=None,
-    merge_strategy=None,
-    authentication=None,
-    credentials=None,
-    force_operation=False,
-    include_remotes=True,
-    ctx=None,
-):
+    operation: str="status",
+    repository_url: Any=None,
+    local_path: Any=None,
+    branch_name: str=None,
+    commit_message: Any=None,
+    merge_strategy: Any=None,
+    authentication: Any=None,
+    credentials: Any=None,
+    force_operation: Any=False,
+    include_remotes: Any=True,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for Git operations."""
     if not operation or not operation.strip():
         return {
@@ -170,16 +170,16 @@ async def mock_km_git_operations(
 
 
 async def mock_km_cicd_pipeline(
-    pipeline_action="status",
-    pipeline_config=None,
-    environment="development",
-    deployment_strategy=None,
-    build_parameters=None,
-    test_configuration=None,
-    notification_settings=None,
-    rollback_enabled=True,
-    ctx=None,
-):
+    pipeline_action: Any="status",
+    pipeline_config: dict[str, Any]=None,
+    environment: dict[str, str]="development",
+    deployment_strategy: Any=None,
+    build_parameters: Any=None,
+    test_configuration: dict[str, Any] | Any=None,
+    notification_settings: dict[str, Any]=None,
+    rollback_enabled: bool=True,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for CI/CD pipeline automation."""
     if not pipeline_action or not pipeline_action.strip():
         return {
@@ -306,16 +306,16 @@ async def mock_km_cicd_pipeline(
 
 
 async def mock_km_api_management(
-    api_operation="list",
-    api_specification=None,
-    endpoint_configuration=None,
-    security_policies=None,
-    rate_limiting=None,
-    monitoring_config=None,
-    documentation_settings=None,
-    versioning_strategy=None,
-    ctx=None,
-):
+    api_operation: Any="list",
+    api_specification: Any=None,
+    endpoint_configuration: dict[str, Any] | Any=None,
+    security_policies: Any=None,
+    rate_limiting: Any=None,
+    monitoring_config: dict[str, Any]=None,
+    documentation_settings: dict[str, Any]=None,
+    versioning_strategy: Any=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for API management and governance."""
     if not api_operation or not api_operation.strip():
         return {
@@ -446,16 +446,16 @@ async def mock_km_api_management(
 
 
 async def mock_km_code_quality_automation(
-    quality_action="analyze",
-    code_repository=None,
-    quality_standards=None,
-    security_scanning=True,
-    performance_analysis=True,
-    compliance_checks=True,
-    custom_rules=None,
-    reporting_format="json",
-    ctx=None,
-):
+    quality_action: Any="analyze",
+    code_repository: Any=None,
+    quality_standards: Any=None,
+    security_scanning: Any=True,
+    performance_analysis: Any=True,
+    compliance_checks: Any=True,
+    custom_rules: Any=None,
+    reporting_format: Any="json",
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for code quality automation and security scanning."""
     if not quality_action or not quality_action.strip():
         return {
@@ -591,7 +591,7 @@ class TestKMGitOperations:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_git_operations_status(self, mock_context) -> None:
+    async def test_git_operations_status(self, mock_context: Any) -> None:
         """Test Git status operation."""
         result = await mock_km_git_operations(
             operation="status",
@@ -607,7 +607,7 @@ class TestKMGitOperations:
         assert result["security_audit"]["authentication_verified"] is True
 
     @pytest.mark.asyncio
-    async def test_git_operations_clone(self, mock_context) -> None:
+    async def test_git_operations_clone(self, mock_context: Any) -> None:
         """Test Git clone operation."""
         result = await mock_km_git_operations(
             operation="clone",
@@ -624,7 +624,7 @@ class TestKMGitOperations:
         assert git_op["repository_url"] == "https://github.com/example/repo.git"
 
     @pytest.mark.asyncio
-    async def test_git_operations_invalid_operation(self, mock_context) -> None:
+    async def test_git_operations_invalid_operation(self, mock_context: Any) -> None:
         """Test Git operations with invalid operation."""
         result = await mock_km_git_operations(operation="invalid_op", ctx=mock_context)
 
@@ -633,7 +633,7 @@ class TestKMGitOperations:
         assert "Invalid Git operation" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_git_operations_missing_repo_url(self, mock_context) -> None:
+    async def test_git_operations_missing_repo_url(self, mock_context: Any) -> None:
         """Test Git clone without repository URL."""
         result = await mock_km_git_operations(
             operation="clone",
@@ -646,7 +646,7 @@ class TestKMGitOperations:
         assert "Repository URL is required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_git_operations_commit_with_message(self, mock_context) -> None:
+    async def test_git_operations_commit_with_message(self, mock_context: Any) -> None:
         """Test Git commit with custom message."""
         result = await mock_km_git_operations(
             operation="commit",
@@ -671,7 +671,7 @@ class TestKMCICDPipeline:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_cicd_pipeline_status(self, mock_context) -> None:
+    async def test_cicd_pipeline_status(self, mock_context: Any) -> None:
         """Test CI/CD pipeline status check."""
         result = await mock_km_cicd_pipeline(
             pipeline_action="status",
@@ -688,7 +688,7 @@ class TestKMCICDPipeline:
         assert result["quality_gates"]["all_gates_passed"] is True
 
     @pytest.mark.asyncio
-    async def test_cicd_pipeline_trigger(self, mock_context) -> None:
+    async def test_cicd_pipeline_trigger(self, mock_context: Any) -> None:
         """Test CI/CD pipeline trigger."""
         build_params = {"build_type": "debug", "test_coverage": False}
         result = await mock_km_cicd_pipeline(
@@ -706,7 +706,7 @@ class TestKMCICDPipeline:
         assert pipeline["trigger_details"]["build_configuration"] == build_params
 
     @pytest.mark.asyncio
-    async def test_cicd_pipeline_deploy(self, mock_context) -> None:
+    async def test_cicd_pipeline_deploy(self, mock_context: Any) -> None:
         """Test CI/CD deployment action."""
         result = await mock_km_cicd_pipeline(
             pipeline_action="deploy",
@@ -724,7 +724,7 @@ class TestKMCICDPipeline:
         assert pipeline["deployment_details"]["rollback_available"] is True
 
     @pytest.mark.asyncio
-    async def test_cicd_pipeline_invalid_action(self, mock_context) -> None:
+    async def test_cicd_pipeline_invalid_action(self, mock_context: Any) -> None:
         """Test CI/CD pipeline with invalid action."""
         result = await mock_km_cicd_pipeline(
             pipeline_action="invalid_action",
@@ -736,7 +736,7 @@ class TestKMCICDPipeline:
         assert "Invalid pipeline action" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_cicd_pipeline_invalid_environment(self, mock_context) -> None:
+    async def test_cicd_pipeline_invalid_environment(self, mock_context: Any) -> None:
         """Test CI/CD pipeline with invalid environment."""
         result = await mock_km_cicd_pipeline(
             pipeline_action="deploy",
@@ -758,7 +758,7 @@ class TestKMAPIManagement:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_api_management_list(self, mock_context) -> None:
+    async def test_api_management_list(self, mock_context: Any) -> None:
         """Test API inventory listing."""
         result = await mock_km_api_management(api_operation="list", ctx=mock_context)
 
@@ -773,7 +773,7 @@ class TestKMAPIManagement:
         assert result["governance"]["compliance_score"] == 96.4
 
     @pytest.mark.asyncio
-    async def test_api_management_create(self, mock_context) -> None:
+    async def test_api_management_create(self, mock_context: Any) -> None:
         """Test API creation with specifications."""
         result = await mock_km_api_management(
             api_operation="create",
@@ -790,7 +790,7 @@ class TestKMAPIManagement:
         assert api_mgmt["creation_details"]["security_policies_applied"] is True
 
     @pytest.mark.asyncio
-    async def test_api_management_monitor(self, mock_context) -> None:
+    async def test_api_management_monitor(self, mock_context: Any) -> None:
         """Test API monitoring and analytics."""
         result = await mock_km_api_management(
             api_operation="monitor",
@@ -808,7 +808,7 @@ class TestKMAPIManagement:
         assert result["performance_insights"]["scalability_rating"] == "excellent"
 
     @pytest.mark.asyncio
-    async def test_api_management_invalid_operation(self, mock_context) -> None:
+    async def test_api_management_invalid_operation(self, mock_context: Any) -> None:
         """Test API management with invalid operation."""
         result = await mock_km_api_management(
             api_operation="invalid_op",
@@ -829,7 +829,7 @@ class TestKMCodeQualityAutomation:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_code_quality_analyze(self, mock_context) -> None:
+    async def test_code_quality_analyze(self, mock_context: Any) -> None:
         """Test comprehensive code quality analysis."""
         result = await mock_km_code_quality_automation(
             quality_action="analyze",
@@ -849,7 +849,7 @@ class TestKMCodeQualityAutomation:
         assert result["automation_status"]["continuous_monitoring"] is True
 
     @pytest.mark.asyncio
-    async def test_code_quality_with_security_scan(self, mock_context) -> None:
+    async def test_code_quality_with_security_scan(self, mock_context: Any) -> None:
         """Test code quality analysis with security scanning."""
         result = await mock_km_code_quality_automation(
             quality_action="scan",
@@ -868,7 +868,7 @@ class TestKMCodeQualityAutomation:
         assert quality["performance_analysis"]["performance_score"] == 84.2
 
     @pytest.mark.asyncio
-    async def test_code_quality_invalid_action(self, mock_context) -> None:
+    async def test_code_quality_invalid_action(self, mock_context: Any) -> None:
         """Test code quality automation with invalid action."""
         result = await mock_km_code_quality_automation(
             quality_action="invalid_action",
@@ -880,7 +880,7 @@ class TestKMCodeQualityAutomation:
         assert "Invalid quality action" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_code_quality_invalid_format(self, mock_context) -> None:
+    async def test_code_quality_invalid_format(self, mock_context: Any) -> None:
         """Test code quality automation with invalid reporting format."""
         result = await mock_km_code_quality_automation(
             quality_action="report",
@@ -902,7 +902,7 @@ class TestDeveloperToolkitIntegration:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_complete_devops_workflow(self, mock_context) -> None:
+    async def test_complete_devops_workflow(self, mock_context: Any) -> None:
         """Test complete DevOps workflow integration."""
         # Step 1: Git operations
         git_result = await mock_km_git_operations(
@@ -953,7 +953,7 @@ class TestDeveloperToolkitProperties:
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_git_operation_consistency(self, mock_context) -> None:
+    async def test_git_operation_consistency(self, mock_context: Any) -> None:
         """Test Git operations consistency across different operations."""
         operations = ["status", "log", "diff"]
 
@@ -970,7 +970,7 @@ class TestDeveloperToolkitProperties:
             assert "performance_metrics" in result
 
     @pytest.mark.asyncio
-    async def test_pipeline_environment_strategies(self, mock_context) -> None:
+    async def test_pipeline_environment_strategies(self, mock_context: Any) -> None:
         """Test CI/CD pipeline deployment strategies by environment."""
         environments = ["development", "staging", "production"]
 
@@ -990,7 +990,7 @@ class TestDeveloperToolkitProperties:
                 assert result["cicd_pipeline"]["deployment_strategy"] == "rolling"
 
     @pytest.mark.asyncio
-    async def test_api_operation_governance(self, mock_context) -> None:
+    async def test_api_operation_governance(self, mock_context: Any) -> None:
         """Test API operations maintain governance standards."""
         operations = ["list", "create", "monitor"]
 
@@ -1006,7 +1006,7 @@ class TestDeveloperToolkitProperties:
             assert "performance_insights" in result
 
     @pytest.mark.asyncio
-    async def test_code_quality_standards_coverage(self, mock_context) -> None:
+    async def test_code_quality_standards_coverage(self, mock_context: Any) -> None:
         """Test code quality automation covers all standards."""
         standards_sets = [
             ["sonarqube"],

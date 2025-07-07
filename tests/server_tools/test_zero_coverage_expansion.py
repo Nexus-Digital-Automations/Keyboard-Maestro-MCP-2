@@ -6,7 +6,6 @@ have 0% test coverage to improve overall project coverage toward 100%.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import pytest
 
 

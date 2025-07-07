@@ -6,7 +6,6 @@ to achieve substantial overall coverage gains and approach near 100% coverage.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import patch
 
 import pytest

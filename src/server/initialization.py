@@ -6,9 +6,9 @@ sync manager, and file monitor with proper dependency injection.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import logging
+from typing import Any
 
 from ..core.types import Duration
 from ..integration import (

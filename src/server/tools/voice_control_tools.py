@@ -228,22 +228,22 @@ def get_voice_control_manager() -> VoiceControlManager:
 
 
 # Define wrapper functions for direct testing access
-async def km_process_voice_commands_direct(*args, **kwargs):
+async def km_process_voice_commands_direct(*args: Any, **kwargs: Any) -> None:
     """Direct access wrapper for testing."""
     return await _km_process_voice_commands_impl(*args, **kwargs)
 
 
-async def km_configure_voice_control_direct(*args, **kwargs):
+async def km_configure_voice_control_direct(*args: Any, **kwargs: Any) -> None:
     """Direct access wrapper for testing."""
     return await _km_configure_voice_control_impl(*args, **kwargs)
 
 
-async def km_provide_voice_feedback_direct(*args, **kwargs):
+async def km_provide_voice_feedback_direct(*args: Any, **kwargs: Any) -> Any:
     """Direct access wrapper for testing."""
     return await _km_provide_voice_feedback_impl(*args, **kwargs)
 
 
-async def km_train_voice_recognition_direct(*args, **kwargs):
+async def km_train_voice_recognition_direct(*args: Any, **kwargs: Any) -> Any:
     """Direct access wrapper for testing."""
     return await _km_train_voice_recognition_impl(*args, **kwargs)
 
@@ -259,7 +259,7 @@ async def _km_process_voice_commands_impl(
     continuous_listening: bool = False,
     execute_immediately: bool = True,
     provide_feedback: bool = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Implementation function for voice command processing."""
     try:
@@ -397,7 +397,7 @@ async def _km_configure_voice_control_impl(
     wake_word: str | None = None,
     user_voice_profile: str | None = None,
     accessibility_mode: bool = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Implementation function for voice control configuration."""
     try:
@@ -813,7 +813,7 @@ async def _km_provide_voice_feedback_impl(
     interrupt_current: bool = False,
     save_audio: bool = False,
     voice_settings: dict[str, Any] | None = None,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Implementation function for providing voice feedback."""
     try:
@@ -885,7 +885,7 @@ async def _km_train_voice_recognition_impl(
     background_noise_training: bool = True,
     validate_training: bool = True,
     save_profile: bool = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Implementation function for voice recognition training."""
     try:

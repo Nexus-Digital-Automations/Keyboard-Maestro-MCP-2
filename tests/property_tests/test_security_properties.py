@@ -6,7 +6,6 @@ robust protection against various attack vectors and malicious inputs.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import re
 
 import pytest

@@ -7,8 +7,8 @@ Tests follow the proven systematic pattern that achieved 100% success across 25+
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -20,11 +20,11 @@ import pytest
 
 
 async def mock_km_plugin_ecosystem(
-    operation,
-    plugin_id=None,
-    configuration=None,
-    ctx=None,
-):
+    operation: str,
+    plugin_id: str=None,
+    configuration: dict[str, Any]=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for plugin ecosystem operations."""
     valid_operations = [
         "install",
@@ -100,7 +100,7 @@ async def mock_km_plugin_ecosystem(
     }
 
 
-async def mock_km_plugin_manager(action, plugin_id=None, configuration=None, ctx=None):
+async def mock_km_plugin_manager(action: str, plugin_id: str=None, configuration: dict[str, Any]=None, ctx: Context | Any=None) -> Any:
     """Mock implementation for plugin manager operations."""
     if not plugin_id:
         return {
@@ -134,11 +134,11 @@ async def mock_km_plugin_manager(action, plugin_id=None, configuration=None, ctx
 
 
 async def mock_km_execute_plugin_action(
-    plugin_id,
-    action_name,
-    parameters=None,
-    ctx=None,
-):
+    plugin_id: str,
+    action_name: str,
+    parameters: list[Any]=None,
+    ctx: Context | Any=None,
+) -> None:
     """Mock implementation for plugin action execution."""
     if action_name == "invalid_action":
         return {
@@ -173,10 +173,10 @@ async def mock_km_execute_plugin_action(
 
 
 async def mock_km_validate_plugin_security(
-    plugin_id,
-    security_profile="standard",
-    ctx=None,
-):
+    plugin_id: str,
+    security_profile: Any="standard",
+    ctx: Context | Any=None,
+) -> None:
     """Mock implementation for plugin security validation."""
     # Simulate security violation
     if plugin_id == "insecure-plugin":
@@ -257,8 +257,8 @@ class TestKMPluginEcosystem:
     @pytest.mark.asyncio
     async def test_plugin_ecosystem_installation(
         self,
-        mock_context,
-        sample_plugin_data,
+        mock_context: Any,
+        sample_plugin_data: Any,
     ) -> None:
         """Test successful plugin installation."""
         test_data = sample_plugin_data["basic_plugin"]
@@ -276,7 +276,7 @@ class TestKMPluginEcosystem:
         assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_plugin_ecosystem_validation_error(self, mock_context) -> None:
+    async def test_plugin_ecosystem_validation_error(self, mock_context: Any) -> None:
         """Test plugin ecosystem with invalid operation."""
         result = await km_plugin_ecosystem(
             operation="invalid_operation",
@@ -289,7 +289,7 @@ class TestKMPluginEcosystem:
         assert "invalid_operation" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_plugin_ecosystem_security_failure(self, mock_context) -> None:
+    async def test_plugin_ecosystem_security_failure(self, mock_context: Any) -> None:
         """Test plugin ecosystem with security violation."""
         result = await km_plugin_ecosystem(
             operation="install",
@@ -315,7 +315,7 @@ class TestKMPluginManager:
         return context
 
     @pytest.mark.asyncio
-    async def test_plugin_manager_success(self, mock_context) -> None:
+    async def test_plugin_manager_success(self, mock_context: Any) -> None:
         """Test successful plugin management operation."""
         result = await km_plugin_manager(
             action="activate",
@@ -331,7 +331,7 @@ class TestKMPluginManager:
         assert result["plugin_status"]["health"] == "healthy"
 
     @pytest.mark.asyncio
-    async def test_plugin_manager_validation_error(self, mock_context) -> None:
+    async def test_plugin_manager_validation_error(self, mock_context: Any) -> None:
         """Test plugin manager with empty plugin ID."""
         result = await km_plugin_manager(
             action="activate",
@@ -355,7 +355,7 @@ class TestKMExecutePluginAction:
         return context
 
     @pytest.mark.asyncio
-    async def test_plugin_action_execution_success(self, mock_context) -> None:
+    async def test_plugin_action_execution_success(self, mock_context: Any) -> None:
         """Test successful plugin action execution."""
         result = await km_execute_plugin_action(
             plugin_id="test-plugin-001",
@@ -371,7 +371,7 @@ class TestKMExecutePluginAction:
         assert result["plugin_info"]["actions_available"] == 5
 
     @pytest.mark.asyncio
-    async def test_plugin_action_not_found(self, mock_context) -> None:
+    async def test_plugin_action_not_found(self, mock_context: Any) -> None:
         """Test plugin action execution with invalid action."""
         result = await km_execute_plugin_action(
             plugin_id="test-plugin-001",
@@ -397,7 +397,7 @@ class TestKMValidatePluginSecurity:
         return context
 
     @pytest.mark.asyncio
-    async def test_plugin_security_validation_success(self, mock_context) -> None:
+    async def test_plugin_security_validation_success(self, mock_context: Any) -> None:
         """Test successful plugin security validation."""
         result = await km_validate_plugin_security(
             plugin_id="trusted-plugin-001",
@@ -413,7 +413,7 @@ class TestKMValidatePluginSecurity:
         assert result["security_profile"] == "enterprise"
 
     @pytest.mark.asyncio
-    async def test_plugin_security_validation_failure(self, mock_context) -> None:
+    async def test_plugin_security_validation_failure(self, mock_context: Any) -> None:
         """Test plugin security validation with security violations."""
         result = await km_validate_plugin_security(
             plugin_id="insecure-plugin",
@@ -440,7 +440,7 @@ class TestPluginEcosystemIntegration:
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_plugin_lifecycle(self, mock_context) -> None:
+    async def test_complete_plugin_lifecycle(self, mock_context: Any) -> None:
         """Test complete plugin lifecycle integration."""
         # Execute lifecycle sequence
         install_result = await km_plugin_ecosystem(

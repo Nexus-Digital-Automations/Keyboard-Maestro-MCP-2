@@ -6,7 +6,6 @@ using the proven methodology that achieved 100% success across 17+ tool suites.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import sys
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch

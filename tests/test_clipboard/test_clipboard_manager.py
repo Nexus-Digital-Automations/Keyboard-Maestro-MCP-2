@@ -6,8 +6,8 @@ management system using Hypothesis for security validation and edge case detecti
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import time
+from typing import Any
 
 import pytest
 from hypothesis import assume, given, settings
@@ -31,7 +31,7 @@ class TestClipboardManager:
 
     @pytest.mark.asyncio
     @given(st.text(min_size=1, max_size=1000))
-    async def test_clipboard_content_detection(self, clipboard_manager, content: str) -> None:
+    async def test_clipboard_content_detection(self, clipboard_manager: Any, content: str) -> None:
         """Property: Sensitive content detection should be consistent."""
         assume(len(content.encode("utf-8")) <= 1_000_000)
 
@@ -47,7 +47,7 @@ class TestClipboardManager:
 
     @pytest.mark.asyncio
     @given(st.text(max_size=50))
-    async def test_format_detection_consistency(self, clipboard_manager, content: str) -> None:
+    async def test_format_detection_consistency(self, clipboard_manager: Any, content: str) -> None:
         """Property: Format detection should be consistent and valid."""
         format_type = clipboard_manager._detect_format(content)
 
@@ -64,7 +64,7 @@ class TestClipboardManager:
 
     @pytest.mark.asyncio
     @given(st.integers(min_value=0, max_value=199))
-    async def test_history_bounds_checking(self, clipboard_manager, index: int) -> None:
+    async def test_history_bounds_checking(self, clipboard_manager: Any, index: int) -> None:
         """Property: History access should respect bounds."""
         # This will typically fail as we don't have real clipboard history
         # but validates the bounds checking logic
@@ -77,7 +77,7 @@ class TestClipboardManager:
 
     @pytest.mark.asyncio
     @given(st.text(min_size=1, max_size=100).filter(lambda x: x.strip()))
-    async def test_named_clipboard_validation(self, named_manager, name: str) -> None:
+    async def test_named_clipboard_validation(self, named_manager: Any, name: str) -> None:
         """Property: Named clipboard names should be validated consistently."""
         # Clean the name to test validation
         cleaned_name = "".join(c for c in name if c.isalnum() or c in " _-").strip()
@@ -122,7 +122,7 @@ class TestClipboardManager:
             max_size=10,
         ),
     )
-    async def test_named_clipboard_tags(self, named_manager, tags: set[str]) -> None:
+    async def test_named_clipboard_tags(self, named_manager: Any, tags: set[str]) -> None:
         """Property: Tags should be properly validated and stored."""
         name = f"test_tags_{int(time.time())}"
 
@@ -153,7 +153,7 @@ class TestClipboardManager:
             await named_manager.delete_named_clipboard(name)
 
     @pytest.mark.asyncio
-    async def test_sensitive_content_patterns(self, clipboard_manager) -> None:
+    async def test_sensitive_content_patterns(self, clipboard_manager: Any) -> None:
         """Test specific sensitive content patterns."""
         sensitive_patterns = [
             "password=secret123",
@@ -202,7 +202,7 @@ class TestClipboardManager:
             content.format = ClipboardFormat.URL
 
     @pytest.mark.asyncio
-    async def test_named_clipboard_access_tracking(self, named_manager) -> None:
+    async def test_named_clipboard_access_tracking(self, named_manager: Any) -> None:
         """Test that access tracking works correctly."""
         name = f"test_access_{int(time.time())}"
 
@@ -269,7 +269,7 @@ class TestClipboardManager:
 
     @pytest.mark.asyncio
     @given(st.text(min_size=1, max_size=20))
-    async def test_search_functionality(self, named_manager, query: str) -> None:
+    async def test_search_functionality(self, named_manager: Any, query: str) -> None:
         """Property: Search should be case-insensitive and consistent."""
         # Create some test clipboards
         test_data = [

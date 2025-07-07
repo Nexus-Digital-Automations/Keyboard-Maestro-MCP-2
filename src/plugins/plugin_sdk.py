@@ -57,19 +57,19 @@ class PluginLogger:
         self.logger = logging.getLogger(f"plugin.{plugin_id}")
         self.performance_data: dict[str, list[float]] = {}
 
-    def debug(self, message: str, **context) -> None:
+    def debug(self, message: str, **context: Any) -> None:
         """Debug level logging with context."""
         self._log_with_context("DEBUG", message, context)
 
-    def info(self, message: str, **context) -> None:
+    def info(self, message: str, **context: Any) -> None:
         """Info level logging with context."""
         self._log_with_context("INFO", message, context)
 
-    def warning(self, message: str, **context) -> None:
+    def warning(self, message: str, **context: Any) -> None:
         """Warning level logging with context."""
         self._log_with_context("WARNING", message, context)
 
-    def error(self, message: str, **context) -> None:
+    def error(self, message: str, **context: Any) -> None:
         """Error level logging with context."""
         self._log_with_context("ERROR", message, context)
 
@@ -489,7 +489,7 @@ class UtilityPlugin(BasePlugin):
         if timeout is None:
             timeout = Duration.from_seconds(30.0)
 
-        def decorator(func) -> bool:
+        def decorator(func: Callable[..., Any]) -> bool:
             self._action_builder.add_action(
                 action_id=ActionId(action_id),
                 name=name,
@@ -504,7 +504,7 @@ class UtilityPlugin(BasePlugin):
     def hook(self, hook_id: str, event_type: str) -> bool:
         """Decorator for registering hook methods."""
 
-        def decorator(func) -> bool:
+        def decorator(func: Callable[..., Any]) -> bool:
             self._hook_builder.add_hook(
                 hook_id=HookId(hook_id),
                 event_type=event_type,
@@ -551,7 +551,7 @@ class IntegrationPlugin(BasePlugin):
         """Create connection to external service - override in subclass."""
         raise NotImplementedError("Subclasses must implement create_connection")
 
-    async def close_connections(self):
+    async def close_connections(self) -> None:
         """Close all open connections."""
         for service_name, connection in self._connection_pool.items():
             try:

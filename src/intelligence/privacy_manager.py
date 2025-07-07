@@ -430,7 +430,7 @@ class PrivacyManager:
             r"\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\b",  # Email
         ]
 
-        def clean_value(value) -> bool:
+        def clean_value(value: Any) -> bool:
             if isinstance(value, str):
                 for pattern in sensitive_patterns:
                     value = re.sub(pattern, "[REDACTED]", value, flags=re.IGNORECASE)

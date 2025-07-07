@@ -24,21 +24,21 @@ km_monitor_api_health = api_orch.km_monitor_api_health.fn
 
 # Test data generators
 @st.composite
-def orchestration_type_strategy(draw) -> Any:
+def orchestration_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid orchestration types."""
     types = ["sequential", "parallel", "conditional", "pipeline", "scatter_gather"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def error_handling_strategy(draw) -> None:
+def error_handling_strategy(draw: Callable[..., Any]) -> None:
     """Generate valid error handling strategies."""
     strategies = ["fail_fast", "continue", "retry"]
     return draw(st.sampled_from(strategies))
 
 
 @st.composite
-def api_sequence_strategy(draw) -> Any:
+def api_sequence_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid API sequence configurations."""
     return draw(
         st.lists(
@@ -81,28 +81,28 @@ def api_sequence_strategy(draw) -> Any:
 
 
 @st.composite
-def service_mesh_operation_strategy(draw) -> Any:
+def service_mesh_operation_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid service mesh operations."""
     operations = ["configure", "monitor", "route", "secure"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def coordination_type_strategy(draw) -> Any:
+def coordination_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid coordination types."""
     types = ["discovery", "communication", "dependency", "health"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def monitoring_scope_strategy(draw) -> Any:
+def monitoring_scope_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid monitoring scopes."""
     scopes = ["gateway", "services", "endpoints", "workflows"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def service_names_strategy(draw) -> Any:
+def service_names_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid service names."""
     service_names = [
         "auth-service",
@@ -118,7 +118,7 @@ def service_names_strategy(draw) -> Any:
 
 
 @st.composite
-def health_metrics_strategy(draw) -> Any:
+def health_metrics_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid health metrics."""
     metrics = [
         "response_time",
@@ -132,7 +132,7 @@ def health_metrics_strategy(draw) -> Any:
 
 
 @st.composite
-def load_balancing_strategy_names(draw) -> None:
+def load_balancing_strategy_names(draw: Callable[..., Any]) -> None:
     """Generate valid load balancing strategy names."""
     strategies = [
         "round_robin",
@@ -145,7 +145,7 @@ def load_balancing_strategy_names(draw) -> None:
 
 
 @st.composite
-def failover_strategy_names(draw) -> Any:
+def failover_strategy_names(draw: Callable[..., Any]) -> Any:
     """Generate valid failover strategy names."""
     strategies = ["none", "circuit_breaker", "retry", "fallback"]
     return draw(st.sampled_from(strategies))
@@ -537,7 +537,7 @@ class TestMicroservicesCoordinationMocked:
             "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
             # Setup service ID creation
-            def create_service_id_side_effect(name) -> None:
+            def create_service_id_side_effect(name: str) -> None:
                 return f"service_{name.replace('-', '_')}"
 
             mock_create_service_id.side_effect = create_service_id_side_effect
@@ -567,7 +567,7 @@ class TestMicroservicesCoordinationMocked:
             "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
 
-            def create_service_id_side_effect(name) -> None:
+            def create_service_id_side_effect(name: str) -> None:
                 return f"comm_{name.replace('-', '_')}"
 
             mock_create_service_id.side_effect = create_service_id_side_effect
@@ -594,7 +594,7 @@ class TestMicroservicesCoordinationMocked:
             "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
 
-            def create_service_id_side_effect(name) -> None:
+            def create_service_id_side_effect(name: str) -> None:
                 return f"dep_{name.replace('-', '_')}"
 
             mock_create_service_id.side_effect = create_service_id_side_effect
@@ -625,7 +625,7 @@ class TestMicroservicesCoordinationMocked:
             "src.server.tools.api_orchestration_tools.create_service_id",
         ) as mock_create_service_id:
 
-            def create_service_id_side_effect(name) -> None:
+            def create_service_id_side_effect(name: str) -> None:
                 return f"health_{name.replace('-', '_')}"
 
             mock_create_service_id.side_effect = create_service_id_side_effect

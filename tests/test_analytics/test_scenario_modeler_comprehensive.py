@@ -6,9 +6,9 @@ Monte Carlo simulation, statistical analysis, and comprehensive enterprise-grade
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from collections import deque
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import pytest
 from hypothesis import given
@@ -30,13 +30,13 @@ from src.core.predictive_modeling import (
 
 # Test data generators
 @st.composite
-def scenario_type_strategy(draw) -> Any:
+def scenario_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid scenario types."""
     return draw(st.sampled_from(list(ScenarioType)))
 
 
 @st.composite
-def simulation_method_strategy(draw) -> Any:
+def simulation_method_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid simulation methods."""
     return draw(
         st.sampled_from(
@@ -52,7 +52,7 @@ def simulation_method_strategy(draw) -> Any:
 
 
 @st.composite
-def scenario_parameter_strategy(draw) -> Any:
+def scenario_parameter_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid scenario parameters."""
     param_type = draw(st.sampled_from(["numeric", "boolean", "categorical"]))
 
@@ -86,7 +86,7 @@ def scenario_parameter_strategy(draw) -> Any:
 
 
 @st.composite
-def time_horizon_strategy(draw) -> Any:
+def time_horizon_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid time horizons."""
     hours = draw(st.integers(min_value=1, max_value=72))
     return timedelta(hours=hours)
@@ -158,7 +158,7 @@ class TestScenarioParameter:
         assert param.correlation_factors["param3"] == -0.3
 
     @given(scenario_parameter_strategy())
-    def test_scenario_parameter_property_based_creation(self, param) -> None:
+    def test_scenario_parameter_property_based_creation(self, param: Any) -> None:
         """Property-based test for ScenarioParameter creation."""
         assert param.parameter_id is not None
         assert param.parameter_name is not None
@@ -274,9 +274,9 @@ class TestScenarioConfiguration:
     )
     def test_scenario_configuration_property_based_creation(
         self,
-        scenario_type,
-        simulation_method,
-        time_horizon,
+        scenario_type: str,
+        simulation_method: Any,
+        time_horizon: Any,
     ) -> None:
         """Property-based test for ScenarioConfiguration creation."""
         scenario_id = create_scenario_id()

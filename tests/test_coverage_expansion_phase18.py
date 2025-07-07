@@ -8,7 +8,6 @@ for maximum coverage gain toward the 95% target through systematic ultra-high im
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -497,11 +496,11 @@ def test_advanced_ultra_high_impact_async_functionality() -> bool:
     """Test advanced async functionality for ultra-high impact modules."""
 
     @pytest.mark.asyncio
-    async def async_ultra_high_impact_test_helper():
+    async def async_ultra_high_impact_test_helper() -> None:
         import asyncio
 
         # Test advanced async ultra-high impact operations
-        async def mock_enterprise_ai_processing():
+        async def mock_enterprise_ai_processing() -> None:
             await asyncio.sleep(0.001)
             return {
                 "ai_id": "enterprise_ai_001",
@@ -521,7 +520,7 @@ def test_advanced_ultra_high_impact_async_functionality() -> bool:
                 },
             }
 
-        async def mock_cloud_infrastructure_orchestration():
+        async def mock_cloud_infrastructure_orchestration() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "cloud_id": "cloud_infra_001",
@@ -540,7 +539,7 @@ def test_advanced_ultra_high_impact_async_functionality() -> bool:
                 },
             }
 
-        async def mock_advanced_security_operations():
+        async def mock_advanced_security_operations() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "security_id": "advanced_sec_001",
@@ -572,7 +571,7 @@ def test_advanced_ultra_high_impact_async_functionality() -> bool:
         )
 
         # Test ultra-high impact async error handling
-        async def failing_ultra_high_impact_operation():
+        async def failing_ultra_high_impact_operation() -> Any:
             await asyncio.sleep(0.001)
             raise RuntimeError("Ultra-high impact system failure")
 

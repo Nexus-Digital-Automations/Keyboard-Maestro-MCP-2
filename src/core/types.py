@@ -273,7 +273,7 @@ class CommandResult:
         cls,
         output: str | None = None,
         execution_time: Duration | None = None,
-        **metadata,
+        **metadata: Any,
     ) -> CommandResult:
         """Create a successful command result."""
         return cls(
@@ -288,7 +288,7 @@ class CommandResult:
         cls,
         error_message: str,
         execution_time: Duration | None = None,
-        **metadata,
+        **metadata: Any,
     ) -> CommandResult:
         """Create a failed command result."""
         return cls(

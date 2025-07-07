@@ -15,7 +15,7 @@ from ...calculations.km_math_integration import KMTokenCalculator
 
 
 # Additional functions expected by tests - these wrap the main km_calculator function
-async def km_calculate_expression(expression: str, ctx=None) -> dict[str, Any]:
+async def km_calculate_expression(expression: str, ctx: Context | Any=None) -> dict[str, Any]:
     """Calculate a mathematical expression."""
     return await km_calculator(
         expression=expression,
@@ -31,7 +31,7 @@ async def km_calculate_expression(expression: str, ctx=None) -> dict[str, Any]:
 async def km_calculate_math_function(
     function: str,
     value: float,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Calculate a mathematical function like sin, cos, etc."""
     expression = f"{function}({value})"
@@ -50,7 +50,7 @@ async def km_convert_number_format(
     value: float,
     from_format: str,
     to_format: str,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Convert a number between different formats."""
     return await km_calculator(
@@ -67,7 +67,7 @@ async def km_convert_number_format(
 async def km_evaluate_formula(
     formula: str,
     variables: dict[str, float],
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Evaluate a formula with variables."""
     return await km_calculator(
@@ -88,7 +88,7 @@ async def km_calculator(
     precision: int,
     use_km_engine: bool,
     validate_only: bool,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Evaluate mathematical expressions with comprehensive security and token support.
 

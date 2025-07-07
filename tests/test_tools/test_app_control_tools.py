@@ -31,8 +31,8 @@ Key Mocking Pattern:
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import timedelta
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -142,9 +142,9 @@ class TestKMAppControl:
     @pytest.mark.asyncio
     async def test_launch_operation_success(
         self,
-        mock_context,
-        mock_app_controller,
-        sample_app_identifiers,
+        mock_context: Any,
+        mock_app_controller: Any,
+        sample_app_identifiers: str,
     ) -> None:
         """Test successful application launch operation."""
         with (
@@ -199,9 +199,9 @@ class TestKMAppControl:
     @pytest.mark.asyncio
     async def test_quit_operation_success(
         self,
-        mock_context,
-        mock_app_controller,
-        sample_app_identifiers,
+        mock_context: Any,
+        mock_app_controller: Any,
+        sample_app_identifiers: str,
     ) -> None:
         """Test successful application quit operation."""
         with (
@@ -250,9 +250,9 @@ class TestKMAppControl:
     @pytest.mark.asyncio
     async def test_activate_operation_success(
         self,
-        mock_context,
-        mock_app_controller,
-        sample_app_identifiers,
+        mock_context: Any,
+        mock_app_controller: Any,
+        sample_app_identifiers: str,
     ) -> None:
         """Test successful application activation operation."""
         with (
@@ -299,10 +299,10 @@ class TestKMAppControl:
     @pytest.mark.asyncio
     async def test_menu_select_operation_success(
         self,
-        mock_context,
-        mock_app_controller,
-        sample_app_identifiers,
-        sample_menu_paths,
+        mock_context: Any,
+        mock_app_controller: Any,
+        sample_app_identifiers: str,
+        sample_menu_paths: Any,
     ) -> None:
         """Test successful menu selection operation."""
         with (
@@ -357,9 +357,9 @@ class TestKMAppControl:
     @pytest.mark.asyncio
     async def test_get_state_operation_success(
         self,
-        mock_context,
-        mock_app_controller,
-        sample_app_identifiers,
+        mock_context: Any,
+        mock_app_controller: Any,
+        sample_app_identifiers: str,
     ) -> None:
         """Test successful application state query operation."""
         with (
@@ -405,7 +405,7 @@ class TestKMAppControl:
             assert "state_description" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_invalid_app_identifier_handling(self, mock_context) -> None:
+    async def test_invalid_app_identifier_handling(self, mock_context: Any) -> None:
         """Test handling of invalid application identifier."""
         with patch(
             "src.server.tools.app_control_tools.AppIdentifier",
@@ -430,7 +430,7 @@ class TestKMAppControl:
             assert result["metadata"]["validation_stage"] == "identifier_parsing"
 
     @pytest.mark.asyncio
-    async def test_menu_select_missing_path(self, mock_context, sample_app_identifiers) -> None:
+    async def test_menu_select_missing_path(self, mock_context: Any, sample_app_identifiers: str) -> None:
         """Test menu select operation without menu path."""
         # Execute
         result = await km_app_control(
@@ -447,7 +447,7 @@ class TestKMAppControl:
         assert "recovery_suggestion" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_unsupported_operation(self, mock_context, sample_app_identifiers) -> None:
+    async def test_unsupported_operation(self, mock_context: Any, sample_app_identifiers: str) -> None:
         """Test handling of unsupported operation."""
         # Execute with invalid operation (would be caught by pydantic in real scenario)
         with patch("src.server.tools.app_control_tools.AppController"):
@@ -466,8 +466,8 @@ class TestKMAppControl:
     @pytest.mark.asyncio
     async def test_validation_error_handling(
         self,
-        mock_context,
-        sample_app_identifiers,
+        mock_context: Any,
+        sample_app_identifiers: str,
     ) -> None:
         """Test ValidationError handling."""
         with (
@@ -506,8 +506,8 @@ class TestKMAppControl:
     @pytest.mark.asyncio
     async def test_security_violation_handling(
         self,
-        mock_context,
-        sample_app_identifiers,
+        mock_context: Any,
+        sample_app_identifiers: str,
     ) -> None:
         """Test SecurityViolationError handling."""
         with (
@@ -546,8 +546,8 @@ class TestKMAppControl:
     @pytest.mark.asyncio
     async def test_unexpected_error_handling(
         self,
-        mock_context,
-        sample_app_identifiers,
+        mock_context: Any,
+        sample_app_identifiers: str,
     ) -> None:
         """Test unexpected error handling."""
         with patch(
@@ -574,7 +574,7 @@ class TestAppControlHelperFunctions:
     """Test helper functions and operation handlers."""
 
     @pytest.mark.asyncio
-    async def test_execute_launch_operation_success(self, mock_app_controller) -> None:
+    async def test_execute_launch_operation_success(self, mock_app_controller: Any) -> None:
         """Test launch operation helper function."""
         with patch(
             "src.server.tools.app_control_tools.LaunchConfiguration",
@@ -604,7 +604,7 @@ class TestAppControlHelperFunctions:
             assert result["data"]["hidden"] is False
 
     @pytest.mark.asyncio
-    async def test_execute_launch_operation_failure(self, mock_app_controller) -> None:
+    async def test_execute_launch_operation_failure(self, mock_app_controller: Any) -> None:
         """Test launch operation failure handling."""
         # Setup failure response
         mock_error_result = Mock()
@@ -635,7 +635,7 @@ class TestAppControlHelperFunctions:
         assert result["error"]["message"] == "Application not found"
 
     @pytest.mark.asyncio
-    async def test_execute_quit_operation_success(self, mock_app_controller) -> None:
+    async def test_execute_quit_operation_success(self, mock_app_controller: Any) -> None:
         """Test quit operation helper function."""
         with patch(
             "src.server.tools.app_control_tools.Duration",
@@ -675,7 +675,7 @@ class TestAppControlHelperFunctions:
             assert result["data"]["final_state"] == AppState.NOT_RUNNING.value
 
     @pytest.mark.asyncio
-    async def test_execute_menu_select_operation_success(self, mock_app_controller) -> None:
+    async def test_execute_menu_select_operation_success(self, mock_app_controller: Any) -> None:
         """Test menu selection operation helper function."""
         with (
             patch(
@@ -711,7 +711,7 @@ class TestAppControlHelperFunctions:
             assert result["data"]["menu_selected"] is True
 
     @pytest.mark.asyncio
-    async def test_execute_menu_select_invalid_path(self, mock_app_controller) -> None:
+    async def test_execute_menu_select_invalid_path(self, mock_app_controller: Any) -> None:
         """Test menu selection with invalid path."""
         with (
             patch(
@@ -743,7 +743,7 @@ class TestAppControlHelperFunctions:
             assert "Invalid menu path format" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_execute_get_state_operation_success(self, mock_app_controller) -> None:
+    async def test_execute_get_state_operation_success(self, mock_app_controller: Any) -> None:
         """Test state query operation helper function."""
         # Setup state response (override the fixture response)
         mock_state_result = Mock()
@@ -796,8 +796,8 @@ class TestAppControlIntegration:
     @pytest.mark.asyncio
     async def test_app_identifier_parsing_bundle_id(
         self,
-        mock_context,
-        mock_app_controller,
+        mock_context: Any,
+        mock_app_controller: Any,
     ) -> None:
         """Test bundle ID parsing for app identifier."""
         with (
@@ -830,8 +830,8 @@ class TestAppControlIntegration:
     @pytest.mark.asyncio
     async def test_app_identifier_parsing_app_name(
         self,
-        mock_context,
-        mock_app_controller,
+        mock_context: Any,
+        mock_app_controller: Any,
     ) -> None:
         """Test app name parsing for app identifier."""
         with (
@@ -862,7 +862,7 @@ class TestAppControlIntegration:
             mock_app_id_class.assert_called_once_with(app_name="TextEdit")
 
     @pytest.mark.asyncio
-    async def test_timeout_configuration(self, mock_context, mock_app_controller) -> None:
+    async def test_timeout_configuration(self, mock_context: Any, mock_app_controller: Any) -> None:
         """Test timeout configuration handling."""
         with (
             patch(
@@ -902,7 +902,7 @@ class TestAppControlIntegration:
             mock_duration_class.from_seconds.assert_called_with(60)
 
     @pytest.mark.asyncio
-    async def test_progress_reporting(self, mock_context, mock_app_controller) -> None:
+    async def test_progress_reporting(self, mock_context: Any, mock_app_controller: Any) -> None:
         """Test progress reporting during operations."""
         with (
             patch(
@@ -940,7 +940,7 @@ class TestAppControlSecurity:
     """Test security validation and prevention measures."""
 
     @pytest.mark.asyncio
-    async def test_app_identifier_validation(self, mock_context) -> None:
+    async def test_app_identifier_validation(self, mock_context: Any) -> None:
         """Test application identifier security validation."""
         dangerous_identifiers = [
             "../../evil.app",
@@ -968,7 +968,7 @@ class TestAppControlSecurity:
                 assert result["error"]["code"] == "INVALID_IDENTIFIER"
 
     @pytest.mark.asyncio
-    async def test_menu_path_validation(self, mock_context, mock_app_controller) -> None:
+    async def test_menu_path_validation(self, mock_context: Any, mock_app_controller: Any) -> None:
         """Test menu path security validation."""
         with (
             patch(
@@ -1007,7 +1007,7 @@ class TestAppControlPropertyBased:
     """Property-based testing for app control operations."""
 
     @composite
-    def valid_app_identifier_strategy(draw) -> Any:
+    def valid_app_identifier_strategy(draw: Callable[..., Any]) -> Any:
         """Generate valid application identifiers for testing."""
         # Generate realistic app identifiers
         identifier_type = draw(st.sampled_from(["bundle_id", "app_name"]))
@@ -1052,7 +1052,7 @@ class TestAppControlPropertyBased:
         max_examples=20,
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
-    def test_app_identifier_properties(self, identifier) -> None:
+    def test_app_identifier_properties(self, identifier: str) -> None:
         """Property: Valid app identifiers should pass basic validation checks."""
         # Test basic identifier properties
         assert len(identifier) > 0
@@ -1069,21 +1069,21 @@ class TestAppControlPropertyBased:
 
     @given(st.sampled_from(["launch", "quit", "activate", "menu_select", "get_state"]))
     @settings(max_examples=5)
-    def test_operation_validation_properties(self, operation) -> None:
+    def test_operation_validation_properties(self, operation: str) -> None:
         """Property: All valid operations should be properly defined."""
         valid_operations = ["launch", "quit", "activate", "menu_select", "get_state"]
         assert operation in valid_operations
 
     @given(st.integers(min_value=1, max_value=120))
     @settings(max_examples=10)
-    def test_timeout_validation_properties(self, timeout_seconds) -> None:
+    def test_timeout_validation_properties(self, timeout_seconds: Any) -> None:
         """Property: Valid timeout values should be within safe limits."""
         assert 1 <= timeout_seconds <= 120
         assert isinstance(timeout_seconds, int)
 
     @given(st.lists(st.text(min_size=1, max_size=20), min_size=1, max_size=10))
     @settings(max_examples=15)
-    def test_menu_path_properties(self, menu_path) -> None:
+    def test_menu_path_properties(self, menu_path: list[Any] | str) -> None:
         """Property: Valid menu paths should have reasonable structure."""
         # Test menu path properties
         assert len(menu_path) >= 1
@@ -1096,7 +1096,7 @@ class TestAppControlPerformance:
     """Test performance and limits for app control operations."""
 
     @pytest.mark.asyncio
-    async def test_operation_timing_tracking(self, mock_context, mock_app_controller) -> None:
+    async def test_operation_timing_tracking(self, mock_context: Any, mock_app_controller: Any) -> None:
         """Test operation execution time tracking."""
         with (
             patch(
@@ -1127,7 +1127,7 @@ class TestAppControlPerformance:
             assert result["metadata"]["execution_time"] >= 0
 
     @pytest.mark.asyncio
-    async def test_correlation_id_tracking(self, mock_context, mock_app_controller) -> None:
+    async def test_correlation_id_tracking(self, mock_context: Any, mock_app_controller: Any) -> None:
         """Test correlation ID tracking for operations."""
         with (
             patch(
@@ -1165,7 +1165,7 @@ class TestAppControlEdgeCases:
     """Test edge cases and boundary conditions."""
 
     @pytest.mark.asyncio
-    async def test_empty_menu_path_list(self, mock_context) -> None:
+    async def test_empty_menu_path_list(self, mock_context: Any) -> None:
         """Test handling of empty menu path list."""
         result = await km_app_control(
             operation="menu_select",
@@ -1179,7 +1179,7 @@ class TestAppControlEdgeCases:
         assert result["error"]["code"] == "MISSING_MENU_PATH"
 
     @pytest.mark.asyncio
-    async def test_maximum_timeout_value(self, mock_context, mock_app_controller) -> None:
+    async def test_maximum_timeout_value(self, mock_context: Any, mock_app_controller: Any) -> None:
         """Test maximum timeout boundary."""
         with (
             patch(
@@ -1208,7 +1208,7 @@ class TestAppControlEdgeCases:
             assert result["success"] is True
 
     @pytest.mark.asyncio
-    async def test_complex_app_name_handling(self, mock_context, mock_app_controller) -> None:
+    async def test_complex_app_name_handling(self, mock_context: Any, mock_app_controller: Any) -> None:
         """Test handling of complex application names."""
         complex_names = [
             "Visual Studio Code",

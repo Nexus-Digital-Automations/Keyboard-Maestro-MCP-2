@@ -130,8 +130,8 @@ class CircuitBreaker:
     async def call(
         self,
         func: Callable[..., Awaitable[Any]],
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> Either[str, Any]:
         """Execute function call with circuit breaker protection."""
         async with self.lock:
@@ -520,7 +520,7 @@ def circuit_breaker(name: str, config: CircuitBreakerConfig | None = None) -> bo
         registry = get_circuit_breaker_registry()
         breaker = registry.get_or_create(name, config)
 
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             return await breaker.call(func, *args, **kwargs)
 
         return wrapper
@@ -532,7 +532,7 @@ def circuit_breaker(name: str, config: CircuitBreakerConfig | None = None) -> bo
 async def circuit_breaker_context(
     name: str,
     config: CircuitBreakerConfig | None = None,
-):
+) -> Any:
     """Context manager for circuit breaker protection."""
     registry = get_circuit_breaker_registry()
     breaker = registry.get_or_create(name, config)

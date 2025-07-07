@@ -222,7 +222,7 @@ def _validate_coordinates(coords: dict[str, int]) -> None:
 
 
 async def _perform_click(
-    km_client,
+    km_client: Any,
     click_type: str,
     coordinates: dict[str, int],
     modifiers: list[str] | None,
@@ -261,7 +261,7 @@ async def _perform_click(
 
 
 async def _move_mouse(
-    km_client,
+    km_client: Any,
     coordinates: dict[str, int],
     ctx: Context = None,
 ) -> dict[str, Any]:
@@ -287,7 +287,7 @@ async def _move_mouse(
 
 
 async def _perform_drag(
-    km_client,
+    km_client: Any,
     start: dict[str, int],
     end: dict[str, int],
     duration_ms: int,
@@ -333,7 +333,7 @@ async def _perform_drag(
     }
 
 
-async def _type_text(km_client, text: str, ctx: Context = None) -> dict[str, Any]:
+async def _type_text(km_client: Any, text: str, ctx: Context = None) -> dict[str, Any]:
     """Type text with keyboard simulation."""
     if ctx:
         await ctx.report_progress(25, 100, f"Typing {len(text)} characters")
@@ -365,7 +365,7 @@ async def _type_text(km_client, text: str, ctx: Context = None) -> dict[str, Any
     }
 
 
-async def _press_keys(km_client, keystroke: str, ctx: Context = None) -> dict[str, Any]:
+async def _press_keys(km_client: Any, keystroke: str, ctx: Context = None) -> dict[str, Any]:
     """Press a key combination."""
     if ctx:
         await ctx.report_progress(50, 100, f"Pressing keys: {keystroke}")

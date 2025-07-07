@@ -9,8 +9,8 @@ Performance: <200ms per test, parallel execution, comprehensive edge case covera
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -810,7 +810,7 @@ class TestProtocolHandler:
 
     @given(st.text(min_size=1, max_size=20), st.dictionaries(st.text(), st.text()))
     @settings(max_examples=10)
-    def test_message_property_based(self, message_id, payload) -> None:
+    def test_message_property_based(self, message_id: str, payload: dict[str, Any] | str | bytes) -> None:
         """Property-based test for message handling."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -991,7 +991,7 @@ class TestIntegrationProperties:
 
     @given(st.text(min_size=1, max_size=20))
     @settings(max_examples=10)
-    def test_trigger_id_uniqueness(self, trigger_id) -> None:
+    def test_trigger_id_uniqueness(self, trigger_id: str) -> None:
         """Test trigger ID uniqueness property."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")

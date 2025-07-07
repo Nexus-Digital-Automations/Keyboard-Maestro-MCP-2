@@ -6,7 +6,7 @@ enterprise-grade validation using ADDER+ testing protocols.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -24,7 +24,7 @@ from src.triggers.hotkey_manager import (
 
 # Test data generators
 @st.composite
-def modifier_key_strategy(draw) -> Any:
+def modifier_key_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid modifier keys."""
     return draw(
         st.sampled_from(
@@ -40,7 +40,7 @@ def modifier_key_strategy(draw) -> Any:
 
 
 @st.composite
-def activation_mode_strategy(draw) -> Any:
+def activation_mode_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid activation modes."""
     return draw(
         st.sampled_from(
@@ -55,7 +55,7 @@ def activation_mode_strategy(draw) -> Any:
 
 
 @st.composite
-def valid_key_strategy(draw) -> Any:
+def valid_key_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid key characters."""
     return draw(
         st.sampled_from(
@@ -80,7 +80,7 @@ def valid_key_strategy(draw) -> Any:
 
 
 @st.composite
-def hotkey_combination_strategy(draw) -> bool:
+def hotkey_combination_strategy(draw: Callable[..., Any]) -> bool:
     """Generate valid hotkey combinations."""
     modifiers = draw(st.sets(modifier_key_strategy(), min_size=1, max_size=3))
     key = draw(valid_key_strategy())
@@ -151,7 +151,7 @@ class TestModifierKey:
             ],
         ),
     )
-    def test_modifier_key_from_string_property_based_invalid(self, invalid_modifier) -> None:
+    def test_modifier_key_from_string_property_based_invalid(self, invalid_modifier: str) -> None:
         """Property-based test for invalid modifier strings."""
         assume(len(invalid_modifier.strip()) > 0)  # Don't test empty strings
 
@@ -286,8 +286,8 @@ class TestHotkeySpec:
     @given(hotkey_combination_strategy(), activation_mode_strategy())
     def test_hotkey_definition_property_based_creation(
         self,
-        combination,
-        activation_mode,
+        combination: Any,
+        activation_mode: Any,
     ) -> None:
         """Property-based test for HotkeySpec creation."""
         modifiers, key = combination
@@ -327,14 +327,14 @@ class TestHotkeyManager:
         return manager
 
     @pytest.fixture
-    def hotkey_manager(self, mock_km_client, mock_trigger_manager) -> Any:
+    def hotkey_manager(self, mock_km_client: Any, mock_trigger_manager: Any) -> Any:
         """Create HotkeyManager instance for testing."""
         return HotkeyManager(
             km_client=mock_km_client,
             trigger_manager=mock_trigger_manager,
         )
 
-    def test_hotkey_manager_initialization(self, mock_km_client, mock_trigger_manager) -> None:
+    def test_hotkey_manager_initialization(self, mock_km_client: Any, mock_trigger_manager: Any) -> None:
         """Test HotkeyManager initialization."""
         manager = HotkeyManager(
             km_client=mock_km_client,
@@ -348,8 +348,8 @@ class TestHotkeyManager:
 
     def test_hotkey_manager_register_hotkey_success(
         self,
-        hotkey_manager,
-        mock_km_client,
+        hotkey_manager: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test successful hotkey registration."""
         # Mock successful registration
@@ -374,7 +374,7 @@ class TestHotkeyManager:
         # Verify KM client was called
         mock_km_client.register_hotkey.assert_called_once()
 
-    def test_hotkey_manager_register_hotkey_conflict(self, hotkey_manager) -> None:
+    def test_hotkey_manager_register_hotkey_conflict(self, hotkey_manager: Any) -> None:
         """Test hotkey registration with conflict detection."""
         # Register first hotkey
         hotkey1 = HotkeySpec(
@@ -405,8 +405,8 @@ class TestHotkeyManager:
 
     def test_hotkey_manager_unregister_hotkey_success(
         self,
-        hotkey_manager,
-        mock_km_client,
+        hotkey_manager: Any,
+        mock_km_client: Any,
     ) -> None:
         """Test successful hotkey unregistration."""
         # Mock successful unregistration
@@ -431,7 +431,7 @@ class TestHotkeyManager:
         # Verify KM client was called
         mock_km_client.unregister_hotkey.assert_called_once_with(str(trigger_id))
 
-    def test_hotkey_manager_unregister_hotkey_not_found(self, hotkey_manager) -> None:
+    def test_hotkey_manager_unregister_hotkey_not_found(self, hotkey_manager: Any) -> None:
         """Test unregistering non-existent hotkey."""
         trigger_id = TriggerId("non_existent")
 
@@ -439,7 +439,7 @@ class TestHotkeyManager:
 
         assert result.is_failure() is True
 
-    def test_hotkey_manager_list_hotkeys(self, hotkey_manager) -> None:
+    def test_hotkey_manager_list_hotkeys(self, hotkey_manager: Any) -> None:
         """Test listing registered hotkeys."""
         # Add some hotkeys
         hotkey1 = HotkeySpec(
@@ -467,7 +467,7 @@ class TestHotkeyManager:
         assert hotkey1 in hotkeys
         assert hotkey2 in hotkeys
 
-    def test_hotkey_manager_list_hotkeys_by_macro(self, hotkey_manager) -> None:
+    def test_hotkey_manager_list_hotkeys_by_macro(self, hotkey_manager: Any) -> None:
         """Test listing hotkeys filtered by macro ID."""
         macro_id = MacroId("target_macro")
 
@@ -497,7 +497,7 @@ class TestHotkeyManager:
         assert hotkey1 in filtered_hotkeys
         assert hotkey2 not in filtered_hotkeys
 
-    def test_hotkey_manager_find_conflicts(self, hotkey_manager) -> None:
+    def test_hotkey_manager_find_conflicts(self, hotkey_manager: Any) -> None:
         """Test finding conflicting hotkeys."""
         # Add existing hotkey
         existing_hotkey = HotkeySpec(
@@ -526,9 +526,9 @@ class TestHotkeyManager:
     @given(hotkey_combination_strategy())
     def test_hotkey_manager_property_based_registration(
         self,
-        combination,
-        hotkey_manager,
-        mock_km_client,
+        combination: Any,
+        hotkey_manager: Any,
+        mock_km_client: Any,
     ) -> None:
         """Property-based test for hotkey registration."""
         modifiers, key = combination
@@ -604,7 +604,7 @@ class TestHotkeyValidation:
 class TestHotkeyIntegration:
     """Integration tests for hotkey functionality."""
 
-    def test_complete_hotkey_lifecycle(self, mock_km_client, mock_trigger_manager) -> None:
+    def test_complete_hotkey_lifecycle(self, mock_km_client: Any, mock_trigger_manager: Any) -> None:
         """Test complete hotkey registration and unregistration lifecycle."""
         # Mock successful operations
         mock_km_client.register_hotkey.return_value = {
@@ -645,7 +645,7 @@ class TestHotkeyIntegration:
         hotkeys_after = manager.list_hotkeys()
         assert len(hotkeys_after) == 0
 
-    def test_multiple_hotkey_management(self, mock_km_client, mock_trigger_manager) -> None:
+    def test_multiple_hotkey_management(self, mock_km_client: Any, mock_trigger_manager: Any) -> None:
         """Test managing multiple hotkeys simultaneously."""
         # Mock successful operations
         mock_km_client.register_hotkey.return_value = {

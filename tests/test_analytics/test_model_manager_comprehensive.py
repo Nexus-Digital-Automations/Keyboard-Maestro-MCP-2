@@ -6,10 +6,10 @@ training pipelines, validation frameworks, and enterprise-grade ML operations.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import os
 import tempfile
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -36,19 +36,19 @@ from src.core.predictive_modeling import (
 
 # Test data generators
 @st.composite
-def model_status_strategy(draw) -> Any:
+def model_status_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid model statuses."""
     return draw(st.sampled_from(list(ModelStatus)))
 
 
 @st.composite
-def model_category_strategy(draw) -> Any:
+def model_category_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid model categories."""
     return draw(st.sampled_from(list(ModelCategory)))
 
 
 @st.composite
-def model_type_strategy(draw) -> Any:
+def model_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid model types."""
     return draw(
         st.sampled_from(
@@ -63,13 +63,13 @@ def model_type_strategy(draw) -> Any:
 
 
 @st.composite
-def validation_method_strategy(draw) -> Any:
+def validation_method_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid validation methods."""
     return draw(st.sampled_from(list(ValidationMethod)))
 
 
 @st.composite
-def feature_columns_strategy(draw) -> Any:
+def feature_columns_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid feature column lists."""
     return draw(
         st.lists(
@@ -86,7 +86,7 @@ def feature_columns_strategy(draw) -> Any:
 
 
 @st.composite
-def hyperparameters_strategy(draw) -> Any:
+def hyperparameters_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid hyperparameter dictionaries."""
     return draw(
         st.dictionaries(
@@ -266,10 +266,10 @@ class TestModelConfiguration:
     )
     def test_model_configuration_property_based_creation(
         self,
-        model_type,
-        model_category,
-        feature_columns,
-        hyperparameters,
+        model_type: str,
+        model_category: Any,
+        feature_columns: Any,
+        hyperparameters: Any,
     ) -> None:
         """Property-based test for ModelConfiguration creation."""
         model_id = create_model_id()

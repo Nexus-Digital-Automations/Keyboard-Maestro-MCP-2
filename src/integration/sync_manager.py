@@ -177,7 +177,7 @@ class MacroSyncManager:
             self.sync_state.status = SyncStatus.ERROR
             return Either.left(KMError.execution_error(f"Sync start failed: {e!s}"))
 
-    async def stop_sync(self):
+    async def stop_sync(self) -> None:
         """Stop real-time synchronization."""
         logger.info("Stopping macro synchronization manager")
 
@@ -240,7 +240,7 @@ class MacroSyncManager:
             else 0.0,
         }
 
-    async def _sync_loop(self):
+    async def _sync_loop(self) -> Any:
         """Main synchronization loop."""
         while not self._stop_event.is_set():
             try:
@@ -330,7 +330,7 @@ class MacroSyncManager:
             logger.exception(f"Full sync failed: {e}")
             return Either.left(KMError.execution_error(f"Full sync failed: {e!s}"))
 
-    async def _perform_incremental_sync(self):
+    async def _perform_incremental_sync(self) -> None:
         """Perform incremental synchronization to detect changes."""
         if not self._macro_cache:
             await self._perform_full_sync()
@@ -406,7 +406,7 @@ class MacroSyncManager:
             logger.exception(f"Incremental sync error: {e}")
             self.sync_state.consecutive_errors += 1
 
-    async def _process_added_macro(self, macro_id: MacroId):
+    async def _process_added_macro(self, macro_id: MacroId) -> None:
         """Process a newly added macro."""
         try:
             metadata_result = await self.metadata_extractor.extract_enhanced_metadata(
@@ -429,7 +429,7 @@ class MacroSyncManager:
         except Exception as e:
             logger.exception(f"Error processing added macro {macro_id}: {e}")
 
-    async def _process_removed_macro(self, macro_id: MacroId):
+    async def _process_removed_macro(self, macro_id: MacroId) -> None:
         """Process a removed macro."""
         try:
             old_macro = self._macro_cache.pop(macro_id, None)
@@ -496,7 +496,7 @@ class MacroSyncManager:
         self,
         old_cache: dict[MacroId, EnhancedMacroMetadata],
         new_cache: dict[MacroId, EnhancedMacroMetadata],
-    ):
+    ) -> Any:
         """Generate change events by comparing cache states."""
         old_ids = set(old_cache.keys())
         new_ids = set(new_cache.keys())
@@ -523,7 +523,7 @@ class MacroSyncManager:
             )
             await self._change_queue.put(change)
 
-    async def _process_changes(self):
+    async def _process_changes(self) -> None:
         """Process change events in batches."""
         change_batch = []
 
@@ -564,7 +564,7 @@ class MacroSyncManager:
             except Exception as e:
                 logger.exception(f"Error processing changes: {e}")
 
-    async def _notify_change_listeners(self, changes: list[MacroChange]):
+    async def _notify_change_listeners(self, changes: list[MacroChange]) -> Any:
         """Notify all registered listeners of changes."""
         for change in changes:
             for listener in self._change_listeners:

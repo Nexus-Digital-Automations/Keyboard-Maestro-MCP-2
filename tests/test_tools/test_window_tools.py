@@ -30,9 +30,9 @@ Key Mocking Pattern:
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 from datetime import timedelta
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -139,9 +139,9 @@ class TestWindowManagerTool:
     @pytest.mark.asyncio
     async def test_move_operation_success(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test successful window move operation."""
         with (
@@ -171,9 +171,9 @@ class TestWindowManagerTool:
     @pytest.mark.asyncio
     async def test_resize_operation_success(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test successful window resize operation."""
         with (
@@ -203,9 +203,9 @@ class TestWindowManagerTool:
     @pytest.mark.asyncio
     async def test_minimize_operation_success(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test successful window minimize operation."""
         with (
@@ -233,9 +233,9 @@ class TestWindowManagerTool:
     @pytest.mark.asyncio
     async def test_maximize_operation_success(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test successful window maximize operation."""
         with (
@@ -263,9 +263,9 @@ class TestWindowManagerTool:
     @pytest.mark.asyncio
     async def test_arrange_operation_success(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test successful window arrange operation."""
         with (
@@ -295,9 +295,9 @@ class TestWindowManagerTool:
     @pytest.mark.asyncio
     async def test_get_info_operation_success(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test successful window info retrieval."""
         with (
@@ -325,8 +325,8 @@ class TestWindowManagerTool:
     @pytest.mark.asyncio
     async def test_get_screens_operation_success(
         self,
-        mock_context,
-        mock_window_manager,
+        mock_context: Any,
+        mock_window_manager: Any,
     ) -> None:
         """Test successful screen info retrieval."""
         with patch(
@@ -461,7 +461,7 @@ class TestWindowToolsErrorHandling:
     """Test window tools error handling scenarios."""
 
     @pytest.mark.asyncio
-    async def test_invalid_app_identifier_error(self, mock_context) -> None:
+    async def test_invalid_app_identifier_error(self, mock_context: Any) -> None:
         """Test handling of invalid application identifier."""
         result = await km_window_manager(
             operation="move",
@@ -475,7 +475,7 @@ class TestWindowToolsErrorHandling:
         assert "Invalid application identifier format" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_move_missing_position_error(self, mock_context, mock_app_identifier) -> None:
+    async def test_move_missing_position_error(self, mock_context: Any, mock_app_identifier: Any) -> None:
         """Test move operation with missing position."""
         with (
             patch(
@@ -498,7 +498,7 @@ class TestWindowToolsErrorHandling:
             assert result["error"] == "MISSING_POSITION"
 
     @pytest.mark.asyncio
-    async def test_resize_missing_size_error(self, mock_context, mock_app_identifier) -> None:
+    async def test_resize_missing_size_error(self, mock_context: Any, mock_app_identifier: Any) -> None:
         """Test resize operation with missing size."""
         with (
             patch(
@@ -523,8 +523,8 @@ class TestWindowToolsErrorHandling:
     @pytest.mark.asyncio
     async def test_arrange_missing_arrangement_error(
         self,
-        mock_context,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test arrange operation with missing arrangement."""
         with (
@@ -548,7 +548,7 @@ class TestWindowToolsErrorHandling:
             assert result["error"] == "MISSING_ARRANGEMENT"
 
     @pytest.mark.asyncio
-    async def test_unsupported_operation_error(self, mock_context) -> None:
+    async def test_unsupported_operation_error(self, mock_context: Any) -> None:
         """Test handling of unsupported operations."""
         with patch(
             "src.server.tools.window_tools._is_valid_app_identifier",
@@ -567,9 +567,9 @@ class TestWindowToolsErrorHandling:
     @pytest.mark.asyncio
     async def test_window_manager_error_response(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test handling of WindowManager error responses."""
         # Configure mock to return error
@@ -604,7 +604,7 @@ class TestWindowToolsErrorHandling:
             assert result["message"] == "Window not found"
 
     @pytest.mark.asyncio
-    async def test_exception_handling(self, mock_context) -> None:
+    async def test_exception_handling(self, mock_context: Any) -> None:
         """Test general exception handling."""
         with patch(
             "src.server.tools.window_tools._is_valid_app_identifier",
@@ -629,9 +629,9 @@ class TestWindowToolsIntegration:
     @pytest.mark.asyncio
     async def test_move_and_resize_workflow(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test combined move and resize workflow."""
         with (
@@ -669,9 +669,9 @@ class TestWindowToolsIntegration:
     @pytest.mark.asyncio
     async def test_multi_monitor_workflow(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test multi-monitor window management."""
         with (
@@ -708,9 +708,9 @@ class TestWindowToolsIntegration:
     @pytest.mark.asyncio
     async def test_window_state_transitions(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test window state transition workflow."""
         with (
@@ -756,7 +756,7 @@ class TestWindowToolsSecurity:
     """Test window tools security validation."""
 
     @pytest.mark.asyncio
-    async def test_app_identifier_injection_prevention(self, mock_context) -> None:
+    async def test_app_identifier_injection_prevention(self, mock_context: Any) -> None:
         """Test prevention of application identifier injection."""
         malicious_identifiers = [
             "app;rm -rf /",
@@ -778,7 +778,7 @@ class TestWindowToolsSecurity:
             assert result["error"] == "INVALID_IDENTIFIER"
 
     @pytest.mark.asyncio
-    async def test_coordinate_validation(self, mock_context, mock_app_identifier) -> None:
+    async def test_coordinate_validation(self, mock_context: Any, mock_app_identifier: Any) -> None:
         """Test coordinate boundary validation."""
         with (
             patch(
@@ -806,7 +806,7 @@ class TestWindowToolsSecurity:
                 assert result["error"] == "INVALID_POSITION"
 
     @pytest.mark.asyncio
-    async def test_size_validation(self, mock_context, mock_app_identifier) -> None:
+    async def test_size_validation(self, mock_context: Any, mock_app_identifier: Any) -> None:
         """Test size boundary validation."""
         with (
             patch(
@@ -834,7 +834,7 @@ class TestWindowToolsSecurity:
                 assert result["error"] == "INVALID_SIZE"
 
     @pytest.mark.asyncio
-    async def test_arrangement_validation(self, mock_context, mock_app_identifier) -> None:
+    async def test_arrangement_validation(self, mock_context: Any, mock_app_identifier: Any) -> None:
         """Test arrangement type validation."""
         with (
             patch(
@@ -867,7 +867,7 @@ class TestWindowToolsPropertyBased:
     """Property-based testing for window tools with Hypothesis."""
 
     @composite
-    def valid_app_names(draw) -> dict[str, Any]:
+    def valid_app_names(draw: Callable[..., Any]) -> dict[str, Any]:
         """Generate valid application names."""
         # Generate names without dangerous characters
         chars = st.characters(
@@ -877,21 +877,21 @@ class TestWindowToolsPropertyBased:
         return draw(st.text(chars, min_size=1, max_size=100))
 
     @composite
-    def valid_coordinates(draw) -> dict[str, Any]:
+    def valid_coordinates(draw: Callable[..., Any]) -> dict[str, Any]:
         """Generate valid coordinate pairs."""
         x = draw(st.integers(min_value=-10000, max_value=10000))
         y = draw(st.integers(min_value=-10000, max_value=10000))
         return {"x": x, "y": y}
 
     @composite
-    def valid_sizes(draw) -> dict[str, Any]:
+    def valid_sizes(draw: Callable[..., Any]) -> dict[str, Any]:
         """Generate valid size dimensions."""
         width = draw(st.integers(min_value=1, max_value=5000))
         height = draw(st.integers(min_value=1, max_value=5000))
         return {"width": width, "height": height}
 
     @given(valid_app_names())
-    def test_valid_app_identifier_property(self, app_name) -> None:
+    def test_valid_app_identifier_property(self, app_name: str) -> None:
         """Property: Valid app names should pass validation."""
         assume(len(app_name.strip()) > 0)  # Non-empty after strip
         assume(
@@ -902,7 +902,7 @@ class TestWindowToolsPropertyBased:
         assert result is True
 
     @composite
-    def valid_app_identifiers(draw) -> Any:
+    def valid_app_identifiers(draw: Callable[..., Any]) -> Any:
         """Generate valid application identifiers that pass both _is_valid_app_identifier and AppIdentifier validation."""
         # Generate either a valid bundle ID or app name
         choice = draw(st.integers(min_value=0, max_value=1))
@@ -942,7 +942,7 @@ class TestWindowToolsPropertyBased:
         return identifier
 
     @given(valid_app_identifiers())
-    def test_create_app_identifier_property(self, identifier) -> None:
+    def test_create_app_identifier_property(self, identifier: str) -> None:
         """Property: All valid identifiers should create AppIdentifier objects."""
         # Verify it passes both validation functions
         assert _is_valid_app_identifier(identifier)
@@ -961,7 +961,7 @@ class TestWindowToolsPropertyBased:
             st.sampled_from(["normal", "minimized", "maximized", "fullscreen"]),
         ),
     )
-    def test_map_operation_property(self, operation, state_override) -> None:
+    def test_map_operation_property(self, operation: str, state_override: Any) -> None:
         """Property: All operations should map to valid WindowState values."""
         result = _map_operation_to_state(operation, state_override)
         assert isinstance(result, WindowState)
@@ -969,7 +969,7 @@ class TestWindowToolsPropertyBased:
     @pytest.mark.asyncio
     @given(valid_coordinates())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    async def test_move_operation_coordinates_property(self, position) -> None:
+    async def test_move_operation_coordinates_property(self, position: int | float) -> None:
         """Property: Valid coordinates should not cause validation errors in move operation."""
         mock_context = Mock(spec=Context)
         mock_context.info = AsyncMock()
@@ -1022,7 +1022,7 @@ class TestWindowToolsPropertyBased:
     @pytest.mark.asyncio
     @given(valid_sizes())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    async def test_resize_operation_sizes_property(self, size) -> None:
+    async def test_resize_operation_sizes_property(self, size: int) -> None:
         """Property: Valid sizes should not cause validation errors in resize operation."""
         mock_context = Mock(spec=Context)
         mock_context.info = AsyncMock()
@@ -1080,9 +1080,9 @@ class TestWindowToolsPerformance:
     @pytest.mark.asyncio
     async def test_operation_response_time(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test that window operations complete within reasonable time."""
         import time
@@ -1129,9 +1129,9 @@ class TestWindowToolsPerformance:
     @pytest.mark.asyncio
     async def test_concurrent_operations(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test concurrent window operations."""
         with (
@@ -1171,7 +1171,7 @@ class TestWindowToolsEdgeCases:
     """Test window tools edge cases and boundary conditions."""
 
     @pytest.mark.asyncio
-    async def test_empty_app_identifier(self, mock_context) -> None:
+    async def test_empty_app_identifier(self, mock_context: Any) -> None:
         """Test handling of empty application identifier."""
         result = await km_window_manager(
             operation="move",
@@ -1184,7 +1184,7 @@ class TestWindowToolsEdgeCases:
         assert result["error"] == "INVALID_IDENTIFIER"
 
     @pytest.mark.asyncio
-    async def test_maximum_length_app_identifier(self, mock_context) -> None:
+    async def test_maximum_length_app_identifier(self, mock_context: Any) -> None:
         """Test handling of maximum length application identifier."""
         long_identifier = "a" * 255  # Maximum allowed length
 
@@ -1211,7 +1211,7 @@ class TestWindowToolsEdgeCases:
             mock_create.assert_called_once_with(long_identifier)
 
     @pytest.mark.asyncio
-    async def test_unicode_app_identifier(self, mock_context, mock_app_identifier) -> None:
+    async def test_unicode_app_identifier(self, mock_context: Any, mock_app_identifier: Any) -> None:
         """Test handling of Unicode application identifiers."""
         unicode_identifier = "Test App 测试 🎯"
 
@@ -1236,7 +1236,7 @@ class TestWindowToolsEdgeCases:
             assert isinstance(result["success"], bool)
 
     @pytest.mark.asyncio
-    async def test_extreme_coordinates(self, mock_context, mock_app_identifier) -> None:
+    async def test_extreme_coordinates(self, mock_context: Any, mock_app_identifier: Any) -> None:
         """Test handling of extreme coordinate values."""
         extreme_positions = [
             {"x": -50000, "y": -50000},  # Very negative
@@ -1269,9 +1269,9 @@ class TestWindowToolsEdgeCases:
     @pytest.mark.asyncio
     async def test_window_index_boundaries(
         self,
-        mock_context,
-        mock_window_manager,
-        mock_app_identifier,
+        mock_context: Any,
+        mock_window_manager: Any,
+        mock_app_identifier: Any,
     ) -> None:
         """Test window index boundary conditions."""
         with (

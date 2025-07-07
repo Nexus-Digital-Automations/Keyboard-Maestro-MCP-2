@@ -416,7 +416,7 @@ class OpenAIClient(BaseProviderClient):
 def create_openai_client(
     api_key: str,
     model: str = "gpt-3.5-turbo",
-    **kwargs,
+    **kwargs: Any,
 ) -> OpenAIClient:
     """Create configured OpenAI client."""
     return OpenAIClient(api_key=api_key, model=model, **kwargs)

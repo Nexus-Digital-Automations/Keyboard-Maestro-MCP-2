@@ -33,7 +33,7 @@ from src.plugins.security_sandbox import SecurityLimits
 
 
 @st.composite
-def plugin_identifier_strategy(draw) -> bool:
+def plugin_identifier_strategy(draw: Callable[..., Any]) -> bool:
     """Generate valid plugin identifiers."""
     # Valid identifier: starts with letter, contains alphanumeric/underscore/hyphen/dot
     first_char = draw(
@@ -50,7 +50,7 @@ def plugin_identifier_strategy(draw) -> bool:
 
 
 @st.composite
-def version_strategy(draw) -> Any:
+def version_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid semantic version strings."""
     major = draw(st.integers(min_value=0, max_value=99))
     minor = draw(st.integers(min_value=0, max_value=99))
@@ -76,7 +76,7 @@ def version_strategy(draw) -> Any:
 
 
 @st.composite
-def plugin_permissions_strategy(draw) -> bool:
+def plugin_permissions_strategy(draw: Callable[..., Any]) -> bool:
     """Generate plugin permissions configurations."""
     permissions = draw(
         st.sets(
@@ -112,7 +112,7 @@ def plugin_permissions_strategy(draw) -> bool:
 
 
 @st.composite
-def plugin_metadata_strategy(draw) -> bool:
+def plugin_metadata_strategy(draw: Callable[..., Any]) -> bool:
     """Generate valid plugin metadata."""
     return PluginMetadata(
         identifier=draw(plugin_identifier_strategy()),
@@ -152,13 +152,13 @@ def plugin_metadata_strategy(draw) -> bool:
 
 
 @st.composite
-def security_profile_strategy(draw) -> Any:
+def security_profile_strategy(draw: Callable[..., Any]) -> Any:
     """Generate security profiles."""
     return draw(st.sampled_from(list(SecurityProfile)))
 
 
 @st.composite
-def action_parameter_strategy(draw) -> Any:
+def action_parameter_strategy(draw: Callable[..., Any]) -> Any:
     """Generate custom action parameters."""
     # Generate valid parameter name: starts with letter, then letters/numbers/underscores
     first_char = draw(
@@ -243,11 +243,11 @@ class TestPluginMetadataProperties:
     )
     def test_invalid_identifier_rejected(
         self,
-        identifier,
-        name,
-        version,
-        description,
-        author,
+        identifier: str,
+        name: str,
+        version: str,
+        description: str,
+        author: Any,
     ) -> None:
         """Test that invalid identifiers are rejected."""
         assume(len(identifier) == 0)  # Empty identifier should be invalid
@@ -264,7 +264,7 @@ class TestPluginMetadataProperties:
             )
 
     @given(st.text(min_size=1, max_size=3))
-    def test_invalid_version_rejected(self, invalid_version) -> None:
+    def test_invalid_version_rejected(self, invalid_version: Any) -> None:
         """Test that invalid version formats are rejected."""
         assume(not invalid_version.replace(".", "").replace("-", "").isalnum())
 
@@ -320,7 +320,7 @@ class TestPluginPermissionsProperties:
             ],
         ),
     )
-    def test_permission_checking(self, permissions, permission_to_check) -> None:
+    def test_permission_checking(self, permissions: Any, permission_to_check: Any) -> None:
         """Test permission checking behavior."""
         plugin_perms = PluginPermissions(permissions=permissions)
 
@@ -378,7 +378,7 @@ class TestPluginRegistryProperties:
     @pytest.mark.asyncio
     async def test_registry_persistence(
         self,
-        temp_registry,
+        temp_registry: dict[str, Any] | Any,
         plugin_list: list[PluginMetadata],
     ) -> None:
         """Test that registry persists and loads data correctly."""
@@ -417,7 +417,7 @@ class TestPluginRegistryProperties:
     )
     def test_registry_operations_idempotent(
         self,
-        temp_registry,
+        temp_registry: dict[str, Any] | Any,
         metadata: PluginMetadata,
     ) -> None:
         """Test that registry operations are idempotent."""
@@ -472,9 +472,9 @@ class TestAPIBridgeProperties:
     @pytest.mark.asyncio
     async def test_api_bridge_security_boundaries(
         self,
-        plugin_id,
-        tool_name,
-        parameters,
+        plugin_id: str,
+        tool_name: str,
+        parameters: list[Any],
     ) -> None:
         """Test API bridge enforces security boundaries."""
         # Create API bridge for this test
@@ -515,7 +515,7 @@ class TestAPIBridgeProperties:
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
-    async def test_api_bridge_authorization_required(self, plugin_id) -> None:
+    async def test_api_bridge_authorization_required(self, plugin_id: str) -> None:
         """Test that API bridge requires plugin authorization."""
         # Create API bridge for this test
         api_bridge = self.create_api_bridge()
@@ -544,7 +544,7 @@ class TestAPIBridgeProperties:
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
-    async def test_rate_limiting_enforcement(self, plugin_id, call_count) -> None:
+    async def test_rate_limiting_enforcement(self, plugin_id: str, call_count: int) -> None:
         """Test that rate limiting is properly enforced."""
         # Create API bridge for this test
         api_bridge = self.create_api_bridge()
@@ -588,8 +588,8 @@ class TestAPIBridgeProperties:
             original_call = api_bridge._execute_tool
 
             # B023 fix: Properly capture loop variable in closure
-            def create_mock_execute_tool(call_number) -> None:
-                async def mock_execute_tool(tool_name, parameters):
+            def create_mock_execute_tool(call_number: Any) -> None:
+                async def mock_execute_tool(tool_name: str, parameters: list[Any]) -> None:
                     return Either.right({"success": True, "call_number": call_number})
 
                 return mock_execute_tool
@@ -623,7 +623,7 @@ class TestMarketplaceProperties:
     """Property-based tests for marketplace functionality."""
 
     @pytest.fixture
-    async def marketplace(self):
+    async def marketplace(self) -> Any:
         """Create marketplace for testing."""
         with tempfile.TemporaryDirectory() as temp_dir:
             marketplace = PluginMarketplace(cache_dir=Path(temp_dir))
@@ -640,7 +640,7 @@ class TestMarketplaceProperties:
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
-    async def test_search_result_bounds(self, marketplace, query_text, limit, offset) -> None:
+    async def test_search_result_bounds(self, marketplace: Awaitable[Any] | Any, query_text: Any, limit: int, offset: int) -> None:
         """Test that search results respect pagination bounds."""
         query = SearchQuery(query=query_text, limit=limit, offset=offset)
 
@@ -661,7 +661,7 @@ class TestMarketplaceProperties:
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
-    async def test_plugin_details_consistency(self, marketplace, plugin_id_str) -> None:
+    async def test_plugin_details_consistency(self, marketplace: Awaitable[Any] | Any, plugin_id_str: str) -> None:
         """Test plugin details retrieval consistency."""
         plugin_id = PluginId(plugin_id_str)
 
@@ -694,19 +694,19 @@ class TestPluginLifecycleProperties:
 
         # Create mock plugin
         class MockPlugin(BasePlugin):
-            async def on_initialize(self):
+            async def on_initialize(self) -> None:
                 return Either.right(None)
 
-            async def on_activate(self):
+            async def on_activate(self) -> None:
                 return Either.right(None)
 
-            async def on_deactivate(self):
+            async def on_deactivate(self) -> None:
                 return Either.right(None)
 
-            async def register_actions(self):
+            async def register_actions(self) -> None:
                 return []
 
-            async def register_hooks(self):
+            async def register_hooks(self) -> None:
                 return []
 
         plugin = MockPlugin(metadata)
@@ -754,7 +754,7 @@ class TestPluginLifecycleProperties:
         """Test custom action parameter validation."""
 
         # Create mock action
-        async def mock_handler(**kwargs):
+        async def mock_handler(**kwargs: Any) -> None:
             return "success"
 
         action = CustomAction(

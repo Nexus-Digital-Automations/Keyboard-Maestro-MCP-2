@@ -6,7 +6,6 @@ security validation, XML generation, and builder pattern testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import re
 
@@ -219,7 +218,7 @@ class TestActionBuilder:
         assert result["valid_actions"] == 1
 
     @given(st.text(min_size=1, max_size=100))
-    def test_property_text_action_content(self, text) -> None:
+    def test_property_text_action_content(self, text: str) -> None:
         """Property test: Text actions preserve content."""
         assume(len(text.strip()) > 0)
 
@@ -233,7 +232,7 @@ class TestActionBuilder:
         assert actions[0].action_type.identifier == "Type a String"
 
     @given(st.floats(min_value=0.1, max_value=3600.0))
-    def test_property_pause_duration(self, duration_seconds) -> None:
+    def test_property_pause_duration(self, duration_seconds: Any) -> None:
         """Property test: Pause actions handle various durations."""
         # Clear builder for each hypothesis example
         self.builder.clear()
@@ -247,7 +246,7 @@ class TestActionBuilder:
         assert abs(actions[0].parameters["duration"] - duration_seconds) < 0.001
 
     @given(st.text(min_size=1, max_size=50), st.text(min_size=1, max_size=100))
-    def test_property_variable_names_and_values(self, var_name, var_value) -> None:
+    def test_property_variable_names_and_values(self, var_name: str, var_value: str) -> None:
         """Property test: Variable actions handle various names and values."""
         assume(var_name.strip() and var_value.strip())
 
@@ -262,7 +261,7 @@ class TestActionBuilder:
         assert actions[0].parameters["text"] == var_value
 
     @given(st.integers(min_value=1, max_value=10))
-    def test_property_action_count_consistency(self, action_count) -> None:
+    def test_property_action_count_consistency(self, action_count: int) -> None:
         """Property test: Action count remains consistent."""
         # Clear builder for each hypothesis example
         self.builder.clear()
@@ -274,7 +273,7 @@ class TestActionBuilder:
         assert len(self.builder.get_actions()) == action_count
 
     @given(st.lists(st.text(min_size=1, max_size=20), min_size=1, max_size=5))
-    def test_property_xml_generation_security(self, texts) -> None:
+    def test_property_xml_generation_security(self, texts: list[Any] | str) -> None:
         """Property test: XML generation maintains security."""
         assume(all(t.strip() for t in texts))
 
@@ -330,7 +329,7 @@ class TestActionBuilder:
         assert actions[1].enabled is False
 
     @given(st.text())
-    def test_property_dangerous_content_rejection(self, malicious_text) -> None:
+    def test_property_dangerous_content_rejection(self, malicious_text: list[Any] | str) -> None:
         """Property test: Dangerous content is properly handled."""
         dangerous_patterns = [
             "<script>",
@@ -365,7 +364,7 @@ class TestActionBuilder:
 
     @settings(max_examples=20)
     @given(st.integers(min_value=0, max_value=100))
-    def test_property_position_insertion_bounds(self, position) -> None:
+    def test_property_position_insertion_bounds(self, position: int | float) -> None:
         """Property test: Position insertion respects bounds."""
         # Add some initial actions
         for i in range(3):

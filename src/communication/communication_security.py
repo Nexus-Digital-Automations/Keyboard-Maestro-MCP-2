@@ -249,7 +249,7 @@ class RateLimitTracker:
 
         return Either.right(None)
 
-    def _get_recipient_key(self, recipient) -> str:
+    def _get_recipient_key(self, recipient: Any) -> str:
         """Get standardized key for recipient."""
         if isinstance(recipient, EmailAddress):
             return f"email:{recipient.address.lower()}"

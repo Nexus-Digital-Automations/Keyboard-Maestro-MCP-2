@@ -5,7 +5,7 @@ Tests focus on available functionality to maximize coverage of km_client.py modu
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -65,7 +65,7 @@ class TestEitherMonad:
     def test_either_flat_map(self) -> None:
         """Test flat mapping for chaining operations."""
 
-        def double_if_even(x) -> Any:
+        def double_if_even(x: Any) -> Any:
             if x % 2 == 0:
                 return Either.right(x * 2)
             return Either.left("odd number")
@@ -225,14 +225,14 @@ class TestKMClient:
             timeout=Duration(seconds=30),
         )
 
-    def test_client_creation(self, mock_config) -> None:
+    def test_client_creation(self, mock_config: dict[str, Any]) -> None:
         """Test client creation with configuration."""
         client = KMClient(connection_config=mock_config)
 
         assert client.config == mock_config
         assert client.config.method == ConnectionMethod.APPLESCRIPT
 
-    def test_client_connection_check(self, mock_config) -> None:
+    def test_client_connection_check(self, mock_config: dict[str, Any]) -> None:
         """Test client connection check (mocked)."""
         client = KMClient(connection_config=mock_config)
 
@@ -246,7 +246,7 @@ class TestKMClient:
             assert result.get_right() is True
             mock_connect.assert_called_once()
 
-    def test_macro_execution_simulation(self, mock_config) -> None:
+    def test_macro_execution_simulation(self, mock_config: dict[str, Any]) -> None:
         """Test macro execution logic (mocked)."""
         client = KMClient(connection_config=mock_config)
         macro_id = MacroId("test-macro-123")
@@ -268,7 +268,7 @@ class TestKMClient:
             assert execution_result["status"] == "completed"
             assert execution_result["duration"] == 2.5
 
-    def test_error_handling(self, mock_config) -> None:
+    def test_error_handling(self, mock_config: dict[str, Any]) -> None:
         """Test client error handling."""
         client = KMClient(connection_config=mock_config)
 

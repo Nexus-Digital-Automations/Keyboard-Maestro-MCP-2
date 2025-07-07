@@ -580,7 +580,7 @@ class TriggerBuilder:
         self._enabled = is_enabled
         return self
 
-    def with_metadata(self, **metadata) -> TriggerBuilder:
+    def with_metadata(self, **metadata: Any) -> TriggerBuilder:
         """Add metadata to trigger."""
         self._metadata.update(metadata)
         return self

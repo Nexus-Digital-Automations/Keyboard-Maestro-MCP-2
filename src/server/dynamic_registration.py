@@ -6,10 +6,11 @@ server, eliminating the need for manual tool registration boilerplate.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
+from typing import Any
 
 from fastmcp import FastMCP
+from fastmcp.utilities import Context
 
 from .tool_registry import ToolMetadata, get_tool_registry
 
@@ -63,7 +64,7 @@ class DynamicToolRegistrar:
             )
 
             # Create a placeholder function that returns an error
-            async def error_wrapper(ctx=None):
+            async def error_wrapper(ctx: Context | Any=None) -> None:
                 return {
                     "success": False,
                     "error": f"Tool {metadata.name} not available: {error_message}",
@@ -82,7 +83,7 @@ class DynamicToolRegistrar:
         def create_safe_wrapper(is_async: bool, param_names: list[str]) -> bool:
             if is_async:
 
-                async def async_tool_wrapper(*args, **kwargs):
+                async def async_tool_wrapper(*args: Any, **kwargs: Any) -> Any:
                     """Securely generated async tool wrapper."""
                     try:
                         # Build kwargs from positional args and keyword args
@@ -106,7 +107,7 @@ class DynamicToolRegistrar:
 
                 return async_tool_wrapper
 
-            def sync_tool_wrapper(*args, **kwargs) -> bool:
+            def sync_tool_wrapper(*args: Any, **kwargs: Any) -> bool:
                 """Securely generated sync tool wrapper."""
                 try:
                     # Build kwargs from positional args and keyword args

@@ -29,8 +29,8 @@ Key Mocking Pattern:
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -159,7 +159,7 @@ class TestKMAddCondition:
     """Test km_add_condition main functionality following proven pattern."""
 
     @pytest.mark.asyncio
-    async def test_text_condition_success(self, mock_context, sample_condition_data) -> None:
+    async def test_text_condition_success(self, mock_context: Any, sample_condition_data: Any) -> None:
         """Test successful text condition creation."""
         # Mock all the dependencies that are created as instances in the function
         with (
@@ -249,7 +249,7 @@ class TestKMAddCondition:
             assert result["security_validated"] is True
 
     @pytest.mark.asyncio
-    async def test_app_condition_success(self, mock_context, sample_condition_data) -> None:
+    async def test_app_condition_success(self, mock_context: Any, sample_condition_data: Any) -> None:
         """Test successful app condition creation."""
         with (
             patch(
@@ -343,8 +343,8 @@ class TestKMAddCondition:
     @pytest.mark.asyncio
     async def test_system_condition_with_numeric_operand(
         self,
-        mock_context,
-        sample_condition_data,
+        mock_context: Any,
+        sample_condition_data: Any,
     ) -> None:
         """Test successful system condition with numeric comparison."""
         with (
@@ -437,8 +437,8 @@ class TestKMAddCondition:
     @pytest.mark.asyncio
     async def test_variable_condition_success(
         self,
-        mock_context,
-        sample_condition_data,
+        mock_context: Any,
+        sample_condition_data: Any,
     ) -> None:
         """Test successful variable condition creation."""
         with (
@@ -528,7 +528,7 @@ class TestKMAddCondition:
             assert "performance_metrics" in result
 
     @pytest.mark.asyncio
-    async def test_regex_condition_success(self, mock_context, sample_condition_data) -> None:
+    async def test_regex_condition_success(self, mock_context: Any, sample_condition_data: Any) -> None:
         """Test successful regex condition creation."""
         with (
             patch(
@@ -615,7 +615,7 @@ class TestKMAddCondition:
             assert "performance_metrics" in result
 
     @pytest.mark.asyncio
-    async def test_invalid_condition_type(self, mock_context) -> None:
+    async def test_invalid_condition_type(self, mock_context: Any) -> None:
         """Test handling of invalid condition type."""
         # Execute
         result = await km_add_condition(
@@ -632,7 +632,7 @@ class TestKMAddCondition:
         assert "condition_type" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_invalid_operator(self, mock_context) -> None:
+    async def test_invalid_operator(self, mock_context: Any) -> None:
         """Test handling of invalid operator."""
         # Execute
         result = await km_add_condition(
@@ -649,7 +649,7 @@ class TestKMAddCondition:
         assert "operator" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_security_validation_failure(self, mock_context) -> None:
+    async def test_security_validation_failure(self, mock_context: Any) -> None:
         """Test security validation failure for malicious operand."""
         with (
             patch(
@@ -692,7 +692,7 @@ class TestKMAddCondition:
             assert "security validation failed" in result["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_condition_builder_failure(self, mock_context) -> None:
+    async def test_condition_builder_failure(self, mock_context: Any) -> None:
         """Test condition builder failure handling."""
         with (
             patch(
@@ -750,7 +750,7 @@ class TestKMAddCondition:
             assert "failed to build condition" in result["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_km_integrator_failure(self, mock_context) -> None:
+    async def test_km_integrator_failure(self, mock_context: Any) -> None:
         """Test KM integrator failure handling."""
         with (
             patch(
@@ -875,7 +875,7 @@ class TestConditionHelperFunctions:
             assert result.is_left()
             assert isinstance(result.get_left(), ValidationError)
 
-    def test_apply_operator_success(self, mock_condition_builder) -> None:
+    def test_apply_operator_success(self, mock_condition_builder: Any) -> None:
         """Test successful operator application."""
         # Configure mock for fluent interface pattern - only methods that exist in actual ConditionBuilder
         mock_condition_builder.contains.return_value = mock_condition_builder
@@ -950,7 +950,7 @@ class TestConditionIntegration:
     """Test integration scenarios across condition operations."""
 
     @pytest.mark.asyncio
-    async def test_condition_workflow_integration(self, mock_context) -> None:
+    async def test_condition_workflow_integration(self, mock_context: Any) -> None:
         """Test complete condition workflow integration."""
         with (
             patch(
@@ -1047,7 +1047,7 @@ class TestConditionIntegration:
             assert var_result["success"] is True
 
     @pytest.mark.asyncio
-    async def test_condition_timeout_limits(self, mock_context) -> None:
+    async def test_condition_timeout_limits(self, mock_context: Any) -> None:
         """Test condition timeout parameter limits."""
         with (
             patch(
@@ -1126,7 +1126,7 @@ class TestConditionSecurity:
     """Test security validation and prevention measures."""
 
     @pytest.mark.asyncio
-    async def test_sql_injection_prevention(self, mock_context) -> None:
+    async def test_sql_injection_prevention(self, mock_context: Any) -> None:
         """Test SQL injection prevention in operands."""
         with (
             patch(
@@ -1175,7 +1175,7 @@ class TestConditionSecurity:
                 assert "sql injection" in result["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_xss_prevention(self, mock_context) -> None:
+    async def test_xss_prevention(self, mock_context: Any) -> None:
         """Test XSS prevention in operands."""
         with (
             patch(
@@ -1224,7 +1224,7 @@ class TestConditionSecurity:
                 assert "xss" in result["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_operand_length_validation(self, mock_context) -> None:
+    async def test_operand_length_validation(self, mock_context: Any) -> None:
         """Test operand length security validation."""
         with (
             patch(
@@ -1273,7 +1273,7 @@ class TestConditionPropertyBased:
     """Property-based testing for condition operations."""
 
     @composite
-    def condition_operand_strategy(draw) -> Any:
+    def condition_operand_strategy(draw: Callable[..., Any]) -> Any:
         """Generate valid condition operands for testing."""
         operand_type = draw(st.sampled_from(["text", "numeric", "boolean", "regex"]))
 
@@ -1296,7 +1296,7 @@ class TestConditionPropertyBased:
         max_examples=20,
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
-    def test_condition_operand_properties(self, operand) -> None:
+    def test_condition_operand_properties(self, operand: list[Any] | str) -> None:
         """Property: Valid condition operands should meet basic requirements."""
         # Test basic operand properties
         assert len(operand) > 0
@@ -1305,7 +1305,7 @@ class TestConditionPropertyBased:
 
     @given(st.sampled_from(["text", "application", "system", "variable", "logic"]))
     @settings(max_examples=10)
-    def test_condition_type_properties(self, condition_type) -> None:
+    def test_condition_type_properties(self, condition_type: str) -> None:
         """Property: Valid condition types should be supported."""
         result = _validate_condition_type(condition_type)
         assert result.is_right()
@@ -1313,7 +1313,7 @@ class TestConditionPropertyBased:
 
     @given(st.sampled_from(["contains", "equals", "greater_than", "matches_regex"]))
     @settings(max_examples=10)
-    def test_operator_properties(self, operator) -> None:
+    def test_operator_properties(self, operator: Callable[..., Any]) -> None:
         """Property: Valid operators should be supported."""
         result = _validate_operator(operator)
         assert result.is_right()
@@ -1324,7 +1324,7 @@ class TestConditionPerformance:
     """Test performance and limits for condition operations."""
 
     @pytest.mark.asyncio
-    async def test_condition_creation_performance(self, mock_context) -> None:
+    async def test_condition_creation_performance(self, mock_context: Any) -> None:
         """Test condition creation performance with realistic load."""
         with (
             patch(
@@ -1404,7 +1404,7 @@ class TestConditionPerformance:
             assert duration < 5.0  # 5 seconds for 10 conditions
 
     @pytest.mark.asyncio
-    async def test_regex_pattern_limits(self, mock_context) -> None:
+    async def test_regex_pattern_limits(self, mock_context: Any) -> None:
         """Test regex pattern complexity limits."""
         with (
             patch(
@@ -1481,7 +1481,7 @@ class TestConditionEdgeCases:
     """Test edge cases and boundary conditions."""
 
     @pytest.mark.asyncio
-    async def test_empty_operand_handling(self, mock_context) -> None:
+    async def test_empty_operand_handling(self, mock_context: Any) -> None:
         """Test handling of empty operand."""
         with (
             patch(
@@ -1523,7 +1523,7 @@ class TestConditionEdgeCases:
             assert "operand cannot be empty" in result["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_unicode_operand_handling(self, mock_context) -> None:
+    async def test_unicode_operand_handling(self, mock_context: Any) -> None:
         """Test handling of Unicode operands."""
         with (
             patch(
@@ -1605,7 +1605,7 @@ class TestConditionEdgeCases:
                 assert result["operand"] == operand
 
     @pytest.mark.asyncio
-    async def test_none_values_handling(self, mock_context) -> None:
+    async def test_none_values_handling(self, mock_context: Any) -> None:
         """Test handling of None values in optional parameters."""
         # Test with minimal parameters
         result = await km_add_condition(

@@ -454,7 +454,7 @@ class ContextAwarenessEngine:
     def _start_detector_task(self, detector: ContextDetector) -> None:
         """Start background detection task for detector."""
 
-        async def detection_loop():
+        async def detection_loop() -> Any:
             while self.is_running:
                 try:
                     # Detect context

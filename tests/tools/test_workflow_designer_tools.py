@@ -7,8 +7,8 @@ Tests follow the proven systematic pattern that achieved 100% success across 23+
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -20,14 +20,14 @@ import pytest
 
 
 async def mock_km_create_visual_workflow(
-    name,
-    description="",
-    canvas_width=1200,
-    canvas_height=800,
-    theme="light",
-    template_id=None,
-    ctx=None,
-):
+    name: str,
+    description: str="",
+    canvas_width: Any=1200,
+    canvas_height: Any=800,
+    theme: Any="light",
+    template_id: str=None,
+    ctx: Context | Any=None,
+) -> None:
     """Mock implementation for visual workflow creation."""
     if not name or not name.strip():
         return {
@@ -83,15 +83,15 @@ async def mock_km_create_visual_workflow(
 
 
 async def mock_km_add_workflow_component(
-    workflow_id,
-    component_type,
-    x_position,
-    y_position,
-    title,
-    description="",
-    properties="{}",
-    ctx=None,
-):
+    workflow_id: str,
+    component_type: str,
+    x_position: Any,
+    y_position: Any,
+    title: str,
+    description: str="",
+    properties: list[str]="{}",
+    ctx: Context | Any=None,
+) -> None:
     """Mock implementation for adding workflow components."""
     if not workflow_id:
         return {
@@ -160,13 +160,13 @@ async def mock_km_add_workflow_component(
 
 
 async def mock_km_connect_workflow_nodes(
-    workflow_id,
-    source_component,
-    target_component,
-    connection_type="flow",
-    connection_label="",
-    ctx=None,
-):
+    workflow_id: str,
+    source_component: Any,
+    target_component: Any,
+    connection_type: str="flow",
+    connection_label: Any="",
+    ctx: Context | Any=None,
+) -> None:
     """Mock implementation for connecting workflow nodes."""
     if not all([workflow_id, source_component, target_component]):
         return {
@@ -209,15 +209,15 @@ async def mock_km_connect_workflow_nodes(
 
 
 async def mock_km_edit_workflow_component(
-    workflow_id,
-    component_id,
-    title=None,
-    description=None,
-    properties=None,
-    x_position=None,
-    y_position=None,
-    ctx=None,
-):
+    workflow_id: str,
+    component_id: str,
+    title: str=None,
+    description: str=None,
+    properties: list[str]=None,
+    x_position: Any=None,
+    y_position: Any=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for editing workflow components."""
     if not workflow_id or not component_id:
         return {
@@ -265,10 +265,10 @@ async def mock_km_edit_workflow_component(
 
 
 async def mock_km_get_workflow_templates(
-    category=None,
-    complexity_level=None,
-    ctx=None,
-):
+    category: str=None,
+    complexity_level: Any=None,
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for getting workflow templates."""
     templates = [
         {
@@ -333,12 +333,12 @@ async def mock_km_get_workflow_templates(
 
 
 async def mock_km_validate_workflow(
-    workflow_id,
-    validation_level="basic",
-    check_performance=False,
-    suggest_optimizations=False,
-    ctx=None,
-):
+    workflow_id: str,
+    validation_level: Any="basic",
+    check_performance: Any=False,
+    suggest_optimizations: Any=False,
+    ctx: Context | Any=None,
+) -> None:
     """Mock implementation for workflow validation."""
     if not workflow_id:
         return {
@@ -405,13 +405,13 @@ async def mock_km_validate_workflow(
 
 
 async def mock_km_export_visual_workflow(
-    workflow_id,
-    export_format="macro",
-    include_metadata=True,
-    validate_before_export=False,
-    optimization_level="none",
-    ctx=None,
-):
+    workflow_id: str,
+    export_format: Any="macro",
+    include_metadata: Any=True,
+    validate_before_export: Any=False,
+    optimization_level: Any="none",
+    ctx: Context | Any=None,
+) -> Any:
     """Mock implementation for workflow export."""
     if not workflow_id:
         return {
@@ -507,8 +507,8 @@ class TestKMCreateVisualWorkflow:
     @pytest.mark.asyncio
     async def test_create_visual_workflow_success(
         self,
-        mock_context,
-        sample_workflow_data,
+        mock_context: Any,
+        sample_workflow_data: Any,
     ) -> None:
         """Test successful visual workflow creation."""
         test_data = sample_workflow_data["basic_workflow"]
@@ -534,8 +534,8 @@ class TestKMCreateVisualWorkflow:
     @pytest.mark.asyncio
     async def test_create_visual_workflow_with_template(
         self,
-        mock_context,
-        sample_workflow_data,
+        mock_context: Any,
+        sample_workflow_data: Any,
     ) -> None:
         """Test workflow creation with template."""
         test_data = sample_workflow_data["template_workflow"]
@@ -551,7 +551,7 @@ class TestKMCreateVisualWorkflow:
         assert result["workflow"]["canvas"]["theme"] == "dark"
 
     @pytest.mark.asyncio
-    async def test_create_visual_workflow_invalid_theme(self, mock_context) -> None:
+    async def test_create_visual_workflow_invalid_theme(self, mock_context: Any) -> None:
         """Test workflow creation with invalid theme."""
         result = await km_create_visual_workflow(
             name="Test Workflow",
@@ -564,7 +564,7 @@ class TestKMCreateVisualWorkflow:
         assert "Invalid theme" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_create_visual_workflow_empty_name(self, mock_context) -> None:
+    async def test_create_visual_workflow_empty_name(self, mock_context: Any) -> None:
         """Test workflow creation with empty name."""
         result = await km_create_visual_workflow(name="", ctx=mock_context)
 
@@ -584,7 +584,7 @@ class TestKMAddWorkflowComponent:
         return context
 
     @pytest.mark.asyncio
-    async def test_add_workflow_component_success(self, mock_context) -> None:
+    async def test_add_workflow_component_success(self, mock_context: Any) -> None:
         """Test successful component addition to workflow."""
         result = await km_add_workflow_component(
             workflow_id="workflow_12345678",
@@ -606,7 +606,7 @@ class TestKMAddWorkflowComponent:
         assert "component_id" in result["component"]
 
     @pytest.mark.asyncio
-    async def test_add_workflow_component_invalid_type(self, mock_context) -> None:
+    async def test_add_workflow_component_invalid_type(self, mock_context: Any) -> None:
         """Test adding component with invalid type."""
         result = await km_add_workflow_component(
             workflow_id="workflow_12345678",
@@ -622,7 +622,7 @@ class TestKMAddWorkflowComponent:
         assert "Invalid component_type" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_add_workflow_component_workflow_not_found(self, mock_context) -> None:
+    async def test_add_workflow_component_workflow_not_found(self, mock_context: Any) -> None:
         """Test adding component to nonexistent workflow."""
         result = await km_add_workflow_component(
             workflow_id="nonexistent_workflow_id",
@@ -648,7 +648,7 @@ class TestKMConnectWorkflowNodes:
         return context
 
     @pytest.mark.asyncio
-    async def test_connect_workflow_nodes_success(self, mock_context) -> None:
+    async def test_connect_workflow_nodes_success(self, mock_context: Any) -> None:
         """Test successful workflow node connection."""
         result = await km_connect_workflow_nodes(
             workflow_id="workflow_12345678",
@@ -667,7 +667,7 @@ class TestKMConnectWorkflowNodes:
         assert result["validation"]["is_valid"] is True
 
     @pytest.mark.asyncio
-    async def test_connect_workflow_nodes_missing_params(self, mock_context) -> None:
+    async def test_connect_workflow_nodes_missing_params(self, mock_context: Any) -> None:
         """Test connection with missing required parameters."""
         result = await km_connect_workflow_nodes(
             workflow_id="",
@@ -692,7 +692,7 @@ class TestKMEditWorkflowComponent:
         return context
 
     @pytest.mark.asyncio
-    async def test_edit_workflow_component_success(self, mock_context) -> None:
+    async def test_edit_workflow_component_success(self, mock_context: Any) -> None:
         """Test successful component editing."""
         result = await km_edit_workflow_component(
             workflow_id="workflow_12345678",
@@ -717,7 +717,7 @@ class TestKMEditWorkflowComponent:
         assert result["changes_applied"]["position_changed"] is True
 
     @pytest.mark.asyncio
-    async def test_edit_workflow_component_missing_ids(self, mock_context) -> None:
+    async def test_edit_workflow_component_missing_ids(self, mock_context: Any) -> None:
         """Test editing component with missing IDs."""
         result = await km_edit_workflow_component(
             workflow_id="",
@@ -742,7 +742,7 @@ class TestKMGetWorkflowTemplates:
         return context
 
     @pytest.mark.asyncio
-    async def test_get_workflow_templates_success(self, mock_context) -> None:
+    async def test_get_workflow_templates_success(self, mock_context: Any) -> None:
         """Test successful workflow templates retrieval."""
         result = await km_get_workflow_templates(ctx=mock_context)
 
@@ -763,7 +763,7 @@ class TestKMGetWorkflowTemplates:
             assert "preview_components" in template
 
     @pytest.mark.asyncio
-    async def test_get_workflow_templates_with_filters(self, mock_context) -> None:
+    async def test_get_workflow_templates_with_filters(self, mock_context: Any) -> None:
         """Test workflow templates retrieval with filters."""
         result = await km_get_workflow_templates(
             category="communication",
@@ -793,7 +793,7 @@ class TestKMValidateWorkflow:
         return context
 
     @pytest.mark.asyncio
-    async def test_validate_workflow_success(self, mock_context) -> None:
+    async def test_validate_workflow_success(self, mock_context: Any) -> None:
         """Test successful workflow validation."""
         result = await km_validate_workflow(
             workflow_id="workflow_12345678",
@@ -817,7 +817,7 @@ class TestKMValidateWorkflow:
         assert "component_types" in stats
 
     @pytest.mark.asyncio
-    async def test_validate_workflow_not_found(self, mock_context) -> None:
+    async def test_validate_workflow_not_found(self, mock_context: Any) -> None:
         """Test validation of nonexistent workflow."""
         result = await km_validate_workflow(
             workflow_id="nonexistent_workflow_id",
@@ -839,7 +839,7 @@ class TestKMExportVisualWorkflow:
         return context
 
     @pytest.mark.asyncio
-    async def test_export_visual_workflow_success(self, mock_context) -> None:
+    async def test_export_visual_workflow_success(self, mock_context: Any) -> None:
         """Test successful workflow export."""
         result = await km_export_visual_workflow(
             workflow_id="workflow_12345678",
@@ -863,7 +863,7 @@ class TestKMExportVisualWorkflow:
         assert len(validation["errors"]) == 0
 
     @pytest.mark.asyncio
-    async def test_export_visual_workflow_not_found(self, mock_context) -> None:
+    async def test_export_visual_workflow_not_found(self, mock_context: Any) -> None:
         """Test export of nonexistent workflow."""
         result = await km_export_visual_workflow(
             workflow_id="nonexistent_workflow_id",
@@ -886,7 +886,7 @@ class TestWorkflowDesignerIntegration:
         return context
 
     @pytest.mark.asyncio
-    async def test_complete_workflow_lifecycle(self, mock_context) -> None:
+    async def test_complete_workflow_lifecycle(self, mock_context: Any) -> None:
         """Test complete workflow designer lifecycle integration."""
         # Create workflow
         create_result = await km_create_visual_workflow(
@@ -949,7 +949,7 @@ class TestWorkflowDesignerProperties:
         return context
 
     @pytest.mark.asyncio
-    async def test_workflow_creation_with_various_names(self, mock_context) -> None:
+    async def test_workflow_creation_with_various_names(self, mock_context: Any) -> None:
         """Test workflow creation with various name inputs."""
         test_names = [
             "Simple Workflow",
@@ -965,7 +965,7 @@ class TestWorkflowDesignerProperties:
             assert result["workflow"]["name"] == name
 
     @pytest.mark.asyncio
-    async def test_component_types_validation(self, mock_context) -> None:
+    async def test_component_types_validation(self, mock_context: Any) -> None:
         """Test component type validation."""
         valid_types = ["trigger", "action", "condition", "loop", "variable", "output"]
         invalid_types = ["invalid", "unknown", "badtype", ""]

@@ -7,7 +7,8 @@ model discovery, and performance analytics using the proven pattern that achieve
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
+
 import pytest
 
 # Import FastMCP tool objects and extract underlying functions (systematic MCP pattern)
@@ -23,28 +24,28 @@ km_ai_models = ai_model_mgmt.km_ai_models
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def cache_operation_strategy(draw) -> Any:
+def cache_operation_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid cache operations."""
     operations = ["get", "put", "invalidate", "clear", "stats", "optimize"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def cache_level_strategy(draw) -> Any:
+def cache_level_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid cache levels."""
     levels = ["l1", "l2", "l3", "auto"]
     return draw(st.sampled_from(levels))
 
 
 @st.composite
-def cost_operation_strategy(draw) -> Any:
+def cost_operation_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid cost operations."""
     operations = ["track", "budget", "optimize", "report", "alert"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def optimization_strategy_strategy(draw) -> Any:
+def optimization_strategy_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid optimization strategies."""
     strategies = [
         "aggressive",
@@ -57,40 +58,40 @@ def optimization_strategy_strategy(draw) -> Any:
 
 
 @st.composite
-def budget_period_strategy(draw) -> Any:
+def budget_period_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid budget periods."""
     periods = ["hourly", "daily", "weekly", "monthly", "quarterly", "yearly"]
     return draw(st.sampled_from(periods))
 
 
 @st.composite
-def model_provider_strategy(draw) -> Any:
+def model_provider_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid model providers."""
     providers = ["openai", "azure", "google", "anthropic", "local"]
     return draw(st.sampled_from(providers))
 
 
 @st.composite
-def model_sort_strategy(draw) -> Any:
+def model_sort_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid model sort criteria."""
     sort_options = ["name", "cost", "performance", "popularity"]
     return draw(st.sampled_from(sort_options))
 
 
 @st.composite
-def ttl_hours_strategy(draw) -> Any:
+def ttl_hours_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid TTL hours."""
     return draw(st.integers(min_value=1, max_value=168))  # 1 hour to 1 week
 
 
 @st.composite
-def budget_amount_strategy(draw) -> Any:
+def budget_amount_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid budget amounts."""
     return draw(st.floats(min_value=10.0, max_value=10000.0))
 
 
 @st.composite
-def alert_thresholds_strategy(draw) -> bool:
+def alert_thresholds_strategy(draw: Callable[..., Any]) -> bool:
     """Generate valid alert thresholds."""
     count = draw(st.integers(min_value=1, max_value=5))
     thresholds = []
@@ -117,25 +118,25 @@ class TestAIModelManagementParameterValidation:
     """Test parameter validation for AI model management operations."""
 
     @given(cache_operation_strategy())
-    def test_valid_cache_operations(self, operation) -> None:
+    def test_valid_cache_operations(self, operation: str) -> None:
         """Test that cache operations are properly validated."""
         valid_operations = ["get", "put", "invalidate", "clear", "stats", "optimize"]
         assert operation in valid_operations
 
     @given(cache_level_strategy())
-    def test_valid_cache_levels(self, level) -> None:
+    def test_valid_cache_levels(self, level: int) -> None:
         """Test that cache levels are properly validated."""
         valid_levels = ["l1", "l2", "l3", "auto"]
         assert level in valid_levels
 
     @given(cost_operation_strategy())
-    def test_valid_cost_operations(self, operation) -> None:
+    def test_valid_cost_operations(self, operation: str) -> None:
         """Test that cost operations are properly validated."""
         valid_operations = ["track", "budget", "optimize", "report", "alert"]
         assert operation in valid_operations
 
     @given(optimization_strategy_strategy())
-    def test_valid_optimization_strategies(self, strategy) -> None:
+    def test_valid_optimization_strategies(self, strategy: Any) -> None:
         """Test that optimization strategies are properly validated."""
         valid_strategies = [
             "aggressive",
@@ -147,35 +148,35 @@ class TestAIModelManagementParameterValidation:
         assert strategy in valid_strategies
 
     @given(budget_period_strategy())
-    def test_valid_budget_periods(self, period) -> None:
+    def test_valid_budget_periods(self, period: Any) -> None:
         """Test that budget periods are properly validated."""
         valid_periods = ["hourly", "daily", "weekly", "monthly", "quarterly", "yearly"]
         assert period in valid_periods
 
     @given(model_provider_strategy())
-    def test_valid_model_providers(self, provider) -> None:
+    def test_valid_model_providers(self, provider: Any) -> None:
         """Test that model providers are properly validated."""
         valid_providers = ["openai", "azure", "google", "anthropic", "local"]
         assert provider in valid_providers
 
     @given(model_sort_strategy())
-    def test_valid_model_sort_criteria(self, sort_by) -> None:
+    def test_valid_model_sort_criteria(self, sort_by: Any) -> None:
         """Test that model sort criteria are properly validated."""
         valid_sorts = ["name", "cost", "performance", "popularity"]
         assert sort_by in valid_sorts
 
     @given(ttl_hours_strategy())
-    def test_valid_ttl_hours(self, ttl_hours) -> None:
+    def test_valid_ttl_hours(self, ttl_hours: Any) -> None:
         """Test that TTL hours are properly validated."""
         assert 1 <= ttl_hours <= 168
 
     @given(budget_amount_strategy())
-    def test_valid_budget_amounts(self, amount) -> None:
+    def test_valid_budget_amounts(self, amount: Any) -> None:
         """Test that budget amounts are properly validated."""
         assert amount >= 10.0
 
     @given(alert_thresholds_strategy())
-    def test_valid_alert_thresholds(self, thresholds) -> None:
+    def test_valid_alert_thresholds(self, thresholds: list[Any] | str) -> None:
         """Test that alert thresholds are properly validated."""
         assert all(0.1 <= threshold <= 0.99 for threshold in thresholds)
         assert len(thresholds) >= 1
@@ -1019,7 +1020,7 @@ class TestAIModelManagementProperties:
     @given(cache_operation_strategy(), cache_level_strategy())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_cache_properties(self, operation, cache_level) -> None:
+    async def test_cache_properties(self, operation: str, cache_level: Any) -> None:
         """Test properties of cache operations."""
         # Prepare operation-specific data
         if operation == "get":
@@ -1067,7 +1068,7 @@ class TestAIModelManagementProperties:
     )
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_cost_optimization_properties(self, operation, strategy, period) -> None:
+    async def test_cost_optimization_properties(self, operation: str, strategy: Any, period: Any) -> None:
         """Test properties of cost optimization operations."""
         # Prepare operation-specific data
         if operation == "track":
@@ -1111,7 +1112,7 @@ class TestAIModelManagementProperties:
 
     @given(model_provider_strategy(), model_sort_strategy())
     @pytest.mark.asyncio
-    async def test_model_listing_properties(self, provider, sort_by) -> None:
+    async def test_model_listing_properties(self, provider: Any, sort_by: Any) -> None:
         """Test properties of model listing operations."""
         result = await km_ai_models(
             provider=provider,

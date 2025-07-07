@@ -6,7 +6,6 @@ by focusing on modules that can be realistically tested and imported.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 from unittest.mock import Mock, patch
 
@@ -117,7 +116,7 @@ class TestWorkingModulesExpansion:
         assert high_analysis is not None
 
     @patch("subprocess.run")
-    def test_clipboard_manager_comprehensive(self, mock_run) -> None:
+    def test_clipboard_manager_comprehensive(self, mock_run: Any) -> None:
         """Comprehensive ClipboardManager testing."""
         from src.clipboard.clipboard_manager import ClipboardManager
 
@@ -182,7 +181,7 @@ class TestWorkingModulesExpansion:
         )
 
     @patch("subprocess.run")
-    def test_app_controller_comprehensive(self, mock_run) -> None:
+    def test_app_controller_comprehensive(self, mock_run: Any) -> None:
         """Comprehensive AppController testing."""
         from src.applications.app_controller import AppController
 

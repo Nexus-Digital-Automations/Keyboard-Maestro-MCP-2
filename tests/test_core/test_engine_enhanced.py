@@ -6,11 +6,11 @@ resource management, and performance monitoring with property-based testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import threading
 import time
 from dataclasses import dataclass
+from typing import Any
 
 import pytest
 from hypothesis import assume, given
@@ -625,7 +625,7 @@ class TestEngineErrorHandling:
             command_type: CommandType
             parameters: CommandParameters
 
-            def execute(self, context) -> bool:
+            def execute(self, context: dict[str, Any] | Any) -> bool:
                 raise RuntimeError("Simulated command failure")
 
             def validate(self) -> bool:

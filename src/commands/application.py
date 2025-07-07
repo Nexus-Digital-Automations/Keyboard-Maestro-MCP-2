@@ -29,7 +29,7 @@ class SecurityError(Exception):
 def secure_subprocess_run(
     command: str,
     args: list[str],
-    **kwargs,
+    **kwargs: Any,
 ) -> subprocess.CompletedProcess:
     """Secure subprocess execution with full path resolution and validation.
 

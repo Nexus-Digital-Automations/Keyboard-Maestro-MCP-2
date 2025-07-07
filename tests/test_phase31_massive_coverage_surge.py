@@ -6,7 +6,6 @@ that still have low or zero coverage to maximize coverage gains toward 100%.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from unittest.mock import Mock, patch
 
 import pytest

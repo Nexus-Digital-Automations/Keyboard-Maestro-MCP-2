@@ -175,11 +175,11 @@ async def km_audit_system(
 
 
 async def _handle_log_operation(
-    audit_system,
+    audit_system: Any,
     event_type: str | None,
     user_id: str | None,
     action_details: dict | None,
-    ctx,
+    ctx: Any,
 ) -> dict[str, Any]:
     """Handle audit event logging operation."""
     try:
@@ -290,7 +290,7 @@ async def _handle_log_operation(
 
 
 async def _handle_query_operation(
-    audit_system,
+    audit_system: Any,
     time_range: dict | None,
     filters: dict | None,
     include_sensitive: bool,
@@ -419,7 +419,7 @@ async def _handle_query_operation(
 
 
 async def _handle_report_operation(
-    audit_system,
+    audit_system: Any,
     compliance_standard: str,
     time_range: dict | None,
     report_format: str,
@@ -536,7 +536,7 @@ async def _handle_report_operation(
 
 
 async def _handle_monitor_operation(
-    audit_system,
+    audit_system: Any,
     compliance_standard: str,
     config: dict | None,
     ctx: Context | None,
@@ -614,7 +614,7 @@ async def _handle_monitor_operation(
 
 
 async def _handle_configure_operation(
-    audit_system,
+    audit_system: Any,
     audit_level: str,
     retention_period: int,
     encrypt_logs: bool,
@@ -691,7 +691,7 @@ async def _handle_configure_operation(
         }
 
 
-async def _handle_status_operation(audit_system, ctx: Context | None) -> dict[str, Any]:
+async def _handle_status_operation(audit_system: Any, ctx: Context | None) -> dict[str, Any]:
     """Handle audit system status operation."""
     try:
         if ctx:

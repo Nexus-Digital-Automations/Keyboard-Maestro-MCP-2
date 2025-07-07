@@ -571,7 +571,7 @@ async def km_ai_processing(
     cost_limit: float | None = None,  # Maximum cost per operation
     privacy_mode: bool = True,  # Enable privacy protection
     timeout: int = 60,  # Processing timeout
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """AI/ML model integration for intelligent automation and decision-making.
 
@@ -700,7 +700,7 @@ async def km_ai_status(
     detailed: bool = False,
     include_models: bool = True,
     include_statistics: bool = True,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Get AI processing system status and capabilities.
 
@@ -799,7 +799,7 @@ async def km_ai_intelligence(
     privacy_level: str = "standard",  # minimal|standard|strict|paranoid
     enable_caching: bool = True,  # Cache intelligent insights
     timeout: int = 30,  # Processing timeout
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """AI-powered intelligent automation with context awareness and adaptive learning.
 
@@ -939,7 +939,7 @@ async def km_ai_intelligence(
 
 async def _process_context_analysis(
     input_data: Any,
-    context_engine,
+    context_engine: Any,
     intelligence_type: str,
     context_dimensions: list[str] | None,
     privacy_level: str,
@@ -1025,8 +1025,8 @@ async def _process_context_analysis(
 
 async def _process_smart_trigger(
     input_data: Any,
-    automation_engine,
-    ai_manager,
+    automation_engine: Any,
+    ai_manager: Any,
     confidence_threshold: float,
     learning_enabled: bool,
 ) -> dict[str, Any]:
@@ -1079,7 +1079,7 @@ async def _process_smart_trigger(
 
 async def _process_adaptive_workflow(
     input_data: Any,
-    automation_engine,
+    automation_engine: Any,
     adaptation_mode: str,
     learning_enabled: bool,
     context_dimensions: list[str] | None,
@@ -1146,8 +1146,8 @@ async def _process_adaptive_workflow(
 
 async def _process_decision_engine(
     input_data: Any,
-    automation_engine,
-    ai_manager,
+    automation_engine: Any,
+    ai_manager: Any,
     confidence_threshold: float,
     intelligence_type: str,
 ) -> dict[str, Any]:
@@ -1210,8 +1210,8 @@ async def _process_decision_engine(
 
 async def _process_pattern_detection(
     input_data: Any,
-    automation_engine,
-    context_engine,
+    automation_engine: Any,
+    context_engine: Any,
     learning_enabled: bool,
     privacy_level: str,
 ) -> dict[str, Any]:
@@ -1294,7 +1294,7 @@ async def km_ai_batch(
     enable_checkpointing: bool = True,  # Enable job checkpointing
     auto_retry_failed: bool = True,  # Auto-retry failed tasks
     timeout_hours: int = 1,  # Total job timeout
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Advanced batch processing for AI operations with enterprise-grade management.
 
@@ -1536,7 +1536,7 @@ async def km_ai_cache(
     ttl_hours: int | None = None,  # Time to live in hours
     enable_compression: bool = True,  # Enable compression for L2/L3
     enable_prefetch: bool = True,  # Enable predictive prefetching
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Intelligent caching system for AI operations with multi-level hierarchy.
 
@@ -1765,7 +1765,7 @@ async def km_ai_cost_optimization(
     period: str = "monthly",  # hourly|daily|weekly|monthly|quarterly|yearly
     enable_auto_optimization: bool = False,  # Enable automatic optimization
     alert_thresholds: list[float] | None = None,  # Alert thresholds (0.0-1.0)
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Advanced cost optimization system for AI operations with enterprise controls.
 
@@ -1962,7 +1962,7 @@ async def km_ai_models(
     provider: str | None = None,
     operation: str | None = None,
     include_costs: bool = False,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """List available AI models with capabilities and usage information.
 

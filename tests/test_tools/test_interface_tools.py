@@ -31,8 +31,8 @@ Key Mocking Pattern:
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import time
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -102,9 +102,9 @@ class TestInterfaceOperations:
     @pytest.mark.asyncio
     async def test_click_operation_success(
         self,
-        mock_context,
-        mock_km_client,
-        valid_coordinates,
+        mock_context: Any,
+        mock_km_client: Any,
+        valid_coordinates: Any,
     ) -> None:
         """Test successful click operation."""
         with patch(
@@ -126,9 +126,9 @@ class TestInterfaceOperations:
     @pytest.mark.asyncio
     async def test_double_click_operation_success(
         self,
-        mock_context,
-        mock_km_client,
-        valid_coordinates,
+        mock_context: Any,
+        mock_km_client: Any,
+        valid_coordinates: Any,
     ) -> None:
         """Test successful double click operation."""
         with patch(
@@ -151,9 +151,9 @@ class TestInterfaceOperations:
     @pytest.mark.asyncio
     async def test_right_click_operation_success(
         self,
-        mock_context,
-        mock_km_client,
-        valid_coordinates,
+        mock_context: Any,
+        mock_km_client: Any,
+        valid_coordinates: Any,
     ) -> None:
         """Test successful right click operation."""
         with patch(
@@ -174,9 +174,9 @@ class TestInterfaceOperations:
     @pytest.mark.asyncio
     async def test_move_mouse_operation_success(
         self,
-        mock_context,
-        mock_km_client,
-        valid_coordinates,
+        mock_context: Any,
+        mock_km_client: Any,
+        valid_coordinates: Any,
     ) -> None:
         """Test successful mouse movement operation."""
         with patch(
@@ -197,10 +197,10 @@ class TestInterfaceOperations:
     @pytest.mark.asyncio
     async def test_drag_operation_success(
         self,
-        mock_context,
-        mock_km_client,
-        valid_coordinates,
-        valid_end_coordinates,
+        mock_context: Any,
+        mock_km_client: Any,
+        valid_coordinates: Any,
+        valid_end_coordinates: Any,
     ) -> None:
         """Test successful drag operation."""
         with patch(
@@ -226,7 +226,7 @@ class TestInterfaceOperations:
             assert "timestamp" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_type_operation_success(self, mock_context, mock_km_client) -> None:
+    async def test_type_operation_success(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test successful text typing operation."""
         test_text = "Hello, World! 123"
 
@@ -247,7 +247,7 @@ class TestInterfaceOperations:
             assert "timestamp" in result["data"]
 
     @pytest.mark.asyncio
-    async def test_key_press_operation_success(self, mock_context, mock_km_client) -> None:
+    async def test_key_press_operation_success(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test successful key press operation."""
         keystroke = "cmd+shift+a"
 
@@ -271,9 +271,9 @@ class TestInterfaceOperations:
     @pytest.mark.asyncio
     async def test_operation_with_delay(
         self,
-        mock_context,
-        mock_km_client,
-        valid_coordinates,
+        mock_context: Any,
+        mock_km_client: Any,
+        valid_coordinates: Any,
     ) -> None:
         """Test operation with delay parameter."""
         start_time = time.time()
@@ -302,7 +302,7 @@ class TestInterfaceErrorHandling:
     """Test interface tools error handling scenarios."""
 
     @pytest.mark.asyncio
-    async def test_missing_coordinates_error(self, mock_context) -> None:
+    async def test_missing_coordinates_error(self, mock_context: Any) -> None:
         """Test error when coordinates are missing for click operations."""
         with patch("src.server.tools.interface_tools.get_km_client"):
             result = await km_interface_automation(
@@ -316,7 +316,7 @@ class TestInterfaceErrorHandling:
             assert "Coordinates required" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_missing_text_error(self, mock_context) -> None:
+    async def test_missing_text_error(self, mock_context: Any) -> None:
         """Test error when text is missing for type operation."""
         with patch("src.server.tools.interface_tools.get_km_client"):
             result = await km_interface_automation(
@@ -330,7 +330,7 @@ class TestInterfaceErrorHandling:
             assert "Text required" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_missing_keystroke_error(self, mock_context) -> None:
+    async def test_missing_keystroke_error(self, mock_context: Any) -> None:
         """Test error when keystroke is missing for key_press operation."""
         with patch("src.server.tools.interface_tools.get_km_client"):
             result = await km_interface_automation(
@@ -346,8 +346,8 @@ class TestInterfaceErrorHandling:
     @pytest.mark.asyncio
     async def test_missing_drag_coordinates_error(
         self,
-        mock_context,
-        valid_coordinates,
+        mock_context: Any,
+        valid_coordinates: Any,
     ) -> None:
         """Test error when end coordinates are missing for drag operation."""
         with patch("src.server.tools.interface_tools.get_km_client"):
@@ -367,9 +367,9 @@ class TestInterfaceErrorHandling:
     @pytest.mark.asyncio
     async def test_km_connection_failure(
         self,
-        mock_context,
-        mock_km_client,
-        valid_coordinates,
+        mock_context: Any,
+        mock_km_client: Any,
+        valid_coordinates: Any,
     ) -> None:
         """Test handling of KM connection failure."""
         # Mock connection failure
@@ -439,7 +439,7 @@ class TestHelperFunctions:
     """Test interface automation helper functions."""
 
     @pytest.mark.asyncio
-    async def test_perform_click_function(self, mock_context) -> None:
+    async def test_perform_click_function(self, mock_context: Any) -> None:
         """Test the _perform_click helper function directly."""
         mock_km_client = Mock()
         coordinates = {"x": 150, "y": 250}
@@ -459,7 +459,7 @@ class TestHelperFunctions:
         assert result["data"]["modifiers"] == modifiers
 
     @pytest.mark.asyncio
-    async def test_move_mouse_function(self, mock_context) -> None:
+    async def test_move_mouse_function(self, mock_context: Any) -> None:
         """Test the _move_mouse helper function directly."""
         mock_km_client = Mock()
         coordinates = {"x": 500, "y": 600}
@@ -471,7 +471,7 @@ class TestHelperFunctions:
         assert result["data"]["coordinates"] == coordinates
 
     @pytest.mark.asyncio
-    async def test_perform_drag_function(self, mock_context) -> None:
+    async def test_perform_drag_function(self, mock_context: Any) -> None:
         """Test the _perform_drag helper function directly."""
         mock_km_client = Mock()
         start_coords = {"x": 100, "y": 100}
@@ -498,7 +498,7 @@ class TestHelperFunctions:
         assert abs(result["data"]["distance_pixels"] - 141.42) < 0.1
 
     @pytest.mark.asyncio
-    async def test_type_text_function(self, mock_context) -> None:
+    async def test_type_text_function(self, mock_context: Any) -> None:
         """Test the _type_text helper function directly."""
         mock_km_client = Mock()
         text = "Test typing functionality"
@@ -511,7 +511,7 @@ class TestHelperFunctions:
         assert result["data"]["estimated_duration_ms"] > 0
 
     @pytest.mark.asyncio
-    async def test_press_keys_function_simple(self, mock_context) -> None:
+    async def test_press_keys_function_simple(self, mock_context: Any) -> None:
         """Test the _press_keys helper function with simple keystroke."""
         mock_km_client = Mock()
         keystroke = "a"
@@ -525,7 +525,7 @@ class TestHelperFunctions:
         assert result["data"]["modifiers"] == []
 
     @pytest.mark.asyncio
-    async def test_press_keys_function_complex(self, mock_context) -> None:
+    async def test_press_keys_function_complex(self, mock_context: Any) -> None:
         """Test the _press_keys helper function with complex keystroke."""
         mock_km_client = Mock()
         keystroke = "cmd+shift+escape"
@@ -540,7 +540,7 @@ class TestHelperFunctions:
         assert "shift" in result["data"]["modifiers"]
 
     @pytest.mark.asyncio
-    async def test_press_keys_invalid_key(self, mock_context) -> None:
+    async def test_press_keys_invalid_key(self, mock_context: Any) -> None:
         """Test _press_keys with invalid key."""
         mock_km_client = Mock()
         keystroke = "invalid_key_name"
@@ -555,7 +555,7 @@ class TestInterfaceIntegration:
     """Test interface tools integration scenarios."""
 
     @pytest.mark.asyncio
-    async def test_complete_interface_workflow(self, mock_context, mock_km_client) -> None:
+    async def test_complete_interface_workflow(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test complete interface automation workflow."""
         coordinates = {"x": 100, "y": 200}
 
@@ -588,7 +588,7 @@ class TestInterfaceIntegration:
             assert key_result["success"] is True
 
     @pytest.mark.asyncio
-    async def test_complex_drag_operation(self, mock_context, mock_km_client) -> None:
+    async def test_complex_drag_operation(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test complex drag operation with modifiers."""
         start_coords = {"x": 50, "y": 50}
         end_coords = {"x": 300, "y": 400}
@@ -621,9 +621,9 @@ class TestInterfaceContext:
     @pytest.mark.asyncio
     async def test_context_info_logging(
         self,
-        mock_context,
-        mock_km_client,
-        valid_coordinates,
+        mock_context: Any,
+        mock_km_client: Any,
+        valid_coordinates: Any,
     ) -> None:
         """Test context info logging during execution."""
         with patch(
@@ -643,7 +643,7 @@ class TestInterfaceContext:
             mock_context.report_progress.assert_called()
 
     @pytest.mark.asyncio
-    async def test_context_error_logging(self, mock_context, mock_km_client) -> None:
+    async def test_context_error_logging(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test context error logging during failures."""
         # Mock connection failure to trigger error
         mock_connection_result = Mock()
@@ -663,7 +663,7 @@ class TestInterfaceContext:
             assert result["success"] is False
 
     @pytest.mark.asyncio
-    async def test_without_context(self, mock_km_client, valid_coordinates) -> None:
+    async def test_without_context(self, mock_km_client: Any, valid_coordinates: Any) -> None:
         """Test operation without context provided."""
         with patch(
             "src.server.tools.interface_tools.get_km_client",
@@ -683,7 +683,7 @@ class TestInterfaceSecurity:
     """Test interface tools security validation."""
 
     @pytest.mark.asyncio
-    async def test_coordinate_bounds_validation(self, mock_context, mock_km_client) -> None:
+    async def test_coordinate_bounds_validation(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test coordinate bounds security validation."""
         # Test extremely large coordinates
         with patch(
@@ -699,7 +699,7 @@ class TestInterfaceSecurity:
             assert "out of reasonable range" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_negative_coordinate_bounds(self, mock_context, mock_km_client) -> None:
+    async def test_negative_coordinate_bounds(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test negative coordinate bounds validation."""
         with patch(
             "src.server.tools.interface_tools.get_km_client",
@@ -714,7 +714,7 @@ class TestInterfaceSecurity:
             assert "out of reasonable range" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_text_length_limits(self, mock_context, mock_km_client) -> None:
+    async def test_text_length_limits(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test text length validation for type operations."""
         # Test very long text (should be handled gracefully)
         long_text = "x" * 5000
@@ -733,7 +733,7 @@ class TestInterfaceSecurity:
             assert result["data"]["character_count"] == len(long_text)
 
     @pytest.mark.asyncio
-    async def test_keystroke_validation(self, mock_context, mock_km_client) -> None:
+    async def test_keystroke_validation(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test keystroke format validation."""
         with patch(
             "src.server.tools.interface_tools.get_km_client",
@@ -755,14 +755,14 @@ class TestInterfacePropertyBased:
     """Property-based testing for interface tools with Hypothesis."""
 
     @composite
-    def valid_coordinates_strategy(draw) -> dict[str, Any]:
+    def valid_coordinates_strategy(draw: Callable[..., Any]) -> dict[str, Any]:
         """Generate valid coordinate pairs."""
         x = draw(st.integers(min_value=-4999, max_value=9999))
         y = draw(st.integers(min_value=-4999, max_value=9999))
         return {"x": x, "y": y}
 
     @composite
-    def valid_operations(draw) -> Any:
+    def valid_operations(draw: Callable[..., Any]) -> Any:
         """Generate valid interface operations."""
         return draw(
             st.sampled_from(
@@ -779,7 +779,7 @@ class TestInterfacePropertyBased:
         )
 
     @composite
-    def valid_modifiers(draw) -> Any:
+    def valid_modifiers(draw: Callable[..., Any]) -> Any:
         """Generate valid modifier combinations."""
         modifiers = draw(
             st.lists(
@@ -793,14 +793,14 @@ class TestInterfacePropertyBased:
 
     @given(valid_coordinates_strategy())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    def test_coordinate_validation_property(self, coordinates) -> None:
+    def test_coordinate_validation_property(self, coordinates: Callable[..., Any]) -> None:
         """Property: Valid coordinates should pass validation."""
         # Should not raise exception for coordinates in valid range
         _validate_coordinates(coordinates)
 
     @given(valid_operations())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    def test_operation_validation_property(self, operation) -> None:
+    def test_operation_validation_property(self, operation: str) -> None:
         """Property: Valid operations should be accepted."""
         assert operation in [
             "click",
@@ -820,9 +820,9 @@ class TestInterfacePerformance:
     @pytest.mark.asyncio
     async def test_interface_operation_response_time(
         self,
-        mock_context,
-        mock_km_client,
-        valid_coordinates,
+        mock_context: Any,
+        mock_km_client: Any,
+        valid_coordinates: Any,
     ) -> None:
         """Test that interface operations complete within reasonable time."""
         start_time = time.time()
@@ -845,7 +845,7 @@ class TestInterfacePerformance:
             assert result["success"] is True
 
     @pytest.mark.asyncio
-    async def test_typing_performance(self, mock_context, mock_km_client) -> None:
+    async def test_typing_performance(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test typing operation performance with various text lengths."""
         test_cases = [
             ("Short", 10),
@@ -876,7 +876,7 @@ class TestInterfacePerformance:
                 assert result["data"]["character_count"] == length
 
     @pytest.mark.asyncio
-    async def test_drag_operation_performance(self, mock_context, mock_km_client) -> None:
+    async def test_drag_operation_performance(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test drag operation performance with various durations."""
         start_coords = {"x": 0, "y": 0}
         end_coords = {"x": 100, "y": 100}
@@ -912,7 +912,7 @@ class TestInterfaceEdgeCases:
     """Test interface tools edge cases and boundary conditions."""
 
     @pytest.mark.asyncio
-    async def test_zero_coordinates(self, mock_context, mock_km_client) -> None:
+    async def test_zero_coordinates(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test handling of zero coordinates."""
         zero_coords = {"x": 0, "y": 0}
 
@@ -930,7 +930,7 @@ class TestInterfaceEdgeCases:
             assert result["data"]["coordinates"] == zero_coords
 
     @pytest.mark.asyncio
-    async def test_negative_valid_coordinates(self, mock_context, mock_km_client) -> None:
+    async def test_negative_valid_coordinates(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test handling of negative but valid coordinates."""
         negative_coords = {"x": -100, "y": -200}
 
@@ -948,7 +948,7 @@ class TestInterfaceEdgeCases:
             assert result["data"]["coordinates"] == negative_coords
 
     @pytest.mark.asyncio
-    async def test_empty_text_typing(self, mock_context, mock_km_client) -> None:
+    async def test_empty_text_typing(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test typing empty text."""
         with patch(
             "src.server.tools.interface_tools.get_km_client",
@@ -965,7 +965,7 @@ class TestInterfaceEdgeCases:
             assert "Text required" in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_unicode_text_typing(self, mock_context, mock_km_client) -> None:
+    async def test_unicode_text_typing(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test typing Unicode text."""
         unicode_text = "Hello 世界 🌍 测试"
 
@@ -983,7 +983,7 @@ class TestInterfaceEdgeCases:
             assert result["data"]["character_count"] == len(unicode_text)
 
     @pytest.mark.asyncio
-    async def test_special_key_combinations(self, mock_context, mock_km_client) -> None:
+    async def test_special_key_combinations(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test various special key combinations."""
         special_keystrokes = [
             "f1",
@@ -1008,7 +1008,7 @@ class TestInterfaceEdgeCases:
                 assert result["data"]["keystroke"] == keystroke
 
     @pytest.mark.asyncio
-    async def test_maximum_drag_distance(self, mock_context, mock_km_client) -> None:
+    async def test_maximum_drag_distance(self, mock_context: Any, mock_km_client: Any) -> None:
         """Test drag operation with maximum valid distance."""
         start_coords = {"x": -4999, "y": -4999}
         end_coords = {"x": 9999, "y": 9999}

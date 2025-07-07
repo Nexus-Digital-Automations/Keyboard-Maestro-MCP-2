@@ -6,8 +6,8 @@ security validation, and integration with property-based testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -18,14 +18,14 @@ from src.server.tools.app_control_tools import km_app_control
 
 # Test data generators
 @st.composite
-def app_control_operation_strategy(draw) -> Any:
+def app_control_operation_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid app control operations."""
     operations = ["launch", "quit", "activate", "menu_select", "get_state"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def app_identifier_strategy(draw) -> Any:
+def app_identifier_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid application identifiers."""
     # Mix of bundle IDs and app names (systematic pattern alignment)
     identifiers = [
@@ -52,7 +52,7 @@ def app_identifier_strategy(draw) -> Any:
 
 
 @st.composite
-def menu_path_strategy(draw) -> Any:
+def menu_path_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid menu paths."""
     menu_items = [
         "File",
@@ -85,13 +85,13 @@ def menu_path_strategy(draw) -> Any:
 
 
 @st.composite
-def timeout_strategy(draw) -> Any:
+def timeout_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid timeout values."""
     return draw(st.integers(min_value=1, max_value=120))
 
 
 @st.composite
-def invalid_app_identifier_strategy(draw) -> Any:
+def invalid_app_identifier_strategy(draw: Callable[..., Any]) -> Any:
     """Generate invalid application identifiers."""
     invalid_identifiers = [
         "",  # Empty
@@ -106,7 +106,7 @@ def invalid_app_identifier_strategy(draw) -> Any:
 
 
 @st.composite
-def invalid_operation_strategy(draw) -> Any:
+def invalid_operation_strategy(draw: Callable[..., Any]) -> Any:
     """Generate invalid operations."""
     invalid_ops = ["invalid", "hack", "execute", "shell", "", "delete", "install"]
     return draw(st.sampled_from(invalid_ops))
@@ -724,7 +724,7 @@ class TestAppControlErrorHandling:
         except ImportError:
             # Create mock SecurityViolationError if not available
             class SecurityViolationError(Exception):
-                def __init__(self, violation_type, details):
+                def __init__(self, violation_type: str, details: Any):
                     super().__init__(f"{violation_type}: {details}")
                     self.violation_type = violation_type
                     self.details = details

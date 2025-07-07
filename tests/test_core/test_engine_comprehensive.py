@@ -6,10 +6,10 @@ async operations, and performance with property-based testing.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 import time
 from datetime import datetime
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -44,7 +44,7 @@ from src.integration.km_client import Either
 
 # Test data generators
 @st.composite
-def command_type_strategy(draw) -> Any:
+def command_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid command types."""
     return draw(
         st.sampled_from(
@@ -61,7 +61,7 @@ def command_type_strategy(draw) -> Any:
 
 
 @st.composite
-def command_parameters_strategy(draw, command_type=None) -> bool:
+def command_parameters_strategy(draw: Callable[..., Any], command_type: str=None) -> bool:
     """Generate valid command parameters."""
     if command_type is None:
         command_type = draw(command_type_strategy())
@@ -88,7 +88,7 @@ def command_parameters_strategy(draw, command_type=None) -> bool:
 
 
 @st.composite
-def placeholder_command_strategy(draw) -> Any:
+def placeholder_command_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid placeholder commands."""
     command_type = draw(command_type_strategy())
     parameters = draw(command_parameters_strategy(command_type))
@@ -101,7 +101,7 @@ def placeholder_command_strategy(draw) -> Any:
 
 
 @st.composite
-def macro_definition_strategy(draw) -> bool:
+def macro_definition_strategy(draw: Callable[..., Any]) -> bool:
     """Generate valid macro definitions."""
     commands = draw(st.lists(placeholder_command_strategy(), min_size=1, max_size=10))
     macro_name = draw(st.text(min_size=1, max_size=100))
@@ -234,7 +234,7 @@ class TestPlaceholderCommand:
             mock_command.parameters = mock_params
 
             # Set up the execute method to behave like the real one but with error
-            def mock_execute(context) -> bool:
+            def mock_execute(context: dict[str, Any] | Any) -> bool:
                 try:
                     # This will trigger the error from parameters.get()
                     text = mock_command.parameters.get("text", "")
@@ -460,7 +460,7 @@ class TestMacroEngine:
         mock_engine._active_executions = {ExecutionToken("existing1"): {"mock": "data"}}
 
         # Set up the execute_macro_async method to behave like the real one
-        async def mock_execute_macro_async(macro):
+        async def mock_execute_macro_async(macro: Any) -> None:
             # Simulate the concurrent limit check
             if (
                 len(mock_engine._active_executions)
@@ -514,7 +514,7 @@ class TestMacroEngine:
         slow_command.parameters = CommandParameters({"duration": 10.0})
 
         # Set up _execute_command_safe to simulate timeout
-        async def mock_execute_command_safe(command, context):
+        async def mock_execute_command_safe(command: str, context: dict[str, Any] | Any) -> None:
             # Simulate timeout when context has very short timeout
             if hasattr(context, "timeout") and context.timeout.total_seconds() < 1.0:
                 return CommandResult.failure_result(
@@ -566,7 +566,7 @@ class TestMacroEngine:
         mock_engine.context_manager = mock_context_manager
 
         # Set up cancel_execution method to behave like the real one
-        def mock_cancel_execution(exec_token) -> bool:
+        def mock_cancel_execution(exec_token: Any) -> bool:
             # Simulate checking status first
             status = mock_context_manager.get_status(exec_token)
             if status == ExecutionStatus.RUNNING:

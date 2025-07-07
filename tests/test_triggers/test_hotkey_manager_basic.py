@@ -5,7 +5,6 @@ Tests cover ModifierKey, ActivationMode, and basic validation patterns.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import pytest
 from hypothesis import assume, given
 from hypothesis import strategies as st
@@ -77,7 +76,7 @@ class TestModifierKey:
             ],
         ),
     )
-    def test_modifier_key_from_string_property_based_invalid(self, invalid_modifier) -> None:
+    def test_modifier_key_from_string_property_based_invalid(self, invalid_modifier: str) -> None:
         """Property-based test for invalid modifier strings."""
         assume(len(invalid_modifier.strip()) > 0)  # Don't test empty strings
 
@@ -130,7 +129,7 @@ class TestActivationMode:
             not in ["pressed", "released", "tapped", "held"],
         ),
     )
-    def test_activation_mode_from_string_property_based_invalid(self, invalid_mode) -> None:
+    def test_activation_mode_from_string_property_based_invalid(self, invalid_mode: str) -> None:
         """Property-based test for invalid activation mode strings."""
         assume(len(invalid_mode.strip()) > 0)  # Don't test empty strings
 
@@ -151,7 +150,7 @@ class TestHotkeyValidation:
             ],
         ),
     )
-    def test_modifier_key_property_based_valid(self, modifier_key) -> None:
+    def test_modifier_key_property_based_valid(self, modifier_key: Any) -> None:
         """Property-based test with valid modifier keys."""
         # Test that all enum values are valid
         assert isinstance(modifier_key, ModifierKey)
@@ -167,7 +166,7 @@ class TestHotkeyValidation:
             ],
         ),
     )
-    def test_activation_mode_property_based_valid(self, activation_mode) -> None:
+    def test_activation_mode_property_based_valid(self, activation_mode: Any) -> None:
         """Property-based test with valid activation modes."""
         # Test that all enum values are valid
         assert isinstance(activation_mode, ActivationMode)

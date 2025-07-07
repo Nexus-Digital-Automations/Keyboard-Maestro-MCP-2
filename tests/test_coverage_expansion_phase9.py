@@ -8,7 +8,6 @@ and other strategic analytics/control modules for maximum coverage gain toward t
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -658,11 +657,11 @@ def test_analytics_validation_async_functionality() -> bool:
     """Test async functionality patterns for analytics validation systems."""
 
     @pytest.mark.asyncio
-    async def async_validation_test_helper():
+    async def async_validation_test_helper() -> None:
         import asyncio
 
         # Test async validation operations
-        async def mock_model_validation():
+        async def mock_model_validation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "validation_id": "val_001",
@@ -679,7 +678,7 @@ def test_analytics_validation_async_functionality() -> bool:
                 },
             }
 
-        async def mock_control_flow_execution():
+        async def mock_control_flow_execution() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "execution_id": "exec_001",
@@ -696,7 +695,7 @@ def test_analytics_validation_async_functionality() -> bool:
                 },
             }
 
-        async def mock_insight_generation():
+        async def mock_insight_generation() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "insight_id": "insight_001",
@@ -727,7 +726,7 @@ def test_analytics_validation_async_functionality() -> bool:
         assert len(insight_result["generated_insights"]) == 3
 
         # Test async error handling for validation systems
-        async def failing_validation_operation():
+        async def failing_validation_operation() -> Any:
             await asyncio.sleep(0.001)
             raise ValueError("Model validation failed")
 

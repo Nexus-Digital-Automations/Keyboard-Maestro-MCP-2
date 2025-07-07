@@ -696,7 +696,7 @@ A: {{answer}}
         # {{#variable}} content {{/variable}}
         pattern = r"\{\{#(\w+)\}\}(.*?)\{\{/\1\}\}"
 
-        def replace_conditional(match) -> dict[str, Any]:
+        def replace_conditional(match: Any) -> dict[str, Any]:
             var_name = match.group(1)
             section_content = match.group(2)
 

@@ -393,7 +393,7 @@ class CloudOperation:
 def create_cloud_credentials(
     provider: CloudProvider,
     auth_method: CloudAuthMethod,
-    **kwargs,
+    **kwargs: Any,
 ) -> CloudCredentials:
     """Factory function to create cloud credentials with validation."""
     return CloudCredentials(provider=provider, auth_method=auth_method, **kwargs)
@@ -406,7 +406,7 @@ def create_cloud_resource(
     resource_type: str,
     region: str,
     configuration: dict[str, Any],
-    **kwargs,
+    **kwargs: Any,
 ) -> CloudResource:
     """Factory function to create cloud resource with validation."""
     return CloudResource(

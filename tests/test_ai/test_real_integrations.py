@@ -14,10 +14,10 @@ Test Coverage:
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 from datetime import UTC, datetime
 from decimal import Decimal
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -33,7 +33,6 @@ from src.ai.providers import (
 from src.ai.security.api_key_manager import APIKeyManager
 from src.core.ai_integration import (
     AIOperation,
-    AIRequest,
     AIResponse,
     TokenCount,
     create_ai_request,
@@ -61,7 +60,7 @@ class TestProviderIntegration:
         return registry
 
     @pytest.mark.asyncio
-    async def test_openai_client_capabilities(self, openai_client) -> None:
+    async def test_openai_client_capabilities(self, openai_client: Any) -> None:
         """Test OpenAI client capability reporting."""
         capabilities = await openai_client.get_capabilities()
 
@@ -74,7 +73,7 @@ class TestProviderIntegration:
         assert capabilities.cost_per_output_token > 0
 
     @pytest.mark.asyncio
-    async def test_openai_client_request_processing(self, openai_client) -> None:
+    async def test_openai_client_request_processing(self, openai_client: Any) -> None:
         """Test OpenAI client request processing with mocked API."""
         with patch.object(openai_client, "_make_api_call") as mock_api:
             # Mock successful API response
@@ -122,7 +121,7 @@ class TestProviderIntegration:
             assert response.cost > 0
 
     @pytest.mark.asyncio
-    async def test_provider_registry_fallback(self, provider_registry) -> None:
+    async def test_provider_registry_fallback(self, provider_registry: dict[str, Any] | Any) -> None:
         """Test provider registry fallback mechanism."""
         # Add a second provider that will fail
         failing_client = MagicMock(spec=BaseProviderClient)
@@ -146,7 +145,7 @@ class TestProviderIntegration:
         assert healthy_provider.provider_name == "openai"
 
     @pytest.mark.asyncio
-    async def test_cost_estimation(self, openai_client) -> None:
+    async def test_cost_estimation(self, openai_client: Any) -> None:
         """Test cost estimation accuracy."""
         request_result = create_ai_request(
             operation=AIOperation.GENERATE,
@@ -173,7 +172,7 @@ class TestCacheIntegration:
         return IntelligentCacheManager()
 
     @pytest.mark.asyncio
-    async def test_multi_level_cache_operations(self, cache_manager) -> None:
+    async def test_multi_level_cache_operations(self, cache_manager: Any) -> None:
         """Test multi-level cache get/put operations."""
         test_key = CacheKey("test_analysis_123")
         test_namespace = CacheNamespace("ai_operations")
@@ -197,7 +196,7 @@ class TestCacheIntegration:
         assert cached_result == test_value
 
     @pytest.mark.asyncio
-    async def test_cache_statistics_and_efficiency(self, cache_manager) -> None:
+    async def test_cache_statistics_and_efficiency(self, cache_manager: Any) -> None:
         """Test cache statistics and efficiency reporting."""
         # Perform several cache operations
         for i in range(10):
@@ -214,7 +213,7 @@ class TestCacheIntegration:
         assert isinstance(report["cache_efficiency_score"], int | float)
 
     @pytest.mark.asyncio
-    async def test_cache_invalidation_strategies(self, cache_manager) -> None:
+    async def test_cache_invalidation_strategies(self, cache_manager: Any) -> None:
         """Test various cache invalidation strategies."""
         # Setup test data with tags
         test_keys = []
@@ -237,7 +236,7 @@ class TestCacheIntegration:
         assert namespace_count >= 0
 
     @pytest.mark.asyncio
-    async def test_predictive_prefetching(self, cache_manager) -> None:
+    async def test_predictive_prefetching(self, cache_manager: Any) -> None:
         """Test predictive prefetching functionality."""
         # Record access patterns
         test_key = CacheKey("prefetch_test_key")
@@ -261,7 +260,7 @@ class TestCostOptimization:
         """Create cost optimizer for testing."""
         return CostOptimizer()
 
-    def test_budget_creation_and_validation(self, cost_optimizer) -> None:
+    def test_budget_creation_and_validation(self, cost_optimizer: Any) -> None:
         """Test budget creation with validation."""
         budget = CostBudget(
             budget_id=BudgetId("test_budget_123"),
@@ -276,7 +275,7 @@ class TestCostOptimization:
         assert result.is_right()
         assert result.value == budget.budget_id
 
-    def test_usage_tracking_and_reporting(self, cost_optimizer) -> None:
+    def test_usage_tracking_and_reporting(self, cost_optimizer: Any) -> None:
         """Test usage tracking and cost reporting."""
         # Record some usage
         for i in range(10):
@@ -299,7 +298,7 @@ class TestCostOptimization:
         assert "by_operation" in breakdown["breakdown"]
         assert "by_model" in breakdown["breakdown"]
 
-    def test_optimization_recommendations(self, cost_optimizer) -> None:
+    def test_optimization_recommendations(self, cost_optimizer: Any) -> None:
         """Test cost optimization recommendations."""
         # Add some usage data to analyze
         for _ in range(20):
@@ -324,7 +323,7 @@ class TestCostOptimization:
         assert "optimization_recommendations" in report
         assert "monthly_projection" in report
 
-    def test_budget_alert_system(self, cost_optimizer) -> None:
+    def test_budget_alert_system(self, cost_optimizer: Any) -> None:
         """Test budget alert system."""
         # Create budget with low threshold
         budget = CostBudget(
@@ -361,7 +360,7 @@ class TestSecurityIntegration:
         """Create API key manager for testing."""
         return APIKeyManager()
 
-    def test_api_key_validation(self, api_key_manager) -> None:
+    def test_api_key_validation(self, api_key_manager: Any) -> None:
         """Test API key validation for different providers."""
         # Test OpenAI key validation
         openai_result = api_key_manager.validate_key(
@@ -382,7 +381,7 @@ class TestSecurityIntegration:
         )
         assert anthropic_result.is_right()
 
-    def test_key_storage_and_retrieval(self, api_key_manager) -> None:
+    def test_key_storage_and_retrieval(self, api_key_manager: Any) -> None:
         """Test secure key storage and retrieval."""
         test_key = "sk-test-key-for-storage-testing"
         provider = "test_provider"
@@ -396,7 +395,7 @@ class TestSecurityIntegration:
         assert retrieve_result.is_right()
         assert retrieve_result.value == test_key
 
-    def test_key_rotation(self, api_key_manager) -> None:
+    def test_key_rotation(self, api_key_manager: Any) -> None:
         """Test key rotation functionality."""
         provider = "rotation_test"
         old_key = "sk-old-key-123"
@@ -424,7 +423,7 @@ class TestConfigurationIntegration:
         """Create configuration manager for testing."""
         return AIConfigManager()
 
-    def test_default_configuration_loading(self, config_manager) -> None:
+    def test_default_configuration_loading(self, config_manager: Any) -> None:
         """Test loading of default configuration."""
         result = config_manager.load_config()
         assert result.is_right()
@@ -434,7 +433,7 @@ class TestConfigurationIntegration:
         assert config.default_model == "gpt-3.5-turbo"
         assert "openai" in config.providers
 
-    def test_environment_override_application(self, config_manager) -> None:
+    def test_environment_override_application(self, config_manager: Any) -> None:
         """Test environment variable overrides."""
         # Set environment override
         config_manager.set_environment_override("debug_mode", True)
@@ -444,7 +443,7 @@ class TestConfigurationIntegration:
         assert config_manager.config.debug_mode is True
         assert config_manager.config.default_provider == "custom_provider"
 
-    def test_provider_configuration_management(self, config_manager) -> None:
+    def test_provider_configuration_management(self, config_manager: Any) -> None:
         """Test provider configuration management."""
         config_manager.load_config()
 

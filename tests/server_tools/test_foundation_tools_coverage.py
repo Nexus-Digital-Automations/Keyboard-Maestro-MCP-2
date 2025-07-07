@@ -6,8 +6,8 @@ with focus on MCP tool functionality, error handling, and integration patterns.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -80,8 +80,8 @@ class TestMacroExecutionTools:
     @pytest.mark.asyncio
     async def test_macro_execution_basic_functionality(
         self,
-        mock_get_km_client,
-        mock_fastmcp_context,
+        mock_get_km_client: Any,
+        mock_fastmcp_context: Any,
     ) -> None:
         """Test basic macro execution functionality."""
         # Mock successful execution and connection
@@ -121,8 +121,8 @@ class TestMacroExecutionTools:
     @pytest.mark.asyncio
     async def test_macro_listing_functionality(
         self,
-        mock_get_km_client,
-        mock_fastmcp_context,
+        mock_get_km_client: Any,
+        mock_fastmcp_context: Any,
     ) -> None:
         """Test macro listing MCP tool."""
         # Mock macro list response
@@ -176,7 +176,7 @@ class TestGroupManagementTools:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_group_listing(self, mock_get_km_client, mock_fastmcp_context) -> None:
+    async def test_group_listing(self, mock_get_km_client: Any, mock_fastmcp_context: Any) -> None:
         """Test group listing functionality."""
         mock_client = Mock()
         mock_client.list_groups.return_value = Mock(
@@ -215,8 +215,8 @@ class TestActionBuilderTools:
     @pytest.mark.asyncio
     async def test_action_creation_functionality(
         self,
-        mock_get_km_client,
-        execution_context,
+        mock_get_km_client: Any,
+        execution_context: Context | Any,
     ) -> None:
         """Test action creation basic functionality."""
         mock_client = AsyncMock()
@@ -250,7 +250,7 @@ class TestCalculatorTools:
             pytest.fail(f"Failed to import calculator tools: {e}")
 
     @pytest.mark.asyncio
-    async def test_basic_calculation(self, execution_context) -> None:
+    async def test_basic_calculation(self, execution_context: Context | Any) -> None:
         """Test basic calculation functionality."""
         from src.server.tools.calculator_tools import km_calculate
 
@@ -279,7 +279,7 @@ class TestClipboardTools:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_clipboard_operations(self, mock_get_km_client, execution_context) -> None:
+    async def test_clipboard_operations(self, mock_get_km_client: Any, execution_context: Context | Any) -> None:
         """Test basic clipboard operations."""
         mock_client = AsyncMock()
         mock_client.set_clipboard.return_value = {"success": True}
@@ -324,7 +324,7 @@ class TestFileOperationTools:
             pytest.fail(f"Failed to import file operation tools: {e}")
 
     @pytest.mark.asyncio
-    async def test_file_existence_check(self, execution_context) -> None:
+    async def test_file_existence_check(self, execution_context: Context | Any) -> None:
         """Test file existence checking."""
         # S108 fix: Use secure temporary file for testing
         import tempfile
@@ -355,7 +355,7 @@ class TestNotificationTools:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_notification_display(self, mock_get_km_client, execution_context) -> None:
+    async def test_notification_display(self, mock_get_km_client: Any, execution_context: Context | Any) -> None:
         """Test notification display functionality."""
         mock_client = AsyncMock()
         mock_client.show_notification.return_value = {"success": True}
@@ -379,7 +379,7 @@ class TestIntegrationPatterns:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_error_handling_pattern(self, mock_get_km_client, execution_context) -> None:
+    async def test_error_handling_pattern(self, mock_get_km_client: Any, execution_context: Context | Any) -> None:
         """Test consistent error handling across tools."""
         mock_client = AsyncMock()
         mock_client.execute_macro.side_effect = ValidationError(
@@ -406,7 +406,7 @@ class TestIntegrationPatterns:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_metadata_consistency(self, mock_get_km_client, execution_context) -> None:
+    async def test_metadata_consistency(self, mock_get_km_client: Any, execution_context: Context | Any) -> None:
         """Test that all tools return consistent metadata."""
         mock_client = AsyncMock()
         mock_client.list_macros.return_value = []
@@ -459,7 +459,7 @@ class TestIntegrationPatterns:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_context_usage_pattern(self, mock_get_km_client, execution_context) -> None:
+    async def test_context_usage_pattern(self, mock_get_km_client: Any, execution_context: Context | Any) -> None:
         """Test that tools properly use MCP context."""
         mock_client = AsyncMock()
         mock_client.list_macros.return_value = []
@@ -484,7 +484,7 @@ class TestPropertyBasedFoundationTesting:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_tool_response_structure_property(self, mock_get_km_client) -> None:
+    async def test_tool_response_structure_property(self, mock_get_km_client: Any) -> None:
         """Property: All tools should return dict with 'success' key."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -494,7 +494,7 @@ class TestPropertyBasedFoundationTesting:
         mock_get_km_client.return_value = mock_client
 
         @given(group_filter=st.text(max_size=20), enabled_only=st.booleans())
-        async def test_response_structure(group_filter, enabled_only) -> None:
+        async def test_response_structure(group_filter: Any, enabled_only: Any) -> None:
             """Test response structure property."""
             from src.core import Duration, ExecutionContext, Permission
 

@@ -909,7 +909,7 @@ def get_workflow_engine() -> WorkflowEngine:
 async def workflow_execution_context(
     workflow_id: WorkflowID,
     context_data: dict[str, Any] | None = None,
-):
+) -> Any:
     """Context manager for workflow execution."""
     engine = get_workflow_engine()
 

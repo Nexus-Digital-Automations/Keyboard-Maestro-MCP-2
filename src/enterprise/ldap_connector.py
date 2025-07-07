@@ -531,7 +531,7 @@ class LDAPConnector:
 
         return username  # Use as-is
 
-    def _convert_ldap_entry_to_user(self, entry) -> Either[EnterpriseError, LDAPUser]:
+    def _convert_ldap_entry_to_user(self, entry: list[Any] | str) -> Either[EnterpriseError, LDAPUser]:
         """Convert LDAP entry to LDAPUser object with comprehensive validation."""
         try:
             # Extract basic attributes

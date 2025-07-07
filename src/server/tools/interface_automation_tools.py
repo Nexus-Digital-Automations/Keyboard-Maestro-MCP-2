@@ -50,7 +50,7 @@ async def km_interface_automation(
     gesture_type: str | None = None,
     gesture_magnitude: float = 1.0,
     finger_count: int = 2,
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Universal interface automation for mouse, keyboard, and gesture interactions.
 
@@ -529,7 +529,7 @@ async def _handle_accessibility_interaction(
 # Additional utility tools for interface automation
 
 
-async def km_get_mouse_position(ctx=None) -> dict[str, Any]:
+async def km_get_mouse_position(ctx: Context | Any=None) -> dict[str, Any]:
     """Get current mouse cursor position.
 
     Returns:
@@ -562,7 +562,7 @@ async def km_get_mouse_position(ctx=None) -> dict[str, Any]:
 
 async def km_validate_coordinates(
     coordinates: dict[str, int],
-    ctx=None,
+    ctx: Any=None,
 ) -> dict[str, Any]:
     """Validate coordinates are within screen bounds and safe for interaction.
 

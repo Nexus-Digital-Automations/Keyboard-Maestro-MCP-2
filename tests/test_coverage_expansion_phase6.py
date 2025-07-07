@@ -8,7 +8,6 @@ and other strategic modules for maximum coverage gain toward the 95% target.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import logging
 import sys
 from pathlib import Path
@@ -580,11 +579,11 @@ def test_intelligence_async_workflow_patterns() -> bool:
     """Test async workflow patterns for intelligence systems."""
 
     @pytest.mark.asyncio
-    async def async_intelligence_test_helper():
+    async def async_intelligence_test_helper() -> None:
         import asyncio
 
         # Test async intelligence operations
-        async def mock_workflow_analysis():
+        async def mock_workflow_analysis() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "analysis_id": "wa_001",
@@ -599,7 +598,7 @@ def test_intelligence_async_workflow_patterns() -> bool:
                 ],
             }
 
-        async def mock_knowledge_search():
+        async def mock_knowledge_search() -> Any:
             await asyncio.sleep(0.001)
             return {
                 "search_id": "ks_001",
@@ -615,7 +614,7 @@ def test_intelligence_async_workflow_patterns() -> bool:
                 "search_time": 0.023,
             }
 
-        async def mock_performance_optimization():
+        async def mock_performance_optimization() -> None:
             await asyncio.sleep(0.001)
             return {
                 "optimization_id": "po_001",
@@ -644,7 +643,7 @@ def test_intelligence_async_workflow_patterns() -> bool:
         )
 
         # Test async error handling for intelligence systems
-        async def failing_intelligence_operation():
+        async def failing_intelligence_operation() -> Any:
             await asyncio.sleep(0.001)
             raise ValueError("Intelligence processing failed")
 

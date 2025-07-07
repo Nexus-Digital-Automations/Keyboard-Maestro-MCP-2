@@ -598,7 +598,7 @@ def create_enterprise_connection(
     integration_type: IntegrationType,
     host: str,
     port: int,
-    **kwargs,
+    **kwargs: Any,
 ) -> EnterpriseConnection:
     """Factory function to create enterprise connections with validation.
 
@@ -631,7 +631,7 @@ def create_enterprise_connection(
 
 def create_enterprise_credentials(
     auth_method: AuthenticationMethod,
-    **kwargs,
+    **kwargs: Any,
 ) -> EnterpriseCredentials:
     """Factory function to create enterprise credentials with validation.
 

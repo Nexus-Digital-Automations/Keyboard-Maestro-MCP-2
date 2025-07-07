@@ -241,7 +241,7 @@ def assert_thread_safe_operation(
     errors = []
     lock = threading.Lock()
 
-    def worker(args) -> None:
+    def worker(args: list[Any]) -> None:
         try:
             result = operation(*args)
             with lock:

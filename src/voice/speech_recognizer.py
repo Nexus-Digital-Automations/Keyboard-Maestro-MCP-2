@@ -861,7 +861,7 @@ class SpeechRecognizer:
 
     async def configure_recognition(
         self,
-        configuration,
+        configuration: dict[str, Any],
     ) -> Either[SpeechRecognitionError, dict[str, Any]]:
         """Configure speech recognition settings."""
         try:
@@ -880,7 +880,7 @@ class SpeechRecognizer:
 
     async def train_recognition(
         self,
-        training_session,
+        training_session: Any,
     ) -> Either[SpeechRecognitionError, Any]:
         """Train voice recognition model."""
         try:

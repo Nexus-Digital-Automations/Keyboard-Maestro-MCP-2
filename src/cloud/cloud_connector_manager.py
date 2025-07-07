@@ -322,7 +322,7 @@ class CloudConnectorManager:
         provider_methods = secure_methods.get(credentials.provider, [])
         return credentials.auth_method.value in provider_methods
 
-    async def _cleanup_expired_connections(self, provider: CloudProvider):
+    async def _cleanup_expired_connections(self, provider: CloudProvider) -> None:
         """Clean up expired connections for provider."""
         if provider not in self.connection_pool:
             return

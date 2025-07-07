@@ -110,7 +110,7 @@ class ConditionExpression:
         expression: str,
         operator: ComparisonOperator,
         operand: str,
-        **kwargs,
+        **kwargs: Any,
     ) -> ConditionExpression:
         """Create a validated condition expression."""
         # Sanitize inputs
@@ -149,7 +149,7 @@ class ActionBlock:
         return cls(actions=[{"type": "noop", "description": "Empty action block"}])
 
     @classmethod
-    def from_actions(cls, actions: list[dict[str, Any]], **kwargs) -> ActionBlock:
+    def from_actions(cls, actions: list[dict[str, Any]], **kwargs: Any) -> ActionBlock:
         """Create action block from action list with validation."""
         if not actions:
             return cls.empty()
@@ -424,7 +424,7 @@ class ControlFlowBuilder:
         expression: str,
         operator: ComparisonOperator,
         operand: str,
-        **kwargs,
+        **kwargs: Any,
     ) -> ControlFlowBuilder:
         """Add if condition to control flow."""
         condition = ConditionExpression.create_safe(
@@ -501,7 +501,7 @@ class ControlFlowBuilder:
         iterator: str,
         collection: str,
         actions: list[dict[str, Any]],
-        **kwargs,
+        **kwargs: Any,
     ) -> ControlFlowBuilder:
         """Add for-each loop to control flow."""
         loop_config = LoopConfiguration(
@@ -532,7 +532,7 @@ class ControlFlowBuilder:
         operand: str,
         actions: list[dict[str, Any]],
         max_iterations: int = 1000,
-        **kwargs,
+        **kwargs: Any,
     ) -> ControlFlowBuilder:
         """Add while loop to control flow."""
         condition = ConditionExpression.create_safe(

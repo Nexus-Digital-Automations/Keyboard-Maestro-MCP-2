@@ -250,12 +250,12 @@ class TriggerEvent:
     details: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def register_event(cls, trigger_id: TriggerId, **details) -> TriggerEvent:
+    def register_event(cls, trigger_id: TriggerId, **details: Any) -> TriggerEvent:
         """Create trigger registration event."""
         return cls(trigger_id, TriggerEventType.REGISTER, details=details)
 
     @classmethod
-    def activate_event(cls, trigger_id: TriggerId, **details) -> TriggerEvent:
+    def activate_event(cls, trigger_id: TriggerId, **details: Any) -> TriggerEvent:
         """Create trigger activation event."""
         return cls(trigger_id, TriggerEventType.ACTIVATE, details=details)
 
@@ -264,7 +264,7 @@ class TriggerEvent:
         cls,
         trigger_id: TriggerId,
         error_message: str,
-        **details,
+        **details: Any,
     ) -> TriggerEvent:
         """Create trigger failure event."""
         failure_details = {"error_message": error_message, **details}

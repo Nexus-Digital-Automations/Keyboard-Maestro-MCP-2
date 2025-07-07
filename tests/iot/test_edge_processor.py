@@ -10,7 +10,6 @@ Security: Edge encryption, secure processing, local data protection, edge authen
 
 from __future__ import annotations
 
-from typing import Any, Optional
 import asyncio
 from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
@@ -601,7 +600,7 @@ class TestEdgeProcessorConcurrency:
             await self.processor.submit_processing_task(task)
 
         # Start processing and submit more tasks concurrently
-        async def process_tasks():
+        async def process_tasks() -> None:
             results = []
             async for result in self.processor.process_task_queue():
                 if result.is_success():
@@ -610,7 +609,7 @@ class TestEdgeProcessorConcurrency:
                     break
             return results
 
-        async def submit_more_tasks():
+        async def submit_more_tasks() -> Any:
             additional_tasks = [
                 create_edge_task(f"additional_device_{i}", f"Additional Task {i}")
                 for i in range(2)

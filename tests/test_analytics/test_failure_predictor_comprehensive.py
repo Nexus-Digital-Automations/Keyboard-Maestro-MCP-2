@@ -7,8 +7,8 @@ FailurePattern, PredictionModel, and complete FailurePredictor functionality.
 
 from __future__ import annotations
 
-from typing import Any, Optional
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -34,31 +34,31 @@ from src.core.predictive_modeling import (
 
 # Test data generators
 @st.composite
-def failure_type_strategy(draw) -> Any:
+def failure_type_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid failure types."""
     return draw(st.sampled_from(list(FailureType)))
 
 
 @st.composite
-def failure_severity_strategy(draw) -> Any:
+def failure_severity_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid failure severities."""
     return draw(st.sampled_from(list(FailureSeverity)))
 
 
 @st.composite
-def mitigation_strategy_strategy(draw) -> Any:
+def mitigation_strategy_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid mitigation strategies."""
     return draw(st.sampled_from(list(MitigationStrategy)))
 
 
 @st.composite
-def confidence_level_strategy(draw) -> Any:
+def confidence_level_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid confidence levels."""
     return draw(st.sampled_from(list(ConfidenceLevel)))
 
 
 @st.composite
-def failure_indicator_strategy(draw) -> Any:
+def failure_indicator_strategy(draw: Callable[..., Any]) -> Any:
     """Generate valid failure indicators."""
     return FailureIndicator(
         indicator_id=draw(
@@ -248,7 +248,7 @@ class TestFailureIndicator:
             )
 
     @given(failure_indicator_strategy())
-    def test_failure_indicator_property_based_creation(self, indicator) -> None:
+    def test_failure_indicator_property_based_creation(self, indicator: Any) -> None:
         """Property-based test for FailureIndicator creation."""
         assert indicator.indicator_id is not None
         assert isinstance(indicator.failure_type, FailureType)

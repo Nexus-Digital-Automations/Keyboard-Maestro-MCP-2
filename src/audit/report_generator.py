@@ -606,7 +606,7 @@ class ReportGenerator:
             "span_hours": (max(timestamps) - min(timestamps)).total_seconds() / 3600,
         }
 
-    def _assess_finding_risk(self, rule, events: list[AuditEvent]) -> str:
+    def _assess_finding_risk(self, rule: Any, events: list[AuditEvent]) -> str:
         """Assess risk level of a finding."""
         if rule.severity == RiskLevel.CRITICAL:
             return "critical"
@@ -616,7 +616,7 @@ class ReportGenerator:
             return "medium"
         return "low"
 
-    def _calculate_remediation_priority(self, rule, violation_count: int) -> int:
+    def _calculate_remediation_priority(self, rule: Any, violation_count: int) -> int:
         """Calculate remediation priority score."""
         severity_scores = {
             RiskLevel.CRITICAL: 100,

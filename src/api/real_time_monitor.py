@@ -328,7 +328,7 @@ class AnomalyDetector:
 
         return anomalies
 
-    async def _update_baseline(self, metric_name: str, series: MetricSeries):
+    async def _update_baseline(self, metric_name: str, series: MetricSeries) -> None:
         """Update baseline statistics for metric."""
         historical_values = [
             point.value for point in list(series.data_points)[:-10]
@@ -676,7 +676,7 @@ class RealTimeMonitor:
 
     # Background tasks
 
-    async def _alert_evaluation_loop(self):
+    async def _alert_evaluation_loop(self) -> Any:
         """Background loop for evaluating alert rules."""
         while True:
             try:
@@ -696,7 +696,7 @@ class RealTimeMonitor:
             except Exception:
                 await asyncio.sleep(60)  # Error recovery
 
-    async def _evaluate_alert_rules(self):
+    async def _evaluate_alert_rules(self) -> Any:
         """Evaluate all alert rules."""
         for rule in self.alert_rules.values():
             if not rule.enabled:
@@ -720,7 +720,7 @@ class RealTimeMonitor:
                     self.monitor_metrics.get("rule_evaluation_errors", 0) + 1
                 )
 
-    async def _evaluate_single_rule(self, rule: AlertRule):
+    async def _evaluate_single_rule(self, rule: AlertRule) -> Any:
         """Evaluate single alert rule."""
         if rule.metric_name not in self.metrics:
             return
@@ -774,7 +774,7 @@ class RealTimeMonitor:
         operation = operations.get(operator)
         return operation(value, threshold) if operation else False
 
-    async def _trigger_alert(self, rule: AlertRule, triggering_point: MetricPoint):
+    async def _trigger_alert(self, rule: AlertRule, triggering_point: MetricPoint) -> None:
         """Trigger alert for rule violation."""
         # Check if alert already exists for this rule
         existing_alert = None
@@ -812,7 +812,7 @@ class RealTimeMonitor:
             # Broadcast to WebSocket connections
             await self._broadcast_alert_update(alert)
 
-    async def _check_auto_resolve(self, rule: AlertRule):
+    async def _check_auto_resolve(self, rule: AlertRule) -> None:
         """Check for auto-resolution of alerts."""
         if not rule.auto_resolve:
             return
@@ -840,7 +840,7 @@ class RealTimeMonitor:
         alert: Alert,
         is_new: bool = False,
         is_update: bool = False,
-    ):
+    ) -> None:
         """Send alert notifications."""
         if alert.rule_id not in self.alert_rules:
             return
@@ -884,7 +884,7 @@ class RealTimeMonitor:
 
         alert.last_notification = datetime.now(UTC)
 
-    async def _anomaly_detection_loop(self):
+    async def _anomaly_detection_loop(self) -> Any:
         """Background loop for anomaly detection."""
         while True:
             try:
@@ -905,7 +905,7 @@ class RealTimeMonitor:
             except Exception:
                 await asyncio.sleep(60)  # Error recovery
 
-    async def _cleanup_loop(self):
+    async def _cleanup_loop(self) -> None:
         """Background loop for cleaning up old data."""
         while True:
             try:
@@ -943,7 +943,7 @@ class RealTimeMonitor:
 
     # WebSocket broadcasting
 
-    async def _broadcast_metric_update(self, metric: MetricPoint):
+    async def _broadcast_metric_update(self, metric: MetricPoint) -> None:
         """Broadcast metric update to WebSocket connections."""
         if not self.websocket_connections:
             return
@@ -952,7 +952,7 @@ class RealTimeMonitor:
 
         await self._broadcast_to_websockets(message)
 
-    async def _broadcast_alert_update(self, alert: Alert):
+    async def _broadcast_alert_update(self, alert: Alert) -> None:
         """Broadcast alert update to WebSocket connections."""
         if not self.websocket_connections:
             return
@@ -978,7 +978,7 @@ class RealTimeMonitor:
 
         await self._broadcast_to_websockets(message)
 
-    async def _broadcast_anomaly_detection(self, anomaly: dict[str, Any]):
+    async def _broadcast_anomaly_detection(self, anomaly: dict[str, Any]) -> Any:
         """Broadcast anomaly detection to WebSocket connections."""
         if not self.websocket_connections:
             return
@@ -987,7 +987,7 @@ class RealTimeMonitor:
 
         await self._broadcast_to_websockets(message)
 
-    async def _broadcast_to_websockets(self, message: dict[str, Any]):
+    async def _broadcast_to_websockets(self, message: dict[str, Any]) -> Any:
         """Broadcast message to all WebSocket connections."""
         if not self.websocket_connections:
             return
