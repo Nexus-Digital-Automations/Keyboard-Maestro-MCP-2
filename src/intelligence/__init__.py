@@ -13,11 +13,14 @@ from .workflow_analyzer import WorkflowAnalyzer
 
 # Import existing intelligence components if available
 try:
-    from .optimization_engine import (  # noqa: F401
-        OptimizationEngine,
-        OptimizationRecommendation,
+    from .optimization_engine import (
+        OptimizationEngine,  # noqa: F401 # Used in __all__ if available
+        OptimizationRecommendation,  # noqa: F401 # Used in __all__ if available
     )
-    from .pattern_recognizer import PatternRecognizer, WorkflowPattern  # noqa: F401
+    from .pattern_recognizer import (  # noqa: F401 # Used in __all__ if available
+        PatternRecognizer,
+        WorkflowPattern,
+    )
 
     _EXTENDED_COMPONENTS = True
 except ImportError:

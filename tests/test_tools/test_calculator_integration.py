@@ -7,6 +7,7 @@ and expression evaluation with security validation.
 from __future__ import annotations
 
 import asyncio
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -86,7 +87,10 @@ class TestCalculatorToolsIntegration:
         assert "validation" in result["error"]["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_km_calculate_math_function_success(self, mock_calculator: Any) -> None:
+    async def test_km_calculate_math_function_success(
+        self,
+        mock_calculator: Any,
+    ) -> None:
         """Test successful math function calculation."""
         from src.calculations.calculator import CalculationResult, NumberFormat
         from src.integration.km_client import Either

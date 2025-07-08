@@ -192,7 +192,7 @@ async def _handle_move_operation(
     position_dict: dict[str, int] | None,
     window_index: int,
     screen: str,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Handle window move operation with validation."""
     if not position_dict or "x" not in position_dict or "y" not in position_dict:
@@ -248,7 +248,7 @@ async def _handle_resize_operation(
     app_id: AppIdentifier,
     size_dict: dict[str, int] | None,
     window_index: int,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Handle window resize operation with validation."""
     if not size_dict or "width" not in size_dict or "height" not in size_dict:
@@ -303,7 +303,7 @@ async def _handle_state_operation(
     app_id: AppIdentifier,
     target_state: WindowState,
     window_index: int,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Handle window state change operation."""
     try:
@@ -348,7 +348,7 @@ async def _handle_arrange_operation(
     arrangement_str: str | None,
     window_index: int,
     screen: str,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Handle window arrangement operation."""
     if not arrangement_str:
@@ -404,7 +404,7 @@ async def _handle_arrange_operation(
 async def _handle_get_info_operation(
     app_id: AppIdentifier,
     window_index: int,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Handle get window info operation."""
     try:
@@ -439,7 +439,7 @@ async def _handle_get_info_operation(
         }
 
 
-async def _handle_get_screens_operation(ctx: Context | None) -> dict[str, Any]:
+async def _handle_get_screens_operation(ctx: Any = None) -> dict[str, Any]:
     """Handle get screens operation."""
     try:
         # Get screen information

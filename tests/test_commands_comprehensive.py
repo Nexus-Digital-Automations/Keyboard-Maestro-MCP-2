@@ -14,6 +14,7 @@ from unittest.mock import patch
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
+from src.core.either import Either
 
 # Test imports with graceful fallbacks
 try:
@@ -24,7 +25,7 @@ try:
     from src.commands.system import SystemCommand
     from src.commands.text import TextCommand
     from src.commands.validation import CommandValidator, ValidationResult
-    from src.core.either import Either
+
     # F401 fix: Removed unused imports ValidationError, CommandId, MacroId
 
     COMMANDS_AVAILABLE = True

@@ -13,7 +13,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from hypothesis import given
@@ -57,6 +57,9 @@ from src.monitoring.resource_monitor import (
     ResourceMonitor,
     SystemResourceReport,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -245,7 +248,7 @@ class TestPerformanceMonitoringProperties:
         assert len(snapshot.load_average) == 3
 
     @given(performance_thresholds())
-    def test_threshold_evaluation_consistency(self, threshold: int | float) -> None:
+    def test_threshold_evaluation_consistency(self, threshold: float) -> None:
         """Threshold evaluation must be consistent."""
         # Test boundary conditions
         test_value = threshold.threshold_value
@@ -314,7 +317,11 @@ class TestPerformanceMonitoringProperties:
         assert 0.0 <= score <= 100.0
 
     @given(st.floats(min_value=0.0, max_value=100.0), st.sampled_from(AlertSeverity))
-    def test_threshold_creation_helpers(self, threshold_value: Any, severity: Any) -> None:
+    def test_threshold_creation_helpers(
+        self,
+        threshold_value: Any,
+        severity: Any,
+    ) -> None:
         """Threshold creation helpers must create valid thresholds."""
         cpu_threshold = create_cpu_threshold(threshold_value, severity)
         memory_threshold = create_memory_threshold(threshold_value, severity)
@@ -565,7 +572,11 @@ class TestAlertSystemProperties:
 
     @given(metric_values(), st.floats(min_value=0.0, max_value=50.0))
     @pytest.mark.asyncio
-    async def test_metric_evaluation_consistency(self, metric: Callable[..., Any], threshold_value: Any) -> None:
+    async def test_metric_evaluation_consistency(
+        self,
+        metric: Callable[..., Any],
+        threshold_value: Any,
+    ) -> None:
         """Metric evaluation must be consistent with thresholds."""
         # Create a threshold that might trigger
         rule = create_cpu_alert_rule(

@@ -46,7 +46,7 @@ class AuthenticationType(Enum):
     """Authentication methods for AI providers."""
 
     API_KEY = "api_key"
-    BEARER_TOKEN = "bearer_token"  # noqa: S105 - This is a type identifier, not a password
+    BEARER_TOKEN = "bearer_token"  # noqa: S105 # Enum value, not password
     OAUTH2 = "oauth2"
     SERVICE_ACCOUNT = "service_account"
 
@@ -92,8 +92,8 @@ class ProviderCapabilities:
     supports_function_calling: bool = False
     supports_vision: bool = False
     supported_operations: set[AIOperation] = field(default_factory=set)
-    cost_per_input_token: Decimal = field(default_factory=lambda: Decimal("0"))
-    cost_per_output_token: Decimal = field(default_factory=lambda: Decimal("0"))
+    cost_per_input_token: Decimal = field(default_factory=lambda: Decimal(0))
+    cost_per_output_token: Decimal = field(default_factory=lambda: Decimal(0))
 
 
 @dataclass
@@ -302,7 +302,11 @@ class BaseProviderClient(ABC):
                 last_error = result.left_value
 
             except Exception as e:
-                last_error = ValidationError("request_failed", str(e), "Request execution failed")
+                last_error = ValidationError(
+                    "request_failed",
+                    str(e),
+                    "Request execution failed",
+                )
 
                 # Exponential backoff for retries
                 if attempt < retries:

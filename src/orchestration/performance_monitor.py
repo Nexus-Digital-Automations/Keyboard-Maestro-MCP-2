@@ -21,6 +21,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
+from ..core.constants import MEDIUM_COUNT_THRESHOLD
 from .ecosystem_architecture import ResourceType, SystemPerformanceMetrics, ToolCategory
 from .tool_registry import ComprehensiveToolRegistry, get_tool_registry
 
@@ -320,7 +321,7 @@ class EcosystemPerformanceMonitor:
         # Update performance trend
         metrics.performance_trend = await self._calculate_performance_trend(tool_id)
 
-    async def _calculate_performance_trend(self, tool_id: str) -> str:
+    async def _calculate_performance_trend(self, _tool_id: str) -> str:
         """Calculate performance trend for a tool."""
         if len(self.metrics_history) < 10:
             return "stable"
@@ -331,7 +332,7 @@ class EcosystemPerformanceMonitor:
             # In a real implementation, this would track per-tool metrics
             recent_times.append(metrics.average_response_time)
 
-        if len(recent_times) < 5:
+        if len(recent_times) < MEDIUM_COUNT_THRESHOLD:
             return "stable"
 
         # Calculate trend using linear regression slope

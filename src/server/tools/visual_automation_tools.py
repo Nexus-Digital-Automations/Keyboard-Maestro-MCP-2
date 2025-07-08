@@ -932,5 +932,13 @@ async def km_visual_automation(
         raise ToolError(f"Visual automation failed: {e!s}") from e
 
 
+# Alias for test compatibility
+VisualAutomationTools = VisualAutomationProcessor
+
 # Export the tool for MCP server registration
-__all__ = ["km_visual_automation"]
+__all__ = [
+    "VisualAutomationProcessor",
+    "VisualAutomationSecurityManager",
+    "VisualAutomationTools",
+    "km_visual_automation",
+]

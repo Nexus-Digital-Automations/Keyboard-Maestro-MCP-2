@@ -157,7 +157,7 @@ async def km_dictionary_manager(
 
 
 async def _create_dictionary(
-    km_client: Any,
+    _km_client: Any,
     name: str,
     ctx: Context = None,
 ) -> dict[str, Any]:
@@ -190,7 +190,7 @@ async def _create_dictionary(
     }
 
 
-async def _list_dictionaries(km_client: Any, ctx: Context = None) -> dict[str, Any]:
+async def _list_dictionaries(_km_client: Any, ctx: Context = None) -> dict[str, Any]:
     """List all available dictionaries."""
     if ctx:
         await ctx.report_progress(50, 100, "Fetching dictionary list")
@@ -218,7 +218,7 @@ async def _list_dictionaries(km_client: Any, ctx: Context = None) -> dict[str, A
 
 
 async def _list_dictionary_keys(
-    km_client: Any,
+    _km_client: Any,
     dictionary: str,
     ctx: Context = None,
 ) -> dict[str, Any]:
@@ -245,7 +245,7 @@ async def _list_dictionary_keys(
 
 
 async def _get_dictionary_value(
-    km_client: Any,
+    _km_client: Any,
     dictionary: str,
     key: str,
     ctx: Context = None,
@@ -273,7 +273,7 @@ async def _get_dictionary_value(
 
 
 async def _set_dictionary_value(
-    km_client: Any,
+    _km_client: Any,
     dictionary: str,
     key: str,
     value: str,
@@ -310,7 +310,7 @@ async def _set_dictionary_value(
 
 
 async def _delete_dictionary_item(
-    km_client: Any,
+    _km_client: Any,
     dictionary: str,
     key: str | None,
     ctx: Context = None,
@@ -347,7 +347,7 @@ async def _delete_dictionary_item(
 
 
 async def _export_dictionary(
-    km_client: Any,
+    _km_client: Any,
     dictionary: str,
     ctx: Context = None,
 ) -> dict[str, Any]:
@@ -379,7 +379,7 @@ async def _export_dictionary(
 
 
 async def _import_dictionary(
-    km_client: Any,
+    _km_client: Any,
     dictionary: str,
     json_data: dict[str, Any],
     ctx: Context = None,

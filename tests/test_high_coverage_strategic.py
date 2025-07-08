@@ -8,6 +8,7 @@ most likely to be used in production.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import pytest
 
@@ -440,7 +441,11 @@ class TestPropertyBasedCoverage:
             st.text(min_size=1, max_size=100),
             st.integers(min_value=0, max_value=2**31 - 1),
         )
-        def test_execution_context_creation(macro_id: str, user_id: str, timestamp: int | float | str) -> None:
+        def test_execution_context_creation(
+            macro_id: str,
+            user_id: str,
+            timestamp: float | str,
+        ) -> None:
             context = ExecutionContext(
                 macro_id=macro_id,
                 user_id=user_id,

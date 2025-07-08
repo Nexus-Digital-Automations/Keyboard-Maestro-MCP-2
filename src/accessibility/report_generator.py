@@ -30,6 +30,16 @@ from src.core.accessibility_architecture import (
     get_wcag_criteria_by_level,
     get_wcag_criteria_by_principle,
 )
+from src.core.constants import (
+    ACCESSIBILITY_ACCEPTABLE_SCORE,
+    ACCESSIBILITY_CONTENT_PREVIEW_LENGTH,
+    ACCESSIBILITY_DISPLAY_LIMIT,
+    ACCESSIBILITY_EXCELLENT_SCORE,
+    ACCESSIBILITY_GOOD_SCORE,
+    ACCESSIBILITY_ISSUE_COUNT_HIGH,
+    ACCESSIBILITY_ISSUE_COUNT_MEDIUM,
+    ACCESSIBILITY_POOR_SCORE,
+)
 from src.core.contracts import require
 from src.core.either import Either
 
@@ -84,8 +94,10 @@ class ExecutiveSummary:
     business_impact: str
 
     def __post_init__(self):
-        if not (0.0 <= self.overall_compliance_score <= 100.0):
-            raise ValueError("Overall compliance score must be between 0.0 and 100.0")
+        if not (0.0 <= self.overall_compliance_score <= ACCESSIBILITY_EXCELLENT_SCORE):
+            raise ValueError(
+                "Overall compliance score must be between 0.0 and ACCESSIBILITY_EXCELLENT_SCORE",
+            )
 
 
 @dataclass(frozen=True)
@@ -99,8 +111,10 @@ class ComplianceMatrix:
     overall_score: float
 
     def __post_init__(self):
-        if not (0.0 <= self.overall_score <= 100.0):
-            raise ValueError("Overall score must be between 0.0 and 100.0")
+        if not (0.0 <= self.overall_score <= ACCESSIBILITY_EXCELLENT_SCORE):
+            raise ValueError(
+                "Overall score must be between 0.0 and ACCESSIBILITY_EXCELLENT_SCORE",
+            )
 
 
 class AccessibilityReportGenerator:
@@ -343,13 +357,13 @@ class AccessibilityReportGenerator:
 
     def _get_compliance_level_description(self, score: float) -> str:
         """Get compliance level description based on score."""
-        if score >= 95.0:
+        if score >= ACCESSIBILITY_EXCELLENT_SCORE:
             return "excellent"
-        if score >= 85.0:
+        if score >= ACCESSIBILITY_GOOD_SCORE:
             return "good"
-        if score >= 70.0:
+        if score >= ACCESSIBILITY_ACCEPTABLE_SCORE:
             return "fair"
-        if score >= 50.0:
+        if score >= ACCESSIBILITY_POOR_SCORE:
             return "poor"
         return "critical"
 
@@ -357,9 +371,9 @@ class AccessibilityReportGenerator:
         """Identify priority areas based on issue distribution."""
         if issue_counts["critical"] > 0:
             return "critical accessibility barriers"
-        if issue_counts["high"] > 5:
+        if issue_counts["high"] > ACCESSIBILITY_ISSUE_COUNT_HIGH:
             return "high-impact usability issues"
-        if issue_counts["medium"] > 10:
+        if issue_counts["medium"] > ACCESSIBILITY_ISSUE_COUNT_MEDIUM:
             return "structural accessibility improvements"
         return "minor accessibility enhancements"
 
@@ -406,7 +420,7 @@ class AccessibilityReportGenerator:
             )
 
         # Add general recommendations based on overall score
-        if overall_score < 70.0:
+        if overall_score < ACCESSIBILITY_ACCEPTABLE_SCORE:
             recommendations.append(
                 "Establish comprehensive accessibility testing as part of development workflow",
             )
@@ -414,7 +428,7 @@ class AccessibilityReportGenerator:
                 "Provide accessibility training for development and design teams",
             )
 
-        if overall_score < 50.0:
+        if overall_score < ACCESSIBILITY_POOR_SCORE:
             recommendations.append(
                 "Consider accessibility audit by certified professionals",
             )
@@ -499,9 +513,9 @@ class AccessibilityReportGenerator:
                     )
                     principle_scores[principle] = (
                         passing_criteria / principle_criteria_count
-                    ) * 100.0
+                    ) * ACCESSIBILITY_EXCELLENT_SCORE
                 else:
-                    principle_scores[principle] = 100.0
+                    principle_scores[principle] = ACCESSIBILITY_EXCELLENT_SCORE
 
             # Calculate overall WCAG compliance score
             overall_wcag_score = sum(principle_scores.values()) / len(principle_scores)
@@ -741,9 +755,9 @@ class AccessibilityReportGenerator:
                 content_parts.append(issue_content.strip())
                 content_parts.append("")
 
-            if len(severity_issues) > 10:
+            if len(severity_issues) > ACCESSIBILITY_ISSUE_COUNT_MEDIUM:
                 content_parts.append(
-                    f"*... and {len(severity_issues) - 10} more {severity.lower()} priority issues*",
+                    f"*... and {len(severity_issues) - ACCESSIBILITY_DISPLAY_LIMIT} more {severity.lower()} priority issues*",
                 )
                 content_parts.append("")
 
@@ -791,7 +805,13 @@ class AccessibilityReportGenerator:
         # Add principle scores
         principle_scores = wcag_analysis.get("principle_scores", {})
         for principle, score in principle_scores.items():
-            status_icon = "✅" if score >= 80.0 else "❌" if score < 50.0 else "⚠️"
+            status_icon = (
+                "✅"
+                if score >= ACCESSIBILITY_GOOD_SCORE
+                else "❌"
+                if score < ACCESSIBILITY_POOR_SCORE
+                else "⚠️"
+            )
             content_parts.append(
                 f"- **{principle.title()}:** {score:.1f}% {status_icon}",
             )
@@ -939,7 +959,7 @@ class AccessibilityReportGenerator:
             else:
                 return Either.left(
                     ReportGenerationError(
-                        f"Unsupported export format: {export_format}"
+                        f"Unsupported export format: {export_format}",
                     ),
                 )
 
@@ -986,8 +1006,11 @@ class AccessibilityReportGenerator:
                     "format": "pdf",
                     "file_path": file_path,
                     "file_size": file_size,
-                    "content_preview": pdf_content[:500] + "..."
-                    if len(pdf_content) > 500
+                    "content_preview": pdf_content[
+                        :ACCESSIBILITY_CONTENT_PREVIEW_LENGTH
+                    ]
+                    + "..."
+                    if len(pdf_content) > ACCESSIBILITY_CONTENT_PREVIEW_LENGTH
                     else pdf_content,
                     "generation_timestamp": datetime.now(UTC).isoformat(),
                 },

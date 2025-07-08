@@ -694,7 +694,11 @@ class PluginMarketplace:
                 PluginError(f"File installation failed: {e!s}", "INSTALL_ERROR"),
             )
 
-    async def _record_installation(self, entry: MarketplaceEntry, plugin_path: Path) -> Any:
+    async def _record_installation(
+        self,
+        entry: MarketplaceEntry,
+        plugin_path: Path,
+    ) -> Any:
         """Record successful plugin installation."""
         installation_record = {
             "plugin_id": entry.metadata.identifier,

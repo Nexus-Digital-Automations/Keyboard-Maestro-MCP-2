@@ -47,9 +47,9 @@ async def km_cloud_connector(
     orchestration_plan: dict | None = None,
     cost_limits: dict | None = None,
     monitoring_config: dict | None = None,
-    performance_tier: str = "standard",
-    backup_strategy: str = "regional",
-    timeout: int = 300,
+    _performance_tier: str = "standard",
+    _backup_strategy: str = "regional",
+    _timeout: int = 300,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Advanced cloud connector for multi-cloud platform integration and orchestration.
@@ -701,12 +701,12 @@ async def _deploy_storage_resource(
 
 
 async def _deploy_compute_resource(
-    cloud_manager: Any,
-    provider: CloudProvider,
-    session_id: str,
-    resource_name: str,
-    region: str,
-    config: dict[str, Any],
+    _cloud_manager: Any,
+    _provider: CloudProvider,
+    _session_id: str,
+    _resource_name: str,
+    _region: str,
+    _config: dict[str, Any],
 ) -> Either[CloudError, CloudResource]:
     """Deploy cloud compute resource."""
     # Placeholder for compute resource deployment

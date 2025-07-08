@@ -56,7 +56,12 @@ class APICallMetrics:
     error_count: int = 0
     average_response_time: float = 0.0
 
-    def record_call(self, response_time: float, success: bool, resource_cost: int) -> None:
+    def record_call(
+        self,
+        response_time: float,
+        success: bool,
+        resource_cost: int,
+    ) -> None:
         """Record API call metrics."""
         self.call_count += 1
         self.last_call = datetime.now()
@@ -370,7 +375,7 @@ class PluginAPIBridge:
 
         class MockModule:
             def __getattr__(self, name: str):
-                def mock_function(*args: Any, **kwargs: Any) -> dict[str, Any]:
+                def mock_function(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
                     return {"success": True, "mock": True, "tool": tool_name}
 
                 return mock_function
@@ -410,7 +415,7 @@ class PluginAPIBridge:
             if plugin_id not in self.authorized_plugins:
                 return Either.left(
                     PluginError.permission_denied(
-                        f"Plugin not authorized: {plugin_id}"
+                        f"Plugin not authorized: {plugin_id}",
                     ),
                 )
 
@@ -495,7 +500,7 @@ class PluginAPIBridge:
 
     async def _validate_security(
         self,
-        plugin_id: PluginId,
+        _plugin_id: PluginId,
         plugin_permissions: PluginPermissions,
         tool_def: MCPToolDefinition,
     ) -> Either[PluginError, None]:
@@ -566,7 +571,7 @@ class PluginAPIBridge:
 
     async def _sanitize_parameters(
         self,
-        tool_name: str,
+        _tool_name: str,
         parameters: dict[str, Any],
     ) -> dict[str, Any]:
         """Sanitize and validate parameters for security."""
@@ -637,7 +642,8 @@ class PluginAPIBridge:
         except asyncio.TimeoutError:
             return Either.left(
                 PluginError(
-                    f"Tool execution timeout: {tool_name}", "EXECUTION_TIMEOUT"
+                    f"Tool execution timeout: {tool_name}",
+                    "EXECUTION_TIMEOUT",
                 ),
             )
         except Exception as e:

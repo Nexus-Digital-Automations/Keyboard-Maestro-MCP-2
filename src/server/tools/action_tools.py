@@ -487,7 +487,7 @@ async def km_list_action_types(
 
 
 def _add_action_to_km_macro(
-    km_client: Any,
+    _km_client: Any,
     macro_id: str,
     action_xml: str,
     position: int | None,

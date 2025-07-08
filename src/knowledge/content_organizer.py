@@ -752,7 +752,7 @@ class ContentOrganizer:
             logger.error(error_msg)
             return Either.left(error_msg)
 
-    def _get_quality_suggestion(self, metric: QualityMetric, score: float) -> str:
+    def _get_quality_suggestion(self, metric: QualityMetric, _score: float) -> str:
         """Get specific suggestion for quality improvement."""
         suggestions = {
             QualityMetric.CLARITY: "Improve readability by using shorter sentences and clearer language",

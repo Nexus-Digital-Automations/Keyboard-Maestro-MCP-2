@@ -9,10 +9,13 @@ comprehensive coverage for next-generation automation capabilities.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +24,7 @@ class TestAdvancedExtensionsFoundation:
     """Test foundation for advanced extensions MCP tools from TASK_56-68."""
 
     @pytest.fixture
-    def execution_context(self) -> Any:
+    def execution_context(self) -> Mock:
         """Create mock execution context for testing."""
         context = AsyncMock()
         context.session_id = "test-session-advanced-extensions"
@@ -31,7 +34,7 @@ class TestAdvancedExtensionsFoundation:
         return context
 
     @pytest.fixture
-    def sample_knowledge_data(self) -> Any:
+    def sample_knowledge_data(self) -> Mock:
         """Sample knowledge management data for testing."""
         return {
             "document_type": "automation_guide",
@@ -48,7 +51,7 @@ class TestAdvancedExtensionsFoundation:
         }
 
     @pytest.fixture
-    def sample_accessibility_data(self) -> Any:
+    def sample_accessibility_data(self) -> Mock:
         """Sample accessibility testing data for testing."""
         return {
             "test_scope": "wcag_2_1_compliance",
@@ -69,7 +72,7 @@ class TestAdvancedExtensionsFoundation:
         }
 
     @pytest.fixture
-    def sample_testing_data(self) -> Any:
+    def sample_testing_data(self) -> Mock:
         """Sample testing automation data for testing."""
         return {
             "test_suite": "macro_validation",
@@ -89,7 +92,7 @@ class TestAdvancedExtensionsFoundation:
         }
 
     @pytest.fixture
-    def sample_intelligence_data(self) -> Any:
+    def sample_intelligence_data(self) -> Mock:
         """Sample advanced intelligence data for testing."""
         return {
             "intelligence_type": "predictive_analytics",
@@ -793,7 +796,10 @@ class TestIoTAndFutureTechTools(TestAdvancedExtensionsFoundation):
             pytest.skip(f"IoT and future tech tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_iot_device_integration(self, execution_context: Context | Any) -> None:
+    async def test_iot_device_integration(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test IoT device integration functionality."""
         try:
             from src.server.tools.iot_integration_tools import km_control_iot_device
@@ -858,7 +864,10 @@ class TestAdvancedExtensionsIntegration(TestAdvancedExtensionsFoundation):
     """Test integration patterns across advanced extension tools."""
 
     @pytest.mark.asyncio
-    async def test_cross_extension_integration(self, execution_context: Context | Any) -> None:
+    async def test_cross_extension_integration(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test integration between different advanced extension categories."""
         advanced_extension_tools = [
             (
@@ -903,7 +912,10 @@ class TestAdvancedExtensionsIntegration(TestAdvancedExtensionsFoundation):
                 continue
 
     @pytest.mark.asyncio
-    async def test_advanced_tool_response_consistency(self, execution_context: Context | Any) -> None:
+    async def test_advanced_tool_response_consistency(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test that all advanced extension tools return consistent response structure."""
         advanced_extension_tools = [
             (
@@ -953,7 +965,10 @@ class TestPropertyBasedAdvancedExtensionsTesting(TestAdvancedExtensionsFoundatio
     """Property-based testing for advanced extension tools using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_knowledge_management_properties(self, execution_context: Context | Any) -> None:
+    async def test_knowledge_management_properties(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Property: Knowledge management should handle various content types consistently."""
 
         async def test_knowledge_properties() -> None:
@@ -992,7 +1007,10 @@ class TestPropertyBasedAdvancedExtensionsTesting(TestAdvancedExtensionsFoundatio
         await test_knowledge_properties()
 
     @pytest.mark.asyncio
-    async def test_accessibility_testing_properties(self, execution_context: Context | Any) -> None:
+    async def test_accessibility_testing_properties(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Property: Accessibility testing should maintain consistent scoring."""
 
         async def test_accessibility_properties() -> None:

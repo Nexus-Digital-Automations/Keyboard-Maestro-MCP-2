@@ -203,7 +203,7 @@ class CloudConnectorManager:
     async def get_monitoring_data(
         self,
         provider: CloudProvider,
-        config: dict[str, Any],
+        _config: dict[str, Any],
     ) -> Either[CloudError, dict[str, Any]]:
         """Get monitoring data for cloud resources."""
         try:

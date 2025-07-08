@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -32,6 +32,9 @@ from src.core.audit_framework import (
 from src.core.either import Either
 from src.core.errors import ValidationError
 from src.server.tools.audit_system_tools import km_audit_system
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
 
 
 class TestAuditEventProperties:
@@ -93,7 +96,11 @@ class TestAuditEventProperties:
         ),
         st.sets(st.text(min_size=1, max_size=20), max_size=10),
     )
-    def test_audit_event_with_details_properties(self, details: Any, compliance_tags: Any) -> None:
+    def test_audit_event_with_details_properties(
+        self,
+        details: Any,
+        compliance_tags: Any,
+    ) -> None:
         """Property: Audit events should handle complex details and tags."""
         event = AuditEvent(
             event_id=str(uuid.uuid4()),
@@ -120,7 +127,10 @@ class TestAuditEventProperties:
         assert isinstance(sensitive_fields, set)
 
     @given(st.sampled_from(list(ComplianceStandard)))
-    def test_compliance_standard_matching_properties(self, standard: Callable[..., Any]) -> None:
+    def test_compliance_standard_matching_properties(
+        self,
+        standard: Callable[..., Any],
+    ) -> None:
         """Property: Compliance standard matching should be consistent."""
         # Create event with appropriate tags for the standard
         standard_tags = {
@@ -224,7 +234,11 @@ class TestComplianceRuleProperties:
             ],
         ),
     )
-    def test_compliance_rule_evaluation_properties(self, user_id: str, condition_type: str) -> None:
+    def test_compliance_rule_evaluation_properties(
+        self,
+        user_id: str,
+        condition_type: str,
+    ) -> None:
         """Property: Compliance rule evaluation should be consistent."""
         assume(user_id.strip() != "")
 
@@ -287,7 +301,7 @@ class TestEventLoggerProperties:
     """Property-based tests for event logger functionality."""
 
     @pytest.fixture
-    def event_logger(self) -> Any:
+    def event_logger(self) -> Mock:
         """Provide event logger for tests."""
         config = AuditConfiguration(audit_level=AuditLevel.STANDARD)
         return EventLogger(config)
@@ -345,7 +359,11 @@ class TestEventLoggerProperties:
     )
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_event_logging_with_filters_properties(self, event_logger: Awaitable[Any] | Any, filters: list[Any] | str) -> None:
+    async def test_event_logging_with_filters_properties(
+        self,
+        event_logger: Awaitable[Any] | Any,
+        filters: list[Any] | str,
+    ) -> None:
         """Property: Event querying with filters should be consistent."""
         # First log some events
         for i in range(3):
@@ -373,7 +391,11 @@ class TestEventLoggerProperties:
     @given(st.integers(min_value=1, max_value=100))
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_rate_limiting_properties(self, event_logger: Awaitable[Any] | Any, event_count: int) -> None:
+    async def test_rate_limiting_properties(
+        self,
+        event_logger: Awaitable[Any] | Any,
+        event_count: int,
+    ) -> None:
         """Property: Rate limiting should prevent excessive event logging."""
         user_id = "test_user"
 
@@ -397,7 +419,7 @@ class TestComplianceMonitorProperties:
     """Property-based tests for compliance monitor functionality."""
 
     @pytest.fixture
-    def compliance_monitor(self) -> Any:
+    def compliance_monitor(self) -> Mock:
         """Provide compliance monitor for tests."""
         return ComplianceMonitor()
 
@@ -619,7 +641,10 @@ class TestAuditSystemToolProperties:
 
     @given(st.text(max_size=0))
     @pytest.mark.asyncio
-    async def test_empty_parameters_validation_properties(self, empty_value: str) -> None:
+    async def test_empty_parameters_validation_properties(
+        self,
+        empty_value: str,
+    ) -> None:
         """Property: Empty or invalid parameters should be rejected."""
         assume(len(empty_value.strip()) == 0)
 

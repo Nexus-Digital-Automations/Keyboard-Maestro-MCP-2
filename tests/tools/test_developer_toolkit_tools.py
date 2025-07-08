@@ -8,10 +8,13 @@ Tests follow the proven systematic pattern that achieved 100% success across 32+
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 # Import existing modules
 
@@ -20,18 +23,18 @@ import pytest
 
 
 async def mock_km_git_operations(
-    operation: str="status",
-    repository_url: Any=None,
-    local_path: Any=None,
-    branch_name: str=None,
-    commit_message: Any=None,
-    merge_strategy: Any=None,
-    authentication: Any=None,
-    credentials: Any=None,
-    force_operation: Any=False,
-    include_remotes: Any=True,
-    ctx: Context | Any=None,
-) -> Any:
+    operation: str = "status",
+    repository_url: Any = None,
+    local_path: Any = None,
+    branch_name: str = None,
+    commit_message: Any = None,
+    merge_strategy: Any = None,
+    authentication: Any = None,
+    credentials: Any = None,
+    force_operation: Any = False,
+    include_remotes: Any = True,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for Git operations."""
     if not operation or not operation.strip():
         return {
@@ -170,16 +173,16 @@ async def mock_km_git_operations(
 
 
 async def mock_km_cicd_pipeline(
-    pipeline_action: Any="status",
-    pipeline_config: dict[str, Any]=None,
-    environment: dict[str, str]="development",
-    deployment_strategy: Any=None,
-    build_parameters: Any=None,
-    test_configuration: dict[str, Any] | Any=None,
-    notification_settings: dict[str, Any]=None,
-    rollback_enabled: bool=True,
-    ctx: Context | Any=None,
-) -> Any:
+    pipeline_action: Any = "status",
+    pipeline_config: dict[str, Any] = None,
+    environment: dict[str, str] = "development",
+    deployment_strategy: Any = None,
+    build_parameters: Any = None,
+    test_configuration: dict[str, Any] | Any = None,
+    notification_settings: dict[str, Any] = None,
+    rollback_enabled: bool = True,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for CI/CD pipeline automation."""
     if not pipeline_action or not pipeline_action.strip():
         return {
@@ -306,16 +309,16 @@ async def mock_km_cicd_pipeline(
 
 
 async def mock_km_api_management(
-    api_operation: Any="list",
-    api_specification: Any=None,
-    endpoint_configuration: dict[str, Any] | Any=None,
-    security_policies: Any=None,
-    rate_limiting: Any=None,
-    monitoring_config: dict[str, Any]=None,
-    documentation_settings: dict[str, Any]=None,
-    versioning_strategy: Any=None,
-    ctx: Context | Any=None,
-) -> Any:
+    api_operation: Any = "list",
+    api_specification: Any = None,
+    endpoint_configuration: dict[str, Any] | Any = None,
+    security_policies: Any = None,
+    rate_limiting: Any = None,
+    monitoring_config: dict[str, Any] = None,
+    documentation_settings: dict[str, Any] = None,
+    versioning_strategy: Any = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for API management and governance."""
     if not api_operation or not api_operation.strip():
         return {
@@ -446,16 +449,16 @@ async def mock_km_api_management(
 
 
 async def mock_km_code_quality_automation(
-    quality_action: Any="analyze",
-    code_repository: Any=None,
-    quality_standards: Any=None,
-    security_scanning: Any=True,
-    performance_analysis: Any=True,
-    compliance_checks: Any=True,
-    custom_rules: Any=None,
-    reporting_format: Any="json",
-    ctx: Context | Any=None,
-) -> Any:
+    quality_action: Any = "analyze",
+    code_repository: Any = None,
+    quality_standards: Any = None,
+    security_scanning: Any = True,
+    performance_analysis: Any = True,
+    compliance_checks: Any = True,
+    custom_rules: Any = None,
+    reporting_format: Any = "json",
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for code quality automation and security scanning."""
     if not quality_action or not quality_action.strip():
         return {
@@ -586,7 +589,7 @@ class TestKMGitOperations:
     """Test class for Git operations functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -666,7 +669,7 @@ class TestKMCICDPipeline:
     """Test class for CI/CD pipeline automation functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -753,7 +756,7 @@ class TestKMAPIManagement:
     """Test class for API management and governance functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -824,7 +827,7 @@ class TestKMCodeQualityAutomation:
     """Test class for code quality automation and security scanning functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -897,7 +900,7 @@ class TestDeveloperToolkitIntegration:
     """Test class for developer toolkit integration workflows."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -948,7 +951,7 @@ class TestDeveloperToolkitProperties:
     """Test class for developer toolkit property-based testing."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 

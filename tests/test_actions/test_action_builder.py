@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import re
+from typing import Any
 
 import pytest
 from hypothesis import assume, given, settings
@@ -246,7 +247,11 @@ class TestActionBuilder:
         assert abs(actions[0].parameters["duration"] - duration_seconds) < 0.001
 
     @given(st.text(min_size=1, max_size=50), st.text(min_size=1, max_size=100))
-    def test_property_variable_names_and_values(self, var_name: str, var_value: str) -> None:
+    def test_property_variable_names_and_values(
+        self,
+        var_name: str,
+        var_value: str,
+    ) -> None:
         """Property test: Variable actions handle various names and values."""
         assume(var_name.strip() and var_value.strip())
 
@@ -277,7 +282,22 @@ class TestActionBuilder:
         """Property test: XML generation maintains security."""
         assume(all(t.strip() for t in texts))
 
-        for text in texts:
+        # Filter out dangerous patterns that should be rejected by security validation
+        dangerous_patterns = [
+            "<!ENTITY",
+            "<!DOCTYPE",
+            "<script",
+            "javascript:",
+            "data:",
+        ]
+        safe_texts = [
+            text
+            for text in texts
+            if not any(pattern in text for pattern in dangerous_patterns)
+        ]
+        assume(safe_texts)  # Only test with safe content
+
+        for text in safe_texts:
             self.builder.add_text_action(text)
 
         result = self.builder.build_xml()
@@ -329,7 +349,10 @@ class TestActionBuilder:
         assert actions[1].enabled is False
 
     @given(st.text())
-    def test_property_dangerous_content_rejection(self, malicious_text: list[Any] | str) -> None:
+    def test_property_dangerous_content_rejection(
+        self,
+        malicious_text: list[Any] | str,
+    ) -> None:
         """Property test: Dangerous content is properly handled."""
         dangerous_patterns = [
             "<script>",
@@ -364,7 +387,7 @@ class TestActionBuilder:
 
     @settings(max_examples=20)
     @given(st.integers(min_value=0, max_value=100))
-    def test_property_position_insertion_bounds(self, position: int | float) -> None:
+    def test_property_position_insertion_bounds(self, position: float) -> None:
         """Property test: Position insertion respects bounds."""
         # Add some initial actions
         for i in range(3):

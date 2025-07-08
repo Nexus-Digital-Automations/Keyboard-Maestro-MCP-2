@@ -5,6 +5,7 @@ with property-based testing and comprehensive validation.
 """
 
 import uuid
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Any
 from unittest.mock import Mock
@@ -41,13 +42,13 @@ from src.core.types import (
 
 # Test data generators
 @st.composite
-def duration_strategy(draw: Callable[..., Any]) -> Any:
+def duration_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid duration values."""
     return draw(st.floats(min_value=0.0, max_value=3600.0))
 
 
 @st.composite
-def command_parameters_strategy(draw: Callable[..., Any]) -> Any:
+def command_parameters_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid command parameters."""
     params = draw(
         st.dictionaries(
@@ -60,7 +61,7 @@ def command_parameters_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def permission_set_strategy(draw: Callable[..., Any]) -> Any:
+def permission_set_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid permission sets."""
     permissions = draw(
         st.lists(st.sampled_from(list(Permission)), min_size=0, max_size=5),
@@ -69,7 +70,7 @@ def permission_set_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def variable_dict_strategy(draw: Callable[..., Any]) -> Any:
+def variable_dict_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid variable dictionaries."""
     return draw(
         st.dictionaries(
@@ -390,7 +391,10 @@ class TestCommandParameters:
         assert updated.get("key") == "new_value"
 
     @given(command_parameters_strategy())
-    def test_command_parameters_property_validation(self, param_dict: dict[str, Any]) -> None:
+    def test_command_parameters_property_validation(
+        self,
+        param_dict: dict[str, Any],
+    ) -> None:
         """Property test for CommandParameters behavior."""
         import math
 

@@ -8,10 +8,13 @@ plugin management, and extension frameworks with comprehensive integration patte
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +23,7 @@ class TestPlatformExpansionFoundation:
     """Test foundation for platform expansion MCP tools from TASK_32-39."""
 
     @pytest.fixture
-    def execution_context(self) -> Any:
+    def execution_context(self) -> Mock:
         """Create mock execution context for testing."""
         context = AsyncMock()
         context.session_id = "test-session-platform-expansion"
@@ -30,7 +33,7 @@ class TestPlatformExpansionFoundation:
         return context
 
     @pytest.fixture
-    def sample_communication_data(self) -> Any:
+    def sample_communication_data(self) -> Mock:
         """Sample communication data for testing."""
         return {
             "message_type": "notification",
@@ -43,7 +46,7 @@ class TestPlatformExpansionFoundation:
         }
 
     @pytest.fixture
-    def sample_visual_data(self) -> Any:
+    def sample_visual_data(self) -> Mock:
         """Sample visual automation data for testing."""
         return {
             "capture_region": {"x": 100, "y": 100, "width": 800, "height": 600},
@@ -60,7 +63,7 @@ class TestPlatformExpansionFoundation:
         }
 
     @pytest.fixture
-    def sample_plugin_data(self) -> Any:
+    def sample_plugin_data(self) -> Mock:
         """Sample plugin system data for testing."""
         return {
             "plugin_id": "test-plugin-v1",
@@ -418,7 +421,11 @@ class TestPluginSystemTools:
             pytest.skip(f"Plugin system not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_plugin_installation(self, execution_context: Context | Any, sample_plugin_data: Any) -> None:
+    async def test_plugin_installation(
+        self,
+        execution_context: Context | Any,
+        sample_plugin_data: Any,
+    ) -> None:
         """Test plugin installation and validation."""
         try:
             from src.server.tools.plugin_tools import km_install_plugin
@@ -505,7 +512,10 @@ class TestPluginSystemTools:
             pytest.skip("Plugin management tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_plugin_registry_operations(self, execution_context: Context | Any) -> None:
+    async def test_plugin_registry_operations(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test plugin registry and discovery functionality."""
         try:
             from src.server.tools.plugin_tools import km_plugin_registry
@@ -555,7 +565,10 @@ class TestPlatformExpansionIntegration:
     """Test integration patterns across platform expansion tools."""
 
     @pytest.mark.asyncio
-    async def test_communication_visual_integration(self, execution_context: Context | Any) -> None:
+    async def test_communication_visual_integration(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test integration between communication and visual tools."""
         platform_tools = [
             ("src.server.tools.communication_tools", "km_send_notification"),
@@ -582,7 +595,10 @@ class TestPlatformExpansionIntegration:
                 continue
 
     @pytest.mark.asyncio
-    async def test_platform_tool_response_consistency(self, execution_context: Context | Any) -> None:
+    async def test_platform_tool_response_consistency(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test that all platform tools return consistent response structure."""
         platform_tools = [
             (
@@ -632,7 +648,10 @@ class TestPlatformExpansionIntegration:
                 print(f"Warning: {tool_name} had issue: {e}")
 
     @pytest.mark.asyncio
-    async def test_platform_security_patterns(self, execution_context: Context | Any) -> None:
+    async def test_platform_security_patterns(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test that platform tools implement security patterns."""
         try:
             from src.server.tools.plugin_tools import km_install_plugin
@@ -656,7 +675,10 @@ class TestPropertyBasedPlatformTesting:
     """Property-based testing for platform expansion tools using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_communication_properties(self, execution_context: Context | Any) -> None:
+    async def test_communication_properties(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Property: Communication tools should handle various message types securely."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -666,7 +688,11 @@ class TestPropertyBasedPlatformTesting:
             priority=st.sampled_from(["low", "normal", "high", "urgent"]),
             channel_count=st.integers(min_value=1, max_value=5),
         )
-        async def test_communication_properties(message_type: str, priority: int, channel_count: int) -> None:
+        async def test_communication_properties(
+            message_type: str,
+            priority: int,
+            channel_count: int,
+        ) -> None:
             """Test communication properties."""
             try:
                 from src.server.tools.communication_tools import km_send_notification
@@ -700,7 +726,10 @@ class TestPropertyBasedPlatformTesting:
         await test_communication_properties("info", "normal", 2)
 
     @pytest.mark.asyncio
-    async def test_visual_automation_properties(self, execution_context: Context | Any) -> None:
+    async def test_visual_automation_properties(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Property: Visual automation should maintain coordinate bounds."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -711,7 +740,12 @@ class TestPropertyBasedPlatformTesting:
             width=st.integers(min_value=1, max_value=800),
             height=st.integers(min_value=1, max_value=600),
         )
-        async def test_visual_properties(x: Any, y: Any, width: int, height: int) -> None:
+        async def test_visual_properties(
+            x: Any,
+            y: Any,
+            width: int,
+            height: int,
+        ) -> None:
             """Test visual automation properties."""
             try:
                 from src.server.tools.visual_tools import km_capture_screen

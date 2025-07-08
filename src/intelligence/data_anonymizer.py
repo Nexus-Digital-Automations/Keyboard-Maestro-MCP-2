@@ -109,7 +109,7 @@ class DataAnonymizer:
         self,
         record: dict[str, Any],
         privacy_level: PrivacyLevel,
-        rules: dict[str, Any],
+        _rules: dict[str, Any],
     ) -> dict[str, Any] | None:
         """Anonymize a single behavioral data record."""
         try:

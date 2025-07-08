@@ -8,10 +8,13 @@ Tests follow the proven systematic pattern that achieved 100% success across 35+
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 # Import existing modules
 
@@ -20,16 +23,16 @@ import pytest
 
 
 async def mock_km_process_voice_commands(
-    audio_input: Any=None,
-    voice_data: Any=None,
-    recognition_engine: Any="whisper",
-    language: str="en-US",
-    confidence_threshold: Any=0.8,
-    enable_intent_processing: Any=True,
-    command_context: Context | Any=None,
-    speaker_verification: Any=False,
-    noise_reduction: Any=True,
-    ctx: Context | Any=None,
+    audio_input: Any = None,
+    voice_data: Any = None,
+    recognition_engine: Any = "whisper",
+    language: str = "en-US",
+    confidence_threshold: Any = 0.8,
+    enable_intent_processing: Any = True,
+    command_context: Context | Any = None,
+    speaker_verification: Any = False,
+    noise_reduction: Any = True,
+    ctx: Context | Any = None,
 ) -> None:
     """Mock implementation for voice command processing."""
     if not audio_input and not voice_data:
@@ -188,14 +191,14 @@ async def mock_km_process_voice_commands(
 
 
 async def mock_km_configure_voice_control(
-    configuration_type: str="recognition_settings",
-    voice_settings: dict[str, Any]=None,
-    language_preferences: Any=None,
-    speaker_profiles: Any=None,
-    security_settings: dict[str, Any]=None,
-    accessibility_options: dict[str, Any]=None,
-    performance_tuning: Any=None,
-    ctx: Context | Any=None,
+    configuration_type: str = "recognition_settings",
+    voice_settings: dict[str, Any] = None,
+    language_preferences: Any = None,
+    speaker_profiles: Any = None,
+    security_settings: dict[str, Any] = None,
+    accessibility_options: dict[str, Any] = None,
+    performance_tuning: Any = None,
+    ctx: Context | Any = None,
 ) -> None:
     """Mock implementation for voice control configuration."""
     if not configuration_type or not configuration_type.strip():
@@ -348,16 +351,16 @@ async def mock_km_configure_voice_control(
 
 
 async def mock_km_provide_voice_feedback(
-    feedback_text: Any=None,
-    feedback_type: str="response",
-    language: str="en-US",
-    voice_settings: dict[str, Any]=None,
-    synthesis_engine: Any="system",
-    emotion_tone: Any=None,
-    interrupt_current: Any=False,
-    save_audio: Any=False,
-    ctx: Context | Any=None,
-) -> Any:
+    feedback_text: Any = None,
+    feedback_type: str = "response",
+    language: str = "en-US",
+    voice_settings: dict[str, Any] = None,
+    synthesis_engine: Any = "system",
+    emotion_tone: Any = None,
+    interrupt_current: Any = False,
+    save_audio: Any = False,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for voice feedback synthesis."""
     if not feedback_text or not feedback_text.strip():
         return {
@@ -491,16 +494,16 @@ async def mock_km_provide_voice_feedback(
 
 
 async def mock_km_train_voice_recognition(
-    training_type: str="speaker_profile",
-    training_data: Any=None,
-    voice_samples: Any=None,
-    training_duration: Any=300,
-    language: str="en-US",
-    adaptation_mode: Any="incremental",
-    quality_threshold: Any=0.9,
-    personalization_level: Any="high",
-    ctx: Context | Any=None,
-) -> Any:
+    training_type: str = "speaker_profile",
+    training_data: Any = None,
+    voice_samples: Any = None,
+    training_duration: Any = 300,
+    language: str = "en-US",
+    adaptation_mode: Any = "incremental",
+    quality_threshold: Any = 0.9,
+    personalization_level: Any = "high",
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for voice recognition training."""
     if not training_type or not training_type.strip():
         return {
@@ -676,7 +679,7 @@ class TestKMProcessVoiceCommands:
     """Test class for voice command processing functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -722,7 +725,10 @@ class TestKMProcessVoiceCommands:
         assert execution["automation_triggered"] is True
 
     @pytest.mark.asyncio
-    async def test_process_voice_commands_invalid_engine(self, mock_context: Any) -> None:
+    async def test_process_voice_commands_invalid_engine(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test voice command processing with invalid engine."""
         result = await mock_km_process_voice_commands(
             audio_input="test_audio",
@@ -735,7 +741,10 @@ class TestKMProcessVoiceCommands:
         assert "Invalid recognition engine" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_process_voice_commands_missing_input(self, mock_context: Any) -> None:
+    async def test_process_voice_commands_missing_input(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test voice command processing without input."""
         result = await mock_km_process_voice_commands(ctx=mock_context)
 
@@ -746,7 +755,10 @@ class TestKMProcessVoiceCommands:
         )
 
     @pytest.mark.asyncio
-    async def test_process_voice_commands_invalid_confidence(self, mock_context: Any) -> None:
+    async def test_process_voice_commands_invalid_confidence(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test voice command processing with invalid confidence threshold."""
         result = await mock_km_process_voice_commands(
             audio_input="test_audio",
@@ -766,7 +778,7 @@ class TestKMConfigureVoiceControl:
     """Test class for voice control configuration functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -834,7 +846,10 @@ class TestKMConfigureVoiceControl:
         assert result["system_status"]["voice_engine_status"] == "running"
 
     @pytest.mark.asyncio
-    async def test_configure_voice_control_invalid_type(self, mock_context: Any) -> None:
+    async def test_configure_voice_control_invalid_type(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test voice control configuration with invalid type."""
         result = await mock_km_configure_voice_control(
             configuration_type="invalid_type",
@@ -850,7 +865,7 @@ class TestKMProvideVoiceFeedback:
     """Test class for voice feedback synthesis functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -930,12 +945,15 @@ class TestKMTrainVoiceRecognition:
     """Test class for voice recognition training functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_train_voice_recognition_speaker_profile(self, mock_context: Any) -> None:
+    async def test_train_voice_recognition_speaker_profile(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test voice recognition speaker profile training."""
         result = await mock_km_train_voice_recognition(
             training_type="speaker_profile",
@@ -956,7 +974,10 @@ class TestKMTrainVoiceRecognition:
         assert speaker["voice_biometrics_enrolled"] is True
 
     @pytest.mark.asyncio
-    async def test_train_voice_recognition_language_model(self, mock_context: Any) -> None:
+    async def test_train_voice_recognition_language_model(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test voice recognition language model training."""
         result = await mock_km_train_voice_recognition(
             training_type="language_model",
@@ -975,7 +996,10 @@ class TestKMTrainVoiceRecognition:
         assert training["model_performance"]["recognition_accuracy"] == 0.95
 
     @pytest.mark.asyncio
-    async def test_train_voice_recognition_comprehensive(self, mock_context: Any) -> None:
+    async def test_train_voice_recognition_comprehensive(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test comprehensive voice recognition training."""
         result = await mock_km_train_voice_recognition(
             training_type="comprehensive",
@@ -991,7 +1015,10 @@ class TestKMTrainVoiceRecognition:
         assert result["quality_assurance"]["training_quality"] == "excellent"
 
     @pytest.mark.asyncio
-    async def test_train_voice_recognition_invalid_type(self, mock_context: Any) -> None:
+    async def test_train_voice_recognition_invalid_type(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test voice recognition training with invalid type."""
         result = await mock_km_train_voice_recognition(
             training_type="invalid_type",
@@ -1003,7 +1030,10 @@ class TestKMTrainVoiceRecognition:
         assert "Invalid training type" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_train_voice_recognition_invalid_duration(self, mock_context: Any) -> None:
+    async def test_train_voice_recognition_invalid_duration(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test voice recognition training with invalid duration."""
         result = await mock_km_train_voice_recognition(
             training_type="speaker_profile",
@@ -1023,7 +1053,7 @@ class TestVoiceControlIntegration:
     """Test class for voice control integration workflows."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -1085,7 +1115,7 @@ class TestVoiceControlProperties:
     """Test class for voice control property-based testing."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 

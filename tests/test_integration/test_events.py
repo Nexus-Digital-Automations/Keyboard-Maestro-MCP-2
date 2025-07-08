@@ -339,7 +339,11 @@ class TestEventPipelines:
         ("dict_field", {"nested": "value"}),
     ],
 )
-def test_event_immutability_property(sample_event: Any, field_name: str, field_value: Any) -> None:
+def test_event_immutability_property(
+    sample_event: Any,
+    field_name: str,
+    field_value: Any,
+) -> None:
     """Property test: Events should always remain immutable."""
     original_payload = sample_event.payload.copy()
 

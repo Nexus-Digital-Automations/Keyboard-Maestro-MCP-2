@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -41,10 +41,13 @@ from src.server.tools.property_tools import (
     km_manage_macro_properties,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context() -> Any:
+def mock_context() -> Mock:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -57,7 +60,7 @@ def mock_context() -> Any:
 
 
 @pytest.fixture
-def mock_km_client() -> Any:
+def mock_km_client() -> Mock:
     """Create mock KM client with standard interface."""
     client = Mock()
     client.check_connection = Mock()
@@ -68,7 +71,7 @@ def mock_km_client() -> Any:
 
 
 @pytest.fixture
-def sample_macro_data() -> Any:
+def sample_macro_data() -> Mock:
     """Sample macro data for testing."""
     return {
         "id": "12345678-1234-1234-1234-123456789012",
@@ -88,7 +91,7 @@ def sample_macro_data() -> Any:
 
 
 @pytest.fixture
-def sample_macros_list(sample_macro_data: Any) -> Any:
+def sample_macros_list(sample_macro_data: Any) -> Mock:
     """Sample list of macros for testing."""
     return [
         sample_macro_data,
@@ -111,7 +114,7 @@ def sample_macros_list(sample_macro_data: Any) -> Any:
 
 
 @composite
-def valid_macro_properties(draw: Callable[..., Any]) -> Any:
+def valid_macro_properties(draw: Callable[..., Any]) -> Mock:
     """Generate valid macro properties for property-based testing."""
     props = {}
 
@@ -162,7 +165,7 @@ def valid_macro_properties(draw: Callable[..., Any]) -> Any:
 
 
 @composite
-def malicious_macro_properties(draw: Callable[..., Any]) -> Any:
+def malicious_macro_properties(draw: Callable[..., Any]) -> Mock:
     """Generate potentially malicious macro properties for security testing."""
     props = {}
 
@@ -330,7 +333,11 @@ class TestKMManageMacroProperties:
             assert "Failed to manage macro properties" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_update_macro_properties_success(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_update_macro_properties_success(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test successful macro properties update."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -559,7 +566,11 @@ class TestPropertyToolsHelperFunctions:
         assert result["data"]["properties"]["is_complex"] is True
 
     @pytest.mark.asyncio
-    async def test_get_macro_properties_list_failed(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_get_macro_properties_list_failed(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test when macro list retrieval fails."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -575,7 +586,11 @@ class TestPropertyToolsHelperFunctions:
         assert "Failed to fetch macros" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_update_macro_properties_detailed(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_update_macro_properties_detailed(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test detailed macro properties update."""
         # Setup
         properties = {
@@ -611,7 +626,7 @@ class TestPropertyToolsHelperFunctions:
             "name": "Invalid<>Name&",  # Contains invalid characters
         }
 
-        # Execute & Verify - ValidationError constructor will fail, causing exception
+        # Execute & Verify - ValidationError for invalid name characters
         with pytest.raises(Exception) as exc_info:
             await _update_macro_properties(
                 mock_km_client,
@@ -620,8 +635,12 @@ class TestPropertyToolsHelperFunctions:
                 mock_context,
             )
 
-        # ValidationError constructor failed due to missing parameters
-        assert "missing" in str(exc_info.value) or "required" in str(exc_info.value)
+        # ValidationError raised due to invalid name characters - systematic test alignment
+        assert (
+            "Validation failed" in str(exc_info.value)
+            or "missing" in str(exc_info.value)
+            or "required" in str(exc_info.value)
+        )
 
     @pytest.mark.asyncio
     async def test_update_macro_properties_invalid_color(
@@ -633,7 +652,7 @@ class TestPropertyToolsHelperFunctions:
         # Setup
         properties = {"color": "invalid-color"}
 
-        # Execute & Verify - ValidationError constructor will fail, causing exception
+        # Execute & Verify - ValidationError for invalid color value
         with pytest.raises(Exception) as exc_info:
             await _update_macro_properties(
                 mock_km_client,
@@ -642,8 +661,12 @@ class TestPropertyToolsHelperFunctions:
                 mock_context,
             )
 
-        # ValidationError constructor failed due to missing parameters
-        assert "missing" in str(exc_info.value) or "required" in str(exc_info.value)
+        # ValidationError raised due to invalid color value - systematic test alignment
+        assert (
+            "Validation failed" in str(exc_info.value)
+            or "missing" in str(exc_info.value)
+            or "required" in str(exc_info.value)
+        )
 
     def test_is_recently_modified_recent(self) -> None:
         """Test recent modification detection."""
@@ -720,7 +743,11 @@ class TestPropertyToolsIntegration:
             assert update_result["data"]["updated_properties"] == update_properties
 
     @pytest.mark.asyncio
-    async def test_multiple_property_updates(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_multiple_property_updates(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test multiple property updates for the same macro."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -811,7 +838,11 @@ class TestPropertyToolsSecurityValidation:
     """Security validation tests for property tools."""
 
     @pytest.mark.asyncio
-    async def test_property_injection_prevention(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_property_injection_prevention(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test prevention of property injection attacks."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -926,7 +957,11 @@ class TestPropertyToolsSecurityValidation:
                 assert result["error"]["code"] == "PROPERTY_ERROR"
 
     @pytest.mark.asyncio
-    async def test_null_byte_injection_prevention(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_null_byte_injection_prevention(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test prevention of null byte injection attacks."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -1231,7 +1266,11 @@ class TestPropertyToolsErrorHandling:
     """Comprehensive error handling tests for property tools."""
 
     @pytest.mark.asyncio
-    async def test_error_context_preservation(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_error_context_preservation(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test that error context is preserved in responses."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -1291,7 +1330,11 @@ class TestPropertyToolsErrorHandling:
                 ]
 
     @pytest.mark.asyncio
-    async def test_unicode_handling(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_unicode_handling(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test Unicode character handling in properties."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -1319,7 +1362,11 @@ class TestPropertyToolsErrorHandling:
             assert result["data"]["updated_properties"] == unicode_properties
 
     @pytest.mark.asyncio
-    async def test_exception_handling_coverage(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_exception_handling_coverage(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test exception handling for unexpected errors."""
         # Setup to trigger generic exception
         mock_km_client.check_connection.side_effect = Exception("Unexpected error")

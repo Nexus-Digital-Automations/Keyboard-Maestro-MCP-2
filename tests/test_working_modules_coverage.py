@@ -7,6 +7,7 @@ expanding their test coverage systematically toward near 100%.
 from __future__ import annotations
 
 import logging
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -276,8 +277,9 @@ class TestPerformanceAnalyzerDeepCoverage:
 class TestApplicationControllerDeepCoverage:
     """Deep coverage expansion for AppController."""
 
+    @pytest.mark.asyncio
     @patch("subprocess.run")
-    def test_app_controller_extensive_scenarios(self, mock_run: Any) -> None:
+    async def test_app_controller_extensive_scenarios(self, mock_run: Any) -> None:
         """Extensive test scenarios for AppController."""
         from src.applications.app_controller import AppController
 
@@ -311,7 +313,7 @@ class TestApplicationControllerDeepCoverage:
         launch_results = []
         for app in applications:
             try:
-                result = controller.launch_application(app)
+                result = await controller.launch_application(app)
                 assert result is not None
                 launch_results.append((app, result, "success"))
             except Exception as e:
@@ -324,14 +326,14 @@ class TestApplicationControllerDeepCoverage:
         if hasattr(controller, "quit_application"):
             for app in applications[:3]:  # Test first 3
                 try:
-                    result = controller.quit_application(app)
+                    result = await controller.quit_application(app)
                     assert result is not None
                 except Exception as e:
                     logger.debug(f"Operation failed during operation: {e}")
         if hasattr(controller, "activate_application"):
             for app in applications[:3]:  # Test first 3
                 try:
-                    result = controller.activate_application(app)
+                    result = await controller.activate_application(app)
                     assert result is not None
                 except Exception as e:
                     logger.debug(f"Operation failed during operation: {e}")
@@ -371,7 +373,7 @@ class TestApplicationControllerDeepCoverage:
         for error_app in error_scenarios[:-1]:  # Skip None for now
             try:
                 # Should either succeed or raise appropriate exception
-                result = controller.launch_application(error_app)
+                result = await controller.launch_application(error_app)
                 # If it doesn't raise exception, result should indicate failure
                 if isinstance(result, dict):
                     # Check for error indicators
@@ -386,7 +388,8 @@ class TestApplicationControllerDeepCoverage:
 class TestTokenProcessorDeepCoverage:
     """Deep coverage expansion for TokenProcessor."""
 
-    def test_token_processor_extensive_scenarios(self) -> None:
+    @pytest.mark.asyncio
+    async def test_token_processor_extensive_scenarios(self) -> None:
         """Extensive test scenarios for TokenProcessor."""
         from src.tokens.token_processor import TokenProcessor
 
@@ -435,7 +438,7 @@ class TestTokenProcessorDeepCoverage:
             # Test process_tokens if available
             if hasattr(processor, "process_tokens"):
                 try:
-                    result = processor.process_tokens(scenario)
+                    result = await processor.process_tokens(scenario)
                     assert isinstance(result, str)
                     scenario_results["process_tokens"] = result
                 except Exception as e:

@@ -7,6 +7,7 @@ ensuring security boundaries, validation correctness, and functional properties.
 from __future__ import annotations
 
 import re
+from typing import Any
 
 import pytest
 from hypothesis import assume, given, settings
@@ -50,7 +51,7 @@ class TestConditionBuilderProperties:
                 builder.equals(operand).build()
 
     @given(st.integers(min_value=1, max_value=60))
-    def test_timeout_range_validation(self, timeout: int | float) -> None:
+    def test_timeout_range_validation(self, timeout: float) -> None:
         """Property: Valid timeout ranges should be accepted."""
         result = (
             ConditionBuilder()
@@ -65,7 +66,7 @@ class TestConditionBuilderProperties:
         assert condition.timeout_seconds == timeout
 
     @given(st.integers().filter(lambda x: x < 1 or x > 60))
-    def test_invalid_timeout_rejected(self, invalid_timeout: int | float) -> None:
+    def test_invalid_timeout_rejected(self, invalid_timeout: float) -> None:
         """Property: Invalid timeout values should be rejected."""
         builder = ConditionBuilder().text_condition("test").equals("value")
 
@@ -124,7 +125,7 @@ class TestSecurityProperties:
             min_size=1,
             max_size=255,
         ).filter(
-            lambda x: len(x.strip()) > 0 and re.match(r"^[a-zA-Z0-9_\s\-\.]+$", x)
+            lambda x: len(x.strip()) > 0 and re.match(r"^[a-zA-Z0-9_\s\-\.]+$", x),
         ),
     )
     def test_valid_identifiers_accepted(self, identifier: str) -> None:
@@ -178,7 +179,12 @@ class TestConditionValidationProperties:
             and not any(cmd_char in x for cmd_char in [";", "&", "|", "`", "$"]),
         ),
     )
-    def test_condition_spec_creation(self, condition_type: str, operator: Any, operand: list[Any] | str) -> None:
+    def test_condition_spec_creation(
+        self,
+        condition_type: str,
+        operator: Any,
+        operand: list[Any] | str,
+    ) -> None:
         """Property: Valid condition specs should be creatable."""
         assume(len(operand) <= 1000)  # Respect operand length limit
 
@@ -334,7 +340,7 @@ class ConditionStateMachine(RuleBasedStateMachine):
         self.builder = self.builder.negated()
 
     @rule(timeout=st.integers(min_value=1, max_value=60))
-    def set_timeout(self, timeout: int | float) -> None:
+    def set_timeout(self, timeout: float) -> None:
         """Set timeout value."""
         self.builder = self.builder.with_timeout(timeout)
 
@@ -366,13 +372,16 @@ class ConditionStateMachine(RuleBasedStateMachine):
 class TestConditionSystemProperties:
     """Main property test runner."""
 
-    @pytest.mark.skip("Stateful testing needs refinement")
-    @settings(max_examples=10, deadline=None)
     def test_stateful_condition_building(self) -> None:
         """Run stateful tests for condition building."""
-        ConditionStateMachine.TestCase.settings = settings(
-            max_examples=5,
-            stateful_step_count=3,
-            deadline=None,
+        # Configure stateful testing with proper settings
+        from hypothesis.stateful import run_state_machine_as_test
+
+        run_state_machine_as_test(
+            ConditionStateMachine,
+            settings=settings(
+                max_examples=10,
+                stateful_step_count=3,
+                deadline=5000
+            )
         )
-        ConditionStateMachine().execute()

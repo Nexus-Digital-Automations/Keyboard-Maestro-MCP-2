@@ -22,10 +22,13 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, NewType
+from typing import Any, NewType, TypeVar
 
 from ..core.ai_integration import AIOperation
 from ..core.contracts import require
+
+# Generic type for cached values
+T = TypeVar("T")
 
 logger = logging.getLogger(__name__)
 
@@ -158,7 +161,7 @@ class CacheManager:
     def _generate_key(
         self,
         operation: AIOperation,
-        input_data: Any,
+        input_data: Any,  # noqa: ANN401 - Cache accepts arbitrary data types
         parameters: dict[str, Any] = None,
     ) -> CacheKey:
         """Generate cache key for AI operation."""
@@ -318,7 +321,7 @@ class CacheManager:
     def put(
         self,
         key: CacheKey,
-        value: Any,
+        value: Any,  # noqa: ANN401 - Cache stores arbitrary types
         ttl: timedelta | None = None,
         namespace: CacheNamespace = CacheNamespace("default"),
         tags: set[str] = None,
@@ -493,7 +496,7 @@ class MultiLevelCache:
     async def put(
         self,
         key: CacheKey,
-        value: Any,
+        value: Any,  # noqa: ANN401 - Cache stores arbitrary types
         ttl: timedelta | None = None,
         namespace: CacheNamespace = CacheNamespace("default"),
         tags: set[str] = None,
@@ -523,15 +526,15 @@ class MultiLevelCache:
             logger.debug(f"Failed to compress value, using uncompressed: {e}")
             return pickle.dumps(value)
 
-    def _decompress_value(self, compressed_data: bytes) -> Any:
+    def _decompress_value(self, compressed_data: bytes) -> Any:  # noqa: ANN401 - Cache returns arbitrary types
         """Decompress value from L2 cache."""
         try:
             decompressed = zlib.decompress(compressed_data)
-            # Safe: pickle usage for internal caching only, no untrusted data
+            # Safe: pickle usage for internal caching only, no untrusted data  # noqa: S301
             return pickle.loads(decompressed)  # noqa: S301
         except (zlib.error, pickle.UnpicklingError) as e:
             logger.debug(f"Failed to decompress value, trying direct unpickling: {e}")
-            # Safe: pickle usage for internal caching only, no untrusted data
+            # Safe: pickle usage for internal caching only, no untrusted data  # noqa: S301
             return pickle.loads(compressed_data)  # noqa: S301
 
     async def _get_from_disk(
@@ -544,11 +547,11 @@ class MultiLevelCache:
             file_path = self.l3_cache_dir / f"{namespace}" / f"{key}.cache"
             if file_path.exists():
                 with open(file_path, "rb") as f:
-                    # Safe: pickle usage for internal caching only, no untrusted data
+                    # Safe: pickle usage for internal caching only, no untrusted data  # noqa: S301
                     cache_data = pickle.load(f)  # noqa: S301
 
                 # Check expiration
-                if "ttl" in cache_data and cache_data["ttl"]:
+                if cache_data.get("ttl"):
                     expiry = cache_data["created_at"] + cache_data["ttl"]
                     if datetime.now(UTC) > expiry:
                         file_path.unlink()  # Delete expired file
@@ -564,7 +567,7 @@ class MultiLevelCache:
     async def _put_to_disk(
         self,
         key: CacheKey,
-        value: Any,
+        value: Any,  # noqa: ANN401 - Cache stores arbitrary types
         ttl: timedelta | None,
         namespace: CacheNamespace,
         tags: set[str],
@@ -635,7 +638,7 @@ class MultiLevelCache:
 class IntelligentCacheManager:
     """AI-powered intelligent cache management with predictive capabilities."""
 
-    def __init__(self, ai_manager: Any=None):
+    def __init__(self, ai_manager: Any = None):
         self.cache = MultiLevelCache()
         self.ai_manager = ai_manager
         self.access_patterns: dict[str, list[datetime]] = {}

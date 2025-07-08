@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from ..core.constants import DEFAULT_RETRY_COUNT
 from ..core.contracts import ensure, require
 from ..core.either import Either
 from ..core.errors import ValidationError
@@ -96,6 +97,96 @@ class WorkflowAnalyzer:
 
         # Initialize common patterns
         self._initialize_pattern_library()
+
+    def _analyze_performance(self, workflow_data: dict[str, Any]) -> dict[str, Any]:
+        """Analyze workflow performance and return performance metrics.
+
+        Args:
+            workflow_data: Workflow data containing steps and duration information
+
+        Returns:
+            Dictionary containing performance analysis results including efficiency metrics
+        """
+        try:
+            # Extract performance data
+            steps = workflow_data.get("steps", [])
+            total_duration = workflow_data.get("total_duration", 0)
+
+            if not steps:
+                return {"efficiency": 0.0, "analysis": "No steps found in workflow"}
+
+            # Calculate performance metrics
+            step_count = len(steps)
+            avg_step_duration = total_duration / step_count if step_count > 0 else 0
+
+            # Analyze step efficiency
+            step_durations = []
+            for step in steps:
+                duration = step.get("duration", 0)
+                step_durations.append(duration)
+
+            # Calculate efficiency score (0.0 to 1.0)
+            if step_durations:
+                max_duration = max(step_durations)
+                min_duration = min(step_durations)
+                duration_variance = (
+                    max_duration - min_duration if max_duration > 0 else 0
+                )
+
+                # Efficiency is higher when durations are more consistent and reasonable
+                if max_duration > 0:
+                    consistency_score = 1.0 - (duration_variance / max_duration)
+                    speed_score = (
+                        min(1.0, 10.0 / avg_step_duration)
+                        if avg_step_duration > 0
+                        else 0.0
+                    )
+                    efficiency = (consistency_score + speed_score) / 2.0
+                else:
+                    efficiency = 0.5  # Default for zero duration
+            else:
+                efficiency = 0.0
+
+            # Generate performance insights
+            insights = []
+            if efficiency > 0.8:
+                insights.append("Workflow shows excellent performance characteristics")
+            elif efficiency > 0.6:
+                insights.append(
+                    "Workflow has good performance with minor optimization potential"
+                )
+            else:
+                insights.append("Workflow could benefit from performance optimization")
+
+            # Identify bottlenecks
+            bottlenecks = []
+            if step_durations:
+                avg_duration = statistics.mean(step_durations)
+                for i, step in enumerate(steps):
+                    duration = step.get("duration", 0)
+                    if duration > avg_duration * 1.5:  # 50% above average
+                        bottlenecks.append(
+                            f"Step {i + 1}: {step.get('name', 'unnamed')} (duration: {duration})"
+                        )
+
+            return {
+                "efficiency": efficiency,
+                "step_count": step_count,
+                "total_duration": total_duration,
+                "average_step_duration": avg_step_duration,
+                "bottlenecks": bottlenecks,
+                "insights": insights,
+                "performance_score": efficiency * 100,  # Convert to percentage
+                "analysis": f"Analyzed {step_count} steps with {efficiency:.2f} efficiency rating",
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error in performance analysis: {e}")
+            return {
+                "efficiency": 0.0,
+                "error": str(e),
+                "analysis": "Performance analysis failed",
+            }
 
     def _initialize_pattern_library(self) -> None:
         """Initialize common workflow patterns for recognition."""
@@ -487,7 +578,7 @@ class WorkflowAnalyzer:
             for comp in components
             if comp.component_type == "action" and not comp.dependencies
         ]
-        if len(sequential_actions) > 3:
+        if len(sequential_actions) > DEFAULT_RETRY_COUNT:
             bottlenecks.append(
                 f"Potential parallelization opportunity: {len(sequential_actions)} independent actions",
             )
@@ -512,7 +603,7 @@ class WorkflowAnalyzer:
         condition_components = [
             comp for comp in components if comp.component_type == "condition"
         ]
-        if len(condition_components) == 0 and len(components) > 3:
+        if len(condition_components) == 0 and len(components) > DEFAULT_RETRY_COUNT:
             concerns.append("No error handling or conditional logic detected")
 
         return concerns
@@ -599,7 +690,7 @@ class WorkflowAnalyzer:
     async def _predict_performance(
         self,
         components: list[WorkflowComponent],
-        metrics: AnalysisMetrics,
+        _metrics: AnalysisMetrics,
     ) -> dict[str, float]:
         """Predict workflow performance characteristics."""
         # Estimate execution time
@@ -639,7 +730,7 @@ class WorkflowAnalyzer:
     async def _identify_patterns(
         self,
         components: list[WorkflowComponent],
-        workflow_data: dict[str, Any],
+        _workflow_data: dict[str, Any],
     ) -> list[WorkflowPattern]:
         """Identify workflow patterns using pattern recognition."""
         identified_patterns = []
@@ -662,7 +753,7 @@ class WorkflowAnalyzer:
 
     def _matches_sequential_pattern(self, components: list[WorkflowComponent]) -> bool:
         """Check if workflow matches sequential processing pattern."""
-        if len(components) < 3:
+        if len(components) < DEFAULT_RETRY_COUNT:
             return False
 
         # Check if most components have no dependencies (sequential)
@@ -801,7 +892,7 @@ class WorkflowAnalyzer:
     async def _generate_performance_optimizations(
         self,
         components: list[WorkflowComponent],
-        metrics: AnalysisMetrics,
+        _metrics: AnalysisMetrics,
     ) -> list[OptimizationRecommendation]:
         """Generate performance-focused optimizations."""
         optimizations = []
@@ -845,7 +936,7 @@ class WorkflowAnalyzer:
     async def _generate_efficiency_optimizations(
         self,
         components: list[WorkflowComponent],
-        metrics: AnalysisMetrics,
+        _metrics: AnalysisMetrics,
     ) -> list[OptimizationRecommendation]:
         """Generate efficiency-focused optimizations."""
         optimizations = []
@@ -885,7 +976,7 @@ class WorkflowAnalyzer:
 
     async def _generate_reliability_optimizations(
         self,
-        components: list[WorkflowComponent],
+        _components: list[WorkflowComponent],
         metrics: AnalysisMetrics,
     ) -> list[OptimizationRecommendation]:
         """Generate reliability-focused optimizations."""
@@ -1054,7 +1145,7 @@ class WorkflowAnalyzer:
 
         # Component organization factor
         organization_factor = 1.0
-        if metrics.dependency_depth > 3:
+        if metrics.dependency_depth > DEFAULT_RETRY_COUNT:
             organization_factor -= 0.2
         if metrics.cyclic_dependencies:
             organization_factor -= 0.3
@@ -1086,7 +1177,7 @@ class WorkflowAnalyzer:
         self,
         components: list[WorkflowComponent],
         metrics: AnalysisMetrics,
-        patterns: list[WorkflowPattern],
+        _patterns: list[WorkflowPattern],
         anti_patterns: list[WorkflowPattern],
     ) -> list[str]:
         """Generate improvement suggestions based on analysis."""

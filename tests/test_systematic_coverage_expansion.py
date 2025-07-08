@@ -6,6 +6,7 @@ all major modules of the codebase, targeting high-impact areas first.
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -78,6 +79,7 @@ class TestCoreModulesExpansion:
     def test_core_contracts_comprehensive(self) -> int:
         """Comprehensive test for core.contracts module."""
         from src.core.contracts import ensure, require
+        from src.core.errors import ContractViolationError
 
         # Test simple contract validation
         @require(lambda x: x > 0)
@@ -88,9 +90,8 @@ class TestCoreModulesExpansion:
         result = positive_function(5)
         assert result == 10
 
-        # Should fail with invalid input
-        # B017 fix: Use specific exception types
-        with pytest.raises((ValueError, TypeError)):  # Contract violation
+        # Should fail with invalid input - expect ContractViolationError
+        with pytest.raises(ContractViolationError):  # Contract violation
             positive_function(-1)
 
         # Test ensure (postcondition)
@@ -496,7 +497,12 @@ class TestFileSystemModulesExpansion:
     @patch("pathlib.Path.exists")
     @patch("pathlib.Path.read_text")
     @patch("pathlib.Path.write_text")
-    def test_file_operations_comprehensive(self, mock_write: Any, mock_read: Any, mock_exists: Any) -> None:
+    def test_file_operations_comprehensive(
+        self,
+        mock_write: Any,
+        mock_read: Any,
+        mock_exists: Any,
+    ) -> None:
         """Comprehensive test for file operations."""
         from src.filesystem.file_operations import FileOperations
 

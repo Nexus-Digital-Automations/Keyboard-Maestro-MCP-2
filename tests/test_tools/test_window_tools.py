@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -41,8 +41,6 @@ from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
 from hypothesis.strategies import composite
 from src.applications.app_controller import AppIdentifier
-
-# Import the tools we're testing
 from src.server.tools.window_tools import (
     _create_app_identifier,
     _format_screen_info,
@@ -52,17 +50,21 @@ from src.server.tools.window_tools import (
     _map_operation_to_state,
     km_window_manager,
 )
-
-# Import window types and errors
 from src.windows.window_manager import (
     WindowManager,
     WindowState,
 )
 
+# Test constants
+TEST_LOW_SPAM_SCORE = 0.3  # Threshold for low spam score
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context() -> Any:
+def mock_context() -> Mock:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -76,7 +78,7 @@ def mock_context() -> Any:
 
 
 @pytest.fixture
-def mock_window_manager() -> Any:
+def mock_window_manager() -> Mock:
     """Create mock WindowManager with standard interface."""
     manager = Mock(spec=WindowManager)
     manager.move_window = AsyncMock()
@@ -123,7 +125,7 @@ def mock_window_manager() -> Any:
 
 
 @pytest.fixture
-def mock_app_identifier() -> Any:
+def mock_app_identifier() -> Mock:
     """Create mock AppIdentifier with standard interface."""
     identifier = Mock(spec=AppIdentifier)
     identifier.primary_identifier.return_value = "com.test.app"
@@ -475,7 +477,11 @@ class TestWindowToolsErrorHandling:
         assert "Invalid application identifier format" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_move_missing_position_error(self, mock_context: Any, mock_app_identifier: Any) -> None:
+    async def test_move_missing_position_error(
+        self,
+        mock_context: Any,
+        mock_app_identifier: Any,
+    ) -> None:
         """Test move operation with missing position."""
         with (
             patch(
@@ -498,7 +504,11 @@ class TestWindowToolsErrorHandling:
             assert result["error"] == "MISSING_POSITION"
 
     @pytest.mark.asyncio
-    async def test_resize_missing_size_error(self, mock_context: Any, mock_app_identifier: Any) -> None:
+    async def test_resize_missing_size_error(
+        self,
+        mock_context: Any,
+        mock_app_identifier: Any,
+    ) -> None:
         """Test resize operation with missing size."""
         with (
             patch(
@@ -778,7 +788,11 @@ class TestWindowToolsSecurity:
             assert result["error"] == "INVALID_IDENTIFIER"
 
     @pytest.mark.asyncio
-    async def test_coordinate_validation(self, mock_context: Any, mock_app_identifier: Any) -> None:
+    async def test_coordinate_validation(
+        self,
+        mock_context: Any,
+        mock_app_identifier: Any,
+    ) -> None:
         """Test coordinate boundary validation."""
         with (
             patch(
@@ -806,7 +820,11 @@ class TestWindowToolsSecurity:
                 assert result["error"] == "INVALID_POSITION"
 
     @pytest.mark.asyncio
-    async def test_size_validation(self, mock_context: Any, mock_app_identifier: Any) -> None:
+    async def test_size_validation(
+        self,
+        mock_context: Any,
+        mock_app_identifier: Any,
+    ) -> None:
         """Test size boundary validation."""
         with (
             patch(
@@ -834,7 +852,11 @@ class TestWindowToolsSecurity:
                 assert result["error"] == "INVALID_SIZE"
 
     @pytest.mark.asyncio
-    async def test_arrangement_validation(self, mock_context: Any, mock_app_identifier: Any) -> None:
+    async def test_arrangement_validation(
+        self,
+        mock_context: Any,
+        mock_app_identifier: Any,
+    ) -> None:
         """Test arrangement type validation."""
         with (
             patch(
@@ -902,7 +924,7 @@ class TestWindowToolsPropertyBased:
         assert result is True
 
     @composite
-    def valid_app_identifiers(draw: Callable[..., Any]) -> Any:
+    def valid_app_identifiers(draw: Callable[..., Any]) -> Mock:
         """Generate valid application identifiers that pass both _is_valid_app_identifier and AppIdentifier validation."""
         # Generate either a valid bundle ID or app name
         choice = draw(st.integers(min_value=0, max_value=1))
@@ -969,7 +991,7 @@ class TestWindowToolsPropertyBased:
     @pytest.mark.asyncio
     @given(valid_coordinates())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    async def test_move_operation_coordinates_property(self, position: int | float) -> None:
+    async def test_move_operation_coordinates_property(self, position: float) -> None:
         """Property: Valid coordinates should not cause validation errors in move operation."""
         mock_context = Mock(spec=Context)
         mock_context.info = AsyncMock()
@@ -1121,7 +1143,7 @@ class TestWindowToolsPerformance:
                 execution_time = end_time - start_time
 
                 # Should complete within 3 seconds (allowing for mocking overhead)
-                assert execution_time < 3.0
+                assert execution_time < TEST_LOW_SPAM_SCORE
                 assert (
                     result["success"] is True
                 )  # Should succeed with mocked components
@@ -1211,7 +1233,11 @@ class TestWindowToolsEdgeCases:
             mock_create.assert_called_once_with(long_identifier)
 
     @pytest.mark.asyncio
-    async def test_unicode_app_identifier(self, mock_context: Any, mock_app_identifier: Any) -> None:
+    async def test_unicode_app_identifier(
+        self,
+        mock_context: Any,
+        mock_app_identifier: Any,
+    ) -> None:
         """Test handling of Unicode application identifiers."""
         unicode_identifier = "Test App 测试 🎯"
 
@@ -1236,7 +1262,11 @@ class TestWindowToolsEdgeCases:
             assert isinstance(result["success"], bool)
 
     @pytest.mark.asyncio
-    async def test_extreme_coordinates(self, mock_context: Any, mock_app_identifier: Any) -> None:
+    async def test_extreme_coordinates(
+        self,
+        mock_context: Any,
+        mock_app_identifier: Any,
+    ) -> None:
         """Test handling of extreme coordinate values."""
         extreme_positions = [
             {"x": -50000, "y": -50000},  # Very negative

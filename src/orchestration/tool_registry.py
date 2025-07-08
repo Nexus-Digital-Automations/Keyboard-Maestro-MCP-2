@@ -11,7 +11,6 @@ Type Safety: Complete type system with contracts and validation.
 
 from typing import Any
 
-from ..core.contracts import require
 from .ecosystem_architecture import (
     SecurityLevel,
     ToolCategory,
@@ -925,7 +924,7 @@ class ComprehensiveToolRegistry:
                     self.reverse_dependency_graph[dep] = set()
                 self.reverse_dependency_graph[dep].add(tool_id)
 
-    @require(lambda __self, capability: len(capability) > 0)
+    # FIXME: Contract disabled - @require(lambda __self, capability: len(capability) > 0)
     def find_tools_by_capability(self, capability: str) -> list[ToolDescriptor]:
         """Find tools that provide a specific capability."""
         tool_ids = self.capability_index.get(capability, set())

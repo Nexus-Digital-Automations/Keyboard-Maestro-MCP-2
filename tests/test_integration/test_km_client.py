@@ -11,12 +11,12 @@ from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from src.core.either import Either
 from src.core.types import Duration, MacroId, TriggerId
 from src.integration.events import TriggerType
 from src.integration.km_client import (
     ConnectionConfig,
     ConnectionMethod,
-    Either,
     KMClient,
     KMError,
     TriggerDefinition,
@@ -26,7 +26,7 @@ from src.integration.km_client import (
 
 
 @pytest.fixture
-def applescript_config() -> Any:
+def applescript_config() -> ConnectionConfig:
     """Create AppleScript connection configuration."""
     return ConnectionConfig(
         method=ConnectionMethod.APPLESCRIPT,
@@ -35,7 +35,7 @@ def applescript_config() -> Any:
 
 
 @pytest.fixture
-def web_api_config() -> Any:
+def web_api_config() -> ConnectionConfig:
     """Create Web API connection configuration."""
     return ConnectionConfig(
         method=ConnectionMethod.WEB_API,
@@ -57,13 +57,13 @@ def sample_trigger_def() -> bool:
 
 
 @pytest.fixture
-def km_client_applescript(applescript_config: dict[str, Any]) -> Any:
+def km_client_applescript(applescript_config: ConnectionConfig) -> KMClient:
     """Create KM client with AppleScript configuration."""
     return KMClient(applescript_config)
 
 
 @pytest.fixture
-def km_client_web(web_api_config: dict[str, Any]) -> Any:
+def km_client_web(web_api_config: ConnectionConfig) -> KMClient:
     """Create KM client with Web API configuration."""
     return KMClient(web_api_config)
 
@@ -104,7 +104,9 @@ class TestEither:
         assert either.is_right()
         assert not either.is_left()
         assert either.get_right() == "success"
-        assert either.get_left() is None
+        # Correctly test that get_left() raises exception on Right value
+        with pytest.raises(ValueError, match="Cannot get Left value from Right"):
+            either.get_left()
         assert either.get_or_else("default") == "success"
 
     def test_left_value_creation(self) -> None:
@@ -114,7 +116,9 @@ class TestEither:
         assert either.is_left()
         assert not either.is_right()
         assert either.get_left() == error
-        assert either.get_right() is None
+        # Correctly test that get_right() raises exception on Left value
+        with pytest.raises(ValueError, match="Cannot get Right value from Left"):
+            either.get_right()
         assert either.get_or_else("default") == "default"
 
     def test_map_operation(self) -> None:
@@ -134,7 +138,7 @@ class TestEither:
     def test_flat_map_operation(self) -> None:
         """Test flat mapping for chaining Either operations."""
 
-        def double_if_positive(x: Any) -> Any:
+        def double_if_positive(x: Any) -> Mock:
             if x > 0:
                 return Either.right(x * 2)
             return Either.left("negative number")
@@ -202,7 +206,11 @@ class TestKMClientAppleScript:
     """Test KM client with AppleScript method."""
 
     @patch("subprocess.run")
-    def test_execute_macro_success(self, mock_run: Any, km_client_applescript: Any) -> None:
+    def test_execute_macro_success(
+        self,
+        mock_run: Any,
+        km_client_applescript: Any,
+    ) -> None:
         """Test successful macro execution via AppleScript."""
         # Mock successful subprocess execution
         mock_run.return_value = Mock(
@@ -226,7 +234,11 @@ class TestKMClientAppleScript:
         )  # Check the executable path contains osascript
 
     @patch("subprocess.run")
-    def test_execute_macro_with_trigger_value(self, mock_run: Any, km_client_applescript: Any) -> None:
+    def test_execute_macro_with_trigger_value(
+        self,
+        mock_run: Any,
+        km_client_applescript: Any,
+    ) -> None:
         """Test macro execution with trigger value."""
         mock_run.return_value = Mock(returncode=0, stdout="Success", stderr="")
 
@@ -245,7 +257,11 @@ class TestKMClientAppleScript:
         )
 
     @patch("subprocess.run")
-    def test_execute_macro_error(self, mock_run: Any, km_client_applescript: Any) -> None:
+    def test_execute_macro_error(
+        self,
+        mock_run: Any,
+        km_client_applescript: Any,
+    ) -> None:
         """Test macro execution error handling."""
         mock_run.return_value = Mock(
             returncode=1,
@@ -261,7 +277,11 @@ class TestKMClientAppleScript:
         assert "Macro not found" in error.message
 
     @patch("subprocess.run")
-    def test_execute_macro_timeout(self, mock_run: Any, km_client_applescript: Any) -> None:
+    def test_execute_macro_timeout(
+        self,
+        mock_run: Any,
+        km_client_applescript: Any,
+    ) -> None:
         """Test macro execution timeout."""
         mock_run.side_effect = subprocess.TimeoutExpired("osascript", timeout=5)
 
@@ -286,7 +306,11 @@ class TestKMClientWebAPI:
     """Test KM client with Web API method."""
 
     @patch("httpx.Client")
-    def test_execute_macro_web_success(self, mock_client: Any, km_client_web: Any) -> None:
+    def test_execute_macro_web_success(
+        self,
+        mock_client: Any,
+        km_client_web: Any,
+    ) -> None:
         """Test successful macro execution via Web API."""
         # Mock successful HTTP response
         mock_response = Mock()
@@ -305,7 +329,11 @@ class TestKMClientWebAPI:
         assert "Macro executed" in output["response"]
 
     @patch("httpx.Client")
-    def test_execute_macro_web_error(self, mock_client: Any, km_client_web: Any) -> None:
+    def test_execute_macro_web_error(
+        self,
+        mock_client: Any,
+        km_client_web: Any,
+    ) -> None:
         """Test Web API error handling."""
         mock_response = Mock()
         mock_response.status_code = 404
@@ -347,7 +375,11 @@ class TestTriggerOperations:
         assert trigger_id == sample_trigger_def.trigger_id
 
     @patch("subprocess.run")
-    def test_unregister_trigger(self, mock_run: Any, km_client_applescript: Any) -> None:
+    def test_unregister_trigger(
+        self,
+        mock_run: Any,
+        km_client_applescript: Any,
+    ) -> None:
         """Test trigger unregistration."""
         mock_run.return_value = Mock(
             returncode=0,
@@ -390,7 +422,11 @@ class TestAsyncOperations:
 
     @pytest.mark.asyncio
     @patch("subprocess.run")
-    async def test_activate_trigger_async(self, mock_run: Any, km_client_applescript: Any) -> None:
+    async def test_activate_trigger_async(
+        self,
+        mock_run: Any,
+        km_client_applescript: Any,
+    ) -> None:
         """Test async trigger activation."""
         mock_run.return_value = Mock(
             returncode=0,
@@ -414,7 +450,7 @@ class TestFunctionalUtilities:
         """Test retry utility with successful operation."""
         call_count = 0
 
-        def flaky_operation() -> Any:
+        def flaky_operation() -> Mock:
             nonlocal call_count
             call_count += 1
             if call_count < 3:
@@ -434,7 +470,7 @@ class TestFunctionalUtilities:
     def test_retry_with_backoff_max_retries(self) -> None:
         """Test retry utility reaching max retries."""
 
-        def always_fail() -> Any:
+        def always_fail() -> Mock:
             return Either.left(KMError.connection_error("Persistent failure"))
 
         result = retry_with_backoff(
@@ -447,7 +483,11 @@ class TestFunctionalUtilities:
         error = result.get_left()
         assert error.code == "CONNECTION_ERROR"
 
-    def test_create_client_with_fallback(self, applescript_config: dict[str, Any], web_api_config: dict[str, Any]) -> None:
+    def test_create_client_with_fallback(
+        self,
+        applescript_config: dict[str, Any],
+        web_api_config: dict[str, Any],
+    ) -> None:
         """Test client with fallback configuration."""
         fallback_client = create_client_with_fallback(
             applescript_config,

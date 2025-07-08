@@ -187,7 +187,7 @@ class FindTextCommand(BaseCommand):
 
         return True
 
-    def _execute_impl(self, context: ExecutionContext) -> CommandResult:
+    def _execute_impl(self, _context: ExecutionContext) -> CommandResult:
         """Execute text search with pattern matching."""
         pattern = self.get_search_pattern()
         mode = self.get_search_mode()
@@ -322,7 +322,7 @@ class ReplaceTextCommand(BaseCommand):
         max_replacements = self.get_max_replacements()
         return not (max_replacements < 1 or max_replacements > 100)
 
-    def _execute_impl(self, context: ExecutionContext) -> CommandResult:
+    def _execute_impl(self, _context: ExecutionContext) -> CommandResult:
         """Execute text replacement with safety limits."""
         search_pattern = self.get_search_pattern()
         replacement_text = self.get_replacement_text()

@@ -9,13 +9,12 @@ Following ADDER+ protocols for systematic coverage expansion with all advanced t
 
 import pytest
 from src.core.errors import ExecutionError, SecurityError, ValidationError
-
-# Core types and utilities
 from src.server.tools.interface_automation_tools import km_interface_automation
 from src.server.tools.plugin_ecosystem_tools import km_plugin_ecosystem
-
-# Import Platform Expansion Tools for comprehensive testing (using actual function names)
 from src.server.tools.visual_automation_tools import km_visual_automation
+
+# Test constants
+TEST_LOW_SPAM_SCORE = 0.3  # Threshold for low spam score
 
 
 class TestVisualAutomationTools:
@@ -475,10 +474,10 @@ class TestPlatformExpansionPerformance:
             await km_plugin_ecosystem({"operation": "list_plugins", "category": "all"})
             elapsed_time = time.time() - start_time
             # Plugin listing should be fast (< 3 seconds)
-            assert elapsed_time < 3.0
+            assert elapsed_time < TEST_LOW_SPAM_SCORE
         except Exception:
             elapsed_time = time.time() - start_time
-            assert elapsed_time < 3.0
+            assert elapsed_time < TEST_LOW_SPAM_SCORE
 
     @pytest.mark.asyncio
     async def test_concurrent_platform_operations(self) -> None:

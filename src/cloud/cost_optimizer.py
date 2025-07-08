@@ -205,7 +205,7 @@ class CloudCostOptimizer:
 
     async def _analyze_cost_breakdown(
         self,
-        provider: CloudProvider,
+        _provider: CloudProvider,
         cost_data: dict[str, Any],
     ) -> dict[str, float]:
         """Analyze cost breakdown by service type."""
@@ -278,7 +278,7 @@ class CloudCostOptimizer:
 
     async def _generate_cost_trends(
         self,
-        provider: CloudProvider,
+        _provider: CloudProvider,
         start_date: datetime,
         end_date: datetime,
     ) -> dict[str, list[float]]:
@@ -309,7 +309,7 @@ class CloudCostOptimizer:
 
     async def _check_budget_status(
         self,
-        provider: CloudProvider,
+        _provider: CloudProvider,
         current_cost: float,
     ) -> dict[str, Any]:
         """Check budget status and alerts."""

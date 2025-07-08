@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from hypothesis import HealthCheck, assume, given, settings
@@ -38,6 +38,9 @@ from src.intelligence.suggestion_system import (
     IntelligentSuggestionSystem,
     SuggestionCategory,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 # Hypothesis strategies for test data generation
@@ -155,7 +158,11 @@ class TestBehaviorAnalyzerProperties:
         privacy_level=privacy_level_strategy(),
     )
     @settings(max_examples=50, deadline=5000)
-    def test_pattern_analysis_privacy_preservation(self, patterns: list[Any] | str, privacy_level: Any) -> None:
+    def test_pattern_analysis_privacy_preservation(
+        self,
+        patterns: list[Any] | str,
+        privacy_level: Any,
+    ) -> None:
         """Property: Pattern analysis must preserve privacy at specified levels."""
         BehaviorAnalyzer(privacy_level)
 
@@ -182,7 +189,11 @@ class TestBehaviorAnalyzerProperties:
         privacy_level=privacy_level_strategy(),
     )
     @settings(max_examples=30, deadline=10000)
-    def test_pattern_extraction_consistency(self, patterns: list[Any] | str, privacy_level: Any) -> None:
+    def test_pattern_extraction_consistency(
+        self,
+        patterns: list[Any] | str,
+        privacy_level: Any,
+    ) -> None:
         """Property: Pattern extraction should be deterministic and consistent."""
         analyzer = BehaviorAnalyzer(privacy_level)
 
@@ -231,7 +242,11 @@ class TestLearningEngineProperties:
         learning_mode=learning_mode_strategy(),
     )
     @settings(max_examples=30, deadline=10000)
-    def test_feature_extraction_completeness(self, patterns: list[Any] | str, learning_mode: Any) -> None:
+    def test_feature_extraction_completeness(
+        self,
+        patterns: list[Any] | str,
+        learning_mode: Any,
+    ) -> None:
         """Property: Feature extraction should be complete and valid."""
         engine = LearningEngine(learning_mode)
 
@@ -261,7 +276,11 @@ class TestLearningEngineProperties:
         confidence_threshold=st.floats(min_value=0.0, max_value=1.0),
     )
     @settings(max_examples=40, deadline=8000)
-    def test_learning_confidence_bounds(self, patterns: list[Any] | str, confidence_threshold: Any) -> None:
+    def test_learning_confidence_bounds(
+        self,
+        patterns: list[Any] | str,
+        confidence_threshold: Any,
+    ) -> None:
         """Property: Learning confidence should be bounded and monotonic."""
         engine = LearningEngine()
 
@@ -437,7 +456,10 @@ class TestSuggestionSystemProperties:
         ),
     )
     @settings(max_examples=50, deadline=5000)
-    def test_roi_calculation_properties(self, automation_suggestions: list[Any] | str) -> None:
+    def test_roi_calculation_properties(
+        self,
+        automation_suggestions: list[Any] | str,
+    ) -> None:
         """Property: ROI calculation should be consistent and bounded."""
         for suggestion in automation_suggestions:
             roi = suggestion.get_roi_estimate()
@@ -570,7 +592,11 @@ class TestPrivacyManagerProperties:
         privacy_level=privacy_level_strategy(),
     )
     @settings(max_examples=30, deadline=10000)
-    def test_data_anonymization_properties(self, data: dict[str, Any] | list[Any] | str | bytes, privacy_level: Any) -> None:
+    def test_data_anonymization_properties(
+        self,
+        data: dict[str, Any] | list[Any] | str | bytes,
+        privacy_level: Any,
+    ) -> None:
         """Property: Data anonymization should preserve utility while protecting privacy."""
         anonymizer = DataAnonymizer()
         asyncio.run(anonymizer.initialize(privacy_level))
@@ -629,7 +655,11 @@ class TestPrivacyManagerProperties:
         privacy_level=privacy_level_strategy(),
     )
     @settings(max_examples=30, deadline=8000)
-    def test_result_filtering_properties(self, results: list[Any], privacy_level: Any) -> None:
+    def test_result_filtering_properties(
+        self,
+        results: list[Any],
+        privacy_level: Any,
+    ) -> None:
         """Property: Result filtering should maintain data integrity while protecting privacy."""
         privacy_manager = PrivacyManager()
         asyncio.run(privacy_manager.initialize())
@@ -664,7 +694,11 @@ class TestDataAnonymizerProperties:
         privacy_level=privacy_level_strategy(),
     )
     @settings(max_examples=100, deadline=5000)
-    def test_string_anonymization_consistency(self, value: Any, privacy_level: Any) -> None:
+    def test_string_anonymization_consistency(
+        self,
+        value: Any,
+        privacy_level: Any,
+    ) -> None:
         """Property: String anonymization should be consistent and privacy-preserving."""
         anonymizer = DataAnonymizer()
 

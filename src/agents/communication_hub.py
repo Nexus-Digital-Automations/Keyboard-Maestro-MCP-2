@@ -210,7 +210,7 @@ class CommunicationHub:
                 if message.is_expired:
                     return Either.left(
                         AutonomousAgentError.unexpected_error(
-                            "Message already expired"
+                            "Message already expired",
                         ),
                     )
 

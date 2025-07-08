@@ -79,7 +79,7 @@ class PerformanceMonitorTools:
                 str | None,
                 Field(description="JSON string with alert thresholds"),
             ] = None,
-            export_format: Annotated[
+            _export_format: Annotated[
                 str,
                 Field(description="Export format (json|csv|dashboard)"),
             ] = "json",
@@ -234,11 +234,11 @@ class PerformanceMonitorTools:
                     description="Analysis time range (last_hour|last_day|last_week|custom)",
                 ),
             ] = "last_hour",
-            custom_start_time: Annotated[
+            _custom_start_time: Annotated[
                 str | None,
                 Field(description="Custom start time (ISO format)"),
             ] = None,
-            custom_end_time: Annotated[
+            _custom_end_time: Annotated[
                 str | None,
                 Field(description="Custom end time (ISO format)"),
             ] = None,
@@ -393,7 +393,7 @@ class PerformanceMonitorTools:
                 bool,
                 Field(description="Backup current settings before optimization"),
             ] = True,
-            performance_target: Annotated[
+            _performance_target: Annotated[
                 str | None,
                 Field(description="Performance target (throughput|latency|efficiency)"),
             ] = None,

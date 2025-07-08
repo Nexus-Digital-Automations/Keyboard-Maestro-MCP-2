@@ -43,7 +43,7 @@ class AuthenticationMethod(Enum):
     NTLM = "ntlm"
     CERTIFICATE = "certificate"
     SAML_ASSERTION = "saml_assertion"
-    OAUTH_TOKEN = "oauth_token"  # noqa: S105 - Type identifier, not a secret
+    OAUTH_TOKEN = "oauth_token"  # noqa: S105 # Enum value, not password
     API_KEY = "api_key"
     MUTUAL_TLS = "mutual_tls"
 
@@ -440,11 +440,13 @@ class EnterpriseSecurityValidator:
     DANGEROUS_HOSTNAMES = {
         "localhost",
         "127.0.0.1",
-        "0.0.0.0",  # noqa: S104 - This is a security blacklist preventing all-interface binding
         "::1",
         "metadata.google.internal",
         "169.254.169.254",  # Cloud metadata endpoints
     }
+
+    # S104 fix: Use separate constant for all-interface binding check
+    ALL_INTERFACES_BINDING = "0.0.0.0"  # noqa: S104 # Security validation constant
 
     SECURE_PORTS = {
         IntegrationType.LDAP: {636},  # LDAPS only
@@ -458,8 +460,11 @@ class EnterpriseSecurityValidator:
         connection: EnterpriseConnection,
     ) -> Either[EnterpriseError, None]:
         """Validate enterprise connection security requirements."""
-        # Hostname validation
-        if connection.host.lower() in self.DANGEROUS_HOSTNAMES:
+        # Hostname validation - check both dangerous hostnames and all-interfaces binding
+        if (
+            connection.host.lower() in self.DANGEROUS_HOSTNAMES
+            or connection.host == self.ALL_INTERFACES_BINDING
+        ):
             return Either.left(EnterpriseError.insecure_connection())
 
         # SSL/TLS validation
@@ -551,7 +556,8 @@ class EnterpriseSecurityValidator:
         if len(search_filter) > 1000:
             return Either.left(
                 EnterpriseError(
-                    "FILTER_TOO_LONG", "LDAP filter exceeds maximum length"
+                    "FILTER_TOO_LONG",
+                    "LDAP filter exceeds maximum length",
                 ),
             )
 

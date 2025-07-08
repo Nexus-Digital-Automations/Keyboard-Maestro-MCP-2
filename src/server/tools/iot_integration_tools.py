@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Annotated, Any
+from typing import Annotated, Any
 
 from pydantic import Field
 from src.core.either import Either
@@ -36,8 +36,7 @@ from src.iot.automation_hub import AutomationHub
 from src.iot.device_controller import DeviceController
 from src.iot.sensor_manager import SensorManager
 
-if TYPE_CHECKING:
-    from fastmcp import Context
+# TYPE_CHECKING section removed - no longer needed
 
 # Global instances for IoT management
 _device_controller: DeviceController | None = None
@@ -172,7 +171,7 @@ async def km_control_iot_devices(
         str,
         Field(description="Action to perform (on|off|set|get|toggle)"),
     ],
-    device_type: Annotated[
+    _device_type: Annotated[
         str | None,
         Field(description="Device type (light|sensor|thermostat|switch|camera)"),
     ] = None,
@@ -180,11 +179,11 @@ async def km_control_iot_devices(
         dict[str, Any] | None,
         Field(description="Action-specific parameters"),
     ] = None,
-    protocol: Annotated[
+    _protocol: Annotated[
         str | None,
         Field(description="Communication protocol (mqtt|http|zigbee|zwave)"),
     ] = None,
-    timeout: Annotated[
+    _timeout: Annotated[
         int,
         Field(description="Operation timeout in seconds", ge=1, le=300),
     ] = 30,
@@ -196,7 +195,7 @@ async def km_control_iot_devices(
         bool,
         Field(description="Verify action completion"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Control IoT devices with support for multiple protocols and device types.
 
@@ -334,7 +333,7 @@ async def km_monitor_sensors(
         bool,
         Field(description="Enable real-time alerting"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Monitor sensor data and trigger automation workflows based on readings and conditions.
 
@@ -553,7 +552,7 @@ async def km_manage_smart_home(
         bool,
         Field(description="Enable adaptive automation based on usage patterns"),
     ] = False,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Manage smart home automation with scenes, scheduling, and adaptive optimization.
 
@@ -797,7 +796,7 @@ async def km_coordinate_iot_workflows(
         bool,
         Field(description="Enable learning from workflow execution"),
     ] = False,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Coordinate complex IoT automation workflows with device dependencies and optimization.
 

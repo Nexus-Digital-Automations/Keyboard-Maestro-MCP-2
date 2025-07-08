@@ -16,6 +16,7 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
+from src.core.constants import IDENTIFIER_LENGTH_LIMIT
 from src.core.either import Either
 from src.core.errors import ValidationError
 
@@ -43,28 +44,28 @@ class ProtocolAddress(str):
 
 def create_device_id(identifier: str) -> DeviceId:
     """Create a validated device ID."""
-    if not identifier or len(identifier) > 100:
+    if not identifier or len(identifier) > IDENTIFIER_LENGTH_LIMIT:
         raise ValidationError("device_id", identifier, "must be 1-100 characters")
     return DeviceId(identifier)
 
 
 def create_sensor_id(identifier: str) -> SensorId:
     """Create a validated sensor ID."""
-    if not identifier or len(identifier) > 100:
+    if not identifier or len(identifier) > IDENTIFIER_LENGTH_LIMIT:
         raise ValidationError("sensor_id", identifier, "must be 1-100 characters")
     return SensorId(identifier)
 
 
 def create_scene_id(identifier: str) -> SceneId:
     """Create a validated scene ID."""
-    if not identifier or len(identifier) > 100:
+    if not identifier or len(identifier) > IDENTIFIER_LENGTH_LIMIT:
         raise ValidationError("scene_id", identifier, "must be 1-100 characters")
     return SceneId(identifier)
 
 
 def create_workflow_id(identifier: str) -> WorkflowId:
     """Create a validated workflow ID."""
-    if not identifier or len(identifier) > 100:
+    if not identifier or len(identifier) > IDENTIFIER_LENGTH_LIMIT:
         raise ValidationError("workflow_id", identifier, "must be 1-100 characters")
     return WorkflowId(identifier)
 
@@ -472,7 +473,7 @@ class AutomationAction:
 
     async def execute(
         self,
-        context: dict[str, Any] = None,
+        _context: dict[str, Any] = None,
     ) -> Either[str, dict[str, Any]]:
         """Execute the automation action."""
         try:
@@ -721,7 +722,7 @@ class IoTWorkflow:
 
     async def _execute_conditional(
         self,
-        context: dict[str, Any] = None,
+        _context: dict[str, Any] = None,
     ) -> Either[str, dict[str, Any]]:
         """Execute actions based on conditions."""
         # Conditional execution logic would be implemented here

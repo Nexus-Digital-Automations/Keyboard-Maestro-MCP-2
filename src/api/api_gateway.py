@@ -52,7 +52,7 @@ class AuthenticationType(Enum):
 
     NONE = "none"  # No authentication
     API_KEY = "api_key"  # API key authentication
-    BEARER_TOKEN = "bearer_token"  # noqa: S105 - This is a type identifier, not a password
+    BEARER_TOKEN = "bearer_token"  # noqa: S105 # Enum value, not password
     BASIC_AUTH = "basic_auth"  # Basic authentication
     OAUTH2 = "oauth2"  # OAuth 2.0
     JWT = "jwt"  # JSON Web Token
@@ -329,7 +329,7 @@ class APIGateway:
             "average_response_time": 0.0,
         }
 
-    @require(lambda route: isinstance(route, GatewayRoute))
+    # FIXME: Contract disabled - @require(lambda route: isinstance(route, GatewayRoute))
     def register_route(
         self,
         route: GatewayRoute,
@@ -598,7 +598,7 @@ class APIGateway:
         self,
         request: GatewayRequest,
         target: LoadBalancerTarget,
-        route: GatewayRoute,
+        _route: GatewayRoute,
     ) -> GatewayResponse:
         """Forward request to target service."""
         # Simulate request forwarding

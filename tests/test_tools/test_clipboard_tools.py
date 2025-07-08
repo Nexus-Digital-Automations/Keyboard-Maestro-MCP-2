@@ -26,7 +26,7 @@ Testing Strategy:
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -51,10 +51,13 @@ from src.server.tools.clipboard_tools import (
     km_clipboard_manager,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context() -> Any:
+def mock_context() -> Mock:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -67,7 +70,7 @@ def mock_context() -> Any:
 
 
 @pytest.fixture
-def mock_clipboard_manager() -> Any:
+def mock_clipboard_manager() -> Mock:
     """Create mock ClipboardManager with standard interface."""
     manager = Mock(spec=ClipboardManager)
     manager.get_clipboard = AsyncMock()
@@ -102,7 +105,7 @@ def mock_clipboard_manager() -> Any:
 
 
 @pytest.fixture
-def mock_named_clipboard_manager() -> Any:
+def mock_named_clipboard_manager() -> Mock:
     """Create mock NamedClipboardManager with standard interface."""
     manager = Mock(spec=NamedClipboardManager)
     manager.create_clipboard = AsyncMock()
@@ -160,7 +163,7 @@ def mock_named_clipboard_manager() -> Any:
 
 
 @pytest.fixture
-def sample_clipboard_data() -> Any:
+def sample_clipboard_data() -> Mock:
     """Sample clipboard data for testing."""
     return {
         "short_text": "Hello World",
@@ -177,7 +180,11 @@ class TestKMClipboardManager:
     """Test clipboard management functionality following proven pattern."""
 
     @pytest.mark.asyncio
-    async def test_get_operation_success(self, mock_context: Any, mock_clipboard_manager: Any) -> None:
+    async def test_get_operation_success(
+        self,
+        mock_context: Any,
+        mock_clipboard_manager: Any,
+    ) -> None:
         """Test successful clipboard get operation."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -759,7 +766,7 @@ class TestClipboardPropertyBased:
     """Property-based testing for clipboard operations."""
 
     @composite
-    def clipboard_content_strategy(draw: Callable[..., Any]) -> Any:
+    def clipboard_content_strategy(draw: Callable[..., Any]) -> Mock:
         """Generate valid clipboard content for testing."""
         content_type = draw(st.sampled_from(["text", "short", "long", "unicode"]))
 
@@ -830,7 +837,11 @@ class TestClipboardPerformance:
     """Test performance and limits for clipboard operations."""
 
     @pytest.mark.asyncio
-    async def test_large_content_handling(self, mock_context: Any, mock_clipboard_manager: Any) -> None:
+    async def test_large_content_handling(
+        self,
+        mock_context: Any,
+        mock_clipboard_manager: Any,
+    ) -> None:
         """Test handling of large clipboard content."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -850,7 +861,11 @@ class TestClipboardPerformance:
             assert result["data"]["content_size"] == 1000000
 
     @pytest.mark.asyncio
-    async def test_history_count_limits(self, mock_context: Any, mock_clipboard_manager: Any) -> None:
+    async def test_history_count_limits(
+        self,
+        mock_context: Any,
+        mock_clipboard_manager: Any,
+    ) -> None:
         """Test history count parameter limits."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",
@@ -890,7 +905,11 @@ class TestClipboardEdgeCases:
     """Test edge cases and boundary conditions."""
 
     @pytest.mark.asyncio
-    async def test_empty_content_handling(self, mock_context: Any, mock_clipboard_manager: Any) -> None:
+    async def test_empty_content_handling(
+        self,
+        mock_context: Any,
+        mock_clipboard_manager: Any,
+    ) -> None:
         """Test handling of empty clipboard content."""
         with patch(
             "src.server.tools.clipboard_tools.get_clipboard_manager",

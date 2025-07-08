@@ -11,7 +11,6 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -405,7 +404,7 @@ def test_mock_integration_patterns() -> None:
     assert complex_mock.property1 == "prop_value"
 
 
-def mock_open_function() -> Any:
+def mock_open_function() -> Mock:
     """Create a mock open function for file operations."""
     mock = Mock()
     mock.return_value.__enter__ = Mock(return_value=mock.return_value)
@@ -458,7 +457,7 @@ async def test_async_comprehensive_patterns() -> None:
     import asyncio
 
     # Test basic async/await patterns
-    async def simple_async_task() -> Any:
+    async def simple_async_task() -> Mock:
         await asyncio.sleep(0.001)
         return "async_result"
 
@@ -470,14 +469,19 @@ async def test_async_comprehensive_patterns() -> None:
         async def __aenter__(self):
             return self
 
-        async def __aexit__(self, exc_type: str, exc_val: Exception | str, exc_tb: Exception | str):
+        async def __aexit__(
+            self,
+            exc_type: str,
+            exc_val: Exception | str,
+            exc_tb: Exception | str,
+        ):
             return None
 
     async with AsyncContextManager() as ctx:
         assert ctx is not None
 
     # Test async generators
-    async def async_generator() -> Any:
+    async def async_generator() -> Mock:
         for i in range(3):
             await asyncio.sleep(0.001)
             yield i
@@ -488,7 +492,7 @@ async def test_async_comprehensive_patterns() -> None:
     assert results == [0, 1, 2]
 
     # Test async exception handling
-    async def failing_async_task() -> Any:
+    async def failing_async_task() -> Mock:
         await asyncio.sleep(0.001)
         raise ValueError("Async error")
 

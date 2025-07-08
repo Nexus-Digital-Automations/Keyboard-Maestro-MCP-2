@@ -7,11 +7,14 @@ with focus on MCP tool functionality, error handling, and integration patterns.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from src.core.errors import ValidationError
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +23,7 @@ class TestCoreToolsFoundation:
     """Test foundation tools from TASK_1-9 core macro engine."""
 
     @pytest.fixture
-    def sample_macro_data(self) -> Any:
+    def sample_macro_data(self) -> Mock:
         """Sample macro data for testing."""
         return {
             "macro_id": "test-macro-001",
@@ -34,7 +37,7 @@ class TestCoreToolsFoundation:
         }
 
     @pytest.fixture
-    def sample_group_data(self) -> Any:
+    def sample_group_data(self) -> Mock:
         """Sample group data for testing."""
         return {
             "group_id": "test-group-001",
@@ -67,7 +70,7 @@ class TestMacroExecutionTools:
             pytest.fail(f"Failed to import engine tools: {e}")
 
     @pytest.fixture
-    def mock_fastmcp_context(self) -> Any:
+    def mock_fastmcp_context(self) -> Mock:
         """Create mock FastMCP context."""
         context = AsyncMock()
         context.session_id = "test-session-123"
@@ -165,7 +168,7 @@ class TestGroupManagementTools:
             pytest.fail(f"Failed to import group tools: {e}")
 
     @pytest.fixture
-    def mock_fastmcp_context(self) -> Any:
+    def mock_fastmcp_context(self) -> Mock:
         """Create mock FastMCP context."""
         context = AsyncMock()
         context.session_id = "test-session-123"
@@ -176,7 +179,11 @@ class TestGroupManagementTools:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_group_listing(self, mock_get_km_client: Any, mock_fastmcp_context: Any) -> None:
+    async def test_group_listing(
+        self,
+        mock_get_km_client: Any,
+        mock_fastmcp_context: Any,
+    ) -> None:
         """Test group listing functionality."""
         mock_client = Mock()
         mock_client.list_groups.return_value = Mock(
@@ -279,7 +286,11 @@ class TestClipboardTools:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_clipboard_operations(self, mock_get_km_client: Any, execution_context: Context | Any) -> None:
+    async def test_clipboard_operations(
+        self,
+        mock_get_km_client: Any,
+        execution_context: Context | Any,
+    ) -> None:
         """Test basic clipboard operations."""
         mock_client = AsyncMock()
         mock_client.set_clipboard.return_value = {"success": True}
@@ -355,7 +366,11 @@ class TestNotificationTools:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_notification_display(self, mock_get_km_client: Any, execution_context: Context | Any) -> None:
+    async def test_notification_display(
+        self,
+        mock_get_km_client: Any,
+        execution_context: Context | Any,
+    ) -> None:
         """Test notification display functionality."""
         mock_client = AsyncMock()
         mock_client.show_notification.return_value = {"success": True}
@@ -379,7 +394,11 @@ class TestIntegrationPatterns:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_error_handling_pattern(self, mock_get_km_client: Any, execution_context: Context | Any) -> None:
+    async def test_error_handling_pattern(
+        self,
+        mock_get_km_client: Any,
+        execution_context: Context | Any,
+    ) -> None:
         """Test consistent error handling across tools."""
         mock_client = AsyncMock()
         mock_client.execute_macro.side_effect = ValidationError(
@@ -406,7 +425,11 @@ class TestIntegrationPatterns:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_metadata_consistency(self, mock_get_km_client: Any, execution_context: Context | Any) -> None:
+    async def test_metadata_consistency(
+        self,
+        mock_get_km_client: Any,
+        execution_context: Context | Any,
+    ) -> None:
         """Test that all tools return consistent metadata."""
         mock_client = AsyncMock()
         mock_client.list_macros.return_value = []
@@ -459,7 +482,11 @@ class TestIntegrationPatterns:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_context_usage_pattern(self, mock_get_km_client: Any, execution_context: Context | Any) -> None:
+    async def test_context_usage_pattern(
+        self,
+        mock_get_km_client: Any,
+        execution_context: Context | Any,
+    ) -> None:
         """Test that tools properly use MCP context."""
         mock_client = AsyncMock()
         mock_client.list_macros.return_value = []
@@ -484,7 +511,10 @@ class TestPropertyBasedFoundationTesting:
 
     @patch("src.server.initialization.get_km_client")
     @pytest.mark.asyncio
-    async def test_tool_response_structure_property(self, mock_get_km_client: Any) -> None:
+    async def test_tool_response_structure_property(
+        self,
+        mock_get_km_client: Any,
+    ) -> None:
         """Property: All tools should return dict with 'success' key."""
         from hypothesis import given
         from hypothesis import strategies as st

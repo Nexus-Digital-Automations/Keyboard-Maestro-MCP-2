@@ -124,7 +124,13 @@ class ProviderFactory:
             )
 
         except Exception as e:
-            return Either.left(ValidationError("client_creation_failed", str(e), "Provider client creation failed"))
+            return Either.left(
+                ValidationError(
+                    "client_creation_failed",
+                    str(e),
+                    "Provider client creation failed",
+                ),
+            )
 
     def get_or_create_client(
         self,

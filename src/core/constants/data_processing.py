@@ -1,0 +1,22 @@
+"""Data processing and array manipulation constants."""
+
+# Array indexing
+ARRAY_INDEX_FIRST = 0
+ARRAY_INDEX_SECOND = 1
+ARRAY_INDEX_THIRD = 2
+ARRAY_INDEX_FOURTH = 3
+
+# Collection sizes
+PAIR_COUNT = 2
+TRIPLE_COUNT = 3
+QUARTET_COUNT = 4
+
+# Data bounds
+MIN_SCAN_SPEED = 0.1
+MAX_SCAN_SPEED = 10.0
+DEFAULT_STEP_SIZE = 0.5
+
+# Processing limits
+MAX_ITEMS_PER_BATCH = 50
+DEFAULT_PAGE_SIZE = 20
+LARGE_DATASET_THRESHOLD = 1000

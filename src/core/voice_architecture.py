@@ -102,24 +102,26 @@ AudioStreamId = str
 class VoiceProfile:
     """Speaker voice profile for personalization and authentication."""
 
-    speaker_id: SpeakerId
-    name: str
-    voice_patterns: dict[str, Any]
-    language_preference: VoiceLanguage
-    authentication_level: SpeakerAuthLevel
+    profile_id: str
+    user_name: str
+    acoustic_characteristics: dict[str, Any]
+    personalization_level: float
+    supported_languages: list[VoiceLanguage]
+    created_date: datetime
+    last_updated: datetime
+    authentication_level: SpeakerAuthLevel = SpeakerAuthLevel.BASIC
     custom_commands: dict[str, str] = field(default_factory=dict)
     accessibility_settings: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    last_used: datetime | None = None
 
-    @require(lambda self: len(self.speaker_id) > 0)
-    @require(lambda self: len(self.name) > 0)
+    @require(lambda self: len(self.profile_id) > 0)
+    @require(lambda self: len(self.user_name) > 0)
+    @require(lambda self: 0.0 <= self.personalization_level <= 1.0)
     def __post_init__(self):
         pass
 
     def supports_language(self, language: VoiceLanguage) -> bool:
         """Check if profile supports specified language."""
-        return self.language_preference == language
+        return language in self.supported_languages
 
     def get_custom_command(self, phrase: str) -> str | None:
         """Get custom command mapping for phrase."""

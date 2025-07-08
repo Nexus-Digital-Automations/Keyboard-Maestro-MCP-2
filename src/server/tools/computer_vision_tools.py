@@ -308,7 +308,7 @@ async def km_analyze_scene(
         bool,
         Field(description="Include contextual information extraction"),
     ] = True,
-    environment_focus: Annotated[
+    _environment_focus: Annotated[
         str | None,
         Field(
             description="Focus analysis on specific environment (indoor|outdoor|digital)",
@@ -535,9 +535,7 @@ async def km_classify_image_content(
 
         # Get object detection for additional classification context
         detection_result = await object_detector.detect_objects(image_content)
-        detected_objects = (
-            detection_result.value if detection_result.is_right() else []
-        )
+        detected_objects = detection_result.value if detection_result.is_right() else []
 
         # Build classification based on type
         classification_results = []
@@ -784,9 +782,7 @@ async def km_extract_text_from_image(
 
         # Detect text objects first
         detection_result = await object_detector.detect_objects(image_content)
-        detected_objects = (
-            detection_result.value if detection_result.is_right() else []
-        )
+        detected_objects = detection_result.value if detection_result.is_right() else []
 
         # Filter for text objects
         text_objects = [obj for obj in detected_objects if obj.category.value == "text"]

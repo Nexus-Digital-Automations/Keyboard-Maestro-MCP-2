@@ -29,7 +29,6 @@ from src.integration.km_triggers import KMTriggerGenerator, KMTriggerIntegrator
 from src.security.input_sanitizer import InputSanitizer
 
 if TYPE_CHECKING:
-    from fastmcp import Context
     from src.integration.km_client import KMClient
 
 # Setup module logger
@@ -58,7 +57,7 @@ class AdvancedTriggerProcessor:
         priority: int = 0,
         timeout_seconds: int = 30,
         max_executions: int | None = None,
-        ctx: Context | None = None,
+        ctx: Any = None,
     ) -> Either[MCPError, dict[str, Any]]:
         """Create advanced trigger with comprehensive validation and security.
 
@@ -686,7 +685,7 @@ def _suggest_next_actions(trigger_spec: Any) -> list[str]:
 
 # Register helper functions for convenience
 def create_scheduled_trigger_helper(
-    macro_id: str,
+    _macro_id: str,
     schedule_time: str,
     timezone: str = "local",
 ) -> dict[str, Any]:
@@ -698,7 +697,7 @@ def create_scheduled_trigger_helper(
 
 
 def create_file_monitor_helper(
-    macro_id: str,
+    _macro_id: str,
     watch_path: str,
     file_pattern: str | None = None,
 ) -> dict[str, Any]:

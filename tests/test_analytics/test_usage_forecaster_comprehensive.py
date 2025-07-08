@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from hypothesis import given
@@ -30,6 +30,9 @@ from src.core.predictive_modeling import (
     TimeSeriesData,
     create_forecast_id,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 # Test data generators

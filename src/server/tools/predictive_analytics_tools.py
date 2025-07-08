@@ -1187,7 +1187,7 @@ async def km_get_analytics_status() -> dict[str, Any]:
 
 async def _generate_sample_pattern_features(
     scope: str,
-    target_id: str | None,
+    _target_id: str | None,
 ) -> list[PatternFeature]:
     """Generate sample pattern features for demonstration."""
     import random
@@ -1196,7 +1196,10 @@ async def _generate_sample_pattern_features(
 
     # Generate usage pattern feature
     timestamps = [datetime.now(UTC) - timedelta(hours=i) for i in range(24, 0, -1)]
-    usage_values = [random.uniform(10, 100) for _ in range(24)]  # noqa: S311 # Simulation data generation
+    usage_values = [
+        random.uniform(10, 100)  # noqa: S311 # ML/analytics data simulation
+        for _ in range(24)
+    ]  # Simulation data generation
 
     features.append(
         PatternFeature(
@@ -1209,7 +1212,10 @@ async def _generate_sample_pattern_features(
     )
 
     # Generate performance pattern feature
-    performance_values = [random.uniform(1.0, 5.0) for _ in range(24)]  # noqa: S311 # Simulation data generation
+    performance_values = [
+        random.uniform(1.0, 5.0)  # noqa: S311 # ML/analytics data simulation
+        for _ in range(24)
+    ]  # Simulation data generation
 
     features.append(
         PatternFeature(
@@ -1233,13 +1239,25 @@ async def _generate_sample_usage_data(resource_type: ResourceType) -> TimeSeries
 
     # Generate realistic usage values based on resource type
     if resource_type == ResourceType.CPU_USAGE:
-        values = [random.uniform(20, 80) for _ in range(720)]  # noqa: S311 # Simulation data generation
+        values = [
+            random.uniform(20, 80)  # noqa: S311 # ML/analytics data simulation
+            for _ in range(720)
+        ]  # Simulation data generation
     elif resource_type == ResourceType.MEMORY_USAGE:
-        values = [random.uniform(30, 90) for _ in range(720)]  # noqa: S311 # Simulation data generation
+        values = [
+            random.uniform(30, 90)  # noqa: S311 # ML/analytics data simulation
+            for _ in range(720)
+        ]  # Simulation data generation
     elif resource_type == ResourceType.STORAGE_USAGE:
-        values = [random.uniform(40, 95) for _ in range(720)]  # noqa: S311 # Simulation data generation
+        values = [
+            random.uniform(40, 95)  # noqa: S311 # ML/analytics data simulation
+            for _ in range(720)
+        ]  # Simulation data generation
     else:
-        values = [random.uniform(10, 60) for _ in range(720)]  # noqa: S311 # Simulation data generation
+        values = [
+            random.uniform(10, 60)  # noqa: S311 # ML/analytics data simulation
+            for _ in range(720)
+        ]  # Simulation data generation
 
     return TimeSeriesData(
         timestamps=timestamps,
@@ -1264,10 +1282,10 @@ async def _generate_sample_insight_data(
             data_type="performance",
             time_period=timeframe,
             metrics={
-                "response_time": random.uniform(1.5, 4.0),  # noqa: S311 # Simulation data generation
-                "cpu_usage": random.uniform(40, 85),  # noqa: S311 # Simulation data generation
-                "memory_usage": random.uniform(50, 90),  # noqa: S311 # Simulation data generation
-                "error_rate": random.uniform(1, 8),  # noqa: S311 # Simulation data generation
+                "response_time": random.uniform(1.5, 4.0),  # noqa: S311 # Performance simulation
+                "cpu_usage": random.uniform(40, 85),  # noqa: S311 # Performance simulation
+                "memory_usage": random.uniform(50, 90),  # noqa: S311 # Performance simulation
+                "error_rate": random.uniform(1, 8),  # noqa: S311 # Performance simulation
             },
             trends={"response_time_trend": "increasing", "cpu_trend": "stable"},
             context={"analysis_scope": scope},
@@ -1281,10 +1299,22 @@ async def _generate_sample_insight_data(
             data_type="usage",
             time_period=timeframe,
             metrics={
-                "execution_count": random.uniform(1000, 5000),  # noqa: S311 # Simulation data generation
-                "automation_executions": random.uniform(500, 2000),  # noqa: S311 # Simulation data generation
-                "manual_tasks": random.uniform(50, 200),  # noqa: S311 # Simulation data generation
-                "cost_per_execution": random.uniform(0.05, 0.25),  # noqa: S311 # Simulation data generation
+                "execution_count": random.uniform(  # noqa: S311 # ML/analytics randomness
+                    1000,
+                    5000,
+                ),  # Simulation data generation
+                "automation_executions": random.uniform(  # noqa: S311 # ML/analytics randomness
+                    500,
+                    2000,
+                ),  # Simulation data generation
+                "manual_tasks": random.uniform(  # noqa: S311 # ML/analytics data simulation
+                    50,
+                    200,
+                ),  # Simulation data generation
+                "cost_per_execution": random.uniform(  # noqa: S311 # ML/analytics randomness
+                    0.05,
+                    0.25,
+                ),  # Simulation data generation
             },
             trends={"usage_trend": "increasing", "efficiency_trend": "improving"},
             context={"analysis_scope": scope},
@@ -1313,16 +1343,29 @@ async def _generate_sample_trend_data(scope: str, period: str) -> dict[str, Any]
     ]
 
     if scope == "usage":
-        values = [random.uniform(100, 500) + i * 2 for i in range(data_points)]  # noqa: S311 # Simulation data generation
+        values = [
+            random.uniform(100, 500) + i * 2  # noqa: S311 # ML/analytics data simulation
+            for i in range(data_points)
+        ]  # Simulation data generation
     elif scope == "performance":
         values = [
-            random.uniform(1.0, 3.0) + random.uniform(-0.1, 0.1)  # noqa: S311 # Simulation data generation
+            random.uniform(1.0, 3.0)  # noqa: S311 # ML/analytics randomness
+            + random.uniform(  # noqa: S311 # ML/analytics data simulation
+                -0.1,
+                0.1,
+            )  # Simulation data generation
             for _ in range(data_points)
         ]
     elif scope == "errors":
-        values = [random.uniform(1, 10) for _ in range(data_points)]  # noqa: S311 # Simulation data generation
+        values = [
+            random.uniform(1, 10)  # noqa: S311 # ML/analytics data simulation
+            for _ in range(data_points)
+        ]  # Simulation data generation
     else:  # efficiency
-        values = [random.uniform(70, 95) + i * 0.1 for i in range(data_points)]  # noqa: S311 # Simulation data generation
+        values = [
+            random.uniform(70, 95) + i * 0.1  # noqa: S311 # ML/analytics data simulation
+            for i in range(data_points)
+        ]  # Simulation data generation
 
     return {
         "timestamps": timestamps,

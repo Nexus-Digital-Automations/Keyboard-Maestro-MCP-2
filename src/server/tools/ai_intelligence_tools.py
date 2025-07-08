@@ -24,9 +24,9 @@ async def km_ai_intelligence(
     confidence_threshold: float = 0.7,  # Minimum confidence for actions
     adaptation_mode: str = "moderate",  # conservative|moderate|aggressive
     privacy_level: str = "standard",  # minimal|standard|strict|paranoid
-    enable_caching: bool = True,  # Cache intelligent insights
-    timeout: int = 30,  # Processing timeout
-    ctx: Any=None,
+    _enable_caching: bool = True,  # Cache intelligent insights
+    _timeout: int = 30,  # Processing timeout
+    _ctx: Any = None,
 ) -> dict[str, Any]:
     """AI-powered intelligent automation with context awareness and adaptive learning.
 
@@ -159,7 +159,7 @@ async def km_ai_intelligence(
 
 async def _process_context_analysis(
     input_data: Any,
-    context_engine: Any,
+    _context_engine: Any,
     intelligence_type: str,
     context_dimensions: list[str] | None,
     privacy_level: str,
@@ -225,7 +225,7 @@ async def _process_context_analysis(
 
 async def _process_smart_trigger(
     input_data: Any,
-    automation_engine: Any,
+    _automation_engine: Any,
     confidence_threshold: float,
     learning_enabled: bool,
 ) -> dict[str, Any]:
@@ -276,10 +276,10 @@ async def _process_smart_trigger(
 
 async def _process_adaptive_workflow(
     input_data: Any,
-    automation_engine: Any,
+    _automation_engine: Any,
     adaptation_mode: str,
     learning_enabled: bool,
-    context_dimensions: list[str] | None,
+    _context_dimensions: list[str] | None,
 ) -> dict[str, Any]:
     """Process adaptive workflow optimization."""
     start_time = datetime.now(UTC)
@@ -341,7 +341,7 @@ async def _process_adaptive_workflow(
 
 async def _process_decision_engine(
     input_data: Any,
-    automation_engine: Any,
+    _automation_engine: Any,
     confidence_threshold: float,
     intelligence_type: str,
 ) -> dict[str, Any]:
@@ -402,8 +402,8 @@ async def _process_decision_engine(
 
 async def _process_pattern_detection(
     input_data: Any,
-    automation_engine: Any,
-    context_engine: Any,
+    _automation_engine: Any,
+    _context_engine: Any,
     learning_enabled: bool,
     privacy_level: str,
 ) -> dict[str, Any]:
@@ -479,12 +479,12 @@ async def km_ai_batch(
     operation: str,  # submit|status|cancel|list|optimize
     batch_data: dict | None = None,  # Batch job configuration or job ID
     processing_mode: str = "parallel",  # sequential|parallel|pipeline|priority|resource_aware
-    max_concurrent_tasks: int = 5,  # Maximum concurrent tasks
+    _max_concurrent_tasks: int = 5,  # Maximum concurrent tasks
     priority: int = 5,  # Job priority (1-10)
     enable_checkpointing: bool = True,  # Enable job checkpointing
     auto_retry_failed: bool = True,  # Auto-retry failed tasks
-    timeout_hours: int = 1,  # Total job timeout
-    ctx: Any=None,
+    _timeout_hours: int = 1,  # Total job timeout
+    _ctx: Any = None,
 ) -> dict[str, Any]:
     """Advanced batch processing for AI operations with enterprise-grade management.
 

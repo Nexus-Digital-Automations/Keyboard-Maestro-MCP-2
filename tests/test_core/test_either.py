@@ -11,7 +11,16 @@ from typing import Any
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
-from src.core.either import Either, Left, Right
+from src.core.either import Either
+
+
+# Create convenience aliases for test readability
+def Left(value):
+    return Either.left(value)
+
+
+def Right(value):
+    return Either.right(value)
 
 
 class TestEitherBasics:
@@ -155,8 +164,8 @@ class TestEitherUtilities:
         """Test folding Right values."""
         right = Right(42)
         result = right.fold(
-            left_func=lambda x: f"Error: {x}",
-            right_func=lambda x: f"Success: {x}",
+            lambda x: f"Error: {x}",  # left_func (positional)
+            lambda x: f"Success: {x}",  # right_func (positional)
         )
 
         assert result == "Success: 42"
@@ -165,8 +174,8 @@ class TestEitherUtilities:
         """Test folding Left values."""
         left = Left("error")
         result = left.fold(
-            left_func=lambda x: f"Error: {x}",
-            right_func=lambda x: f"Success: {x}",
+            lambda x: f"Error: {x}",  # left_func (positional)
+            lambda x: f"Success: {x}",  # right_func (positional)
         )
 
         assert result == "Error: error"
@@ -327,7 +336,7 @@ class TestPropertyBasedEither:
         assert flat_mapped == left
 
     @given(st.integers(), st.integers())
-    def test_associativity_law(self, value: Any, multiplier: int | float) -> None:
+    def test_associativity_law(self, value: Any, multiplier: float) -> None:
         """Test flat_map associativity law."""
         right = Right(value)
 

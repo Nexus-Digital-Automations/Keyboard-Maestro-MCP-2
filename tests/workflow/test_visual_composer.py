@@ -11,6 +11,7 @@ Type Safety: Verify complete contract compliance and type validation.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from hypothesis import given
@@ -24,6 +25,9 @@ from src.core.visual_design import (
     WorkflowId,
 )
 from src.workflow.visual_composer import VisualComposer, get_visual_composer
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable
 
 
 class TestVisualComposer:
@@ -43,7 +47,7 @@ class TestVisualComposer:
         )
 
         assert result.is_right()
-        workflow = result.right()
+        workflow = result.get_right()
 
         assert workflow.name == "Test Workflow"
         assert workflow.description == "Test workflow description"
@@ -52,7 +56,10 @@ class TestVisualComposer:
         assert workflow.version == 1
 
     @pytest.mark.asyncio
-    async def test_create_workflow_with_canvas_config(self, composer: Awaitable[Any] | Any) -> None:
+    async def test_create_workflow_with_canvas_config(
+        self,
+        composer: Awaitable[Any] | Any,
+    ) -> None:
         """Test workflow creation with custom canvas configuration."""
         canvas_config = {
             "width": 1600,
@@ -68,7 +75,7 @@ class TestVisualComposer:
         )
 
         assert result.is_right()
-        workflow = result.right()
+        workflow = result.get_right()
 
         assert workflow.canvas.dimensions.width == 1600
         assert workflow.canvas.dimensions.height == 1000
@@ -82,7 +89,7 @@ class TestVisualComposer:
         # Create workflow first
         workflow_result = await composer.create_workflow("Test Workflow")
         assert workflow_result.is_right()
-        workflow = workflow_result.right()
+        workflow = workflow_result.get_right()
 
         # Add component
         position = CanvasPosition(x=100, y=200)
@@ -99,7 +106,7 @@ class TestVisualComposer:
         )
 
         assert result.is_right()
-        component = result.right()
+        component = result.get_right()
 
         assert component.component_type == ComponentType.ACTION
         assert component.position.x == 100
@@ -112,11 +119,14 @@ class TestVisualComposer:
         assert component.component_id in updated_workflow.components
 
     @pytest.mark.asyncio
-    async def test_add_component_auto_connect(self, composer: Awaitable[Any] | Any) -> None:
+    async def test_add_component_auto_connect(
+        self,
+        composer: Awaitable[Any] | Any,
+    ) -> None:
         """Test auto-connecting components."""
         # Create workflow and add first component
         workflow_result = await composer.create_workflow("Auto Connect Test")
-        workflow = workflow_result.right()
+        workflow = workflow_result.get_right()
 
         # Add first component
         await composer.add_component(
@@ -147,7 +157,7 @@ class TestVisualComposer:
         """Test connecting workflow components."""
         # Create workflow and components
         workflow_result = await composer.create_workflow("Connect Test")
-        workflow = workflow_result.right()
+        workflow = workflow_result.get_right()
 
         # Add two components
         comp1_result = await composer.add_component(
@@ -156,7 +166,7 @@ class TestVisualComposer:
             position=CanvasPosition(x=100, y=100),
             properties=ComponentProperties(title="Trigger"),
         )
-        comp1 = comp1_result.right()
+        comp1 = comp1_result.get_right()
 
         comp2_result = await composer.add_component(
             workflow_id=workflow.workflow_id,
@@ -164,7 +174,7 @@ class TestVisualComposer:
             position=CanvasPosition(x=300, y=100),
             properties=ComponentProperties(title="Action"),
         )
-        comp2 = comp2_result.right()
+        comp2 = comp2_result.get_right()
 
         # Connect components
         connection_result = await composer.connect_components(
@@ -175,7 +185,7 @@ class TestVisualComposer:
         )
 
         assert connection_result.is_right()
-        connection = connection_result.right()
+        connection = connection_result.get_right()
 
         assert connection.source_component == comp1.component_id
         assert connection.target_component == comp2.component_id
@@ -190,7 +200,7 @@ class TestVisualComposer:
         """Test updating component properties and position."""
         # Create workflow and component
         workflow_result = await composer.create_workflow("Update Test")
-        workflow = workflow_result.right()
+        workflow = workflow_result.get_right()
 
         comp_result = await composer.add_component(
             workflow_id=workflow.workflow_id,
@@ -216,7 +226,7 @@ class TestVisualComposer:
         )
 
         assert update_result.is_right()
-        updated_component = update_result.right()
+        updated_component = update_result.get_right()
 
         assert updated_component.properties.title == "Updated Title"
         assert updated_component.properties.description == "Updated description"
@@ -229,7 +239,7 @@ class TestVisualComposer:
         """Test removing component and its connections."""
         # Create workflow with connected components
         workflow_result = await composer.create_workflow("Remove Test")
-        workflow = workflow_result.right()
+        workflow = workflow_result.get_right()
 
         # Add components
         comp1_result = await composer.add_component(
@@ -238,7 +248,7 @@ class TestVisualComposer:
             position=CanvasPosition(x=100, y=100),
             properties=ComponentProperties(title="Trigger"),
         )
-        comp1 = comp1_result.right()
+        comp1 = comp1_result.get_right()
 
         comp2_result = await composer.add_component(
             workflow_id=workflow.workflow_id,
@@ -246,7 +256,7 @@ class TestVisualComposer:
             position=CanvasPosition(x=300, y=100),
             properties=ComponentProperties(title="Action"),
         )
-        comp2 = comp2_result.right()
+        comp2 = comp2_result.get_right()
 
         # Connect components
         await composer.connect_components(
@@ -281,7 +291,7 @@ class TestVisualComposer:
         """Test workflow validation."""
         # Create valid workflow
         workflow_result = await composer.create_workflow("Validation Test")
-        workflow = workflow_result.right()
+        workflow = workflow_result.get_right()
 
         # Add connected components
         comp1_result = await composer.add_component(
@@ -290,7 +300,7 @@ class TestVisualComposer:
             position=CanvasPosition(x=100, y=100),
             properties=ComponentProperties(title="Trigger"),
         )
-        comp1 = comp1_result.right()
+        comp1 = comp1_result.get_right()
 
         comp2_result = await composer.add_component(
             workflow_id=workflow.workflow_id,
@@ -298,7 +308,7 @@ class TestVisualComposer:
             position=CanvasPosition(x=300, y=100),
             properties=ComponentProperties(title="Action"),
         )
-        comp2 = comp2_result.right()
+        comp2 = comp2_result.get_right()
 
         await composer.connect_components(
             workflow_id=workflow.workflow_id,
@@ -310,15 +320,18 @@ class TestVisualComposer:
         validation_result = await composer.validate_workflow(workflow.workflow_id)
         assert validation_result.is_right()
 
-        errors = validation_result.right()
+        errors = validation_result.get_right()
         assert len(errors) == 0  # Should be valid
 
     @pytest.mark.asyncio
-    async def test_validate_workflow_with_errors(self, composer: Awaitable[Any] | Any) -> None:
+    async def test_validate_workflow_with_errors(
+        self,
+        composer: Awaitable[Any] | Any,
+    ) -> None:
         """Test workflow validation with errors."""
         # Create workflow with orphaned component
         workflow_result = await composer.create_workflow("Error Test")
-        workflow = workflow_result.right()
+        workflow = workflow_result.get_right()
 
         # Add orphaned action component (no connections)
         await composer.add_component(
@@ -332,12 +345,15 @@ class TestVisualComposer:
         validation_result = await composer.validate_workflow(workflow.workflow_id)
         assert validation_result.is_right()
 
-        errors = validation_result.right()
+        errors = validation_result.get_right()
         assert len(errors) > 0  # Should have validation errors
         assert any("no connections" in error.lower() for error in errors)
 
     @pytest.mark.asyncio
-    async def test_workflow_not_found_errors(self, composer: Awaitable[Any] | Any) -> None:
+    async def test_workflow_not_found_errors(
+        self,
+        composer: Awaitable[Any] | Any,
+    ) -> None:
         """Test error handling for non-existent workflows."""
         fake_workflow_id = WorkflowId("nonexistent_workflow")
 
@@ -390,14 +406,18 @@ class TestVisualComposerPropertyBased:
 
     @given(name=st.text(min_size=1, max_size=100), description=st.text(max_size=500))
     @pytest.mark.asyncio
-    async def test_create_workflow_with_valid_inputs(self, name: str, description: str) -> None:
+    async def test_create_workflow_with_valid_inputs(
+        self,
+        name: str,
+        description: str,
+    ) -> None:
         """Property: Valid inputs should always create successful workflows."""
         composer = VisualComposer()
 
         result = await composer.create_workflow(name=name, description=description)
 
         assert result.is_right()
-        workflow = result.right()
+        workflow = result.get_right()
         assert workflow.name == name
         assert workflow.description == description
 
@@ -407,13 +427,18 @@ class TestVisualComposerPropertyBased:
         title=st.text(min_size=1, max_size=100),
     )
     @pytest.mark.asyncio
-    async def test_add_component_position_bounds(self, x: Any, y: Any, title: str) -> None:
+    async def test_add_component_position_bounds(
+        self,
+        x: Any,
+        y: Any,
+        title: str,
+    ) -> None:
         """Property: Components should be addable at any valid position."""
         composer = VisualComposer()
 
         # Create workflow
         workflow_result = await composer.create_workflow("Property Test")
-        workflow = workflow_result.right()
+        workflow = workflow_result.get_right()
 
         # Add component at position
         position = CanvasPosition(x=x, y=y)
@@ -427,19 +452,22 @@ class TestVisualComposerPropertyBased:
         )
 
         assert result.is_right()
-        component = result.right()
+        component = result.get_right()
         assert component.position.x == x
         assert component.position.y == y
 
     @given(component_count=st.integers(min_value=0, max_value=10))
     @pytest.mark.asyncio
-    async def test_workflow_component_count_invariant(self, component_count: int) -> None:
+    async def test_workflow_component_count_invariant(
+        self,
+        component_count: int,
+    ) -> None:
         """Property: Workflow component count should match actual components."""
         composer = VisualComposer()
 
         # Create workflow
         workflow_result = await composer.create_workflow("Count Test")
-        workflow = workflow_result.right()
+        workflow = workflow_result.get_right()
 
         # Add specified number of components
         for i in range(component_count):
@@ -459,7 +487,11 @@ class TestVisualComposerPropertyBased:
         canvas_height=st.integers(min_value=600, max_value=4000),
     )
     @pytest.mark.asyncio
-    async def test_canvas_dimensions_validation(self, canvas_width: Any, canvas_height: Any) -> None:
+    async def test_canvas_dimensions_validation(
+        self,
+        canvas_width: Any,
+        canvas_height: Any,
+    ) -> None:
         """Property: Canvas dimensions should be validated and stored correctly."""
         composer = VisualComposer()
 
@@ -475,7 +507,7 @@ class TestVisualComposerPropertyBased:
         )
 
         assert result.is_right()
-        workflow = result.right()
+        workflow = result.get_right()
         assert workflow.canvas.dimensions.width == canvas_width
         assert workflow.canvas.dimensions.height == canvas_height
 
@@ -515,7 +547,7 @@ class TestVisualComposerPerformance:
 
         # Create workflow
         workflow_result = await composer.create_workflow("Performance Test")
-        workflow = workflow_result.right()
+        workflow = workflow_result.get_right()
 
         start_time = datetime.now(UTC)
 
@@ -540,7 +572,7 @@ class TestVisualComposerPerformance:
 
         # Create workflow with many components
         workflow_result = await composer.create_workflow("Large Workflow Test")
-        workflow = workflow_result.right()
+        workflow = workflow_result.get_right()
 
         # Add 20 components
         components = []

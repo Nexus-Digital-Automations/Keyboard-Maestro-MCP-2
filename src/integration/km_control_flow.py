@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import re
 import uuid
-from collections.abc import Callable
 
 try:
     from defusedxml import ElementTree as ET
@@ -23,6 +22,8 @@ except ImportError:
         stacklevel=2,
     )
 
+from typing import TYPE_CHECKING
+
 from ..core.control_flow import (
     ActionBlock,
     ComparisonOperator,
@@ -34,6 +35,9 @@ from ..core.control_flow import (
     WhileLoopNode,
 )
 from ..core.errors import SecurityError, ValidationError
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class KMControlFlowGenerator:
@@ -84,7 +88,7 @@ class KMControlFlowGenerator:
         except Exception as e:
             raise ValidationError(f"Failed to generate XML: {e}") from e
 
-    def _generate_if_then_else_xml(self, node: IfThenElseNode, macro_id: str) -> str:
+    def _generate_if_then_else_xml(self, node: IfThenElseNode, _macro_id: str) -> str:
         """Generate XML for If/Then/Else structure."""
         action_id = str(uuid.uuid4()).upper()
 
@@ -114,7 +118,7 @@ class KMControlFlowGenerator:
 
         return self._validate_and_clean_xml(xml_template)
 
-    def _generate_for_loop_xml(self, node: ForLoopNode, macro_id: str) -> str:
+    def _generate_for_loop_xml(self, node: ForLoopNode, _macro_id: str) -> str:
         """Generate XML for For Loop structure."""
         action_id = str(uuid.uuid4()).upper()
 
@@ -143,7 +147,7 @@ class KMControlFlowGenerator:
 
         return self._validate_and_clean_xml(xml_template)
 
-    def _generate_while_loop_xml(self, node: WhileLoopNode, macro_id: str) -> str:
+    def _generate_while_loop_xml(self, node: WhileLoopNode, _macro_id: str) -> str:
         """Generate XML for While Loop structure."""
         action_id = str(uuid.uuid4()).upper()
 
@@ -170,7 +174,7 @@ class KMControlFlowGenerator:
 
         return self._validate_and_clean_xml(xml_template)
 
-    def _generate_switch_case_xml(self, node: SwitchCaseNode, macro_id: str) -> str:
+    def _generate_switch_case_xml(self, node: SwitchCaseNode, _macro_id: str) -> str:
         """Generate XML for Switch/Case structure."""
         action_id = str(uuid.uuid4()).upper()
 
@@ -211,7 +215,7 @@ class KMControlFlowGenerator:
 
         return self._validate_and_clean_xml(xml_template)
 
-    def _generate_try_catch_xml(self, node: TryCatchNode, macro_id: str) -> str:
+    def _generate_try_catch_xml(self, node: TryCatchNode, _macro_id: str) -> str:
         """Generate XML for Try/Catch structure."""
         action_id = str(uuid.uuid4()).upper()
 
@@ -372,7 +376,7 @@ class KMControlFlowGenerator:
             xml_string = re.sub(r"\s+", " ", xml_string.strip())
 
             # Basic XML validation by parsing
-            ET.fromstring(f"<root>{xml_string}</root>")  # noqa: S314 # Using defusedxml import
+            ET.fromstring(f"<root>{xml_string}</root>")  # noqa: S314 # Using defusedxml import for safety
 
             return xml_string
 

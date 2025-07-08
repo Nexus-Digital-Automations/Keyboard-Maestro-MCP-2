@@ -264,7 +264,11 @@ class ConditionValidator:
             regex_result = RegexValidator.validate_pattern(condition.comparison_value)
             if regex_result.is_left():
                 return Either.left(
-                    ValidationError("INVALID_REGEX", pattern, regex_result.get_left().message),
+                    ValidationError(
+                        "INVALID_REGEX",
+                        pattern,
+                        regex_result.get_left().message,
+                    ),
                 )
 
         return Either.right(None)
@@ -457,7 +461,9 @@ class ConditionBuilder:
             if not app_id:
                 return Either.left(
                     ValidationError(
-                        "MISSING_APP_ID", app_id, "Application identifier required"
+                        "MISSING_APP_ID",
+                        app_id,
+                        "Application identifier required",
                     ),
                 )
 
@@ -476,7 +482,11 @@ class ConditionBuilder:
             var_name = condition.metadata.get("variable_name", "")
             if not re.match(r"^[a-zA-Z0-9_]+$", var_name):
                 return Either.left(
-                    ValidationError("INVALID_VARIABLE", var_name, "Invalid variable name format"),
+                    ValidationError(
+                        "INVALID_VARIABLE",
+                        var_name,
+                        "Invalid variable name format",
+                    ),
                 )
 
         return Either.right(None)

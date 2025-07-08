@@ -8,14 +8,20 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ...calculations.calculator import CalculationExpression, Calculator
 from ...calculations.km_math_integration import KMTokenCalculator
 
+if TYPE_CHECKING:
+    from fastmcp import Context
+
 
 # Additional functions expected by tests - these wrap the main km_calculator function
-async def km_calculate_expression(expression: str, ctx: Context | Any=None) -> dict[str, Any]:
+async def km_calculate_expression(
+    expression: str,
+    ctx: Context | Any = None,
+) -> dict[str, Any]:
     """Calculate a mathematical expression."""
     return await km_calculator(
         expression=expression,
@@ -31,7 +37,7 @@ async def km_calculate_expression(expression: str, ctx: Context | Any=None) -> d
 async def km_calculate_math_function(
     function: str,
     value: float,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Calculate a mathematical function like sin, cos, etc."""
     expression = f"{function}({value})"
@@ -50,7 +56,7 @@ async def km_convert_number_format(
     value: float,
     from_format: str,
     to_format: str,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Convert a number between different formats."""
     return await km_calculator(
@@ -67,7 +73,7 @@ async def km_convert_number_format(
 async def km_evaluate_formula(
     formula: str,
     variables: dict[str, float],
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Evaluate a formula with variables."""
     return await km_calculator(
@@ -88,7 +94,7 @@ async def km_calculator(
     precision: int,
     use_km_engine: bool,
     validate_only: bool,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Evaluate mathematical expressions with comprehensive security and token support.
 
@@ -275,3 +281,21 @@ async def km_calculator(
             },
             "metadata": {"timestamp": datetime.now(UTC).isoformat()},
         }
+
+
+# Wrapper for backward compatibility with tests
+async def km_calculate(
+    expression: str,
+    variables: dict[str, float],
+    ctx: Any = None,
+) -> dict[str, Any]:
+    """Wrapper function for km_calculator with simplified parameters."""
+    return await km_calculator(
+        expression=expression,
+        variables=variables,
+        format_result="decimal",
+        precision=2,
+        use_km_engine=False,
+        validate_only=False,
+        ctx=ctx,
+    )

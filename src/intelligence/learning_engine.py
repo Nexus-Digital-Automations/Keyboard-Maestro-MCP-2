@@ -572,7 +572,7 @@ class LearningEngine:
 
     def _identify_peak_usage_periods(
         self,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> list[str]:
         """Identify peak usage periods from patterns."""
         # This would analyze actual time data from patterns
@@ -667,64 +667,64 @@ class LearningEngine:
     # Placeholder helper methods
     def _calculate_tool_efficiency_scores(
         self,
-        tool_patterns: dict[str, list],
+        _tool_patterns: dict[str, list],
     ) -> dict[str, float]:
         """Calculate efficiency scores for different tools."""
         return {}
 
     def _analyze_tool_combinations(
         self,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> list[dict[str, Any]]:
         """Analyze tool combination patterns."""
         return []
 
     def _calculate_completion_time_consistency(
         self,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> float:
         """Calculate consistency of completion times."""
         return 0.0
 
     def _identify_common_contexts(
         self,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> list[str]:
         """Identify common context patterns."""
         return []
 
     def _analyze_context_patterns(
         self,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Analyze context usage patterns."""
         return {}
 
     def _analyze_temporal_patterns(
         self,
-        temporal_features: dict[str, Any],
+        _temporal_features: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Analyze temporal patterns for insights."""
         return []
 
     def _identify_performance_optimizations(
         self,
-        performance_features: dict[str, Any],
+        _performance_features: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Identify performance optimization opportunities."""
         return []
 
     def _generate_usage_predictions(
         self,
-        features: LearningFeatures,
+        _features: LearningFeatures,
     ) -> list[dict[str, Any]]:
         """Generate usage pattern predictions."""
         return []
 
     def _generate_learning_recommendations(
         self,
-        insights: list[dict[str, Any]],
-        optimizations: list[dict[str, Any]],
+        _insights: list[dict[str, Any]],
+        _optimizations: list[dict[str, Any]],
     ) -> list[str]:
         """Generate actionable recommendations from learning."""
         return []
@@ -732,7 +732,7 @@ class LearningEngine:
     async def _enhance_learning_results(
         self,
         results: LearningResults,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> LearningResults:
         """Enhance learning results with additional analysis."""
         return results

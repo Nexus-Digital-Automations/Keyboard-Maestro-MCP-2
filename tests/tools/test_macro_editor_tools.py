@@ -8,10 +8,13 @@ Tests follow the proven systematic pattern that achieved 100% success across 25+
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 # Import existing modules
 
@@ -22,13 +25,13 @@ import pytest
 async def mock_km_macro_editor(
     macro_identifier: str,
     operation: str,
-    modification_spec: Any=None,
-    debug_options: dict[str, Any]=None,
-    comparison_target: Any=None,
-    validation_level: Any="standard",
-    create_backup: Any=True,
-    ctx: Context | Any=None,
-) -> Any:
+    modification_spec: Any = None,
+    debug_options: dict[str, Any] = None,
+    comparison_target: Any = None,
+    validation_level: Any = "standard",
+    create_backup: Any = True,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for macro editor testing."""
     if not macro_identifier or not macro_identifier.strip():
         return {
@@ -275,14 +278,14 @@ class TestKMMacroEditor:
     """Test suite for km_macro_editor MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-macro-editor-001"}
         return context
 
     @pytest.fixture
-    def sample_modification_spec(self) -> Any:
+    def sample_modification_spec(self) -> Mock:
         """Sample modification specification for testing."""
         return {
             "changes": [
@@ -301,7 +304,7 @@ class TestKMMacroEditor:
         }
 
     @pytest.fixture
-    def sample_debug_options(self) -> Any:
+    def sample_debug_options(self) -> Mock:
         """Sample debug options for testing."""
         return {
             "mode": "step_by_step",
@@ -332,7 +335,11 @@ class TestKMMacroEditor:
         assert "metadata" in result
 
     @pytest.mark.asyncio
-    async def test_macro_modify_operation(self, mock_context: Any, sample_modification_spec: Any) -> None:
+    async def test_macro_modify_operation(
+        self,
+        mock_context: Any,
+        sample_modification_spec: Any,
+    ) -> None:
         """Test macro modification operation."""
         result = await km_macro_editor(
             macro_identifier="test_macro_002",
@@ -353,7 +360,11 @@ class TestKMMacroEditor:
         assert result["modification_result"]["rollback_available"] is True
 
     @pytest.mark.asyncio
-    async def test_macro_debug_operation(self, mock_context: Any, sample_debug_options: dict[str, Any]) -> None:
+    async def test_macro_debug_operation(
+        self,
+        mock_context: Any,
+        sample_debug_options: dict[str, Any],
+    ) -> None:
         """Test macro debugging operation."""
         result = await km_macro_editor(
             macro_identifier="test_macro_003",
@@ -538,7 +549,7 @@ class TestMacroEditorIntegration:
     """Integration tests for macro editor tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
@@ -609,14 +620,17 @@ class TestMacroEditorProperties:
     """Property-based tests for macro editor tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-property-macro-editor-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_macro_editor_with_various_identifiers(self, mock_context: Any) -> None:
+    async def test_macro_editor_with_various_identifiers(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test macro editor with various identifier formats."""
         test_identifiers = [
             "simple_macro",

@@ -64,7 +64,7 @@ async def km_validate_trust(
         bool,
         Field(description="Enable continuous trust validation"),
     ] = True,
-    risk_tolerance: Annotated[
+    _risk_tolerance: Annotated[
         str,
         Field(description="Risk tolerance level (strict|balanced|permissive)"),
     ] = "balanced",
@@ -214,7 +214,7 @@ async def km_enforce_security_policy(
         bool,
         Field(description="Audit policy enforcement actions"),
     ] = True,
-    real_time_enforcement: Annotated[
+    _real_time_enforcement: Annotated[
         bool,
         Field(description="Enable real-time policy enforcement"),
     ] = True,

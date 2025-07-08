@@ -193,12 +193,12 @@ class TestHotkeyManager:
     """Test HotkeyManager functionality with mocked dependencies."""
 
     @pytest.fixture
-    def mock_km_client(self) -> Any:
+    def mock_km_client(self) -> Mock:
         """Mock KMClient for testing."""
         return Mock(spec=KMClient)
 
     @pytest.fixture
-    def mock_trigger_manager(self, mock_km_client: Any) -> Any:
+    def mock_trigger_manager(self, mock_km_client: Any) -> Mock:
         """Mock TriggerRegistrationManager for testing."""
         manager = Mock(spec=TriggerRegistrationManager)
         manager.register_trigger = AsyncMock(
@@ -207,7 +207,7 @@ class TestHotkeyManager:
         return manager
 
     @pytest.fixture
-    def hotkey_manager(self, mock_km_client: Any, mock_trigger_manager: Any) -> Any:
+    def hotkey_manager(self, mock_km_client: Any, mock_trigger_manager: Any) -> Mock:
         """Create HotkeyManager instance with mocked dependencies."""
         return HotkeyManager(mock_km_client, mock_trigger_manager)
 

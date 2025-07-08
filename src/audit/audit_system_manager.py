@@ -70,7 +70,9 @@ class AuditSystemManager:
             self.violation_notifier.notify_violation,
         )
 
-    @require(lambda __self, compliance_standards: isinstance(compliance_standards, list))
+    @require(
+        lambda __self, compliance_standards: isinstance(compliance_standards, list),
+    )
     async def initialize(
         self,
         compliance_standards: list[ComplianceStandard] | None = None,

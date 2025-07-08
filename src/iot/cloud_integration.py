@@ -203,7 +203,9 @@ class CloudIntegrationManager:
             "config_updates": {"operations_per_second": 1, "burst": 5},
         }
 
-    @require(lambda __self, connection: connection.connection_id and connection.provider)
+    @require(
+        lambda __self, connection: connection.connection_id and connection.provider,
+    )
     @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def register_cloud_connection(
         self,
@@ -656,7 +658,7 @@ class CloudIntegrationManager:
             await asyncio.sleep(0.1)
 
             # Simulate occasional connectivity issues
-            if random.random() < 0.05:  # noqa: S311 - Testing simulation only, not cryptographic use
+            if random.random() < 0.05:  # noqa: S311 # Simulation failure rate
                 # 5% failure rate for simulation
                 return Either.error(
                     IoTIntegrationError(

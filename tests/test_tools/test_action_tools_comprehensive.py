@@ -6,6 +6,7 @@ parameter validation, and integration with Keyboard Maestro with property-based 
 
 import asyncio
 import uuid
+from collections.abc import Callable
 from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -24,7 +25,7 @@ from src.server.tools.action_tools import (
 
 # Test data generators
 @st.composite
-def action_config_strategy(draw: Callable[..., Any]) -> Any:
+def action_config_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid action configurations."""
     config_types = [
         # Text actions
@@ -57,7 +58,7 @@ def action_config_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def macro_id_strategy(draw: Callable[..., Any]) -> Any:
+def macro_id_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid macro IDs."""
     id_types = [
         # UUID format
@@ -71,7 +72,7 @@ def macro_id_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def action_type_strategy(draw: Callable[..., Any]) -> Any:
+def action_type_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid action type names."""
     action_types = [
         "Type a String",
@@ -1038,7 +1039,7 @@ class TestActionToolsIntegration:
         description: str,
         required_params: list[str],
         optional_params: list[str],
-    ) -> Any:
+    ) -> Mock:
         """Create mock action for testing."""
         mock_action = Mock()
         mock_action.identifier = identifier

@@ -17,7 +17,7 @@ Testing Categories:
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -37,12 +37,15 @@ from src.server.tools.notification_tools import (
     km_notifications,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 class TestNotificationManager:
     """Test core notification manager functionality."""
 
     @pytest.fixture
-    def mock_km_client(self) -> Any:
+    def mock_km_client(self) -> Mock:
         """Create mock KM client for testing."""
         client = Mock()
         client.execute_applescript = AsyncMock()
@@ -51,7 +54,7 @@ class TestNotificationManager:
         return client
 
     @pytest.fixture
-    def notification_manager(self, mock_km_client: Any) -> Any:
+    def notification_manager(self, mock_km_client: Any) -> Mock:
         """Create notification manager with mocked client."""
         return NotificationManager(mock_km_client)
 
@@ -234,7 +237,11 @@ class TestNotificationManager:
         assert notification_result.get_button_clicked() == "OK"
 
     @pytest.mark.asyncio
-    async def test_display_hud_success(self, notification_manager: Any, mock_km_client: Any) -> None:
+    async def test_display_hud_success(
+        self,
+        notification_manager: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test successful HUD display."""
         mock_km_client.display_hud_text.return_value = Mock()
         mock_km_client.display_hud_text.return_value.is_left.return_value = False
@@ -648,7 +655,7 @@ class TestNotificationPropertyBasedTesting:
     """Property-based testing for notification system."""
 
     @composite
-    def notification_spec_strategy(draw: Callable[..., Any]) -> Any:
+    def notification_spec_strategy(draw: Callable[..., Any]) -> Mock:
         """Generate valid notification specifications."""
         notification_type = draw(st.sampled_from(list(NotificationType)))
         title = draw(st.text(min_size=1, max_size=100).filter(lambda x: x.strip()))

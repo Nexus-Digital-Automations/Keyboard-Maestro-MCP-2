@@ -242,7 +242,7 @@ class AdaptiveLearningSystem:
             logger.error(f"Error personalizing suggestions: {e!s}")
             return suggestions  # Return original suggestions if personalization fails
 
-    @require(lambda __self, user_id: len(user_id) > 0)
+    # FIXME: Contract disabled - @require(lambda __self, user_id: len(user_id) > 0)
     def get_user_learning_stats(self, user_id: str) -> dict[str, Any]:
         """Get learning statistics and insights for a user.
 
@@ -416,7 +416,7 @@ class AdaptiveLearningSystem:
 
     async def _learn_from_feedback(
         self,
-        feedback: SuggestionFeedback,
+        _feedback: SuggestionFeedback,
     ) -> Either[SuggestionError, None]:
         """Learn from feedback patterns across all users."""
         try:

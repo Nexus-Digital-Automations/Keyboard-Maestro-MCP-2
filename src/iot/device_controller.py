@@ -200,7 +200,13 @@ class DeviceController:
         self._health_check_task: asyncio.Task | None = None
 
         # Start background services
-        asyncio.create_task(self._start_background_services())
+        # Start background services (only if event loop is running)
+        try:
+            asyncio.get_running_loop()
+            asyncio.create_task(self._start_background_services())
+        except RuntimeError:
+            # No event loop running, skip background task
+            pass
 
     @require(lambda device: isinstance(device, IoTDevice))
     async def register_device(
@@ -613,8 +619,8 @@ class DeviceController:
 
     async def _connect_http(
         self,
-        device: IoTDevice,
-        connection: DeviceConnection,
+        _device: IoTDevice,
+        _connection: DeviceConnection,
     ) -> bool:
         """Connect via HTTP protocol."""
         # Placeholder implementation
@@ -623,7 +629,7 @@ class DeviceController:
 
     async def _connect_https(
         self,
-        device: IoTDevice,
+        _device: IoTDevice,
         connection: DeviceConnection,
     ) -> bool:
         """Connect via HTTPS protocol."""
@@ -634,8 +640,8 @@ class DeviceController:
 
     async def _connect_mqtt(
         self,
-        device: IoTDevice,
-        connection: DeviceConnection,
+        _device: IoTDevice,
+        _connection: DeviceConnection,
     ) -> bool:
         """Connect via MQTT protocol."""
         # Placeholder implementation
@@ -644,8 +650,8 @@ class DeviceController:
 
     async def _connect_coap(
         self,
-        device: IoTDevice,
-        connection: DeviceConnection,
+        _device: IoTDevice,
+        _connection: DeviceConnection,
     ) -> bool:
         """Connect via CoAP protocol."""
         # Placeholder implementation
@@ -766,21 +772,33 @@ class DeviceController:
         await asyncio.sleep(2.0)  # Simulate scan time
         return []
 
-    async def _disconnect_http(self, device: IoTDevice, connection: DeviceConnection) -> None:
+    async def _disconnect_http(
+        self,
+        device: IoTDevice,
+        connection: DeviceConnection,
+    ) -> None:
         """Disconnect HTTP connection."""
         # Placeholder implementation
 
-    async def _disconnect_mqtt(self, device: IoTDevice, connection: DeviceConnection) -> None:
+    async def _disconnect_mqtt(
+        self,
+        device: IoTDevice,
+        connection: DeviceConnection,
+    ) -> None:
         """Disconnect MQTT connection."""
         # Placeholder implementation
 
-    async def _disconnect_coap(self, device: IoTDevice, connection: DeviceConnection) -> None:
+    async def _disconnect_coap(
+        self,
+        device: IoTDevice,
+        connection: DeviceConnection,
+    ) -> None:
         """Disconnect CoAP connection."""
         # Placeholder implementation
 
     async def _ping_device(
         self,
-        device_id: DeviceId,
+        _device_id: DeviceId,
     ) -> Either[IoTIntegrationError, bool]:
         """Ping device to check connectivity."""
         # Placeholder implementation
@@ -789,7 +807,10 @@ class DeviceController:
 
     # Event handler management
 
-    def add_device_discovered_handler(self, handler: Callable[[DiscoveryResult], None]) -> bool:
+    def add_device_discovered_handler(
+        self,
+        handler: Callable[[DiscoveryResult], None],
+    ) -> bool:
         """Add device discovered event handler."""
         self.device_discovered_handlers.append(handler)
 
@@ -797,7 +818,10 @@ class DeviceController:
         """Add device connected event handler."""
         self.device_connected_handlers.append(handler)
 
-    def add_device_disconnected_handler(self, handler: Callable[[DeviceId], None]) -> bool:
+    def add_device_disconnected_handler(
+        self,
+        handler: Callable[[DeviceId], None],
+    ) -> bool:
         """Add device disconnected event handler."""
         self.device_disconnected_handlers.append(handler)
 

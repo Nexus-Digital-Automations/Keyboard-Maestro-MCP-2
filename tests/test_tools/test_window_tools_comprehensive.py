@@ -7,7 +7,7 @@ arrangement management, and integration with property-based testing.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -15,10 +15,13 @@ from hypothesis import assume, given
 from hypothesis import strategies as st
 from src.server.tools.window_tools import km_window_manager
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test data generators
 @st.composite
-def window_operation_strategy(draw: Callable[..., Any]) -> Any:
+def window_operation_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid window operations."""
     operations = [
         "move",
@@ -34,7 +37,7 @@ def window_operation_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def window_identifier_strategy(draw: Callable[..., Any]) -> Any:
+def window_identifier_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid window identifiers."""
     # Mix of bundle IDs and app names (systematic pattern alignment)
     identifiers = [
@@ -61,7 +64,7 @@ def window_identifier_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def position_strategy(draw: Callable[..., Any]) -> Any:
+def position_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid window positions."""
     return {
         "x": draw(st.integers(min_value=0, max_value=3840)),  # 4K width
@@ -70,7 +73,7 @@ def position_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def size_strategy(draw: Callable[..., Any]) -> Any:
+def size_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid window sizes."""
     return {
         "width": draw(
@@ -83,14 +86,14 @@ def size_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def screen_strategy(draw: Callable[..., Any]) -> Any:
+def screen_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid screen identifiers."""
     screens = ["main", "external", "0", "1", "2"]
     return draw(st.sampled_from(screens))
 
 
 @st.composite
-def arrangement_strategy(draw: Callable[..., Any]) -> Any:
+def arrangement_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid window arrangements."""
     arrangements = [
         "left_half",
@@ -108,20 +111,20 @@ def arrangement_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def window_state_strategy(draw: Callable[..., Any]) -> Any:
+def window_state_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid window states."""
     states = ["normal", "minimized", "maximized", "fullscreen"]
     return draw(st.sampled_from(states))
 
 
 @st.composite
-def window_index_strategy(draw: Callable[..., Any]) -> Any:
+def window_index_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid window indices."""
     return draw(st.integers(min_value=0, max_value=20))
 
 
 @st.composite
-def invalid_window_identifier_strategy(draw: Callable[..., Any]) -> Any:
+def invalid_window_identifier_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate invalid window identifiers."""
     invalid_identifiers = [
         "",  # Empty
@@ -873,7 +876,9 @@ class TestWindowIntegration:
             mock_create_app_id.return_value = mock_app_id
 
             # Setup different operation results
-            def create_mock_operation_result(operation_details: dict[str, Any] | list[Any]) -> None:
+            def create_mock_operation_result(
+                operation_details: dict[str, Any] | list[Any],
+            ) -> None:
                 mock_operation_result = Mock()
                 mock_operation_result.window_info = Mock()
                 mock_operation_result.window_info.app_identifier = "com.apple.finder"
@@ -1077,7 +1082,11 @@ class TestWindowProperties:
         assert size["width"] >= 100 and size["height"] >= 100
 
     @given(arrangement_strategy(), screen_strategy())
-    def test_arrangement_and_screen_properties(self, arrangement: str, screen: str) -> None:
+    def test_arrangement_and_screen_properties(
+        self,
+        arrangement: str,
+        screen: str,
+    ) -> None:
         """Property test for arrangement and screen parameters."""
         valid_arrangements = [
             "left_half",
@@ -1097,7 +1106,11 @@ class TestWindowProperties:
         assert screen in valid_screens
 
     @given(window_index_strategy(), window_state_strategy())
-    def test_window_index_and_state_properties(self, window_index: int, state: str) -> None:
+    def test_window_index_and_state_properties(
+        self,
+        window_index: int,
+        state: str,
+    ) -> None:
         """Property test for window index and state parameters."""
         assert 0 <= window_index <= 20
 

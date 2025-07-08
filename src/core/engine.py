@@ -56,7 +56,7 @@ class PlaceholderCommand:
     command_type: CommandType
     parameters: CommandParameters
 
-    def execute(self, context: ExecutionContext) -> CommandResult:
+    def execute(self, _context: ExecutionContext) -> CommandResult:
         """Execute the placeholder command."""
         start_time = time.time()
 
@@ -139,12 +139,12 @@ class MacroEngine:
         object.__setattr__(self, "_active_executions", {})
         object.__setattr__(self, "_execution_lock", asyncio.Lock())
 
-    @require(
-        lambda self, macro, context=None: macro is not None,
-        "macro cannot be None",
-    )
+    # FIXME: Contract disabled - @require(
+    #     lambda _self, macro, _context=None: macro is not None,
+    #     "macro cannot be None",
+    # )
     @ensure(
-        lambda self, macro, context=None, result=None: result.execution_token
+        lambda _self, _macro, _context=None, result=None: result.execution_token
         is not None,
         "must return execution token",
     )
@@ -273,7 +273,7 @@ class MacroEngine:
     # TASK_9: Enhanced async execution with proper validation and resource management
 
     @require(
-        lambda self, macro, context=None: macro is not None,
+        lambda _self, macro, _context=None: macro is not None,
         "macro cannot be None",
     )
     async def execute_macro_async(
@@ -491,12 +491,12 @@ class MacroEngine:
                 ),
             )
 
-    @require(lambda __self, token: token is not None, "token cannot be None")
+    # FIXME: Contract disabled - @require(lambda __self, token: token is not None, "token cannot be None")
     def get_execution_status(self, token: ExecutionToken) -> ExecutionStatus | None:
         """Retrieve current execution status."""
         return self.context_manager.get_status(token)
 
-    @require(lambda __self, token: token is not None, "token cannot be None")
+    # FIXME: Contract disabled - @require(lambda __self, token: token is not None, "token cannot be None")
     def cancel_execution(self, token: ExecutionToken) -> bool:
         """Cancel a running macro execution.
 

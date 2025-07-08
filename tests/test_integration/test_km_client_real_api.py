@@ -32,7 +32,9 @@ class TestEitherMonad:
         assert result.is_left()
         assert not result.is_right()
         assert result.get_left() == error_msg
-        assert result.get_right() is None
+        # get_right() should raise ValueError on Left
+        with pytest.raises(ValueError, match="Cannot get Right value from Left"):
+            result.get_right()
 
     def test_either_right_creation(self) -> None:
         """Test creating Right (success) values."""
@@ -42,7 +44,9 @@ class TestEitherMonad:
         assert result.is_right()
         assert not result.is_left()
         assert result.get_right() == value
-        assert result.get_left() is None
+        # get_left() should raise ValueError on Right
+        with pytest.raises(ValueError, match="Cannot get Left value from Right"):
+            result.get_left()
 
     def test_either_map_functionality(self) -> None:
         """Test mapping over Either values."""

@@ -377,7 +377,7 @@ async def km_engine_control(
         }
 
 
-async def _reload_engine(km_client: Any, ctx: Context = None) -> dict[str, Any]:
+async def _reload_engine(_km_client: Any, ctx: Context = None) -> dict[str, Any]:
     """Reload the Keyboard Maestro engine."""
     if ctx:
         await ctx.report_progress(50, 100, "Reloading engine macros")
@@ -449,7 +449,7 @@ async def _get_engine_status(km_client: Any, ctx: Context = None) -> dict[str, A
 
 
 async def _calculate_expression(
-    km_client: Any,
+    _km_client: Any,
     expression: str,
     ctx: Context = None,
 ) -> dict[str, Any]:
@@ -521,7 +521,7 @@ async def _calculate_expression(
 
 
 async def _process_tokens(
-    km_client: Any,
+    _km_client: Any,
     token_string: str,
     ctx: Context = None,
 ) -> dict[str, Any]:
@@ -582,7 +582,7 @@ async def _process_tokens(
 
 
 async def _search_replace(
-    km_client: Any,
+    _km_client: Any,
     text: str,
     search_pattern: str,
     replace_pattern: str | None,

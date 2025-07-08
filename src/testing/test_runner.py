@@ -116,7 +116,12 @@ class TestExecutionEnvironment:
         await self.setup()
         return self
 
-    async def __aexit__(self, exc_type: str, exc_val: Exception | str, exc_tb: Exception | str):
+    async def __aexit__(
+        self,
+        exc_type: str,
+        exc_val: Exception | str,
+        exc_tb: Exception | str,
+    ):
         """Cleanup test environment."""
         await self.cleanup()
 
@@ -327,7 +332,7 @@ class TestStepExecutor:
     async def _execute_macro(
         self,
         parameters: dict[str, Any],
-        context: dict[str, Any],
+        _context: dict[str, Any],
     ) -> dict[str, Any]:
         """Execute a macro for testing."""
         macro_id = parameters.get("macro_id")
@@ -350,7 +355,7 @@ class TestStepExecutor:
     async def _validate_system(
         self,
         parameters: dict[str, Any],
-        context: dict[str, Any],
+        _context: dict[str, Any],
     ) -> dict[str, Any]:
         """Validate system state."""
         validation_type = parameters.get("validation_type", "basic")
@@ -368,8 +373,8 @@ class TestStepExecutor:
 
     async def _check_performance(
         self,
-        parameters: dict[str, Any],
-        context: dict[str, Any],
+        _parameters: dict[str, Any],
+        _context: dict[str, Any],
     ) -> dict[str, Any]:
         """Check performance metrics."""
         # Simulate performance checking
@@ -388,7 +393,7 @@ class TestStepExecutor:
     async def _verify_security(
         self,
         parameters: dict[str, Any],
-        context: dict[str, Any],
+        _context: dict[str, Any],
     ) -> dict[str, Any]:
         """Verify security compliance."""
         security_checks = parameters.get(
@@ -408,8 +413,8 @@ class TestStepExecutor:
 
     async def _setup_environment(
         self,
-        parameters: dict[str, Any],
-        context: dict[str, Any],
+        _parameters: dict[str, Any],
+        _context: dict[str, Any],
     ) -> dict[str, Any]:
         """Setup test environment."""
         await asyncio.sleep(0.1)
@@ -417,8 +422,8 @@ class TestStepExecutor:
 
     async def _cleanup_resources(
         self,
-        parameters: dict[str, Any],
-        context: dict[str, Any],
+        _parameters: dict[str, Any],
+        _context: dict[str, Any],
     ) -> dict[str, Any]:
         """Cleanup test resources."""
         await asyncio.sleep(0.1)

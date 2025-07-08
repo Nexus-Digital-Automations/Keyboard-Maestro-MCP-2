@@ -549,7 +549,7 @@ class RecommendationEngine:
     def _create_rule_based_optimization(
         self,
         insight: PatternInsight,
-        context: SuggestionContext,
+        _context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Create optimization suggestion based on pattern insight."""
         try:
@@ -653,7 +653,7 @@ class RecommendationEngine:
 
     def _create_general_optimization_suggestion(
         self,
-        context: SuggestionContext,
+        _context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Create general optimization suggestion when no specific insights available."""
         try:
@@ -815,7 +815,7 @@ class RecommendationEngine:
 
     def _create_usage_based_tool_recommendation(
         self,
-        context: SuggestionContext,
+        _context: SuggestionContext,
         current_tools: list[str],
     ) -> IntelligentSuggestion | None:
         """Create tool recommendation based on current usage patterns."""
@@ -964,7 +964,7 @@ class RecommendationEngine:
     def _convert_opportunity_to_suggestion(
         self,
         opportunity: OptimizationOpportunity,
-        context: SuggestionContext,
+        _context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Convert optimization opportunity to intelligent suggestion."""
         try:
@@ -993,7 +993,7 @@ class RecommendationEngine:
 
     def _create_general_performance_suggestion(
         self,
-        context: SuggestionContext,
+        _context: SuggestionContext,
     ) -> IntelligentSuggestion | None:
         """Create general performance improvement suggestion."""
         try:
@@ -1035,7 +1035,8 @@ class RecommendationEngine:
                     and any(
                         indicator in value.lower() for indicator in error_indicators
                     )
-                    or isinstance(value, int | float)
+                ) or (
+                    isinstance(value, int | float)
                     and key.endswith("_error_rate")
                     and value > 0.1
                 ):

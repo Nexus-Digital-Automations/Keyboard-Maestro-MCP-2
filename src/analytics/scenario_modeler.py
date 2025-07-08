@@ -261,6 +261,73 @@ class ScenarioModeler:
             SimulationMethod.QUEUE_THEORY: self._run_queue_theory_simulation,
         }
 
+    def _validate_scenario(self, scenario_config: dict[str, Any]) -> bool:
+        """Validate scenario configuration for systematic testing."""
+        try:
+            # Check required fields
+            required_fields = ["name", "parameters", "conditions"]
+            for field in required_fields:
+                if field not in scenario_config:
+                    return False
+
+            # Validate scenario name
+            if (
+                not isinstance(scenario_config["name"], str)
+                or not scenario_config["name"].strip()
+            ):
+                return False
+
+            # Validate parameters
+            if not isinstance(scenario_config["parameters"], dict):
+                return False
+
+            # Validate conditions
+            return isinstance(scenario_config["conditions"], list)
+        except Exception:
+            return False
+
+    async def create_scenario(self, scenario_config: dict[str, Any]) -> dict[str, Any]:
+        """Create a new scenario from configuration for systematic testing."""
+        try:
+            scenario_id = f"scenario_{len(self.scenario_cache) + 1}"
+
+            scenario_result = {
+                "scenario_id": scenario_id,
+                "name": scenario_config.get("name", ""),
+                "status": "created",
+                "configuration": scenario_config,
+                "created_at": datetime.now(UTC).isoformat(),
+                "success": True,
+            }
+
+            # Cache the scenario for later use
+            self.scenario_cache[scenario_id] = scenario_result
+
+            return scenario_result
+        except Exception as e:
+            return {"success": False, "error": str(e), "scenario_id": None}
+
+    def _validate_scenario_name(self, scenario_name: str) -> bool:
+        """Validate scenario name for systematic testing."""
+        try:
+            # Basic validation rules for scenario names
+            if not isinstance(scenario_name, str):
+                return False
+
+            # Must not be empty
+            if not scenario_name.strip():
+                return False
+
+            # Must be reasonable length
+            if len(scenario_name) > 200:
+                return False
+
+            # Must not contain dangerous characters
+            dangerous_chars = ["<", ">", "&", '"', "'", "\x00"]
+            return all(char not in scenario_name for char in dangerous_chars)
+        except Exception:
+            return False
+
     @require(lambda config: isinstance(config, ScenarioConfiguration))
     @ensure(
         lambda result: result.is_right()
@@ -991,7 +1058,7 @@ class ScenarioModeler:
 
     def _calculate_cost_metrics(
         self,
-        parameter_values: dict[str, Any],
+        _parameter_values: dict[str, Any],
         outcome_metrics: dict[str, float],
     ) -> dict[str, float]:
         """Calculate cost metrics from parameters and outcomes."""
@@ -1251,7 +1318,7 @@ class ScenarioModeler:
     def _assess_scenario_risks(
         self,
         outcomes: list[ScenarioOutcome],
-        config: ScenarioConfiguration,
+        _config: ScenarioConfiguration,
     ) -> dict[str, float]:
         """Assess risks associated with scenario outcomes."""
         risk_assessment = {}
@@ -1616,7 +1683,7 @@ class ScenarioModeler:
 
     def _recommend_best_scenario(
         self,
-        scenario_results_list: list[ScenarioResults],
+        _scenario_results_list: list[ScenarioResults],
         decision_matrix: dict[str, dict[str, float]],
     ) -> str | None:
         """Recommend the best scenario based on decision matrix."""

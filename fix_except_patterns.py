@@ -115,7 +115,10 @@ def fix_except_patterns(file_path: Path) -> tuple[bool, int]:
             log_msg = generate_log_message(context_type, action)
 
             changes_made += 1
-            return f'{indent}except {exceptions} as e:\n{pass_indent}logger.debug(f"{log_msg}: {{e}}")\n'
+            return (
+                f"{indent}except {exceptions} as e:\n"
+                f'{pass_indent}logger.debug(f"{log_msg}: {{e}}")\n'
+            )
 
         content = pattern1.sub(replace_except_exception_pass, content)
 
@@ -144,7 +147,10 @@ def fix_except_patterns(file_path: Path) -> tuple[bool, int]:
             log_msg = generate_log_message(context_type, action)
 
             changes_made += 1
-            return f'{indent}except {exceptions} as e:\n{pass_indent}logger.debug(f"{log_msg}: {{e}}")\n'
+            return (
+                f"{indent}except {exceptions} as e:\n"
+                f'{pass_indent}logger.debug(f"{log_msg}: {{e}}")\n'
+            )
 
         content = pattern2.sub(replace_bare_except_pass, content)
 
@@ -170,7 +176,11 @@ def fix_except_patterns(file_path: Path) -> tuple[bool, int]:
             log_msg = generate_log_message(context_type, action)
 
             changes_made += 1
-            return f'{indent}except {exceptions} as e:\n{continue_indent}logger.debug(f"{log_msg}: {{e}}")\n{continue_indent}continue\n'
+            return (
+                f"{indent}except {exceptions} as e:\n"
+                f'{continue_indent}logger.debug(f"{log_msg}: {{e}}")\n'
+                f"{continue_indent}continue\n"
+            )
 
         content = pattern3.sub(replace_except_continue, content)
 
@@ -196,7 +206,11 @@ def fix_except_patterns(file_path: Path) -> tuple[bool, int]:
             log_msg = generate_log_message(context_type, action)
 
             changes_made += 1
-            return f'{indent}except {exceptions} as e:\n{continue_indent}logger.debug(f"{log_msg}: {{e}}")\n{continue_indent}continue\n'
+            return (
+                f"{indent}except {exceptions} as e:\n"
+                f'{continue_indent}logger.debug(f"{log_msg}: {{e}}")\n'
+                f"{continue_indent}continue\n"
+            )
 
         content = pattern4.sub(replace_except_exception_continue, content)
 
@@ -275,7 +289,8 @@ def process_directory(directory: Path) -> tuple[int, int]:
                     files_modified += 1
                     total_changes += changes
                     logger.info(
-                        f"Fixed {changes} patterns in {py_file.relative_to(PROJECT_ROOT)}",
+                        f"Fixed {changes} patterns in "
+                        f"{py_file.relative_to(PROJECT_ROOT)}",
                     )
             except Exception as e:
                 logger.error(f"Error processing {py_file}: {e}")

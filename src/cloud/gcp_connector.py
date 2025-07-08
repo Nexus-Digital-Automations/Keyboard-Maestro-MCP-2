@@ -33,6 +33,7 @@ from ..core.either import Either
 if TYPE_CHECKING:
     from pathlib import Path
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -306,7 +306,7 @@ def update_trigger_state(current: TriggerState, event: TriggerEvent) -> TriggerS
             return current.with_failed(event.trigger_id)
 
     elif event.event_type == TriggerEventType.UNREGISTER and current.has_trigger(
-        event.trigger_id
+        event.trigger_id,
     ):
         return current.without_trigger(event.trigger_id)
 
@@ -731,7 +731,7 @@ def create_application_routing_rule() -> EventRoutingRule:
 def create_high_priority_routing_rule() -> EventRoutingRule:
     """Create routing rule for high-priority events."""
     return EventRoutingRule(
-        trigger_matcher=lambda trigger: True,  # Match all triggers
+        trigger_matcher=lambda _trigger: True,  # Match all triggers
         event_filter=lambda event: event.is_high_priority(),
         priority=200,
     )

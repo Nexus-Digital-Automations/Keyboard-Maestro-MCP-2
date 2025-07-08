@@ -8,7 +8,7 @@ across 24+ tool suites.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -17,6 +17,9 @@ import pytest
 import src.server.tools.quantum_ready_tools as quantum_tools
 from hypothesis import assume, given
 from hypothesis import strategies as st
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # Extract underlying functions from FastMCP tool objects (systematic pattern)
 km_analyze_quantum_readiness = quantum_tools.km_analyze_quantum_readiness.fn
@@ -28,70 +31,70 @@ km_simulate_quantum_algorithms = quantum_tools.km_simulate_quantum_algorithms.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def analysis_scope_strategy(draw: Callable[..., Any]) -> Any:
+def analysis_scope_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid analysis scopes."""
     scopes = ["system", "application", "cryptography", "protocols"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def security_level_strategy(draw: Callable[..., Any]) -> Any:
+def security_level_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid security levels."""
     levels = ["current", "post_quantum", "quantum_safe"]
     return draw(st.sampled_from(levels))
 
 
 @st.composite
-def upgrade_scope_strategy(draw: Callable[..., Any]) -> Any:
+def upgrade_scope_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid upgrade scopes."""
     scopes = ["selective", "comprehensive", "critical_only"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def migration_strategy_strategy(draw: Callable[..., Any]) -> Any:
+def migration_strategy_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid migration strategies."""
     strategies = ["hybrid", "full_replacement", "gradual"]
     return draw(st.sampled_from(strategies))
 
 
 @st.composite
-def interface_type_strategy(draw: Callable[..., Any]) -> Any:
+def interface_type_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid interface types."""
     types = ["computing", "communication", "simulation", "hybrid"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def quantum_platform_strategy(draw: Callable[..., Any]) -> Any:
+def quantum_platform_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid quantum platforms."""
     platforms = ["ibm", "google", "amazon", "microsoft", "universal"]
     return draw(st.sampled_from(platforms))
 
 
 @st.composite
-def security_operation_strategy(draw: Callable[..., Any]) -> Any:
+def security_operation_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid security operations."""
     operations = ["policy", "keys", "protocols", "monitoring"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def key_management_strategy(draw: Callable[..., Any]) -> Any:
+def key_management_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid key management modes."""
     modes = ["classical", "quantum", "hybrid"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def algorithm_type_strategy(draw: Callable[..., Any]) -> Any:
+def algorithm_type_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid algorithm types."""
     types = ["shor", "grover", "quantum_ml", "optimization", "custom"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def simulation_mode_strategy(draw: Callable[..., Any]) -> Any:
+def simulation_mode_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid simulation modes."""
     modes = ["ideal", "noisy", "hardware_accurate"]
     return draw(st.sampled_from(modes))
@@ -396,7 +399,7 @@ class TestKMUpgradeToPostQuantumMocked:
                 compatibility_mode=True,
                 validation_testing=True,
                 performance_optimization=True,
-                key_migration=True,
+                _key_migration=True,
                 rollback_preparation=True,
             )
 
@@ -465,6 +468,7 @@ class TestKMUpgradeToPostQuantumMocked:
             # Configure mock upgrader as AsyncMock for all async methods
             mock_upgrader.create_security_policy = AsyncMock()
             mock_upgrader.upgrade_security_algorithms = AsyncMock()
+            mock_upgrader.validate_algorithm_compatibility = AsyncMock()
 
             # Configure minimal mock responses
             mock_policy_result = Mock()
@@ -486,6 +490,21 @@ class TestKMUpgradeToPostQuantumMocked:
             mock_upgrade_result.is_success.return_value = True
             mock_upgrade_result.value = mock_upgrade_data
             mock_upgrader.upgrade_security_algorithms.return_value = mock_upgrade_result
+
+            # Configure compatibility validation mock
+            mock_compatibility_result = Mock()
+            mock_compatibility_result.is_success.return_value = True
+            mock_compatibility_result.value = {
+                "use_case": "enterprise",
+                "compatible_algorithms": ["kyber"],
+                "incompatible_algorithms": [],
+                "performance_estimates": {"kyber": "high"},
+                "security_ratings": {"kyber": "quantum_safe"},
+                "recommendations": ["use_kyber_for_key_exchange"],
+            }
+            mock_upgrader.validate_algorithm_compatibility.return_value = (
+                mock_compatibility_result
+            )
 
             # Execute function
             result = await km_upgrade_to_post_quantum(
@@ -1171,8 +1190,19 @@ class TestQuantumReadyIntegration:
                 "des_56",
             ]
             mock_assessment.estimated_migration_cost = 100000
-            mock_assessment.compliance_status = "non_compliant"
-            mock_assessment.risk_factors = ["legacy_algorithms", "weak_keys"]
+            mock_assessment.compliance_status = {
+                "nist_post_quantum_ready": False,
+                "quantum_safe_majority": False,
+                "critical_assets_protected": False,
+                "migration_plan_required": True,
+                "compliance_timeline_met": False,
+            }
+            mock_assessment.risk_factors = {
+                "vulnerability_ratio": 0.6,
+                "critical_asset_ratio": 0.3,
+                "legacy_algorithm_ratio": 0.5,
+                "immediate_migration_ratio": 0.4,
+            }
             mock_assessment.migration_recommendations = [
                 "immediate_upgrade",
                 "replace_legacy",
@@ -1183,6 +1213,27 @@ class TestQuantumReadyIntegration:
             mock_result.value = mock_assessment
             mock_migrator.analyze_quantum_readiness = AsyncMock(
                 return_value=mock_result,
+            )
+
+            # Configure migration plan mock
+            mock_migration_plan = Mock()
+            mock_migration_plan.plan_id = "migration_plan_001"
+            mock_migration_plan.migration_strategy = "hybrid"
+            mock_migration_plan.target_assets = ["asset_0", "asset_1", "asset_2"]
+            mock_migration_plan.estimated_duration = "2 hours"
+
+            # Mock algorithms with .value attribute
+            mock_algorithm = Mock()
+            mock_algorithm.value = "kyber_1024"
+            mock_migration_plan.target_algorithms = {"asset_0": mock_algorithm}
+            mock_migration_plan.compatibility_requirements = ["enterprise_support"]
+            mock_migration_plan.validation_criteria = ["security_validation"]
+
+            mock_migration_result = Mock()
+            mock_migration_result.is_success.return_value = True
+            mock_migration_result.value = mock_migration_plan
+            mock_migrator.create_migration_plan = AsyncMock(
+                return_value=mock_migration_result,
             )
 
             # Configure vulnerability assessment
@@ -1213,9 +1264,15 @@ class TestQuantumReadyIntegration:
             mock_migration_plan.migration_strategy = "hybrid"
             mock_migration_plan.target_assets = ["asset_1", "asset_2", "asset_3"]
             mock_migration_plan.estimated_duration = "30 days"
+
+            # Create proper algorithm mocks with .value attribute
+            mock_kyber = Mock()
+            mock_kyber.value = "kyber"
+            mock_dilithium = Mock()
+            mock_dilithium.value = "dilithium"
             mock_migration_plan.target_algorithms = {
-                "rsa": "kyber",
-                "ecdsa": "dilithium",
+                "rsa": mock_kyber,
+                "ecdsa": mock_dilithium,
             }
             mock_migration_plan.compatibility_requirements = ["backward_compatibility"]
             mock_migration_plan.validation_criteria = [
@@ -1257,6 +1314,32 @@ class TestQuantumReadyIntegration:
             mock_upgrade_result.value = mock_upgrade_data
             mock_upgrader.upgrade_security_algorithms = AsyncMock(
                 return_value=mock_upgrade_result,
+            )
+
+            # Configure compatibility validation mock
+            mock_compatibility_result = Mock()
+            mock_compatibility_result.is_success.return_value = True
+            mock_compatibility_result.value = {
+                "use_case": "enterprise",
+                "compatible_algorithms": ["kyber", "dilithium", "falcon"],
+                "incompatible_algorithms": [],
+                "performance_estimates": {
+                    "kyber": "high",
+                    "dilithium": "medium",
+                    "falcon": "high",
+                },
+                "security_ratings": {
+                    "kyber": "quantum_safe",
+                    "dilithium": "quantum_safe",
+                    "falcon": "quantum_safe",
+                },
+                "recommendations": [
+                    "use_kyber_for_key_exchange",
+                    "use_dilithium_for_signatures",
+                ],
+            }
+            mock_upgrader.validate_algorithm_compatibility = AsyncMock(
+                return_value=mock_compatibility_result,
             )
 
             # Step 1: Analyze quantum readiness
@@ -1312,7 +1395,11 @@ class TestQuantumReadyProperties:
 
     @given(analysis_scope_strategy(), security_level_strategy())
     @pytest.mark.asyncio
-    async def test_quantum_readiness_analysis_properties(self, scope: Any, security_level: Any) -> None:
+    async def test_quantum_readiness_analysis_properties(
+        self,
+        scope: Any,
+        security_level: Any,
+    ) -> None:
         """Test properties of quantum readiness analysis."""
         # Mock basic dependencies to avoid exceptions
         with (
@@ -1349,7 +1436,11 @@ class TestQuantumReadyProperties:
 
     @given(upgrade_scope_strategy(), migration_strategy_strategy())
     @pytest.mark.asyncio
-    async def test_post_quantum_upgrade_properties(self, scope: Any, strategy: Any) -> None:
+    async def test_post_quantum_upgrade_properties(
+        self,
+        scope: Any,
+        strategy: Any,
+    ) -> None:
         """Test properties of post-quantum upgrade operations."""
         # Mock basic dependencies
         with patch.object(quantum_tools, "security_upgrader") as mock_upgrader:
@@ -1375,7 +1466,11 @@ class TestQuantumReadyProperties:
 
     @given(interface_type_strategy(), quantum_platform_strategy())
     @pytest.mark.asyncio
-    async def test_quantum_interface_properties(self, interface_type: str, platform: Any) -> None:
+    async def test_quantum_interface_properties(
+        self,
+        interface_type: str,
+        platform: Any,
+    ) -> None:
         """Test properties of quantum interface preparation."""
         # Mock basic dependencies
         with patch.object(quantum_tools, "quantum_interface_manager") as mock_manager:
@@ -1403,7 +1498,11 @@ class TestQuantumReadyProperties:
 
     @given(algorithm_type_strategy(), simulation_mode_strategy())
     @pytest.mark.asyncio
-    async def test_quantum_simulation_properties(self, algorithm_type: str, simulation_mode: Any) -> None:
+    async def test_quantum_simulation_properties(
+        self,
+        algorithm_type: str,
+        simulation_mode: Any,
+    ) -> None:
         """Test properties of quantum algorithm simulation."""
         assume(
             algorithm_type

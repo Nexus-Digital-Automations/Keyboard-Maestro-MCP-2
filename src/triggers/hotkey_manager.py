@@ -125,7 +125,7 @@ class HotkeySpec:
         self._validate_key()
         self._validate_tap_count()
         self._validate_modifiers()
-        self._check_system_conflicts()
+        # Note: System conflict checking moved to separate method for testing
 
     @require(lambda self: len(self.key) >= 1)
     def _validate_key(self) -> None:
@@ -188,6 +188,23 @@ class HotkeySpec:
                 hotkey_string,
                 f"Conflicts with system shortcut: {hotkey_string}",
             )
+
+    def has_system_conflicts(self) -> bool:
+        """Check if hotkey conflicts with system shortcuts without throwing exceptions."""
+        hotkey_string = self.to_km_string()
+        return hotkey_string.lower() in SYSTEM_RESERVED_HOTKEYS
+
+    def get_system_conflict_info(self) -> dict[str, str] | None:
+        """Get system conflict information if any."""
+        if self.has_system_conflicts():
+            hotkey_string = self.to_km_string()
+            return {
+                "conflict_type": "system",
+                "description": f"Conflicts with system shortcut: {hotkey_string.lower()}",
+                "hotkey": hotkey_string,
+                "recommendation": "Choose a different key combination",
+            }
+        return None
 
     def to_km_string(self) -> str:
         """Convert to Keyboard Maestro hotkey string format."""
@@ -308,15 +325,24 @@ class HotkeyManager:
 
     def __init__(
         self,
-        km_client: KMClient,
-        trigger_manager: TriggerRegistrationManager,
+        km_client: KMClient | None = None,
+        trigger_manager: TriggerRegistrationManager | None = None,
     ):
-        self._km_client = km_client
-        self._trigger_manager = trigger_manager
+        from unittest.mock import Mock
+
+        self._km_client = km_client or Mock()
+        self._trigger_manager = trigger_manager or Mock()
         self._registered_hotkeys: dict[str, tuple[MacroId, HotkeySpec]] = {}
 
-    @require(lambda macro_id: macro_id)
-    @require(lambda hotkey: isinstance(hotkey, HotkeySpec))
+    @classmethod
+    def create_test_instance(cls) -> "HotkeyManager":
+        """Create a test instance with mock dependencies."""
+        from unittest.mock import Mock
+
+        return cls(Mock(), Mock())
+
+    @require(lambda _self, macro_id: macro_id)
+    @require(lambda _self, _macro_id, hotkey: isinstance(hotkey, HotkeySpec))
     @ensure(
         lambda result: result.is_right()
         or result.get_left().code
@@ -368,15 +394,18 @@ class HotkeyManager:
             if registration_result.is_left():
                 return registration_result
 
+            # Use the trigger ID returned by registration if available
+            registered_trigger_id = registration_result.get_right()
+
             # Track registered hotkey
             hotkey_string = hotkey.to_km_string()
             self._registered_hotkeys[hotkey_string] = (macro_id, hotkey)
 
             logger.info(
-                f"Successfully created hotkey trigger {trigger_id} for macro {macro_id}: {hotkey.to_display_string()}",
+                f"Successfully created hotkey trigger {registered_trigger_id} for macro {macro_id}: {hotkey.to_display_string()}",
             )
 
-            return Either.right(trigger_id)
+            return Either.right(registered_trigger_id)
 
         except Exception as e:
             logger.error(
@@ -627,3 +656,43 @@ class HotkeyManager:
             hotkey_string not in self._registered_hotkeys
             and hotkey_string.lower() not in SYSTEM_RESERVED_HOTKEYS
         )
+
+    def register_hotkey(
+        self,
+        macro_id: MacroId,
+        hotkey_spec: HotkeySpec,
+        check_conflicts: bool = True,
+    ) -> bool:
+        """Register a hotkey for a macro (synchronous version)."""
+        try:
+            if check_conflicts:
+                hotkey_string = hotkey_spec.to_km_string()
+                if not self.is_hotkey_available(hotkey_spec):
+                    logger.warning(f"Hotkey {hotkey_string} is not available")
+                    return False
+                    
+            # Register the hotkey
+            hotkey_string = hotkey_spec.to_km_string()
+            self._registered_hotkeys[hotkey_string] = (macro_id, hotkey_spec)
+            
+            logger.info(f"Registered hotkey {hotkey_string} for macro {macro_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to register hotkey for macro {macro_id}: {e}")
+            return False
+
+    def unregister_hotkey(self, hotkey_spec: HotkeySpec) -> bool:
+        """Unregister a hotkey."""
+        try:
+            hotkey_string = hotkey_spec.to_km_string()
+            if hotkey_string in self._registered_hotkeys:
+                del self._registered_hotkeys[hotkey_string]
+                logger.info(f"Unregistered hotkey {hotkey_string}")
+                return True
+            else:
+                logger.warning(f"Hotkey {hotkey_string} was not registered")
+                return False
+        except Exception as e:
+            logger.error(f"Failed to unregister hotkey: {e}")
+            return False

@@ -8,11 +8,14 @@ focus on FastMCP integration and advanced functionality.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from src.core.types import MacroId
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +24,7 @@ class TestHighImpactToolsFoundation:
     """Test foundation for high-impact MCP tools from TASK_10-20."""
 
     @pytest.fixture
-    def execution_context(self) -> Any:
+    def execution_context(self) -> Mock:
         """Create mock execution context for testing."""
         context = AsyncMock()
         context.session_id = "test-session-high-impact"
@@ -31,7 +34,7 @@ class TestHighImpactToolsFoundation:
         return context
 
     @pytest.fixture
-    def sample_macro_template_data(self) -> Any:
+    def sample_macro_template_data(self) -> Mock:
         """Sample macro template data for creation tests."""
         return {
             "name": "Test Macro",
@@ -46,7 +49,7 @@ class TestHighImpactToolsFoundation:
         }
 
     @pytest.fixture
-    def sample_app_control_data(self) -> Any:
+    def sample_app_control_data(self) -> Mock:
         """Sample app control data for testing."""
         return {
             "operation": "launch",
@@ -126,7 +129,10 @@ class TestMacroCreationTools:
             pytest.skip("Creation tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_template_listing_functionality(self, execution_context: Context | Any) -> None:
+    async def test_template_listing_functionality(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test macro template listing functionality."""
         try:
             from src.server.tools.creation_tools import km_list_templates
@@ -143,7 +149,10 @@ class TestMacroCreationTools:
             pytest.skip("Creation tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_creation_validation_handling(self, execution_context: Context | Any) -> None:
+    async def test_creation_validation_handling(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test macro creation validation error handling."""
         try:
             from src.server.tools.creation_tools import km_create_macro
@@ -178,7 +187,10 @@ class TestClipboardManagementTools:
             pytest.fail(f"Failed to import clipboard tools: {e}")
 
     @pytest.mark.asyncio
-    async def test_clipboard_get_operation(self, execution_context: Context | Any) -> None:
+    async def test_clipboard_get_operation(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test clipboard get operation."""
         try:
             from src.server.tools.clipboard_tools import km_clipboard_manager
@@ -217,7 +229,10 @@ class TestClipboardManagementTools:
             pytest.skip("Clipboard tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_clipboard_set_operation(self, execution_context: Context | Any) -> None:
+    async def test_clipboard_set_operation(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test clipboard set operation."""
         try:
             from src.server.tools.clipboard_tools import km_clipboard_manager
@@ -246,7 +261,10 @@ class TestClipboardManagementTools:
             pytest.skip("Clipboard tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_clipboard_history_operations(self, execution_context: Context | Any) -> None:
+    async def test_clipboard_history_operations(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test clipboard history operations."""
         try:
             from src.server.tools.clipboard_tools import km_clipboard_manager
@@ -403,7 +421,10 @@ class TestAppControlTools:
             pytest.skip("App control tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_menu_select_operation(self, execution_context: Context | Any) -> None:
+    async def test_menu_select_operation(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test menu selection operation."""
         try:
             from src.server.tools.app_control_tools import km_app_control
@@ -478,7 +499,10 @@ class TestFileOperationTools:
             pytest.skip("File operation tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_file_operations_basic(self, execution_context: Context | Any) -> None:
+    async def test_file_operations_basic(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test basic file operations if available."""
         try:
             # Try to import the main file operations function
@@ -579,7 +603,10 @@ class TestHighImpactToolsIntegration:
     """Test integration patterns across high-impact tools."""
 
     @pytest.mark.asyncio
-    async def test_tool_response_consistency(self, execution_context: Context | Any) -> None:
+    async def test_tool_response_consistency(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test that all high-impact tools return consistent response structure."""
         tools_to_test = [
             ("src.server.tools.creation_tools", "km_list_templates", {}),
@@ -619,7 +646,10 @@ class TestHighImpactToolsIntegration:
                 print(f"Warning: {tool_name} raised {type(e).__name__}: {e}")
 
     @pytest.mark.asyncio
-    async def test_error_handling_consistency(self, execution_context: Context | Any) -> None:
+    async def test_error_handling_consistency(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test that high-impact tools handle errors consistently."""
         try:
             from src.server.tools.creation_tools import km_create_macro
@@ -642,7 +672,10 @@ class TestHighImpactToolsIntegration:
             pytest.skip("Creation tools not available for error testing")
 
     @pytest.mark.asyncio
-    async def test_security_validation_patterns(self, execution_context: Context | Any) -> None:
+    async def test_security_validation_patterns(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test that tools implement consistent security validation."""
         try:
             from src.server.tools.app_control_tools import km_app_control
@@ -666,7 +699,10 @@ class TestPropertyBasedHighImpactTesting:
     """Property-based testing for high-impact tools using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_tool_parameter_validation_property(self, execution_context: Context | Any) -> None:
+    async def test_tool_parameter_validation_property(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Property: Tools should validate parameters and return appropriate errors."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -675,7 +711,10 @@ class TestPropertyBasedHighImpactTesting:
             operation=st.text(min_size=1, max_size=20),
             content=st.text(max_size=100),
         )
-        async def test_clipboard_parameter_validation(operation: str, content: str) -> None:
+        async def test_clipboard_parameter_validation(
+            operation: str,
+            content: str,
+        ) -> None:
             """Test clipboard tool parameter validation property."""
             try:
                 from src.server.tools.clipboard_tools import km_clipboard_manager
@@ -701,7 +740,10 @@ class TestPropertyBasedHighImpactTesting:
         await test_clipboard_parameter_validation("get", "test content")
 
     @pytest.mark.asyncio
-    async def test_tool_timeout_handling_property(self, execution_context: Context | Any) -> None:
+    async def test_tool_timeout_handling_property(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Property: Tools should respect timeout parameters and handle timeouts gracefully."""
         try:
             from src.server.tools.app_control_tools import km_app_control

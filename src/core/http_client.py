@@ -20,6 +20,26 @@ from typing import Any
 from urllib.parse import urlparse
 
 import httpx
+from src.core.constants import (
+    ASCII_PRINTABLE_MIN,
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_HEADER_LENGTH_MAX,
+    HTTP_HEADER_VALUE_MAX,
+    HTTP_PORT_MAX,
+    HTTP_PORT_MIN,
+    HTTP_RATE_LIMIT_PER_MINUTE,
+    HTTP_REDIRECT_MAX,
+    HTTP_REDIRECT_MIN,
+    HTTP_SERVER_ERROR_MIN,
+    HTTP_SUCCESS_MAX,
+    HTTP_SUCCESS_MIN,
+    MAX_HTTP_STATUS_CODE,
+    MAX_TIMEOUT_SECONDS,
+    MIN_HTTP_STATUS_CODE,
+    MIN_TIMEOUT_SECONDS,
+    RESPONSE_SIZE_BYTES_1KB,
+    RESPONSE_SIZE_BYTES_1MB,
+)
 from src.core.contracts import ensure, require
 from src.core.either import Either
 from src.core.errors import MCPError, SecurityError, ValidationError
@@ -42,7 +62,7 @@ class AuthenticationType(Enum):
 
     NONE = "none"
     API_KEY = "api_key"
-    BEARER_TOKEN = "bearer_token"  # noqa: S105 - Type identifier, not a secret
+    BEARER_TOKEN = "bearer_token"  # noqa: S105 # Enum value, not password
     BASIC_AUTH = "basic_auth"
     OAUTH2 = "oauth2"
     CUSTOM_HEADER = "custom_header"
@@ -80,11 +100,18 @@ class HTTPRequest:
         if not self.url.startswith(("http://", "https://")):
             raise ValueError("URL must start with http:// or https://")
 
-        if not (1 <= self.timeout_seconds <= 300):
-            raise ValueError("Timeout must be between 1 and 300 seconds")
+        if not (MIN_TIMEOUT_SECONDS <= self.timeout_seconds <= MAX_TIMEOUT_SECONDS):
+            raise ValueError(
+                f"Timeout must be between {MIN_TIMEOUT_SECONDS} and {MAX_TIMEOUT_SECONDS} seconds",
+            )
 
-        if not (1024 <= self.max_response_size <= 104857600):  # 1KB to 100MB
-            raise ValueError("Max response size must be between 1KB and 100MB")
+        MAX_RESPONSE_SIZE_100MB = 100 * RESPONSE_SIZE_BYTES_1MB
+        if not (
+            RESPONSE_SIZE_BYTES_1KB <= self.max_response_size <= MAX_RESPONSE_SIZE_100MB
+        ):
+            raise ValueError(
+                f"Max response size must be between {RESPONSE_SIZE_BYTES_1KB} bytes and {MAX_RESPONSE_SIZE_100MB} bytes",
+            )
 
     def to_httpx_kwargs(self) -> dict[str, Any]:
         """Convert to httpx client kwargs."""
@@ -123,27 +150,29 @@ class HTTPResponse:
 
     def __post_init__(self):
         """Contract validation for HTTP response."""
-        if not (100 <= self.status_code <= 599):
-            raise ValueError("Status code must be between 100 and 599")
+        if not (MIN_HTTP_STATUS_CODE <= self.status_code <= MAX_HTTP_STATUS_CODE):
+            raise ValueError(
+                f"Status code must be between {MIN_HTTP_STATUS_CODE} and {MAX_HTTP_STATUS_CODE}",
+            )
 
         if self.duration_ms < 0:
             raise ValueError("Duration must be non-negative")
 
     def is_success(self) -> bool:
         """Check if response indicates success."""
-        return 200 <= self.status_code < 300
+        return HTTP_SUCCESS_MIN <= self.status_code < HTTP_SUCCESS_MAX
 
     def is_client_error(self) -> bool:
         """Check if response indicates client error."""
-        return 400 <= self.status_code < 500
+        return HTTP_CLIENT_ERROR_MIN <= self.status_code < HTTP_SERVER_ERROR_MIN
 
     def is_server_error(self) -> bool:
         """Check if response indicates server error."""
-        return 500 <= self.status_code < 600
+        return HTTP_SERVER_ERROR_MIN <= self.status_code < MAX_HTTP_STATUS_CODE + 1
 
     def is_redirect(self) -> bool:
         """Check if response is a redirect."""
-        return 300 <= self.status_code < 400
+        return HTTP_REDIRECT_MIN <= self.status_code < HTTP_REDIRECT_MAX
 
     def get_json(self) -> Either[ValidationError, dict[str, Any]]:
         """Safely parse JSON content."""
@@ -252,7 +281,7 @@ class HTTPSecurityValidator:
 
         # Validate port
         if parsed.port:
-            if parsed.port < 1 or parsed.port > 65535:
+            if parsed.port < HTTP_PORT_MIN or parsed.port > HTTP_PORT_MAX:
                 return Either.left(
                     SecurityError("INVALID_PORT", f"Port {parsed.port} is not valid"),
                 )
@@ -281,12 +310,13 @@ class HTTPSecurityValidator:
             if name.lower() in HTTPSecurityValidator.FORBIDDEN_HEADERS:
                 return Either.left(
                     SecurityError(
-                        "FORBIDDEN_HEADER", f"Header '{name}' is not allowed"
+                        "FORBIDDEN_HEADER",
+                        f"Header '{name}' is not allowed",
                     ),
                 )
 
             # Validate header name
-            if not name or len(name) > 100:
+            if not name or len(name) > HTTP_HEADER_LENGTH_MAX:
                 return Either.left(
                     SecurityError(
                         "INVALID_HEADER_NAME",
@@ -298,7 +328,7 @@ class HTTPSecurityValidator:
             if not isinstance(value, str):
                 value = str(value)
 
-            if len(value) > 8192:  # 8KB limit per header
+            if len(value) > HTTP_HEADER_VALUE_MAX:  # 8KB limit per header
                 return Either.left(
                     SecurityError(
                         "HEADER_VALUE_TOO_LONG",
@@ -308,7 +338,9 @@ class HTTPSecurityValidator:
 
             # Remove control characters
             clean_value = "".join(
-                char for char in value if ord(char) >= 32 or char in "\t\n\r"
+                char
+                for char in value
+                if ord(char) >= ASCII_PRINTABLE_MIN or char in "\t\n\r"
             )
             validated_headers[name] = clean_value
 
@@ -368,7 +400,12 @@ class HTTPClient:
         await self._ensure_client()
         return self
 
-    async def __aexit__(self, exc_type: str, exc_val: Exception | str, exc_tb: Exception | str):
+    async def __aexit__(
+        self,
+        exc_type: str,
+        exc_val: Exception | str,
+        exc_tb: Exception | str,
+    ):
         """Async context manager exit."""
         if self._client:
             await self._client.aclose()
@@ -537,7 +574,7 @@ class HTTPClient:
 class HTTPRateLimiter:
     """Rate limiter to prevent abuse and excessive requests."""
 
-    def __init__(self, max_requests_per_minute: int = 60):
+    def __init__(self, max_requests_per_minute: int = HTTP_RATE_LIMIT_PER_MINUTE):
         self.max_requests_per_minute = max_requests_per_minute
         self._request_times: dict[str, list[float]] = {}
 

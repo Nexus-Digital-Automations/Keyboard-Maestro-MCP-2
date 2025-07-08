@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 import time
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -41,10 +41,13 @@ from src.core.types import (
 )
 from src.integration.km_client import Either
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test data generators
 @st.composite
-def command_type_strategy(draw: Callable[..., Any]) -> Any:
+def command_type_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid command types."""
     return draw(
         st.sampled_from(
@@ -61,7 +64,10 @@ def command_type_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def command_parameters_strategy(draw: Callable[..., Any], command_type: str=None) -> bool:
+def command_parameters_strategy(
+    draw: Callable[..., Any],
+    command_type: str = None,
+) -> bool:
     """Generate valid command parameters."""
     if command_type is None:
         command_type = draw(command_type_strategy())
@@ -88,7 +94,7 @@ def command_parameters_strategy(draw: Callable[..., Any], command_type: str=None
 
 
 @st.composite
-def placeholder_command_strategy(draw: Callable[..., Any]) -> Any:
+def placeholder_command_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid placeholder commands."""
     command_type = draw(command_type_strategy())
     parameters = draw(command_parameters_strategy(command_type))
@@ -261,7 +267,10 @@ class TestPlaceholderCommand:
             assert result.metadata.get("command_id") == "error_cmd"
 
     @given(placeholder_command_strategy())
-    def test_placeholder_command_property_validation(self, command: PlaceholderCommand) -> bool:
+    def test_placeholder_command_property_validation(
+        self,
+        command: PlaceholderCommand,
+    ) -> bool:
         """Property test for placeholder command behavior."""
         # Properties that should always hold
         assert command.command_id is not None
@@ -514,7 +523,10 @@ class TestMacroEngine:
         slow_command.parameters = CommandParameters({"duration": 10.0})
 
         # Set up _execute_command_safe to simulate timeout
-        async def mock_execute_command_safe(command: str, context: dict[str, Any] | Any) -> None:
+        async def mock_execute_command_safe(
+            command: str,
+            context: dict[str, Any] | Any,
+        ) -> None:
             # Simulate timeout when context has very short timeout
             if hasattr(context, "timeout") and context.timeout.total_seconds() < 1.0:
                 return CommandResult.failure_result(

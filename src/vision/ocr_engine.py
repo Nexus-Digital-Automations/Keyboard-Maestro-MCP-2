@@ -389,7 +389,7 @@ class OCREngine:
 
     async def _perform_ocr_extraction(
         self,
-        image_data: bytes,
+        _image_data: bytes,
         region: ScreenRegion | None,
         language: str,
         options: OCRProcessingOptions,

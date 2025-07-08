@@ -5,6 +5,8 @@ Tests all validation methods, threat detection, sanitization, and edge cases.
 
 from __future__ import annotations
 
+from typing import Any
+
 from hypothesis import given
 from hypothesis import strategies as st
 from src.security.input_validator import InputValidator, ThreatType, ValidationResult

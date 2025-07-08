@@ -7,12 +7,13 @@ server, eliminating the need for manual tool registration boilerplate.
 from __future__ import annotations
 
 import logging
-from typing import Any
-
-from fastmcp import FastMCP
-from fastmcp.utilities import Context
+from typing import TYPE_CHECKING, Any
 
 from .tool_registry import ToolMetadata, get_tool_registry
+
+if TYPE_CHECKING:
+    from fastmcp import Context, FastMCP
+
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +65,7 @@ class DynamicToolRegistrar:
             )
 
             # Create a placeholder function that returns an error
-            async def error_wrapper(ctx: Context | Any=None) -> None:
+            async def error_wrapper(_ctx: Context | Any = None) -> None:
                 return {
                     "success": False,
                     "error": f"Tool {metadata.name} not available: {error_message}",

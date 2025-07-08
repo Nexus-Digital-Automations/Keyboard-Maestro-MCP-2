@@ -233,12 +233,13 @@ class TestAllRemainingCoreModules:
         try:
             from src.core.macro_editor import MacroEditor
 
-            editor = MacroEditor()
+            # Fix: MacroEditor requires macro_id parameter
+            editor = MacroEditor("test_macro_id")
             assert editor is not None
 
-            # Test editing operations
-            if hasattr(editor, "create_macro"):
-                editor.create_macro({"name": "test_macro"})
+            # Test editing operations with fluent API
+            if hasattr(editor, "add_action"):
+                editor.add_action("type_text", {"text": "hello world"})
                 # Any result acceptable
 
         except ImportError:

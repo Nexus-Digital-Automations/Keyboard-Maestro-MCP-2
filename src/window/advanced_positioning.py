@@ -244,7 +244,7 @@ class AdvancedPositioning:
 
     async def _calculate_intelligent_position(
         self,
-        window_identifier: str,
+        _window_identifier: str,
         target_display: DisplayInfo,
         size: tuple[int, int],
     ) -> Either[WindowError, tuple[int, int, int, int]]:
@@ -336,7 +336,7 @@ class AdvancedPositioning:
         self,
         requests: list[SmartPositionRequest],
         display: DisplayInfo,
-        occupied_areas: list[tuple[int, int, int, int]],
+        _occupied_areas: list[tuple[int, int, int, int]],
     ) -> Either[WindowError, list[dict[str, Any]]]:
         """Arrange windows within a category, avoiding occupied areas."""
         try:
@@ -373,7 +373,7 @@ class AdvancedPositioning:
 
     async def _get_current_window_position(
         self,
-        window_identifier: str,
+        _window_identifier: str,
     ) -> Either[WindowError, tuple[int, int, int, int]]:
         """Get current window position (mock implementation)."""
         # Mock implementation - replace with actual window position detection
@@ -381,8 +381,8 @@ class AdvancedPositioning:
 
     async def _apply_window_position(
         self,
-        window_identifier: str,
-        position: tuple[int, int, int, int],
+        _window_identifier: str,
+        _position: tuple[int, int, int, int],
     ) -> Either[WindowError, float]:
         """Apply window position (mock implementation)."""
         # Mock implementation - replace with actual window positioning

@@ -114,7 +114,7 @@ class ModelStorage:
             )
 
         # Deserialize object only after integrity validation
-        # S301 suppressed: pickle.loads is safe here after HMAC integrity validation
+        # S301 suppressed: pickle.loads is safe here after HMAC integrity validation  # noqa: S301
         return pickle.loads(serialized_data)  # noqa: S301
 
     def save_model(self, model: "MLModel", version: str = "latest") -> str:

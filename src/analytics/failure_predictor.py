@@ -16,6 +16,12 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
+from src.core.constants import (
+    CRITICAL_RISK_THRESHOLD,
+    EMERGENCY_RISK_THRESHOLD,
+    MINIMAL_RISK_THRESHOLD,
+    WARNING_RISK_THRESHOLD,
+)
 from src.core.contracts import ensure, require
 from src.core.either import Either
 from src.core.predictive_modeling import (
@@ -200,9 +206,9 @@ class FailurePredictor:
         self.mitigation_templates: dict[FailureType, list[MitigationPlan]] = {}
         self.active_predictions: dict[str, FailurePrediction] = {}
         self.early_warning_config: dict[str, Any] = {
-            "warning_threshold": 0.7,
-            "critical_threshold": 0.85,
-            "emergency_threshold": 0.95,
+            "warning_threshold": WARNING_RISK_THRESHOLD,
+            "critical_threshold": CRITICAL_RISK_THRESHOLD,
+            "emergency_threshold": EMERGENCY_RISK_THRESHOLD,
             "prediction_window_hours": 24,
         }
         self._initialize_default_thresholds()
@@ -280,7 +286,7 @@ class FailurePredictor:
         target_type: str,
         prediction_window: timedelta,
         failure_types: list[FailureType] | None = None,
-        confidence_threshold: float = 0.7,
+        confidence_threshold: float = WARNING_RISK_THRESHOLD,
     ) -> Either[FailurePredictionError, list[FailurePrediction]]:
         """Predict potential failures for a target within the prediction window."""
         try:
@@ -371,7 +377,7 @@ class FailurePredictor:
     async def _analyze_failure_indicators(
         self,
         target_id: str,
-        target_type: str,
+        _target_type: str,
         failure_type: FailureType,
     ) -> list[FailureIndicator]:
         """Analyze current indicators for specific failure type."""
@@ -414,7 +420,7 @@ class FailurePredictor:
 
             # Determine severity based on thresholds
             severity = FailureSeverity.LOW
-            threshold_value = thresholds.get("warning", 0.0)
+            threshold_value = thresholds.get("warning", MINIMAL_RISK_THRESHOLD)
 
             if current_value >= thresholds.get("emergency", float("inf")):
                 severity = FailureSeverity.CRITICAL
@@ -460,7 +466,7 @@ class FailurePredictor:
 
     async def _get_current_indicator_value(
         self,
-        target_id: str,
+        _target_id: str,
         indicator_name: str,
     ) -> float:
         """Get current value for a failure indicator."""
@@ -483,8 +489,8 @@ class FailurePredictor:
 
     async def _analyze_indicator_trend(
         self,
-        target_id: str,
-        indicator_name: str,
+        _target_id: str,
+        _indicator_name: str,
     ) -> str:
         """Analyze trend direction for an indicator."""
         # Simulate trend analysis (replace with real historical data analysis)
@@ -671,7 +677,7 @@ class FailurePredictor:
     def _customize_mitigation_plan(
         self,
         template: MitigationPlan,
-        indicators: list[FailureIndicator],
+        _indicators: list[FailureIndicator],
     ) -> MitigationPlan:
         """Customize a mitigation plan template based on current indicators."""
         # For now, return the template as-is

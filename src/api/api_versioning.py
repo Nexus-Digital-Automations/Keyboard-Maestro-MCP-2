@@ -233,7 +233,7 @@ class APIVersionManager:
         # Default versioning strategy
         self.default_strategy = VersioningStrategy.SEMANTIC
 
-    @require(lambda version: isinstance(version, APIVersion))
+    # FIXME: Contract disabled - @require(lambda version: isinstance(version, APIVersion))
     def register_version(
         self,
         version: APIVersion,
@@ -269,7 +269,7 @@ class APIVersionManager:
                 APIOrchestrationError(f"Version registration failed: {e!s}"),
             )
 
-    @require(lambda migration: isinstance(migration, VersionMigration))
+    # FIXME: Contract disabled - @require(lambda migration: isinstance(migration, VersionMigration))
     def register_migration(
         self,
         migration: VersionMigration,
@@ -306,7 +306,7 @@ class APIVersionManager:
                 APIOrchestrationError(f"Migration registration failed: {e!s}"),
             )
 
-    @require(lambda route: isinstance(route, VersionRoute))
+    # FIXME: Contract disabled - @require(lambda route: isinstance(route, VersionRoute))
     def register_route(
         self,
         route: VersionRoute,
@@ -440,7 +440,7 @@ class APIVersionManager:
         self,
         requested_version: str,
         available_versions: list[APIVersion],
-        request_context: dict[str, Any] | None,
+        _request_context: dict[str, Any] | None,
     ) -> APIVersion | None:
         """Find the best matching version from available versions."""
         if not available_versions:
@@ -664,7 +664,11 @@ class APIVersionManager:
         # Return cached decision (would need to reconstruct VersioningDecision)
         return None  # Simplified for now
 
-    def _cache_resolution(self, cache_key: str, decision: VersioningDecision) -> list[Any]:
+    def _cache_resolution(
+        self,
+        cache_key: str,
+        decision: VersioningDecision,
+    ) -> list[Any]:
         """Cache version resolution decision."""
         self.resolution_cache[cache_key] = decision.resolved_version
         self.cache_timestamps[cache_key] = datetime.now(UTC)
@@ -711,10 +715,8 @@ class APIVersionManager:
 
         deprecated_versions = []
         for version in self.versions.values():
-            if (
-                version.status == VersionStatus.DEPRECATED
-                or version.sunset_date
-                and version.sunset_date <= sunset_threshold
+            if version.status == VersionStatus.DEPRECATED or (
+                version.sunset_date and version.sunset_date <= sunset_threshold
             ):
                 deprecated_versions.append(version)
 

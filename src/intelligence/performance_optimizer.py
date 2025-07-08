@@ -302,7 +302,7 @@ class PerformanceOptimizer:
     async def _analyze_execution_performance(
         self,
         patterns: list[UserBehaviorPattern],
-        target: OptimizationTarget,
+        _target: OptimizationTarget,
     ) -> list[PerformanceInsight]:
         """Analyze execution time performance patterns."""
         insights = []
@@ -385,7 +385,7 @@ class PerformanceOptimizer:
     async def _analyze_success_rate_performance(
         self,
         patterns: list[UserBehaviorPattern],
-        target: OptimizationTarget,
+        _target: OptimizationTarget,
     ) -> list[PerformanceInsight]:
         """Analyze success rate performance patterns."""
         insights = []
@@ -437,7 +437,7 @@ class PerformanceOptimizer:
     async def _analyze_efficiency_performance(
         self,
         patterns: list[UserBehaviorPattern],
-        target: OptimizationTarget,
+        _target: OptimizationTarget,
     ) -> list[PerformanceInsight]:
         """Analyze workflow efficiency patterns."""
         insights = []
@@ -486,7 +486,7 @@ class PerformanceOptimizer:
     async def _analyze_resource_performance(
         self,
         patterns: list[UserBehaviorPattern],
-        target: OptimizationTarget,
+        _target: OptimizationTarget,
     ) -> list[PerformanceInsight]:
         """Analyze resource usage performance patterns."""
         insights = []
@@ -600,7 +600,7 @@ class PerformanceOptimizer:
 
     async def _generate_cross_cutting_recommendations(
         self,
-        insights: list[PerformanceInsight],
+        _insights: list[PerformanceInsight],
         target: OptimizationTarget,
     ) -> list[OptimizationRecommendation]:
         """Generate cross-cutting optimization recommendations."""
@@ -705,42 +705,42 @@ class PerformanceOptimizer:
     # Placeholder optimization algorithms
     def _optimize_for_efficiency(
         self,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Optimize patterns for efficiency."""
         return {}
 
     def _optimize_for_speed(
         self,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Optimize patterns for speed."""
         return {}
 
     def _optimize_for_accuracy(
         self,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Optimize patterns for accuracy."""
         return {}
 
     def _optimize_for_resource_usage(
         self,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Optimize patterns for resource usage."""
         return {}
 
     def _optimize_for_user_satisfaction(
         self,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Optimize patterns for user satisfaction."""
         return {}
 
     def _optimize_for_error_reduction(
         self,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> dict[str, Any]:
         """Optimize patterns for error reduction."""
         return {}

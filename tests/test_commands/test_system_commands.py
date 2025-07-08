@@ -7,6 +7,7 @@ and proper contract enforcement.
 from __future__ import annotations
 
 import time
+from typing import Any
 from unittest.mock import patch
 
 import pytest

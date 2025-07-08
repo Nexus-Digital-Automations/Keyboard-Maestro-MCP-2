@@ -297,7 +297,7 @@ class AccessibilityTestRunner:
     async def _validate_alt_text(
         self,
         rule: AccessibilityRule,
-        context: TestExecutionContext,
+        _context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Validate alt text implementation."""
         try:
@@ -340,7 +340,7 @@ class AccessibilityTestRunner:
     async def _validate_heading_structure(
         self,
         rule: AccessibilityRule,
-        context: TestExecutionContext,
+        _context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Validate heading structure implementation."""
         try:
@@ -380,7 +380,7 @@ class AccessibilityTestRunner:
     async def _validate_keyboard_focus(
         self,
         rule: AccessibilityRule,
-        context: TestExecutionContext,
+        _context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Validate keyboard focus implementation."""
         try:
@@ -420,7 +420,7 @@ class AccessibilityTestRunner:
     async def _validate_color_contrast(
         self,
         rule: AccessibilityRule,
-        context: TestExecutionContext,
+        _context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Validate color contrast implementation."""
         try:
@@ -460,7 +460,7 @@ class AccessibilityTestRunner:
     async def _validate_form_labels(
         self,
         rule: AccessibilityRule,
-        context: TestExecutionContext,
+        _context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Validate form label implementation."""
         try:
@@ -500,7 +500,7 @@ class AccessibilityTestRunner:
     async def _execute_generic_rule(
         self,
         rule: AccessibilityRule,
-        context: TestExecutionContext,
+        _context: TestExecutionContext,
     ) -> Either[TestExecutionError, dict[str, Any]]:
         """Execute generic accessibility rule."""
         try:

@@ -43,7 +43,7 @@ class EnterpriseDatabaseConnector:
     async def connect(
         self,
         connection: EnterpriseConnection,
-        credentials: EnterpriseCredentials,
+        _credentials: EnterpriseCredentials,
     ) -> Either[EnterpriseError, str]:
         """Connect to enterprise database with security validation."""
         try:
@@ -117,7 +117,7 @@ class EnterpriseDatabaseConnector:
         self,
         connection_id: str,
         query: str,
-        parameters: dict[str, Any] = None,
+        _parameters: dict[str, Any] = None,
     ) -> Either[EnterpriseError, list[dict[str, Any]]]:
         """Execute query on enterprise database with parameter validation."""
         try:
@@ -275,8 +275,8 @@ class EnterpriseAPIConnector:
         connection_id: str,
         endpoint: str,
         method: str = "GET",
-        data: dict[str, Any] = None,
-        headers: dict[str, str] = None,
+        _data: dict[str, Any] = None,
+        _headers: dict[str, str] = None,
     ) -> Either[EnterpriseError, dict[str, Any]]:
         """Make authenticated request to enterprise API."""
         try:
@@ -326,7 +326,10 @@ class EnterpriseSyncManager:
             "uptime_start": datetime.now(UTC),
         }
 
-    async def initialize(self, audit_logger: Any=None) -> Either[EnterpriseError, None]:
+    async def initialize(
+        self,
+        audit_logger: Any = None,
+    ) -> Either[EnterpriseError, None]:
         """Initialize enterprise sync system with audit integration."""
         try:
             self.audit_logger = audit_logger

@@ -22,6 +22,11 @@ from src.core.autonomous_systems import (
     PerformanceMetric,
     RiskScore,
 )
+from src.core.constants import (
+    DETECTION_OCCURRENCE_MIN,
+    MINIMAL_RISK_THRESHOLD,
+    SAFETY_RISK_LIMIT,
+)
 from src.core.contracts import require
 from src.core.either import Either
 
@@ -88,7 +93,7 @@ class ErrorEvent:
             and event.error_type == self.error_type
             and (self.timestamp - event.timestamp) < timedelta(hours=1)
         )
-        return similar_count >= 3
+        return similar_count >= DETECTION_OCCURRENCE_MIN
 
 
 @dataclass(frozen=True)
@@ -108,7 +113,7 @@ class RecoveryAction:
     def __post_init__(self):
         pass
 
-    def is_safe(self, risk_threshold: float = 0.7) -> bool:
+    def is_safe(self, risk_threshold: float = SAFETY_RISK_LIMIT) -> bool:
         """Check if recovery action is within safety limits."""
         return self.risk_score <= risk_threshold
 
@@ -295,7 +300,7 @@ class SelfHealingEngine:
                     parameters={"escalation_reason": "high_risk_recovery"},
                     estimated_duration=timedelta(seconds=5),
                     success_probability=ConfidenceScore(1.0),
-                    risk_score=RiskScore(0.1),
+                    risk_score=RiskScore(MINIMAL_RISK_THRESHOLD),
                 )
 
             return Either.right(recovery_action)
@@ -307,7 +312,7 @@ class SelfHealingEngine:
         self,
         agent_id: AgentId,
         recovery_action: RecoveryAction,
-        agent_manager: Any=None,
+        agent_manager: Any = None,
     ) -> Either[AutonomousAgentError, dict[str, Any]]:
         """Execute the planned recovery action."""
         try:
@@ -402,7 +407,7 @@ class SelfHealingEngine:
         except Exception as e:
             return Either.left(AutonomousAgentError.recovery_execution_failed(str(e)))
 
-    def _classify_error(self, error: Exception, context: dict[str, Any]) -> ErrorType:
+    def _classify_error(self, error: Exception, _context: dict[str, Any]) -> ErrorType:
         """Classify error into error type."""
         error_str = str(error).lower()
 
@@ -505,7 +510,7 @@ class SelfHealingEngine:
     def _get_strategy_parameters(
         self,
         strategy: RecoveryStrategy,
-        error_event: ErrorEvent,
+        _error_event: ErrorEvent,
     ) -> dict[str, Any]:
         """Get parameters for recovery strategy."""
         if strategy == RecoveryStrategy.RETRY:
@@ -637,7 +642,7 @@ class SelfHealingEngine:
     async def _execute_rollback(
         self,
         agent_id: AgentId,
-        parameters: dict[str, Any],
+        _parameters: dict[str, Any],
     ) -> dict[str, Any]:
         """Execute rollback recovery strategy."""
         # In production, would rollback to previous state
@@ -685,7 +690,7 @@ class SelfHealingEngine:
     async def _execute_isolate(
         self,
         agent_id: AgentId,
-        agent_manager: Any,
+        _agent_manager: Any,
     ) -> dict[str, Any]:
         """Execute isolation recovery strategy."""
         # In production, would isolate agent from other components
@@ -730,8 +735,8 @@ class SelfHealingEngine:
     async def _execute_graceful_degradation(
         self,
         agent_id: AgentId,
-        parameters: dict[str, Any],
-        agent_manager: Any,
+        _parameters: dict[str, Any],
+        _agent_manager: Any,
     ) -> dict[str, Any]:
         """Execute graceful degradation recovery strategy."""
         # In production, would reduce agent capabilities gracefully

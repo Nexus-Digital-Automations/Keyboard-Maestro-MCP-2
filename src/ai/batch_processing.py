@@ -215,7 +215,13 @@ class BatchJob:
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError("dependency_validation_failed", str(e), "Dependency validation failed"))
+            return Either.left(
+                ValidationError(
+                    "dependency_validation_failed",
+                    str(e),
+                    "Dependency validation failed",
+                ),
+            )
 
     def _has_dependency_cycle(self) -> bool:
         """Check for cycles in dependency graph using DFS."""
@@ -444,7 +450,13 @@ class BatchProcessor:
             return Either.right(job.job_id)
 
         except Exception as e:
-            return Either.left(ValidationError("job_submission_failed", str(e), "Job submission failed"))
+            return Either.left(
+                ValidationError(
+                    "job_submission_failed",
+                    str(e),
+                    "Job submission failed",
+                ),
+            )
 
     def _check_resource_availability(
         self,
@@ -634,7 +646,7 @@ class BatchProcessor:
     async def _execute_task(
         self,
         task: BatchTask,
-        job_state: BatchJobState,
+        _job_state: BatchJobState,
     ) -> TaskResult:
         """Execute a single batch task."""
         start_time = datetime.now(UTC)

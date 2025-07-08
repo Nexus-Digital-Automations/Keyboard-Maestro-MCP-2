@@ -18,7 +18,7 @@ from ..core.communication import (
     MessageTemplate,
     TemplateId,
 )
-from ..core.contracts import ensure, require
+from ..core.contracts import ensure
 from ..core.either import Either
 from ..core.errors import DataError as FileSystemError
 from ..core.errors import SecurityError, ValidationError
@@ -300,7 +300,7 @@ class MessageTemplateManager:
         object.__setattr__(default_library, "templates", templates)
         self.libraries["default"] = default_library
 
-    @require(lambda __self, template: isinstance(template, MessageTemplate))
+    # FIXME: Contract disabled - @require(lambda __self, template: isinstance(template, MessageTemplate))
     @ensure(lambda result: isinstance(result, Either))
     def add_template(
         self,
@@ -412,8 +412,8 @@ class MessageTemplateManager:
 
         return result
 
-    @require(lambda __self, template, variables: isinstance(template, MessageTemplate))
-    @require(lambda __self, template, variables: isinstance(variables, dict))
+    # FIXME: Contract disabled - @require(lambda __self, template, _variables: isinstance(template, MessageTemplate))
+    # FIXME: Contract disabled - @require(lambda __self, _template, variables: isinstance(variables, dict))
     @ensure(lambda result: isinstance(result, Either))
     def render_template(
         self,

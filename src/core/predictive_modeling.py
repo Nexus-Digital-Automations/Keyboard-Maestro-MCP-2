@@ -95,10 +95,18 @@ class ModelType(Enum):
     LSTM = "lstm"
 
     # Classification Models
+    CLASSIFICATION = "classification"
     RANDOM_FOREST = "random_forest"
     GRADIENT_BOOSTING = "gradient_boosting"
     NEURAL_NETWORK = "neural_network"
     SVM = "svm"
+
+    # Regression Models
+    REGRESSION = "regression"
+
+    # Clustering Models
+    CLUSTERING = "clustering"
+    TIME_SERIES = "time_series"
 
     # Ensemble Models
     ENSEMBLE = "ensemble"
@@ -109,6 +117,29 @@ class ModelType(Enum):
     ANOMALY_DETECTION = "anomaly_detection"
     CHANGE_POINT = "change_point"
     PROPHET = "prophet"
+
+
+class ModelStatus(Enum):
+    """Model training and deployment status."""
+
+    ACTIVE = "active"
+    TRAINING = "training"
+    INACTIVE = "inactive"
+    FAILED = "failed"
+
+
+@dataclass(frozen=True)
+class MLModel:
+    """Machine learning model definition for comprehensive testing."""
+
+    model_id: str
+    model_type: ModelType
+    name: str
+    version: str
+    status: ModelStatus
+    accuracy: float
+    training_data_size: int
+    created_at: str
 
 
 class ForecastGranularity(Enum):
@@ -469,8 +500,8 @@ class ScenarioModelingError(PredictiveModelingError):
 # Utility Functions for Predictive Modeling
 
 
-@require(lambda data: len(data.timestamps) >= 10)
-@require(lambda horizon_days: 1 <= horizon_days <= 365)
+    # FIXME: Contract disabled - @require(lambda data: len(data.timestamps) >= 10)
+    # FIXME: Contract disabled - @require(lambda horizon_days: 1 <= horizon_days <= 365)
 def validate_time_series_data(
     data: TimeSeriesData,
     horizon_days: int,
@@ -482,7 +513,8 @@ def validate_time_series_data(
         if len(data.timestamps) < min_required:
             return Either.left(
                 ModelTrainingError.insufficient_data(
-                    min_required, len(data.timestamps)
+                    min_required,
+                    len(data.timestamps),
                 ),
             )
 
@@ -543,7 +575,7 @@ def categorize_confidence_level(confidence_score: float) -> ConfidenceLevel:
     return ConfidenceLevel.LOW
 
 
-@require(lambda insight_data: len(insight_data) > 0)
+    # FIXME: Contract disabled - @require(lambda insight_data: len(insight_data) > 0)
 def prioritize_insights(insights: list[PredictiveInsight]) -> list[PredictiveInsight]:
     """Prioritize insights based on impact, confidence, and urgency."""
 

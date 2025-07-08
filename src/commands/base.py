@@ -10,7 +10,7 @@ import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Protocol
+from typing import Any, Protocol
 
 from ..core.context import security_context
 from ..core.errors import SecurityViolationError
@@ -205,7 +205,7 @@ class NoOpCommand(BaseCommand):
     Safe to execute with minimal permissions.
     """
 
-    def _execute_impl(self, context: ExecutionContext) -> CommandResult:
+    def _execute_impl(self, _context: ExecutionContext) -> CommandResult:
         """Execute no-op - always succeeds."""
         return CommandResult(
             success=True,

@@ -42,8 +42,8 @@ class DictionaryManagerTools:
         merge_strategy: str = "deep",
         format_output: str = "json",
         validate_schema: bool = True,
-        timeout_seconds: int = 30,
-        ctx: Any=None,
+        _timeout_seconds: int = 30,
+        _ctx: Any = None,
     ) -> dict[str, Any]:
         """Comprehensive dictionary and JSON management tool.
 

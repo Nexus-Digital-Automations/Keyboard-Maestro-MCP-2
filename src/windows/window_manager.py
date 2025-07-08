@@ -536,7 +536,7 @@ class WindowManager:
         except Exception:
             return []
 
-    def _parse_screen_data(self, screen_data: str) -> list[ScreenInfo]:
+    def _parse_screen_data(self, _screen_data: str) -> list[ScreenInfo]:
         """Parse AppleScript screen data into ScreenInfo objects."""
         try:
             # Basic parsing of screen bounds data
@@ -864,7 +864,7 @@ class WindowManager:
             if output.startswith("ERROR:"):
                 return Either.left(
                     KMError.execution_error(
-                        f"Window state change failed: {output[6:]}"
+                        f"Window state change failed: {output[6:]}",
                     ),
                 )
 
@@ -929,3 +929,133 @@ class WindowManager:
         escaped = escaped.replace("\t", "\\t")  # Escape tabs
 
         return escaped
+
+    async def list_windows(self, app_identifier: str | None = None) -> Either[KMError, list[WindowInfo]]:
+        """List all windows, optionally filtered by application identifier."""
+        try:
+            if app_identifier:
+                # List windows for specific application
+                script = f"""
+                tell application "System Events"
+                    try
+                        set appProcess to process "{self._escape_applescript_string(app_identifier)}"
+                        set windowList to every window of appProcess
+                        set windowData to {{}}
+                        
+                        repeat with i from 1 to count of windowList
+                            set currentWindow to item i of windowList
+                            set windowBounds to get position of currentWindow
+                            set windowSize to get size of currentWindow
+                            set windowTitle to get title of currentWindow
+                            set end of windowData to ((item 1 of windowBounds) & "," & (item 2 of windowBounds) & "," & (item 1 of windowSize) & "," & (item 2 of windowSize) & "," & windowTitle)
+                        end repeat
+                        
+                        return windowData as string
+                    on error errorMessage
+                        return "ERROR: " & errorMessage
+                    end try
+                end tell
+                """
+            else:
+                # List all windows from all applications
+                script = """
+                tell application "System Events"
+                    try
+                        set allProcesses to every process whose background only is false
+                        set allWindowData to {}
+                        
+                        repeat with currentProcess in allProcesses
+                            set processName to name of currentProcess
+                            set windowList to every window of currentProcess
+                            
+                            repeat with currentWindow in windowList
+                                set windowBounds to get position of currentWindow
+                                set windowSize to get size of currentWindow
+                                set windowTitle to get title of currentWindow
+                                set end of allWindowData to (processName & "|" & (item 1 of windowBounds) & "," & (item 2 of windowBounds) & "," & (item 1 of windowSize) & "," & (item 2 of windowSize) & "," & windowTitle)
+                            end repeat
+                        end repeat
+                        
+                        return allWindowData as string
+                    on error errorMessage
+                        return "ERROR: " & errorMessage
+                    end try
+                end tell
+                """
+            
+            result = await self._execute_applescript(script, Duration.from_seconds(10))
+            if result.is_left():
+                return Either.left(result.get_left())
+                
+            output = result.get_right().strip()
+            
+            if output.startswith("ERROR:"):
+                return Either.left(
+                    KMError.execution_error(f"Window listing failed: {output[6:]}")
+                )
+                
+            if not output or output == "{}":
+                return Either.right([])
+                
+            # Parse window data
+            windows = []
+            
+            # Handle AppleScript list format
+            if output.startswith("{") and output.endswith("}"):
+                output = output[1:-1]  # Remove braces
+                
+            if output:
+                window_entries = output.split(", ")
+                
+                for i, entry in enumerate(window_entries):
+                    entry = entry.strip('"')  # Remove quotes
+                    
+                    if app_identifier:
+                        # Format: "x,y,width,height,title"
+                        parts = entry.split(",")
+                        if len(parts) >= 4:
+                            try:
+                                position = Position(int(parts[0]), int(parts[1]))
+                                size = Size(int(parts[2]), int(parts[3]))
+                                title = parts[4] if len(parts) > 4 else None
+                                
+                                window_info = WindowInfo(
+                                    app_identifier=app_identifier,
+                                    window_index=i,
+                                    position=position,
+                                    size=size,
+                                    state=WindowState.NORMAL,
+                                    title=title,
+                                )
+                                windows.append(window_info)
+                            except (ValueError, IndexError):
+                                continue
+                    else:
+                        # Format: "app_name|x,y,width,height,title"
+                        if "|" in entry:
+                            app_part, window_part = entry.split("|", 1)
+                            parts = window_part.split(",")
+                            if len(parts) >= 4:
+                                try:
+                                    position = Position(int(parts[0]), int(parts[1]))
+                                    size = Size(int(parts[2]), int(parts[3]))
+                                    title = parts[4] if len(parts) > 4 else None
+                                    
+                                    window_info = WindowInfo(
+                                        app_identifier=app_part,
+                                        window_index=0,  # Index within this listing
+                                        position=position,
+                                        size=size,
+                                        state=WindowState.NORMAL,
+                                        title=title,
+                                    )
+                                    windows.append(window_info)
+                                except (ValueError, IndexError):
+                                    continue
+                
+            return Either.right(windows)
+            
+        except Exception as e:
+            return Either.left(
+                KMError.execution_error(f"Window listing failed: {e!s}")
+            )

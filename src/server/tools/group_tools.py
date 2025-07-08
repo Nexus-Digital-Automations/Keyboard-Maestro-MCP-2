@@ -5,6 +5,7 @@ with comprehensive statistics and organization capabilities.
 """
 
 import logging
+import subprocess
 from datetime import UTC, datetime
 from typing import Annotated, Any
 
@@ -106,11 +107,10 @@ async def km_list_macro_groups(
             result = secure_manager.execute_secure_command(command)
         except Exception:
             # Fallback if secure subprocess not available
-            import subprocess
-
             # S607 fix: Use full path for executable
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603 # Secured subprocess with hardcoded path
                 ["/usr/bin/osascript", "-e", script],
+                check=False,
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -226,3 +226,19 @@ async def km_list_macro_groups(
                 "recovery_suggestion": "Check Keyboard Maestro connection and permissions",
             },
         }
+
+
+# Wrapper for backward compatibility with tests
+async def km_list_groups(
+    include_disabled: bool = True,
+    sort_by: str = "name",
+    ctx: Context = None,
+) -> dict[str, Any]:
+    """Wrapper function for km_list_macro_groups with different parameter names."""
+    # Map old parameter names to new ones
+    return await km_list_macro_groups(
+        include_macro_count=True,
+        include_enabled_count=True,
+        sort_by=sort_by,
+        ctx=ctx,
+    )

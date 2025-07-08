@@ -27,7 +27,45 @@ BundleId = NewType("BundleId", str)
 MenuItemId = NewType("MenuItemId", str)
 ToolId = NewType("ToolId", str)
 UserId = NewType("UserId", str)
+ActionId = NewType("ActionId", str)
+EmailAddress = NewType("EmailAddress", str)
 ConditionId = NewType("ConditionId", str)
+
+
+# Result type factory functions
+def create_success_result(value: Any) -> Result:
+    """Create a successful result with the given value."""
+    return Result(success=True, value=value, error_message=None, error_code=None)
+
+
+def create_error_result(message: str, error_code: str) -> Result:
+    """Create an error result with the given message and error code."""
+    return Result(
+        success=False, value=None, error_message=message, error_code=error_code
+    )
+
+
+@dataclass(frozen=True)
+class Result:
+    """Generic result type for operations that may succeed or fail."""
+
+    success: bool
+    value: Any = None
+    error_message: str | None = None
+    error_code: str | None = None
+
+    def is_success(self) -> bool:
+        """Check if the result represents success."""
+        return self.success
+
+    def is_error(self) -> bool:
+        """Check if the result represents an error."""
+        return not self.success
+
+    @property
+    def message(self) -> str:
+        """Get the error message (for backwards compatibility)."""
+        return self.error_message or ""
 
 
 def create_macro_id() -> MacroId:
@@ -257,6 +295,14 @@ class ExecutionContext:
         """Create default execution context."""
         return cls.create_test_context()
 
+    async def info(self, message: str) -> None:
+        """Mock method for test compatibility - logs informational message."""
+        pass  # No-op for test compatibility
+
+    async def error(self, message: str) -> None:
+        """Mock method for test compatibility - logs error message."""
+        pass  # No-op for test compatibility
+
 
 @dataclass(frozen=True)
 class CommandResult:
@@ -350,6 +396,36 @@ class ExecutionResult:
         """Check if error information is available."""
         return self.error_details is not None or any(
             not r.success for r in self.command_results
+        )
+
+
+@dataclass(frozen=True)
+class ValidationResult:
+    """Result of validation operations."""
+
+    is_valid: bool
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def success(cls, **metadata: Any) -> ValidationResult:
+        """Create a successful validation result."""
+        return cls(is_valid=True, metadata=metadata)
+
+    @classmethod
+    def failure(cls, errors: list[str], **metadata: Any) -> ValidationResult:
+        """Create a failed validation result."""
+        return cls(is_valid=False, errors=errors, metadata=metadata)
+
+    def add_error(self, error: str) -> ValidationResult:
+        """Add an error to the validation result."""
+        new_errors = self.errors + [error]
+        return ValidationResult(
+            is_valid=False,
+            errors=new_errors,
+            warnings=self.warnings,
+            metadata=self.metadata,
         )
 
 

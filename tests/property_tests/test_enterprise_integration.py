@@ -85,7 +85,12 @@ class TestEnterpriseConnectionProperties:
         st.text(min_size=1, max_size=50),
         st.text(min_size=12, max_size=100),
     )
-    def test_enterprise_credentials_properties(self, auth_method: Any, username: str, password: str) -> None:
+    def test_enterprise_credentials_properties(
+        self,
+        auth_method: Any,
+        username: str,
+        password: str,
+    ) -> None:
         """Property: Enterprise credentials should handle various authentication methods."""
         assume(username.strip() != "")
         assume(password.strip() != "")
@@ -143,7 +148,13 @@ class TestEnterpriseConnectionProperties:
         st.booleans(),
         st.sets(st.text(min_size=1, max_size=20), max_size=10),
     )
-    def test_ldap_user_properties(self, username: str, display_name: str, is_active: bool, groups: list[Any] | str) -> None:
+    def test_ldap_user_properties(
+        self,
+        username: str,
+        display_name: str,
+        is_active: bool,
+        groups: list[Any] | str,
+    ) -> None:
         """Property: LDAP users should handle various usernames and attributes."""
         assume(username.strip() != "")
 
@@ -186,7 +197,7 @@ class TestEnterpriseConnectionProperties:
         self,
         successful: Any,
         failed: bool,
-        duration: int | float,
+        duration: float,
         integration_type: str,
     ) -> None:
         """Property: Sync results should handle various success/failure counts."""
@@ -392,7 +403,12 @@ class TestLDAPConnectorProperties:
         st.integers(min_value=389, max_value=65535),
     )
     @pytest.mark.asyncio
-    async def test_ldap_connection_properties(self, connection_id: str, host: str, port: int) -> None:
+    async def test_ldap_connection_properties(
+        self,
+        connection_id: str,
+        host: str,
+        port: int,
+    ) -> None:
         """Property: LDAP connection should handle various configurations."""
         assume(connection_id.strip() != "")
         assume(host.strip() != "")
@@ -452,7 +468,7 @@ class TestSSOManagerProperties:
     """Property-based tests for SSO manager functionality."""
 
     @pytest.fixture
-    def sso_manager(self) -> Any:
+    def sso_manager(self) -> Mock:
         """Provide SSO manager for tests."""
         return SSOManager()
 
@@ -632,7 +648,10 @@ class TestEnterpriseSyncToolProperties:
     @settings(max_examples=20, deadline=5000)
     @given(st.text(max_size=0))
     @pytest.mark.asyncio
-    async def test_invalid_parameters_validation_properties(self, empty_value: str) -> None:
+    async def test_invalid_parameters_validation_properties(
+        self,
+        empty_value: str,
+    ) -> None:
         """Property: Empty or invalid parameters should be rejected gracefully."""
         assume(len(empty_value.strip()) == 0)
 
@@ -695,7 +714,7 @@ class TestEnterpriseIntegrationCompliance:
         self,
         records_count: int,
         batch_size: int,
-        duration: int | float,
+        duration: float,
     ) -> None:
         """Property: Enterprise operations should meet performance requirements."""
         assume(batch_size > 0)

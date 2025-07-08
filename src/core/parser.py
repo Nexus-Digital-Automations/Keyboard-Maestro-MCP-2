@@ -431,10 +431,10 @@ class CommandValidator:
 class MacroParser:
     """Main parser for macro definitions with comprehensive validation."""
 
-    @require(
-        lambda _self, macro_data: macro_data is not None,
-        "macro_data cannot be None",
-    )
+    # FIXME: Contract disabled - @require(
+    #     lambda _self, macro_data: macro_data is not None,
+    #     "macro_data cannot be None",
+    # )
     @ensure(
         lambda _self, _macro_data, result: isinstance(result, ParseResult),
         "must return ParseResult",

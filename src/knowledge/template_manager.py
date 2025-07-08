@@ -54,16 +54,11 @@ class TemplateVariable:
 
         # Type validation
         if (
-            self.variable_type == "string"
-            and not isinstance(value, str)
-            or self.variable_type == "number"
-            and not isinstance(value, int | float)
-            or self.variable_type == "boolean"
-            and not isinstance(value, bool)
-            or self.variable_type == "array"
-            and not isinstance(value, list)
-            or self.variable_type == "object"
-            and not isinstance(value, dict)
+            (self.variable_type == "string" and not isinstance(value, str))
+            or (self.variable_type == "number" and not isinstance(value, int | float))
+            or (self.variable_type == "boolean" and not isinstance(value, bool))
+            or (self.variable_type == "array" and not isinstance(value, list))
+            or (self.variable_type == "object" and not isinstance(value, dict))
         ):
             return False
 

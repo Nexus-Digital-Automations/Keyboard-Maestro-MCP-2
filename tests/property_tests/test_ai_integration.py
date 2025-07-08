@@ -8,11 +8,11 @@ Tests security boundaries, performance characteristics, and functional correctne
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from hypothesis import assume, given
+from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis.stateful import Bundle, RuleBasedStateMachine, initialize, rule
 from src.ai.image_analyzer import (
@@ -50,10 +50,13 @@ from src.core.ai_integration import (
 from src.core.either import Either
 from src.server.tools.ai_processing_tools import AIProcessingManager
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Hypothesis strategies for AI types
 @st.composite
-def ai_model_strategy(draw: Callable[..., Any]) -> Any:
+def ai_model_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid AI model configurations."""
     return AIModel(
         model_id=AIModelId(
@@ -79,7 +82,7 @@ def ai_model_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def ai_request_strategy(draw: Callable[..., Any]) -> Any:
+def ai_request_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid AI request configurations."""
     model = draw(ai_model_strategy())
     operation = draw(st.sampled_from(AIOperation))
@@ -301,7 +304,7 @@ class TestModelManagerProperties:
     """Property-based tests for AI model management."""
 
     @pytest.fixture
-    def model_manager(self) -> Any:
+    def model_manager(self) -> Mock:
         """Create model manager for testing."""
         return AIModelManager()
 
@@ -358,7 +361,7 @@ class TestTextProcessorProperties:
     """Property-based tests for text processing."""
 
     @pytest.fixture
-    def text_processor(self) -> Any:
+    def text_processor(self) -> Mock:
         """Create text processor for testing."""
         mock_manager = Mock(spec=AIModelManager)
         return TextProcessor(mock_manager)
@@ -381,7 +384,11 @@ class TestTextProcessorProperties:
         assert "JSON" in prompt or "json" in prompt
 
     @given(st.text(min_size=1, max_size=100), st.sampled_from(TextGenerationStyle))
-    def test_generation_request_properties(self, prompt: Callable[..., Any], style: list[Any] | str) -> None:
+    def test_generation_request_properties(
+        self,
+        prompt: Callable[..., Any],
+        style: list[Any] | str,
+    ) -> None:
         """Property: Generation requests should be valid."""
         request = TextGenerationRequest(
             prompt=prompt,
@@ -516,12 +523,16 @@ class AISystemStateMachine(RuleBasedStateMachine):
 class TestAIIntegrationE2E:
     """End-to-end property tests for AI integration."""
 
-    @given(st.text(min_size=10, max_size=500))
+    @given(
+        st.text(
+            alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,!?-_'\"",
+            min_size=10,
+            max_size=500,
+        )
+    )
     async def test_text_analysis_workflow(self, input_text: str) -> None:
         """Property: Text analysis workflow should be robust."""
-        # Skip if text is too problematic
-        assume(len(input_text.strip()) > 5)
-        assume(not any(char in input_text for char in ["\x00", "\x01", "\x02"]))
+        # Strategy already generates clean text without problematic characters
 
         # Mock the entire workflow
         manager = AIProcessingManager()
@@ -548,7 +559,7 @@ class TestAIIntegrationE2E:
             return_value=Either.right(
                 Mock(
                     get_summary=Mock(
-                        return_value={"is_safe": True, "risk_score": 10.0}
+                        return_value={"is_safe": True, "risk_score": 10.0},
                     ),
                 ),
             ),

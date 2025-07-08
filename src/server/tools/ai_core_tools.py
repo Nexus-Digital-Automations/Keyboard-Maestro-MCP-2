@@ -50,7 +50,13 @@ class AIProcessingManager:
             self.initialized = True
             return Either.right(None)
         except Exception as e:
-            return Either.left(ValidationError("initialization_failed", str(e), "AI system initialization failed"))
+            return Either.left(
+                ValidationError(
+                    "initialization_failed",
+                    str(e),
+                    "AI system initialization failed",
+                ),
+            )
 
     @require(lambda __self, operation: operation in AIOperation)
     @require(lambda __self, input_data: len(str(input_data)) > 0)
@@ -78,7 +84,11 @@ class AIProcessingManager:
         try:
             if not self.initialized:
                 return Either.left(
-                    ValidationError("not_initialized", None, "AI system not initialized"),
+                    ValidationError(
+                        "not_initialized",
+                        None,
+                        "AI system not initialized",
+                    ),
                 )
 
             # Validate and parse parameters
@@ -237,7 +247,13 @@ class AIProcessingManager:
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError("security_validation_failed", str(e), "Security validation failed"))
+            return Either.left(
+                ValidationError(
+                    "security_validation_failed",
+                    str(e),
+                    "Security validation failed",
+                ),
+            )
 
     def _detect_pii(self, text: str) -> Either[ValidationError, None]:
         """Detect personally identifiable information in text."""
@@ -325,7 +341,13 @@ class AIProcessingManager:
             return Either.right(selected)
 
         except Exception as e:
-            return Either.left(ValidationError("model_selection_failed", str(e), "Model selection failed"))
+            return Either.left(
+                ValidationError(
+                    "model_selection_failed",
+                    str(e),
+                    "Model selection failed",
+                ),
+            )
 
     async def _execute_ai_request(
         self,
@@ -380,7 +402,9 @@ class AIProcessingManager:
             return Either.right(response)
 
         except Exception as e:
-            return Either.left(ValidationError("ai_execution_failed", str(e), "AI execution failed"))
+            return Either.left(
+                ValidationError("ai_execution_failed", str(e), "AI execution failed"),
+            )
 
     def _mock_analyze(self, text: str) -> dict[str, Any]:
         """Mock text analysis."""
@@ -567,8 +591,8 @@ async def km_ai_processing(
     enable_caching: bool = True,  # Enable result caching
     cost_limit: float | None = None,  # Maximum cost per operation
     privacy_mode: bool = True,  # Enable privacy protection
-    timeout: int = 60,  # Processing timeout
-    ctx: Any=None,
+    _timeout: int = 60,  # Processing timeout
+    _ctx: Any = None,
 ) -> dict[str, Any]:
     """AI/ML model integration for intelligent automation and decision-making.
 
@@ -663,7 +687,7 @@ async def km_ai_status(
     include_cache: bool = True,  # Include cache information
     include_models: bool = True,  # Include available models
     reset_cache: bool = False,  # Clear request cache
-    ctx: Any=None,
+    _ctx: Any = None,
 ) -> dict[str, Any]:
     """Get AI processing system status and statistics.
 

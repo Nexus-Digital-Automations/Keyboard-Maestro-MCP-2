@@ -23,7 +23,7 @@ class ToolCategory(Enum):
     WINDOW_MANAGEMENT = "window_management"
     NOTIFICATIONS = "notifications"
     CALCULATIONS = "calculations"
-    TOKEN_PROCESSING = "token_processing"  # noqa: S105 - Type identifier, not a secret
+    TOKEN_PROCESSING = "token_processing"  # noqa: S105 # Enum value, not password
     CONDITIONAL_LOGIC = "conditional_logic"
     CONTROL_FLOW = "control_flow"
     TRIGGERS = "triggers"

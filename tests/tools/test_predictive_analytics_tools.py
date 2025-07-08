@@ -33,7 +33,7 @@ class TestKMPredictAutomationPatterns:
     """Test suite for km_predict_automation_patterns MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-predict-001"}
@@ -46,7 +46,10 @@ class TestKMPredictAutomationPatterns:
         return context
 
     @pytest.mark.asyncio
-    async def test_predict_automation_patterns_comprehensive(self, mock_context: Any) -> None:
+    async def test_predict_automation_patterns_comprehensive(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test comprehensive automation pattern prediction - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Test actual km_predict_automation_patterns implementation
         result = await km_predict_automation_patterns(
@@ -86,7 +89,10 @@ class TestKMPredictAutomationPatterns:
                 ]
 
     @pytest.mark.asyncio
-    async def test_predict_automation_patterns_without_intervals(self, mock_context: Any) -> None:
+    async def test_predict_automation_patterns_without_intervals(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test pattern prediction without confidence intervals."""
         result = await km_predict_automation_patterns(
             prediction_scope="macro",
@@ -117,7 +123,10 @@ class TestKMPredictAutomationPatterns:
                 ]
 
     @pytest.mark.asyncio
-    async def test_predict_automation_patterns_invalid_scope(self, mock_context: Any) -> None:
+    async def test_predict_automation_patterns_invalid_scope(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test pattern prediction with invalid scope."""
         result = await km_predict_automation_patterns(
             prediction_scope="invalid_scope",
@@ -149,7 +158,10 @@ class TestKMPredictAutomationPatterns:
             ]
 
     @pytest.mark.asyncio
-    async def test_predict_automation_patterns_invalid_horizon(self, mock_context: Any) -> None:
+    async def test_predict_automation_patterns_invalid_horizon(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test pattern prediction with invalid time horizon."""
         result = await km_predict_automation_patterns(
             prediction_scope="system",
@@ -183,7 +195,10 @@ class TestKMPredictAutomationPatterns:
             ]
 
     @pytest.mark.asyncio
-    async def test_predict_automation_patterns_empty_scope(self, mock_context: Any) -> None:
+    async def test_predict_automation_patterns_empty_scope(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test pattern prediction with empty scope."""
         result = await km_predict_automation_patterns(
             prediction_scope="",
@@ -220,7 +235,7 @@ class TestKMForecastResourceUsage:
     """Test suite for km_forecast_resource_usage MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-forecast-001"}
@@ -231,7 +246,10 @@ class TestKMForecastResourceUsage:
         return context
 
     @pytest.mark.asyncio
-    async def test_forecast_resource_usage_comprehensive(self, mock_context: Any) -> None:
+    async def test_forecast_resource_usage_comprehensive(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test comprehensive resource usage forecasting - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_forecast_resource_usage(
             resource_types=["cpu", "memory", "storage"],
@@ -269,7 +287,10 @@ class TestKMForecastResourceUsage:
             print(f"Resource forecasting initialization detected: {result['error']}")
 
     @pytest.mark.asyncio
-    async def test_forecast_resource_usage_without_scenarios(self, mock_context: Any) -> None:
+    async def test_forecast_resource_usage_without_scenarios(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test resource forecasting without scenarios."""
         result = await km_forecast_resource_usage(
             resource_types=["cpu"],
@@ -304,7 +325,10 @@ class TestKMForecastResourceUsage:
             print(f"Resource forecasting initialization detected: {result['error']}")
 
     @pytest.mark.asyncio
-    async def test_forecast_resource_usage_invalid_horizon(self, mock_context: Any) -> None:
+    async def test_forecast_resource_usage_invalid_horizon(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test resource forecasting with invalid horizon."""
         result = await km_forecast_resource_usage(
             resource_types=["cpu"],
@@ -339,7 +363,10 @@ class TestKMForecastResourceUsage:
             ]
 
     @pytest.mark.asyncio
-    async def test_forecast_resource_usage_invalid_granularity(self, mock_context: Any) -> None:
+    async def test_forecast_resource_usage_invalid_granularity(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test resource forecasting with invalid granularity."""
         result = await km_forecast_resource_usage(
             resource_types=["memory"],
@@ -370,7 +397,10 @@ class TestKMForecastResourceUsage:
             ]
 
     @pytest.mark.asyncio
-    async def test_forecast_resource_usage_invalid_model(self, mock_context: Any) -> None:
+    async def test_forecast_resource_usage_invalid_model(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test resource forecasting with invalid model."""
         result = await km_forecast_resource_usage(
             resource_types=["storage"],
@@ -405,7 +435,7 @@ class TestKMGenerateInsights:
     """Test suite for km_generate_insights MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-insights-001"}
@@ -550,7 +580,10 @@ class TestKMGenerateInsights:
             ]
 
     @pytest.mark.asyncio
-    async def test_generate_insights_invalid_confidence(self, mock_context: Any) -> None:
+    async def test_generate_insights_invalid_confidence(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test insights generation with invalid confidence threshold."""
         result = await km_generate_insights(
             analysis_scope="efficiency",
@@ -585,7 +618,7 @@ class TestKMAnalyzeTrends:
     """Test suite for km_analyze_trends MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-trends-001"}
@@ -734,7 +767,7 @@ class TestKMGetAnalyticsStatus:
     """Test suite for km_get_analytics_status MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-status-001"}
@@ -779,7 +812,10 @@ class TestKMGetAnalyticsStatus:
             )
 
     @pytest.mark.asyncio
-    async def test_get_analytics_status_system_health_only(self, mock_context: Any) -> None:
+    async def test_get_analytics_status_system_health_only(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test analytics status with system health only."""
         result = await km_get_analytics_status()
 
@@ -809,7 +845,10 @@ class TestKMGetAnalyticsStatus:
             )
 
     @pytest.mark.asyncio
-    async def test_get_analytics_status_model_status_only(self, mock_context: Any) -> None:
+    async def test_get_analytics_status_model_status_only(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test analytics status with model status only."""
         result = await km_get_analytics_status()
 
@@ -837,7 +876,10 @@ class TestKMGetAnalyticsStatus:
             print(f"Model status analytics initialization detected: {result['error']}")
 
     @pytest.mark.asyncio
-    async def test_get_analytics_status_recent_activities_only(self, mock_context: Any) -> None:
+    async def test_get_analytics_status_recent_activities_only(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test analytics status with recent activities only."""
         result = await km_get_analytics_status()
 

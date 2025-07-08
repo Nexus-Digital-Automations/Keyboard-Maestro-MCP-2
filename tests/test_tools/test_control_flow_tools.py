@@ -31,7 +31,7 @@ class TestKMControlFlowTool:
     """Test the main km_control_flow MCP tool."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create mock MCP context."""
         context = Mock()
         context.info = AsyncMock()

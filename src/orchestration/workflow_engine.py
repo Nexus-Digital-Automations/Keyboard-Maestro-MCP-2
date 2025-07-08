@@ -302,7 +302,7 @@ class MasterWorkflowEngine:
     def _optimize_for_efficiency(
         self,
         workflow: EcosystemWorkflow,
-        groups: dict[str, list[str]],
+        _groups: dict[str, list[str]],
     ) -> dict[str, list[str]]:
         """Optimize workflow for resource efficiency."""
         optimized_groups = {}
@@ -437,7 +437,7 @@ class MasterWorkflowEngine:
     async def _execute_step(
         self,
         step: WorkflowStep,
-        execution_state: WorkflowExecutionState,
+        _execution_state: WorkflowExecutionState,
         input_data: dict[str, Any] | None = None,
     ) -> StepExecutionResult:
         """Execute a single workflow step."""

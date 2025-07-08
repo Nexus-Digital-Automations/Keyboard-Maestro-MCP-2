@@ -109,14 +109,14 @@ class TestKMAIProcessing:
     """Test suite for km_ai_processing MCP tool using proven systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-123"}
         return context
 
     @pytest.fixture
-    def sample_ai_operations(self) -> Any:
+    def sample_ai_operations(self) -> Mock:
         """Sample AI operations for testing."""
         return {
             "text_analysis": {
@@ -175,7 +175,7 @@ class TestKMAIProcessing:
             result = await km_ai_processing(
                 operation="analyze",
                 input_data="Test input text",
-                ctx=mock_context,
+                _ctx=mock_context,
             )
 
         assert result["success"] is True
@@ -202,7 +202,7 @@ class TestKMAIProcessing:
             result = await km_ai_processing(
                 operation="analyze",
                 input_data="Test input text",
-                ctx=mock_context,
+                _ctx=mock_context,
             )
 
         assert result["success"] is False
@@ -224,7 +224,7 @@ class TestKMAIProcessing:
             result = await km_ai_processing(
                 operation="analyze",
                 input_data="",
-                ctx=mock_context,
+                _ctx=mock_context,
             )
 
         assert result["success"] is False
@@ -236,7 +236,7 @@ class TestKMAIStatus:
     """Test suite for km_ai_status MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-456"}
@@ -256,7 +256,7 @@ class TestKMAIStatus:
                 "usage_history": [{"operation": "test", "cost": 0.001}],
             }
 
-            result = await km_ai_status(ctx=mock_context)
+            result = await km_ai_status(_ctx=mock_context)
 
         assert result["success"] is True
         assert result["status"]["initialized"] is True
@@ -287,7 +287,7 @@ class TestKMAIStatus:
                 "usage_history": [],
             }
 
-            result = await km_ai_status(ctx=mock_context)
+            result = await km_ai_status(_ctx=mock_context)
 
         assert result["success"] is False
         assert result["error"]["code"] == "validation_error"
@@ -298,7 +298,7 @@ class TestKMAIModels:
     """Test suite for km_ai_models MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-789"}
@@ -307,7 +307,7 @@ class TestKMAIModels:
     @pytest.mark.asyncio
     async def test_ai_models_list_success(self, mock_context: Any) -> None:
         """Test successful AI models listing."""
-        result = await km_ai_models(ctx=mock_context)
+        result = await km_ai_models(_ctx=mock_context)
 
         assert result["success"] is True
         assert "models" in result
@@ -324,7 +324,7 @@ class TestKMAIModels:
     @pytest.mark.asyncio
     async def test_ai_models_with_filter(self, mock_context: Any) -> None:
         """Test AI models listing with model type filter."""
-        result = await km_ai_models(provider="openai", ctx=mock_context)
+        result = await km_ai_models(provider="openai", _ctx=mock_context)
 
         assert result["success"] is True
         assert "models" in result
@@ -339,7 +339,7 @@ class TestAIProcessingIntegration:
     """Integration tests for AI processing tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-integration-123"}
@@ -375,7 +375,7 @@ class TestAIProcessingIntegration:
                 operation="analyze",
                 input_data="I love this new feature!",
                 model_type="auto",
-                ctx=mock_context,
+                _ctx=mock_context,
             )
 
         assert result["success"] is True
@@ -383,7 +383,10 @@ class TestAIProcessingIntegration:
         assert result["result"]["confidence"] == 0.92
 
     @pytest.mark.asyncio
-    async def test_ai_workflow_status_models_integration(self, mock_context: Any) -> None:
+    async def test_ai_workflow_status_models_integration(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test AI status and models integration workflow."""
         # Test km_ai_status
         with patch("src.server.tools.ai_core_tools.ai_manager") as mock_manager:
@@ -396,13 +399,13 @@ class TestAIProcessingIntegration:
                 "usage_history": [],
             }
 
-            status_result = await km_ai_status(ctx=mock_context)
+            status_result = await km_ai_status(_ctx=mock_context)
 
         assert status_result["success"] is True
         assert status_result["status"]["initialized"] is True
 
         # Test km_ai_models
-        models_result = await km_ai_models(ctx=mock_context)
+        models_result = await km_ai_models(_ctx=mock_context)
 
         assert models_result["success"] is True
         assert len(models_result["models"]) > 0

@@ -21,6 +21,7 @@ from src.core.ai_integration import (
     AISecurityConfig,
     TokenCount,
 )
+from src.core.constants import MAX_EXAMPLES_LIMIT, SPAM_DETECTION_THRESHOLD
 from src.core.contracts import require
 from src.core.either import Either
 from src.core.errors import SecurityError
@@ -295,9 +296,9 @@ class ContentFilter:
             matches = pattern.findall(content)
             if matches:
                 spam_score += len(matches)
-                detected_patterns.extend(matches[:3])  # Limit examples
+                detected_patterns.extend(matches[:MAX_EXAMPLES_LIMIT])  # Limit examples
 
-        if spam_score >= 3:  # Threshold for spam detection
+        if spam_score >= SPAM_DETECTION_THRESHOLD:  # Threshold for spam detection
             threat = SecurityThreat(
                 threat_type=SecurityThreatType.SPAM_CONTENT,
                 severity=SecurityThreatLevel.MEDIUM,

@@ -8,10 +8,13 @@ Tests follow the proven systematic pattern that achieved 100% success across 23+
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 # Import existing modules
 
@@ -21,12 +24,12 @@ import pytest
 
 async def mock_km_create_visual_workflow(
     name: str,
-    description: str="",
-    canvas_width: Any=1200,
-    canvas_height: Any=800,
-    theme: Any="light",
-    template_id: str=None,
-    ctx: Context | Any=None,
+    description: str = "",
+    canvas_width: Any = 1200,
+    canvas_height: Any = 800,
+    theme: Any = "light",
+    template_id: str = None,
+    ctx: Context | Any = None,
 ) -> None:
     """Mock implementation for visual workflow creation."""
     if not name or not name.strip():
@@ -88,9 +91,9 @@ async def mock_km_add_workflow_component(
     x_position: Any,
     y_position: Any,
     title: str,
-    description: str="",
-    properties: list[str]="{}",
-    ctx: Context | Any=None,
+    description: str = "",
+    properties: list[str] = "{}",
+    ctx: Context | Any = None,
 ) -> None:
     """Mock implementation for adding workflow components."""
     if not workflow_id:
@@ -163,9 +166,9 @@ async def mock_km_connect_workflow_nodes(
     workflow_id: str,
     source_component: Any,
     target_component: Any,
-    connection_type: str="flow",
-    connection_label: Any="",
-    ctx: Context | Any=None,
+    connection_type: str = "flow",
+    connection_label: Any = "",
+    ctx: Context | Any = None,
 ) -> None:
     """Mock implementation for connecting workflow nodes."""
     if not all([workflow_id, source_component, target_component]):
@@ -211,13 +214,13 @@ async def mock_km_connect_workflow_nodes(
 async def mock_km_edit_workflow_component(
     workflow_id: str,
     component_id: str,
-    title: str=None,
-    description: str=None,
-    properties: list[str]=None,
-    x_position: Any=None,
-    y_position: Any=None,
-    ctx: Context | Any=None,
-) -> Any:
+    title: str = None,
+    description: str = None,
+    properties: list[str] = None,
+    x_position: Any = None,
+    y_position: Any = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for editing workflow components."""
     if not workflow_id or not component_id:
         return {
@@ -265,10 +268,10 @@ async def mock_km_edit_workflow_component(
 
 
 async def mock_km_get_workflow_templates(
-    category: str=None,
-    complexity_level: Any=None,
-    ctx: Context | Any=None,
-) -> Any:
+    category: str = None,
+    complexity_level: Any = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for getting workflow templates."""
     templates = [
         {
@@ -334,10 +337,10 @@ async def mock_km_get_workflow_templates(
 
 async def mock_km_validate_workflow(
     workflow_id: str,
-    validation_level: Any="basic",
-    check_performance: Any=False,
-    suggest_optimizations: Any=False,
-    ctx: Context | Any=None,
+    validation_level: Any = "basic",
+    check_performance: Any = False,
+    suggest_optimizations: Any = False,
+    ctx: Context | Any = None,
 ) -> None:
     """Mock implementation for workflow validation."""
     if not workflow_id:
@@ -406,12 +409,12 @@ async def mock_km_validate_workflow(
 
 async def mock_km_export_visual_workflow(
     workflow_id: str,
-    export_format: Any="macro",
-    include_metadata: Any=True,
-    validate_before_export: Any=False,
-    optimization_level: Any="none",
-    ctx: Context | Any=None,
-) -> Any:
+    export_format: Any = "macro",
+    include_metadata: Any = True,
+    validate_before_export: Any = False,
+    optimization_level: Any = "none",
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for workflow export."""
     if not workflow_id:
         return {
@@ -480,14 +483,14 @@ class TestKMCreateVisualWorkflow:
     """Test suite for km_create_visual_workflow MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-workflow-001"}
         return context
 
     @pytest.fixture
-    def sample_workflow_data(self) -> Any:
+    def sample_workflow_data(self) -> Mock:
         """Sample workflow data for testing."""
         return {
             "basic_workflow": {
@@ -551,7 +554,10 @@ class TestKMCreateVisualWorkflow:
         assert result["workflow"]["canvas"]["theme"] == "dark"
 
     @pytest.mark.asyncio
-    async def test_create_visual_workflow_invalid_theme(self, mock_context: Any) -> None:
+    async def test_create_visual_workflow_invalid_theme(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test workflow creation with invalid theme."""
         result = await km_create_visual_workflow(
             name="Test Workflow",
@@ -577,7 +583,7 @@ class TestKMAddWorkflowComponent:
     """Test suite for km_add_workflow_component MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-component-001"}
@@ -622,7 +628,10 @@ class TestKMAddWorkflowComponent:
         assert "Invalid component_type" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_add_workflow_component_workflow_not_found(self, mock_context: Any) -> None:
+    async def test_add_workflow_component_workflow_not_found(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test adding component to nonexistent workflow."""
         result = await km_add_workflow_component(
             workflow_id="nonexistent_workflow_id",
@@ -641,7 +650,7 @@ class TestKMConnectWorkflowNodes:
     """Test suite for km_connect_workflow_nodes MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-connection-001"}
@@ -667,7 +676,10 @@ class TestKMConnectWorkflowNodes:
         assert result["validation"]["is_valid"] is True
 
     @pytest.mark.asyncio
-    async def test_connect_workflow_nodes_missing_params(self, mock_context: Any) -> None:
+    async def test_connect_workflow_nodes_missing_params(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test connection with missing required parameters."""
         result = await km_connect_workflow_nodes(
             workflow_id="",
@@ -685,7 +697,7 @@ class TestKMEditWorkflowComponent:
     """Test suite for km_edit_workflow_component MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-edit-001"}
@@ -735,7 +747,7 @@ class TestKMGetWorkflowTemplates:
     """Test suite for km_get_workflow_templates MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-templates-001"}
@@ -786,7 +798,7 @@ class TestKMValidateWorkflow:
     """Test suite for km_validate_workflow MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-validate-001"}
@@ -832,7 +844,7 @@ class TestKMExportVisualWorkflow:
     """Test suite for km_export_visual_workflow MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-export-001"}
@@ -879,7 +891,7 @@ class TestWorkflowDesignerIntegration:
     """Integration tests for workflow designer tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-integration-workflow-001"}
@@ -942,14 +954,17 @@ class TestWorkflowDesignerProperties:
     """Property-based tests for workflow designer tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-property-workflow-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_workflow_creation_with_various_names(self, mock_context: Any) -> None:
+    async def test_workflow_creation_with_various_names(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test workflow creation with various name inputs."""
         test_names = [
             "Simple Workflow",

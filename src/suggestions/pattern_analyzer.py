@@ -16,16 +16,20 @@ from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from src.core.contracts import require
-from src.core.logging import get_logger
-from src.core.suggestion_system import (
+from ..core.constants import (
+    MEDIUM_SIMILARITY_THRESHOLD,
+    MINIMUM_PATTERN_OCCURRENCES,
+)
+from ..core.contracts import require
+from ..core.logging import get_logger
+from ..core.suggestion_system import (
     AutomationPerformanceMetrics,
     PriorityLevel,
     UserBehaviorPattern,
 )
 
 if TYPE_CHECKING:
-    from src.suggestions.behavior_tracker import BehaviorTracker
+    from .behavior_tracker import BehaviorTracker
 
 logger = get_logger(__name__)
 
@@ -373,7 +377,10 @@ class PatternAnalyzer:
 
         # Find inefficient patterns that could be optimized
         inefficient_patterns = [
-            p for p in patterns if p.get_efficiency_score() < 0.5 and p.frequency > 3
+            p
+            for p in patterns
+            if p.get_efficiency_score() < MEDIUM_SIMILARITY_THRESHOLD
+            and p.frequency > MINIMUM_PATTERN_OCCURRENCES
         ]
         if inefficient_patterns:
             avg_time = statistics.mean(
@@ -543,7 +550,7 @@ class PatternAnalyzer:
                                 },
                             ),
                         )
-                    elif avg_efficiency < 0.5:
+                    elif avg_efficiency < MEDIUM_SIMILARITY_THRESHOLD:
                         insights.append(
                             PatternInsight(
                                 insight_type="context_problem",
@@ -568,7 +575,7 @@ class PatternAnalyzer:
     async def _analyze_temporal_patterns(
         self,
         user_id: str,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> list[PatternInsight]:
         """Analyze temporal patterns in user behavior."""
         insights = []
@@ -626,7 +633,7 @@ class PatternAnalyzer:
 
     async def _analyze_comparative_patterns(
         self,
-        user_id: str,
+        _user_id: str,
         patterns: list[UserBehaviorPattern],
     ) -> list[PatternInsight]:
         """Analyze patterns compared to other users (anonymized)."""
@@ -922,7 +929,7 @@ class PatternAnalyzer:
                 distribution["excellent"] += 1
             elif score >= 0.7:
                 distribution["good"] += 1
-            elif score >= 0.5:
+            elif score >= MEDIUM_SIMILARITY_THRESHOLD:
                 distribution["fair"] += 1
             else:
                 distribution["poor"] += 1

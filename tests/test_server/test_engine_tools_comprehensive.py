@@ -6,7 +6,7 @@ search_replace, and status operations with comprehensive validation.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -16,14 +16,17 @@ from hypothesis import strategies as st
 # Import the actual engine tools module
 from src.server.tools import engine_tools
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 # Test constants - Keyboard Maestro token expressions for testing
-KM_TIME_TOKEN_EXPRESSION = "Current time: %Time%"  # noqa: S105 - Test data, not a password
-KM_USER_TOKEN_EXPRESSION = "Current user: %UserName%"  # noqa: S105 - Test data, not a password
+KM_TIME_TOKEN_EXPRESSION = "Current time: %Time%"  # noqa: S105 # Test constant
+KM_USER_TOKEN_EXPRESSION = "Current user: %UserName%"  # noqa: S105 # Test constant
 
 
 # Test data generators
 @st.composite
-def expression_strategy(draw: Callable[..., Any]) -> Any:
+def expression_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid calculation expressions."""
     operations = ["+", "-", "*", "/"]
     number1 = draw(st.integers(min_value=1, max_value=100))
@@ -45,7 +48,7 @@ def search_text_strategy(draw: Callable[..., Any]) -> list[Any]:
 
 
 @st.composite
-def token_string_strategy(draw: Callable[..., Any]) -> Any:
+def token_string_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid token strings."""
     tokens = ["%CurrentDirectory%", "%FrontmostApplication%", "%Time%", "%Date%"]
     token = draw(st.sampled_from(tokens))
@@ -63,7 +66,7 @@ class TestEngineControlOperations:
     """Test main engine control operations."""
 
     @pytest.fixture
-    def mock_km_client(self) -> Any:
+    def mock_km_client(self) -> Mock:
         """Create mock KM client for testing."""
         client = Mock()
         client.reload_engine = AsyncMock()
@@ -123,7 +126,10 @@ class TestEngineControlOperations:
         mock_km_client.get_engine_status.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_engine_control_calculate_operation(self, mock_km_client: Any) -> None:
+    async def test_engine_control_calculate_operation(
+        self,
+        mock_km_client: Any,
+    ) -> None:
         """Test engine calculate operation."""
         # Mock calculation response
         mock_km_client.calculate.return_value = {
@@ -150,7 +156,10 @@ class TestEngineControlOperations:
         mock_km_client.calculate.assert_called_once_with("21 * 2")
 
     @pytest.mark.asyncio
-    async def test_engine_control_process_tokens_operation(self, mock_km_client: Any) -> None:
+    async def test_engine_control_process_tokens_operation(
+        self,
+        mock_km_client: Any,
+    ) -> None:
         """Test engine process tokens operation."""
         # Mock token processing response
         mock_km_client.process_tokens.return_value = {
@@ -181,7 +190,10 @@ class TestEngineControlOperations:
         mock_km_client.process_tokens.assert_called_once_with(token_expression)
 
     @pytest.mark.asyncio
-    async def test_engine_control_search_replace_operation(self, mock_km_client: Any) -> None:
+    async def test_engine_control_search_replace_operation(
+        self,
+        mock_km_client: Any,
+    ) -> None:
         """Test engine search/replace operation."""
         # Mock search/replace response
         mock_km_client.search_replace.return_value = {
@@ -237,7 +249,10 @@ class TestEngineControlOperations:
                 await engine_tools.km_engine_control(operation="invalid_operation")
 
     @pytest.mark.asyncio
-    async def test_engine_control_missing_required_params(self, mock_km_client: Any) -> None:
+    async def test_engine_control_missing_required_params(
+        self,
+        mock_km_client: Any,
+    ) -> None:
         """Test engine control with missing required parameters."""
         with patch(
             "src.server.tools.engine_tools.get_km_client",
@@ -335,7 +350,7 @@ class TestEngineHelperFunctions:
     """Test helper functions in engine tools."""
 
     @pytest.fixture
-    def mock_km_client(self) -> Any:
+    def mock_km_client(self) -> Mock:
         """Create mock KM client for testing."""
         client = Mock()
         client.reload_engine = AsyncMock()
@@ -406,7 +421,10 @@ class TestEngineHelperFunctions:
         mock_km_client.calculate.assert_called_once_with("3 * 5")
 
     @pytest.mark.asyncio
-    async def test_calculate_expression_function_error(self, mock_km_client: Any) -> None:
+    async def test_calculate_expression_function_error(
+        self,
+        mock_km_client: Any,
+    ) -> None:
         """Test _calculate_expression helper function with error."""
         # Mock calculation error
         mock_km_client.calculate.side_effect = Exception("Calculation failed")
@@ -482,7 +500,10 @@ class TestEngineHelperFunctions:
         )
 
     @pytest.mark.asyncio
-    async def test_search_replace_function_with_regex(self, mock_km_client: Any) -> None:
+    async def test_search_replace_function_with_regex(
+        self,
+        mock_km_client: Any,
+    ) -> None:
         """Test _search_replace helper function with regex."""
         # Mock regex search/replace response
         mock_km_client.search_replace.return_value = {

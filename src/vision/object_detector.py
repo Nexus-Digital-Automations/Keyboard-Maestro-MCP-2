@@ -323,10 +323,15 @@ class ObjectDetector:
 
         import random
 
-        random.seed(len(image_content) % 1000)  # Deterministic based on image
+        random.seed(
+            len(image_content) % 1000,
+        )  # Deterministic based on image  # noqa: S311 # ML/analytics randomness
 
         # Simulate detection results
-        num_objects = min(random.randint(1, 8), max_objects)  # noqa: S311 # Simulation data generation
+        num_objects = min(
+            random.randint(1, 8),  # noqa: S311 # ML/analytics data simulation
+            max_objects,
+        )  # Simulation data generation
         detected_objects = []
 
         common_objects = [
@@ -344,22 +349,30 @@ class ObjectDetector:
             if i < len(common_objects):
                 class_name, category, base_confidence = common_objects[i]
             else:
-                class_name, category, base_confidence = random.choice(common_objects)  # noqa: S311 # Simulation data generation
+                class_name, category, base_confidence = random.choice(  # noqa: S311 # ML/analytics randomness
+                    common_objects,
+                )  # Simulation data generation
 
             # Add some randomness to confidence
             confidence = min(
                 1.0,
-                max(threshold, base_confidence + random.uniform(-0.1, 0.1)),  # noqa: S311 # Simulation data generation
+                max(
+                    threshold,
+                    base_confidence + random.uniform(-0.1, 0.1),  # noqa: S311 # ML/analytics randomness
+                ),  # Simulation data generation
             )
 
             if confidence < threshold:
                 continue
 
             # Generate realistic bounding box
-            x = random.uniform(0.0, 0.7)  # noqa: S311 # Simulation data generation
-            y = random.uniform(0.0, 0.7)  # noqa: S311 # Simulation data generation
-            width = random.uniform(0.1, min(0.3, 1.0 - x))  # noqa: S311 # Simulation data generation
-            height = random.uniform(0.1, min(0.3, 1.0 - y))  # noqa: S311 # Simulation data generation
+            x = random.uniform(0.0, 0.7)  # noqa: S311 # Bounding box simulation
+            y = random.uniform(0.0, 0.7)  # noqa: S311 # Bounding box simulation
+            width = random.uniform(0.1, min(0.3, 1.0 - x))  # noqa: S311 # Bounding box simulation
+            height = random.uniform(  # noqa: S311 # ML/analytics randomness
+                0.1,
+                min(0.3, 1.0 - y),
+            )  # noqa: S311 # Bounding box simulation
 
             bbox = BoundingBox(
                 bbox_id=create_bbox_id(),
@@ -538,9 +551,9 @@ class ObjectDetector:
 
     async def classify_object(
         self,
-        image_content: ImageContent,
+        _image_content: ImageContent,
         bounding_box: BoundingBox,
-        model_id: ModelId | None = None,
+        _model_id: ModelId | None = None,
     ) -> Either[ObjectDetectionError, DetectedObject]:
         """Classify a specific object within a bounding box."""
         try:

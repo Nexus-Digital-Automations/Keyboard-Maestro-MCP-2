@@ -367,7 +367,7 @@ def register_core_tools(mcp: Any) -> None:
                 description="Variable scope: global, local, instance, or password",
             ),
         ] = "global",
-        instance_id: Annotated[
+        _instance_id: Annotated[
             str | None,
             Field(default=None, description="Instance ID for local/instance variables"),
         ] = None,

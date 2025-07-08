@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+from typing import Any
 
 import pytest
 from hypothesis import given, settings
@@ -435,7 +436,11 @@ class TestDictionaryEngineProperties:
             max_size=5,
         ),
     )
-    def test_dictionary_data_operations_properties(self, dict_name: str, test_data: Any) -> None:
+    def test_dictionary_data_operations_properties(
+        self,
+        dict_name: str,
+        test_data: Any,
+    ) -> None:
         """Property: Dictionary data operations should preserve data integrity."""
         engine = DictionaryEngine()
 

@@ -155,7 +155,7 @@ class ResourcePredictor:
 
             # Daily pattern
             daily_factor = 1.0 + 0.3 * math.sin(2 * math.pi * hour / 24)
-            noise = random.uniform(0.9, 1.1)  # noqa: S311
+            noise = random.uniform(0.9, 1.1)  # noqa: S311 # ML prediction simulation
             utilization = min(0.95, base_utilization * daily_factor * noise)
 
             metrics = ResourceMetrics(
@@ -172,7 +172,7 @@ class ResourcePredictor:
 
     async def _predict_usage_pattern(
         self,
-        resource_type: str,
+        _resource_type: str,
         historical_data: list[ResourceMetrics],
         horizon: timedelta,
     ) -> list[tuple[datetime, ResourceUtilization, ConfidenceLevel]]:

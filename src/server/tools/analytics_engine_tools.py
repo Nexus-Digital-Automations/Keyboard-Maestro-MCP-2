@@ -436,11 +436,11 @@ async def km_analytics_engine(
         bool,
         Field(description="Enable anomaly detection"),
     ] = True,
-    predictive_analytics: Annotated[
+    _predictive_analytics: Annotated[
         bool,
         Field(description="Enable predictive modeling"),
     ] = True,
-    roi_calculation: Annotated[
+    _roi_calculation: Annotated[
         bool,
         Field(description="Enable ROI and cost-benefit analysis"),
     ] = True,
@@ -448,15 +448,15 @@ async def km_analytics_engine(
         str,
         Field(description="Privacy protection level (none|basic|compliant|strict)"),
     ] = "compliant",
-    export_format: Annotated[
+    _export_format: Annotated[
         str,
         Field(description="Export format (json|csv|pdf|xlsx|api)"),
     ] = "json",
-    alert_thresholds: Annotated[
+    _alert_thresholds: Annotated[
         dict | None,
         Field(description="Custom alert thresholds"),
     ] = None,
-    enterprise_integration: Annotated[
+    _enterprise_integration: Annotated[
         bool,
         Field(description="Enable enterprise system integration"),
     ] = True,
@@ -800,3 +800,9 @@ async def km_analytics_engine(
             "error": f"Analytics operation failed: {e!s}",
             "error_type": "system_error",
         }
+
+
+# Alias for test compatibility
+AnalyticsEngineTools = AnalyticsEngine
+
+__all__ = ["AnalyticsEngine", "AnalyticsEngineTools", "km_analytics_engine"]

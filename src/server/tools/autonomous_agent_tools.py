@@ -127,15 +127,15 @@ async def km_autonomous_agent(
     agent_type: str = "general",
     agent_config: dict[str, Any] | None = None,
     goals: list[dict[str, Any]] | None = None,
-    learning_mode: bool = True,
+    _learning_mode: bool = True,
     autonomy_level: str = "supervised",
     resource_limits: dict[str, float] | None = None,
     safety_constraints: dict[str, Any] | None = None,
-    communication_enabled: bool = True,
+    _communication_enabled: bool = True,
     monitoring_interval: int = 60,
     optimization_frequency: str = "hourly",
     human_approval_required: bool = False,
-    timeout: int = 300,
+    _timeout: int = 300,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Create and manage autonomous agents with learning capabilities.

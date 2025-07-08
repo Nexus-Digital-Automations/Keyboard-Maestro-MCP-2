@@ -153,7 +153,11 @@ class TestTriggerRegistrationManager:
         assert sample_trigger_def.trigger_id in state.active_triggers
 
     @pytest.mark.asyncio
-    async def test_state_synchronization(self, trigger_manager: Any, mock_km_client: Any) -> None:
+    async def test_state_synchronization(
+        self,
+        trigger_manager: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test state synchronization with KM."""
         # Mock KM response
         km_triggers = [
@@ -183,7 +187,7 @@ class TestEventRouter:
         return engine
 
     @pytest.fixture
-    def mock_trigger_manager(self) -> Any:
+    def mock_trigger_manager(self) -> Mock:
         """Mock trigger manager for testing."""
         manager = Mock()
         manager.get_current_state = Mock()
@@ -192,12 +196,12 @@ class TestEventRouter:
         return manager
 
     @pytest.fixture
-    def event_router(self, mock_macro_engine: Any, mock_trigger_manager: Any) -> Any:
+    def event_router(self, mock_macro_engine: Any, mock_trigger_manager: Any) -> Mock:
         """Event router with mock dependencies."""
         return EventRouter(mock_macro_engine, mock_trigger_manager)
 
     @pytest.fixture
-    def sample_trigger_info(self) -> Any:
+    def sample_trigger_info(self) -> Mock:
         """Sample trigger info for testing."""
         return TriggerInfo(
             trigger_id=TriggerId("test-trigger"),
@@ -209,7 +213,7 @@ class TestEventRouter:
         )
 
     @pytest.fixture
-    def sample_km_event(self) -> Any:
+    def sample_km_event(self) -> Mock:
         """Sample KM event for testing."""
         return KMEvent.create(
             trigger_type=TriggerType.HOTKEY,
@@ -402,7 +406,11 @@ class TestTriggerDefinition:
         alphabet=st.characters(whitelist_categories=["Lu", "Ll", "Nd"]),
     ),
 )
-def test_trigger_definition_properties(trigger_id: str, macro_id: str, key_name: str) -> None:
+def test_trigger_definition_properties(
+    trigger_id: str,
+    macro_id: str,
+    key_name: str,
+) -> None:
     """Property-based test for trigger definition invariants."""
     assume(len(trigger_id.strip()) > 0)
     assume(len(macro_id.strip()) > 0)

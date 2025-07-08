@@ -545,7 +545,7 @@ class RealtimePredictor:
         self,
         features: list[float],
         feature_names: list[str],
-        prediction_value: float,
+        _prediction_value: float,
     ) -> dict[str, float]:
         """Calculate simplified feature importance."""
         importance = {}

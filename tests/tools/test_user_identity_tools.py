@@ -9,10 +9,13 @@ from __future__ import annotations
 
 import secrets
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 # Import existing modules
 
@@ -29,16 +32,16 @@ def generate_test_password(length: int = 12) -> str:
 
 
 async def mock_km_authenticate_user(
-    username: str=None,
-    password: str=None,
-    authentication_method: Any="password",
-    security_level: Any="standard",
-    session_duration: Any=3600,
-    remember_me: Any=False,
-    device_trust: Any=True,
-    location_verification: Any=False,
-    ctx: Context | Any=None,
-) -> Any:
+    username: str = None,
+    password: str = None,
+    authentication_method: Any = "password",
+    security_level: Any = "standard",
+    session_duration: Any = 3600,
+    remember_me: Any = False,
+    device_trust: Any = True,
+    location_verification: Any = False,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for user authentication."""
     if not username or not username.strip():
         return {
@@ -96,7 +99,9 @@ async def mock_km_authenticate_user(
         }
 
     # Mock successful authentication for valid credentials
-    if username == "invalid_user" or password == "wrong_password":  # noqa: S105 # Test fixture comparison
+    if (
+        username == "invalid_user" or password == "wrong_password"  # noqa: S105 # Test fixture
+    ):  # Test fixture comparison
         return {
             "success": False,
             "error": {
@@ -186,14 +191,14 @@ async def mock_km_authenticate_user(
 
 
 async def mock_km_identify_user(
-    identification_data: Any=None,
-    identification_method: Any="username",
-    include_profile: Any=True,
-    privacy_level: Any="standard",
-    verification_required: bool=False,
-    timeout_seconds: Any=30,
-    ctx: Context | Any=None,
-) -> Any:
+    identification_data: Any = None,
+    identification_method: Any = "username",
+    include_profile: Any = True,
+    privacy_level: Any = "standard",
+    verification_required: bool = False,
+    timeout_seconds: Any = 30,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for user identification."""
     if not identification_data or not str(identification_data).strip():
         return {
@@ -346,15 +351,15 @@ async def mock_km_identify_user(
 
 
 async def mock_km_personalize_automation(
-    user_id: str=None,
-    personalization_scope: Any="comprehensive",
-    learning_preferences: Any=None,
-    automation_context: Context | Any=None,
-    privacy_constraints: Any=None,
-    adaptation_level: Any="moderate",
-    real_time_updates: Any=True,
-    ctx: Context | Any=None,
-) -> Any:
+    user_id: str = None,
+    personalization_scope: Any = "comprehensive",
+    learning_preferences: Any = None,
+    automation_context: Context | Any = None,
+    privacy_constraints: Any = None,
+    adaptation_level: Any = "moderate",
+    real_time_updates: Any = True,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for automation personalization."""
     if not user_id or not user_id.strip():
         return {
@@ -519,15 +524,15 @@ async def mock_km_personalize_automation(
 
 
 async def mock_km_manage_user_profiles(
-    profile_operation: Any="get",
-    user_id: str=None,
-    profile_data: Any=None,
-    profile_fields: Any=None,
-    privacy_settings: dict[str, Any]=None,
-    backup_enabled: bool=True,
-    audit_logging: Any=True,
-    ctx: Context | Any=None,
-) -> Any:
+    profile_operation: Any = "get",
+    user_id: str = None,
+    profile_data: Any = None,
+    profile_fields: Any = None,
+    privacy_settings: dict[str, Any] = None,
+    backup_enabled: bool = True,
+    audit_logging: Any = True,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for user profile management."""
     if not profile_operation or not profile_operation.strip():
         return {
@@ -736,15 +741,15 @@ async def mock_km_manage_user_profiles(
 
 
 async def mock_km_analyze_user_behavior(
-    user_id: str=None,
-    analysis_scope: Any="comprehensive",
-    time_period: Any="30_days",
-    behavior_categories: Any=None,
-    privacy_level: Any="standard",
-    include_predictions: Any=True,
-    real_time_analysis: Any=False,
-    ctx: Context | Any=None,
-) -> Any:
+    user_id: str = None,
+    analysis_scope: Any = "comprehensive",
+    time_period: Any = "30_days",
+    behavior_categories: Any = None,
+    privacy_level: Any = "standard",
+    include_predictions: Any = True,
+    real_time_analysis: Any = False,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for user behavior analysis."""
     if not user_id or not user_id.strip():
         return {
@@ -936,15 +941,15 @@ async def mock_km_analyze_user_behavior(
 
 
 async def mock_km_switch_user_context(
-    target_user_id: str=None,
-    switch_reason: Any=None,
-    preserve_session: Any=True,
-    security_verification: Any=True,
-    context_inheritance: Context | Any=None,
-    timeout_seconds: Any=60,
-    audit_logging: Any=True,
-    ctx: Context | Any=None,
-) -> Any:
+    target_user_id: str = None,
+    switch_reason: Any = None,
+    preserve_session: Any = True,
+    security_verification: Any = True,
+    context_inheritance: Context | Any = None,
+    timeout_seconds: Any = 60,
+    audit_logging: Any = True,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for user context switching."""
     if not target_user_id or not target_user_id.strip():
         return {
@@ -1106,7 +1111,7 @@ class TestKMAuthenticateUser:
     """Test class for user authentication functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -1171,7 +1176,10 @@ class TestKMAuthenticateUser:
         assert bio["liveness_detected"] is True
 
     @pytest.mark.asyncio
-    async def test_authenticate_user_with_location_verification(self, mock_context: Any) -> None:
+    async def test_authenticate_user_with_location_verification(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test authentication with location verification."""
         result = await mock_km_authenticate_user(
             username="secure_user",
@@ -1190,7 +1198,10 @@ class TestKMAuthenticateUser:
         assert auth["remember_me_enabled"] is True
 
     @pytest.mark.asyncio
-    async def test_authenticate_user_invalid_credentials(self, mock_context: Any) -> None:
+    async def test_authenticate_user_invalid_credentials(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test authentication with invalid credentials."""
         result = await mock_km_authenticate_user(
             username="invalid_user",
@@ -1229,7 +1240,10 @@ class TestKMAuthenticateUser:
         assert "Invalid authentication method" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_authenticate_user_invalid_session_duration(self, mock_context: Any) -> None:
+    async def test_authenticate_user_invalid_session_duration(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test authentication with invalid session duration."""
         result = await mock_km_authenticate_user(
             username="testuser",
@@ -1250,7 +1264,7 @@ class TestKMIdentifyUser:
     """Test class for user identification functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -1357,12 +1371,15 @@ class TestKMPersonalizeAutomation:
     """Test class for automation personalization functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_personalize_automation_comprehensive(self, mock_context: Any) -> None:
+    async def test_personalize_automation_comprehensive(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test comprehensive automation personalization."""
         learning_prefs = {
             "behavior_tracking": True,
@@ -1388,7 +1405,10 @@ class TestKMPersonalizeAutomation:
         assert "automation_adaptations" in personalization
 
     @pytest.mark.asyncio
-    async def test_personalize_automation_aggressive_adaptation(self, mock_context: Any) -> None:
+    async def test_personalize_automation_aggressive_adaptation(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test automation personalization with aggressive adaptation."""
         result = await mock_km_personalize_automation(
             user_id="advanced_user",
@@ -1407,7 +1427,10 @@ class TestKMPersonalizeAutomation:
         assert all("confidence" in adaptation for adaptation in adaptations)
 
     @pytest.mark.asyncio
-    async def test_personalize_automation_with_privacy_constraints(self, mock_context: Any) -> None:
+    async def test_personalize_automation_with_privacy_constraints(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test automation personalization with privacy constraints."""
         privacy_constraints = {
             "data_retention": "90_days",
@@ -1430,7 +1453,10 @@ class TestKMPersonalizeAutomation:
         assert privacy["opt_out_available"] is True
 
     @pytest.mark.asyncio
-    async def test_personalize_automation_learning_progress(self, mock_context: Any) -> None:
+    async def test_personalize_automation_learning_progress(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test automation personalization learning progress tracking."""
         result = await mock_km_personalize_automation(
             user_id="learning_user",
@@ -1449,7 +1475,10 @@ class TestKMPersonalizeAutomation:
         assert metrics["personalization_accuracy"] == 91.6
 
     @pytest.mark.asyncio
-    async def test_personalize_automation_invalid_scope(self, mock_context: Any) -> None:
+    async def test_personalize_automation_invalid_scope(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test automation personalization with invalid scope."""
         result = await mock_km_personalize_automation(
             user_id="user123",
@@ -1462,7 +1491,10 @@ class TestKMPersonalizeAutomation:
         assert "Invalid personalization scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_personalize_automation_missing_user_id(self, mock_context: Any) -> None:
+    async def test_personalize_automation_missing_user_id(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test automation personalization without user ID."""
         result = await mock_km_personalize_automation(
             personalization_scope="comprehensive",
@@ -1478,7 +1510,7 @@ class TestKMManageUserProfiles:
     """Test class for user profile management functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -1590,7 +1622,10 @@ class TestKMManageUserProfiles:
             assert "status" in profile
 
     @pytest.mark.asyncio
-    async def test_manage_user_profiles_invalid_operation(self, mock_context: Any) -> None:
+    async def test_manage_user_profiles_invalid_operation(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test profile management with invalid operation."""
         result = await mock_km_manage_user_profiles(
             profile_operation="invalid_operation",
@@ -1602,7 +1637,10 @@ class TestKMManageUserProfiles:
         assert "Invalid profile operation" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_manage_user_profiles_missing_user_id_for_get(self, mock_context: Any) -> None:
+    async def test_manage_user_profiles_missing_user_id_for_get(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test profile get operation without user ID."""
         result = await mock_km_manage_user_profiles(
             profile_operation="get",
@@ -1618,7 +1656,7 @@ class TestKMAnalyzeUserBehavior:
     """Test class for user behavior analysis functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -1646,7 +1684,10 @@ class TestKMAnalyzeUserBehavior:
         assert "efficiency_metrics" in insights
 
     @pytest.mark.asyncio
-    async def test_analyze_user_behavior_with_predictions(self, mock_context: Any) -> None:
+    async def test_analyze_user_behavior_with_predictions(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test behavior analysis with predictive insights."""
         result = await mock_km_analyze_user_behavior(
             user_id="predictive_user",
@@ -1666,7 +1707,10 @@ class TestKMAnalyzeUserBehavior:
         assert predictions["model_confidence"] == 91.7
 
     @pytest.mark.asyncio
-    async def test_analyze_user_behavior_usage_patterns(self, mock_context: Any) -> None:
+    async def test_analyze_user_behavior_usage_patterns(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test behavior analysis focusing on usage patterns."""
         result = await mock_km_analyze_user_behavior(
             user_id="usage_user",
@@ -1686,7 +1730,10 @@ class TestKMAnalyzeUserBehavior:
         assert interaction["preferred_interface_style"] == "keyboard_driven"
 
     @pytest.mark.asyncio
-    async def test_analyze_user_behavior_behavioral_patterns(self, mock_context: Any) -> None:
+    async def test_analyze_user_behavior_behavioral_patterns(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test behavior analysis pattern detection."""
         result = await mock_km_analyze_user_behavior(
             user_id="pattern_user",
@@ -1706,7 +1753,10 @@ class TestKMAnalyzeUserBehavior:
         assert anomaly["anomalies_detected"] == 2
 
     @pytest.mark.asyncio
-    async def test_analyze_user_behavior_privacy_compliance(self, mock_context: Any) -> None:
+    async def test_analyze_user_behavior_privacy_compliance(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test behavior analysis with privacy compliance."""
         result = await mock_km_analyze_user_behavior(
             user_id="privacy_user",
@@ -1739,7 +1789,10 @@ class TestKMAnalyzeUserBehavior:
         assert "Invalid analysis scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_analyze_user_behavior_invalid_time_period(self, mock_context: Any) -> None:
+    async def test_analyze_user_behavior_invalid_time_period(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test behavior analysis with invalid time period."""
         result = await mock_km_analyze_user_behavior(
             user_id="user123",
@@ -1756,7 +1809,7 @@ class TestKMSwitchUserContext:
     """Test class for user context switching functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -1804,7 +1857,10 @@ class TestKMSwitchUserContext:
         assert audit["switch_logged"] is True
 
     @pytest.mark.asyncio
-    async def test_switch_user_context_with_inheritance(self, mock_context: Any) -> None:
+    async def test_switch_user_context_with_inheritance(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test context switching with specific inheritance settings."""
         inheritance = {
             "preferences": True,
@@ -1853,7 +1909,10 @@ class TestKMSwitchUserContext:
         assert session_mgmt["previous_session_handling"] == "terminated"
 
     @pytest.mark.asyncio
-    async def test_switch_user_context_security_validation(self, mock_context: Any) -> None:
+    async def test_switch_user_context_security_validation(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test context switching with security validation."""
         result = await mock_km_switch_user_context(
             target_user_id="secure_target",
@@ -1903,7 +1962,7 @@ class TestUserIdentityIntegration:
     """Test class for user identity integration workflows."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -1961,7 +2020,7 @@ class TestUserIdentityProperties:
     """Test class for user identity property-based testing."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 

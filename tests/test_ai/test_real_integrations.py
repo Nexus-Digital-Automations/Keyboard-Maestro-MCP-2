@@ -121,7 +121,10 @@ class TestProviderIntegration:
             assert response.cost > 0
 
     @pytest.mark.asyncio
-    async def test_provider_registry_fallback(self, provider_registry: dict[str, Any] | Any) -> None:
+    async def test_provider_registry_fallback(
+        self,
+        provider_registry: dict[str, Any] | Any,
+    ) -> None:
         """Test provider registry fallback mechanism."""
         # Add a second provider that will fail
         failing_client = MagicMock(spec=BaseProviderClient)

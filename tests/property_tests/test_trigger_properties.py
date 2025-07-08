@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 import tempfile
 from datetime import datetime, timedelta
+from typing import Any
 
 import pytest
 from hypothesis import assume, given, settings
@@ -43,7 +44,7 @@ class TestTriggerBuilderProperties:
     @given(
         st.datetimes(min_value=datetime(2024, 1, 1), max_value=datetime(2030, 12, 31)),
     )
-    def test_scheduled_time_properties(self, schedule_time: int | float) -> None:
+    def test_scheduled_time_properties(self, schedule_time: float) -> None:
         """Property: Scheduled times should preserve datetime values."""
         result = TriggerBuilder().scheduled_at(schedule_time).build()
 
@@ -78,7 +79,7 @@ class TestTriggerBuilderProperties:
             )
 
     @given(st.integers(min_value=1, max_value=300))
-    def test_timeout_range_validation(self, timeout: int | float) -> None:
+    def test_timeout_range_validation(self, timeout: float) -> None:
         """Property: Valid timeout ranges should be accepted."""
         result = (
             TriggerBuilder()
@@ -214,7 +215,12 @@ class TestTriggerValidationProperties:
         st.integers(min_value=1, max_value=300),
         st.integers(min_value=-10, max_value=10),
     )
-    def test_trigger_spec_creation_properties(self, trigger_type: str, timeout: int | float, priority: int) -> None:
+    def test_trigger_spec_creation_properties(
+        self,
+        trigger_type: str,
+        timeout: float,
+        priority: int,
+    ) -> None:
         """Property: Valid trigger specs should be creatable."""
         builder = TriggerBuilder()
 
@@ -249,7 +255,7 @@ class TestTriggerValidationProperties:
             assert len(trigger.trigger_id) > 0
 
     @given(st.integers(min_value=0, max_value=100))
-    def test_battery_threshold_validation(self, threshold: int | float) -> None:
+    def test_battery_threshold_validation(self, threshold: float) -> None:
         """Property: Valid battery thresholds should be accepted."""
         result = TriggerBuilder().when_battery_low(threshold).build()
 
@@ -258,7 +264,7 @@ class TestTriggerValidationProperties:
         assert trigger.config["battery_threshold"] == threshold
 
     @given(st.integers(min_value=1, max_value=86400))
-    def test_idle_threshold_validation(self, threshold: int | float) -> None:
+    def test_idle_threshold_validation(self, threshold: float) -> None:
         """Property: Valid idle thresholds should be accepted."""
         result = TriggerBuilder().when_user_idle(threshold).build()
 
@@ -297,7 +303,12 @@ class TestTriggerIntegrationProperties:
         st.integers(min_value=1, max_value=24),
         st.integers(min_value=0, max_value=59),
     )
-    def test_daily_trigger_creation(self, trigger_name: str, hour: Any, minute: Any) -> None:
+    def test_daily_trigger_creation(
+        self,
+        trigger_name: str,
+        hour: Any,
+        minute: Any,
+    ) -> None:
         """Property: Daily triggers should be created with correct scheduling."""
         assume(0 <= hour <= 23)
         assume(0 <= minute <= 59)
@@ -390,7 +401,7 @@ class TestResourceLimitProperties:
     """Property-based tests for resource limit validation."""
 
     @given(st.integers(min_value=1, max_value=300))
-    def test_timeout_limits_respected(self, timeout: int | float) -> None:
+    def test_timeout_limits_respected(self, timeout: float) -> None:
         """Property: Timeout limits should be enforced."""
         result = (
             TriggerBuilder()
@@ -476,7 +487,7 @@ class TriggerStateMachine(RuleBasedStateMachine):
             max_value=datetime(2025, 12, 31),
         ),
     )
-    def set_scheduled_trigger(self, schedule_time: int | float) -> None:
+    def set_scheduled_trigger(self, schedule_time: float) -> None:
         """Add scheduled trigger to builder."""
         self.builder = self.builder.scheduled_at(schedule_time)
         self.has_trigger_type = True
@@ -496,7 +507,7 @@ class TriggerStateMachine(RuleBasedStateMachine):
         self.builder = self.builder.with_priority(priority)
 
     @rule(timeout=st.integers(min_value=1, max_value=300))
-    def set_timeout(self, timeout: int | float) -> None:
+    def set_timeout(self, timeout: float) -> None:
         """Set trigger timeout."""
         self.builder = self.builder.with_timeout(timeout)
 
@@ -532,17 +543,18 @@ class TriggerStateMachine(RuleBasedStateMachine):
 class TestTriggerSystemProperties:
     """Main property test runner."""
 
-    @pytest.mark.skip("Stateful testing needs refinement")
-    @settings(max_examples=10, deadline=None)
     def test_stateful_trigger_building(self) -> None:
         """Run stateful tests for trigger building."""
-        TriggerStateMachine.TestCase.settings = settings(
-            max_examples=5,
-            stateful_step_count=10,
-            deadline=None,
+        from hypothesis.stateful import run_state_machine_as_test
+
+        run_state_machine_as_test(
+            TriggerStateMachine,
+            settings=settings(
+                max_examples=10,
+                stateful_step_count=3,
+                deadline=5000
+            )
         )
-        state_machine = TriggerStateMachine()
-        state_machine.execute()
 
     @given(st.text(min_size=1, max_size=50))
     def test_metadata_preservation(self, metadata_value: Any) -> None:

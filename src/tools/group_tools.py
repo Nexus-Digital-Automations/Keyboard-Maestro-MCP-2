@@ -34,7 +34,7 @@ def register_group_tools(mcp: Any) -> None:
             bool,
             Field(default=False, description="Create target group if it doesn't exist"),
         ] = False,
-        preserve_group_settings: Annotated[
+        _preserve_group_settings: Annotated[
             bool,
             Field(
                 default=True,
@@ -261,8 +261,9 @@ def register_group_tools(mcp: Any) -> None:
                 import subprocess
 
                 # S607 fix: Use full path for executable
-                result = subprocess.run(
+                result = subprocess.run(  # noqa: S603 # Secured subprocess with hardcoded path
                     ["/usr/bin/osascript", "-e", script],
+                    check=False,
                     capture_output=True,
                     text=True,
                     timeout=30,

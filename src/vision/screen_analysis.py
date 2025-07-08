@@ -228,7 +228,7 @@ class PermissionManager:
             if bundle_id in restricted_apps:
                 return Either.left(
                     PermissionError(
-                        f"Access to {bundle_id} is restricted for security"
+                        f"Access to {bundle_id} is restricted for security",
                     ),
                 )
 

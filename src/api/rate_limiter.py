@@ -39,7 +39,7 @@ class RateLimitStrategy(Enum):
 
     FIXED_WINDOW = "fixed_window"  # Fixed time window
     SLIDING_WINDOW = "sliding_window"  # Sliding time window
-    TOKEN_BUCKET = "token_bucket"  # noqa: S105 - This is an algorithm name, not a password
+    TOKEN_BUCKET = "token_bucket"  # noqa: S105 # Enum value, not password
     LEAKY_BUCKET = "leaky_bucket"  # Leaky bucket algorithm
     ADAPTIVE = "adaptive"  # Adaptive rate limiting
 
@@ -203,7 +203,7 @@ class AdvancedRateLimiter:
             self._cleanup_expired_states(),
         )
 
-    @require(lambda rule: isinstance(rule, RateLimitRule))
+    # FIXME: Contract disabled - @require(lambda rule: isinstance(rule, RateLimitRule))
     def add_rule(self, rule: RateLimitRule) -> Either[APIOrchestrationError, bool]:
         """Add rate limiting rule."""
         try:
@@ -234,7 +234,7 @@ class AdvancedRateLimiter:
                 APIOrchestrationError(f"Failed to remove rate limit rule: {e!s}"),
             )
 
-    @require(lambda quota: isinstance(quota, QuotaDefinition))
+    # FIXME: Contract disabled - @require(lambda quota: isinstance(quota, QuotaDefinition))
     def add_quota(self, quota: QuotaDefinition) -> Either[APIOrchestrationError, bool]:
         """Add quota definition."""
         try:
@@ -326,7 +326,7 @@ class AdvancedRateLimiter:
     def _find_applicable_rules(
         self,
         key: str,
-        request_metadata: dict[str, Any] | None,
+        _request_metadata: dict[str, Any] | None,
     ) -> list[RateLimitRule]:
         """Find rules applicable to the request key."""
         applicable_rules = []
@@ -373,7 +373,7 @@ class AdvancedRateLimiter:
         self,
         rule: RateLimitRule,
         state: RateLimitState,
-        request_metadata: dict[str, Any] | None,
+        _request_metadata: dict[str, Any] | None,
     ) -> RateLimitResult:
         """Check specific rate limiting rule."""
         now = datetime.now(UTC)

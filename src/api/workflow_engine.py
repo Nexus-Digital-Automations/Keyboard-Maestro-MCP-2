@@ -580,7 +580,7 @@ class WorkflowEngine:
     async def _execute_parallel_step(
         self,
         step: WorkflowStep,
-        context: dict[str, Any],
+        _context: dict[str, Any],
     ) -> Any:
         """Execute parallel step."""
         parallel_tasks = step.configuration.get("tasks", [])
@@ -624,7 +624,7 @@ class WorkflowEngine:
     async def _execute_delay_step(
         self,
         step: WorkflowStep,
-        context: dict[str, Any],
+        _context: dict[str, Any],
     ) -> Any:
         """Execute delay step."""
         delay_seconds = step.configuration.get("delay_seconds", 1)

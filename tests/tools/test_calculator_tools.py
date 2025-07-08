@@ -28,7 +28,7 @@ class TestKMCalculator:
     """Test calculator tool core functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         from unittest.mock import AsyncMock
 
@@ -296,7 +296,11 @@ class TestKMCalculator:
 
     @pytest.mark.asyncio
     @patch("src.server.tools.calculator_tools.KMTokenCalculator")
-    async def test_km_engine_integration(self, mock_km_calc: Any, mock_context: Any) -> None:
+    async def test_km_engine_integration(
+        self,
+        mock_km_calc: Any,
+        mock_context: Any,
+    ) -> None:
         """Test Keyboard Maestro engine integration - SYSTEMATIC PATTERN ALIGNMENT."""
         # Setup mock for KM engine integration
         mock_km_calc.return_value.calculate_with_tokens.return_value = {
@@ -453,7 +457,7 @@ class TestCalculatorSecurity:
     """Test calculator security validation."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         from unittest.mock import AsyncMock
 
@@ -582,7 +586,7 @@ class TestCalculatorProperties:
     """Property-based testing for calculator functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         from unittest.mock import AsyncMock
 
@@ -726,7 +730,7 @@ class TestCalculatorIntegration:
     """Test calculator integration with other components."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         from unittest.mock import AsyncMock
 

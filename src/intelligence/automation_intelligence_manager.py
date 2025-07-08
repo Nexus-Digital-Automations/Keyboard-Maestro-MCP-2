@@ -379,7 +379,7 @@ class AutomationIntelligenceManager:
 
     def _get_peak_activity_hours(
         self,
-        patterns: list[UserBehaviorPattern],
+        _patterns: list[UserBehaviorPattern],
     ) -> list[int]:
         """Get peak activity hours from patterns."""
         # This would extract time patterns from behavioral data
@@ -474,7 +474,7 @@ class AutomationIntelligenceManager:
     # Placeholder methods for other operation types
     async def _process_learning_request(
         self,
-        request: IntelligenceRequest,
+        _request: IntelligenceRequest,
     ) -> Either[IntelligenceError, dict[str, Any]]:
         """Process adaptive learning request."""
         return Either.right(
@@ -486,21 +486,21 @@ class AutomationIntelligenceManager:
 
     async def _process_optimization_request(
         self,
-        request: IntelligenceRequest,
+        _request: IntelligenceRequest,
     ) -> Either[IntelligenceError, dict[str, Any]]:
         """Process performance optimization request."""
         return Either.right({"optimizations": [], "performance_improvements": 0})
 
     async def _process_prediction_request(
         self,
-        request: IntelligenceRequest,
+        _request: IntelligenceRequest,
     ) -> Either[IntelligenceError, dict[str, Any]]:
         """Process predictive analysis request."""
         return Either.right({"predictions": [], "confidence": 0.0})
 
     async def _process_insights_request(
         self,
-        request: IntelligenceRequest,
+        _request: IntelligenceRequest,
     ) -> Either[IntelligenceError, dict[str, Any]]:
         """Process insights generation request."""
         return Either.right({"insights": [], "trends": [], "anomalies": []})

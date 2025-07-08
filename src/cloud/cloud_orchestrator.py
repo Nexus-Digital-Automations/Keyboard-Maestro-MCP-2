@@ -475,8 +475,8 @@ class CloudOrchestrator:
     async def _execute_cross_cloud_replication(
         self,
         step: WorkflowStep,
-        execution: WorkflowExecution,
-        cloud_sessions: dict[CloudProvider, str],
+        _execution: WorkflowExecution,
+        _cloud_sessions: dict[CloudProvider, str],
     ) -> dict[str, Any]:
         """Execute cross-cloud data replication."""
         params = step.parameters

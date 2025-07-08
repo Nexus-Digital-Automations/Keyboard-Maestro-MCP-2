@@ -8,7 +8,7 @@ testing and comprehensive enterprise-grade validation using the proven pattern t
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -17,6 +17,9 @@ import pytest
 import src.server.tools.natural_language_tools as nl_tools
 from hypothesis import assume, given
 from hypothesis import strategies as st
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # Extract underlying functions from FastMCP tool objects (systematic pattern)
 km_process_natural_command = nl_tools.km_process_natural_command.fn
@@ -28,7 +31,7 @@ km_nlp_performance_metrics = nl_tools.km_nlp_performance_metrics.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def command_text_strategy(draw: Callable[..., Any]) -> Any:
+def command_text_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid command text inputs."""
     commands = [
         "Open the calculator application",
@@ -42,7 +45,7 @@ def command_text_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def intent_text_strategy(draw: Callable[..., Any]) -> Any:
+def intent_text_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate text inputs for intent recognition."""
     intents = [
         "I want to automate my morning routine",
@@ -55,7 +58,7 @@ def intent_text_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def conversation_text_strategy(draw: Callable[..., Any]) -> Any:
+def conversation_text_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate conversation text inputs."""
     conversations = [
         "Hello, how can I automate my workflow?",
@@ -68,14 +71,14 @@ def conversation_text_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def language_code_strategy(draw: Callable[..., Any]) -> Any:
+def language_code_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid language codes."""
     languages = ["en", "es", "fr", "de", "it", "pt", "ja", "ko", "zh", "auto"]
     return draw(st.sampled_from(languages))
 
 
 @st.composite
-def confidence_threshold_strategy(draw: Callable[..., Any]) -> Any:
+def confidence_threshold_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid confidence thresholds."""
     return draw(st.floats(min_value=0.1, max_value=1.0))
 
@@ -121,7 +124,7 @@ class TestNaturalLanguageParameterValidation:
         assert language_code in valid_codes
 
     @given(confidence_threshold_strategy())
-    def test_valid_confidence_thresholds(self, threshold: int | float) -> None:
+    def test_valid_confidence_thresholds(self, threshold: float) -> None:
         """Test that confidence thresholds are properly validated."""
         assert 0.1 <= threshold <= 1.0
 
@@ -792,7 +795,11 @@ class TestNaturalLanguageProperties:
 
     @given(intent_text_strategy(), language_code_strategy())
     @pytest.mark.asyncio
-    async def test_intent_recognition_properties(self, intent_text: str, language_code: Any) -> None:
+    async def test_intent_recognition_properties(
+        self,
+        intent_text: str,
+        language_code: Any,
+    ) -> None:
         """Test properties of intent recognition operations."""
         assume(len(intent_text.strip()) > 0)
 

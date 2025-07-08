@@ -18,6 +18,12 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any, NewType
 
+from ..core.constants import (
+    CHANGE_NOTIFICATION_THRESHOLD,
+    DIMENSION_CHANGE_PATTERN_MIN,
+    SIGNIFICANCE_THRESHOLD_HIGH,
+    SIGNIFICANCE_THRESHOLD_MEDIUM,
+)
 from ..core.contracts import require
 from ..core.either import Either
 from ..core.errors import ValidationError
@@ -90,7 +96,7 @@ class ContextDetector:
 
     async def detect_context(
         self,
-        previous_context: ContextState | None = None,
+        _previous_context: ContextState | None = None,
     ) -> Either[ValidationError, dict[ContextDimension, Any]]:
         """Detect context information based on detection method."""
         try:
@@ -124,7 +130,13 @@ class ContextDetector:
             return Either.right(privacy_filtered_data)
 
         except Exception as e:
-            return Either.left(ValidationError("context_detection_failed", str(e), "Context detection failed"))
+            return Either.left(
+                ValidationError(
+                    "context_detection_failed",
+                    str(e),
+                    "Context detection failed",
+                ),
+            )
 
     async def _detect_system_context(self) -> dict[ContextDimension, Any]:
         """Detect system-level context information."""
@@ -524,7 +536,10 @@ class ContextAwarenessEngine:
                 self.context_history = self.context_history[-100:]
 
             # Notify listeners if significant change
-            if change_event and change_event.significance_score > 0.3:
+            if (
+                change_event
+                and change_event.significance_score > CHANGE_NOTIFICATION_THRESHOLD
+            ):
                 await self._notify_change_listeners(change_event)
 
         except Exception as e:
@@ -646,11 +661,11 @@ class ContextAwarenessEngine:
         changed_dimensions: set[ContextDimension],
     ) -> ContextChangeType:
         """Determine type of context change."""
-        if significance >= 0.8:
+        if significance >= SIGNIFICANCE_THRESHOLD_HIGH:
             return ContextChangeType.MAJOR_TRANSITION
-        if significance >= 0.5:
+        if significance >= SIGNIFICANCE_THRESHOLD_MEDIUM:
             return ContextChangeType.SIGNIFICANT_CHANGE
-        if len(changed_dimensions) >= 3:
+        if len(changed_dimensions) >= DIMENSION_CHANGE_PATTERN_MIN:
             return ContextChangeType.PATTERN_DETECTED
         return ContextChangeType.MINOR_UPDATE
 

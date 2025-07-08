@@ -62,7 +62,9 @@ class BehaviorAnalyzer:
             logger.error(f"Behavior analyzer initialization failed: {e!s}")
             return Either.left(IntelligenceError.initialization_failed(str(e)))
 
-    @require(lambda __self, time_period: time_period in ["1d", "7d", "30d", "90d", "all"])
+    @require(
+        lambda __self, time_period: time_period in ["1d", "7d", "30d", "90d", "all"],
+    )
     async def analyze_user_behavior(
         self,
         time_period: str = "30d",
@@ -526,7 +528,7 @@ class BehaviorAnalyzer:
     # Placeholder methods for data collection
     async def _get_tool_usage_data(
         self,
-        cutoff_time: datetime | None,
+        _cutoff_time: datetime | None,
     ) -> list[dict[str, Any]]:
         """Get tool usage data for behavioral analysis."""
         # This would interface with actual system logs
@@ -534,21 +536,21 @@ class BehaviorAnalyzer:
 
     async def _get_automation_sequence_data(
         self,
-        cutoff_time: datetime | None,
+        _cutoff_time: datetime | None,
     ) -> list[dict[str, Any]]:
         """Get automation sequence data for pattern analysis."""
         return []
 
     async def _get_performance_behavioral_data(
         self,
-        cutoff_time: datetime | None,
+        _cutoff_time: datetime | None,
     ) -> list[dict[str, Any]]:
         """Get performance-related behavioral data."""
         return []
 
     async def _get_error_pattern_data(
         self,
-        cutoff_time: datetime | None,
+        _cutoff_time: datetime | None,
     ) -> list[dict[str, Any]]:
         """Get error pattern data for analysis."""
         return []

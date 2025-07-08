@@ -7,9 +7,10 @@ security validation, and performance with property-based testing.
 import asyncio
 import json
 import subprocess
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from hypothesis import given
@@ -26,7 +27,7 @@ from src.security.policy_enforcer import SecurityPolicy
 
 # Test data generators
 @st.composite
-def macro_info_data(draw: Callable[..., Any]) -> Any:
+def macro_info_data(draw: Callable[..., Any]) -> Mock:
     """Generate test macro information."""
     return {
         "id": draw(st.text(min_size=1, max_size=50)),
@@ -38,7 +39,7 @@ def macro_info_data(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def security_test_data(draw: Callable[..., Any]) -> Any:
+def security_test_data(draw: Callable[..., Any]) -> Mock:
     """Generate test data for security validation."""
     safe_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ._-"
     unsafe_patterns = ["';", "<script>", "$(", "../", "DROP TABLE", "rm -rf"]
@@ -523,7 +524,10 @@ class TestKMClient:
             assert "not found" in mock_unhealthy["error_message"].lower()
 
     @given(macro_info_data())
-    def test_client_macro_info_property_validation(self, macro_data: dict[str, Any]) -> None:
+    def test_client_macro_info_property_validation(
+        self,
+        macro_data: dict[str, Any],
+    ) -> None:
         """Property test for macro info validation."""
         # Test KM client creation
 

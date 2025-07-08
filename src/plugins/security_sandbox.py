@@ -596,7 +596,8 @@ class PluginSandbox:
                 except asyncio.CancelledError:
                     return Either.left(
                         PluginError(
-                            "Action execution cancelled", "EXECUTION_CANCELLED"
+                            "Action execution cancelled",
+                            "EXECUTION_CANCELLED",
                         ),
                     )
 

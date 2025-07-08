@@ -70,7 +70,7 @@ class CommandHandler:
 
     async def validate_command(
         self,
-        command: VoiceCommand,
+        _command: VoiceCommand,
     ) -> Either[VoiceCommandError, None]:
         """Validate command before execution."""
         return Either.success(None)
@@ -117,7 +117,7 @@ class AutomationHandler(CommandHandler):
     async def execute(
         self,
         command: VoiceCommand,
-        context: dict[str, Any],
+        _context: dict[str, Any],
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Execute automation trigger command."""
         try:
@@ -161,7 +161,7 @@ class ApplicationControlHandler(CommandHandler):
     async def execute(
         self,
         command: VoiceCommand,
-        context: dict[str, Any],
+        _context: dict[str, Any],
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Execute application control command."""
         try:
@@ -233,7 +233,7 @@ class SystemControlHandler(CommandHandler):
     async def execute(
         self,
         command: VoiceCommand,
-        context: dict[str, Any],
+        _context: dict[str, Any],
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Execute system control command."""
         try:
@@ -365,7 +365,7 @@ class TextInputHandler(CommandHandler):
     async def execute(
         self,
         command: VoiceCommand,
-        context: dict[str, Any],
+        _context: dict[str, Any],
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Execute text input command."""
         try:
@@ -421,7 +421,7 @@ class NavigationHandler(CommandHandler):
     async def execute(
         self,
         command: VoiceCommand,
-        context: dict[str, Any],
+        _context: dict[str, Any],
     ) -> Either[VoiceCommandError, dict[str, Any]]:
         """Execute navigation command."""
         try:
@@ -669,7 +669,7 @@ class VoiceCommandDispatcher:
     def _requires_confirmation(
         self,
         command: VoiceCommand,
-        speaker_profile: VoiceProfile | None,
+        _speaker_profile: VoiceProfile | None,
     ) -> bool:
         """Check if command requires confirmation."""
         # Command explicitly requires confirmation

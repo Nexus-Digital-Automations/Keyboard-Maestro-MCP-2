@@ -213,7 +213,7 @@ class TestToolRegistration:
     """Test tool registration with FastMCP."""
 
     @pytest.fixture
-    def mock_mcp(self) -> Any:
+    def mock_mcp(self) -> Mock:
         """Create mock FastMCP instance."""
         mcp = Mock()
         mcp.tool = Mock(return_value=lambda func: func)

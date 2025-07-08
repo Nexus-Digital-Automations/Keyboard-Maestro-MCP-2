@@ -8,7 +8,7 @@ ValidationMetrics, and complete ModelValidator functionality.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from hypothesis import given
@@ -29,6 +29,9 @@ from src.core.predictive_modeling import (
     ModelValidationError,
     create_model_id,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 # Test data generators
@@ -261,7 +264,10 @@ class TestValidationDataset:
             )
 
     @given(validation_dataset_strategy())
-    def test_validation_dataset_property_based_creation(self, dataset: list[Any] | str) -> None:
+    def test_validation_dataset_property_based_creation(
+        self,
+        dataset: list[Any] | str,
+    ) -> None:
         """Property-based test for ValidationDataset creation."""
         assert dataset.dataset_id is not None
         assert len(dataset.features) > 0
@@ -342,7 +348,10 @@ class TestValidationConfiguration:
             )
 
     @given(validation_configuration_strategy())
-    def test_validation_configuration_property_based_creation(self, config: dict[str, Any]) -> None:
+    def test_validation_configuration_property_based_creation(
+        self,
+        config: dict[str, Any],
+    ) -> None:
         """Property-based test for ValidationConfiguration creation."""
         assert config.config_id is not None
         assert config.model_id is not None

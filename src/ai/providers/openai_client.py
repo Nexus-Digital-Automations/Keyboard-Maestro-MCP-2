@@ -45,7 +45,7 @@ class OpenAIClient(BaseProviderClient):
         "gpt-3.5-turbo": {"input": Decimal("0.001"), "output": Decimal("0.002")},
         "gpt-3.5-turbo-16k": {"input": Decimal("0.003"), "output": Decimal("0.004")},
         "text-davinci-003": {"input": Decimal("0.02"), "output": Decimal("0.02")},
-        "text-embedding-ada-002": {"input": Decimal("0.0001"), "output": Decimal("0")},
+        "text-embedding-ada-002": {"input": Decimal("0.0001"), "output": Decimal(0)},
     }
 
     # Model capabilities
@@ -274,12 +274,18 @@ class OpenAIClient(BaseProviderClient):
             return self._parse_response(response_data)
 
         except Exception as e:
-            return Either.left(ValidationError("openai_request_failed", str(e), "OpenAI API request failed"))
+            return Either.left(
+                ValidationError(
+                    "openai_request_failed",
+                    str(e),
+                    "OpenAI API request failed",
+                ),
+            )
 
     async def _make_api_call(
         self,
-        endpoint: str,
-        headers: dict[str, str],
+        _endpoint: str,
+        _headers: dict[str, str],
         payload: dict[str, Any],
     ) -> dict[str, Any]:
         """Make actual API call to OpenAI (simulated)."""
@@ -366,7 +372,13 @@ class OpenAIClient(BaseProviderClient):
             )
 
         except Exception as e:
-            return Either.left(ValidationError("response_parsing_failed", str(e), "OpenAI response parsing failed"))
+            return Either.left(
+                ValidationError(
+                    "response_parsing_failed",
+                    str(e),
+                    "OpenAI response parsing failed",
+                ),
+            )
 
     def _calculate_cost(self, input_tokens: int, output_tokens: int) -> CostAmount:
         """Calculate cost based on token usage."""
@@ -403,13 +415,21 @@ class OpenAIClient(BaseProviderClient):
             input_tokens = self._count_tokens(input_text)
 
             # Estimate output tokens based on operation
-            estimated_output_tokens = request.get_effective_max_tokens() if request.max_tokens else 1000
+            estimated_output_tokens = (
+                request.get_effective_max_tokens() if request.max_tokens else 1000
+            )
 
             cost = self._calculate_cost(input_tokens, estimated_output_tokens)
             return Either.right(cost)
 
         except Exception as e:
-            return Either.left(ValidationError("cost_estimation_failed", str(e), "OpenAI cost estimation failed"))
+            return Either.left(
+                ValidationError(
+                    "cost_estimation_failed",
+                    str(e),
+                    "OpenAI cost estimation failed",
+                ),
+            )
 
 
 # Factory function for easy client creation

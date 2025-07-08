@@ -227,18 +227,21 @@ class TokenProcessor:
 
     def _parse_tokens(self, text: str) -> list[dict[str, Any]]:
         """Parse tokens from text with type identification and security validation."""
-        token_pattern = r"%([^%]+)%"  # noqa: S105 - Regex pattern, not a secret
+        # Handle nested % tokens like %Variable%user_name% properly
+        token_pattern = r"%(?:Variable%[^%]+|[^%]+)%"  # noqa: S105 # Regex pattern, not password
         tokens = []
 
         for match in re.finditer(token_pattern, text):
-            token_content = match.group(1)
+            # Extract content from %content% format
+            full_match = match.group(0)
+            token_content = full_match[1:-1]  # Remove leading and trailing %
 
             # Security check for token content
             if not self._is_safe_token_content(token_content):
                 continue  # Skip unsafe tokens
 
             token_info = {
-                "full_match": match.group(0),
+                "full_match": full_match,
                 "content": token_content,
                 "start": match.start(),
                 "end": match.end(),
@@ -346,7 +349,11 @@ class TokenProcessor:
         """Process variable token with scope resolution."""
         # Extract variable name from %Variable%name% format
         if content.startswith("Variable"):
-            var_name = content[8:] if len(content) > 8 else ""
+            # Handle %Variable%user_name% format where content is "Variable%user_name"
+            var_part = content[8:] if len(content) > 8 else ""
+
+            # Remove leading and trailing % if present (for %Variable%name% format)
+            var_name = var_part.strip("%")
 
             if var_name in variables:
                 value = variables[var_name]
@@ -366,7 +373,7 @@ class TokenProcessor:
     def _process_calculation_token(
         self,
         content: str,
-        context: ProcessingContext,
+        _context: ProcessingContext,
         warnings: list[str],
     ) -> Either[KMError, tuple[str, list[str]]]:
         """Process calculation token with security validation."""
@@ -406,7 +413,7 @@ class TokenProcessor:
 
     def _process_clipboard_token(
         self,
-        content: str,
+        _content: str,
         warnings: list[str],
     ) -> Either[KMError, tuple[str, list[str]]]:
         """Process clipboard token with privacy protection."""
@@ -529,6 +536,35 @@ class TokenProcessor:
     def _get_current_clipboard_preview(self) -> str:
         """Get safe clipboard preview."""
         return "[Clipboard Preview - Access Restricted]"
+
+    def process_text(self, text: str, variables: dict[str, str] | None = None) -> str:
+        """Simple synchronous text processing for basic token replacement."""
+        if not text or not text.strip():
+            return text
+            
+        if variables is None:
+            variables = {}
+            
+        # Simple token replacement for basic cases
+        processed = text
+        
+        # Replace some common system tokens synchronously
+        for token_name, resolver in self.system_tokens.items():
+            token_pattern = f"%{token_name}%"
+            if token_pattern in processed:
+                try:
+                    value = resolver()
+                    processed = processed.replace(token_pattern, value)
+                except Exception:
+                    processed = processed.replace(token_pattern, f"[{token_name} Error]")
+                    
+        # Replace variable tokens
+        for var_name, var_value in variables.items():
+            var_pattern = f"%Variable%{var_name}%"
+            if var_pattern in processed:
+                processed = processed.replace(var_pattern, var_value)
+                
+        return processed
 
     async def process_tokens_in_text(
         self,

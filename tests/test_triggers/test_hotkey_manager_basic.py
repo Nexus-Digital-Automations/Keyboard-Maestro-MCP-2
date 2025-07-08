@@ -5,6 +5,8 @@ Tests cover ModifierKey, ActivationMode, and basic validation patterns.
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from hypothesis import assume, given
 from hypothesis import strategies as st
@@ -76,7 +78,10 @@ class TestModifierKey:
             ],
         ),
     )
-    def test_modifier_key_from_string_property_based_invalid(self, invalid_modifier: str) -> None:
+    def test_modifier_key_from_string_property_based_invalid(
+        self,
+        invalid_modifier: str,
+    ) -> None:
         """Property-based test for invalid modifier strings."""
         assume(len(invalid_modifier.strip()) > 0)  # Don't test empty strings
 
@@ -129,7 +134,10 @@ class TestActivationMode:
             not in ["pressed", "released", "tapped", "held"],
         ),
     )
-    def test_activation_mode_from_string_property_based_invalid(self, invalid_mode: str) -> None:
+    def test_activation_mode_from_string_property_based_invalid(
+        self,
+        invalid_mode: str,
+    ) -> None:
         """Property-based test for invalid activation mode strings."""
         assume(len(invalid_mode.strip()) > 0)  # Don't test empty strings
 

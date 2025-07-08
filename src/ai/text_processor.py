@@ -164,7 +164,7 @@ class TextProcessor:
         self,
         text: str,
         analysis_type: TextAnalysisType = TextAnalysisType.GENERAL,
-        model_preference: AIModelId | None = None,
+        _model_preference: AIModelId | None = None,
     ) -> Either[AIError, TextAnalysisResult]:
         """Analyze text using AI with specified analysis type."""
         try:
@@ -349,7 +349,7 @@ Respond in JSON format with keys: primary_topics, secondary_themes, topic_relati
     async def generate_text(
         self,
         generation_request: TextGenerationRequest,
-        model_preference: AIModelId | None = None,
+        _model_preference: AIModelId | None = None,
     ) -> Either[AIError, str]:
         """Generate text based on prompt and style requirements."""
         try:
@@ -460,7 +460,7 @@ Respond in JSON format with keys: primary_topics, secondary_themes, topic_relati
         self,
         text: str,
         categories: list[str],
-        model_preference: AIModelId | None = None,
+        _model_preference: AIModelId | None = None,
     ) -> Either[AIError, dict[str, float]]:
         """Classify text into provided categories with confidence scores."""
         try:
@@ -644,7 +644,7 @@ Respond in JSON format with each category as a key and confidence score as value
                 AIError.api_call_failed(request.model.model_name, str(e)),
             )
 
-    def _create_mock_analysis_result(self, text: str) -> str:
+    def _create_mock_analysis_result(self, _text: str) -> str:
         """Create mock analysis result for testing."""
         return json.dumps(
             {

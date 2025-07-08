@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -20,6 +20,9 @@ import src.server.tools.analytics_engine_tools as analytics_tools
 from hypothesis import given
 from hypothesis import strategies as st
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 logger = logging.getLogger(__name__)
 
 # Extract underlying functions from FastMCP tool objects (systematic pattern)
@@ -28,56 +31,56 @@ km_analytics_engine = analytics_tools.km_analytics_engine.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def operation_strategy(draw: Callable[..., Any]) -> Any:
+def operation_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid analytics operations."""
     operations = ["collect", "analyze", "report", "predict", "dashboard", "optimize"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def analytics_scope_strategy(draw: Callable[..., Any]) -> Any:
+def analytics_scope_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid analytics scopes."""
     scopes = ["tool", "category", "ecosystem", "enterprise"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def time_range_strategy(draw: Callable[..., Any]) -> Any:
+def time_range_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid time ranges."""
     ranges = ["1h", "24h", "7d", "30d", "90d", "1y", "all"]
     return draw(st.sampled_from(ranges))
 
 
 @st.composite
-def analysis_depth_strategy(draw: Callable[..., Any]) -> Any:
+def analysis_depth_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid analysis depths."""
     depths = ["basic", "standard", "detailed", "comprehensive", "ml_enhanced"]
     return draw(st.sampled_from(depths))
 
 
 @st.composite
-def visualization_format_strategy(draw: Callable[..., Any]) -> Any:
+def visualization_format_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid visualization formats."""
     formats = ["raw", "table", "chart", "dashboard", "report", "executive_summary"]
     return draw(st.sampled_from(formats))
 
 
 @st.composite
-def privacy_mode_strategy(draw: Callable[..., Any]) -> Any:
+def privacy_mode_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid privacy modes."""
     modes = ["none", "basic", "compliant", "strict"]
     return draw(st.sampled_from(modes))
 
 
 @st.composite
-def metrics_types_strategy(draw: Callable[..., Any]) -> Any:
+def metrics_types_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid metrics types."""
     types = ["performance", "usage", "roi", "efficiency", "quality", "security"]
     return draw(st.lists(st.sampled_from(types), min_size=1, max_size=4, unique=True))
 
 
 @st.composite
-def export_format_strategy(draw: Callable[..., Any]) -> Any:
+def export_format_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid export formats."""
     formats = ["json", "csv", "pdf", "xlsx", "api"]
     return draw(st.sampled_from(formats))
@@ -552,7 +555,7 @@ class TestAnalyticsEngineReportMocked:
                 operation="report",
                 analytics_scope="ecosystem",
                 analysis_depth="comprehensive",
-                roi_calculation=True,
+                _roi_calculation=True,
             )
 
             # Verify successful report generation
@@ -794,7 +797,11 @@ class TestAnalyticsEngineProperties:
 
     @given(operation_strategy(), analytics_scope_strategy())
     @pytest.mark.asyncio
-    async def test_analytics_engine_operation_properties(self, operation: str, scope: Any) -> None:
+    async def test_analytics_engine_operation_properties(
+        self,
+        operation: str,
+        scope: Any,
+    ) -> None:
         """Test properties of analytics engine operations."""
         with patch(
             "src.server.tools.analytics_engine_tools.analytics_engine",
@@ -840,7 +847,11 @@ class TestAnalyticsEngineProperties:
 
     @given(time_range_strategy(), visualization_format_strategy())
     @pytest.mark.asyncio
-    async def test_dashboard_format_properties(self, time_range: Any, viz_format: Any) -> None:
+    async def test_dashboard_format_properties(
+        self,
+        time_range: Any,
+        viz_format: Any,
+    ) -> None:
         """Test properties of dashboard generation with different formats."""
         with patch(
             "src.server.tools.analytics_engine_tools.analytics_engine",

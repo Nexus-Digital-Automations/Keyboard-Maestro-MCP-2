@@ -8,7 +8,7 @@ Tests ensure correctness, security, and performance across all input ranges.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from hypothesis import assume, given, settings
@@ -37,6 +37,11 @@ from src.vision.screen_analysis import (
     CaptureMode,
     ScreenAnalysisEngine,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from src.core.either import Either
 
 
 # Strategy generators for visual automation testing
@@ -237,7 +242,11 @@ class TestOCREngineProperties:
 
     @pytest.mark.asyncio
     @given(image_data_samples(), st.sampled_from(["en", "es", "fr", "de"]))
-    async def test_ocr_extraction_properties(self, image_data: Any, language: str) -> None:
+    async def test_ocr_extraction_properties(
+        self,
+        image_data: Any,
+        language: str,
+    ) -> None:
         """Property: OCR extraction should handle all valid inputs."""
         engine = OCREngine(cache_enabled=False)  # Disable cache for testing
 
@@ -384,7 +393,11 @@ class TestScreenAnalysisProperties:
 
     @pytest.mark.asyncio
     @given(screen_regions(), st.floats(min_value=0.0, max_value=1.0))
-    async def test_change_detection_properties(self, region: Any, sensitivity: Any) -> None:
+    async def test_change_detection_properties(
+        self,
+        region: Any,
+        sensitivity: Any,
+    ) -> None:
         """Property: Change detection should handle all valid parameters."""
         engine = ScreenAnalysisEngine()
 
@@ -544,7 +557,12 @@ class TestVisualAutomationEndToEndProperties:
         screen_regions(),
         st.booleans(),
     )
-    async def test_end_to_end_visual_operations(self, operation: str, region: Any, privacy_mode: Any) -> None:
+    async def test_end_to_end_visual_operations(
+        self,
+        operation: str,
+        region: Any,
+        privacy_mode: Any,
+    ) -> None:
         """Property: End-to-end operations should be robust."""
         from src.server.tools.visual_automation_tools import km_visual_automation
 

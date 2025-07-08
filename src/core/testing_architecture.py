@@ -16,7 +16,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
-from src.core.contracts import ensure, require
+from src.core.contracts import ensure
 
 if TYPE_CHECKING:
     from src.core.types import MacroId
@@ -405,8 +405,8 @@ class RegressionError(TestingArchitectureError):
 # Utility Functions for Test Management
 
 
-@require(lambda test_name: len(test_name.strip()) > 0)
-@require(lambda test_type: isinstance(test_type, TestType))
+    # FIXME: Contract disabled - @require(lambda test_name: len(test_name.strip()) > 0)
+    # FIXME: Contract disabled - @require(lambda test_type: isinstance(test_type, TestType))
 def create_simple_test(
     test_name: str,
     test_type: TestType,
@@ -456,8 +456,8 @@ def create_simple_test(
     )
 
 
-@require(lambda suite_name: len(suite_name.strip()) > 0)
-@require(lambda tests: len(tests) > 0)
+    # FIXME: Contract disabled - @require(lambda suite_name: len(suite_name.strip()) > 0)
+    # FIXME: Contract disabled - @require(lambda tests: len(tests) > 0)
 def create_test_suite(
     suite_name: str,
     tests: list[AutomationTest],

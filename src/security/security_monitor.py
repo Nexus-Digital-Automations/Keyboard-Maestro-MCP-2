@@ -246,24 +246,30 @@ class SecurityMonitor:
                 ),
             )
 
-    @require(lambda __self, event: isinstance(event, SecurityEvent))
+    @require(lambda __self, event: isinstance(event, SecurityEvent | dict))
     async def process_security_event(
         self,
-        event: SecurityEvent,
+        event: SecurityEvent | dict[str, Any],
     ) -> Either[SecurityMonitoringError, list[SecurityAlert]]:
         """Process security event and generate alerts if needed."""
         try:
             start_time = datetime.now(UTC)
 
+            # Convert dictionary to SecurityEvent if needed
+            if isinstance(event, dict):
+                event_obj = self._dict_to_security_event(event)
+            else:
+                event_obj = event
+
             # Add event to buffer and history
-            self.event_buffer.append(event)
-            self.security_events.append(event)
+            self.event_buffer.append(event_obj)
+            self.security_events.append(event_obj)
 
             # Evaluate against monitoring rules
             generated_alerts = []
 
             for rule in self.monitoring_rules.values():
-                if rule.enabled and self._event_matches_rule(event, rule):
+                if rule.enabled and self._event_matches_rule(event_obj, rule):
                     # Check if alert threshold is met
                     matching_events = self._get_matching_events_in_window(rule)
 
@@ -276,7 +282,7 @@ class SecurityMonitor:
                             generated_alerts.append(alert.get_right())
 
             # Process threat indicators
-            threat_check = await self._check_threat_indicators(event)
+            threat_check = await self._check_threat_indicators(event_obj)
             if threat_check.is_right():
                 threat_alerts = threat_check.get_right()
                 generated_alerts.extend(threat_alerts)
@@ -286,8 +292,29 @@ class SecurityMonitor:
                 self.active_alerts[alert.alert_id] = alert
                 await self._handle_new_alert(alert)
 
-            # Mark event as processed
-            event.processed = True
+            # Mark event as processed (create a new SecurityEvent since it's frozen)
+            processed_event = SecurityEvent(
+                event_id=event_obj.event_id,
+                event_type=event_obj.event_type,
+                source=event_obj.source,
+                timestamp=event_obj.timestamp,
+                context=event_obj.context,
+                data=event_obj.data,
+                risk_indicators=event_obj.risk_indicators,
+                severity=event_obj.severity,
+                processed=True,
+            )
+            # Update the event in our collections
+            if (
+                self.event_buffer
+                and self.event_buffer[-1].event_id == event_obj.event_id
+            ):
+                self.event_buffer[-1] = processed_event
+            if (
+                self.security_events
+                and self.security_events[-1].event_id == event_obj.event_id
+            ):
+                self.security_events[-1] = processed_event
 
             # Update performance metrics
             processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
@@ -301,7 +328,11 @@ class SecurityMonitor:
                     f"Failed to process security event: {e!s}",
                     "EVENT_PROCESSING_ERROR",
                     SecurityOperation.MONITOR,
-                    {"event_id": event.event_id},
+                    {
+                        "event_id": getattr(event_obj, "event_id", "unknown")
+                        if "event_obj" in locals()
+                        else "unknown"
+                    },
                 ),
             )
 
@@ -1026,6 +1057,137 @@ class SecurityMonitor:
         self.performance_metrics["total_events"] = (
             self.performance_metrics.get("total_events", 0) + 1
         )
+
+    def _analyze_event(self, event: SecurityEvent | dict[str, Any]) -> dict[str, Any]:
+        """Analyze security event and return threat analysis.
+
+        This method analyzes a security event and returns a dictionary containing
+        threat analysis information including threat level.
+
+        Args:
+            event: Security event to analyze (can be SecurityEvent object or dict)
+
+        Returns:
+            Dictionary containing threat analysis with 'threat_level' key
+        """
+        # Convert dict to SecurityEvent if needed
+        if isinstance(event, dict):
+            event_obj = self._dict_to_security_event(event)
+        else:
+            event_obj = event
+
+        # Analyze event for threats
+        threat_level = "low"  # Default threat level
+
+        # Check event type for threat indicators
+        if event_obj.event_type in ["authentication_failure", "access_denied"]:
+            threat_level = "medium"
+        elif event_obj.event_type in ["privilege_escalation", "data_exfiltration"]:
+            threat_level = "high"
+        elif event_obj.event_type in ["malware_detected", "brute_force_detected"]:
+            threat_level = "critical"
+
+        # Check severity
+        if event_obj.severity in [AlertSeverity.HIGH, AlertSeverity.CRITICAL]:
+            threat_level = "high"
+        elif event_obj.severity == AlertSeverity.EMERGENCY:
+            threat_level = "critical"
+
+        # Check risk indicators
+        high_risk_indicators = [
+            "brute_force_attack",
+            "privilege_escalation_attempt",
+            "data_exfiltration_pattern",
+            "malware_signature",
+        ]
+
+        if any(
+            indicator in event_obj.risk_indicators for indicator in high_risk_indicators
+        ):
+            threat_level = "high"
+
+        return {
+            "threat_level": threat_level,
+            "event_type": event_obj.event_type,
+            "severity": event_obj.severity.value,
+            "risk_indicators": event_obj.risk_indicators,
+            "analysis_timestamp": datetime.now(UTC).isoformat(),
+        }
+
+    def _dict_to_security_event(self, event_dict: dict[str, Any]) -> SecurityEvent:
+        """Convert dictionary to SecurityEvent object.
+
+        Args:
+            event_dict: Dictionary containing event data
+
+        Returns:
+            SecurityEvent object created from dictionary
+        """
+        # Generate event ID if not provided
+        event_id = event_dict.get(
+            "event_id", f"event_{int(datetime.now(UTC).timestamp())}"
+        )
+
+        # Map common dictionary keys to SecurityEvent fields
+        event_type = event_dict.get("type", event_dict.get("event_type", "unknown"))
+        source = event_dict.get("source", "unknown")
+
+        # Handle timestamp
+        timestamp_str = event_dict.get("timestamp")
+        if timestamp_str:
+            try:
+                timestamp = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+            except ValueError:
+                timestamp = datetime.now(UTC)
+        else:
+            timestamp = datetime.now(UTC)
+
+        # Create event data
+        data = {
+            "user_id": event_dict.get("user_id"),
+            "source_ip": event_dict.get("source_ip"),
+            "resource": event_dict.get("resource"),
+        }
+
+        # Remove None values
+        data = {k: v for k, v in data.items() if v is not None}
+
+        # Add any additional fields from the dict
+        for key, value in event_dict.items():
+            if key not in [
+                "type",
+                "event_type",
+                "source",
+                "timestamp",
+                "user_id",
+                "source_ip",
+                "resource",
+            ]:
+                data[key] = value
+
+        return SecurityEvent(
+            event_id=event_id,
+            event_type=event_type,
+            source=source,
+            timestamp=timestamp,
+            data=data,
+            risk_indicators=event_dict.get("risk_indicators", []),
+            severity=AlertSeverity.INFO,  # Default severity
+        )
+
+    def detect_threat(self, event: SecurityEvent | dict[str, Any]) -> dict[str, Any]:
+        """Detect threat in security event.
+
+        This method provides a simple interface for threat detection that can be
+        used by tests. It analyzes the event and returns threat information.
+
+        Args:
+            event: Security event to analyze
+
+        Returns:
+            Dictionary containing threat analysis
+        """
+        return self._analyze_event(event)
 
     # Simple interface methods for test compatibility
     def log_event(self, event: SecurityEvent) -> None:

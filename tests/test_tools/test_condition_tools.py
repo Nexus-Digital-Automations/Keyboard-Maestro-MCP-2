@@ -30,7 +30,7 @@ Key Mocking Pattern:
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -58,10 +58,13 @@ from src.server.tools.condition_tools import (
     km_add_condition,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context() -> Any:
+def mock_context() -> Mock:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -75,7 +78,7 @@ def mock_context() -> Any:
 
 
 @pytest.fixture
-def mock_condition_builder() -> Any:
+def mock_condition_builder() -> Mock:
     """Create mock ConditionBuilder with standard interface."""
     builder = Mock(spec=ConditionBuilder)
     builder.set_type = Mock(return_value=builder)
@@ -108,7 +111,7 @@ def mock_condition_builder() -> Any:
 
 
 @pytest.fixture
-def mock_km_condition_integrator() -> Any:
+def mock_km_condition_integrator() -> Mock:
     """Create mock KMConditionIntegrator with standard interface."""
     integrator = Mock(spec=KMConditionIntegrator)
     integrator.add_condition_to_macro = AsyncMock()
@@ -125,7 +128,7 @@ def mock_km_condition_integrator() -> Any:
 
 
 @pytest.fixture
-def mock_input_sanitizer() -> Any:
+def mock_input_sanitizer() -> Mock:
     """Create mock InputSanitizer with standard interface."""
     sanitizer = Mock(spec=InputSanitizer)
     sanitizer.sanitize = Mock()
@@ -140,7 +143,7 @@ def mock_input_sanitizer() -> Any:
 
 
 @pytest.fixture
-def sample_condition_data() -> Any:
+def sample_condition_data() -> Mock:
     """Sample condition data for testing."""
     return {
         "macro_ids": ["macro-test-123", "backup-macro-456", "temp-macro-789"],
@@ -159,7 +162,11 @@ class TestKMAddCondition:
     """Test km_add_condition main functionality following proven pattern."""
 
     @pytest.mark.asyncio
-    async def test_text_condition_success(self, mock_context: Any, sample_condition_data: Any) -> None:
+    async def test_text_condition_success(
+        self,
+        mock_context: Any,
+        sample_condition_data: Any,
+    ) -> None:
         """Test successful text condition creation."""
         # Mock all the dependencies that are created as instances in the function
         with (
@@ -249,7 +256,11 @@ class TestKMAddCondition:
             assert result["security_validated"] is True
 
     @pytest.mark.asyncio
-    async def test_app_condition_success(self, mock_context: Any, sample_condition_data: Any) -> None:
+    async def test_app_condition_success(
+        self,
+        mock_context: Any,
+        sample_condition_data: Any,
+    ) -> None:
         """Test successful app condition creation."""
         with (
             patch(
@@ -528,7 +539,11 @@ class TestKMAddCondition:
             assert "performance_metrics" in result
 
     @pytest.mark.asyncio
-    async def test_regex_condition_success(self, mock_context: Any, sample_condition_data: Any) -> None:
+    async def test_regex_condition_success(
+        self,
+        mock_context: Any,
+        sample_condition_data: Any,
+    ) -> None:
         """Test successful regex condition creation."""
         with (
             patch(
@@ -1273,7 +1288,7 @@ class TestConditionPropertyBased:
     """Property-based testing for condition operations."""
 
     @composite
-    def condition_operand_strategy(draw: Callable[..., Any]) -> Any:
+    def condition_operand_strategy(draw: Callable[..., Any]) -> Mock:
         """Generate valid condition operands for testing."""
         operand_type = draw(st.sampled_from(["text", "numeric", "boolean", "regex"]))
 

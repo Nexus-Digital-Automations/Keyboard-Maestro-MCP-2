@@ -25,7 +25,7 @@ class CapacityPlanner:
     async def create_capacity_plan(
         self,
         resource_type: str,
-        planning_horizon: timedelta = timedelta(days=30),
+        _planning_horizon: timedelta = timedelta(days=30),
     ) -> Either[Exception, CapacityPlan]:
         """Create capacity plan for resource scaling."""
         try:

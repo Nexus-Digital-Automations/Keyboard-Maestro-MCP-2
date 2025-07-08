@@ -183,7 +183,7 @@ class DisplayTopology:
 
     def calculate_relative_position(
         self,
-        source_display: DisplayInfo,
+        _source_display: DisplayInfo,
         target_display: DisplayInfo,
         relative_x: float,
         relative_y: float,

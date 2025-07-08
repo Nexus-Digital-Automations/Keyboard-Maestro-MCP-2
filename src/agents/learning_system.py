@@ -24,6 +24,15 @@ from ..core.autonomous_systems import (
     LearningExperience,
     PerformanceMetric,
 )
+from ..core.constants import (
+    AGENT_PATTERN_RECENCY_DAYS,
+    CONFIDENCE_THRESHOLD_LOW,
+    HIGH_CONFIDENCE_BOUNDARY,
+    PATTERN_ADAPTATION_THRESHOLD,
+    PATTERN_EFFECTIVENESS_THRESHOLD,
+    PATTERN_SIMILARITY_THRESHOLD,
+    POOR_PERFORMANCE_THRESHOLD,
+)
 from ..core.either import Either
 from ..core.errors import ValidationError
 
@@ -59,7 +68,7 @@ class Pattern:
         """Calculate pattern strength based on confidence and occurrences."""
         recency_factor = 1.0
         age_days = (datetime.now(UTC) - self.last_seen).days
-        if age_days > 30:
+        if age_days > AGENT_PATTERN_RECENCY_DAYS:
             recency_factor = 0.5  # Older patterns are less relevant
 
         return self.confidence * min(1.0, self.occurrences / 10) * recency_factor
@@ -74,7 +83,9 @@ class Pattern:
                 matching_features += 1
 
         return (
-            (matching_features / total_features) > 0.7 if total_features > 0 else False
+            (matching_features / total_features) > PATTERN_SIMILARITY_THRESHOLD
+            if total_features > 0
+            else False
         )
 
 
@@ -97,7 +108,7 @@ class LearningModel:
         # Retrain if significant new data or accuracy dropped
         return (
             new_data_size > self.training_data_size * 0.2  # 20% new data
-            or self.accuracy < 0.7  # Accuracy below threshold
+            or self.accuracy < CONFIDENCE_THRESHOLD_LOW  # Accuracy below threshold
             or (datetime.now(UTC) - self.last_updated).days > 7  # Weekly retraining
         )
 
@@ -151,7 +162,9 @@ class LearningSystem:
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError("learning_failed", str(e), "Learning operation failed"))
+            return Either.left(
+                ValidationError("learning_failed", str(e), "Learning operation failed"),
+            )
 
     async def get_recommendations(
         self,
@@ -203,12 +216,12 @@ class LearningSystem:
             self.learning_metrics["accuracy_trend"].append(success_rate)
 
             # Adjust based on performance
-            if success_rate < 0.5:
+            if success_rate < POOR_PERFORMANCE_THRESHOLD:
                 # Poor performance - increase exploration
                 adaptations["parameter_adjustments"]["exploration_rate"] = 0.3
                 adaptations["strategy_changes"].append("increase_exploration")
                 adaptations["learning_rate_adjustment"] = 0.1
-            elif success_rate > 0.8:
+            elif success_rate > HIGH_CONFIDENCE_BOUNDARY:
                 # Good performance - exploit more
                 adaptations["parameter_adjustments"]["exploration_rate"] = 0.1
                 adaptations["strategy_changes"].append("increase_exploitation")
@@ -216,9 +229,11 @@ class LearningSystem:
 
         # Adapt based on pattern effectiveness
         pattern_effectiveness = self._evaluate_pattern_effectiveness()
-        if pattern_effectiveness < 0.6:
+        if pattern_effectiveness < PATTERN_EFFECTIVENESS_THRESHOLD:
             adaptations["strategy_changes"].append("diversify_patterns")
-            adaptations["parameter_adjustments"]["pattern_threshold"] = 0.8
+            adaptations["parameter_adjustments"]["pattern_threshold"] = (
+                PATTERN_ADAPTATION_THRESHOLD
+            )
 
         return adaptations
 
@@ -363,22 +378,34 @@ class LearningSystem:
         exp2: LearningExperience,
         features: dict[str, Any],
     ) -> bool:
-        """Determine if two experiences are similar."""
+        """Determine if two experiences are similar using feature comparison."""
         # Same action type
         if exp1.action_taken.action_type != exp2.action_taken.action_type:
             return False
 
-        # Similar context (simplified - would use more sophisticated similarity in production)
-        context_similarity = 0
+        # Similar context using feature weights
         common_keys = set(exp1.context.keys()) & set(exp2.context.keys())
         if not common_keys:
             return False
 
-        for key in common_keys:
-            if exp1.context[key] == exp2.context[key]:
-                context_similarity += 1
+        # Use feature weights if provided, otherwise equal weighting
+        total_weight = 0
+        weighted_similarity = 0
 
-        return (context_similarity / len(common_keys)) > 0.7
+        for key in common_keys:
+            weight = features.get(f"weight_{key}", 1.0) if features else 1.0
+            total_weight += weight
+
+            if exp1.context[key] == exp2.context[key]:
+                weighted_similarity += weight
+
+        if total_weight == 0:
+            return False
+
+        similarity_score = weighted_similarity / total_weight
+        threshold = features.get("similarity_threshold", 0.7) if features else 0.7
+
+        return similarity_score > threshold
 
     def _should_update_models(self) -> bool:
         """Determine if models should be updated."""

@@ -9,6 +9,7 @@ import time
 from collections.abc import Callable
 from contextlib import contextmanager
 from typing import Any
+from unittest.mock import Mock
 
 from src.core import (
     CommandResult,
@@ -60,7 +61,8 @@ def assert_execution_failed(
             f"{prefix}Error details must be present"
         )
         assert expected_error in result.error_details, (
-            f"{prefix}Expected error '{expected_error}' not found in '{result.error_details}'"
+            f"{prefix}Expected error '{expected_error}' not found in "
+            f"'{result.error_details}'"
         )
 
 
@@ -90,7 +92,8 @@ def assert_command_failed(
 
     if expected_error:
         assert expected_error in result.error_message, (
-            f"{prefix}Expected error '{expected_error}' not found in '{result.error_message}'"
+            f"{prefix}Expected error '{expected_error}' not found in "
+            f"'{result.error_message}'"
         )
 
 
@@ -122,7 +125,8 @@ def assert_security_violation_blocked(
     try:
         result = func(*args, **kwargs)
         raise AssertionError(
-            f"{prefix}Expected security violation to be blocked, but function succeeded with result: {result}",
+            f"{prefix}Expected security violation to be blocked, but function "
+            f"succeeded with result: {result}",
         )
     except expected_error_type:
         # Expected behavior - security violation was caught
@@ -130,7 +134,8 @@ def assert_security_violation_blocked(
     except Exception as e:
         # B904 fix: Add exception chaining for proper error tracking
         raise AssertionError(
-            f"{prefix}Expected {expected_error_type.__name__}, but got {type(e).__name__}: {e}",
+            f"{prefix}Expected {expected_error_type.__name__}, but got "
+            f"{type(e).__name__}: {e}",
         ) from e
 
 
@@ -327,7 +332,7 @@ def assert_invariant_maintained(
     operation: Callable[[], Any],
     invariant_name: str = "invariant",
     message: str = "",
-) -> Any:
+) -> Mock:
     """Assert that an invariant is maintained across an operation."""
     prefix = f"{message}: " if message else ""
 

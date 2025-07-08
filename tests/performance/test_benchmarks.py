@@ -9,6 +9,7 @@ from __future__ import annotations
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from src.core import (
@@ -21,6 +22,9 @@ from src.core import (
 )
 from tests.utils.assertions import assert_performance_within_bounds
 from tests.utils.mocks import MockKeyboardMaestroClient
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 
 class TestEnginePerformance:

@@ -6,7 +6,7 @@ ensuring security boundaries and correctness properties hold.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from hypothesis import assume, given, settings
 from hypothesis import strategies as st
@@ -30,10 +30,13 @@ from src.core.control_flow import (
 )
 from src.core.errors import ContractViolationError, ValidationError
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Hypothesis strategies for control flow testing
 @st.composite
-def safe_text_strategy(draw: Callable[..., Any]) -> Any:
+def safe_text_strategy(draw: Callable[..., Any]) -> str:
     """Generate safe text without dangerous patterns."""
     # Base text generation
     text = draw(
@@ -72,7 +75,7 @@ def safe_text_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def safe_action_strategy(draw: Callable[..., Any]) -> Any:
+def safe_action_strategy(draw: Callable[..., Any]) -> ActionBlock:
     """Generate safe action dictionaries."""
     action_type = draw(
         st.sampled_from(
@@ -107,7 +110,7 @@ def safe_action_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def safe_condition_strategy(draw: Callable[..., Any]) -> Any:
+def safe_condition_strategy(draw: Callable[..., Any]) -> ConditionExpression:
     """Generate safe condition expressions."""
     expression = draw(safe_text_strategy())
     operator = draw(st.sampled_from(list(ComparisonOperator)))
@@ -139,7 +142,11 @@ class TestControlFlowProperties:
     """Property-based tests for control flow structures."""
 
     @given(safe_condition_strategy(), safe_action_block_strategy())
-    def test_if_then_else_properties(self, condition: Callable[..., bool] | bool, then_actions: Any) -> None:
+    def test_if_then_else_properties(
+        self,
+        condition: Callable[..., bool] | bool,
+        then_actions: Any,
+    ) -> None:
         """Property: If/then/else nodes should always be valid when created with safe inputs."""
         else_actions = ActionBlock.from_actions([{"type": "noop"}])
 
@@ -165,7 +172,13 @@ class TestControlFlowProperties:
         safe_action_block_strategy(),
         st.integers(min_value=1, max_value=1000),
     )
-    def test_for_loop_properties(self, iterator: Any, collection: Any, actions: list[Any], max_iterations: Any) -> None:
+    def test_for_loop_properties(
+        self,
+        iterator: Any,
+        collection: Any,
+        actions: list[Any],
+        max_iterations: Any,
+    ) -> None:
         """Property: For loops should enforce iteration bounds and maintain structure."""
         loop_config = LoopConfiguration(
             iterator_variable=IteratorVariable(iterator),
@@ -193,7 +206,12 @@ class TestControlFlowProperties:
         safe_action_block_strategy(),
         st.integers(min_value=1, max_value=1000),
     )
-    def test_while_loop_properties(self, condition: Callable[..., bool] | bool, actions: list[Any], max_iterations: Any) -> None:
+    def test_while_loop_properties(
+        self,
+        condition: Callable[..., bool] | bool,
+        actions: list[Any],
+        max_iterations: Any,
+    ) -> None:
         """Property: While loops should enforce iteration bounds and condition validity."""
         node = WhileLoopNode(
             flow_type=ControlFlowType.WHILE_LOOP,

@@ -8,7 +8,7 @@ Tests follow the proven systematic pattern that achieved 100% success across 33+
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
@@ -16,25 +16,29 @@ import pytest
 # Import actual implementation modules - SYSTEMATIC PATTERN ALIGNMENT
 from src.server.tools.visual_automation_tools import km_visual_automation
 
+if TYPE_CHECKING:
+    from fastmcp import Context
+    from src.core.either import Either
+
 # SYSTEMATIC PATTERN ALIGNMENT: Use real implementation function
 # Replace mock with actual km_visual_automation implementation
 
 
 async def mock_km_visual_automation(
-    operation: str="ocr_text",
-    region: Any=None,
-    image_template: Any=None,
-    image_data: Any=None,
-    ocr_language: Any="en",
-    confidence_threshold: Any=0.8,
-    include_coordinates: Any=True,
-    privacy_mode: Any=True,
-    timeout_seconds: Any=30,
-    cache_results: Either[Any, Any] | Any=True,
-    max_results: Either[Any, Any] | Any=10,
-    processing_options: dict[str, Any]=None,
-    ctx: Context | Any=None,
-) -> Any:
+    operation: str = "ocr_text",
+    region: Any = None,
+    image_template: Any = None,
+    image_data: Any = None,
+    ocr_language: Any = "en",
+    confidence_threshold: Any = 0.8,
+    include_coordinates: Any = True,
+    privacy_mode: Any = True,
+    timeout_seconds: Any = 30,
+    cache_results: Either[Any, Any] | Any = True,
+    max_results: Either[Any, Any] | Any = 10,
+    processing_options: dict[str, Any] = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for visual automation operations."""
     if not operation or not operation.strip():
         return {
@@ -367,7 +371,7 @@ class TestKMVisualAutomationOCR:
     """Test class for OCR-related visual automation functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -467,7 +471,7 @@ class TestKMVisualAutomationImageRecognition:
     """Test class for image recognition visual automation functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -559,7 +563,7 @@ class TestKMVisualAutomationScreenAnalysis:
     """Test class for screen analysis visual automation functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         context = Mock()
         context.meta = {"client_id": "test-client", "request_id": "test-request-001"}
@@ -657,12 +661,15 @@ class TestKMVisualAutomationAdvanced:
     """Test class for advanced visual automation functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_visual_automation_ui_element_detection(self, mock_context: Any) -> None:
+    async def test_visual_automation_ui_element_detection(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test UI element detection."""
         # SYSTEMATIC PATTERN ALIGNMENT: Use real km_visual_automation implementation
         try:
@@ -746,7 +753,7 @@ class TestKMVisualAutomationValidation:
     """Test class for visual automation validation and error handling."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -763,7 +770,10 @@ class TestKMVisualAutomationValidation:
         assert "Invalid visual operation" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_visual_automation_invalid_confidence(self, mock_context: Any) -> None:
+    async def test_visual_automation_invalid_confidence(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test visual automation with invalid confidence threshold."""
         result = await mock_km_visual_automation(
             operation="ocr_text",
@@ -792,7 +802,10 @@ class TestKMVisualAutomationValidation:
         assert "Timeout must be between 1 and 300 seconds" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_visual_automation_invalid_max_results(self, mock_context: Any) -> None:
+    async def test_visual_automation_invalid_max_results(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test visual automation with invalid max results."""
         result = await mock_km_visual_automation(
             operation="find_image",
@@ -818,7 +831,10 @@ class TestKMVisualAutomationValidation:
         assert "Region width and height must be positive" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_visual_automation_missing_region_field(self, mock_context: Any) -> None:
+    async def test_visual_automation_missing_region_field(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test visual automation with incomplete region."""
         result = await mock_km_visual_automation(
             operation="capture_screen",
@@ -835,7 +851,7 @@ class TestVisualAutomationIntegration:
     """Test class for visual automation integration workflows."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 
@@ -888,7 +904,7 @@ class TestVisualAutomationProperties:
     """Test class for visual automation property-based testing."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create a mock context for testing."""
         return Mock()
 

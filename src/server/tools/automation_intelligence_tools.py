@@ -14,7 +14,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-import mcp.types as mcp
 from src.core.contracts import ensure, require
 from src.core.either import Either
 from src.core.logging import get_logger
@@ -65,7 +64,6 @@ class AutomationIntelligenceTools:
 automation_intelligence_tools = AutomationIntelligenceTools()
 
 
-@mcp.tool()
 @require(
     lambda operation: operation
     in ["analyze", "learn", "suggest", "optimize", "predict", "insights"],
@@ -98,7 +96,7 @@ async def km_automation_intelligence(
     enable_predictions: bool = True,  # Enable predictive capabilities
     data_retention: str = "30d",  # Data retention period for learning
     anonymize_data: bool = True,  # Anonymize behavioral data
-    ctx: Any=None,
+    _ctx: Any = None,
 ) -> dict[str, Any]:
     """Advanced automation intelligence with behavioral analysis and adaptive learning.
 

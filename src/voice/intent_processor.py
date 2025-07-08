@@ -355,7 +355,7 @@ class IntentProcessor:
         self,
         recognized_text: str,
         speaker_id: SpeakerId | None = None,
-        context: dict[str, Any] | None = None,
+        _context: dict[str, Any] | None = None,
     ) -> Either[VoiceCommandError, VoiceCommand]:
         """Process recognized speech text to extract intent and create voice command.
 

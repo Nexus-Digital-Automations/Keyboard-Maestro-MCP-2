@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -583,7 +583,7 @@ def test_intelligence_async_workflow_patterns() -> bool:
         import asyncio
 
         # Test async intelligence operations
-        async def mock_workflow_analysis() -> Any:
+        async def mock_workflow_analysis() -> Mock:
             await asyncio.sleep(0.001)
             return {
                 "analysis_id": "wa_001",
@@ -598,7 +598,7 @@ def test_intelligence_async_workflow_patterns() -> bool:
                 ],
             }
 
-        async def mock_knowledge_search() -> Any:
+        async def mock_knowledge_search() -> Mock:
             await asyncio.sleep(0.001)
             return {
                 "search_id": "ks_001",
@@ -643,7 +643,7 @@ def test_intelligence_async_workflow_patterns() -> bool:
         )
 
         # Test async error handling for intelligence systems
-        async def failing_intelligence_operation() -> Any:
+        async def failing_intelligence_operation() -> Mock:
             await asyncio.sleep(0.001)
             raise ValueError("Intelligence processing failed")
 

@@ -49,7 +49,11 @@ class ActionCategory(Enum):
     AUTOMATION = "automation"
 
 
-@require(lambda title: len(title) > 0 and len(title) <= 100)
+@require(
+    lambda component_type, title, description="", default_properties=None, category=ComponentCategory.ACTIONS, subcategory=None, icon=None, color="#007AFF": len(title) > 0
+    and len(title) <= 100
+)
+@require(lambda component_type, title, description="", default_properties=None, category=ComponentCategory.ACTIONS, subcategory=None, icon=None, color="#007AFF": component_type is not None)
 def create_component_definition(
     component_type: ComponentType,
     title: str,

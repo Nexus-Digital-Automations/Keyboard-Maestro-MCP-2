@@ -320,7 +320,7 @@ class FileOperationManager:
                 if source_size > self._max_file_size:
                     return Either.left(
                         KMError.validation_error(
-                            f"File too large: {source_size} bytes"
+                            f"File too large: {source_size} bytes",
                         ),
                     )
 

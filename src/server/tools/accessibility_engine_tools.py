@@ -56,7 +56,7 @@ async def km_test_accessibility(
     accessibility_standards: list[str] = None,
     test_level: str = "comprehensive",  # basic|comprehensive|expert
     include_assistive_tech: bool = True,
-    test_interactions: bool = True,
+    _test_interactions: bool = True,
     generate_report: bool = True,
     auto_fix_issues: bool = False,
     ctx: Context = None,

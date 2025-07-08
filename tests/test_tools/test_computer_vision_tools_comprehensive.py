@@ -9,7 +9,7 @@ and comprehensive enterprise-grade validation using the proven pattern that achi
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -18,6 +18,9 @@ import pytest
 import src.server.tools.computer_vision_tools as cv_tools
 from hypothesis import given
 from hypothesis import strategies as st
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +34,7 @@ km_computer_vision_metrics = cv_tools.km_computer_vision_metrics.fn
 
 # Test data generators using systematic MCP pattern
 @st.composite
-def image_data_strategy(draw: Callable[..., Any]) -> Any:
+def image_data_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid base64 image data."""
     # Simple base64 encoded minimal image data for testing
     test_images = [
@@ -43,19 +46,19 @@ def image_data_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def confidence_strategy(draw: Callable[..., Any]) -> Any:
+def confidence_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid confidence thresholds."""
     return draw(st.floats(min_value=0.1, max_value=1.0))
 
 
 @st.composite
-def max_objects_strategy(draw: Callable[..., Any]) -> Any:
+def max_objects_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid max object counts."""
     return draw(st.integers(min_value=1, max_value=100))
 
 
 @st.composite
-def model_type_strategy(draw: Callable[..., Any]) -> Any:
+def model_type_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid model types."""
     models = ["yolo_v8", "detectron2", "custom"]
     return draw(st.sampled_from(models))
@@ -73,14 +76,14 @@ def roi_coordinates_strategy(draw: Callable[..., Any]) -> list[Any]:
 
 
 @st.composite
-def analysis_level_strategy(draw: Callable[..., Any]) -> Any:
+def analysis_level_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid analysis levels."""
     levels = ["basic", "standard", "detailed", "comprehensive"]
     return draw(st.sampled_from(levels))
 
 
 @st.composite
-def text_detection_mode_strategy(draw: Callable[..., Any]) -> Any:
+def text_detection_mode_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid text detection modes."""
     modes = ["fast", "accurate", "hybrid"]
     return draw(st.sampled_from(modes))
@@ -1059,7 +1062,12 @@ class TestComputerVisionProperties:
 
     @given(image_data_strategy(), confidence_strategy(), max_objects_strategy())
     @pytest.mark.asyncio
-    async def test_detect_objects_properties(self, image_data: Any, confidence: Any, max_objects: Any) -> None:
+    async def test_detect_objects_properties(
+        self,
+        image_data: Any,
+        confidence: Any,
+        max_objects: Any,
+    ) -> None:
         """Test properties of object detection operations."""
         with (
             patch(

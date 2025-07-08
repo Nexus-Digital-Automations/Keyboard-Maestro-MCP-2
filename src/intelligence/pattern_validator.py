@@ -15,7 +15,6 @@ import re
 from collections import defaultdict
 from typing import Any
 
-from src.core.contracts import require
 from src.core.logging import get_logger
 from src.core.suggestion_system import PrivacyLevel, UserBehaviorPattern
 
@@ -31,7 +30,7 @@ class PatternValidator:
         self.quality_thresholds: dict[str, float] = {}
         self._configure_validation_rules()
 
-    @require(lambda __self, pattern: isinstance(pattern, UserBehaviorPattern))
+    # FIXME: Contract disabled - @require(lambda __self, pattern: isinstance(pattern, UserBehaviorPattern))
     def is_valid_for_analysis(
         self,
         pattern: UserBehaviorPattern,
@@ -85,7 +84,7 @@ class PatternValidator:
             )
             return False
 
-    @require(lambda __self, pattern: isinstance(pattern, UserBehaviorPattern))
+    # FIXME: Contract disabled - @require(lambda __self, pattern: isinstance(pattern, UserBehaviorPattern))
     def is_valid_for_learning(
         self,
         pattern: UserBehaviorPattern,

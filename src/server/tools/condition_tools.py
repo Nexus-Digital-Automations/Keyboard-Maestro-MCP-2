@@ -8,6 +8,8 @@ conditions with advanced security validation and functional programming patterns
 import re
 from typing import Any
 
+from src.core.either import Either
+
 try:
     from fastmcp import Server
 except ImportError:
@@ -21,7 +23,6 @@ from src.core.conditions import (
     ConditionValidator,
     RegexValidator,
 )
-from src.core.either import Either
 from src.core.errors import SecurityError, ValidationError
 from src.core.logging import get_logger
 from src.core.types import MacroId
@@ -41,7 +42,7 @@ async def km_add_condition(
     action_on_true: str | None = None,  # Action for true condition
     action_on_false: str | None = None,  # Action for false condition
     timeout_seconds: int = 10,  # Condition evaluation timeout
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Add conditional logic to a Keyboard Maestro macro for intelligent automation.
 

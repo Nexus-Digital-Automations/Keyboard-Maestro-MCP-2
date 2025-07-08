@@ -8,6 +8,7 @@ layout algorithms for all display configurations and window arrangements.
 from __future__ import annotations
 
 import asyncio
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from hypothesis import given
@@ -23,6 +24,9 @@ from src.core.errors import ContractViolationError, ValidationError
 from src.window.advanced_positioning import AdvancedPositioning, SmartPositionRequest
 from src.window.grid_manager import AdvancedGridManager, GridCalculator, WindowPosition
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 class TestDisplayProperties:
     """Property-based tests for display information and topology."""
@@ -32,7 +36,12 @@ class TestDisplayProperties:
         st.integers(min_value=1, max_value=4320),  # 8K height
         st.floats(min_value=0.5, max_value=4.0),  # Scale factor
     )
-    def test_display_info_properties(self, width: int, height: int, scale_factor: Any) -> None:
+    def test_display_info_properties(
+        self,
+        width: int,
+        height: int,
+        scale_factor: Any,
+    ) -> None:
         """Property: Display info should handle all valid dimensions and scale factors."""
         display = DisplayInfo(
             display_id=0,
@@ -59,7 +68,13 @@ class TestDisplayProperties:
         st.integers(min_value=100, max_value=2000),  # width
         st.integers(min_value=100, max_value=1500),  # height
     )
-    def test_display_contains_point_properties(self, x: Any, y: Any, width: int, height: int) -> None:
+    def test_display_contains_point_properties(
+        self,
+        x: Any,
+        y: Any,
+        width: int,
+        height: int,
+    ) -> None:
         """Property: Display point containment should work for all valid coordinates."""
         display = DisplayInfo(
             display_id=0,
@@ -160,7 +175,12 @@ class TestGridCalculationProperties:
             ],
         ),
     )
-    def test_grid_position_calculation_properties(self, window_count: int, padding: Any, pattern: str) -> None:
+    def test_grid_position_calculation_properties(
+        self,
+        window_count: int,
+        padding: Any,
+        pattern: str,
+    ) -> None:
         """Property: Grid calculations should produce valid positions for all inputs."""
         display = DisplayInfo(
             display_id=0,
@@ -208,7 +228,13 @@ class TestGridCalculationProperties:
         st.integers(min_value=1, max_value=16),  # window count
         st.integers(min_value=0, max_value=20),  # padding
     )
-    def test_standard_grid_properties(self, rows: list[Any], columns: list[Any], window_count: int, padding: int) -> None:
+    def test_standard_grid_properties(
+        self,
+        rows: list[Any],
+        columns: list[Any],
+        window_count: int,
+        padding: int,
+    ) -> None:
         """Property: Standard grid calculations should respect grid dimensions."""
         total_width = 1920
         total_height = 1080
@@ -283,7 +309,13 @@ class TestAdvancedPositioningProperties:
         st.integers(min_value=100, max_value=800),  # window width
         st.integers(min_value=100, max_value=600),  # window height
     )
-    def test_relative_position_properties(self, rel_x: Any, rel_y: Any, width: int, height: int) -> None:
+    def test_relative_position_properties(
+        self,
+        rel_x: Any,
+        rel_y: Any,
+        width: int,
+        height: int,
+    ) -> None:
         """Property: Relative position calculations should preserve proportions."""
         source_display = DisplayInfo(
             display_id=0,
@@ -357,7 +389,10 @@ class TestAdvancedPositioningProperties:
             max_size=8,
         ),
     )
-    def test_smart_position_request_properties(self, window_names: list[Any] | str) -> None:
+    def test_smart_position_request_properties(
+        self,
+        window_names: list[Any] | str,
+    ) -> None:
         """Property: Smart position requests should handle all valid window configurations."""
         requests = []
         for name in window_names:
@@ -399,7 +434,13 @@ class TestCoordinateMathProperties:
         st.integers(min_value=1, max_value=2000),  # width
         st.integers(min_value=1, max_value=1500),  # height
     )
-    def test_bounds_validation_properties(self, x: Callable[..., Any], y: Any, width: int, height: int) -> None:
+    def test_bounds_validation_properties(
+        self,
+        x: Callable[..., Any],
+        y: Any,
+        width: int,
+        height: int,
+    ) -> None:
         """Property: Bounds validation should correctly identify valid/invalid positions."""
         from src.window.grid_manager import GridCalculator
 
@@ -431,7 +472,11 @@ class TestCoordinateMathProperties:
         st.lists(st.integers(min_value=0, max_value=4), min_size=1, max_size=10),
         st.integers(min_value=1, max_value=5),
     )
-    def test_display_targeting_properties(self, display_indices: list[Any] | str, available_count: int) -> None:
+    def test_display_targeting_properties(
+        self,
+        display_indices: list[Any] | str,
+        available_count: int,
+    ) -> None:
         """Property: Display targeting should validate index bounds correctly."""
         # Create mock displays
         displays = []

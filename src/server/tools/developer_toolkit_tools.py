@@ -19,7 +19,6 @@ from typing import Annotated, Any
 import mcp
 from pydantic import Field
 
-from ...core.context import Context
 from ...core.developer_toolkit import (
     APIOperation,
     CodeQualityCheck,
@@ -68,7 +67,7 @@ async def km_git_operations(
         bool,
         Field(description="Include git submodules"),
     ] = False,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Perform Git operations for version control automation.
 
@@ -288,7 +287,7 @@ async def km_cicd_pipeline(
         list[str],
         Field(description="Notification channels for pipeline events"),
     ] = None,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Manage CI/CD pipelines for automated development workflows.
 
@@ -512,7 +511,7 @@ async def km_api_management(
         bool,
         Field(description="Enable API monitoring and analytics"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Comprehensive API management including discovery, documentation, and governance.
 
@@ -812,7 +811,7 @@ async def km_code_quality_automation(
         str,
         Field(description="Integration mode (ci|ide|standalone)"),
     ] = "ci",
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Automated code quality analysis and security scanning.
 

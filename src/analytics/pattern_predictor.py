@@ -222,7 +222,7 @@ class PatternPredictor:
     async def _detect_usage_frequency_patterns(
         self,
         features: list[PatternFeature],
-        min_confidence: float,
+        _min_confidence: float,
     ) -> Either[PredictiveModelingError, list[DetectedPattern]]:
         """Detect usage frequency patterns in automation data."""
         try:
@@ -540,7 +540,7 @@ class PatternPredictor:
     async def _detect_error_patterns(
         self,
         features: list[PatternFeature],
-        min_confidence: float,
+        _min_confidence: float,
     ) -> Either[PredictiveModelingError, list[DetectedPattern]]:
         """Detect error occurrence patterns."""
         try:

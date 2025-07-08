@@ -194,7 +194,7 @@ class VisualConnection:
     def is_valid_connection(
         self,
         source_type: ComponentType,
-        target_type: ComponentType,
+        _target_type: ComponentType,
     ) -> bool:
         """Validate connection compatibility."""
         # Define valid connection rules

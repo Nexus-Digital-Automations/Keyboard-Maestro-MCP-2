@@ -32,6 +32,7 @@ from ..core.either import Either
 if TYPE_CHECKING:
     from pathlib import Path
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -371,7 +372,7 @@ class AzureConnector:
 
     async def _apply_storage_security_config(
         self,
-        storage_client: Any,
+        _storage_client: Any,
         resource_group: str,
         account_name: str,
         config: dict[str, Any],

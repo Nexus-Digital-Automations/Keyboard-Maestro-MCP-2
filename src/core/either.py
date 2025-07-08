@@ -186,20 +186,20 @@ class _Left(Either[A, B]):
     def get_right(self) -> B:
         raise ValueError("Cannot get Right value from Left")
 
-    def map(self, f: Callable[[B], C]) -> Either[A, C]:
+    def map(self, _f: Callable[[B], C]) -> Either[A, C]:
         return _Left(self._value)
 
-    def flat_map(self, f: Callable[[B], Either[A, C]]) -> Either[A, C]:
+    def flat_map(self, _f: Callable[[B], Either[A, C]]) -> Either[A, C]:
         return _Left(self._value)
 
     def map_left(self, f: Callable[[A], C]) -> Either[C, B]:
         return _Left(f(self._value))
 
-    def filter(self, predicate: Callable[[B], bool], error: A) -> Either[A, B]:
+    def filter(self, _predicate: Callable[[B], bool], _error: A) -> Either[A, B]:
         """Filter operation on Left returns the same Left."""
         return _Left(self._value)
 
-    def fold(self, left_func: Callable[[A], C], right_func: Callable[[B], C]) -> C:
+    def fold(self, left_func: Callable[[A], C], _right_func: Callable[[B], C]) -> C:
         """Fold Left value using left_func."""
         return left_func(self._value)
 
@@ -234,7 +234,7 @@ class _Right(Either[A, B]):
     def flat_map(self, f: Callable[[B], Either[A, C]]) -> Either[A, C]:
         return f(self._value)
 
-    def map_left(self, f: Callable[[A], C]) -> Either[C, B]:
+    def map_left(self, _f: Callable[[A], C]) -> Either[C, B]:
         return _Right(self._value)
 
     def filter(self, predicate: Callable[[B], bool], error: A) -> Either[A, B]:
@@ -243,7 +243,7 @@ class _Right(Either[A, B]):
             return _Right(self._value)
         return _Left(error)
 
-    def fold(self, left_func: Callable[[A], C], right_func: Callable[[B], C]) -> C:
+    def fold(self, _left_func: Callable[[A], C], right_func: Callable[[B], C]) -> C:
         """Fold Right value using right_func."""
         return right_func(self._value)
 

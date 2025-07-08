@@ -434,7 +434,7 @@ class SpeechRecognizer:
         self,
         audio_input: AudioInput,
         settings: RecognitionSettings,
-        engine: RecognitionEngine,
+        _engine: RecognitionEngine,
     ) -> Either[SpeechRecognitionError, VoiceRecognitionResult]:
         """Recognize speech using OpenAI Whisper API."""
         try:
@@ -476,7 +476,7 @@ class SpeechRecognizer:
         self,
         audio_input: AudioInput,
         settings: RecognitionSettings,
-        engine: RecognitionEngine,
+        _engine: RecognitionEngine,
     ) -> Either[SpeechRecognitionError, VoiceRecognitionResult]:
         """Recognize speech using Google Speech-to-Text API."""
         try:
@@ -519,7 +519,7 @@ class SpeechRecognizer:
         self,
         audio_input: AudioInput,
         settings: RecognitionSettings,
-        engine: RecognitionEngine,
+        _engine: RecognitionEngine,
     ) -> Either[SpeechRecognitionError, VoiceRecognitionResult]:
         """Recognize speech using Azure Speech Services."""
         try:

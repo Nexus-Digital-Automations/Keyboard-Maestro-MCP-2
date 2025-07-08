@@ -32,13 +32,13 @@ async def km_ecosystem_orchestrator(
     execution_mode: str = "parallel",  # sequential|parallel|adaptive|pipeline
     resource_strategy: str = "balanced",  # conservative|balanced|aggressive|unlimited
     monitoring_level: str = "comprehensive",  # minimal|standard|detailed|comprehensive
-    cache_strategy: str = "intelligent",  # none|basic|intelligent|predictive
-    error_handling: str = "resilient",  # fail_fast|resilient|recovery|adaptive
+    _cache_strategy: str = "intelligent",  # none|basic|intelligent|predictive
+    _error_handling: str = "resilient",  # fail_fast|resilient|recovery|adaptive
     enterprise_mode: bool = True,  # Enable enterprise features and compliance
     strategic_planning: bool = True,  # Enable strategic automation planning
     ml_optimization: bool = True,  # Enable ML-based optimization
     timeout: int = 600,  # Orchestration timeout
-    ctx: Any=None,
+    _ctx: Any = None,
 ) -> dict[str, Any]:
     """Master orchestration system for coordinating all 48 ecosystem tools.
 
@@ -181,7 +181,7 @@ async def _handle_orchestrate(
     workflow_definition: dict | None,
     execution_mode: str,
     optimization_target: str,
-    timeout: int,
+    _timeout: int,
 ) -> dict[str, Any]:
     """Handle intelligent workflow orchestration."""
     # Map string parameters to enums
@@ -255,7 +255,7 @@ async def _handle_optimize(
     orchestrator: EcosystemOrchestrator,
     optimization_target: str,
     resource_strategy: str,
-    timeout: int,
+    _timeout: int,
 ) -> dict[str, Any]:
     """Handle system-wide optimization."""
     # Map string to optimization target enum
@@ -298,7 +298,7 @@ async def _handle_optimize(
 async def _handle_monitor(
     orchestrator: EcosystemOrchestrator,
     monitoring_level: str,
-    timeout: int,
+    _timeout: int,
 ) -> dict[str, Any]:
     """Handle system-wide performance monitoring."""
     # Get comprehensive monitoring data
@@ -337,7 +337,7 @@ async def _handle_strategic_plan(
     orchestrator: EcosystemOrchestrator,
     workflow_definition: dict | None,
     strategic_planning: bool,
-    timeout: int,
+    _timeout: int,
 ) -> dict[str, Any]:
     """Handle strategic automation planning."""
     if not strategic_planning:
@@ -392,7 +392,7 @@ async def _handle_coordinate(
     orchestrator: EcosystemOrchestrator,
     tool_selection: str,
     resource_strategy: str,
-    timeout: int,
+    _timeout: int,
 ) -> dict[str, Any]:
     """Handle inter-tool coordination."""
     # Get ecosystem statistics for coordination analysis
@@ -457,7 +457,7 @@ async def _handle_coordinate(
 async def _handle_analyze(
     orchestrator: EcosystemOrchestrator,
     monitoring_level: str,
-    timeout: int,
+    _timeout: int,
 ) -> dict[str, Any]:
     """Handle comprehensive ecosystem analysis."""
     # Get comprehensive ecosystem analysis
@@ -510,7 +510,7 @@ async def _get_tool_performance_details(
 
 
 async def _get_performance_trends(
-    orchestrator: EcosystemOrchestrator,
+    _orchestrator: EcosystemOrchestrator,
 ) -> dict[str, Any]:
     """Get performance trends over time."""
     # This would analyze historical metrics
@@ -524,7 +524,7 @@ async def _get_performance_trends(
 
 
 async def _get_predictive_insights(
-    orchestrator: EcosystemOrchestrator,
+    _orchestrator: EcosystemOrchestrator,
 ) -> dict[str, Any]:
     """Get predictive insights for system optimization."""
     return {
@@ -541,7 +541,9 @@ async def _get_predictive_insights(
     }
 
 
-def _identify_coordination_clusters(tool_registry: dict[str, Any] | Any) -> list[dict[str, Any]]:
+def _identify_coordination_clusters(
+    tool_registry: dict[str, Any] | Any,
+) -> list[dict[str, Any]]:
     """Identify clusters of tools that work well together."""
     clusters = []
 
@@ -610,7 +612,9 @@ def _generate_recommended_workflows(
     return workflows
 
 
-def _analyze_ecosystem_capabilities(tool_registry: dict[str, Any] | Any) -> dict[str, Any]:
+def _analyze_ecosystem_capabilities(
+    tool_registry: dict[str, Any] | Any,
+) -> dict[str, Any]:
     """Analyze comprehensive ecosystem capabilities."""
     all_capabilities = set()
     capability_coverage = {}
@@ -680,7 +684,9 @@ async def _analyze_ecosystem_performance(
         }
 
 
-def _analyze_integration_patterns(tool_registry: dict[str, Any] | Any) -> dict[str, Any]:
+def _analyze_integration_patterns(
+    tool_registry: dict[str, Any] | Any,
+) -> dict[str, Any]:
     """Analyze integration patterns across tools."""
     integration_analysis = {
         "cross_category_integrations": 0,
@@ -712,7 +718,7 @@ def _analyze_integration_patterns(tool_registry: dict[str, Any] | Any) -> dict[s
 
 
 def _generate_optimization_recommendations(
-    orchestrator: EcosystemOrchestrator,
+    _orchestrator: EcosystemOrchestrator,
 ) -> list[str]:
     """Generate comprehensive optimization recommendations."""
     return [

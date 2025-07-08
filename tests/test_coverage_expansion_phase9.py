@@ -661,7 +661,7 @@ def test_analytics_validation_async_functionality() -> bool:
         import asyncio
 
         # Test async validation operations
-        async def mock_model_validation() -> Any:
+        async def mock_model_validation() -> Mock:
             await asyncio.sleep(0.001)
             return {
                 "validation_id": "val_001",
@@ -678,7 +678,7 @@ def test_analytics_validation_async_functionality() -> bool:
                 },
             }
 
-        async def mock_control_flow_execution() -> Any:
+        async def mock_control_flow_execution() -> Mock:
             await asyncio.sleep(0.001)
             return {
                 "execution_id": "exec_001",
@@ -695,7 +695,7 @@ def test_analytics_validation_async_functionality() -> bool:
                 },
             }
 
-        async def mock_insight_generation() -> Any:
+        async def mock_insight_generation() -> Mock:
             await asyncio.sleep(0.001)
             return {
                 "insight_id": "insight_001",
@@ -726,7 +726,7 @@ def test_analytics_validation_async_functionality() -> bool:
         assert len(insight_result["generated_insights"]) == 3
 
         # Test async error handling for validation systems
-        async def failing_validation_operation() -> Any:
+        async def failing_validation_operation() -> Mock:
             await asyncio.sleep(0.001)
             raise ValueError("Model validation failed")
 

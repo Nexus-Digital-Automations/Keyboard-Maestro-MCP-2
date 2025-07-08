@@ -26,7 +26,7 @@ class AnomalyPredictor:
 
     async def predict_anomalies(
         self,
-        metrics_data: list[dict[str, Any]],
+        _metrics_data: list[dict[str, Any]],
     ) -> Either[Exception, list[AnomalyPrediction]]:
         """Predict potential anomalies in system behavior."""
         try:

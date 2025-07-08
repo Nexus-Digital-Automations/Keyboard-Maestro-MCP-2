@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC, datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from src.iot.edge_processor import (
@@ -609,7 +609,7 @@ class TestEdgeProcessorConcurrency:
                     break
             return results
 
-        async def submit_more_tasks() -> Any:
+        async def submit_more_tasks() -> Mock:
             additional_tasks = [
                 create_edge_task(f"additional_device_{i}", f"Additional Task {i}")
                 for i in range(2)

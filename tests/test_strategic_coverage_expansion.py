@@ -335,7 +335,7 @@ class TestIntegrationCoverage:
                 result = await self._simulate_secure_analytics()
                 assert result is not None
 
-    async def _simulate_secure_analytics(self) -> Any:
+    async def _simulate_secure_analytics(self) -> Mock:
         """Simulate secure analytics workflow."""
         return {"status": "success", "data": "processed"}
 
@@ -426,7 +426,10 @@ class TestPerformanceCoverage:
             max_size=5,
         ),
     )
-    def test_data_processing_performance(self, test_data: list[dict[str, str]]) -> dict[str, Any]:
+    def test_data_processing_performance(
+        self,
+        test_data: list[dict[str, str]],
+    ) -> dict[str, Any]:
         """Property-based performance test for data processing."""
         # Test that large data processing doesn't crash or timeout
         try:

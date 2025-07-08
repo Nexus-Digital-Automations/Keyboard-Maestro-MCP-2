@@ -48,7 +48,7 @@ class KeyboardController:
         self,
         text: str,
         delay_between_chars: int | None = None,
-        preserve_case: bool = True,
+        _preserve_case: bool = True,
     ) -> Either[SecurityError, dict[str, Any]]:
         """Type text with character-by-character timing and security validation.
 
@@ -473,7 +473,7 @@ end tell
     def _generate_key_combination_applescript(
         self,
         keyboard_event: KeyboardEvent,
-        sequential: bool,
+        _sequential: bool,
     ) -> str:
         """Generate AppleScript for key combination."""
         modifiers = []

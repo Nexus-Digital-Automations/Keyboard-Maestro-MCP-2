@@ -536,7 +536,7 @@ class CommandProcessor:
         self,
         intent: RecognizedIntent,
         entities: list[ExtractedEntity],
-        context_domain: str | None,
+        _context_domain: str | None,
     ) -> list[dict[str, Any]]:
         """Generate automation actions based on recognized intent and entities."""
         actions = []

@@ -1,9 +1,11 @@
 """Accessibility Architecture - TASK_57 Phase 1 Implementation.
 
 Core accessibility types and compliance framework for automated testing and validation.
-Provides comprehensive WCAG compliance, assistive technology integration, and accessibility testing.
+Provides comprehensive WCAG compliance, assistive technology integration, and
+accessibility testing.
 
-Architecture: Accessibility Types + WCAG Standards + Compliance Framework + Testing Integration
+Architecture: Accessibility Types + WCAG Standards + Compliance Framework
+    + Testing Integration
 Performance: <50ms compliance checks, efficient accessibility validation
 Security: Safe accessibility testing, secure assistive technology integration
 """
@@ -472,10 +474,11 @@ def get_wcag_criteria_by_level(
     criteria = []
     for criterion in WCAG_2_1_CRITERIA.values():
         if (
-            level == ConformanceLevel.A
-            and criterion.level == ConformanceLevel.A
-            or level == ConformanceLevel.AA
-            and criterion.level in [ConformanceLevel.A, ConformanceLevel.AA]
+            (level == ConformanceLevel.A and criterion.level == ConformanceLevel.A)
+            or (
+                level == ConformanceLevel.AA
+                and criterion.level in [ConformanceLevel.A, ConformanceLevel.AA]
+            )
             or level == ConformanceLevel.AAA
         ):
             criteria.append(criterion)

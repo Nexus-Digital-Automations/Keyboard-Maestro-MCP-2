@@ -229,7 +229,7 @@ class WorkflowDefinition:
 
     def estimate_execution_time(
         self,
-        tool_registry: dict[ToolId, ToolCapability],
+        _tool_registry: dict[ToolId, ToolCapability],
     ) -> timedelta:
         """Estimate workflow execution time."""
         sequential_time = 0.0

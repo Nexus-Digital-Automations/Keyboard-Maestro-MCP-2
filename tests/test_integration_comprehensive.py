@@ -11,15 +11,15 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
+from src.core.either import Either
 
 # Test imports with graceful fallbacks
 try:
-    from src.core.either import Either
     from src.integration.file_monitor import (
         FileEvent,
         FileEventType,
@@ -810,7 +810,11 @@ class TestProtocolHandler:
 
     @given(st.text(min_size=1, max_size=20), st.dictionaries(st.text(), st.text()))
     @settings(max_examples=10)
-    def test_message_property_based(self, message_id: str, payload: dict[str, Any] | str | bytes) -> None:
+    def test_message_property_based(
+        self,
+        message_id: str,
+        payload: dict[str, Any] | str | bytes,
+    ) -> None:
         """Property-based test for message handling."""
         if not INTEGRATION_AVAILABLE:
             pytest.skip("Integration module not available")
@@ -910,7 +914,7 @@ class TestIntegrationScenarios:
         # Setup event handler to bridge file monitor and trigger manager
         triggered_actions = []
 
-        def file_event_handler(event: FileEvent) -> Any:
+        def file_event_handler(event: FileEvent) -> Mock:
             if event.file_path.endswith(".txt"):
                 # Convert file event to trigger event
                 trigger_event = {"type": "file_created", "path": event.file_path}

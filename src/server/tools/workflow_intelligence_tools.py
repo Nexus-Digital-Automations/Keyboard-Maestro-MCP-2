@@ -15,7 +15,6 @@ from typing import Annotated, Any
 from fastmcp import FastMCP
 from pydantic import Field
 
-from ...core.types import ExecutionContext
 from ...core.workflow_intelligence import (
     IntelligenceLevel,
     OptimizationGoal,
@@ -66,7 +65,7 @@ async def km_analyze_workflow_intelligence(
         bool,
         Field(description="Enable cross-tool optimization analysis"),
     ] = True,
-    ctx: ExecutionContext = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Analyze workflow intelligence with AI-powered insights and optimization recommendations.
 
@@ -318,7 +317,7 @@ async def km_create_workflow_from_description(
         bool,
         Field(description="Generate visual workflow design"),
     ] = True,
-    ctx: ExecutionContext = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Create intelligent workflow from natural language description.
 
@@ -546,7 +545,7 @@ async def km_optimize_workflow_performance(
         bool,
         Field(description="Preserve all original functionality"),
     ] = True,
-    ctx: ExecutionContext = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Optimize workflow performance using AI-powered analysis and cross-tool optimization.
 
@@ -774,7 +773,7 @@ async def km_generate_workflow_recommendations(
         bool,
         Field(description="Enable personalized recommendations"),
     ] = True,
-    ctx: ExecutionContext = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Generate intelligent workflow recommendations based on context and AI analysis.
 

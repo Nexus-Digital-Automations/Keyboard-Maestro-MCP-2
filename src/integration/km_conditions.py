@@ -165,7 +165,8 @@ class KMConditionIntegrator:
             if not exists:
                 return Either.left(
                     IntegrationError(
-                        "MACRO_NOT_FOUND", f"Macro '{macro_id}' not found"
+                        "MACRO_NOT_FOUND",
+                        f"Macro '{macro_id}' not found",
                     ),
                 )
 
@@ -256,8 +257,8 @@ class KMConditionIntegrator:
         self,
         macro_id: MacroId,
         condition_xml: str,
-        action_on_true: str | None,
-        action_on_false: str | None,
+        _action_on_true: str | None,
+        _action_on_false: str | None,
     ) -> Either[IntegrationError, str]:
         """Generate AppleScript to add condition to macro."""
         try:
@@ -370,7 +371,7 @@ class KMConditionIntegrator:
 
         # Validate XML structure
         try:
-            ET.fromstring(xml_content)  # noqa: S314 # Using defusedxml import
+            ET.fromstring(xml_content)  # noqa: S314 # Using defusedxml import for safety
         except ET.ParseError as e:
             return Either.left(
                 SecurityError("INVALID_XML", f"XML parsing error: {e!s}"),
@@ -383,9 +384,9 @@ class KMConditionIntegrator:
 async def add_text_condition(
     macro_id: MacroId,
     target_text: str,
-    operator: ComparisonOperator,
-    comparison_value: str,
-    case_sensitive: bool = True,
+    _operator: ComparisonOperator,
+    _comparison_value: str,
+    _case_sensitive: bool = True,
 ) -> Either[IntegrationError, dict[str, Any]]:
     """Add a text condition to a macro."""
     from src.core.conditions import ConditionBuilder
@@ -408,8 +409,8 @@ async def add_text_condition(
 async def add_app_condition(
     macro_id: MacroId,
     app_identifier: str,
-    operator: ComparisonOperator,
-    expected_value: str,
+    _operator: ComparisonOperator,
+    _expected_value: str,
 ) -> Either[IntegrationError, dict[str, Any]]:
     """Add an application condition to a macro."""
     from src.core.conditions import ConditionBuilder

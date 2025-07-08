@@ -46,7 +46,7 @@ from src.server.tools.user_identity_tools import (
 
 
 @pytest.fixture
-def mock_context() -> Any:
+def mock_context() -> Mock:
     """Create a mock FastMCP Context for testing."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -59,7 +59,7 @@ def mock_context() -> Any:
 
 
 @pytest.fixture
-def sample_user_data() -> Any:
+def sample_user_data() -> Mock:
     """Sample user data for testing."""
     return {
         "username": "testuser",
@@ -96,7 +96,7 @@ class TestKMAuthenticateUser:
         mock_auth_result.username = sample_user_data["username"]
         mock_auth_result.authentication_method = AuthenticationMethod.PASSWORD
         mock_auth_result.security_level = SecurityLevel.MEDIUM
-        mock_auth_result.session_token = "test-token-789"  # noqa: S105 - Test authentication token
+        mock_auth_result.session_token = "test-token-789"  # noqa: S105 # Test fixture
         mock_auth_result.processing_time_ms = 50.0
         mock_auth_result.authenticated_at = datetime.now(UTC)
         mock_auth_result.expires_at = datetime.now(UTC) + timedelta(hours=8)
@@ -161,12 +161,15 @@ class TestKMAuthenticateUser:
         assert "password" in result["supported_methods"]
 
     @pytest.mark.asyncio
-    async def test_authenticate_user_invalid_security_level(self, mock_context: Any) -> None:
+    async def test_authenticate_user_invalid_security_level(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test authentication with invalid security level."""
         result = await km_authenticate_user(
             username="testuser",
             authentication_method="password",
-            password="test123",  # noqa: S106 - Test authentication data
+            password="test123",  # noqa: S106 # Test fixture
             security_level="invalid_level",
             ctx=mock_context,
         )
@@ -202,12 +205,15 @@ class TestKMAuthenticateUser:
         assert "error_code" in result or result["success"]
 
     @pytest.mark.asyncio
-    async def test_authenticate_user_timeout_validation(self, mock_context: Any) -> None:
+    async def test_authenticate_user_timeout_validation(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test timeout parameter validation."""
         result = await km_authenticate_user(
             username="testuser",
             authentication_method="password",
-            password="test123",  # noqa: S106 - Test authentication data
+            password="test123",  # noqa: S106 # Test fixture
             timeout=500,  # Beyond max limit
             ctx=mock_context,
         )
@@ -426,7 +432,10 @@ class TestKMPersonalizeAutomation:
         assert result["settings"]["learning_mode"]
 
     @pytest.mark.asyncio
-    async def test_personalize_automation_different_levels(self, mock_context: Any) -> None:
+    async def test_personalize_automation_different_levels(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test different adaptation levels."""
         adaptation_levels = ["light", "moderate", "comprehensive"]
 
@@ -443,7 +452,10 @@ class TestKMPersonalizeAutomation:
                 assert result["adaptation_level"] == level
 
     @pytest.mark.asyncio
-    async def test_personalize_automation_user_not_found(self, mock_context: Any) -> None:
+    async def test_personalize_automation_user_not_found(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test personalization for non-existent user."""
         result = await km_personalize_automation(
             user_identity="nonexistent_user_98765",
@@ -848,7 +860,10 @@ class TestUserIdentityToolsSecurity:
     """Security-focused tests for user identity tools."""
 
     @pytest.mark.asyncio
-    async def test_authentication_sql_injection_prevention(self, mock_context: Any) -> None:
+    async def test_authentication_sql_injection_prevention(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test SQL injection prevention in authentication."""
         malicious_usernames = [
             "admin'; DROP TABLE users; --",
@@ -859,11 +874,11 @@ class TestUserIdentityToolsSecurity:
 
         for malicious_username in malicious_usernames:
             # S106 fix: Use variable instead of hardcoded password in test
-            test_password = "test123"  # noqa: S105 - Test credential, not production
+            test_password = "test123"  # noqa: S105 # Test fixture
             result = await km_authenticate_user(
                 username=malicious_username,
                 authentication_method="password",
-                password=test_password,  # noqa: S106 - Test authentication data
+                password=test_password,
                 ctx=mock_context,
             )
 
@@ -901,7 +916,10 @@ class TestUserIdentityToolsSecurity:
                 assert "javascript:" not in result["username"]
 
     @pytest.mark.asyncio
-    async def test_profile_management_path_traversal_prevention(self, mock_context: Any) -> None:
+    async def test_profile_management_path_traversal_prevention(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test path traversal prevention in profile management."""
         malicious_user_identities = [
             "../../../etc/passwd",
@@ -957,11 +975,11 @@ class TestUserIdentityToolsPerformance:
         start_time = datetime.now(UTC)
 
         # S106 fix: Use variable instead of hardcoded password in test
-        test_admin_password = "SecureAdmin123!"  # noqa: S105 - Test credential, not production
+        test_admin_password = "SecureAdmin123!"  # noqa: S105 # Test fixture
         result = await km_authenticate_user(
             username="admin",
             authentication_method="password",
-            password=test_admin_password,  # noqa: S106 - Test authentication data
+            password=test_admin_password,
             ctx=mock_context,
         )
 
@@ -1022,7 +1040,11 @@ class TestUserIdentityToolsIntegration:
     """Integration tests for user identity tool workflows."""
 
     @pytest.mark.asyncio
-    async def test_complete_identity_workflow(self, mock_context: Any, sample_user_data: Any) -> None:
+    async def test_complete_identity_workflow(
+        self,
+        mock_context: Any,
+        sample_user_data: Any,
+    ) -> None:
         """Test complete user identity workflow."""
         # Create comprehensive mocks for all identity components
         mock_user_profile = Mock()
@@ -1049,8 +1071,8 @@ class TestUserIdentityToolsIntegration:
         mock_auth_result.authentication_method = AuthenticationMethod.PASSWORD
         mock_auth_result.security_level = SecurityLevel.MEDIUM
         # S105 fix: Use variable instead of hardcoded token in test
-        test_session_token = "token123"  # noqa: S105 - Test token, not production
-        mock_auth_result.session_token = test_session_token  # noqa: S105 - Test session data
+        test_session_token = "token123"  # noqa: S105 # Test fixture
+        mock_auth_result.session_token = test_session_token
         mock_auth_result.expires_at = datetime.now(UTC) + timedelta(hours=8)
         mock_auth_result.permissions = ["read", "execute"]
         mock_auth_result.processing_time_ms = 45.0
@@ -1251,7 +1273,10 @@ class TestUserIdentityToolsProperties:
     """Property-based tests for user identity tools."""
 
     @pytest.mark.asyncio
-    async def test_authentication_input_validation_properties(self, mock_context: Any) -> None:
+    async def test_authentication_input_validation_properties(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Property: Authentication should validate all inputs safely."""
         # S311 fix: Use secrets module for cryptographically secure random generation
         # (import moved to top for better organization)

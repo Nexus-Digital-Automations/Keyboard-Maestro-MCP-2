@@ -128,7 +128,7 @@ class TestFastMCPIntegration:
     """Test basic FastMCP integration for tools."""
 
     @pytest.fixture
-    def mock_fastmcp(self) -> Any:
+    def mock_fastmcp(self) -> Mock:
         """Create a mock FastMCP instance."""
         mcp = Mock()
         mcp.tool = Mock(return_value=lambda func: func)

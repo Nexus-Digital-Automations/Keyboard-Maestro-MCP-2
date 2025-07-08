@@ -14,7 +14,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Annotated, Any
 
-from fastmcp import Context, FastMCP
+from fastmcp import FastMCP
 from pydantic import Field
 
 from ...core.user_identity_architecture import (
@@ -82,7 +82,7 @@ async def km_authenticate_user(
         int,
         Field(description="Authentication timeout in seconds", ge=5, le=300),
     ] = 30,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Perform username-based authentication with session management and security protection.
 
@@ -221,11 +221,11 @@ async def km_identify_user(
         dict[str, Any],
         Field(description="Context for user identification"),
     ],
-    create_profile: Annotated[
+    _create_profile: Annotated[
         bool,
         Field(description="Create new profile if user not found"),
     ] = False,
-    update_profile: Annotated[
+    _update_profile: Annotated[
         bool,
         Field(description="Update existing profile with new data"),
     ] = True,
@@ -241,11 +241,11 @@ async def km_identify_user(
         str,
         Field(description="Privacy level (minimal|standard|enhanced)"),
     ] = "standard",
-    session_tracking: Annotated[
+    _session_tracking: Annotated[
         bool,
         Field(description="Enable session-based user tracking"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Identify users from context and retrieve personalized profiles and preferences.
 
@@ -388,7 +388,7 @@ async def km_personalize_automation(
         bool,
         Field(description="Share personalization across sessions"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Personalize automation workflows and interfaces based on user identity and preferences.
 
@@ -487,7 +487,7 @@ async def km_manage_user_profiles(
         Field(description="Operation (create|update|delete|backup|restore|list)"),
     ],
     user_identity: Annotated[str, Field(description="User identity or profile ID")],
-    profile_data: Annotated[
+    _profile_data: Annotated[
         dict[str, Any] | None,
         Field(description="Profile data for create/update operations"),
     ] = None,
@@ -499,7 +499,7 @@ async def km_manage_user_profiles(
         str,
         Field(description="Encryption level (standard|high|military)"),
     ] = "high",
-    backup_location: Annotated[
+    _backup_location: Annotated[
         str | None,
         Field(description="Backup location for profile data"),
     ] = None,
@@ -515,7 +515,7 @@ async def km_manage_user_profiles(
         bool,
         Field(description="Enable audit logging for profile operations"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Manage user profiles with encryption, backup, and compliance features.
 
@@ -716,7 +716,7 @@ async def km_analyze_user_behavior(
         bool,
         Field(description="Provide adaptive automation recommendations"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Analyze user behavior patterns for improved personalization and automation optimization.
 
@@ -868,7 +868,7 @@ async def km_switch_user_context(
         bool,
         Field(description="Audit the user context switch"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Switch user context for multi-user automation environments.
 

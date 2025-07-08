@@ -75,7 +75,7 @@ async def km_clipboard_manager(
             max_length=1_000_000,
         ),
     ] = None,
-    format_filter: Annotated[
+    _format_filter: Annotated[
         str,
         Field(
             default="text",

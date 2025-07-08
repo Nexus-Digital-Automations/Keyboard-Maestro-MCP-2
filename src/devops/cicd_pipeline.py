@@ -346,7 +346,7 @@ class CICDPipeline:
     async def execute_pipeline(
         self,
         pipeline_id: str,
-        trigger_context: dict[str, Any] | None = None,
+        _trigger_context: dict[str, Any] | None = None,
         override_environment: dict[str, str] | None = None,
     ) -> Either[OrchestrationError, BuildResult]:
         """Execute a CI/CD pipeline."""

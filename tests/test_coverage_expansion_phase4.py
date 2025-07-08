@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
+from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
@@ -30,12 +31,11 @@ def test_testing_automation_tools_systematic_import() -> None:
 
         # Test if FastMCP tools are available for extraction
         potential_tools = [
-            "km_create_test_suite",
-            "km_run_automated_tests",
-            "km_analyze_test_results",
-            "km_generate_test_data",
-            "km_create_performance_tests",
-            "km_manage_test_environments",
+            "km_run_comprehensive_tests",
+            "km_validate_automation_quality",
+            "km_detect_regressions",
+            "km_generate_test_reports",
+            "km_run_macro_tests",
         ]
 
         extracted_tools = 0

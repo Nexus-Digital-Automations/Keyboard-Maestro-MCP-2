@@ -8,7 +8,7 @@ Tests follow the proven systematic pattern that achieved 100% success across 21+
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
@@ -16,6 +16,10 @@ import pytest
 # Import actual implementation modules - SYSTEMATIC PATTERN ALIGNMENT
 # Get the underlying functions from the MCP tool wrappers
 import src.server.tools.knowledge_management_tools as km_tools
+
+if TYPE_CHECKING:
+    from fastmcp import Context
+    from src.core.either import Either
 
 # Access the actual functions from the tool functions
 km_generate_documentation = km_tools.km_generate_documentation.fn
@@ -38,13 +42,13 @@ km_schedule_content_review = km_tools.km_schedule_content_review.fn
 async def mock_km_generate_documentation(
     target_type: str,
     target_id: str,
-    documentation_type: str="comprehensive",
-    template_id: str=None,
-    include_sections: Any=None,
-    output_format: Any="markdown",
-    quality_level: Any="standard",
-    ctx: Context | Any=None,
-) -> Any:
+    documentation_type: str = "comprehensive",
+    template_id: str = None,
+    include_sections: Any = None,
+    output_format: Any = "markdown",
+    quality_level: Any = "standard",
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for documentation generation."""
     if not target_id:
         return {
@@ -97,11 +101,11 @@ async def mock_km_generate_documentation(
 
 async def mock_km_manage_knowledge_base(
     operation: str,
-    knowledge_base_id: str=None,
-    configuration: dict[str, Any]=None,
-    backup_options: dict[str, Any]=None,
-    ctx: Context | Any=None,
-) -> Any:
+    knowledge_base_id: str = None,
+    configuration: dict[str, Any] = None,
+    backup_options: dict[str, Any] = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for knowledge base management."""
     if operation not in ["create", "update", "delete", "backup", "restore", "optimize"]:
         return {
@@ -146,13 +150,13 @@ async def mock_km_manage_knowledge_base(
 
 async def mock_km_search_knowledge(
     query: str,
-    search_scope: Any=None,
-    content_types: Any=None,
-    date_range: Any=None,
-    max_results: Either[Any, Any] | Any=20,
-    include_snippets: Any=True,
-    quality_threshold: Any=0.7,
-    ctx: Context | Any=None,
+    search_scope: Any = None,
+    content_types: Any = None,
+    date_range: Any = None,
+    max_results: Either[Any, Any] | Any = 20,
+    include_snippets: Any = True,
+    quality_threshold: Any = 0.7,
+    ctx: Context | Any = None,
 ) -> list[Any]:
     """Mock implementation for knowledge search."""
     if not query or len(query.strip()) == 0:
@@ -234,9 +238,9 @@ async def mock_km_search_knowledge(
 async def mock_km_update_documentation(
     document_id: str,
     update_data: Any,
-    version_control: Any=True,
-    notify_subscribers: Any=False,
-    ctx: Context | Any=None,
+    version_control: Any = True,
+    notify_subscribers: Any = False,
+    ctx: Context | Any = None,
 ) -> None:
     """Mock implementation for documentation updates."""
     if not document_id:
@@ -287,10 +291,10 @@ async def mock_km_create_content_template(
     template_name: str,
     template_type: str,
     template_structure: Any,
-    category: str="general",
-    access_level: Any="public",
-    validation_rules: Any=None,
-    ctx: Context | Any=None,
+    category: str = "general",
+    access_level: Any = "public",
+    validation_rules: Any = None,
+    ctx: Context | Any = None,
 ) -> None:
     """Mock implementation for content template creation."""
     if not template_name or len(template_name.strip()) == 0:
@@ -344,11 +348,11 @@ async def mock_km_create_content_template(
 
 async def mock_km_analyze_content_quality(
     content_id: str,
-    analysis_type: str="comprehensive",
-    quality_metrics: Any=None,
-    comparison_baseline: Any=None,
-    ctx: Context | Any=None,
-) -> Any:
+    analysis_type: str = "comprehensive",
+    quality_metrics: Any = None,
+    comparison_baseline: Any = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for content quality analysis."""
     if not content_id:
         return {
@@ -421,12 +425,12 @@ async def mock_km_analyze_content_quality(
 
 async def mock_km_export_knowledge(
     export_scope: Any,
-    format_type: str="json",
-    include_metadata: Any=True,
-    compression: Any=True,
-    export_filters: Any=None,
-    ctx: Context | Any=None,
-) -> Any:
+    format_type: str = "json",
+    include_metadata: Any = True,
+    compression: Any = True,
+    export_filters: Any = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for knowledge export."""
     if export_scope not in ["all", "knowledge_base", "category", "documents"]:
         return {
@@ -479,10 +483,10 @@ async def mock_km_schedule_content_review(
     review_type: str,
     target_items: Any,
     schedule_config: dict[str, Any],
-    reviewer_assignments: Any=None,
-    notification_settings: dict[str, Any]=None,
-    ctx: Context | Any=None,
-) -> Any:
+    reviewer_assignments: Any = None,
+    notification_settings: dict[str, Any] = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for content review scheduling."""
     if not target_items or len(target_items) == 0:
         return {
@@ -540,14 +544,14 @@ class TestKMGenerateDocumentation:
     """Test suite for km_generate_documentation MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-001"}
         return context
 
     @pytest.fixture
-    def sample_documentation_data(self) -> Any:
+    def sample_documentation_data(self) -> Mock:
         """Sample documentation generation data."""
         return {
             "source_type": "macro",  # SYSTEMATIC ALIGNMENT: source_type (not target_type)
@@ -601,7 +605,10 @@ class TestKMGenerateDocumentation:
             # Test that real source code validation logic executed successfully
 
     @pytest.mark.asyncio
-    async def test_documentation_generation_validation_error(self, mock_context: Any) -> None:
+    async def test_documentation_generation_validation_error(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test documentation generation with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_generate_documentation(
             source_type="macro",  # ALIGNED: source_type (not target_type)
@@ -641,14 +648,14 @@ class TestKMManageKnowledgeBase:
     """Test suite for km_manage_knowledge_base MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-002"}
         return context
 
     @pytest.fixture
-    def sample_kb_data(self) -> Any:
+    def sample_kb_data(self) -> Mock:
         """Sample knowledge base management data - SYSTEMATIC ALIGNMENT."""
         return {
             "operation": "create",  # ALIGNED: Same operation parameter
@@ -701,7 +708,10 @@ class TestKMManageKnowledgeBase:
             # Test that real source code validation logic executed successfully
 
     @pytest.mark.asyncio
-    async def test_knowledge_base_management_validation_error(self, mock_context: Any) -> None:
+    async def test_knowledge_base_management_validation_error(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test knowledge base management with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_manage_knowledge_base(
             operation="invalid_operation",  # ALIGNED: Invalid operation to test validation
@@ -741,14 +751,14 @@ class TestKMSearchKnowledge:
     """Test suite for km_search_knowledge MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-003"}
         return context
 
     @pytest.fixture
-    def sample_search_data(self) -> Any:
+    def sample_search_data(self) -> Mock:
         """Sample knowledge search data."""
         return {
             "query": "macro automation best practices",
@@ -761,13 +771,17 @@ class TestKMSearchKnowledge:
         }
 
     @pytest.mark.asyncio
-    async def test_knowledge_search_success(self, mock_context: Any, sample_search_data: Any) -> None:
+    async def test_knowledge_search_success(
+        self,
+        mock_context: Any,
+        sample_search_data: Any,
+    ) -> None:
         """Test successful knowledge search - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_search_knowledge implementation
         result = await km_search_knowledge(
             query=sample_search_data["query"],
-            search_scope=sample_search_data["search_scope"],
-            include_content_types=sample_search_data[
+            _search_scope=sample_search_data["search_scope"],
+            _include_content_types=sample_search_data[
                 "content_types"
             ],  # Fixed parameter name
             max_results=sample_search_data["max_results"],
@@ -842,14 +856,14 @@ class TestKMUpdateDocumentation:
     """Test suite for km_update_documentation MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-004"}
         return context
 
     @pytest.fixture
-    def sample_update_data(self) -> Any:
+    def sample_update_data(self) -> Mock:
         """Sample documentation update data."""
         return {
             "document_id": "doc-macro-guide-001",
@@ -864,7 +878,11 @@ class TestKMUpdateDocumentation:
         }
 
     @pytest.mark.asyncio
-    async def test_documentation_update_success(self, mock_context: Any, sample_update_data: Any) -> None:
+    async def test_documentation_update_success(
+        self,
+        mock_context: Any,
+        sample_update_data: Any,
+    ) -> None:
         """Test successful documentation update - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_update_documentation implementation
         result = await km_update_documentation(
@@ -874,7 +892,7 @@ class TestKMUpdateDocumentation:
             preserve_history=sample_update_data[
                 "version_control"
             ],  # Fixed parameter name
-            notify_stakeholders=sample_update_data[
+            _notify_stakeholders=sample_update_data[
                 "notify_subscribers"
             ],  # Fixed parameter name
             ctx=mock_context,
@@ -895,7 +913,10 @@ class TestKMUpdateDocumentation:
             # For systematic alignment, we accept contract validation requirements
 
     @pytest.mark.asyncio
-    async def test_documentation_update_validation_error(self, mock_context: Any) -> None:
+    async def test_documentation_update_validation_error(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test documentation update with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_91 METHODOLOGY: Test actual km_update_documentation validation
         result = await km_update_documentation(
@@ -939,14 +960,14 @@ class TestKMCreateContentTemplate:
     """Test suite for km_create_content_template MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-005"}
         return context
 
     @pytest.fixture
-    def sample_template_data(self) -> Any:
+    def sample_template_data(self) -> Mock:
         """Sample content template data."""
         return {
             "template_name": "Macro Documentation Template",
@@ -1049,14 +1070,14 @@ class TestKMAnalyzeContentQuality:
     """Test suite for km_analyze_content_quality MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-006"}
         return context
 
     @pytest.fixture
-    def sample_analysis_data(self) -> Any:
+    def sample_analysis_data(self) -> Mock:
         """Sample content quality analysis data."""
         return {
             "content_id": "content-guide-001",
@@ -1077,7 +1098,7 @@ class TestKMAnalyzeContentQuality:
             content_id=sample_analysis_data["content_id"],
             analysis_scope="content",  # Fixed parameter name
             quality_metrics=sample_analysis_data["quality_metrics"],
-            benchmark_against=sample_analysis_data[
+            _benchmark_against=sample_analysis_data[
                 "comparison_baseline"
             ],  # Fixed parameter name
             ctx=mock_context,
@@ -1096,7 +1117,10 @@ class TestKMAnalyzeContentQuality:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_content_quality_analysis_validation_error(self, mock_context: Any) -> None:
+    async def test_content_quality_analysis_validation_error(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test content quality analysis with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_analyze_content_quality validation
         result = await km_analyze_content_quality(
@@ -1115,7 +1139,10 @@ class TestKMAnalyzeContentQuality:
         )
 
     @pytest.mark.asyncio
-    async def test_content_quality_analysis_low_quality(self, mock_context: Any) -> None:
+    async def test_content_quality_analysis_low_quality(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test content quality analysis with low quality content - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_analyze_content_quality with realistic content ID
         result = await km_analyze_content_quality(
@@ -1139,14 +1166,14 @@ class TestKMExportKnowledge:
     """Test suite for km_export_knowledge MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-007"}
         return context
 
     @pytest.fixture
-    def sample_export_data(self) -> Any:
+    def sample_export_data(self) -> Mock:
         """Sample knowledge export data."""
         return {
             "export_scope": "knowledge_base",
@@ -1161,7 +1188,11 @@ class TestKMExportKnowledge:
         }
 
     @pytest.mark.asyncio
-    async def test_knowledge_export_success(self, mock_context: Any, sample_export_data: Any) -> None:
+    async def test_knowledge_export_success(
+        self,
+        mock_context: Any,
+        sample_export_data: Any,
+    ) -> None:
         """Test successful knowledge export - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_export_knowledge implementation
         result = await km_export_knowledge(
@@ -1226,14 +1257,14 @@ class TestKMScheduleContentReview:
     """Test suite for km_schedule_content_review MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-km-008"}
         return context
 
     @pytest.fixture
-    def sample_review_data(self) -> Any:
+    def sample_review_data(self) -> Mock:
         """Sample content review scheduling data."""
         return {
             "review_type": "quarterly",
@@ -1288,7 +1319,10 @@ class TestKMScheduleContentReview:
             assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_content_review_scheduling_validation_error(self, mock_context: Any) -> None:
+    async def test_content_review_scheduling_validation_error(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test content review scheduling with validation error - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_92 METHODOLOGY: Test actual km_schedule_content_review validation
         result = await km_schedule_content_review(
@@ -1335,7 +1369,7 @@ class TestKnowledgeManagementIntegration:
     """Integration tests for knowledge management tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-integration-km-001"}

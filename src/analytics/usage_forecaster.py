@@ -17,6 +17,19 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
+from src.core.constants import (
+    DATA_RETENTION_DAYS,
+    MAX_CONFIDENCE_ADJUSTMENT,
+    MAX_DATA_QUALITY_SCORE,
+    MAX_TREND_CONFIDENCE,
+    MAX_UTILIZATION_PERCENTAGE,
+    MIN_CONFIDENCE_ADJUSTMENT,
+    MIN_DATA_QUALITY_SCORE,
+    MIN_TRAINING_SAMPLES,
+    MIN_TREND_CONFIDENCE,
+    MIN_UTILIZATION_PERCENTAGE,
+    TIME_SERIES_VALIDATION_WINDOW,
+)
 from src.core.contracts import require
 from src.core.either import Either
 from src.core.predictive_modeling import (
@@ -30,6 +43,13 @@ from src.core.predictive_modeling import (
     create_forecast_id,
     validate_time_series_data,
 )
+
+# Constants for forecasting
+MIN_FORECAST_DAYS = 1
+MAX_FORECAST_DAYS = 365
+MIN_TREND_ANALYSIS_POINTS = 5
+TREND_THRESHOLD_PERCENTAGE = 0.05  # 5% threshold for trend significance
+PERCENTAGE_SCALE = 100.0  # Scale for percentage calculations
 
 
 class ResourceType(Enum):
@@ -83,10 +103,16 @@ class UsageTrend:
     data_quality_score: float = 0.0
 
     def __post_init__(self):
-        if not (0.0 <= self.trend_confidence <= 1.0):
-            raise ValueError("Trend confidence must be between 0.0 and 1.0")
-        if not (0.0 <= self.data_quality_score <= 1.0):
-            raise ValueError("Data quality score must be between 0.0 and 1.0")
+        if not (MIN_TREND_CONFIDENCE <= self.trend_confidence <= MAX_TREND_CONFIDENCE):
+            raise ValueError(
+                f"Trend confidence must be between {MIN_TREND_CONFIDENCE} and {MAX_TREND_CONFIDENCE}",
+            )
+        if not (
+            MIN_DATA_QUALITY_SCORE <= self.data_quality_score <= MAX_DATA_QUALITY_SCORE
+        ):
+            raise ValueError(
+                f"Data quality score must be between {MIN_DATA_QUALITY_SCORE} and {MAX_DATA_QUALITY_SCORE}",
+            )
 
 
 @dataclass(frozen=True)
@@ -108,8 +134,14 @@ class CapacityAnalysis:
             raise ValueError("Current capacity must be positive")
         if self.current_utilization < 0:
             raise ValueError("Current utilization must be non-negative")
-        if not (0.0 <= self.utilization_percentage <= 100.0):
-            raise ValueError("Utilization percentage must be between 0.0 and 100.0")
+        if not (
+            MIN_UTILIZATION_PERCENTAGE
+            <= self.utilization_percentage
+            <= MAX_UTILIZATION_PERCENTAGE
+        ):
+            raise ValueError(
+                f"Utilization percentage must be between {MIN_UTILIZATION_PERCENTAGE} and {MAX_UTILIZATION_PERCENTAGE}",
+            )
 
 
 @dataclass(frozen=True)
@@ -126,7 +158,11 @@ class ForecastScenario:
     def __post_init__(self):
         if self.growth_multiplier <= 0:
             raise ValueError("Growth multiplier must be positive")
-        if not (0.1 <= self.confidence_adjustment <= 2.0):
+        if not (
+            MIN_CONFIDENCE_ADJUSTMENT
+            <= self.confidence_adjustment
+            <= MAX_CONFIDENCE_ADJUSTMENT
+        ):
             raise ValueError("Confidence adjustment must be between 0.1 and 2.0")
 
 
@@ -205,7 +241,10 @@ class UsageForecaster:
             },
         }
 
-    @require(lambda time_series_data: len(time_series_data.timestamps) >= 10)
+    @require(
+        lambda time_series_data: len(time_series_data.timestamps)
+        >= MIN_TRAINING_SAMPLES,
+    )
     async def add_usage_data(
         self,
         resource_type: ResourceType,
@@ -218,15 +257,18 @@ class UsageForecaster:
         """
         try:
             # Validate time series data
-            validation_result = validate_time_series_data(time_series_data, 30)
+            validation_result = validate_time_series_data(
+                time_series_data,
+                TIME_SERIES_VALIDATION_WINDOW,
+            )
             if validation_result.is_left():
                 return validation_result
 
             # Add to resource data
             self.resource_data[resource_type].append(time_series_data)
 
-            # Keep only recent data (last 90 days worth)
-            cutoff_date = datetime.now(UTC) - timedelta(days=90)
+            # Keep only recent data (last N days worth)
+            cutoff_date = datetime.now(UTC) - timedelta(days=DATA_RETENTION_DAYS)
             self.resource_data[resource_type] = [
                 data
                 for data in self.resource_data[resource_type]
@@ -244,13 +286,17 @@ class UsageForecaster:
             )
 
     @require(lambda resource_type: isinstance(resource_type, ResourceType))
-    @require(lambda forecast_period_days: 1 <= forecast_period_days <= 365)
+    @require(
+        lambda forecast_period_days: MIN_FORECAST_DAYS
+        <= forecast_period_days
+        <= MAX_FORECAST_DAYS,
+    )
     async def generate_forecast(
         self,
         resource_type: ResourceType,
         forecast_period_days: int,
         granularity: ForecastGranularity = ForecastGranularity.DAILY,
-        confidence_level: ConfidenceLevel = ConfidenceLevel.MEDIUM,
+        _confidence_level: ConfidenceLevel = ConfidenceLevel.MEDIUM,
         scenario: ForecastScenario | None = None,
     ) -> Either[ForecastingError, ResourceForecast]:
         """Generate resource usage forecast for specified period.
@@ -274,7 +320,7 @@ class UsageForecaster:
             # Get the most recent and comprehensive data
             latest_data = self._get_latest_consolidated_data(resource_type)
 
-            if len(latest_data.values) < 10:
+            if len(latest_data.values) < MIN_TRAINING_SAMPLES:
                 return Either.left(
                     ForecastingError(
                         f"Insufficient data points for {resource_type.value}: {len(latest_data.values)}",
@@ -382,14 +428,14 @@ class UsageForecaster:
     async def _analyze_usage_trends(self, data: TimeSeriesData) -> UsageTrend | None:
         """Analyze usage trends in time series data."""
         try:
-            if len(data.values) < 5:
+            if len(data.values) < MIN_TREND_ANALYSIS_POINTS:
                 return None
 
             numeric_values = [
                 float(v) for v in data.values if isinstance(v, int | float)
             ]
 
-            if len(numeric_values) < 5:
+            if len(numeric_values) < MIN_TREND_ANALYSIS_POINTS:
                 return None
 
             # Calculate linear trend
@@ -411,15 +457,17 @@ class UsageForecaster:
             slope = numerator / denominator
 
             # Determine trend direction and growth rate
-            if abs(slope) < 0.01 * mean_y:
+            if abs(slope) < TREND_THRESHOLD_PERCENTAGE * mean_y:
                 trend_direction = "stable"
                 growth_rate = 0.0
             elif slope > 0:
                 trend_direction = "increasing"
-                growth_rate = (slope / mean_y) * 100  # Percentage growth per period
+                growth_rate = (
+                    slope / mean_y
+                ) * PERCENTAGE_SCALE  # Percentage growth per period
             else:
                 trend_direction = "decreasing"
-                growth_rate = (slope / mean_y) * 100  # Negative growth
+                growth_rate = (slope / mean_y) * PERCENTAGE_SCALE  # Negative growth
 
             # Determine growth pattern
             growth_pattern = self._determine_growth_pattern(numeric_values)
@@ -645,7 +693,7 @@ class UsageForecaster:
                 float(v) for v in data.values if isinstance(v, int | float)
             ]
 
-            if len(numeric_values) < 5:
+            if len(numeric_values) < MIN_TREND_ANALYSIS_POINTS:
                 return Either.left(
                     ForecastingError(
                         "Insufficient numeric values for forecasting",

@@ -424,7 +424,7 @@ async def _validate_move_operation(
     macro_id: str,
     target_group: str,
     create_missing: bool,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> MacroMoveResult:
     """Validate that the move operation can be performed safely."""
     try:
@@ -483,9 +483,9 @@ async def _execute_macro_movement(
     macro_id: str,
     target_group: str,
     create_missing: bool,
-    preserve_settings: bool,
+    _preserve_settings: bool,
     timeout: Duration,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> MacroMoveResult:
     """Execute the actual macro movement via AppleScript."""
     try:
@@ -708,9 +708,9 @@ async def _create_group_if_missing(group_name: str) -> bool:
 
 async def _verify_movement_completion(
     macro_id: str,
-    source_group: str | None,
+    _source_group: str | None,
     target_group: str,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> bool:
     """Verify that the macro movement completed successfully."""
     try:
@@ -726,7 +726,11 @@ async def _verify_movement_completion(
         return False
 
 
-async def _attempt_rollback(macro_id: str, source_group: str | None, target_group: str) -> Any:
+async def _attempt_rollback(
+    macro_id: str,
+    source_group: str | None,
+    _target_group: str,
+) -> Any:
     """Attempt to rollback a failed macro movement."""
     if not source_group:
         return

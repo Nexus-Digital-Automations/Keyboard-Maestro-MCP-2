@@ -115,7 +115,7 @@ class AutomationRule:
     created_by: str | None = None
     tags: set[str] = field(default_factory=set)
 
-    def is_applicable(self, context: dict[str, Any] = None) -> bool:
+    def is_applicable(self, _context: dict[str, Any] = None) -> bool:
         """Check if rule is applicable in current context."""
         if not self.enabled:
             return False
@@ -306,7 +306,13 @@ class AutomationHub:
         self._optimizer_task: asyncio.Task | None = None
 
         # Start background services
-        asyncio.create_task(self._start_background_services())
+        # Start background services (only if event loop is running)
+        try:
+            asyncio.get_running_loop()
+            asyncio.create_task(self._start_background_services())
+        except RuntimeError:
+            # No event loop running, skip background task
+            pass
 
     async def start(self) -> Either[IoTIntegrationError, bool]:
         """Start the automation hub."""
@@ -903,8 +909,8 @@ class AutomationHub:
 
     def _should_execute_scheduled_rule(
         self,
-        rule: AutomationRule,
-        current_time: datetime,
+        _rule: AutomationRule,
+        _current_time: datetime,
     ) -> bool:
         """Check if scheduled rule should execute."""
         # This would implement cron-style scheduling logic

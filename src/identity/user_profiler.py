@@ -15,6 +15,11 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from ..core.constants import (
+    HIGH_SIMILARITY_THRESHOLD,
+    HIGH_SUCCESS_RATE,
+    MINIMUM_SUCCESS_RATE,
+)
 from ..core.contracts import require
 from ..core.either import Either
 from ..core.user_identity_architecture import (
@@ -339,7 +344,7 @@ class UserProfiler:
 
         # Check behavioral learning opportunities
         interaction_analysis = behavioral_data.get("interaction_analysis", {})
-        if interaction_analysis.get("success_rate", 1.0) < 0.8:
+        if interaction_analysis.get("success_rate", 1.0) < HIGH_SIMILARITY_THRESHOLD:
             opportunities.append("Optimize frequent workflows based on usage patterns")
 
         # Check for advanced automation opportunities
@@ -537,14 +542,14 @@ class UserProfiler:
             }
 
             # Add insights based on patterns
-            if interaction_analysis["success_rate"] < 0.7:
+            if interaction_analysis["success_rate"] < MINIMUM_SUCCESS_RATE:
                 learning_result["insights"].append(
                     "Consider simplifying frequent workflows",
                 )
 
             if (
                 interaction_analysis["total_interactions"] > 100
-                and interaction_analysis["success_rate"] > 0.9
+                and interaction_analysis["success_rate"] > HIGH_SUCCESS_RATE
             ):
                 learning_result["insights"].append(
                     "User shows high proficiency - enable advanced features",
@@ -693,9 +698,9 @@ class UserProfiler:
         total_successes = sum(1 for i in interactions if i.get("success", False))
         success_rate = total_successes / len(interactions)
 
-        if success_rate < 0.7:
+        if success_rate < MINIMUM_SUCCESS_RATE:
             recommendations.append("Simplify common workflows to improve success rate")
-        elif success_rate > 0.9:
+        elif success_rate > HIGH_SUCCESS_RATE:
             recommendations.append("Enable advanced automation features")
 
         # Analyze timing patterns

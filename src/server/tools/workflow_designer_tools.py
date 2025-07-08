@@ -70,7 +70,7 @@ class WorkflowDesignerTools:
                 str,
                 Field(description="Canvas theme (light|dark|high_contrast|system)"),
             ] = "light",
-            auto_layout: Annotated[
+            _auto_layout: Annotated[
                 bool,
                 Field(description="Enable automatic component layout"),
             ] = True,
@@ -918,3 +918,6 @@ def get_workflow_designer_tools() -> WorkflowDesignerTools:
     if _workflow_designer_tools is None:
         _workflow_designer_tools = WorkflowDesignerTools()
     return _workflow_designer_tools
+
+
+__all__ = ["WorkflowDesignerTools", "get_workflow_designer_tools"]

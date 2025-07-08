@@ -397,7 +397,7 @@ class MLAnalyticsEngine:
     async def _detect_anomalies(
         self,
         reading: SensorReading,
-        features: list[MLFeature],
+        _features: list[MLFeature],
     ) -> dict[str, Any]:
         """Detect anomalies in sensor readings."""
         anomalies = []
@@ -593,7 +593,7 @@ class MLAnalyticsEngine:
     def _calculate_prediction_confidence(
         self,
         values: list[float],
-        trend: float,
+        _trend: float,
     ) -> PredictionConfidence:
         """Calculate prediction confidence based on data stability."""
         if len(values) < 3:
@@ -629,7 +629,7 @@ class MLAnalyticsEngine:
     async def _generate_insights(
         self,
         reading: SensorReading,
-        features: list[MLFeature],
+        _features: list[MLFeature],
     ) -> list[str]:
         """Generate actionable insights from ML analysis."""
         insights = []

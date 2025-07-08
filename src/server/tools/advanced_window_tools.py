@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from src.core.contracts import require
 from src.core.displays import DisplayManager, WindowGridPattern
@@ -28,8 +28,7 @@ from src.window.advanced_positioning import (
 )
 from src.window.grid_manager import AdvancedGridManager
 
-if TYPE_CHECKING:
-    from fastmcp import Context
+# TYPE_CHECKING section removed - no longer needed
 
 # Setup module logger
 logger = logging.getLogger(__name__)
@@ -44,7 +43,9 @@ class AdvancedWindowProcessor:
         self.positioning = AdvancedPositioning(self.display_manager)
         self.workspace_manager = WorkspaceManager(self.positioning)
 
-    @require(lambda __self, operation: isinstance(operation, str) and len(operation) > 0)
+    @require(
+        lambda __self, operation: isinstance(operation, str) and len(operation) > 0,
+    )
     @require(
         lambda _self, window_targets: isinstance(window_targets, list)
         and len(window_targets) > 0,
@@ -60,7 +61,7 @@ class AdvancedWindowProcessor:
         preserve_ratios: bool = True,
         animate_transitions: bool = False,
         save_layout: bool = False,
-        ctx: Context | None = None,
+        ctx: Any = None,
     ) -> Either[MCPError, dict[str, Any]]:
         """Process advanced window management with comprehensive validation and security.
 
@@ -204,7 +205,7 @@ class AdvancedWindowProcessor:
         window_targets: list[str],
         pattern: WindowGridPattern | None,
         target_displays: list[int] | None,
-        preserve_ratios: bool,
+        _preserve_ratios: bool,
     ) -> Either[WindowError, list[dict[str, Any]]]:
         """Process grid layout arrangement."""
         try:
@@ -507,7 +508,7 @@ def _validate_layout_pattern(
 
 def _suggest_next_actions(
     operation_type: str,
-    results: list[dict[str, Any]],
+    _results: list[dict[str, Any]],
 ) -> list[str]:
     """Suggest next actions based on operation results."""
     suggestions = []

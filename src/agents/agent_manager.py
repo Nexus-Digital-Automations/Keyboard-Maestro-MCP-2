@@ -13,7 +13,7 @@ import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 from src.core.autonomous_systems import (
     ActionId,
@@ -39,6 +39,33 @@ from src.core.either import Either
 from .communication_hub import CommunicationHub, Message, MessagePriority, MessageType
 from .resource_optimizer import ResourceOptimizer, ResourceType
 from .self_healing import SelfHealingEngine
+
+
+@runtime_checkable
+class AIProcessorProtocol(Protocol):
+    """Protocol for AI processing components."""
+
+    async def process(self, data: Any) -> Any:
+        """Process AI data."""
+        ...
+
+
+@runtime_checkable
+class DecisionEngineProtocol(Protocol):
+    """Protocol for decision engine components."""
+
+    async def make_decision(self, context: Any) -> Any:
+        """Make strategic decisions."""
+        ...
+
+
+@runtime_checkable
+class SafetyValidatorProtocol(Protocol):
+    """Protocol for safety validation components."""
+
+    async def validate(self, action: Any) -> bool:
+        """Validate action safety."""
+        ...
 
 
 @dataclass
@@ -125,9 +152,9 @@ class AutonomousAgent:
 
     async def initialize(
         self,
-        ai_processor: Any=None,
-        decision_engine: Any=None,
-        safety_validator: Any=None,
+        ai_processor: AIProcessorProtocol | None = None,
+        decision_engine: DecisionEngineProtocol | None = None,
+        safety_validator: SafetyValidatorProtocol | None = None,
     ) -> Either[AutonomousAgentError, None]:
         """Initialize the autonomous agent with required components."""
         try:
@@ -400,7 +427,7 @@ class AutonomousAgent:
     async def _fallback_action_planning(
         self,
         goal: AgentGoal,
-        situation: dict[str, Any],
+        _situation: dict[str, Any],
     ) -> list[AgentAction]:
         """Fallback rule-based action planning when no decision engine available."""
         actions = []

@@ -12,7 +12,7 @@ Type Safety: Complete integration with suggestion system architecture.
 from datetime import UTC, datetime
 from typing import Any
 
-import mcp.types as mcp
+from fastmcp import FastMCP
 from src.core.either import Either
 from src.core.logging import get_logger
 from src.core.suggestion_system import (
@@ -32,6 +32,9 @@ from src.suggestions.recommendation_engine import RecommendationEngine
 
 logger = get_logger(__name__)
 
+# Initialize FastMCP
+mcp = FastMCP("Smart Suggestions Tools")
+
 
 class SmartSuggestionsManager:
     """Comprehensive smart suggestions management system."""
@@ -44,7 +47,10 @@ class SmartSuggestionsManager:
         self.initialized = False
         self.ai_processor = None
 
-    async def initialize(self, ai_processor: Any=None) -> Either[SuggestionError, None]:
+    async def initialize(
+        self,
+        ai_processor: Any = None,
+    ) -> Either[SuggestionError, None]:
         """Initialize smart suggestions system with optional AI processor."""
         try:
             self.ai_processor = ai_processor
@@ -155,20 +161,19 @@ async def _ensure_initialized() -> None:
             )
 
 
-@mcp.tool()
 async def km_smart_suggestions(
     operation: str,  # suggest|analyze|optimize|learn|configure|feedback
     context: dict | None = None,  # Current automation context
     user_id: str | None = None,  # User identifier for personalization
     suggestion_type: str = "all",  # workflow|tools|performance|new_automation|all
     priority_level: str = "medium",  # low|medium|high|critical
-    include_experimental: bool = False,  # Include experimental suggestions
+    _include_experimental: bool = False,  # Include experimental suggestions
     max_suggestions: int = 5,  # Maximum number of suggestions
     analysis_depth: str = "standard",  # quick|standard|deep|comprehensive
-    time_horizon: str = "immediate",  # immediate|short_term|long_term
+    _time_horizon: str = "immediate",  # immediate|short_term|long_term
     learning_mode: bool = True,  # Enable learning from interaction
     privacy_level: str = "high",  # low|medium|high privacy protection
-    ctx: Any=None,
+    _ctx: Any = None,
 ) -> dict[str, Any]:
     """AI-powered smart suggestions for automation optimization and workflow improvement.
 
@@ -427,7 +432,7 @@ async def _handle_suggest_operation(
 
 async def _handle_analyze_operation(
     user_id: str,
-    context: dict | None,
+    _context: dict | None,
     analysis_depth: str,
     privacy_level: PrivacyLevel,
 ) -> dict[str, Any]:
@@ -605,7 +610,7 @@ async def _handle_learn_operation(
 
 async def _handle_configure_operation(
     user_id: str,
-    context: dict | None,
+    _context: dict | None,
     privacy_level: PrivacyLevel,
 ) -> dict[str, Any]:
     """Handle system configuration operation."""
@@ -708,3 +713,9 @@ async def _handle_feedback_operation(
             "error": f"Feedback processing failed: {e!s}",
             "user_id": user_id,
         }
+
+
+# Alias for test compatibility
+SmartSuggestionsTools = SmartSuggestionsManager
+
+__all__ = ["SmartSuggestionsManager", "SmartSuggestionsTools", "km_smart_suggestions"]

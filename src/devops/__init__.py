@@ -8,24 +8,19 @@ This package provides comprehensive DevOps capabilities including:
 - Developer collaboration and code quality automation
 """
 
-from .api_manager import APIDocumentation, APIGovernance, APIManager
-from .cicd_pipeline import BuildResult, CICDPipeline, PipelineConfig
-from .deployment_engine import DeploymentEngine, DeploymentResult, DeploymentStrategy
+from .api_manager import APIEndpoint, APIManager, APISpecification
+from .cicd_pipeline import BuildResult, CICDPipeline, DeploymentStrategy, PipelineConfig
 from .git_connector import BranchInfo, GitConnector, GitOperation
 
 __all__ = [
-    "APIDocumentation",
-    "APIGovernance",
+    "APIEndpoint",
     "APIManager",
+    "APISpecification",
     "BranchInfo",
     "BuildResult",
     "CICDPipeline",
-    "DeploymentEngine",
-    "DeploymentResult",
     "DeploymentStrategy",
-    # Core classes
     "GitConnector",
-    # Data structures
     "GitOperation",
     "PipelineConfig",
 ]

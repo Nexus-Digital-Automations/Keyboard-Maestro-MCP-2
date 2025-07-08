@@ -13,9 +13,9 @@ import logging
 import tempfile
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Annotated
+from typing import Annotated, Any
 
-from fastmcp import Context
+from fastmcp import Context, FastMCP
 from pydantic import Field
 from src.core.testing_architecture import (
     AutomationTest,
@@ -40,6 +40,9 @@ from src.testing.test_runner import AdvancedTestRunner
 
 logger = logging.getLogger(__name__)
 
+# Initialize FastMCP server
+mcp = FastMCP("Testing Automation Tools")
+
 # Global testing automation components
 test_runner = AdvancedTestRunner()
 test_execution_history: dict[str, Any] = {}
@@ -47,16 +50,41 @@ quality_assessments: dict[str, QualityAssessment] = {}
 regression_analyses: dict[str, RegressionDetection] = {}
 
 
+@mcp.tool()
 async def km_run_comprehensive_tests(
-    test_scope: Annotated[str, Field(description="Test scope: macro|workflow|system|integration")],
+    test_scope: Annotated[
+        str,
+        Field(description="Test scope: macro|workflow|system|integration"),
+    ],
     target_ids: Annotated[list[str], Field(description="Target UUIDs to test")],
-    test_types: Annotated[list[str] | None, Field(description="Test types to execute", default=None)],
-    test_environment: Annotated[str, Field(description="Test environment", default="development")],
-    parallel_execution: Annotated[bool, Field(description="Enable parallel execution", default=True)],
-    max_execution_time: Annotated[int, Field(description="Maximum execution time in seconds", default=1800)],
-    include_performance_tests: Annotated[bool, Field(description="Include performance tests", default=True)],
-    generate_coverage_report: Annotated[bool, Field(description="Generate coverage report", default=True)],
-    stop_on_failure: Annotated[bool, Field(description="Stop on first failure", default=False)],
+    test_types: Annotated[
+        list[str] | None,
+        Field(description="Test types to execute", default=None),
+    ],
+    test_environment: Annotated[
+        str,
+        Field(description="Test environment", default="development"),
+    ],
+    parallel_execution: Annotated[
+        bool,
+        Field(description="Enable parallel execution", default=True),
+    ],
+    max_execution_time: Annotated[
+        int,
+        Field(description="Maximum execution time in seconds", default=1800),
+    ],
+    _include_performance_tests: Annotated[
+        bool,
+        Field(description="Include performance tests", default=True),
+    ],
+    generate_coverage_report: Annotated[
+        bool,
+        Field(description="Generate coverage report", default=True),
+    ],
+    stop_on_failure: Annotated[
+        bool,
+        Field(description="Stop on first failure", default=False),
+    ],
     ctx: Context = None,
 ) -> dict[str, Any]:
     """Execute comprehensive testing suites with parallel execution and detailed reporting.
@@ -238,15 +266,39 @@ async def km_run_comprehensive_tests(
 
 @mcp.tool()
 async def km_validate_automation_quality(
-    validation_target: str,  # macro|workflow|system
-    target_id: str,  # Target UUID for validation
-    quality_criteria: list[str] = None,  # Quality criteria to assess
-    validation_depth: str = "standard",  # basic|standard|comprehensive
-    include_static_analysis: bool = True,
-    include_security_checks: bool = True,
-    benchmark_against_standards: bool = True,
-    generate_quality_score: bool = True,
-    provide_recommendations: bool = True,
+    validation_target: Annotated[
+        str,
+        Field(description="Target type to validate (macro|workflow|system)"),
+    ],
+    target_id: Annotated[str, Field(description="Target UUID for validation")],
+    quality_criteria: Annotated[
+        list[str] | None,
+        Field(description="Quality criteria to assess"),
+    ] = None,
+    validation_depth: Annotated[
+        str,
+        Field(description="Validation depth (basic|standard|comprehensive)"),
+    ] = "standard",
+    include_static_analysis: Annotated[
+        bool,
+        Field(description="Include static analysis"),
+    ] = True,
+    include_security_checks: Annotated[
+        bool,
+        Field(description="Include security checks"),
+    ] = True,
+    benchmark_against_standards: Annotated[
+        bool,
+        Field(description="Benchmark against standards"),
+    ] = True,
+    generate_quality_score: Annotated[
+        bool,
+        Field(description="Generate quality score"),
+    ] = True,
+    provide_recommendations: Annotated[
+        bool,
+        Field(description="Provide recommendations"),
+    ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
     """Validate automation quality against comprehensive criteria and standards.
@@ -425,15 +477,39 @@ async def km_validate_automation_quality(
 
 @mcp.tool()
 async def km_detect_regressions(
-    comparison_scope: str,  # macro|workflow|system
-    baseline_version: str,  # Baseline version for comparison
-    current_version: str,  # Current version to compare
-    regression_types: list[str] = None,  # Regression types to detect
-    sensitivity_level: str = "medium",  # low|medium|high
-    include_performance_regression: bool = True,
-    auto_categorize_issues: bool = True,
-    generate_impact_analysis: bool = True,
-    provide_fix_suggestions: bool = True,
+    comparison_scope: Annotated[
+        str,
+        Field(description="Comparison scope (macro|workflow|system)"),
+    ],
+    baseline_version: Annotated[
+        str,
+        Field(description="Baseline version for comparison"),
+    ],
+    current_version: Annotated[str, Field(description="Current version to compare")],
+    regression_types: Annotated[
+        list[str] | None,
+        Field(description="Regression types to detect"),
+    ] = None,
+    sensitivity_level: Annotated[
+        str,
+        Field(description="Sensitivity level (low|medium|high)"),
+    ] = "medium",
+    _include_performance_regression: Annotated[
+        bool,
+        Field(description="Include performance regression"),
+    ] = True,
+    auto_categorize_issues: Annotated[
+        bool,
+        Field(description="Auto categorize issues"),
+    ] = True,
+    generate_impact_analysis: Annotated[
+        bool,
+        Field(description="Generate impact analysis"),
+    ] = True,
+    provide_fix_suggestions: Annotated[
+        bool,
+        Field(description="Provide fix suggestions"),
+    ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
     """Detect regressions and changes between automation versions with impact analysis.
@@ -629,15 +705,36 @@ async def km_detect_regressions(
 
 @mcp.tool()
 async def km_generate_test_reports(
-    report_scope: str,  # test_run|quality|regression|comprehensive
-    data_sources: list[str],  # Data sources to include in report
-    report_format: str = "html",  # html|pdf|json|dashboard
-    include_visualizations: bool = True,
-    include_trends: bool = True,
-    include_recommendations: bool = True,
-    executive_summary: bool = True,
-    export_raw_data: bool = False,
-    schedule_distribution: dict[str, Any] | None = None,
+    report_scope: Annotated[
+        str,
+        Field(description="Report scope (test_run|quality|regression|comprehensive)"),
+    ],
+    data_sources: Annotated[
+        list[str],
+        Field(description="Data sources to include in report"),
+    ],
+    report_format: Annotated[
+        str,
+        Field(description="Report format (html|pdf|json|dashboard)"),
+    ] = "html",
+    include_visualizations: Annotated[
+        bool,
+        Field(description="Include visualizations"),
+    ] = True,
+    include_trends: Annotated[bool, Field(description="Include trends")] = True,
+    include_recommendations: Annotated[
+        bool,
+        Field(description="Include recommendations"),
+    ] = True,
+    executive_summary: Annotated[
+        bool,
+        Field(description="Include executive summary"),
+    ] = True,
+    export_raw_data: Annotated[bool, Field(description="Export raw data")] = False,
+    schedule_distribution: Annotated[
+        dict[str, Any] | None,
+        Field(description="Schedule distribution"),
+    ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:
     """Generate comprehensive testing reports with visualizations and actionable insights.
@@ -803,7 +900,10 @@ async def km_generate_test_reports(
 # Helper functions for testing automation
 
 
-async def _generate_quality_assessment(test_results: Either[Any, Any] | Any, test_suite: Any) -> QualityAssessment:
+async def _generate_quality_assessment(
+    test_results: list[Any],
+    _test_suite: Any,
+) -> QualityAssessment:
     """Generate quality assessment from test results."""
     # Calculate quality scores based on test results
     reliability_score = (
@@ -856,7 +956,7 @@ async def _generate_quality_assessment(test_results: Either[Any, Any] | Any, tes
     )
 
 
-async def _generate_coverage_report(test_results: Either[Any, Any] | Any) -> dict[str, Any]:
+async def _generate_coverage_report(test_results: list[Any]) -> dict[str, Any]:
     """Generate test coverage report."""
     return {
         "total_tests": len(test_results),
@@ -866,7 +966,10 @@ async def _generate_coverage_report(test_results: Either[Any, Any] | Any) -> dic
     }
 
 
-def _calculate_parallel_efficiency(test_results: Either[Any, Any] | Any, parallel_execution: bool) -> float:
+def _calculate_parallel_efficiency(
+    _test_results: list[Any],
+    parallel_execution: bool,
+) -> float:
     """Calculate parallel execution efficiency."""
     if not parallel_execution:
         return 0.0
@@ -906,7 +1009,7 @@ def _create_quality_gates_for_depth(depth: str) -> list[QualityGate]:
 
 def _create_quality_validation_tests(
     target_id: str,
-    validation_target: str,
+    _validation_target: str,
     quality_criteria: list[str],
     include_static_analysis: bool,
     include_security_checks: bool,
@@ -943,7 +1046,7 @@ def _create_quality_validation_tests(
 
 
 async def _calculate_quality_scores(
-    test_results: Either[Any, Any] | Any,
+    test_results: list[Any],
     quality_criteria: Any,
     criteria_mapping: Any,
 ) -> dict[QualityMetric, float]:
@@ -987,9 +1090,9 @@ def _evaluate_quality_gate(score: float, gate: QualityGate) -> bool:
 
 
 async def _generate_quality_recommendations(
-    quality_scores: Any,
+    _quality_scores: Any,
     gates_failed: Any,
-    test_results: Either[Any, Any] | Any,
+    test_results: list[Any],
 ) -> list[str]:
     """Generate quality improvement recommendations."""
     recommendations = []
@@ -1018,7 +1121,9 @@ async def _generate_quality_recommendations(
     return recommendations
 
 
-async def _benchmark_against_standards(quality_scores: list[Any] | str) -> dict[str, Any]:
+async def _benchmark_against_standards(
+    quality_scores: list[Any] | str,
+) -> dict[str, Any]:
     """Benchmark quality scores against industry standards."""
     industry_benchmarks = {
         QualityMetric.RELIABILITY: 95.0,
@@ -1043,7 +1148,7 @@ async def _benchmark_against_standards(quality_scores: list[Any] | str) -> dict[
     }
 
 
-async def _analyze_version_metrics(version: str, scope: str) -> dict[str, float]:
+async def _analyze_version_metrics(version: str, _scope: str) -> dict[str, float]:
     """Analyze metrics for a specific version."""
     # Simulate version metrics analysis
     base_metrics = {
@@ -1116,8 +1221,8 @@ def _categorize_improvement(metric_name: str) -> str:
 
 async def _generate_impact_analysis(
     regressions_found: Any,
-    improvements_found: Any,
-    scope: str,
+    _improvements_found: Any,
+    _scope: str,
 ) -> dict[str, Any]:
     """Generate impact analysis for regressions and improvements."""
     return {
@@ -1189,7 +1294,7 @@ def _identify_high_impact_areas(regressions_found: list[Any] | str) -> list[str]
 
 async def _collect_report_data(
     data_sources: list[str],
-    report_scope: str,
+    _report_scope: str,
 ) -> dict[str, Any]:
     """Collect data from specified sources for report generation."""
     report_data = {
@@ -1213,7 +1318,7 @@ async def _collect_report_data(
 
 async def _generate_report_insights(
     report_data: dict[str, Any],
-    report_scope: str,
+    _report_scope: str,
 ) -> list[dict[str, Any]]:
     """Generate insights from report data."""
     insights = []
@@ -1268,7 +1373,7 @@ async def _generate_report_insights(
 
 async def _generate_report_visualizations(
     report_data: dict[str, Any],
-    report_scope: str,
+    _report_scope: str,
 ) -> list[dict[str, Any]]:
     """Generate visualizations for the report."""
     visualizations = []
@@ -1299,7 +1404,7 @@ async def _generate_report_visualizations(
     return visualizations
 
 
-async def _generate_trend_analysis(report_data: dict[str, Any]) -> dict[str, Any]:
+async def _generate_trend_analysis(_report_data: dict[str, Any]) -> dict[str, Any]:
     """Generate trend analysis from historical data."""
     return {
         "trends": [
@@ -1412,7 +1517,7 @@ async def _format_report(
 
 
 async def _handle_report_distribution(
-    formatted_report: dict[str, Any],
+    _formatted_report: dict[str, Any],
     schedule_distribution: dict[str, Any],
 ) -> dict[str, Any]:
     """Handle report distribution scheduling."""
@@ -1428,24 +1533,27 @@ async def km_run_macro_tests(
     test_suite: Annotated[str, Field(description="Test suite to run")],
     test_type: Annotated[str, Field(description="Type of test to execute")],
     target_macros: Annotated[list[str], Field(description="Target macros to test")],
-    validation_criteria: Annotated[dict[str, Any], Field(description="Validation criteria for tests")],
+    validation_criteria: Annotated[
+        dict[str, Any],
+        Field(description="Validation criteria for tests"),
+    ],
     ctx: Context = None,
 ) -> dict[str, Any]:
     """Run macro-specific testing with comprehensive validation.
-    
+
     FastMCP Tool for macro testing through Claude Desktop.
     Executes macro tests with detailed validation and reporting.
-    
+
     Returns macro test execution results and validation reports.
     """
     try:
         # Log test initiation
         if ctx:
             await ctx.info(f"Starting macro tests for suite: {test_suite}")
-        
+
         # Create test run ID
         test_run_id = create_test_run_id("macro_test")
-        
+
         # Validate input parameters
         valid_test_types = ["functional", "performance", "regression", "integration"]
         if test_type not in valid_test_types:
@@ -1454,7 +1562,7 @@ async def km_run_macro_tests(
                 "error": f"Invalid test type: {test_type}",
                 "available_types": valid_test_types,
             }
-        
+
         # Execute macro tests
         test_results = []
         for macro_id in target_macros:
@@ -1467,15 +1575,15 @@ async def km_run_macro_tests(
                 "errors": [],
             }
             test_results.append(test_result)
-        
+
         # Calculate overall results
         total_tests = len(target_macros)
         passed_tests = sum(1 for r in test_results if r["test_status"] == "passed")
         success_rate = passed_tests / total_tests if total_tests > 0 else 0.0
-        
+
         if ctx:
             await ctx.report_progress(100, 100, "Macro testing completed")
-        
+
         return {
             "success": True,
             "data": {
@@ -1493,12 +1601,12 @@ async def km_run_macro_tests(
                 "timestamp": datetime.now(UTC).isoformat(),
             },
         }
-        
+
     except Exception as e:
         logger.error(f"Macro testing failed: {e}")
         if ctx:
-            await ctx.error(f"Macro testing error: {str(e)}")
-        
+            await ctx.error(f"Macro testing error: {e!s}")
+
         return {
             "success": False,
             "error": str(e),

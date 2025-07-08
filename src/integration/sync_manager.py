@@ -205,7 +205,10 @@ class MacroSyncManager:
         logger.info(f"Registered change listener: {listener_id}")
         return listener_id
 
-    def unregister_change_listener(self, listener: Callable[[MacroChange], None]) -> bool:
+    def unregister_change_listener(
+        self,
+        listener: Callable[[MacroChange], None],
+    ) -> bool:
         """Unregister a change listener."""
         if listener in self._change_listeners:
             self._change_listeners.remove(listener)

@@ -14,6 +14,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 from ..core.types import CommandResult, Duration, ExecutionContext, Permission
 from .base import BaseCommand, create_command_result
@@ -88,7 +89,7 @@ def secure_subprocess_run(
     logger.info(f"Executing secure subprocess: {full_path} with args: {sanitized_args}")
 
     # Execute with full path
-    return subprocess.run([full_path] + sanitized_args, **kwargs)
+    return subprocess.run([full_path] + sanitized_args, check=False, **kwargs)  # noqa: S603 # Secured subprocess with path validation
 
 
 class ApplicationAction(Enum):
@@ -243,7 +244,7 @@ class LaunchApplicationCommand(BaseCommand):
         except Exception:
             return False
 
-    def _execute_impl(self, context: ExecutionContext) -> CommandResult:
+    def _execute_impl(self, _context: ExecutionContext) -> CommandResult:
         """Execute application launch with security checks."""
         app_name = self.get_application_name()
         app_path = self.get_application_path()
@@ -270,7 +271,7 @@ class LaunchApplicationCommand(BaseCommand):
             cmd = [executable] + launch_args
 
             # Launch the application
-            process = subprocess.Popen(
+            process = subprocess.Popen(  # noqa: S603 # Secured subprocess with validated executable
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -438,7 +439,7 @@ class QuitApplicationCommand(BaseCommand):
         timeout = self.get_quit_timeout()
         return not (timeout.seconds <= 0 or timeout.seconds > 30)
 
-    def _execute_impl(self, context: ExecutionContext) -> CommandResult:
+    def _execute_impl(self, _context: ExecutionContext) -> CommandResult:
         """Execute application quit with graceful/force options."""
         app_name = self.get_application_name()
         process_id = self.get_process_id()
@@ -691,7 +692,7 @@ class ActivateApplicationCommand(BaseCommand):
             and not validator.validate_text_input(window_title, "window_title")
         )
 
-    def _execute_impl(self, context: ExecutionContext) -> CommandResult:
+    def _execute_impl(self, _context: ExecutionContext) -> CommandResult:
         """Execute application activation."""
         app_name = self.get_application_name()
         window_title = self.get_window_title()

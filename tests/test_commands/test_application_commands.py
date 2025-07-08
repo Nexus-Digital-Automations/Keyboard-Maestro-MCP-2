@@ -6,6 +6,7 @@ and proper contract enforcement.
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -206,7 +207,11 @@ class TestQuitApplicationCommand:
 
     @patch("subprocess.run")
     @patch("src.commands.application.QuitApplicationCommand._find_application_pids")
-    def test_quit_execution_success(self, mock_find_pids: Any, mock_subprocess: Any) -> None:
+    def test_quit_execution_success(
+        self,
+        mock_find_pids: Any,
+        mock_subprocess: Any,
+    ) -> None:
         """Test successful application quit."""
         mock_find_pids.return_value = [1234]
         mock_subprocess.return_value.returncode = 0

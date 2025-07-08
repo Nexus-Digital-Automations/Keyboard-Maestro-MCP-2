@@ -6,7 +6,6 @@ focusing on achieving test coverage for MCP tool modules.
 
 from __future__ import annotations
 
-from typing import Any
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -114,7 +113,7 @@ class TestFoundationToolsBasicFunctionality:
     """Test basic functionality of foundation tools with minimal mocking."""
 
     @pytest.fixture
-    def mock_fastmcp_context(self) -> Any:
+    def mock_fastmcp_context(self) -> Mock:
         """Create simple mock FastMCP context."""
         context = Mock()
         context.session_id = "test-session"
@@ -246,12 +245,12 @@ class TestFoundationToolsCoverage:
 
             # Test with empty input
             result = parse_variable_records([])
-            assert isinstance(result, dict)
+            assert isinstance(result, list)
 
-            # Test with sample data
-            sample_records = [{"name": "test_var", "value": "test_value"}]
-            result = parse_variable_records(sample_records)
-            assert isinstance(result, dict)
+            # Test with sample string data
+            sample_data = "varName:test_var, varValue:test_value"
+            result = parse_variable_records(sample_data)
+            assert isinstance(result, list)
 
         except ImportError:
             # Skip if utils not available
@@ -307,7 +306,7 @@ class TestFoundationToolsIntegration:
 
             # Test contract violation error
             contract_error = ContractViolationError("precondition", "failed validation")
-            assert "Precondition failed" in str(contract_error)
+            assert "precondition" in str(contract_error).lower()
 
         except ImportError:
             # Contract system may not be fully implemented yet

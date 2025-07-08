@@ -38,7 +38,7 @@ async def km_audit_system(
     operation: str,
     event_type: str | None = None,
     user_id: str | None = None,
-    resource_id: str | None = None,
+    _resource_id: str | None = None,
     action_details: dict | None = None,
     compliance_standard: str = "general",
     time_range: dict | None = None,
@@ -691,7 +691,10 @@ async def _handle_configure_operation(
         }
 
 
-async def _handle_status_operation(audit_system: Any, ctx: Context | None) -> dict[str, Any]:
+async def _handle_status_operation(
+    audit_system: Any,
+    ctx: Context | None,
+) -> dict[str, Any]:
     """Handle audit system status operation."""
     try:
         if ctx:

@@ -326,7 +326,7 @@ class HTTPProtocolHandler(ProtocolHandler):
 
     async def receive_message(
         self,
-        timeout: int | None = None,
+        _timeout: int | None = None,
     ) -> Either[IoTIntegrationError, IoTMessage]:
         """Receive HTTP response."""
         # HTTP is request-response, so this would handle webhook-style receives
@@ -340,14 +340,14 @@ class HTTPProtocolHandler(ProtocolHandler):
 
     async def subscribe(
         self,
-        topic: str,
-        handler: Callable[[IoTMessage], None],
+        _topic: str,
+        _handler: Callable[[IoTMessage], None],
     ) -> Either[IoTIntegrationError, bool]:
         """Subscribe to HTTP webhook."""
         # Would implement webhook subscription
         return Either.success(True)
 
-    async def unsubscribe(self, topic: str) -> Either[IoTIntegrationError, bool]:
+    async def unsubscribe(self, _topic: str) -> Either[IoTIntegrationError, bool]:
         """Unsubscribe from HTTP webhook."""
         return Either.success(True)
 
@@ -416,8 +416,8 @@ class MQTTProtocolHandler(ProtocolHandler):
 
     async def subscribe(
         self,
-        topic: str,
-        handler: Callable[[IoTMessage], None],
+        _topic: str,
+        _handler: Callable[[IoTMessage], None],
     ) -> Either[IoTIntegrationError, bool]:
         """Subscribe to MQTT topic."""
         try:
@@ -428,7 +428,7 @@ class MQTTProtocolHandler(ProtocolHandler):
         except Exception as e:
             return Either.error(IoTIntegrationError(f"MQTT subscribe failed: {e!s}"))
 
-    async def unsubscribe(self, topic: str) -> Either[IoTIntegrationError, bool]:
+    async def unsubscribe(self, _topic: str) -> Either[IoTIntegrationError, bool]:
         """Unsubscribe from MQTT topic."""
         return Either.success(True)
 
@@ -492,8 +492,8 @@ class CoAPProtocolHandler(ProtocolHandler):
 
     async def subscribe(
         self,
-        topic: str,
-        handler: Callable[[IoTMessage], None],
+        _topic: str,
+        _handler: Callable[[IoTMessage], None],
     ) -> Either[IoTIntegrationError, bool]:
         """Subscribe to CoAP observe."""
         try:
@@ -504,7 +504,7 @@ class CoAPProtocolHandler(ProtocolHandler):
         except Exception as e:
             return Either.error(IoTIntegrationError(f"CoAP observe failed: {e!s}"))
 
-    async def unsubscribe(self, topic: str) -> Either[IoTIntegrationError, bool]:
+    async def unsubscribe(self, _topic: str) -> Either[IoTIntegrationError, bool]:
         """Unsubscribe from CoAP observe."""
         return Either.success(True)
 
@@ -569,13 +569,13 @@ class ZigbeeProtocolHandler(ProtocolHandler):
 
     async def subscribe(
         self,
-        topic: str,
-        handler: Callable[[IoTMessage], None],
+        _topic: str,
+        _handler: Callable[[IoTMessage], None],
     ) -> Either[IoTIntegrationError, bool]:
         """Subscribe to Zigbee attributes."""
         return Either.success(True)
 
-    async def unsubscribe(self, topic: str) -> Either[IoTIntegrationError, bool]:
+    async def unsubscribe(self, _topic: str) -> Either[IoTIntegrationError, bool]:
         """Unsubscribe from Zigbee attributes."""
         return Either.success(True)
 
@@ -733,7 +733,7 @@ class ProtocolMultiplexer:
             if not handler:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Protocol handler not found: {protocol.value}"
+                        f"Protocol handler not found: {protocol.value}",
                     ),
                 )
 
@@ -813,7 +813,7 @@ class ProtocolMultiplexer:
             if not protocol_handler:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Protocol handler not found: {protocol.value}"
+                        f"Protocol handler not found: {protocol.value}",
                     ),
                 )
 
@@ -842,7 +842,11 @@ class ProtocolMultiplexer:
 
         return None
 
-    def _update_multiplexer_metrics(self, routing_time: float, protocol_switched: bool) -> Any:
+    def _update_multiplexer_metrics(
+        self,
+        routing_time: float,
+        protocol_switched: bool,
+    ) -> Any:
         """Update multiplexer performance metrics."""
         self.multiplexer_metrics["total_messages"] += 1
 

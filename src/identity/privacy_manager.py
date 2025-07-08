@@ -262,7 +262,7 @@ class PrivacyManager:
         self,
         user_profile_id: UserProfileId,
         consent_type: ConsentType,
-        reason: str | None = None,
+        _reason: str | None = None,
     ) -> Either[IdentityError, bool]:
         """Withdraw user consent for specific data usage."""
         try:
@@ -403,9 +403,9 @@ class PrivacyManager:
 
     async def _anonymize_category_data(
         self,
-        user_profile_id: UserProfileId,
-        category: DataCategory,
-        anonymization_key: str,
+        _user_profile_id: UserProfileId,
+        _category: DataCategory,
+        _anonymization_key: str,
         level: str,
     ) -> dict[str, Any]:
         """Anonymize specific category of data."""

@@ -323,7 +323,7 @@ class ImageAnalyzer:
         self,
         image_path: str,
         analysis_type: ImageAnalysisType = ImageAnalysisType.DESCRIBE,
-        model_preference: AIModelId | None = None,
+        _model_preference: AIModelId | None = None,
         additional_context: str | None = None,
     ) -> Either[AIError, ImageAnalysisResult]:
         """Analyze image using AI vision models."""
@@ -582,7 +582,7 @@ class ImageAnalyzer:
     def _parse_vision_response(
         self,
         response: str,
-        analysis_type: ImageAnalysisType,
+        _analysis_type: ImageAnalysisType,
     ) -> dict[str, Any]:
         """Parse AI vision response into structured data."""
         try:

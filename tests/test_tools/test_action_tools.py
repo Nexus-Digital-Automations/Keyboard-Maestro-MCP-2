@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -47,10 +47,13 @@ from src.server.tools.action_tools import (
     km_list_action_types,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context() -> Any:
+def mock_context() -> Mock:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -63,7 +66,7 @@ def mock_context() -> Any:
 
 
 @pytest.fixture
-def mock_km_client() -> Any:
+def mock_km_client() -> Mock:
     """Create mock KM client with standard interface."""
     client = Mock()
     client.check_connection = Mock()
@@ -127,7 +130,7 @@ def mock_action_registry() -> bool:
 
 
 @pytest.fixture
-def mock_action_builder() -> Any:
+def mock_action_builder() -> Mock:
     """Create mock action builder with XML generation."""
     builder = Mock(spec=ActionBuilder)
     builder.add_action = Mock()
@@ -141,7 +144,7 @@ def mock_action_builder() -> Any:
 
 
 @pytest.fixture
-def sample_action_configs() -> Any:
+def sample_action_configs() -> Mock:
     """Sample action configurations for testing."""
     return {
         "text_action": {"text": "Hello World", "by_typing": True},
@@ -153,7 +156,7 @@ def sample_action_configs() -> Any:
 
 # Hypothesis strategies for property-based testing
 @composite
-def valid_macro_identifiers(draw: Callable[..., Any]) -> Any:
+def valid_macro_identifiers(draw: Callable[..., Any]) -> Mock:
     """Generate valid macro identifiers."""
     # Either UUID format or readable name
     if draw(st.booleans()):
@@ -171,7 +174,7 @@ def valid_macro_identifiers(draw: Callable[..., Any]) -> Any:
 
 
 @composite
-def valid_action_types(draw: Callable[..., Any]) -> Any:
+def valid_action_types(draw: Callable[..., Any]) -> Mock:
     """Generate valid action type identifiers."""
     return draw(
         st.sampled_from(
@@ -604,8 +607,8 @@ class TestKMAddAction:
         mock_context: Any,
         mock_action_registry: Any,
         mock_action_builder: Any,
-        position: int | float,
-        timeout: int | float,
+        position: float,
+        timeout: float,
         enabled: bool,
         abort_on_failure: Any,
     ) -> None:

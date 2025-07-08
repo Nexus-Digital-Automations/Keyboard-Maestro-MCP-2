@@ -679,7 +679,12 @@ class TestAsyncInfrastructure:
                 self.entered = True
                 return self
 
-            async def __aexit__(self, exc_type: str, exc_val: Exception | str, exc_tb: Exception | str):
+            async def __aexit__(
+                self,
+                exc_type: str,
+                exc_val: Exception | str,
+                exc_tb: Exception | str,
+            ):
                 await asyncio.sleep(0.01)
                 self.exited = True
 

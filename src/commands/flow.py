@@ -275,7 +275,7 @@ class ConditionalCommand(BaseCommand):
     def _execute_action(
         self,
         action: dict[str, Any],
-        context: ExecutionContext,
+        _context: ExecutionContext,
     ) -> bool:
         """Execute a simple action safely."""
         try:
@@ -616,7 +616,7 @@ class LoopCommand(BaseCommand):
     def _execute_loop_action(
         self,
         action: dict[str, Any],
-        context: ExecutionContext,
+        _context: ExecutionContext,
         iteration: int,
         current_item: str | None = None,
     ) -> bool:
@@ -721,7 +721,7 @@ class BreakCommand(BaseCommand):
 
         return True
 
-    def _execute_impl(self, context: ExecutionContext) -> CommandResult:
+    def _execute_impl(self, _context: ExecutionContext) -> CommandResult:
         """Execute break command."""
         break_type = self.get_break_type()
         break_label = self.get_break_label()

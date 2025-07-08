@@ -857,7 +857,7 @@ try:
             assert 1 <= asset.migration_priority <= 5
 
         @given(st.floats(min_value=0.0, max_value=1.0))
-        def test_readiness_score_range(self, score: int | float) -> None:
+        def test_readiness_score_range(self, score: float) -> None:
             """Test that readiness scores are within valid range."""
             assessment = QuantumReadinessAssessment(
                 assessment_id=f"score_{score}",

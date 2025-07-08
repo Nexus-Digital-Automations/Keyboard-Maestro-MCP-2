@@ -333,7 +333,7 @@ class ConversationManager:
         self,
         session: ConversationSession,
         intents: list,
-        user_input: TextContent,
+        _user_input: TextContent,
     ) -> None:
         """Update conversation state based on recognized intents."""
         if not intents:
@@ -488,7 +488,7 @@ class ConversationManager:
 
     async def _generate_suggestions(
         self,
-        session: ConversationSession,
+        _session: ConversationSession,
         intent: Any,
     ) -> list[str]:
         """Generate contextual suggestions for the user."""
@@ -584,7 +584,7 @@ class ConversationManager:
     async def _handle_unclear_input(
         self,
         session: ConversationSession,
-        user_input: TextContent,
+        _user_input: TextContent,
     ) -> Either[ConversationError, ConversationResponse]:
         """Handle unclear or unrecognized user input."""
         response_id = f"resp_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"

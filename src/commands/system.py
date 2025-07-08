@@ -14,6 +14,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 from ..core.types import CommandResult, Duration, ExecutionContext, Permission
 from .base import BaseCommand, create_command_result, is_valid_duration
@@ -88,7 +89,7 @@ def secure_subprocess_run(
     logger.info(f"Executing secure subprocess: {full_path} with args: {sanitized_args}")
 
     # Execute with full path
-    return subprocess.run([full_path] + sanitized_args, **kwargs)
+    return subprocess.run([full_path] + sanitized_args, check=False, **kwargs)  # noqa: S603 # Secured subprocess with path validation
 
 
 class SoundType(Enum):
@@ -266,7 +267,7 @@ class PlaySoundCommand(BaseCommand):
         repeat_count = self.get_repeat_count()
         return 1 <= repeat_count <= 5
 
-    def _execute_impl(self, context: ExecutionContext) -> CommandResult:
+    def _execute_impl(self, _context: ExecutionContext) -> CommandResult:
         """Execute sound playback with platform-specific implementation."""
         sound_type = self.get_sound_type()
         volume = self.get_volume()
@@ -321,7 +322,7 @@ class PlaySoundCommand(BaseCommand):
                 execution_time=Duration.from_seconds(time.time() - start_time),
             )
 
-    def _play_system_sound(self, sound_type: SoundType, volume: float) -> bool:
+    def _play_system_sound(self, sound_type: SoundType, _volume: float) -> bool:
         """Play a system sound with platform-specific implementation."""
         try:
             system = platform.system().lower()
@@ -379,7 +380,7 @@ class PlaySoundCommand(BaseCommand):
         except Exception:
             return False
 
-    def _play_custom_sound(self, sound_path: str, volume: float) -> bool:
+    def _play_custom_sound(self, sound_path: str, _volume: float) -> bool:
         """Play a custom sound file."""
         try:
             system = platform.system().lower()
@@ -484,7 +485,7 @@ class SetVolumeCommand(BaseCommand):
         fade_duration = self.get_fade_duration()
         return not (fade_duration is not None and not is_valid_duration(fade_duration))
 
-    def _execute_impl(self, context: ExecutionContext) -> CommandResult:
+    def _execute_impl(self, _context: ExecutionContext) -> CommandResult:
         """Execute volume control with platform-specific implementation."""
         volume_level = self.get_volume_level()
         volume_unit = self.get_volume_unit()

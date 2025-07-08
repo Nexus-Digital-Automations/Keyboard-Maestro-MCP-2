@@ -6,6 +6,7 @@ across wide input ranges with property-based testing techniques.
 
 import re
 import string
+from collections.abc import Callable
 from typing import Any
 
 from hypothesis import strategies as st
@@ -81,7 +82,11 @@ def variable_names(draw: Callable[..., Any]) -> VariableName:
 
 # Duration generators
 @composite
-def durations(draw: Callable[..., Any], min_seconds: float = 0.1, max_seconds: float = 300.0) -> Duration:
+def durations(
+    draw: Callable[..., Any],
+    min_seconds: float = 0.1,
+    max_seconds: float = 300.0,
+) -> Duration:
     """Generate duration objects within reasonable bounds."""
     seconds = draw(
         st.floats(
@@ -185,7 +190,11 @@ def command_parameters(
 
 # Text content generators
 @composite
-def safe_text_content(draw: Callable[..., Any], min_length: int = 0, max_length: int = 1000) -> str:
+def safe_text_content(
+    draw: Callable[..., Any],
+    min_length: int = 0,
+    max_length: int = 1000,
+) -> str:
     """Generate safe text content without injection patterns."""
     # Generate text that doesn't contain dangerous patterns
     text = draw(

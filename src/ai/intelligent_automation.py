@@ -26,6 +26,12 @@ from ..core.ai_integration import (
     ProcessingMode,
     create_ai_request,
 )
+from ..core.constants import (
+    CONTEXT_HISTORY_LIMIT,
+    HIGH_SIMILARITY_THRESHOLD,
+    MINIMUM_PATTERN_OCCURRENCES,
+    TEXT_LENGTH_LIMIT,
+)
 from ..core.contracts import require
 from ..core.either import Either
 from ..core.errors import ValidationError
@@ -568,7 +574,13 @@ class DecisionNode:
             return Either.right(decision)
 
         except Exception as e:
-            return Either.left(ValidationError("decision_failed", str(e), "Automation decision failed"))
+            return Either.left(
+                ValidationError(
+                    "decision_failed",
+                    str(e),
+                    "Automation decision failed",
+                ),
+            )
 
     def _prepare_decision_prompt(self, input_data: Any, context: ContextState) -> str:
         """Prepare AI prompt for decision making."""
@@ -625,7 +637,7 @@ class DecisionNode:
             # Take first word or first few words if short
             if len(words[0]) > 3:
                 return words[0]
-            if len(words) > 1 and len(" ".join(words[:2])) <= 50:
+            if len(words) > 1 and len(" ".join(words[:2])) <= TEXT_LENGTH_LIMIT:
                 return " ".join(words[:2])
             return words[0]
 
@@ -764,7 +776,13 @@ class IntelligentAutomationEngine:
             return Either.right(optimized_steps)
 
         except Exception as e:
-            return Either.left(ValidationError("workflow_execution_failed", str(e), "Workflow execution failed"))
+            return Either.left(
+                ValidationError(
+                    "workflow_execution_failed",
+                    str(e),
+                    "Workflow execution failed",
+                ),
+            )
 
     def _record_context_for_learning(
         self,
@@ -813,18 +831,20 @@ class IntelligentAutomationEngine:
 
         # Find similar contexts
         similar_contexts = []
-        for past_context in self.context_history[-50:]:  # Check recent history
+        for past_context in self.context_history[
+            -CONTEXT_HISTORY_LIMIT:
+        ]:  # Check recent history
             similarity = current_context.similarity_to(past_context)
-            if similarity > 0.8:  # High similarity threshold
+            if similarity > HIGH_SIMILARITY_THRESHOLD:  # High similarity threshold
                 similar_contexts.append((past_context, similarity))
 
         # If we have similar contexts, analyze patterns
-        if len(similar_contexts) >= 3:
+        if len(similar_contexts) >= MINIMUM_PATTERN_OCCURRENCES:
             self._identify_adaptation_opportunities(current_context, similar_contexts)
 
     def _identify_adaptation_opportunities(
         self,
-        current_context: ContextState,
+        _current_context: ContextState,
         similar_contexts: list[tuple],
     ) -> None:
         """Identify opportunities for workflow adaptation based on patterns."""

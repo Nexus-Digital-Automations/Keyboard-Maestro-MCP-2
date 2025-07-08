@@ -27,7 +27,7 @@ class AuthenticationType(Enum):
 
     NONE = "none"
     API_KEY = "api_key"
-    BEARER_TOKEN = "bearer_token"  # noqa: S105 - Type identifier, not a secret
+    BEARER_TOKEN = "bearer_token"  # noqa: S105 # Enum value, not password
     BASIC_AUTH = "basic_auth"
     OAUTH2 = "oauth2"
     CUSTOM_HEADER = "custom_header"

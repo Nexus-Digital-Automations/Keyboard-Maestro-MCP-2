@@ -49,7 +49,10 @@ class VisualComposer:
         self.performance_cache: dict[str, Any] = {}
         self.logger = logging.getLogger(__name__)
 
-    @require(lambda name: len(name) > 0 and len(name) <= 100)
+    @require(
+        lambda self, name, description=None, canvas_config=None: len(name) > 0
+        and len(name) <= 100,
+    )
     async def create_workflow(
         self,
         name: str,
@@ -100,9 +103,6 @@ class VisualComposer:
             self.logger.error(f"Failed to create workflow: {e}")
             return Either.left(e)
 
-    @require(
-        lambda component_type: component_type in ComponentType.__members__.values(),
-    )
     async def add_component(
         self,
         workflow_id: WorkflowId,
@@ -160,7 +160,7 @@ class VisualComposer:
                             component_id,
                         )
                         if connection_result.is_right():
-                            updated_workflow = connection_result.right()
+                            updated_workflow = connection_result.get_right()
 
                 # Update stored workflow
                 self.workflows[workflow_id] = updated_workflow
@@ -222,10 +222,10 @@ class VisualComposer:
                 # Add connection to workflow with validation
                 connection_result = workflow.add_connection(connection)
                 if connection_result.is_left():
-                    return Either.left(connection_result.left())
+                    return Either.left(connection_result.get_left())
 
                 # Update stored workflow
-                self.workflows[workflow_id] = connection_result.right()
+                self.workflows[workflow_id] = connection_result.get_right()
 
                 self.logger.info(
                     f"Connected components {source_component} -> {target_component}",

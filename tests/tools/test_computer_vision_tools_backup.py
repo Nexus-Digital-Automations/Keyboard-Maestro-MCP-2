@@ -8,10 +8,14 @@ Tests follow the proven systematic pattern that achieved 100% success across 31+
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
+
+if TYPE_CHECKING:
+    from fastmcp import Context
+    from src.core.either import Either
 
 # Import existing modules
 
@@ -20,15 +24,15 @@ import pytest
 
 
 async def mock_km_detect_objects(
-    image_path: Any=None,
-    image_data: Any=None,
-    detection_confidence: Any=0.5,
-    detection_models: Any=None,
-    include_bounding_boxes: Any=True,
-    object_categories: Any=None,
-    max_detections: Any=100,
-    ctx: Context | Any=None,
-) -> Any:
+    image_path: Any = None,
+    image_data: Any = None,
+    detection_confidence: Any = 0.5,
+    detection_models: Any = None,
+    include_bounding_boxes: Any = True,
+    object_categories: Any = None,
+    max_detections: Any = 100,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for object detection."""
     if not image_path and not image_data:
         return {
@@ -257,15 +261,15 @@ async def mock_km_detect_objects(
 
 
 async def mock_km_analyze_scene(
-    image_path: Any=None,
-    image_data: Any=None,
-    analysis_depth: Any="comprehensive",
-    include_spatial_relationships: Any=True,
-    detect_activities: Any=True,
-    analyze_environment: Any=True,
-    confidence_threshold: Any=0.6,
-    ctx: Context | Any=None,
-) -> Any:
+    image_path: Any = None,
+    image_data: Any = None,
+    analysis_depth: Any = "comprehensive",
+    include_spatial_relationships: Any = True,
+    detect_activities: Any = True,
+    analyze_environment: Any = True,
+    confidence_threshold: Any = 0.6,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for scene analysis."""
     if not image_path and not image_data:
         return {
@@ -503,15 +507,15 @@ async def mock_km_analyze_scene(
 
 
 async def mock_km_classify_image_content(
-    image_path: Any=None,
-    image_data: Any=None,
-    classification_models: Any=None,
-    top_k_results: Either[Any, Any] | Any=5,
-    confidence_threshold: Any=0.1,
-    include_feature_analysis: Any=True,
-    custom_categories: Any=None,
-    ctx: Context | Any=None,
-) -> Any:
+    image_path: Any = None,
+    image_data: Any = None,
+    classification_models: Any = None,
+    top_k_results: Either[Any, Any] | Any = 5,
+    confidence_threshold: Any = 0.1,
+    include_feature_analysis: Any = True,
+    custom_categories: Any = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for image content classification."""
     if not image_path and not image_data:
         return {
@@ -701,15 +705,15 @@ async def mock_km_classify_image_content(
 
 
 async def mock_km_extract_text_from_image(
-    image_path: Any=None,
-    image_data: Any=None,
-    ocr_engines: Any=None,
-    language_hints: Any=None,
-    text_detection_confidence: Any=0.5,
-    include_text_regions: Any=True,
-    output_format: Any="structured",
-    ctx: Context | Any=None,
-) -> Any:
+    image_path: Any = None,
+    image_data: Any = None,
+    ocr_engines: Any = None,
+    language_hints: Any = None,
+    text_detection_confidence: Any = 0.5,
+    include_text_regions: Any = True,
+    output_format: Any = "structured",
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for text extraction from images (OCR)."""
     if not image_path and not image_data:
         return {
@@ -1004,14 +1008,14 @@ async def mock_km_extract_text_from_image(
 
 
 async def mock_km_computer_vision_metrics(
-    metrics_scope: Any="comprehensive",
-    time_period: Any="24h",
-    include_performance_stats: Any=True,
-    include_accuracy_metrics: Any=True,
-    include_usage_analytics: Any=True,
-    export_format: Any="json",
-    ctx: Context | Any=None,
-) -> Any:
+    metrics_scope: Any = "comprehensive",
+    time_period: Any = "24h",
+    include_performance_stats: Any = True,
+    include_accuracy_metrics: Any = True,
+    include_usage_analytics: Any = True,
+    export_format: Any = "json",
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for computer vision metrics collection."""
     # Validate metrics scope
     valid_scopes = [
@@ -1254,7 +1258,7 @@ class TestKMDetectObjects:
     """Test suite for km_detect_objects MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
@@ -1318,7 +1322,10 @@ class TestKMDetectObjects:
         assert "between 0.0 and 1.0" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_detect_objects_invalid_max_detections(self, mock_context: Any) -> None:
+    async def test_detect_objects_invalid_max_detections(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test object detection with invalid max detections."""
         result = await km_detect_objects(
             image_path="/test/image.jpg",
@@ -1344,7 +1351,7 @@ class TestKMAnalyzeScene:
     """Test suite for km_analyze_scene MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
@@ -1436,7 +1443,7 @@ class TestKMClassifyImageContent:
     """Test suite for km_classify_image_content MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
@@ -1445,7 +1452,10 @@ class TestKMClassifyImageContent:
         return context
 
     @pytest.mark.asyncio
-    async def test_classify_image_content_comprehensive(self, mock_context: Any) -> None:
+    async def test_classify_image_content_comprehensive(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test comprehensive image content classification."""
         result = await km_classify_image_content(
             image_path="/test/content.jpg",
@@ -1488,7 +1498,10 @@ class TestKMClassifyImageContent:
         assert len(classification["primary_classifications"]) <= 3
 
     @pytest.mark.asyncio
-    async def test_classify_image_content_invalid_top_k(self, mock_context: Any) -> None:
+    async def test_classify_image_content_invalid_top_k(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test image classification with invalid top_k value."""
         result = await km_classify_image_content(
             image_path="/test/content.jpg",
@@ -1501,7 +1514,10 @@ class TestKMClassifyImageContent:
         assert "between 1 and 100" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_classify_image_content_invalid_confidence(self, mock_context: Any) -> None:
+    async def test_classify_image_content_invalid_confidence(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test image classification with invalid confidence threshold."""
         result = await km_classify_image_content(
             image_path="/test/content.jpg",
@@ -1527,7 +1543,7 @@ class TestKMExtractTextFromImage:
     """Test suite for km_extract_text_from_image MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
@@ -1536,7 +1552,10 @@ class TestKMExtractTextFromImage:
         return context
 
     @pytest.mark.asyncio
-    async def test_extract_text_from_image_comprehensive(self, mock_context: Any) -> None:
+    async def test_extract_text_from_image_comprehensive(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test comprehensive text extraction from image."""
         result = await km_extract_text_from_image(
             image_path="/test/text_image.jpg",
@@ -1579,7 +1598,10 @@ class TestKMExtractTextFromImage:
         assert "text_analysis" not in extraction
 
     @pytest.mark.asyncio
-    async def test_extract_text_from_image_invalid_confidence(self, mock_context: Any) -> None:
+    async def test_extract_text_from_image_invalid_confidence(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test text extraction with invalid confidence threshold."""
         result = await km_extract_text_from_image(
             image_path="/test/text_image.jpg",
@@ -1592,7 +1614,10 @@ class TestKMExtractTextFromImage:
         assert "between 0.0 and 1.0" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_extract_text_from_image_invalid_format(self, mock_context: Any) -> None:
+    async def test_extract_text_from_image_invalid_format(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test text extraction with invalid output format."""
         result = await km_extract_text_from_image(
             image_path="/test/text_image.jpg",
@@ -1618,14 +1643,17 @@ class TestKMComputerVisionMetrics:
     """Test suite for km_computer_vision_metrics MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-cv-metrics-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_computer_vision_metrics_comprehensive(self, mock_context: Any) -> None:
+    async def test_computer_vision_metrics_comprehensive(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test comprehensive computer vision metrics collection."""
         result = await km_computer_vision_metrics(
             metrics_scope="comprehensive",
@@ -1649,7 +1677,10 @@ class TestKMComputerVisionMetrics:
         assert "usage_analytics" in metrics
 
     @pytest.mark.asyncio
-    async def test_computer_vision_metrics_performance_only(self, mock_context: Any) -> None:
+    async def test_computer_vision_metrics_performance_only(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test performance-only computer vision metrics."""
         result = await km_computer_vision_metrics(
             metrics_scope="performance_only",
@@ -1669,7 +1700,10 @@ class TestKMComputerVisionMetrics:
         assert "usage_analytics" not in metrics
 
     @pytest.mark.asyncio
-    async def test_computer_vision_metrics_invalid_scope(self, mock_context: Any) -> None:
+    async def test_computer_vision_metrics_invalid_scope(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test computer vision metrics with invalid scope."""
         result = await km_computer_vision_metrics(
             metrics_scope="invalid_scope",
@@ -1681,7 +1715,10 @@ class TestKMComputerVisionMetrics:
         assert "Invalid metrics scope" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_computer_vision_metrics_invalid_period(self, mock_context: Any) -> None:
+    async def test_computer_vision_metrics_invalid_period(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test computer vision metrics with invalid time period."""
         result = await km_computer_vision_metrics(
             time_period="invalid_period",
@@ -1693,7 +1730,10 @@ class TestKMComputerVisionMetrics:
         assert "Invalid time period" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_computer_vision_metrics_invalid_format(self, mock_context: Any) -> None:
+    async def test_computer_vision_metrics_invalid_format(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test computer vision metrics with invalid export format."""
         result = await km_computer_vision_metrics(
             export_format="invalid_format",
@@ -1710,7 +1750,7 @@ class TestComputerVisionToolsIntegration:
     """Integration tests for computer vision tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
@@ -1791,7 +1831,7 @@ class TestComputerVisionToolsProperties:
     """Property-based tests for computer vision tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {

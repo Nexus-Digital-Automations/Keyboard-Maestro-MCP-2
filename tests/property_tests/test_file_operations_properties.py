@@ -10,11 +10,13 @@ import logging
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import pytest
 from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 from hypothesis.stateful import RuleBasedStateMachine, invariant, rule
+from hypothesis.strategies import composite
 from src.core.errors import ContractViolationError
 from src.filesystem.file_operations import (
     FileOperationManager,
@@ -27,11 +29,60 @@ from src.filesystem.path_security import PathSecurity
 logger = logging.getLogger(__name__)
 
 
+@composite
+def safe_filenames(draw):
+    """Generate safe filenames without problematic characters or reserved names."""
+    # Safe characters for filenames
+    safe_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_. "
+
+    # Generate base filename
+    base = draw(st.text(alphabet=safe_chars, min_size=1, max_size=40))
+
+    # Ensure it doesn't start with dot and isn't empty after strip
+    base = base.strip()
+    if not base or base.startswith("."):
+        base = "file" + base
+
+    # Avoid Windows reserved names
+    reserved_names = {
+        "CON",
+        "PRN",
+        "AUX",
+        "NUL",
+        "COM1",
+        "COM2",
+        "COM3",
+        "COM4",
+        "COM5",
+        "COM6",
+        "COM7",
+        "COM8",
+        "COM9",
+        "LPT1",
+        "LPT2",
+        "LPT3",
+        "LPT4",
+        "LPT5",
+        "LPT6",
+        "LPT7",
+        "LPT8",
+        "LPT9",
+    }
+
+    if base.upper() in reserved_names:
+        base = "safe_" + base
+
+    return base
+
+
 class TestFileOperationProperties:
     """Property-based tests for file operations with security validation."""
 
     @given(st.text(min_size=1, max_size=100))
-    def test_path_validation_rejects_dangerous_patterns(self, path_input: list[Any] | str) -> None:
+    def test_path_validation_rejects_dangerous_patterns(
+        self,
+        path_input: list[Any] | str,
+    ) -> None:
         """Property: Dangerous path patterns should always be rejected."""
         # Skip if path contains null bytes (not valid for filesystem)
         assume("\x00" not in path_input)
@@ -55,21 +106,10 @@ class TestFileOperationProperties:
                 f"Path validation should reject dangerous pattern: {dangerous_path}"
             )
 
-    @given(
-        st.text(
-            min_size=1,
-            max_size=50,
-            alphabet=st.characters(
-                blacklist_characters=["/", "\\", ":", "*", "?", '"', "<", ">", "|"],
-            ),
-        ),
-    )
+    @given(safe_filenames())
     def test_safe_filename_validation(self, filename: str) -> None:
         """Property: Safe filenames in allowed directories should pass validation."""
-        assume(
-            filename not in [".", "..", "CON", "PRN", "AUX", "NUL"],
-        )  # Windows reserved names
-        assume(not filename.startswith("."))  # Skip hidden files for simplicity
+        # Strategy already generates safe filenames without reserved names or problematic patterns
 
         # Create PathSecurity instance
         path_security = PathSecurity()

@@ -578,7 +578,7 @@ class SearchEngine:
         self,
         doc_id: DocumentId,
         query_terms: set[str],
-        term_matches: dict[str, set[DocumentId]],
+        _term_matches: dict[str, set[DocumentId]],
     ) -> float:
         """Calculate text relevance score."""
         try:

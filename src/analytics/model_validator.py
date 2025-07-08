@@ -19,6 +19,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
+from src.core.constants import MINIMUM_SAMPLES_COUNT
 from src.core.contracts import ensure, require
 from src.core.either import Either
 from src.core.predictive_modeling import (
@@ -118,7 +119,7 @@ class ValidationConfiguration:
     def __post_init__(self):
         if not (0.1 <= self.test_size <= 0.5):
             raise ValueError("Test size must be between 0.1 and 0.5")
-        if self.k_folds < 2:
+        if self.k_folds < MINIMUM_SAMPLES_COUNT:
             raise ValueError("K-folds must be at least 2")
 
 
@@ -689,7 +690,7 @@ class ModelValidator:
         # Average metrics across bootstrap samples
         validation_metrics = {}
         for metric in config.validation_metrics:
-            if metric in bootstrap_metrics and bootstrap_metrics[metric]:
+            if bootstrap_metrics.get(metric):
                 validation_metrics[metric] = statistics.mean(bootstrap_metrics[metric])
 
         # Calculate residuals
@@ -857,7 +858,7 @@ class ModelValidator:
         """Perform statistical significance tests."""
         statistical_tests = {}
 
-        if len(results) >= 2:
+        if len(results) >= MINIMUM_SAMPLES_COUNT:
             # Perform paired t-test between validation methods
             for i, result1 in enumerate(results):
                 for j, result2 in enumerate(results):
@@ -906,7 +907,7 @@ class ModelValidator:
     def _analyze_model_stability(
         self,
         results: list[ValidationResult],
-        config: ValidationConfiguration,
+        _config: ValidationConfiguration,
     ) -> dict[str, Any]:
         """Analyze model stability across validation runs."""
         stability_analysis = {}

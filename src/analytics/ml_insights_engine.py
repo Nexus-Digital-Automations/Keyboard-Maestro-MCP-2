@@ -33,6 +33,17 @@ from ..core.analytics_architecture import (
     PrivacyMode,
     create_insight_id,
 )
+from ..core.constants import (
+    DBSCAN_EPS,
+    DBSCAN_MIN_SAMPLES,
+    DEFAULT_MODEL_ACCURACY,
+    DEFAULT_PEAK_HOUR,
+    KMEANS_CLUSTERS,
+    KMEANS_INIT_COUNT,
+    LOW_CONFIDENCE_THRESHOLD,
+    MIN_TRAINING_SAMPLES,
+    PAIR_COUNT,
+)
 from ..core.contracts import require
 from ..core.errors import AnalyticsError
 from .models.model_storage import ModelStorage
@@ -68,7 +79,7 @@ class MLModel:
         self.model_accuracy = 0.0  # To be set by actual training implementation
         return True
 
-    async def predict(self, input_data: Any) -> tuple[Any, float]:
+    async def predict(self, _input_data: Any) -> tuple[Any, float]:
         """Make prediction with confidence score. Override in subclasses."""
         if not self.trained:
             raise AnalyticsError("Model must be trained before making predictions")
@@ -96,18 +107,22 @@ class PatternRecognitionModel(MLModel):
     def __init__(self, model_id: ModelId):
         super().__init__(MLModelType.PATTERN_RECOGNITION, model_id)
         self.patterns_discovered = []
-        self.pattern_confidence_threshold = 0.7
+        self.pattern_confidence_threshold = LOW_CONFIDENCE_THRESHOLD
 
         # Initialize real ML models
-        self.kmeans = KMeans(n_clusters=5, random_state=42, n_init=10)
-        self.dbscan = DBSCAN(eps=0.5, min_samples=5)
+        self.kmeans = KMeans(
+            n_clusters=KMEANS_CLUSTERS,
+            random_state=42,
+            n_init=KMEANS_INIT_COUNT,
+        )
+        self.dbscan = DBSCAN(eps=DBSCAN_EPS, min_samples=DBSCAN_MIN_SAMPLES)
         self.scaler = StandardScaler()
         self.trained_models = {}
         self.feature_columns = []
 
     async def train(self, training_data: list[Any]) -> bool:
         """Train pattern recognition models with real data."""
-        if not training_data or len(training_data) < 10:
+        if not training_data or len(training_data) < MIN_TRAINING_SAMPLES:
             return False
 
         try:
@@ -130,7 +145,7 @@ class PatternRecognitionModel(MLModel):
                         },
                     )
 
-            if len(df_data) < 10:
+            if len(df_data) < MIN_TRAINING_SAMPLES:
                 return False
 
             df = pd.DataFrame(df_data)
@@ -171,7 +186,9 @@ class PatternRecognitionModel(MLModel):
                     min(1.0, (silhouette_avg + 1) / 2),
                 )  # Normalize to 0-1
             except ValueError:
-                self.model_accuracy = 0.7  # Default if calculation fails
+                self.model_accuracy = (
+                    DEFAULT_MODEL_ACCURACY  # Default if calculation fails
+                )
 
             return True
 
@@ -192,7 +209,9 @@ class PatternRecognitionModel(MLModel):
 
         for tool, metrics in tool_metrics.items():
             # Analyze usage patterns with real ML
-            if len(metrics) >= 10:  # Minimum data for pattern analysis
+            if (
+                len(metrics) >= MIN_TRAINING_SAMPLES
+            ):  # Minimum data for pattern analysis
                 pattern = await self._analyze_usage_pattern(tool, metrics)
                 if pattern["confidence"] >= self.pattern_confidence_threshold:
                     patterns.append(pattern)
@@ -232,12 +251,12 @@ class PatternRecognitionModel(MLModel):
                     ],
                 )
 
-        if len(features_data) < 5:
+        if len(features_data) < MIN_TRAINING_SAMPLES // 2:
             # Fallback to basic analysis for small datasets
             hours = [t.hour for t in timestamps]
-            peak_hour = max(set(hours), key=hours.count) if hours else 12
+            peak_hour = max(set(hours), key=hours.count) if hours else DEFAULT_PEAK_HOUR
             trend = 0
-            if len(values) >= 2:
+            if len(values) >= PAIR_COUNT:
                 trend = (values[-1] - values[0]) / len(values) if values else 0
 
             return {
@@ -266,7 +285,7 @@ class PatternRecognitionModel(MLModel):
 
             # Analyze temporal patterns
             hours = [t.hour for t in timestamps]
-            peak_hour = max(set(hours), key=hours.count) if hours else 12
+            peak_hour = max(set(hours), key=hours.count) if hours else DEFAULT_PEAK_HOUR
 
             # Detect usage clusters and patterns
             unique_kmeans_clusters = len(set(kmeans_cluster))
@@ -359,7 +378,7 @@ class PatternRecognitionModel(MLModel):
         except Exception:
             # Fallback to basic analysis on error
             hours = [t.hour for t in timestamps]
-            peak_hour = max(set(hours), key=hours.count) if hours else 12
+            peak_hour = max(set(hours), key=hours.count) if hours else DEFAULT_PEAK_HOUR
             trend = (values[-1] - values[0]) / len(values) if len(values) >= 2 else 0
 
             return {
@@ -779,9 +798,9 @@ class PredictiveAnalyticsModel(MLModel):
                     best_model = None
 
                     # Try different ARIMA orders (p,d,q) - keep it simple for performance
-                    for p in range(0, 3):
-                        for d in range(0, 2):
-                            for q in range(0, 3):
+                    for p in range(3):
+                        for d in range(2):
+                            for q in range(3):
                                 try:
                                     arima_model = ARIMA(values, order=(p, d, q))
                                     fitted_model = arima_model.fit()
@@ -1108,13 +1127,13 @@ class MLInsightsEngine:
         )
 
     @require(
-        lambda _self, metrics_data, analysis_scope=None: metrics_data is not None
+        lambda _self, metrics_data, _analysis_scope=None: metrics_data is not None
         and len(metrics_data) > 0,
     )
     async def generate_comprehensive_insights(
         self,
         metrics_data: list[MetricValue],
-        analysis_scope: AnalyticsScope = AnalyticsScope.ECOSYSTEM,
+        _analysis_scope: AnalyticsScope = AnalyticsScope.ECOSYSTEM,
     ) -> list[MLInsight]:
         """Generate comprehensive ML insights from metrics data."""
         insights = []
@@ -1384,3 +1403,151 @@ class MLInsightsEngine:
                 deployment_results[model_type.value] = {"error": str(e)}
 
         return deployment_results
+
+    def _analyze_patterns(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Analyze patterns in data for systematic testing."""
+        try:
+            # Extract metrics and labels from data
+            metrics = data.get("metrics", [])
+            labels = data.get("labels", [])
+
+            if not metrics or not labels:
+                return {"pattern": "no_data", "confidence": 0.0}
+
+            # Analyze basic patterns
+            pattern_type = "stable"
+            confidence = 0.5
+
+            # Check for trends
+            if len(metrics) > 1:
+                # Calculate trend direction
+                first_half = metrics[: len(metrics) // 2]
+                second_half = metrics[len(metrics) // 2 :]
+
+                if first_half and second_half:
+                    first_avg = sum(first_half) / len(first_half)
+                    second_avg = sum(second_half) / len(second_half)
+
+                    if second_avg > first_avg * 1.1:
+                        pattern_type = "increasing"
+                        confidence = 0.8
+                    elif second_avg < first_avg * 0.9:
+                        pattern_type = "decreasing"
+                        confidence = 0.8
+                    else:
+                        pattern_type = "stable"
+                        confidence = 0.7
+
+            # Additional pattern characteristics
+            analysis_result = {
+                "pattern": pattern_type,
+                "confidence": confidence,
+                "data_points": len(metrics),
+                "trend_strength": abs(
+                    (max(metrics) - min(metrics)) / max(1, max(metrics))
+                )
+                if metrics
+                else 0.0,
+                "variance": sum((x - sum(metrics) / len(metrics)) ** 2 for x in metrics)
+                / len(metrics)
+                if len(metrics) > 1
+                else 0.0,
+            }
+
+            return analysis_result
+
+        except Exception as e:
+            return {"pattern": "analysis_error", "confidence": 0.0, "error": str(e)}
+
+    async def generate_insights(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Generate insights from data for systematic testing."""
+        try:
+            # Analyze patterns in the data
+            pattern_analysis = self._analyze_patterns(data)
+
+            # Generate insights based on pattern analysis
+            insights = {
+                "pattern": pattern_analysis.get("pattern", "unknown"),
+                "pattern_detected": pattern_analysis.get("pattern", "unknown"),
+                "confidence_level": pattern_analysis.get("confidence", 0.0),
+                "analysis_timestamp": datetime.now(UTC).isoformat(),
+                "insights_count": 1,
+                "recommendations": [],
+            }
+
+            # Add specific insights based on pattern type
+            pattern_type = pattern_analysis.get("pattern", "stable")
+
+            if pattern_type == "increasing":
+                insights["recommendations"].append(
+                    "Monitor resource utilization - growth detected"
+                )
+                insights["insights_count"] = 2
+            elif pattern_type == "decreasing":
+                insights["recommendations"].append(
+                    "Investigate potential performance issues"
+                )
+                insights["insights_count"] = 2
+            elif pattern_type == "stable":
+                insights["recommendations"].append("System showing stable performance")
+                insights["insights_count"] = 1
+
+            # Add data quality metrics
+            insights["data_quality"] = {
+                "data_points": pattern_analysis.get("data_points", 0),
+                "trend_strength": pattern_analysis.get("trend_strength", 0.0),
+                "variance": pattern_analysis.get("variance", 0.0),
+            }
+
+            # Track insights generation
+            self.insights_generated += 1
+
+            return insights
+
+        except Exception as e:
+            return {
+                "pattern_detected": "error",
+                "confidence_level": 0.0,
+                "error": str(e),
+                "analysis_timestamp": datetime.now(UTC).isoformat(),
+                "insights_count": 0,
+            }
+
+    def preprocess_data(self, data_points: list[float]) -> list[dict] | dict | None:
+        """Preprocess data points for systematic testing."""
+        try:
+            if not data_points:
+                return None
+
+            # Basic preprocessing
+            processed_data = []
+
+            for i, point in enumerate(data_points):
+                if isinstance(point, int | float):
+                    processed_point = {
+                        "index": i,
+                        "value": float(point),
+                        "normalized": point / max(data_points)
+                        if max(data_points) != 0
+                        else 0.0,
+                        "is_outlier": abs(point - sum(data_points) / len(data_points))
+                        > 2
+                        * (
+                            sum(
+                                (x - sum(data_points) / len(data_points)) ** 2
+                                for x in data_points
+                            )
+                            / len(data_points)
+                        )
+                        ** 0.5
+                        if len(data_points) > 1
+                        else False,
+                    }
+                    processed_data.append(processed_point)
+
+            # Return processed data structure
+            return processed_data if processed_data else {"processed": True, "count": 0}
+
+        except Exception as e:
+            # Return error information but don't crash
+            return {"error": f"processing failed: {str(e)}", "processed": False}

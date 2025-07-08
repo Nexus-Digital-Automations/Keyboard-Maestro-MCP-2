@@ -195,7 +195,7 @@ class EcosystemOrchestrator:
         workflow_definition: dict[str, Any] | None = None,
         optimization_target: OptimizationTarget = OptimizationTarget.EFFICIENCY,
         execution_mode: ExecutionMode = ExecutionMode.ADAPTIVE,
-        tool_selection: str = "intelligent",
+        _tool_selection: str = "intelligent",
     ) -> Either[OrchestrationError, OrchestrationResult]:
         """Orchestrate complex workflow across multiple ecosystem tools."""
         orchestration_id = create_orchestration_id()

@@ -555,7 +555,11 @@ class VoiceFeedbackSystem:
             finally:
                 self.current_playback = None
 
-    def _update_synthesis_stats(self, result: SpeechResult | None, success: bool) -> bool:
+    def _update_synthesis_stats(
+        self,
+        result: SpeechResult | None,
+        success: bool,
+    ) -> bool:
         """Update synthesis statistics."""
         self.feedback_stats["total_requests"] += 1
 

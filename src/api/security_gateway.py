@@ -35,7 +35,7 @@ class AuthenticationMethod(Enum):
     """Authentication methods."""
 
     API_KEY = "api_key"
-    JWT_TOKEN = "jwt_token"  # noqa: S105  # This is an enum identifier, not a password
+    JWT_TOKEN = "jwt_token"  # noqa: S105 # Enum identifier, not password
     BASIC_AUTH = "basic_auth"
 
 
@@ -106,10 +106,10 @@ class SecurityGateway:
 
     async def validate_request(
         self,
-        endpoint: str,
+        _endpoint: str,
         policy_name: str,
         headers: dict[str, str],
-        client_ip: str | None = None,
+        _client_ip: str | None = None,
     ) -> Either[SecurityError, SecurityContext]:
         """Validate API request against security policy."""
         try:

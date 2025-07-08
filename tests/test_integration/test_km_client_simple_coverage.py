@@ -6,7 +6,7 @@ Tests focus on available functionality to maximize coverage of km_client.py modu
 from __future__ import annotations
 
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from src.core.types import Duration, MacroId, TriggerId
@@ -34,7 +34,9 @@ class TestEitherMonad:
         assert not result.is_right()
         assert result.is_left()
         assert result.get_left() == error_msg
-        assert result.get_right() is None
+        # get_right() should raise ValueError on Left
+        with pytest.raises(ValueError, match="Cannot get Right value from Left"):
+            result.get_right()
 
     def test_either_right_creation(self) -> None:
         """Test creating Right (success) values."""
@@ -44,7 +46,9 @@ class TestEitherMonad:
         assert result.is_right()
         assert not result.is_left()
         assert result.get_right() == value
-        assert result.get_left() is None
+        # get_left() should raise ValueError on Right
+        with pytest.raises(ValueError, match="Cannot get Left value from Right"):
+            result.get_left()
 
     def test_either_map_on_right(self) -> None:
         """Test mapping function over Right values."""
@@ -65,7 +69,7 @@ class TestEitherMonad:
     def test_either_flat_map(self) -> None:
         """Test flat mapping for chaining operations."""
 
-        def double_if_even(x: Any) -> Any:
+        def double_if_even(x: Any) -> Mock:
             if x % 2 == 0:
                 return Either.right(x * 2)
             return Either.left("odd number")
@@ -218,7 +222,7 @@ class TestKMClient:
     """Test KM client core functionality."""
 
     @pytest.fixture
-    def mock_config(self) -> Any:
+    def mock_config(self) -> Mock:
         """Create mock configuration for testing."""
         return ConnectionConfig(
             method=ConnectionMethod.APPLESCRIPT,
@@ -335,7 +339,7 @@ class TestRetryWithBackoff:
     def test_retry_success_on_first_attempt(self) -> None:
         """Test successful operation on first try."""
 
-        def successful_operation() -> Any:
+        def successful_operation() -> Mock:
             return Either.right("Success!")
 
         result = retry_with_backoff(
@@ -351,7 +355,7 @@ class TestRetryWithBackoff:
         """Test successful operation after initial failures."""
         attempt_count = 0
 
-        def eventually_successful_operation() -> Any:
+        def eventually_successful_operation() -> Mock:
             nonlocal attempt_count
             attempt_count += 1
             if attempt_count < 3:
@@ -376,7 +380,7 @@ class TestRetryWithBackoff:
     def test_retry_exhausted_attempts(self) -> None:
         """Test when all retry attempts are exhausted."""
 
-        def always_failing_operation() -> Any:
+        def always_failing_operation() -> Mock:
             return Either.left(KMError(code="FAIL_ERROR", message="Always fails"))
 
         result = retry_with_backoff(

@@ -437,7 +437,7 @@ class AIThreatDetector:
     async def _analyze_behavioral_anomalies(
         self,
         events: list[dict[str, Any]],
-        scope: str,
+        _scope: str,
     ) -> list[ThreatDetection]:
         """Analyze events for behavioral anomalies."""
         detections = []
@@ -497,7 +497,7 @@ class AIThreatDetector:
     async def _analyze_with_ml(
         self,
         events: list[dict[str, Any]],
-        scope: str,
+        _scope: str,
     ) -> list[ThreatDetection]:
         """Analyze events using machine learning models."""
         detections = []
@@ -659,7 +659,7 @@ class AIThreatDetector:
     def _infer_threat_vector(
         self,
         events: list[dict[str, Any]],
-        threat_type: ThreatType,
+        _threat_type: ThreatType,
     ) -> ThreatVector:
         """Infer threat vector from events and threat type."""
         # Analyze events to determine likely attack vector

@@ -97,25 +97,48 @@ class ValidationError(MacroEngineError):
 
     def __init__(
         self,
-        field_name: str,
-        value: Any,
-        constraint: str,
+        field_name: str | None = None,
+        value: Any = None,
+        constraint: str | None = None,
+        message: str | None = None,
         context: ErrorContext | None = None,
+        *,
+        field: str | None = None,
     ):
-        message = (
-            f"Validation failed for field '{field_name}': {constraint}. Got: {value}"
-        )
-        recovery = f"Ensure '{field_name}' meets the constraint: {constraint}"
+        # Handle field alias
+        effective_field_name = field_name or field
+
+        if message is not None:
+            # Support simple message-based constructor for legacy compatibility
+            final_message = message
+            recovery = "Check input validation requirements"
+            self.field_name = effective_field_name or "unknown"
+            self.value = value or "unknown"
+            self.constraint = constraint or "validation failed"
+        elif effective_field_name and constraint:
+            # Standard field validation constructor
+            final_message = f"Validation failed for field '{effective_field_name}': {constraint}. Got: {value}"
+            recovery = (
+                f"Ensure '{effective_field_name}' meets the constraint: {constraint}"
+            )
+            self.field_name = effective_field_name
+            self.value = value
+            self.constraint = constraint
+        else:
+            # Fallback for minimal arguments
+            final_message = "Validation failed"
+            recovery = "Check input validation requirements"
+            self.field_name = effective_field_name or "unknown"
+            self.value = value or "unknown"
+            self.constraint = constraint or "validation failed"
+
         super().__init__(
-            message=message,
+            message=final_message,
             category=ErrorCategory.VALIDATION,
             severity=ErrorSeverity.MEDIUM,
             context=context,
             recovery_suggestion=recovery,
         )
-        self.field_name = field_name
-        self.value = value
-        self.constraint = constraint
 
 
 class SecurityViolationError(MacroEngineError):
@@ -489,6 +512,26 @@ class RateLimitError(MacroEngineError):
         self.retry_after = retry_after
 
 
+class MacroExecutionError(MacroEngineError):
+    """Raised when macro execution encounters errors."""
+
+    def __init__(
+        self,
+        macro_id: str,
+        message: str,
+        context: ErrorContext | None = None,
+    ):
+        recovery = "Check macro definition and execution environment"
+        super().__init__(
+            message=f"Macro execution error for {macro_id}: {message}",
+            category=ErrorCategory.EXECUTION,
+            severity=ErrorSeverity.HIGH,
+            context=context,
+            recovery_suggestion=recovery,
+        )
+        self.macro_id = macro_id
+
+
 # Utility functions for error handling
 class AnalyticsError(MacroEngineError):
     """Analytics and reporting system errors."""
@@ -511,7 +554,11 @@ class AnalyticsError(MacroEngineError):
         )
 
 
-def create_error_context(operation: str, component: str, **metadata: Any) -> ErrorContext:
+def create_error_context(
+    operation: str,
+    component: str,
+    **metadata: Any,
+) -> ErrorContext:
     """Create error context with metadata."""
     return ErrorContext(operation=operation, component=component, metadata=metadata)
 

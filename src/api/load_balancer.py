@@ -114,7 +114,7 @@ class LoadBalancer:
         except Exception as e:
             return Either.left(f"Failed to add backend: {e!s}")
 
-    async def route_request(self, client_id: str) -> RoutingDecision:
+    async def route_request(self, _client_id: str) -> RoutingDecision:
         """Route request to appropriate backend server."""
         healthy_backends = [
             b for b in self.backends.values() if b.health_status == HealthStatus.HEALTHY

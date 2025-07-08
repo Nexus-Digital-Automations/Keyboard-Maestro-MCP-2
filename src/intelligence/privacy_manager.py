@@ -268,7 +268,7 @@ class PrivacyManager:
 
     def _validate_regulatory_compliance(
         self,
-        request: Any,
+        _request: Any,
     ) -> Either[IntelligenceError, None]:
         """Validate regulatory compliance requirements."""
         # This would implement specific regulatory compliance checks
@@ -430,13 +430,39 @@ class PrivacyManager:
             r"\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\b",  # Email
         ]
 
-        def clean_value(value: Any) -> bool:
+        # Sensitive field names that should be redacted regardless of content
+        sensitive_field_names = {
+            "password",
+            "passwd",
+            "pwd",
+            "secret",
+            "token",
+            "key",
+            "api_key",
+            "apikey",
+            "auth_token",
+            "access_token",
+        }
+
+        def clean_value(value: Any) -> Any:
             if isinstance(value, str):
                 for pattern in sensitive_patterns:
-                    value = re.sub(pattern, "[REDACTED]", value, flags=re.IGNORECASE)
+                    value = re.sub(pattern, "[redacted]", value, flags=re.IGNORECASE)
                 return value
             if isinstance(value, dict):
-                return {k: clean_value(v) for k, v in value.items()}
+                cleaned_dict = {}
+                for k, v in value.items():
+                    # Check if field name contains sensitive terms
+                    field_name_lower = k.lower()
+                    is_sensitive = any(
+                        sensitive_name in field_name_lower
+                        for sensitive_name in sensitive_field_names
+                    )
+                    if is_sensitive:
+                        cleaned_dict[k] = "[redacted]"
+                    else:
+                        cleaned_dict[k] = clean_value(v)
+                return cleaned_dict
             if isinstance(value, list):
                 return [clean_value(item) for item in value]
             return value
@@ -460,8 +486,9 @@ class PrivacyManager:
         # Check for common identifier patterns
         return (
             "@" in value  # Email-like
-            or len(value) > 10
-            and any(c.isdigit() for c in value)  # Long with numbers
+            or (
+                len(value) > 10 and any(c.isdigit() for c in value)
+            )  # Long with numbers
             or value.startswith(("user_", "id_", "session_"))  # Identifier prefixes
             or re.match(r"^[a-f0-9]{8,}$", value.lower())  # Hex string
         )
@@ -667,7 +694,7 @@ class PrivacyManager:
     async def _filter_nested_dict(
         self,
         data: dict[str, Any],
-        privacy_level: PrivacyLevel,
+        _privacy_level: PrivacyLevel,
     ) -> dict[str, Any]:
         """Filter nested dictionary data."""
         return data

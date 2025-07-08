@@ -8,10 +8,13 @@ Tests follow the proven systematic pattern that achieved 100% success across 23+
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 # Import existing modules
 
@@ -21,11 +24,11 @@ import pytest
 
 async def mock_km_analytics_engine(
     operation: str,
-    scope: Any="macro",
-    metrics: Any=None,
-    configuration: dict[str, Any]=None,
-    ctx: Context | Any=None,
-) -> Any:
+    scope: Any = "macro",
+    metrics: Any = None,
+    configuration: dict[str, Any] = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for analytics engine operations."""
     if operation not in [
         "initialize",
@@ -88,8 +91,8 @@ async def mock_km_analytics_engine(
 async def mock_km_collect_ecosystem_metrics(
     scope: Any,
     target_ids: str,
-    metric_types: Any=None,
-    ctx: Context | Any=None,
+    metric_types: Any = None,
+    ctx: Context | Any = None,
 ) -> list[Any]:
     """Mock implementation for ecosystem metrics collection."""
     if not target_ids:
@@ -128,9 +131,9 @@ async def mock_km_collect_ecosystem_metrics(
 
 async def mock_km_generate_ml_insights(
     data_source: Any,
-    analysis_type: str="comprehensive",
-    ctx: Context | Any=None,
-) -> Any:
+    analysis_type: str = "comprehensive",
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for ML insights generation."""
     if analysis_type == "invalid_type":
         return {
@@ -164,9 +167,9 @@ async def mock_km_generate_ml_insights(
 
 async def mock_km_calculate_roi_metrics(
     timeframe: Any,
-    investment_categories: Any=None,
-    ctx: Context | Any=None,
-) -> Any:
+    investment_categories: Any = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for ROI metrics calculation."""
     # Default success response
     return {
@@ -206,14 +209,14 @@ class TestKMAnalyticsEngine:
     """Test suite for km_analytics_engine MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-analytics-001"}
         return context
 
     @pytest.fixture
-    def sample_analytics_data(self) -> Any:
+    def sample_analytics_data(self) -> Mock:
         """Sample analytics data for testing."""
         return {
             "basic_operation": {
@@ -294,14 +297,14 @@ class TestKMCollectEcosystemMetrics:
     """Test suite for km_collect_ecosystem_metrics MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-metrics-001"}
         return context
 
     @pytest.fixture
-    def sample_metrics_data(self) -> Any:
+    def sample_metrics_data(self) -> Mock:
         """Sample metrics collection data."""
         return {
             "target_ids": ["macro-001", "workflow-002", "automation-003"],
@@ -347,7 +350,7 @@ class TestKMGenerateMLInsights:
     """Test suite for km_generate_ml_insights MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-ml-001"}
@@ -387,7 +390,7 @@ class TestKMCalculateROIMetrics:
     """Test suite for km_calculate_roi_metrics MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-roi-001"}
@@ -415,7 +418,7 @@ class TestAnalyticsEngineIntegration:
     """Integration tests for analytics engine tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-integration-analytics-001"}

@@ -340,7 +340,7 @@ class AIModelManager:
         self,
         models: list[AIModel],
         mode: ProcessingMode,
-        operation: AIOperation,
+        _operation: AIOperation,
     ) -> AIModel:
         """Select model based on processing mode preferences."""
         if mode == ProcessingMode.FAST:

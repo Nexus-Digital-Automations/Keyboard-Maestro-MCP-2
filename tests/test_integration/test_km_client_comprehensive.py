@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 import subprocess
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -27,6 +27,9 @@ from src.integration.km_client import (
     # Functions
     retry_with_backoff,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +60,7 @@ def connection_config_strategy(draw: Callable[..., Any]) -> None:
 
 
 @st.composite
-def km_error_strategy(draw: Callable[..., Any]) -> Any:
+def km_error_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid KM errors."""
     error_codes = [
         "CONNECTION_ERROR",
@@ -147,7 +150,8 @@ class TestEitherMonad:
         assert either.is_left()
         assert not either.is_right()
         assert either.get_left() == error
-        assert either.get_right() is None
+        with pytest.raises(ValueError, match="Cannot get Right value from Left"):
+            either.get_right()
 
     def test_either_right_creation(self) -> None:
         """Test Right (success) value creation."""
@@ -157,7 +161,8 @@ class TestEitherMonad:
         assert either.is_right()
         assert not either.is_left()
         assert either.get_right() == value
-        assert either.get_left() is None
+        with pytest.raises(ValueError, match="Cannot get Left value from Right"):
+            either.get_left()
 
     def test_either_map_on_right(self) -> None:
         """Test mapping function over Right value."""
@@ -206,14 +211,19 @@ class TestEitherMonad:
         assert result == "default"
 
     @given(st.integers(), st.text())
-    def test_either_property_validation(self, value: Any, error: str | Exception) -> None:
+    def test_either_property_validation(
+        self,
+        value: Any,
+        error: str | Exception,
+    ) -> None:
         """Property test for Either behavior."""
         # Right value properties
         right_either = Either.right(value)
         assert right_either.is_right()
         assert not right_either.is_left()
         assert right_either.get_right() == value
-        assert right_either.get_left() is None
+        with pytest.raises(ValueError):
+            right_either.get_left()
         assert right_either.get_or_else("default") == value
 
         # Left value properties
@@ -221,7 +231,8 @@ class TestEitherMonad:
         assert left_either.is_left()
         assert not left_either.is_right()
         assert left_either.get_left() == error
-        assert left_either.get_right() is None
+        with pytest.raises(ValueError):
+            left_either.get_right()
         assert left_either.get_or_else("default") == "default"
 
 
@@ -343,7 +354,10 @@ class TestConnectionConfig:
         assert new_config.web_api_port == original_config.web_api_port
 
     @given(connection_config_strategy())
-    def test_connection_config_property_validation(self, config: ConnectionConfig) -> None:
+    def test_connection_config_property_validation(
+        self,
+        config: ConnectionConfig,
+    ) -> None:
         """Property test for ConnectionConfig behavior."""
         # All configs should have valid properties
         assert isinstance(config.method, ConnectionMethod)
@@ -916,7 +930,7 @@ class TestRetryWithBackoff:
         """Test retry when operation succeeds on first attempt."""
         call_count = 0
 
-        def mock_operation() -> Any:
+        def mock_operation() -> Mock:
             nonlocal call_count
             call_count += 1
             return Either.right("success")
@@ -931,7 +945,7 @@ class TestRetryWithBackoff:
         """Test retry when operation succeeds after some failures."""
         call_count = 0
 
-        def mock_operation() -> Any:
+        def mock_operation() -> Mock:
             nonlocal call_count
             call_count += 1
             if call_count < 3:
@@ -948,7 +962,7 @@ class TestRetryWithBackoff:
         """Test retry when max retries are exceeded."""
         call_count = 0
 
-        def mock_operation() -> Any:
+        def mock_operation() -> Mock:
             nonlocal call_count
             call_count += 1
             return Either.left(KMError.connection_error("Always fails"))
@@ -963,7 +977,7 @@ class TestRetryWithBackoff:
         """Test retry respects retry_after from error."""
         call_count = 0
 
-        def mock_operation() -> Any:
+        def mock_operation() -> Mock:
             nonlocal call_count
             call_count += 1
             if call_count == 1:
@@ -998,11 +1012,14 @@ class TestFallbackClient:
         assert "success" in result.get_right()
 
     @patch("subprocess.run")
-    def test_fallback_client_primary_failure_fallback_success(self, mock_run: Any) -> None:
+    def test_fallback_client_primary_failure_fallback_success(
+        self,
+        mock_run: Any,
+    ) -> None:
         """Test fallback client when primary fails but fallback succeeds."""
         call_count = 0
 
-        def mock_run_side_effect(*args: Any, **kwargs: Any) -> Any:
+        def mock_run_side_effect(*args: Any, **kwargs: Any) -> Mock:
             nonlocal call_count
             call_count += 1
             if call_count == 1:

@@ -30,7 +30,7 @@ Key Mocking Pattern:
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -54,10 +54,13 @@ from src.server.tools.hotkey_tools import (
 # Import hotkey types and errors
 from src.triggers.hotkey_manager import HotkeyManager
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context() -> Any:
+def mock_context() -> Mock:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -71,7 +74,7 @@ def mock_context() -> Any:
 
 
 @pytest.fixture
-def mock_hotkey_manager() -> Any:
+def mock_hotkey_manager() -> Mock:
     """Create mock HotkeyManager with standard interface."""
     manager = Mock(spec=HotkeyManager)
     manager.detect_conflicts = AsyncMock()
@@ -110,21 +113,21 @@ def mock_hotkey_manager() -> Any:
 
 
 @pytest.fixture
-def mock_km_client() -> Any:
+def mock_km_client() -> Mock:
     """Create mock KMClient with standard interface."""
     client = Mock(spec=KMClient)
     return client
 
 
 @pytest.fixture
-def mock_trigger_manager() -> Any:
+def mock_trigger_manager() -> Mock:
     """Create mock TriggerRegistrationManager with standard interface."""
     manager = Mock(spec=TriggerRegistrationManager)
     return manager
 
 
 @pytest.fixture
-def mock_hotkey_spec() -> Any:
+def mock_hotkey_spec() -> Mock:
     """Create mock HotkeySpec with standard interface."""
     spec = Mock()
     spec.to_display_string.return_value = "Cmd+N"
@@ -1049,7 +1052,7 @@ class TestHotkeyToolsPropertyBased:
     """Property-based testing for hotkey tools with Hypothesis."""
 
     @composite
-    def valid_keys(draw: Callable[..., Any]) -> Any:
+    def valid_keys(draw: Callable[..., Any]) -> Mock:
         """Generate valid key identifiers."""
         letter_keys = st.sampled_from("abcdefghijklmnopqrstuvwxyz")
         number_keys = st.sampled_from("0123456789")
@@ -1090,13 +1093,13 @@ class TestHotkeyToolsPropertyBased:
         return draw(st.one_of(letter_keys, number_keys, special_keys))
 
     @composite
-    def valid_modifiers(draw: Callable[..., Any]) -> Any:
+    def valid_modifiers(draw: Callable[..., Any]) -> Mock:
         """Generate valid modifier combinations."""
         modifiers = st.sampled_from(["cmd", "opt", "shift", "ctrl", "fn"])
         return draw(st.lists(modifiers, min_size=0, max_size=3, unique=True))
 
     @composite
-    def valid_macro_ids(draw: Callable[..., Any]) -> Any:
+    def valid_macro_ids(draw: Callable[..., Any]) -> Mock:
         """Generate valid macro IDs."""
         # Generate macro IDs without dangerous characters
         chars = st.characters(
@@ -1107,7 +1110,12 @@ class TestHotkeyToolsPropertyBased:
 
     @given(valid_macro_ids(), valid_keys(), valid_modifiers())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    def test_input_sanitization_property(self, macro_id: str, key: str, modifiers: list[Any] | str) -> None:
+    def test_input_sanitization_property(
+        self,
+        macro_id: str,
+        key: str,
+        modifiers: list[Any] | str,
+    ) -> None:
         """Property: All valid inputs should be properly sanitized."""
         assume(len(macro_id.strip()) > 0)  # Non-empty after strip
 

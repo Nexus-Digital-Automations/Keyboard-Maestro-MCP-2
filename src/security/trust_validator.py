@@ -266,7 +266,8 @@ class TrustValidator:
             )
 
     @require(
-        lambda _self, target_id, scope: target_id and isinstance(scope, ValidationScope),
+        lambda _self, target_id, scope: target_id
+        and isinstance(scope, ValidationScope),
     )
     async def get_current_trust_score(
         self,
@@ -652,7 +653,7 @@ class TrustValidator:
 
     async def _validate_temporal_factor(
         self,
-        request: TrustValidationRequest,
+        _request: TrustValidationRequest,
     ) -> Either[TrustValidationError, TrustFactorResult]:
         """Validate temporal trust factor."""
         try:
@@ -807,7 +808,7 @@ class TrustValidator:
     def _calculate_validation_expiration(
         self,
         trust_level: TrustLevel,
-        criteria: ValidationCriteria,
+        _criteria: ValidationCriteria,
     ) -> datetime | None:
         """Calculate when validation expires based on trust level."""
         # Higher trust = longer validity
@@ -1001,22 +1002,22 @@ class TrustValidator:
             logger.error(f"Low trust score handling failed: {e!s}", exc_info=True)
 
     # Helper methods for risk assessment
-    def _is_high_risk_user(self, user_id: str) -> bool:
+    def _is_high_risk_user(self, _user_id: str) -> bool:
         """Check if user is considered high risk."""
         # Placeholder - would check user risk database
         return False
 
-    def _is_high_risk_location(self, location: str | None) -> bool:
+    def _is_high_risk_location(self, _location: str | None) -> bool:
         """Check if location is considered high risk."""
         # Placeholder - would check location risk database
         return False
 
-    def _is_untrusted_network(self, ip_address: str | None) -> bool:
+    def _is_untrusted_network(self, _ip_address: str | None) -> bool:
         """Check if network is untrusted."""
         # Placeholder - would check network reputation
         return False
 
-    def _detect_behavioral_anomaly(self, request: TrustValidationRequest) -> bool:
+    def _detect_behavioral_anomaly(self, _request: TrustValidationRequest) -> bool:
         """Detect behavioral anomalies."""
         # Placeholder - would use ML models for anomaly detection
         return False

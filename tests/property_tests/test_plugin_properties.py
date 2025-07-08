@@ -5,8 +5,10 @@ to validate plugin system behavior across input ranges and edge cases.
 """
 
 import tempfile
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 from hypothesis import HealthCheck, assume, given, settings
@@ -50,7 +52,7 @@ def plugin_identifier_strategy(draw: Callable[..., Any]) -> bool:
 
 
 @st.composite
-def version_strategy(draw: Callable[..., Any]) -> Any:
+def version_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid semantic version strings."""
     major = draw(st.integers(min_value=0, max_value=99))
     minor = draw(st.integers(min_value=0, max_value=99))
@@ -152,13 +154,13 @@ def plugin_metadata_strategy(draw: Callable[..., Any]) -> bool:
 
 
 @st.composite
-def security_profile_strategy(draw: Callable[..., Any]) -> Any:
+def security_profile_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate security profiles."""
     return draw(st.sampled_from(list(SecurityProfile)))
 
 
 @st.composite
-def action_parameter_strategy(draw: Callable[..., Any]) -> Any:
+def action_parameter_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate custom action parameters."""
     # Generate valid parameter name: starts with letter, then letters/numbers/underscores
     first_char = draw(
@@ -320,7 +322,11 @@ class TestPluginPermissionsProperties:
             ],
         ),
     )
-    def test_permission_checking(self, permissions: Any, permission_to_check: Any) -> None:
+    def test_permission_checking(
+        self,
+        permissions: Any,
+        permission_to_check: Any,
+    ) -> None:
         """Test permission checking behavior."""
         plugin_perms = PluginPermissions(permissions=permissions)
 
@@ -544,7 +550,11 @@ class TestAPIBridgeProperties:
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
-    async def test_rate_limiting_enforcement(self, plugin_id: str, call_count: int) -> None:
+    async def test_rate_limiting_enforcement(
+        self,
+        plugin_id: str,
+        call_count: int,
+    ) -> None:
         """Test that rate limiting is properly enforced."""
         # Create API bridge for this test
         api_bridge = self.create_api_bridge()
@@ -589,7 +599,10 @@ class TestAPIBridgeProperties:
 
             # B023 fix: Properly capture loop variable in closure
             def create_mock_execute_tool(call_number: Any) -> None:
-                async def mock_execute_tool(tool_name: str, parameters: list[Any]) -> None:
+                async def mock_execute_tool(
+                    tool_name: str,
+                    parameters: list[Any],
+                ) -> None:
                     return Either.right({"success": True, "call_number": call_number})
 
                 return mock_execute_tool
@@ -623,7 +636,7 @@ class TestMarketplaceProperties:
     """Property-based tests for marketplace functionality."""
 
     @pytest.fixture
-    async def marketplace(self) -> Any:
+    async def marketplace(self) -> Mock:
         """Create marketplace for testing."""
         with tempfile.TemporaryDirectory() as temp_dir:
             marketplace = PluginMarketplace(cache_dir=Path(temp_dir))
@@ -640,7 +653,13 @@ class TestMarketplaceProperties:
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
-    async def test_search_result_bounds(self, marketplace: Awaitable[Any] | Any, query_text: Any, limit: int, offset: int) -> None:
+    async def test_search_result_bounds(
+        self,
+        marketplace: Awaitable[Any] | Any,
+        query_text: Any,
+        limit: int,
+        offset: int,
+    ) -> None:
         """Test that search results respect pagination bounds."""
         query = SearchQuery(query=query_text, limit=limit, offset=offset)
 
@@ -661,7 +680,11 @@ class TestMarketplaceProperties:
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
     @pytest.mark.asyncio
-    async def test_plugin_details_consistency(self, marketplace: Awaitable[Any] | Any, plugin_id_str: str) -> None:
+    async def test_plugin_details_consistency(
+        self,
+        marketplace: Awaitable[Any] | Any,
+        plugin_id_str: str,
+    ) -> None:
         """Test plugin details retrieval consistency."""
         plugin_id = PluginId(plugin_id_str)
 
@@ -688,7 +711,10 @@ class TestPluginLifecycleProperties:
     @given(plugin_metadata_strategy())
     @settings(max_examples=20)
     @pytest.mark.asyncio
-    async def test_plugin_lifecycle_state_transitions(self, metadata: PluginMetadata) -> None:
+    async def test_plugin_lifecycle_state_transitions(
+        self,
+        metadata: PluginMetadata,
+    ) -> None:
         """Test plugin lifecycle state transitions are valid."""
         from src.plugins.plugin_sdk import BasePlugin
 

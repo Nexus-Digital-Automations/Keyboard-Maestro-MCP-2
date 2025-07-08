@@ -297,7 +297,11 @@ class MockMacroEngine:
         self.should_succeed = True
         self.max_concurrent = 10
 
-    def execute_macro(self, macro: Any, context: dict[str, Any] | Any=None) -> ExecutionResult:
+    def execute_macro(
+        self,
+        macro: Any,
+        context: dict[str, Any] | Any = None,
+    ) -> ExecutionResult:
         """Mock macro execution."""
         self.execution_count += 1
 

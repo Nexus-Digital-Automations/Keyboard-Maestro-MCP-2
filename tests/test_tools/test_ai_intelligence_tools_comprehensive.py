@@ -8,7 +8,7 @@ pattern that achieved 100% success across 22+ tool suites.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -16,6 +16,9 @@ import pytest
 import src.server.tools.ai_intelligence_tools as ai_intel_tools
 from hypothesis import assume, given
 from hypothesis import strategies as st
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # Extract underlying functions from FastMCP tool objects (systematic pattern)
 km_ai_intelligence = ai_intel_tools.km_ai_intelligence
@@ -147,7 +150,7 @@ class TestAIIntelligenceParameterValidation:
         assert len(set(dimensions)) == len(dimensions)  # No duplicates
 
     @given(confidence_threshold_strategy())
-    def test_valid_confidence_thresholds(self, threshold: int | float) -> None:
+    def test_valid_confidence_thresholds(self, threshold: float) -> None:
         """Test that confidence thresholds are properly validated."""
         assert 0.1 <= threshold <= 1.0
 
@@ -528,7 +531,7 @@ class TestAIIntelligenceErrorHandling:
         result = await km_ai_intelligence(
             operation="analyze_context",
             input_data={"large": "context" * 1000},
-            timeout=1,  # Very short timeout
+            _timeout=1,  # Very short timeout
             intelligence_type="adaptive",
         )
 
@@ -723,7 +726,11 @@ class TestAIIntelligenceProperties:
 
     @given(batch_operation_strategy(), processing_mode_strategy())
     @pytest.mark.asyncio
-    async def test_ai_batch_properties(self, operation: str, processing_mode: Any) -> None:
+    async def test_ai_batch_properties(
+        self,
+        operation: str,
+        processing_mode: Any,
+    ) -> None:
         """Test properties of AI batch operations."""
         # Prepare batch_data based on operation
         if operation == "submit":

@@ -253,7 +253,7 @@ class PerformancePredictor:
 
             # Apply daily pattern and noise
             pattern_multiplier = daily_pattern(hour)
-            noise = random.uniform(1 - noise_factor, 1 + noise_factor)  # noqa: S311
+            noise = random.uniform(1 - noise_factor, 1 + noise_factor)  # noqa: S311 # ML noise simulation
             value = base_value * pattern_multiplier * noise
 
             # Ensure reasonable bounds
@@ -327,7 +327,7 @@ class PerformancePredictor:
             if prediction_result.is_left():
                 return Either.left(
                     PerformancePredictionError.prediction_failed(
-                        "ML prediction failed"
+                        "ML prediction failed",
                     ),
                 )
 
@@ -502,7 +502,7 @@ class PerformancePredictor:
         metric_name: str,
         current_value: float,
         trend: str,
-        confidence: float,
+        _confidence: float,
     ) -> str:
         """Generate performance recommendation based on forecast."""
         if metric_name == "response_time":
@@ -734,7 +734,7 @@ class PerformancePredictor:
         self,
         resource_type: str,
         current_usage: float,
-        predicted_usage: list[tuple[datetime, ResourceUtilization, ConfidenceLevel]],
+        _predicted_usage: list[tuple[datetime, ResourceUtilization, ConfidenceLevel]],
         expected_shortage: datetime | None,
     ) -> str:
         """Generate scaling recommendation."""

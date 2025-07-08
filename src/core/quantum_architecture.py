@@ -254,16 +254,16 @@ class PostQuantumMigrationPlan:
 
         return phases
 
-    def _is_critical_asset(self, asset_id: CryptographicAssetId) -> bool:
+    def _is_critical_asset(self, _asset_id: CryptographicAssetId) -> bool:
         """Check if asset is critical priority."""
         # Placeholder implementation
         return True  # Would check actual asset priority
 
-    def _is_medium_priority_asset(self, asset_id: CryptographicAssetId) -> bool:
+    def _is_medium_priority_asset(self, _asset_id: CryptographicAssetId) -> bool:
         """Check if asset is medium priority."""
         return True
 
-    def _is_low_priority_asset(self, asset_id: CryptographicAssetId) -> bool:
+    def _is_low_priority_asset(self, _asset_id: CryptographicAssetId) -> bool:
         """Check if asset is low priority."""
         return True
 

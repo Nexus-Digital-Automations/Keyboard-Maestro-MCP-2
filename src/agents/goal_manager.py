@@ -24,6 +24,7 @@ from ..core.autonomous_systems import (
     GoalPriority,
     create_goal_id,
 )
+from ..core.constants import GOAL_DECOMPOSITION_CRITERIA_LIMIT, PERCENTAGE_SCALE
 from ..core.either import Either
 
 
@@ -254,7 +255,7 @@ class GoalManager:
             for resource, required in new_goal.resource_requirements.items():
                 existing_required = existing_goal.resource_requirements.get(resource, 0)
                 if (
-                    required + existing_required > 100
+                    required + existing_required > PERCENTAGE_SCALE
                 ):  # Assuming 100% max for any resource
                     conflicts.append(goal_id)
                     break
@@ -278,7 +279,7 @@ class GoalManager:
     def _is_complex_goal(self, goal: AgentGoal) -> bool:
         """Determine if goal needs decomposition."""
         # Complex if has multiple success criteria or high estimated duration
-        if len(goal.success_criteria) > 3:
+        if len(goal.success_criteria) > GOAL_DECOMPOSITION_CRITERIA_LIMIT:
             return True
         if goal.estimated_duration and goal.estimated_duration > timedelta(hours=4):
             return True

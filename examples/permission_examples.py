@@ -87,7 +87,8 @@ def create_context_with_permissions(
 
     if permission_profile not in profiles:
         raise ValueError(
-            f"Unknown profile: {permission_profile}. Available: {list(profiles.keys())}",
+            f"Unknown profile: {permission_profile}. "
+            f"Available: {list(profiles.keys())}",
         )
 
     return ExecutionContext.create_test_context(
@@ -134,10 +135,12 @@ def example_custom_permissions() -> None:
     )
 
     print(
-        f"Custom context has TEXT_INPUT: {custom_context.has_permission(Permission.TEXT_INPUT)}",
+        f"Custom context has TEXT_INPUT: "
+        f"{custom_context.has_permission(Permission.TEXT_INPUT)}",
     )
     print(
-        f"Custom context has SYSTEM_SOUND: {custom_context.has_permission(Permission.SYSTEM_SOUND)}",
+        f"Custom context has SYSTEM_SOUND: "
+        f"{custom_context.has_permission(Permission.SYSTEM_SOUND)}",
     )
 
 

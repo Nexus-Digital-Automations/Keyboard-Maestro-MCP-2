@@ -383,8 +383,8 @@ class ImageRecognitionEngine:
 
     async def _perform_template_matching(
         self,
-        screen_data: bytes,
-        template_data: bytes,
+        _screen_data: bytes,
+        _template_data: bytes,
         search_region: ScreenRegion | None,
         config: MatchingConfig,
     ) -> Either[VisualError, list[MatchResult]]:

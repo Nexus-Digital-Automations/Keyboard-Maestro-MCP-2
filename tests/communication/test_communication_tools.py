@@ -30,6 +30,10 @@ from src.core.communication import (
 from src.core.either import Either
 from src.core.errors import CommunicationError, SecurityError, ValidationError
 
+# Test constants
+TEST_HIGH_SPAM_SCORE = 0.7  # Threshold for high spam score
+TEST_LOW_SPAM_SCORE = 0.3  # Threshold for low spam score
+
 
 class TestEmailAddress:
     """Test email address validation and formatting."""
@@ -234,14 +238,14 @@ class TestEmailManager:
     """Test email manager functionality."""
 
     @pytest.fixture
-    def mock_km_client(self) -> Any:
+    def mock_km_client(self) -> Mock:
         """Mock KM client for testing."""
         client = Mock()
         client.execute_applescript = AsyncMock(return_value=Either.right("success"))
         return client
 
     @pytest.fixture
-    def email_manager(self, mock_km_client: Any) -> Any:
+    def email_manager(self, mock_km_client: Any) -> Mock:
         """Email manager with mocked dependencies."""
         return EmailManager(km_client=mock_km_client)
 
@@ -317,14 +321,14 @@ class TestSMSManager:
     """Test SMS manager functionality."""
 
     @pytest.fixture
-    def mock_km_client(self) -> Any:
+    def mock_km_client(self) -> Mock:
         """Mock KM client for testing."""
         client = Mock()
         client.execute_applescript = AsyncMock(return_value=Either.right("success"))
         return client
 
     @pytest.fixture
-    def sms_manager(self, mock_km_client: Any) -> Any:
+    def sms_manager(self, mock_km_client: Any) -> Mock:
         """SMS manager with mocked dependencies."""
         return SMSManager(km_client=mock_km_client)
 
@@ -397,7 +401,7 @@ class TestMessageTemplateManager:
     """Test message template management."""
 
     @pytest.fixture
-    def template_manager(self) -> Any:
+    def template_manager(self) -> Mock:
         """Template manager instance."""
         return MessageTemplateManager()
 
@@ -482,7 +486,7 @@ class TestCommunicationSecurity:
     """Test communication security validation."""
 
     @pytest.fixture
-    def security_manager(self) -> Any:
+    def security_manager(self) -> Mock:
         """Security manager instance."""
         return CommunicationSecurityManager()
 
@@ -495,7 +499,7 @@ class TestCommunicationSecurity:
             spam_content,
         )
 
-        assert score > 5.0  # High spam score
+        assert score > TEST_HIGH_SPAM_SCORE  # High spam score
         assert len(threats) > 0
         assert any(t.threat_type == "spam_keywords" for t in threats)
 
@@ -510,7 +514,7 @@ class TestCommunicationSecurity:
             legitimate_content,
         )
 
-        assert score < 3.0  # Low spam score
+        assert score < TEST_LOW_SPAM_SCORE  # Low spam score
         assert len([t for t in threats if t.severity in ["high", "critical"]]) == 0
 
     @pytest.mark.asyncio
@@ -532,7 +536,10 @@ class TestCommunicationSecurity:
         assert validation_info["spam_score"] < 7.0
 
     @pytest.mark.asyncio
-    async def test_security_validation_spam_rejection(self, security_manager: Any) -> None:
+    async def test_security_validation_spam_rejection(
+        self,
+        security_manager: Any,
+    ) -> None:
         """Test spam content rejection."""
         email = EmailAddress("test@example.com")
         request = CommunicationRequest(

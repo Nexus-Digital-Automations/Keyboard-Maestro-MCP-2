@@ -445,7 +445,7 @@ class MacroMetadataExtractor:
 
     async def _extract_usage_statistics(
         self,
-        macro_id: MacroId,
+        _macro_id: MacroId,
     ) -> Either[KMError, UsageStatistics]:
         """Extract usage statistics for a macro."""
         # Mock implementation - would integrate with KM usage data
@@ -463,8 +463,8 @@ class MacroMetadataExtractor:
 
     async def _analyze_relationships(
         self,
-        macro_id: MacroId,
-        macro_details: dict[str, Any],
+        _macro_id: MacroId,
+        _macro_details: dict[str, Any],
     ) -> Either[KMError, MacroRelationships]:
         """Analyze macro relationships and dependencies."""
         # Mock implementation - would analyze macro actions for calls to other macros
@@ -521,6 +521,10 @@ class MacroMetadataExtractor:
 
         return cached_metadata
 
-    def _cache_metadata(self, macro_id: MacroId, metadata: EnhancedMacroMetadata) -> None:
+    def _cache_metadata(
+        self,
+        macro_id: MacroId,
+        metadata: EnhancedMacroMetadata,
+    ) -> None:
         """Cache metadata for future use."""
         self._metadata_cache[macro_id] = metadata

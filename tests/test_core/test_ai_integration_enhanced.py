@@ -123,7 +123,11 @@ class TestAIModel:
         assert not model.is_within_rate_limit(100)
 
     @given(st.text(min_size=1), st.integers(min_value=1, max_value=100000))
-    def test_ai_model_property_validation(self, model_name: str, max_tokens: int) -> None:
+    def test_ai_model_property_validation(
+        self,
+        model_name: str,
+        max_tokens: int,
+    ) -> None:
         """Property test for AI model validation."""
         assume(len(model_name.strip()) > 0)
 

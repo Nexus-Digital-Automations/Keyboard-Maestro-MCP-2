@@ -560,7 +560,7 @@ class DashboardGenerator:
         self,
         data_source: str,
         config: dict[str, Any],
-        analytics_data: dict[str, Any],
+        _analytics_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Process data for table widget."""
         if data_source == "tool_metrics":
@@ -716,7 +716,11 @@ class DashboardGenerator:
 
         return {"trends": [], "display_forecast": False}
 
-    def _update_generation_stats(self, generation_time_ms: float, widget_count: int) -> Any:
+    def _update_generation_stats(
+        self,
+        generation_time_ms: float,
+        widget_count: int,
+    ) -> Any:
         """Update dashboard generation statistics."""
         self.generation_stats["dashboards_generated"] += 1
         self.generation_stats["widgets_created"] += widget_count

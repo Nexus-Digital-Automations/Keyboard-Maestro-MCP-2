@@ -367,7 +367,7 @@ async def _execute_launch_operation(
     wait_for_completion: bool,
     timeout: Duration,
     hide_on_launch: bool,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Execute application launch operation."""
     try:
@@ -424,7 +424,7 @@ async def _execute_quit_operation(
     app_id: AppIdentifier,
     force_quit: bool,
     timeout: Duration,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Execute application quit operation."""
     try:
@@ -472,7 +472,7 @@ async def _execute_quit_operation(
 async def _execute_activate_operation(
     controller: AppController,
     app_id: AppIdentifier,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Execute application activation operation."""
     try:
@@ -521,7 +521,7 @@ async def _execute_menu_select_operation(
     app_id: AppIdentifier,
     menu_path_list: list[str],
     timeout: Duration,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Execute menu selection operation."""
     try:
@@ -583,7 +583,7 @@ async def _execute_menu_select_operation(
 async def _execute_get_state_operation(
     controller: AppController,
     app_id: AppIdentifier,
-    ctx: Context | None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Execute application state query operation."""
     try:

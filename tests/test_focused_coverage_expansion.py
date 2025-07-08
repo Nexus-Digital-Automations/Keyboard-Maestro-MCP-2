@@ -7,6 +7,7 @@ by focusing on modules that can be realistically tested and imported.
 from __future__ import annotations
 
 import logging
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest

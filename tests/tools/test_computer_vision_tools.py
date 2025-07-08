@@ -55,7 +55,11 @@ class TestKMDetectObjects:
         return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAGAWvuMLwAAAABJRU5ErkJggg=="
 
     @pytest.mark.asyncio
-    async def test_detect_objects_comprehensive(self, mock_context: Any, sample_image_data: Any) -> None:
+    async def test_detect_objects_comprehensive(
+        self,
+        mock_context: Any,
+        sample_image_data: Any,
+    ) -> None:
         """Test comprehensive object detection - SYSTEMATIC PATTERN ALIGNMENT."""
         # TASK_85 METHODOLOGY: Test actual km_detect_objects implementation
         result = await km_detect_objects(
@@ -248,7 +252,11 @@ class TestKMAnalyzeScene:
         return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAGAWvuMLwAAAABJRU5ErkJggg=="
 
     @pytest.mark.asyncio
-    async def test_analyze_scene_comprehensive(self, mock_context: Any, sample_image_data: Any) -> None:
+    async def test_analyze_scene_comprehensive(
+        self,
+        mock_context: Any,
+        sample_image_data: Any,
+    ) -> None:
         """Test comprehensive scene analysis - SYSTEMATIC PATTERN ALIGNMENT."""
         result = await km_analyze_scene(
             image_data=sample_image_data,
@@ -277,7 +285,11 @@ class TestKMAnalyzeScene:
                 ]
 
     @pytest.mark.asyncio
-    async def test_analyze_scene_with_emotions(self, mock_context: Any, sample_image_data: Any) -> None:
+    async def test_analyze_scene_with_emotions(
+        self,
+        mock_context: Any,
+        sample_image_data: Any,
+    ) -> None:
         """Test scene analysis with detailed analysis."""
         result = await km_analyze_scene(
             image_data=sample_image_data,
@@ -303,7 +315,11 @@ class TestKMAnalyzeScene:
                 ]
 
     @pytest.mark.asyncio
-    async def test_analyze_scene_invalid_level(self, mock_context: Any, sample_image_data: Any) -> None:
+    async def test_analyze_scene_invalid_level(
+        self,
+        mock_context: Any,
+        sample_image_data: Any,
+    ) -> None:
         """Test scene analysis with invalid analysis level."""
         result = await km_analyze_scene(
             image_data=sample_image_data,
@@ -467,7 +483,11 @@ class TestKMExtractTextFromImage:
                 ]
 
     @pytest.mark.asyncio
-    async def test_extract_text_invalid_mode(self, mock_context: Any, sample_image_data: Any) -> None:
+    async def test_extract_text_invalid_mode(
+        self,
+        mock_context: Any,
+        sample_image_data: Any,
+    ) -> None:
         """Test text extraction with invalid OCR mode."""
         result = await km_extract_text_from_image(
             image_data=sample_image_data,
@@ -497,7 +517,7 @@ class TestKMComputerVisionMetrics:
     """Test suite for km_computer_vision_metrics MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-metrics-001"}

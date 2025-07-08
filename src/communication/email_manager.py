@@ -198,6 +198,7 @@ class EmailManager:
         self.km_client = km_client or KMClient()
         self.config = config or EmailConfiguration()
         self.security_validator = EmailSecurityValidator()
+        self.templates: dict[str, dict[str, str]] = {}  # Template storage
 
     @require(lambda __self, request: isinstance(request, CommunicationRequest))
     @require(
@@ -438,3 +439,35 @@ class EmailManager:
             return result.is_right()
         except Exception:
             return False
+
+    def add_template(self, template: dict[str, str]) -> None:
+        """Add an email template."""
+        if "name" in template:
+            self.templates[template["name"]] = template
+
+    def render_template(
+        self,
+        template_name: str,
+        variables: dict[str, str],
+    ) -> dict[str, str]:
+        """Render template with variables."""
+        if template_name not in self.templates:
+            raise ValueError(f"Template '{template_name}' not found")
+
+        template = self.templates[template_name]
+        rendered = {}
+
+        for key, value in template.items():
+            if key == "name":
+                continue
+            rendered[key] = value.format(**variables)
+
+        return rendered
+
+    def validate_email(self, email: str) -> bool:
+        """Validate email address format."""
+        import re
+
+        # Basic email validation pattern
+        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        return bool(re.match(pattern, email))

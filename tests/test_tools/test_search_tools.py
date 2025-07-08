@@ -22,7 +22,7 @@ Testing Strategy:
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -35,10 +35,13 @@ from hypothesis.strategies import composite
 # Import the tools we're testing
 from src.server.tools.search_tools import _generate_mock_actions, km_search_actions
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context() -> Any:
+def mock_context() -> Mock:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -51,7 +54,7 @@ def mock_context() -> Any:
 
 
 @pytest.fixture
-def mock_km_client() -> Any:
+def mock_km_client() -> Mock:
     """Create mock KM client with standard interface."""
     client = Mock()
     client.check_connection = Mock()
@@ -62,7 +65,7 @@ def mock_km_client() -> Any:
 
 
 @pytest.fixture
-def sample_macro_data() -> Any:
+def sample_macro_data() -> Mock:
     """Sample macro data for testing."""
     return {
         "id": "12345678-1234-1234-1234-123456789012",
@@ -79,7 +82,7 @@ def sample_macro_data() -> Any:
 
 
 @pytest.fixture
-def sample_macros_list() -> Any:
+def sample_macros_list() -> Mock:
     """Sample list of macros for testing."""
     return [
         {
@@ -122,7 +125,7 @@ def sample_macros_list() -> Any:
 
 
 @pytest.fixture
-def sample_actions_data() -> Any:
+def sample_actions_data() -> Mock:
     """Sample actions data for testing."""
     return [
         {
@@ -157,7 +160,7 @@ def sample_actions_data() -> Any:
 
 
 @composite
-def valid_search_parameters(draw: Callable[..., Any]) -> Any:
+def valid_search_parameters(draw: Callable[..., Any]) -> Mock:
     """Generate valid search parameters for property-based testing."""
     params = {}
 
@@ -233,7 +236,7 @@ def valid_search_parameters(draw: Callable[..., Any]) -> Any:
 
 
 @composite
-def malicious_search_inputs(draw: Callable[..., Any]) -> Any:
+def malicious_search_inputs(draw: Callable[..., Any]) -> Mock:
     """Generate potentially malicious search inputs for security testing."""
     malicious_patterns = [
         "'; DROP TABLE macros; --",
@@ -522,7 +525,11 @@ class TestKMSearchActions:
             assert len(result["data"]["actions"]) <= 10
 
     @pytest.mark.asyncio
-    async def test_search_actions_macro_fetch_error(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_search_actions_macro_fetch_error(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test search when macro fetch fails."""
         # Setup
         mock_error = Mock()
@@ -549,7 +556,11 @@ class TestKMSearchActions:
             assert str(mock_error) in result["error"]["details"]
 
     @pytest.mark.asyncio
-    async def test_search_actions_empty_results(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_search_actions_empty_results(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test search with no matching results."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -779,7 +790,11 @@ class TestSearchToolsIntegration:
     """Test complex search workflow integration scenarios."""
 
     @pytest.mark.asyncio
-    async def test_complex_search_workflow(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_complex_search_workflow(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test complex search workflow with multiple operations."""
         # Setup large macro list
         large_macro_list = []
@@ -848,7 +863,11 @@ class TestSearchToolsIntegration:
             assert result3["data"]["search_criteria"]["include_disabled"] is True
 
     @pytest.mark.asyncio
-    async def test_search_pagination_behavior(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_search_pagination_behavior(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test search pagination with different limits."""
         # Setup
         macro_list = []
@@ -1256,7 +1275,11 @@ class TestSearchToolsPerformance:
             assert execution_time < 5.0
 
     @pytest.mark.asyncio
-    async def test_search_limit_enforcement(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_search_limit_enforcement(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test that search limits are properly enforced."""
         # Setup
         macro_list = []
@@ -1297,7 +1320,11 @@ class TestSearchToolsPerformance:
                 assert result["data"]["total_found"] <= limit
 
     @pytest.mark.asyncio
-    async def test_search_memory_efficiency(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_search_memory_efficiency(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test that search doesn't consume excessive memory."""
         # Setup
         macro_list = []
@@ -1385,7 +1412,11 @@ class TestSearchToolsEdgeCases:
             )
 
     @pytest.mark.asyncio
-    async def test_search_with_empty_macro_list(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_search_with_empty_macro_list(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test search with empty macro list."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()
@@ -1407,7 +1438,11 @@ class TestSearchToolsEdgeCases:
             assert result["data"]["actions"] == []
 
     @pytest.mark.asyncio
-    async def test_search_without_context(self, mock_km_client: Any, sample_macros_list: list[Any]) -> None:
+    async def test_search_without_context(
+        self,
+        mock_km_client: Any,
+        sample_macros_list: list[Any],
+    ) -> None:
         """Test search without providing context."""
         # Setup
         mock_km_client.list_macros_with_details.return_value = Mock()

@@ -55,7 +55,7 @@ class CloudAuthMethod(Enum):
     MANAGED_IDENTITY = "managed_identity"
     ROLE_BASED = "role_based"
     OAUTH2 = "oauth2"
-    ACCESS_TOKEN = "access_token"  # noqa: S105 - Type identifier, not a secret
+    ACCESS_TOKEN = "access_token"  # noqa: S105 # Enum value, not password
     CLIENT_CERTIFICATE = "client_certificate"
 
 

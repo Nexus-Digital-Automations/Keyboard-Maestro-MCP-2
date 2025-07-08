@@ -73,7 +73,12 @@ class PluginLogger:
         """Error level logging with context."""
         self._log_with_context("ERROR", message, context)
 
-    def _log_with_context(self, level: str, message: str, context: dict[str, Any]) -> Any:
+    def _log_with_context(
+        self,
+        level: str,
+        message: str,
+        context: dict[str, Any],
+    ) -> Any:
         """Log message with plugin context."""
         formatted_message = f"[{self.plugin_id}] {message}"
         if context:

@@ -288,6 +288,10 @@ class PerformanceMetrics:
         """Add a performance alert."""
         self.alerts.append(alert)
 
+    def __len__(self) -> int:
+        """Return the number of metrics collected."""
+        return len(self.metrics)
+
     def get_latest_value(self, metric_type: MetricType) -> MetricValue | None:
         """Get the latest value for a specific metric type."""
         latest = None

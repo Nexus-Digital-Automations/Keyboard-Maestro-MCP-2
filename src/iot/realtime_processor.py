@@ -323,7 +323,8 @@ class RealTimeProcessor:
             return Either.error(IoTIntegrationError(error_msg))
 
     @require(
-        lambda _self, processor: processor.processor_id and processor.operation_function,
+        lambda _self, processor: processor.processor_id
+        and processor.operation_function,
     )
     async def register_stream_processor(
         self,
@@ -392,7 +393,7 @@ class RealTimeProcessor:
         self,
         window_id: str,
         duration: timedelta,
-        device_filter: list[DeviceId] | None = None,
+        _device_filter: list[DeviceId] | None = None,
     ) -> Either[IoTIntegrationError, StreamWindow]:
         """Create time-based window for stream aggregation and analysis.
 
@@ -459,7 +460,7 @@ class RealTimeProcessor:
 
         return results
 
-    async def _process_micro_batch(self, event: RealTimeEvent) -> list[dict[str, Any]]:
+    async def _process_micro_batch(self, _event: RealTimeEvent) -> list[dict[str, Any]]:
         """Process event in micro-batch mode."""
         # Add event to processing queue
         self.processing_queue_size += 1
@@ -563,12 +564,9 @@ class RealTimeProcessor:
             operator = condition.get("operator", ">=")
 
             if (
-                operator == ">="
-                and value < threshold
-                or operator == "<="
-                and value > threshold
-                or operator == "=="
-                and value != threshold
+                (operator == ">=" and value < threshold)
+                or (operator == "<=" and value > threshold)
+                or (operator == "==" and value != threshold)
             ):
                 return False
 

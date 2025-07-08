@@ -8,10 +8,13 @@ automation scenarios, logic validation, and decision-making patterns.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +23,7 @@ class TestIntelligentAutomationFoundation:
     """Test foundation for intelligent automation MCP tools from TASK_21-23."""
 
     @pytest.fixture
-    def execution_context(self) -> Any:
+    def execution_context(self) -> Mock:
         """Create mock execution context for testing."""
         context = AsyncMock()
         context.session_id = "test-session-intelligent-automation"
@@ -30,7 +33,7 @@ class TestIntelligentAutomationFoundation:
         return context
 
     @pytest.fixture
-    def sample_condition_data(self) -> Any:
+    def sample_condition_data(self) -> Mock:
         """Sample condition data for testing."""
         return {
             "macro_identifier": "TestMacro",
@@ -42,7 +45,7 @@ class TestIntelligentAutomationFoundation:
         }
 
     @pytest.fixture
-    def sample_control_flow_data(self) -> Any:
+    def sample_control_flow_data(self) -> Mock:
         """Sample control flow data for testing."""
         return {
             "macro_identifier": "TestMacro",
@@ -55,7 +58,7 @@ class TestIntelligentAutomationFoundation:
         }
 
     @pytest.fixture
-    def sample_trigger_data(self) -> Any:
+    def sample_trigger_data(self) -> Mock:
         """Sample advanced trigger data for testing."""
         return {
             "macro_identifier": "TestMacro",
@@ -134,7 +137,10 @@ class TestConditionTools:
             pytest.skip("Condition tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_application_condition_creation(self, execution_context: Context | Any) -> None:
+    async def test_application_condition_creation(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test application condition creation functionality."""
         try:
             from src.server.tools.condition_tools import km_add_condition
@@ -166,7 +172,10 @@ class TestConditionTools:
             pytest.skip("Condition tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_condition_validation_handling(self, execution_context: Context | Any) -> None:
+    async def test_condition_validation_handling(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test condition validation error handling."""
         try:
             from src.server.tools.condition_tools import km_add_condition
@@ -368,7 +377,11 @@ class TestAdvancedTriggerTools:
             pytest.skip(f"Advanced trigger tools not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_time_trigger_creation(self, execution_context: Context | Any, sample_trigger_data: Any) -> None:
+    async def test_time_trigger_creation(
+        self,
+        execution_context: Context | Any,
+        sample_trigger_data: Any,
+    ) -> None:
         """Test time-based trigger creation."""
         try:
             from src.server.tools.advanced_trigger_tools import (
@@ -401,7 +414,10 @@ class TestAdvancedTriggerTools:
             pytest.skip("Advanced trigger tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_file_system_trigger_creation(self, execution_context: Context | Any) -> None:
+    async def test_file_system_trigger_creation(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test file system trigger creation."""
         try:
             from src.server.tools.advanced_trigger_tools import (
@@ -445,7 +461,10 @@ class TestAdvancedTriggerTools:
             pytest.skip("Advanced trigger tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_application_trigger_creation(self, execution_context: Context | Any) -> None:
+    async def test_application_trigger_creation(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test application lifecycle trigger creation."""
         try:
             from src.server.tools.advanced_trigger_tools import (
@@ -484,7 +503,10 @@ class TestAdvancedTriggerTools:
             pytest.skip("Advanced trigger tools not available for testing")
 
     @pytest.mark.asyncio
-    async def test_system_trigger_creation(self, execution_context: Context | Any) -> None:
+    async def test_system_trigger_creation(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test system event trigger creation."""
         try:
             from src.server.tools.advanced_trigger_tools import (
@@ -527,7 +549,10 @@ class TestIntelligentAutomationIntegration:
     """Test integration patterns across intelligent automation tools."""
 
     @pytest.mark.asyncio
-    async def test_condition_control_flow_integration(self, execution_context: Context | Any) -> None:
+    async def test_condition_control_flow_integration(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test integration between condition and control flow systems."""
         tools_to_test = [
             ("src.server.tools.condition_tools", "km_add_condition"),
@@ -555,7 +580,10 @@ class TestIntelligentAutomationIntegration:
                 continue
 
     @pytest.mark.asyncio
-    async def test_automation_tool_response_consistency(self, execution_context: Context | Any) -> None:
+    async def test_automation_tool_response_consistency(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test that all automation tools return consistent response structure."""
         automation_tools = [
             (
@@ -596,7 +624,10 @@ class TestIntelligentAutomationIntegration:
                 print(f"Warning: {tool_name} had issue: {e}")
 
     @pytest.mark.asyncio
-    async def test_automation_security_patterns(self, execution_context: Context | Any) -> None:
+    async def test_automation_security_patterns(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Test that automation tools implement security patterns."""
         try:
             from src.server.tools.condition_tools import km_add_condition
@@ -622,7 +653,10 @@ class TestPropertyBasedAutomationTesting:
     """Property-based testing for intelligent automation tools using Hypothesis."""
 
     @pytest.mark.asyncio
-    async def test_condition_logic_properties(self, execution_context: Context | Any) -> None:
+    async def test_condition_logic_properties(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Property: Condition results should be deterministic and logical."""
         from hypothesis import given
         from hypothesis import strategies as st
@@ -670,7 +704,10 @@ class TestPropertyBasedAutomationTesting:
         await test_condition_properties("text", "equals", True, False)
 
     @pytest.mark.asyncio
-    async def test_control_flow_structure_properties(self, execution_context: Context | Any) -> None:
+    async def test_control_flow_structure_properties(
+        self,
+        execution_context: Context | Any,
+    ) -> None:
         """Property: Control flow structures should maintain logical integrity."""
         from hypothesis import given
         from hypothesis import strategies as st

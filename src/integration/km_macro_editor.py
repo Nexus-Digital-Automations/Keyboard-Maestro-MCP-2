@@ -91,7 +91,8 @@ class KMMacroEditor:
             if response == "MACRO_NOT_FOUND":
                 return Either.left(
                     IntegrationError(
-                        "macro_not_found", f"Macro '{macro_id}' not found"
+                        "macro_not_found",
+                        f"Macro '{macro_id}' not found",
                     ),
                 )
 
@@ -636,7 +637,7 @@ class KMMacroEditor:
     def _generate_comparison_recommendation(
         self,
         similarity: float,
-        differences: list[dict],
+        _differences: list[dict],
     ) -> str:
         """Generate recommendation based on comparison results."""
         if similarity > 0.9:

@@ -120,11 +120,11 @@ async def km_process_natural_command(
         bool,
         Field(description="Include alternative interpretations"),
     ] = True,
-    auto_execute: Annotated[
+    _auto_execute: Annotated[
         bool,
         Field(description="Automatically execute if confidence is high"),
     ] = False,
-    validate_before_execution: Annotated[
+    _validate_before_execution: Annotated[
         bool,
         Field(description="Validate command before execution"),
     ] = True,
@@ -132,11 +132,11 @@ async def km_process_natural_command(
         bool,
         Field(description="Return explanation of interpretation"),
     ] = True,
-    learn_from_interaction: Annotated[
+    _learn_from_interaction: Annotated[
         bool,
         Field(description="Learn from user interactions"),
     ] = True,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Process natural language commands and convert them to executable automation workflows.
 
@@ -292,15 +292,15 @@ async def km_recognize_intent(
         int,
         Field(description="Maximum number of intents to return", ge=1, le=10),
     ] = 3,
-    context_history: Annotated[
+    _context_history: Annotated[
         list[str] | None,
         Field(description="Previous conversation context"),
     ] = None,
-    learn_from_feedback: Annotated[
+    _learn_from_feedback: Annotated[
         bool,
         Field(description="Learn from user feedback"),
     ] = True,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Recognize user intent from natural language input with entity extraction and sentiment analysis.
 
@@ -444,7 +444,7 @@ async def km_generate_from_description(
         bool,
         Field(description="Include error handling in generated workflow"),
     ] = True,
-    optimize_for_performance: Annotated[
+    _optimize_for_performance: Annotated[
         bool,
         Field(description="Optimize generated workflow for performance"),
     ] = True,
@@ -464,7 +464,7 @@ async def km_generate_from_description(
         str,
         Field(description="Export format (visual|code|template)"),
     ] = "visual",
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Generate automation workflows from natural language descriptions with optimization and validation.
 
@@ -628,19 +628,19 @@ async def km_conversational_interface(
         bool,
         Field(description="Provide relevant examples"),
     ] = True,
-    explain_concepts: Annotated[
+    _explain_concepts: Annotated[
         bool,
         Field(description="Explain automation concepts when needed"),
     ] = True,
-    adapt_to_skill_level: Annotated[
+    _adapt_to_skill_level: Annotated[
         bool,
         Field(description="Adapt responses to user skill level"),
     ] = True,
-    maintain_context: Annotated[
+    _maintain_context: Annotated[
         bool,
         Field(description="Maintain conversation context"),
     ] = True,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Provide conversational automation interface with context-aware responses and guidance.
 
@@ -759,7 +759,7 @@ async def km_conversational_interface(
 
 
 @mcp.tool()
-async def km_nlp_performance_metrics(ctx: Context | Any=None) -> dict[str, Any]:
+async def km_nlp_performance_metrics(ctx: Any = None) -> dict[str, Any]:
     """Get performance metrics for natural language processing system.
 
     FastMCP Tool for NLP performance monitoring through Claude Desktop.

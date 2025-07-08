@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from src.core import (
@@ -32,6 +33,9 @@ from tests.utils.mocks import (
     create_failing_km_client,
     create_reliable_km_client,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class TestCompleteWorkflows:
@@ -187,7 +191,10 @@ class TestCompleteWorkflows:
         results = []
         errors = []
 
-        def execute_macro(macro: Callable[..., Any], context: dict[str, Any] | Any) -> None:
+        def execute_macro(
+            macro: Callable[..., Any],
+            context: dict[str, Any] | Any,
+        ) -> None:
             try:
                 result = engine.execute_macro(macro, context)
                 return result

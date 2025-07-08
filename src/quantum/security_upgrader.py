@@ -370,7 +370,7 @@ class SecurityUpgrader:
     async def _upgrade_single_asset(
         self,
         asset: CryptographicAsset,
-        target_policy: str,
+        _target_policy: str,
     ) -> Either[QuantumError, dict[str, Any]]:
         """Upgrade a single cryptographic asset."""
         try:
@@ -414,8 +414,8 @@ class SecurityUpgrader:
 
     async def _validate_upgrade(
         self,
-        original_asset: CryptographicAsset,
-        upgrade_data: dict[str, Any],
+        _original_asset: CryptographicAsset,
+        _upgrade_data: dict[str, Any],
     ) -> Either[QuantumError, dict[str, Any]]:
         """Validate security upgrade results."""
         try:
@@ -463,7 +463,7 @@ class SecurityUpgrader:
     def _calculate_single_asset_improvement(
         self,
         asset: CryptographicAsset,
-        replacement_alg: PostQuantumAlgorithm,
+        _replacement_alg: PostQuantumAlgorithm,
     ) -> float:
         """Calculate security improvement for single asset."""
         # Base improvement from quantum resistance
@@ -484,7 +484,7 @@ class SecurityUpgrader:
     def _assess_migration_complexity(
         self,
         asset: CryptographicAsset,
-        replacement_alg: PostQuantumAlgorithm,
+        _replacement_alg: PostQuantumAlgorithm,
     ) -> str:
         """Assess migration complexity for asset upgrade."""
         if asset.asset_type == "certificate":
@@ -520,7 +520,7 @@ class SecurityUpgrader:
     def _estimate_algorithm_performance(
         self,
         algorithm: PostQuantumAlgorithm,
-        use_case: str,
+        _use_case: str,
     ) -> dict[str, Any]:
         """Estimate algorithm performance characteristics."""
         # Performance estimates (simulated)

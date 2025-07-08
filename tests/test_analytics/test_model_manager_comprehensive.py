@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 import tempfile
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -33,22 +33,25 @@ from src.core.predictive_modeling import (
     create_model_id,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test data generators
 @st.composite
-def model_status_strategy(draw: Callable[..., Any]) -> Any:
+def model_status_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid model statuses."""
     return draw(st.sampled_from(list(ModelStatus)))
 
 
 @st.composite
-def model_category_strategy(draw: Callable[..., Any]) -> Any:
+def model_category_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid model categories."""
     return draw(st.sampled_from(list(ModelCategory)))
 
 
 @st.composite
-def model_type_strategy(draw: Callable[..., Any]) -> Any:
+def model_type_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid model types."""
     return draw(
         st.sampled_from(
@@ -63,13 +66,13 @@ def model_type_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def validation_method_strategy(draw: Callable[..., Any]) -> Any:
+def validation_method_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid validation methods."""
     return draw(st.sampled_from(list(ValidationMethod)))
 
 
 @st.composite
-def feature_columns_strategy(draw: Callable[..., Any]) -> Any:
+def feature_columns_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid feature column lists."""
     return draw(
         st.lists(
@@ -86,7 +89,7 @@ def feature_columns_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def hyperparameters_strategy(draw: Callable[..., Any]) -> Any:
+def hyperparameters_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid hyperparameter dictionaries."""
     return draw(
         st.dictionaries(

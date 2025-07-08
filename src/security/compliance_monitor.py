@@ -492,8 +492,8 @@ class ComplianceMonitor:
     async def _perform_control_testing(
         self,
         control: ComplianceControl,
-        scope: str,
-        assessment_level: ComplianceLevel,
+        _scope: str,
+        _assessment_level: ComplianceLevel,
     ) -> dict[str, Any]:
         """Perform automated testing for compliance control."""
         test_results = {
@@ -645,7 +645,7 @@ class ComplianceMonitor:
     async def _collect_control_evidence(
         self,
         control: ComplianceControl,
-        scope: str,
+        _scope: str,
     ) -> list[str]:
         """Collect evidence for compliance control."""
         evidence = []
@@ -907,7 +907,7 @@ class ComplianceMonitor:
 
     async def _calculate_compliance_trends(
         self,
-        framework: ComplianceFramework,
+        _framework: ComplianceFramework,
         current_assessments: list[ComplianceAssessment],
     ) -> dict[str, Any]:
         """Calculate compliance trends over time."""

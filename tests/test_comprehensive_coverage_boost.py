@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -283,14 +284,15 @@ class TestCoreEngineIntegration:
 
     def test_core_context_import_and_usage(self) -> None:
         """Test core context module functionality."""
-        from src.core.context import ExecutionContext
+        from src.core.types import ExecutionContext, VariableName
 
-        context = ExecutionContext()
+        context = ExecutionContext.default()
         assert context is not None
 
         # Test context operations
-        context.set_variable("test_var", "test_value")
-        value = context.get_variable("test_var")
+        test_var = VariableName("test_var")
+        context_with_var = context.with_variable(test_var, "test_value")
+        value = context_with_var.get_variable(test_var)
         assert value == "test_value"
 
     @patch("subprocess.run")
@@ -402,16 +404,16 @@ class TestAsyncFunctionality:
 
         # Test async context if available
         try:
-            from src.core.context import ExecutionContext
+            from src.core.types import ExecutionContext
 
-            context = ExecutionContext()
+            context = ExecutionContext.default()
 
             # Test async context operations
             await context.async_operation() if hasattr(
                 context,
                 "async_operation",
             ) else None
-        except (ImportError, AttributeError):
+        except (ImportError, AttributeError, TypeError):
             # Async operations might not be fully implemented
             pass
 

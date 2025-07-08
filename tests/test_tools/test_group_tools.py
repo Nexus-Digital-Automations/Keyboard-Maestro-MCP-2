@@ -31,7 +31,7 @@ Key Mocking Pattern:
 from __future__ import annotations
 
 import subprocess
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -39,15 +39,18 @@ from fastmcp import Context
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from hypothesis.strategies import composite
-
-# Import group types and errors
-# Import the tools we're testing
 from src.server.tools.group_tools import km_list_macro_groups
+
+# Test constants
+TEST_LOW_SPAM_SCORE = 0.3  # Threshold for low spam score
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 # Test fixtures following proven pattern
 @pytest.fixture
-def mock_context() -> Any:
+def mock_context() -> Mock:
     """Create mock FastMCP context following successful pattern."""
     context = Mock(spec=Context)
     context.info = AsyncMock()
@@ -61,14 +64,14 @@ def mock_context() -> Any:
 
 
 @pytest.fixture
-def mock_km_client() -> Any:
+def mock_km_client() -> Mock:
     """Create mock KM client with standard interface."""
     client = Mock()
     return client
 
 
 @pytest.fixture
-def mock_subprocess_success() -> Any:
+def mock_subprocess_success() -> Mock:
     """Create mock successful subprocess result."""
     result = Mock()
     result.returncode = 0
@@ -78,7 +81,7 @@ def mock_subprocess_success() -> Any:
 
 
 @pytest.fixture
-def mock_subprocess_error() -> Any:
+def mock_subprocess_error() -> Mock:
     """Create mock failed subprocess result."""
     result = Mock()
     result.returncode = 1
@@ -88,7 +91,7 @@ def mock_subprocess_error() -> Any:
 
 
 @pytest.fixture
-def mock_parsed_groups() -> Any:
+def mock_parsed_groups() -> Mock:
     """Create mock parsed group data."""
     return [
         {
@@ -125,7 +128,7 @@ class TestGroupListing:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -158,7 +161,7 @@ class TestGroupListing:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -195,7 +198,7 @@ class TestGroupListing:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -230,7 +233,7 @@ class TestGroupListing:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -259,7 +262,7 @@ class TestGroupListing:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -293,7 +296,7 @@ class TestGroupListing:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -331,7 +334,7 @@ class TestGroupToolsErrorHandling:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_error,
             ),
         ):
@@ -343,7 +346,11 @@ class TestGroupToolsErrorHandling:
             assert result["error"]["details"] == "AppleScript execution failed"
 
     @pytest.mark.asyncio
-    async def test_applescript_timeout_error(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_applescript_timeout_error(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test handling of AppleScript timeout."""
         with (
             patch(
@@ -351,7 +358,7 @@ class TestGroupToolsErrorHandling:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 side_effect=subprocess.TimeoutExpired("osascript", 30),
             ),
         ):
@@ -366,7 +373,11 @@ class TestGroupToolsErrorHandling:
             )
 
     @pytest.mark.asyncio
-    async def test_general_exception_handling(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_general_exception_handling(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test general exception handling."""
         with (
             patch(
@@ -374,7 +385,7 @@ class TestGroupToolsErrorHandling:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 side_effect=Exception("Test error"),
             ),
         ):
@@ -418,7 +429,7 @@ class TestGroupToolsIntegration:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -459,7 +470,7 @@ class TestGroupToolsIntegration:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -499,7 +510,7 @@ class TestGroupToolsIntegration:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -540,7 +551,7 @@ class TestGroupToolsContext:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -569,7 +580,7 @@ class TestGroupToolsContext:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_error,
             ),
         ):
@@ -594,7 +605,7 @@ class TestGroupToolsContext:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -629,7 +640,7 @@ class TestGroupToolsContext:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -648,7 +659,11 @@ class TestGroupToolsSecurity:
     """Test group tools security validation."""
 
     @pytest.mark.asyncio
-    async def test_applescript_injection_prevention(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_applescript_injection_prevention(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test prevention of AppleScript injection attacks."""
         # The function doesn't take user input that goes into AppleScript,
         # but test that the AppleScript is fixed and secure
@@ -674,13 +689,17 @@ class TestGroupToolsSecurity:
             # Verify subprocess was called with fixed AppleScript (no user input)
             mock_run.assert_called_once()
             args = mock_run.call_args[0][0]
-            assert args[0] == "osascript"
+            assert args[0] == "/usr/bin/osascript"
             assert args[1] == "-e"
             # The script should be static with no user input
             assert 'tell application "Keyboard Maestro"' in args[2]
 
     @pytest.mark.asyncio
-    async def test_subprocess_timeout_security(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_subprocess_timeout_security(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test subprocess timeout security measure."""
         with (
             patch(
@@ -701,7 +720,11 @@ class TestGroupToolsSecurity:
             assert kwargs["timeout"] == 30
 
     @pytest.mark.asyncio
-    async def test_subprocess_security_settings(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_subprocess_security_settings(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test subprocess security configuration."""
         with (
             patch(
@@ -734,12 +757,12 @@ class TestGroupToolsPropertyBased:
     """Property-based testing for group tools with Hypothesis."""
 
     @composite
-    def valid_sort_options(draw: Callable[..., Any]) -> Any:
+    def valid_sort_options(draw: Callable[..., Any]) -> Mock:
         """Generate valid sort options."""
         return draw(st.sampled_from(["name", "macro_count", "enabled_count"]))
 
     @composite
-    def valid_boolean_options(draw: Callable[..., Any]) -> Any:
+    def valid_boolean_options(draw: Callable[..., Any]) -> Mock:
         """Generate valid boolean option combinations."""
         include_macro_count = draw(st.booleans())
         include_enabled_count = draw(st.booleans())
@@ -747,7 +770,11 @@ class TestGroupToolsPropertyBased:
 
     @given(valid_sort_options(), valid_boolean_options())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    def test_sort_and_count_options_property(self, sort_by: Any, count_options: dict[str, Any]) -> None:
+    def test_sort_and_count_options_property(
+        self,
+        sort_by: Any,
+        count_options: dict[str, Any],
+    ) -> None:
         """Property: All valid option combinations should be accepted."""
         include_macro_count, include_enabled_count = count_options
 
@@ -781,7 +808,10 @@ class TestGroupToolsPropertyBased:
         ),
     )
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    async def test_group_data_processing_property(self, group_data_list: list[Any]) -> None:
+    async def test_group_data_processing_property(
+        self,
+        group_data_list: list[Any],
+    ) -> None:
         """Property: Group data processing should handle various group structures."""
         mock_context = Mock(spec=Context)
         mock_context.info = AsyncMock()
@@ -799,7 +829,7 @@ class TestGroupToolsPropertyBased:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_result,
             ),
             patch(
@@ -840,7 +870,7 @@ class TestGroupToolsPerformance:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -886,7 +916,7 @@ class TestGroupToolsPerformance:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -907,7 +937,7 @@ class TestGroupToolsPerformance:
             execution_time = end_time - start_time
 
             # Should complete within 3 seconds even with 100 groups
-            assert execution_time < 3.0
+            assert execution_time < TEST_LOW_SPAM_SCORE
             assert result["success"] is True
             assert len(result["data"]["groups"]) == 100
 
@@ -940,7 +970,7 @@ class TestGroupToolsPerformance:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -995,7 +1025,7 @@ class TestGroupToolsEdgeCases:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -1039,7 +1069,7 @@ class TestGroupToolsEdgeCases:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -1079,7 +1109,7 @@ class TestGroupToolsEdgeCases:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(
@@ -1125,7 +1155,7 @@ class TestGroupToolsEdgeCases:
                 return_value=mock_km_client,
             ),
             patch(
-                "src.server.tools.group_tools.subprocess.run",
+                "subprocess.run",
                 return_value=mock_subprocess_success,
             ),
             patch(

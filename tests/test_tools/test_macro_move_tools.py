@@ -5,9 +5,10 @@ following ADDER+ testing methodology.
 """
 
 import asyncio
+from collections.abc import Awaitable
 from datetime import datetime
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 from hypothesis import given, settings
@@ -277,7 +278,7 @@ class TestMacroMovementExecution:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"SUCCESS\n", b""))
 
-        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: int | float) -> Any:
+        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: float) -> Mock:
             return await coro
 
         with (
@@ -312,7 +313,7 @@ class TestMacroMovementExecution:
             return_value=(b"ERROR: Macro not found\n", b""),
         )
 
-        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: int | float) -> Any:
+        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: float) -> Mock:
             return await coro
 
         with (
@@ -374,7 +375,7 @@ class TestFullMacroMovementWorkflow:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"SUCCESS\n", b""))
 
-        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: int | float) -> Any:
+        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: float) -> Mock:
             return await coro
 
         with (
@@ -448,7 +449,7 @@ class TestFullMacroMovementWorkflow:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"SUCCESS\n", b""))
 
-        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: int | float) -> Any:
+        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: float) -> Mock:
             return await coro
 
         with (
@@ -514,7 +515,12 @@ class TestPropertyBasedScenarios:
         ),
     )
     @settings(max_examples=50)
-    def test_sanitization_properties(self, macro_name: str, source_group: Any, target_group: Any) -> None:
+    def test_sanitization_properties(
+        self,
+        macro_name: str,
+        source_group: Any,
+        target_group: Any,
+    ) -> None:
         """Property: Valid inputs should always pass sanitization.
 
         Invalid inputs should always be rejected with clear error messages.
@@ -560,7 +566,11 @@ class TestPropertyBasedScenarios:
         ),
     )
     @settings(max_examples=30)
-    def test_security_constraints_properties(self, valid_macro: Any, valid_group: Any) -> None:
+    def test_security_constraints_properties(
+        self,
+        valid_macro: Any,
+        valid_group: Any,
+    ) -> None:
         """Property: Security validation should consistently apply rules.
 
         Valid inputs should pass, system groups should be blocked.
@@ -591,7 +601,7 @@ class TestErrorHandlingAndRecovery:
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"SUCCESS\n", b""))
 
-        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: int | float) -> Any:
+        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: float) -> Mock:
             return await coro
 
         with (
@@ -703,7 +713,7 @@ class TestPerformanceAndBenchmarks:
 
         start_time = datetime.now()
 
-        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: int | float) -> Any:
+        async def mock_wait_for(coro: Awaitable[Any] | Any, timeout: float) -> Mock:
             return await coro
 
         with (
@@ -745,7 +755,7 @@ class TestPerformanceAndBenchmarks:
 
 # Integration test fixtures and utilities
 @pytest.fixture
-def mock_km_environment() -> Any:
+def mock_km_environment() -> Mock:
     """Mock Keyboard Maestro environment for testing."""
     return {
         "macros": {
@@ -757,7 +767,7 @@ def mock_km_environment() -> Any:
 
 
 @pytest.fixture
-def mock_applescript_success() -> Any:
+def mock_applescript_success() -> Mock:
     """Mock successful AppleScript execution."""
     mock_process = MagicMock()
     mock_process.returncode = 0
@@ -766,7 +776,7 @@ def mock_applescript_success() -> Any:
 
 
 @pytest.fixture
-def mock_applescript_error() -> Any:
+def mock_applescript_error() -> Mock:
     """Mock failed AppleScript execution."""
     mock_process = MagicMock()
     mock_process.returncode = 1

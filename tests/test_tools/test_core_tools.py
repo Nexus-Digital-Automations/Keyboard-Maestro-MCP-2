@@ -23,7 +23,7 @@ class TestKMExecuteMacro:
     """Test macro execution functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create mock FastMCP context."""
         ctx = Mock()
         ctx.info = AsyncMock()
@@ -32,7 +32,7 @@ class TestKMExecuteMacro:
         return ctx
 
     @pytest.fixture
-    def mock_km_client(self) -> Any:
+    def mock_km_client(self) -> Mock:
         """Create mock KM client."""
         client = Mock()
         client.check_connection = Mock()
@@ -40,7 +40,11 @@ class TestKMExecuteMacro:
         return client
 
     @pytest.mark.asyncio
-    async def test_execute_macro_success(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_execute_macro_success(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test successful macro execution."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -86,7 +90,11 @@ class TestKMExecuteMacro:
         assert "recovery_suggestion" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_execute_macro_connection_failed(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_execute_macro_connection_failed(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test macro execution when KM connection fails."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -105,7 +113,11 @@ class TestKMExecuteMacro:
             assert "Keyboard Maestro Engine" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_execute_macro_execution_failed(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_execute_macro_execution_failed(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test macro execution when execution fails."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -136,7 +148,11 @@ class TestKMExecuteMacro:
             assert "not found" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_execute_macro_sanitization(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_execute_macro_sanitization(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test input sanitization."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -167,7 +183,11 @@ class TestKMExecuteMacro:
             assert len(result["data"]["trigger_value"]) == 1000
 
     @pytest.mark.asyncio
-    async def test_execute_macro_different_methods(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_execute_macro_different_methods(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test different execution methods."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -197,7 +217,11 @@ class TestKMExecuteMacro:
                 assert result["data"]["method_used"] == method
 
     @pytest.mark.asyncio
-    async def test_execute_macro_timeout_handling(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_execute_macro_timeout_handling(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test timeout parameter handling."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -263,7 +287,7 @@ class TestKMListMacros:
     """Test macro listing functionality."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create mock FastMCP context."""
         ctx = Mock()
         ctx.info = AsyncMock()
@@ -272,14 +296,14 @@ class TestKMListMacros:
         return ctx
 
     @pytest.fixture
-    def mock_km_client(self) -> Any:
+    def mock_km_client(self) -> Mock:
         """Create mock KM client."""
         client = Mock()
         client.list_macros_async = AsyncMock()
         return client
 
     @pytest.fixture
-    def sample_macros(self) -> Any:
+    def sample_macros(self) -> Mock:
         """Sample macro data."""
         return [
             {
@@ -420,7 +444,12 @@ class TestKMListMacros:
             assert macros[2]["name"] == "Text Macro"
 
     @pytest.mark.asyncio
-    async def test_list_macros_limit(self, mock_context: Any, mock_km_client: Any, sample_macros: Any) -> None:
+    async def test_list_macros_limit(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+        sample_macros: Any,
+    ) -> None:
         """Test macro listing with limit."""
         # Setup
         mock_km_client.list_macros_async.return_value = Mock()
@@ -443,7 +472,11 @@ class TestKMListMacros:
             assert result["data"]["pagination"]["has_more"] is True
 
     @pytest.mark.asyncio
-    async def test_list_macros_connection_failed(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_list_macros_connection_failed(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test macro listing when connection fails."""
         # Setup
         mock_km_client.list_macros_async.return_value = Mock()
@@ -726,7 +759,7 @@ class TestKMVariableManager:
             operation="get",
             name="test_var",
             scope="instance",
-            instance_id="test_instance",
+            _instance_id="test_instance",
             ctx=mock_context,
         )
 
@@ -755,7 +788,7 @@ class TestCoreToolsIntegration:
     """Test integration scenarios and edge cases across core tools."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Create mock FastMCP context."""
         ctx = Mock()
         ctx.info = AsyncMock()
@@ -764,7 +797,7 @@ class TestCoreToolsIntegration:
         return ctx
 
     @pytest.fixture
-    def mock_km_client(self) -> Any:
+    def mock_km_client(self) -> Mock:
         """Create mock KM client."""
         client = Mock()
         client.list_macros_async = AsyncMock()
@@ -773,7 +806,11 @@ class TestCoreToolsIntegration:
         return client
 
     @pytest.mark.asyncio
-    async def test_concurrent_operations(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_concurrent_operations(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test concurrent execution of core tools."""
         # Setup
         mock_km_client.list_macros_async.return_value = Mock()
@@ -796,7 +833,11 @@ class TestCoreToolsIntegration:
         assert all(result["success"] for result in results)
 
     @pytest.mark.asyncio
-    async def test_error_context_preservation(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_error_context_preservation(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test that error context is preserved in responses."""
         # Setup
         mock_km_client.list_macros_async.return_value = Mock()
@@ -839,7 +880,11 @@ class TestCoreToolsIntegration:
         assert len(result["data"]["macros"]) <= 100
 
     @pytest.mark.asyncio
-    async def test_unicode_handling(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_unicode_handling(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test Unicode character handling."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -912,7 +957,11 @@ class TestCoreToolsIntegration:
         assert result["data"]["value_length"] == 10000
 
     @pytest.mark.asyncio
-    async def test_metadata_consistency(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_metadata_consistency(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test metadata consistency across operations."""
         # Setup
         mock_km_client.list_macros_async.return_value = Mock()
@@ -952,7 +1001,11 @@ class TestCoreToolsIntegration:
             )
 
     @pytest.mark.asyncio
-    async def test_context_progression_tracking(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_context_progression_tracking(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test progress tracking through context."""
         # Setup
         mock_km_client.check_connection.return_value = Mock()
@@ -981,7 +1034,11 @@ class TestCoreToolsIntegration:
         assert progress_calls[-1][0][0] == 100  # Final progress
 
     @pytest.mark.asyncio
-    async def test_exception_handling_coverage(self, mock_context: Any, mock_km_client: Any) -> None:
+    async def test_exception_handling_coverage(
+        self,
+        mock_context: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test exception handling for unexpected errors."""
         # Setup to trigger generic exception
         mock_km_client.check_connection.side_effect = Exception("Unexpected error")

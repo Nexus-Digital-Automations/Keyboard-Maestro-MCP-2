@@ -410,7 +410,10 @@ class TestContractValidation:
 class TestTriggerManagementSecurity:
     """Test security functions for trigger management."""
 
-    def test_validate_trigger_input(self, clean_input: dict[str, Any] | list[Any]) -> None:
+    def test_validate_trigger_input(
+        self,
+        clean_input: dict[str, Any] | list[Any],
+    ) -> None:
         """Test trigger input validation."""
         config = clean_input["configuration"]
         assert validate_trigger_input(config)
@@ -419,7 +422,10 @@ class TestTriggerManagementSecurity:
         invalid_config = {"script": "<script>alert('xss')</script>"}
         assert not validate_trigger_input(invalid_config)
 
-    def test_sanitize_trigger_configuration(self, malicious_input: dict[str, Any] | list[Any]) -> None:
+    def test_sanitize_trigger_configuration(
+        self,
+        malicious_input: dict[str, Any] | list[Any],
+    ) -> None:
         """Test trigger configuration sanitization."""
         config = malicious_input["configuration"]
         sanitized = sanitize_trigger_configuration(config)
@@ -477,7 +483,10 @@ class TestSecurityUtilities:
 
 # Property-based testing for security robustness
 @pytest.mark.parametrize("security_level", list(SecurityLevel))
-def test_validation_robustness_across_levels(security_level: Any, clean_input: Any) -> None:
+def test_validation_robustness_across_levels(
+    security_level: Any,
+    clean_input: Any,
+) -> None:
     """Property test: Clean input should always validate across security levels."""
     result = validate_km_input(clean_input, security_level)
 
@@ -525,7 +534,10 @@ def test_malicious_content_detection(malicious_content: Any) -> None:
         ("system", Permission.SYSTEM_CONTROL),
     ],
 )
-def test_permission_mapping_consistency(trigger_type: str, expected_permission: Any) -> None:
+def test_permission_mapping_consistency(
+    trigger_type: str,
+    expected_permission: Any,
+) -> None:
     """Property test: Trigger types should consistently map to permissions."""
     test_data = {"trigger_type": trigger_type, "configuration": {}}
 

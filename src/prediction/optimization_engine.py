@@ -16,6 +16,7 @@ from enum import Enum
 from typing import Any
 
 from ..analytics.performance_analyzer import PerformanceAnalyzer
+from ..core.constants import PERCENTAGE_CONFIDENCE_HIGH
 from ..core.contracts import require
 from ..core.either import Either
 from ..orchestration.ecosystem_orchestrator import EcosystemOrchestrator
@@ -177,7 +178,7 @@ class OptimizationEngine:
     async def _analyze_performance_optimizations(
         self,
         context: OptimizationContext,
-        strategy: OptimizationStrategy,
+        _strategy: OptimizationStrategy,
     ) -> list[OptimizationSuggestion]:
         """Analyze performance optimization opportunities."""
         suggestions = []
@@ -290,7 +291,7 @@ class OptimizationEngine:
     async def _analyze_resource_optimizations(
         self,
         context: OptimizationContext,
-        strategy: OptimizationStrategy,
+        _strategy: OptimizationStrategy,
     ) -> list[OptimizationSuggestion]:
         """Analyze resource optimization opportunities."""
         suggestions = []
@@ -402,7 +403,7 @@ class OptimizationEngine:
     async def _analyze_health_optimizations(
         self,
         context: OptimizationContext,
-        strategy: OptimizationStrategy,
+        _strategy: OptimizationStrategy,
     ) -> list[OptimizationSuggestion]:
         """Analyze system health optimization opportunities."""
         suggestions = []
@@ -479,7 +480,7 @@ class OptimizationEngine:
     async def _analyze_workflow_optimizations(
         self,
         context: OptimizationContext,
-        strategy: OptimizationStrategy,
+        _strategy: OptimizationStrategy,
     ) -> list[OptimizationSuggestion]:
         """Analyze workflow optimization opportunities."""
         suggestions = []
@@ -528,7 +529,7 @@ class OptimizationEngine:
     async def _analyze_cost_optimizations(
         self,
         context: OptimizationContext,
-        strategy: OptimizationStrategy,
+        _strategy: OptimizationStrategy,
     ) -> list[OptimizationSuggestion]:
         """Analyze cost optimization opportunities."""
         suggestions = []
@@ -576,7 +577,7 @@ class OptimizationEngine:
         self,
         suggestions: list[OptimizationSuggestion],
         strategy: OptimizationStrategy,
-        context: OptimizationContext,
+        _context: OptimizationContext,
     ) -> list[OptimizationSuggestion]:
         """Filter and prioritize suggestions based on strategy and context."""
         # Filter by strategy
@@ -632,7 +633,7 @@ class OptimizationEngine:
         """Check if suggestion matches the optimization strategy."""
         if strategy == OptimizationStrategy.CONSERVATIVE:
             return (
-                suggestion.confidence >= 0.8
+                suggestion.confidence >= PERCENTAGE_CONFIDENCE_HIGH
                 and suggestion.implementation_effort in ["low", "medium"]
                 and len(suggestion.risks) <= 2
             )
@@ -648,7 +649,7 @@ class OptimizationEngine:
     async def implement_optimization(
         self,
         optimization_id: OptimizationId,
-        auto_approve: bool = False,
+        _auto_approve: bool = False,
     ) -> Either[OptimizationError, dict[str, Any]]:
         """Implement a specific optimization suggestion."""
         try:
@@ -720,7 +721,7 @@ class OptimizationEngine:
         # Calculate actual impact (with some variance)
         import random
 
-        impact_variance = random.uniform(0.8, 1.2)  # ±20% variance  # noqa: S311
+        impact_variance = random.uniform(0.8, 1.2)  # noqa: S311 # ML simulation variance
         actual_impact = float(suggestion.expected_impact) * impact_variance
 
         return {
@@ -743,7 +744,7 @@ class OptimizationEngine:
         # Placeholder implementation - would get real metrics
         import random
 
-        return {metric: random.uniform(0.5, 1.0) for metric in metrics}  # noqa: S311
+        return {metric: random.uniform(0.5, 1.0) for metric in metrics}  # noqa: S311 # ML metrics simulation
 
     def get_optimization_status(self) -> dict[str, Any]:
         """Get current optimization engine status."""

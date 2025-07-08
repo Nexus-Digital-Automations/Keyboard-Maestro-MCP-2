@@ -600,7 +600,7 @@ class GestureController:
     async def _execute_sequence_event(
         self,
         operation: str,
-        params: dict[str, Any],
+        _params: dict[str, Any],
         delay_ms: int,
     ) -> None:
         """Execute a single event in a timing sequence."""
@@ -632,7 +632,7 @@ end tell
         element_type: str,
         action: str,
         position: Coordinate,
-        accessibility_info: dict[str, Any] | None,
+        _accessibility_info: dict[str, Any] | None,
     ) -> str:
         """Generate AppleScript for accessibility interaction."""
         x, y = position.x, position.y

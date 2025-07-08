@@ -305,7 +305,9 @@ class EnergyManager:
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg, profile.device_id))
 
-    @require(lambda __self, reading: reading.device_id and reading.power_consumption >= 0)
+    @require(
+        lambda __self, reading: reading.device_id and reading.power_consumption >= 0,
+    )
     @ensure(lambda __self, result: result.is_success() or result.error_value)
     async def record_energy_reading(
         self,
@@ -472,7 +474,7 @@ class EnergyManager:
     async def _optimize_for_cost(
         self,
         devices: list[DeviceId],
-        period: tuple[datetime, datetime],
+        _period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Optimize for minimum cost."""
         actions = []
@@ -532,7 +534,7 @@ class EnergyManager:
     async def _optimize_for_carbon(
         self,
         devices: list[DeviceId],
-        period: tuple[datetime, datetime],
+        _period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Optimize for carbon footprint reduction."""
         actions = []
@@ -581,7 +583,7 @@ class EnergyManager:
     async def _optimize_peak_shaving(
         self,
         devices: list[DeviceId],
-        period: tuple[datetime, datetime],
+        _period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Optimize for peak demand reduction."""
         actions = []
@@ -628,7 +630,7 @@ class EnergyManager:
     async def _optimize_load_balancing(
         self,
         devices: list[DeviceId],
-        period: tuple[datetime, datetime],
+        _period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Optimize for load balancing across time periods."""
         actions = []
@@ -658,7 +660,7 @@ class EnergyManager:
     async def _optimize_renewable_usage(
         self,
         devices: list[DeviceId],
-        period: tuple[datetime, datetime],
+        _period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Optimize for maximum renewable energy usage."""
         actions = []
@@ -692,7 +694,7 @@ class EnergyManager:
     async def _optimize_efficiency(
         self,
         devices: list[DeviceId],
-        period: tuple[datetime, datetime],
+        _period: tuple[datetime, datetime],
     ) -> dict[str, Any]:
         """Optimize for overall efficiency."""
         actions = []

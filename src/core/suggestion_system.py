@@ -19,6 +19,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
+from src.core.constants import TEXT_LENGTH_LIMIT
 from src.core.either import Either
 from src.core.errors import ValidationError
 from src.core.logging import get_logger
@@ -496,7 +497,8 @@ class SuggestionSecurityValidator:
         """Validate user ID format for security."""
         # Allow alphanumeric characters, hyphens, and underscores
         return (
-            re.match(r"^[a-zA-Z0-9_-]+$", user_id) is not None and len(user_id) <= 100
+            re.match(r"^[a-zA-Z0-9_-]+$", user_id) is not None
+            and len(user_id) <= TEXT_LENGTH_LIMIT
         )
 
     def _contains_sensitive_data(self, data: dict[str, Any]) -> bool:

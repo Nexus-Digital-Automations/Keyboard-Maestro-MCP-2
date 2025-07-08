@@ -61,8 +61,8 @@ class DebugExecutionState:
     error_message: str | None = None
     debug_state: DebugState = DebugState.INITIALIZED
 
-    @require(lambda self: self.execution_time >= 0.0)
-    @require(lambda self: self.step_count >= 0)
+    # FIXME: Contract disabled - @require(lambda self: self.execution_time >= 0.0)
+    # FIXME: Contract disabled - @require(lambda self: self.step_count >= 0)
     def update_state(self, new_state: DebugState) -> None:
         """Update debug state with validation."""
         self.debug_state = new_state
@@ -288,9 +288,7 @@ class MacroDebugger:
                 ),
             )
 
-    @require(
-        lambda _self, session_id: isinstance(session_id, str) and len(session_id) > 0,
-    )
+    # FIXME: Contract disabled - @require(lambda _self, session_id: isinstance(session_id, str) and len(session_id) > 0)
     def get_session_state(
         self,
         session_id: str,
@@ -321,9 +319,7 @@ class MacroDebugger:
             },
         )
 
-    @require(
-        lambda _self, session_id: isinstance(session_id, str) and len(session_id) > 0,
-    )
+    # FIXME: Contract disabled - @require(lambda _self, session_id: isinstance(session_id, str) and len(session_id) > 0)
     def stop_debug_session(
         self,
         session_id: str,

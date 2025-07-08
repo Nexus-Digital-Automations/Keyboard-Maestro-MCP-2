@@ -18,6 +18,7 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
+from src.core.constants import MEDIUM_SIMILARITY_THRESHOLD
 from src.core.contracts import ensure, require
 from src.core.either import Either
 from src.core.predictive_modeling import (
@@ -271,7 +272,7 @@ class OptimizationModeler:
         target_id: str,
         optimization_target: OptimizationTarget,
         optimization_scope: str,
-        time_horizon: timedelta,
+        _time_horizon: timedelta,
         constraints: list[OptimizationConstraint] | None = None,
         variables: list[OptimizationVariable] | None = None,
     ) -> Either[OptimizationError, list[OptimizationSolution]]:
@@ -426,7 +427,7 @@ class OptimizationModeler:
         method: OptimizationMethod,
         baseline: dict[str, float],
         target_id: str,
-        optimization_scope: str,
+        _optimization_scope: str,
     ) -> OptimizationSolution | None:
         """Solve optimization problem using specified method."""
         try:
@@ -558,7 +559,7 @@ class OptimizationModeler:
     async def _analyze_trade_offs(
         self,
         optimized_variables: dict[str, Any],
-        baseline: dict[str, float],
+        _baseline: dict[str, float],
     ) -> dict[str, float]:
         """Analyze trade-offs in optimization solution."""
         trade_offs = {}
@@ -607,7 +608,7 @@ class OptimizationModeler:
                 ):
                     complexity_score += 0.5
 
-        if complexity_score < 0.5:
+        if complexity_score < MEDIUM_SIMILARITY_THRESHOLD:
             return "low"
         if complexity_score < 1.5:
             return "medium"
@@ -987,7 +988,7 @@ class OptimizationModeler:
     def _calculate_risk_metrics(
         self,
         outcomes: dict[str, list[float]],
-        optimization_solution: OptimizationSolution,
+        _optimization_solution: OptimizationSolution,
     ) -> dict[str, float]:
         """Calculate risk metrics from simulation outcomes."""
         risk_metrics = {}
@@ -1015,7 +1016,7 @@ class OptimizationModeler:
     async def _perform_sensitivity_analysis(
         self,
         optimization_solution: OptimizationSolution,
-        scenario: SimulationScenario,
+        _scenario: SimulationScenario,
     ) -> dict[str, float]:
         """Perform sensitivity analysis for optimization parameters."""
         sensitivity = {}

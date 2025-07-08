@@ -29,8 +29,8 @@ SessionToken = NewType("SessionToken", str)
 class AuthenticationMethod(Enum):
     """Supported authentication methods."""
 
-    PASSWORD = "password"  # noqa: S105 - Type identifier, not a secret
-    TOKEN = "token"  # noqa: S105 - Type identifier, not a secret
+    PASSWORD = "password"  # noqa: S105 # Enum value, not password
+    TOKEN = "token"  # noqa: S105 # Enum value, not password
     SSO = "sso"
     SESSION = "session"
     API_KEY = "api_key"

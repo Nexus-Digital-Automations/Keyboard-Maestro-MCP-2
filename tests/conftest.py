@@ -7,18 +7,15 @@ mock frameworks, and reusable fixtures for property-based and integration testin
 from __future__ import annotations
 
 import asyncio
+import logging
 import threading
 import time
 from datetime import datetime
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock
+from typing import TYPE_CHECKING, Any
+from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
-
-# Hypothesis configuration
 from hypothesis import HealthCheck, Verbosity, settings
-
-# Core imports
 from src.core import (
     CommandType,
     Duration,
@@ -29,12 +26,17 @@ from src.core import (
     create_test_macro,
 )
 
+logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 # Configure Hypothesis profiles for different testing scenarios
 settings.register_profile(
     "default",
     max_examples=50,
     deadline=2000,  # 2 seconds
-    suppress_health_check=[HealthCheck.too_slow],
+    suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
     verbosity=Verbosity.normal,
 )
 
@@ -42,7 +44,7 @@ settings.register_profile(
     "ci",
     max_examples=200,
     deadline=5000,  # 5 seconds
-    suppress_health_check=[HealthCheck.too_slow],
+    suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
     verbosity=Verbosity.verbose,
 )
 
@@ -50,7 +52,7 @@ settings.register_profile(
     "fast",
     max_examples=10,
     deadline=500,  # 0.5 seconds
-    suppress_health_check=[HealthCheck.too_slow],
+    suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
 )
 
 # Load default profile
@@ -58,11 +60,31 @@ settings.load_profile("default")
 
 
 @pytest.fixture(scope="session")
-def event_loop() -> None:
+def event_loop():
     """Create event loop for async tests."""
-    loop = asyncio.new_event_loop()
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
     yield loop
-    loop.close()
+
+    # Clean up pending tasks
+    try:
+        pending = asyncio.all_tasks(loop)
+        for task in pending:
+            task.cancel()
+
+        if pending:
+            loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+    except Exception as cleanup_error:
+        logger.debug(f"Event loop cleanup failed: {cleanup_error}")
+    finally:
+        try:
+            loop.close()
+        except Exception as close_error:
+            logger.debug(f"Event loop close failed: {close_error}")
 
 
 @pytest.fixture
@@ -182,7 +204,12 @@ def performance_timer() -> bool:
             self.start()
             return self
 
-        def __exit__(self, exc_type: str, exc_val: Exception | str, exc_tb: Exception | str):
+        def __exit__(
+            self,
+            exc_type: str,
+            exc_val: Exception | str,
+            exc_tb: Exception | str,
+        ):
             self.stop()
 
     return PerformanceTimer()
@@ -255,7 +282,7 @@ def mock_file_system() -> bool:
 
 
 @pytest.fixture
-def thread_safety_helper() -> Any:
+def thread_safety_helper() -> Mock:
     """Helper for testing thread safety."""
 
     class ThreadSafetyHelper:
@@ -264,11 +291,16 @@ def thread_safety_helper() -> Any:
             self.lock = threading.Lock()
             self.errors = []
 
-        def run_concurrent(self, func: Callable[..., Any], args_list: list[Any], max_workers: Any=5) -> None:
+        def run_concurrent(
+            self,
+            func: Callable[..., Any],
+            args_list: list[Any],
+            max_workers: Any = 5,
+        ) -> None:
             """Run function concurrently with different arguments."""
             threads = []
 
-            def worker(args: list[Any]) -> Any:
+            def worker(args: list[Any]) -> Mock:
                 try:
                     result = (
                         func(*args) if isinstance(args, list | tuple) else func(args)
@@ -349,3 +381,54 @@ def cleanup_engine_state() -> None:
 
     metrics = get_engine_metrics()
     metrics.reset_metrics()
+
+
+@pytest.fixture(autouse=True)
+async def async_cleanup():
+    """Clean up async resources between tests."""
+    yield
+
+    # Clean up any pending tasks with proper recursion protection
+    try:
+        current_task = asyncio.current_task()
+        tasks = [
+            task
+            for task in asyncio.all_tasks()
+            if not task.done() and task is not current_task
+        ]
+        if tasks:
+            # Cancel tasks without recursive dependency
+            for task in tasks:
+                if not task.cancelled():
+                    try:
+                        task.cancel()
+                    except Exception as cancel_error:
+                        logger.debug(
+                            f"Task cancellation failed (already cancelled): {cancel_error}"
+                        )
+
+            # Wait briefly for clean shutdown, but don't wait indefinitely
+            if tasks:
+                try:
+                    await asyncio.wait_for(
+                        asyncio.gather(*tasks, return_exceptions=True), timeout=0.1
+                    )
+                except (asyncio.TimeoutError, Exception) as cleanup_error:
+                    logger.debug(f"Task cleanup timeout/error: {cleanup_error}")
+    except RuntimeError:
+        pass  # No event loop running
+
+
+@pytest.fixture
+def async_mock_helper():
+    """Helper for creating properly configured AsyncMock objects."""
+
+    def create_async_mock(return_value=None, side_effect=None, **kwargs):
+        mock = AsyncMock(**kwargs)
+        if return_value is not None:
+            mock.return_value = return_value
+        if side_effect is not None:
+            mock.side_effect = side_effect
+        return mock
+
+    return create_async_mock

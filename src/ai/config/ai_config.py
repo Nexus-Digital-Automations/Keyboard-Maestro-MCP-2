@@ -55,8 +55,8 @@ class ModelConfig:
     temperature: float = 0.7
     timeout_seconds: float = 30.0
     max_retries: int = 3
-    cost_per_input_token: Decimal = field(default_factory=lambda: Decimal("0"))
-    cost_per_output_token: Decimal = field(default_factory=lambda: Decimal("0"))
+    cost_per_input_token: Decimal = field(default_factory=lambda: Decimal(0))
+    cost_per_output_token: Decimal = field(default_factory=lambda: Decimal(0))
     supported_operations: set[AIOperation] = field(default_factory=set)
     custom_parameters: dict[str, Any] = field(default_factory=dict)
 
@@ -101,7 +101,7 @@ class CostConfig:
     """Configuration for cost optimization."""
 
     enabled: bool = True
-    default_budget_monthly: Decimal = field(default_factory=lambda: Decimal("1000"))
+    default_budget_monthly: Decimal = field(default_factory=lambda: Decimal(1000))
     alert_thresholds: list[float] = field(default_factory=lambda: [0.5, 0.8, 0.95])
     auto_optimization: bool = False
     track_usage: bool = True
@@ -180,7 +180,13 @@ class AIConfigManager:
             return Either.right(self.config)
 
         except Exception as e:
-            return Either.left(ValidationError("config_load_failed", str(e), "Configuration loading failed"))
+            return Either.left(
+                ValidationError(
+                    "config_load_failed",
+                    str(e),
+                    "Configuration loading failed",
+                ),
+            )
 
     def save_config(
         self,
@@ -213,7 +219,13 @@ class AIConfigManager:
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError("config_save_failed", str(e), "Configuration saving failed"))
+            return Either.left(
+                ValidationError(
+                    "config_save_failed",
+                    str(e),
+                    "Configuration saving failed",
+                ),
+            )
 
     def get_provider_config(self, provider_name: str) -> ProviderConfig | None:
         """Get configuration for specific provider."""
@@ -314,7 +326,13 @@ class AIConfigManager:
             return self._dict_to_config(data)
 
         except Exception as e:
-            return Either.left(ValidationError("file_read_failed", str(e), "Configuration file read failed"))
+            return Either.left(
+                ValidationError(
+                    "file_read_failed",
+                    str(e),
+                    "Configuration file read failed",
+                ),
+            )
 
     def _dict_to_config(
         self,
@@ -348,7 +366,13 @@ class AIConfigManager:
             return Either.right(config)
 
         except Exception as e:
-            return Either.left(ValidationError("config_parsing_failed", str(e), "Configuration parsing failed"))
+            return Either.left(
+                ValidationError(
+                    "config_parsing_failed",
+                    str(e),
+                    "Configuration parsing failed",
+                ),
+            )
 
     def _config_to_dict(self, config: AIConfig) -> dict[str, Any]:
         """Convert configuration object to dictionary."""
@@ -446,7 +470,11 @@ class AIConfigManager:
             # Check required providers
             if not config.providers:
                 return Either.left(
-                    ValidationError("no_providers", None, "At least one AI provider must be configured"),
+                    ValidationError(
+                        "no_providers",
+                        None,
+                        "At least one AI provider must be configured",
+                    ),
                 )
 
             # Check default provider exists
@@ -473,7 +501,13 @@ class AIConfigManager:
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError("validation_failed", str(e), "Configuration validation failed"))
+            return Either.left(
+                ValidationError(
+                    "validation_failed",
+                    str(e),
+                    "Configuration validation failed",
+                ),
+            )
 
 
 # Global configuration manager

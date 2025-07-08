@@ -81,12 +81,20 @@ def parse_group_applescript_records(applescript_output: str) -> list[dict[str, A
     return records
 
 
-def parse_variable_records(applescript_output: str) -> list[dict[str, Any]]:
+def parse_variable_records(applescript_output: str | list[str]) -> list[dict[str, Any]]:
     """Parse AppleScript variable records into Python dictionaries."""
     records = []
 
+    # Handle both string and list inputs
+    if isinstance(applescript_output, list):
+        if not applescript_output:
+            return records
+        applescript_str = "\n".join(applescript_output)
+    else:
+        applescript_str = applescript_output
+
     # Clean up the output - remove extra whitespace and newlines
-    clean_output = re.sub(r"\s+", " ", applescript_output.strip())
+    clean_output = re.sub(r"\s+", " ", applescript_str.strip())
 
     # The actual AppleScript output is in flat comma-separated format
     # Parse format: key:value, key:value, key:value, ...

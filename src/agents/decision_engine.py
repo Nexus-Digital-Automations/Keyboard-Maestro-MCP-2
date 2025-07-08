@@ -152,7 +152,7 @@ class DecisionEngine:
                 ),
             )
 
-    @require(lambda __self, goal, situation, patterns: isinstance(goal, AgentGoal))
+    @require(lambda __self, goal, _situation, _patterns: isinstance(goal, AgentGoal))
     async def plan_actions(
         self,
         goal: AgentGoal,
@@ -314,7 +314,7 @@ class DecisionEngine:
     async def _basic_planning(
         self,
         goal: AgentGoal,
-        context: DecisionContext,
+        _context: DecisionContext,
     ) -> ActionPlan:
         """Generate basic action plan."""
         actions = []
@@ -423,7 +423,7 @@ class DecisionEngine:
         self,
         suggestions: list[dict[str, Any]],
         goal: AgentGoal,
-        context: DecisionContext,
+        _context: DecisionContext,
     ) -> ActionPlan:
         """Convert AI suggestions to actionable plan."""
         actions = []

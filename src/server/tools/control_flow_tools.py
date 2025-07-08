@@ -506,7 +506,7 @@ async def _build_control_flow_structure(
 
 async def _generate_km_control_flow(
     node: ControlFlowNodeType,
-    macro_identifier: str,
+    _macro_identifier: str,
     ctx: Context | None,
 ) -> dict[str, Any]:
     """Generate Keyboard Maestro compatible control flow structures."""

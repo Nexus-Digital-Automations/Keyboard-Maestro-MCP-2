@@ -8,10 +8,13 @@ Tests follow the proven systematic pattern that achieved 100% success across 25+
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 # Import existing modules
 
@@ -21,10 +24,10 @@ import pytest
 
 async def mock_km_plugin_ecosystem(
     operation: str,
-    plugin_id: str=None,
-    configuration: dict[str, Any]=None,
-    ctx: Context | Any=None,
-) -> Any:
+    plugin_id: str = None,
+    configuration: dict[str, Any] = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for plugin ecosystem operations."""
     valid_operations = [
         "install",
@@ -100,7 +103,12 @@ async def mock_km_plugin_ecosystem(
     }
 
 
-async def mock_km_plugin_manager(action: str, plugin_id: str=None, configuration: dict[str, Any]=None, ctx: Context | Any=None) -> Any:
+async def mock_km_plugin_manager(
+    action: str,
+    plugin_id: str = None,
+    configuration: dict[str, Any] = None,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for plugin manager operations."""
     if not plugin_id:
         return {
@@ -136,8 +144,8 @@ async def mock_km_plugin_manager(action: str, plugin_id: str=None, configuration
 async def mock_km_execute_plugin_action(
     plugin_id: str,
     action_name: str,
-    parameters: list[Any]=None,
-    ctx: Context | Any=None,
+    parameters: list[Any] = None,
+    ctx: Context | Any = None,
 ) -> None:
     """Mock implementation for plugin action execution."""
     if action_name == "invalid_action":
@@ -174,8 +182,8 @@ async def mock_km_execute_plugin_action(
 
 async def mock_km_validate_plugin_security(
     plugin_id: str,
-    security_profile: Any="standard",
-    ctx: Context | Any=None,
+    security_profile: Any = "standard",
+    ctx: Context | Any = None,
 ) -> None:
     """Mock implementation for plugin security validation."""
     # Simulate security violation
@@ -227,7 +235,7 @@ class TestKMPluginEcosystem:
     """Test suite for km_plugin_ecosystem MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
@@ -236,7 +244,7 @@ class TestKMPluginEcosystem:
         return context
 
     @pytest.fixture
-    def sample_plugin_data(self) -> Any:
+    def sample_plugin_data(self) -> Mock:
         """Sample plugin data for testing."""
         return {
             "basic_plugin": {
@@ -306,7 +314,7 @@ class TestKMPluginManager:
     """Test suite for km_plugin_manager MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
@@ -348,7 +356,7 @@ class TestKMExecutePluginAction:
     """Test suite for km_execute_plugin_action MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-plugin-action-001"}
@@ -388,7 +396,7 @@ class TestKMValidatePluginSecurity:
     """Test suite for km_validate_plugin_security MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {
@@ -433,7 +441,7 @@ class TestPluginEcosystemIntegration:
     """Integration tests for plugin ecosystem tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-integration-plugin-001"}

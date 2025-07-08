@@ -10,17 +10,18 @@ from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
+from src.core.either import Either
 from src.core.types import Duration, MacroId, TriggerId
 from src.integration.events import TriggerType
 from src.integration.km_client import (
     ConnectionConfig,
     ConnectionMethod,
-    Either,
     KMClient,
     KMError,
     TriggerDefinition,
 )
-from src.iot.device_controller import ConnectionState
+
+# ConnectionState not needed for KMClient tests
 
 
 class TestEitherMonad:
@@ -34,7 +35,9 @@ class TestEitherMonad:
         assert not result.is_right()
         assert result.is_left()
         assert result.get_left() == error_msg
-        assert result.get_right() is None
+        # get_right() should raise ValueError on Left
+        with pytest.raises(ValueError, match="Cannot get Right value from Left"):
+            result.get_right()
 
     def test_either_right_creation(self) -> None:
         """Test creating Right (success) values."""
@@ -44,7 +47,9 @@ class TestEitherMonad:
         assert result.is_right()
         assert not result.is_left()
         assert result.get_right() == value
-        assert result.get_left() is None
+        # get_left() should raise ValueError on Right
+        with pytest.raises(ValueError, match="Cannot get Left value from Right"):
+            result.get_left()
 
     def test_either_map_on_right(self) -> None:
         """Test mapping function over Right values."""
@@ -65,7 +70,7 @@ class TestEitherMonad:
     def test_either_flat_map(self) -> None:
         """Test flat mapping for chaining operations."""
 
-        def double_if_even(x: Any) -> Any:
+        def double_if_even(x: Any) -> Mock:
             if x % 2 == 0:
                 return Either.right(x * 2)
             return Either.left("odd number")
@@ -94,59 +99,55 @@ class TestKMClient:
 
     def test_connection_creation_default(self) -> None:
         """Test creating connection with default settings."""
-        connection = KMClient.create_default()
+        connection = KMClient()
 
-        assert connection.method == ConnectionMethod.APPLESCRIPT
-        assert connection.state == ConnectionState.DISCONNECTED
-        assert connection.timeout > 0
-        assert connection.retry_count >= 0
+        assert connection.config.method == ConnectionMethod.APPLESCRIPT
+        assert connection.config.timeout.total_seconds() > 0
 
     def test_connection_with_config(self) -> None:
         """Test creating connection with custom config."""
         config = ConnectionConfig(
             method=ConnectionMethod.WEB_API,
-            host="localhost",
-            port=4242,
-            timeout=Duration(seconds=30),
-            enable_ssl=True,
+            timeout=Duration.from_seconds(30),
         )
 
-        connection = KMClient.create_with_config(config)
-        assert connection.method == ConnectionMethod.WEB_API
-        assert connection.config.enable_ssl is True
-        assert connection.config.timeout.seconds == 30
+        connection = KMClient(config)
+        assert connection.config.method == ConnectionMethod.WEB_API
+        assert connection.config.timeout.total_seconds() == 30
 
-    @pytest.mark.asyncio
-    async def test_connection_lifecycle(self) -> None:
+    def test_connection_lifecycle(self) -> None:
         """Test complete connection lifecycle."""
-        with patch("src.integration.km_client.ScriptExecutor") as mock_executor:
-            mock_executor.return_value.test_connection.return_value = Either.right(True)
+        connection = KMClient()
 
-            connection = KMClient.create_default()
+        # Test configuration access
+        assert connection.config is not None
+        assert connection.config.method == ConnectionMethod.APPLESCRIPT
 
-            # Test connection establishment
-            result = await connection.connect()
+        # Test macro listing functionality (synchronous)
+        with patch(
+            "src.integration.km_client.KMClient._send_via_applescript"
+        ) as mock_send:
+            mock_send.return_value = Either.right({"macros": []})
+
+            result = connection.list_macros()
             assert result.is_right()
-            assert connection.state == ConnectionState.CONNECTED
+            assert result.get_right() == []
 
-            # Test disconnection
-            await connection.disconnect()
-            assert connection.state == ConnectionState.DISCONNECTED
-
-    @pytest.mark.asyncio
-    async def test_connection_error_handling(self) -> None:
+    def test_connection_error_handling(self) -> None:
         """Test connection error scenarios."""
-        with patch("src.integration.km_client.ScriptExecutor") as mock_executor:
-            mock_executor.return_value.test_connection.return_value = Either.left(
-                "Connection failed",
+        connection = KMClient()
+
+        # Test error handling in macro execution
+        with patch(
+            "src.integration.km_client.KMClient._send_via_applescript"
+        ) as mock_send:
+            mock_send.return_value = Either.left(
+                KMError.connection_error("Connection failed")
             )
 
-            connection = KMClient.create_default()
-            result = await connection.connect()
-
+            result = connection.execute_macro(MacroId("test_macro"))
             assert result.is_left()
-            assert connection.state == ConnectionState.ERROR
-            assert "Connection failed" in str(result.get_left())
+            assert "Connection failed" in result.get_left().message
 
 
 # F811 fix: Rename duplicate class to avoid conflict
@@ -154,15 +155,14 @@ class TestKMClientOperations:
     """Test high-level KM client operations."""
 
     @pytest.fixture
-    def mock_connection(self) -> Any:
+    def mock_connection(self) -> Mock:
         """Create mock connection for testing."""
         connection = Mock(spec=KMClient)
-        connection.state = ConnectionState.CONNECTED
         connection.method = ConnectionMethod.APPLESCRIPT
         return connection
 
     @pytest.fixture
-    def km_client(self, mock_connection: Any) -> Any:
+    def km_client(self, mock_connection: Any) -> Mock:
         """Create KM client with mock connection."""
         config = ConnectionConfig(
             method=ConnectionMethod.APPLESCRIPT,
@@ -184,7 +184,11 @@ class TestKMClientOperations:
         assert client.config.method == ConnectionMethod.APPLESCRIPT
 
     @pytest.mark.asyncio
-    async def test_execute_macro_by_id(self, km_client: Any, mock_connection: Any) -> None:
+    async def test_execute_macro_by_id(
+        self,
+        km_client: Any,
+        mock_connection: Any,
+    ) -> None:
         """Test executing macro by ID."""
         macro_id = MacroId("test-macro-123")
 

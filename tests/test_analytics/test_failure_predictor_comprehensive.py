@@ -8,8 +8,8 @@ FailurePattern, PredictionModel, and complete FailurePredictor functionality.
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import Any
-from unittest.mock import patch
+from typing import TYPE_CHECKING, Any
+from unittest.mock import Mock, patch
 
 import pytest
 from hypothesis import given
@@ -31,34 +31,37 @@ from src.core.predictive_modeling import (
     create_prediction_id,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test data generators
 @st.composite
-def failure_type_strategy(draw: Callable[..., Any]) -> Any:
+def failure_type_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid failure types."""
     return draw(st.sampled_from(list(FailureType)))
 
 
 @st.composite
-def failure_severity_strategy(draw: Callable[..., Any]) -> Any:
+def failure_severity_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid failure severities."""
     return draw(st.sampled_from(list(FailureSeverity)))
 
 
 @st.composite
-def mitigation_strategy_strategy(draw: Callable[..., Any]) -> Any:
+def mitigation_strategy_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid mitigation strategies."""
     return draw(st.sampled_from(list(MitigationStrategy)))
 
 
 @st.composite
-def confidence_level_strategy(draw: Callable[..., Any]) -> Any:
+def confidence_level_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid confidence levels."""
     return draw(st.sampled_from(list(ConfidenceLevel)))
 
 
 @st.composite
-def failure_indicator_strategy(draw: Callable[..., Any]) -> Any:
+def failure_indicator_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid failure indicators."""
     return FailureIndicator(
         indicator_id=draw(

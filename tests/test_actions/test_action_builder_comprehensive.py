@@ -6,7 +6,7 @@ security validation, XML generation, and comprehensive enterprise-grade validati
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock, patch
 
 import defusedxml.ElementTree as ET
@@ -22,10 +22,13 @@ from src.actions.action_builder import (
 from src.core.errors import ValidationError
 from src.core.types import Duration
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test data generators
 @st.composite
-def action_category_strategy(draw: Callable[..., Any]) -> Any:
+def action_category_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid action categories."""
     return draw(
         st.sampled_from(
@@ -48,13 +51,13 @@ def action_category_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def action_identifier_strategy(draw: Callable[..., Any]) -> Any:
+def action_identifier_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid action identifiers."""
     return draw(st.from_regex(r"^[a-zA-Z0-9_\s\-\./]+$", fullmatch=True))
 
 
 @st.composite
-def parameter_dict_strategy(draw: Callable[..., Any]) -> Any:
+def parameter_dict_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid parameter dictionaries."""
     return draw(
         st.dictionaries(
@@ -128,7 +131,11 @@ class TestActionType:
             )
 
     @given(action_identifier_strategy(), action_category_strategy())
-    def test_action_type_property_based_creation(self, identifier: str, category: str) -> None:
+    def test_action_type_property_based_creation(
+        self,
+        identifier: str,
+        category: str,
+    ) -> None:
         """Property-based test for ActionType creation."""
         assume(identifier and identifier.strip())
 
@@ -260,7 +267,10 @@ class TestActionConfiguration:
         assert config_long._validate_parameter_security() is False
 
     @given(parameter_dict_strategy())
-    def test_action_configuration_property_based_validation(self, parameters: list[Any]) -> None:
+    def test_action_configuration_property_based_validation(
+        self,
+        parameters: list[Any],
+    ) -> None:
         """Property-based test for ActionConfiguration validation."""
         action_type = ActionType(
             identifier="Test Action",

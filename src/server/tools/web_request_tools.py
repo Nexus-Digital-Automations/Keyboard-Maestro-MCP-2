@@ -458,7 +458,7 @@ class WebRequestProcessor:
 
     async def _save_response(
         self,
-        response: HTTPResponse,
+        _response: HTTPResponse,
         save_to: str,
         ctx: Context | None,
     ) -> None:

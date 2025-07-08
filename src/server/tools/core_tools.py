@@ -430,7 +430,7 @@ async def km_variable_manager(
             description="Variable scope: global, local, instance, or password",
         ),
     ] = "global",
-    instance_id: Annotated[
+    _instance_id: Annotated[
         str | None,
         Field(default=None, description="Instance ID for local/instance variables"),
     ] = None,

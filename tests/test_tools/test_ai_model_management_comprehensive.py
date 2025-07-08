@@ -7,7 +7,7 @@ model discovery, and performance analytics using the proven pattern that achieve
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -15,6 +15,9 @@ import pytest
 import src.server.tools.ai_model_management as ai_model_mgmt
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # Extract underlying functions from FastMCP tool objects (systematic pattern)
 km_ai_cache = ai_model_mgmt.km_ai_cache
@@ -542,7 +545,7 @@ class TestKMAICostOptimizationMocked:
         result = await km_ai_cost_optimization(
             operation="report",
             period="monthly",
-            budget_limit=1000.0,
+            _budget_limit=1000.0,
         )
 
         # Verify result structure
@@ -940,7 +943,7 @@ class TestAIModelManagementIntegration:
         report_result = await km_ai_cost_optimization(
             operation="report",
             period="monthly",
-            budget_limit=500.0,
+            _budget_limit=500.0,
         )
 
         # Step 4: Optimize costs
@@ -1068,7 +1071,12 @@ class TestAIModelManagementProperties:
     )
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_cost_optimization_properties(self, operation: str, strategy: Any, period: Any) -> None:
+    async def test_cost_optimization_properties(
+        self,
+        operation: str,
+        strategy: Any,
+        period: Any,
+    ) -> None:
         """Test properties of cost optimization operations."""
         # Prepare operation-specific data
         if operation == "track":

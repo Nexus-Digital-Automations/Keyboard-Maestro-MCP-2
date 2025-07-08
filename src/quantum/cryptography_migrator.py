@@ -59,7 +59,7 @@ class CryptographyMigrator:
         self,
         scope: str,
         include_vulnerabilities: bool = True,
-        deep_analysis: bool = True,
+        _deep_analysis: bool = True,
     ) -> Either[QuantumError, QuantumReadinessAssessment]:
         """Analyze quantum readiness of cryptographic systems."""
         try:
@@ -716,10 +716,10 @@ class CryptographyMigrator:
 
     async def _execute_migration_phase(
         self,
-        plan: PostQuantumMigrationPlan,
+        _plan: PostQuantumMigrationPlan,
         phase_info: dict[str, Any],
         dry_run: bool,
-        validation_mode: bool,
+        _validation_mode: bool,
     ) -> Either[QuantumError, dict[str, Any]]:
         """Execute a single migration phase."""
         try:

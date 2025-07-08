@@ -17,6 +17,13 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
+from ..core.constants import (
+    CONTEXT_SIMILARITY_THRESHOLD,
+    HIGH_PERFORMANCE_THRESHOLD,
+    MATURITY_THRESHOLD,
+    MEDIUM_CONFIDENCE_BOUNDARY,
+    PATTERN_EFFECTIVENESS_THRESHOLD,
+)
 from ..core.either import Either
 from .ecosystem_architecture import OrchestrationError, ToolCategory
 from .performance_monitor import EcosystemPerformanceMonitor, get_performance_monitor
@@ -144,7 +151,7 @@ class EcosystemStrategicPlanner:
         # Planning parameters
         self.planning_horizon = timedelta(days=365 * 2)  # 2 years
         self.roi_discount_rate = 0.1  # 10% discount rate
-        self.risk_tolerance = 0.7  # 70% confidence threshold
+        self.risk_tolerance = CONTEXT_SIMILARITY_THRESHOLD
 
         # Ecosystem maturity tracking
         self.maturity_metrics = {
@@ -315,9 +322,9 @@ class EcosystemStrategicPlanner:
             }
 
             # Categorize areas
-            if coverage_ratio >= 0.8:
+            if coverage_ratio >= HIGH_PERFORMANCE_THRESHOLD:
                 capability_analysis["strong_areas"].append(category.value)
-            elif coverage_ratio >= 0.5:
+            elif coverage_ratio >= MEDIUM_CONFIDENCE_BOUNDARY:
                 capability_analysis["improvement_areas"].append(category.value)
             else:
                 capability_analysis["critical_gaps"].append(category.value)
@@ -365,9 +372,9 @@ class EcosystemStrategicPlanner:
             "individual_scores": alignment_scores,
             "overall_alignment": overall_alignment,
             "recommendation": "strong"
-            if overall_alignment > 0.8
+            if overall_alignment > HIGH_PERFORMANCE_THRESHOLD
             else "moderate"
-            if overall_alignment > 0.6
+            if overall_alignment > PATTERN_EFFECTIVENESS_THRESHOLD
             else "needs_improvement",
         }
 
@@ -649,13 +656,13 @@ class EcosystemStrategicPlanner:
         """Determine current evolution phase based on maturity."""
         if overall_maturity < 0.3:
             return EvolutionPhase.FOUNDATION
-        if overall_maturity < 0.5:
+        if overall_maturity < MEDIUM_CONFIDENCE_BOUNDARY:
             return EvolutionPhase.EXPANSION
-        if overall_maturity < 0.7:
+        if overall_maturity < CONTEXT_SIMILARITY_THRESHOLD:
             return EvolutionPhase.INTELLIGENCE
         if overall_maturity < 0.85:
             return EvolutionPhase.OPTIMIZATION
-        if overall_maturity < 0.95:
+        if overall_maturity < MATURITY_THRESHOLD:
             return EvolutionPhase.INNOVATION
         return EvolutionPhase.MATURITY
 

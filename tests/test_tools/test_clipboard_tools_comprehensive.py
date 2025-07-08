@@ -7,7 +7,7 @@ history tracking, and integration with property-based testing.
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -19,10 +19,13 @@ from src.server.tools.clipboard_tools import (
     km_clipboard_manager,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test data generators
 @st.composite
-def clipboard_operation_strategy(draw: Callable[..., Any]) -> Any:
+def clipboard_operation_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid clipboard operations."""
     operations = [
         "get",
@@ -37,7 +40,7 @@ def clipboard_operation_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def clipboard_content_strategy(draw: Callable[..., Any]) -> Any:
+def clipboard_content_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid clipboard content."""
     content_types = [
         # Regular text content (ensure non-empty)
@@ -83,7 +86,7 @@ def clipboard_name_strategy(draw: Callable[..., Any]) -> str:
 
 
 @st.composite
-def sensitive_content_strategy(draw: Callable[..., Any]) -> Any:
+def sensitive_content_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate potentially sensitive content for testing."""
     sensitive_patterns = [
         "password: " + draw(st.text(min_size=8, max_size=20)),
@@ -1138,7 +1141,11 @@ class TestClipboardProperties:
         st.integers(min_value=0, max_value=199),
         st.integers(min_value=1, max_value=50),
     )
-    def test_history_parameter_properties(self, history_index: int, history_count: int) -> None:
+    def test_history_parameter_properties(
+        self,
+        history_index: int,
+        history_count: int,
+    ) -> None:
         """Property test for history parameter validation."""
         # History index properties
         assert 0 <= history_index <= 199
@@ -1149,7 +1156,10 @@ class TestClipboardProperties:
         assert isinstance(history_count, int)
 
     @given(sensitive_content_strategy())
-    def test_sensitive_content_detection_properties(self, sensitive_content: str) -> None:
+    def test_sensitive_content_detection_properties(
+        self,
+        sensitive_content: str,
+    ) -> None:
         """Property test for sensitive content detection."""
         # Systematic pattern alignment: Strategy generates content with sensitive patterns embedded
         # Check for the exact patterns our strategy generates (prefix: suffix format)

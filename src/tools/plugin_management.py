@@ -44,7 +44,7 @@ async def km_plugin_manager(
     plugin_id: str | None = None,
     plugin_path: str | None = None,
     configuration: dict[str, Any] | None = None,
-    **kwargs: Any,
+    **_kwargs: Any,
 ) -> dict[str, Any]:
     """Comprehensive plugin management operations.
 
@@ -195,7 +195,7 @@ async def km_plugin_marketplace(
     category: str | None = None,
     plugin_id: str | None = None,
     limit: int = 20,
-    **kwargs: Any,
+    **_kwargs: Any,
 ) -> dict[str, Any]:
     """Plugin marketplace operations for discovery and installation.
 
@@ -320,7 +320,7 @@ async def km_plugin_security(
     operation: str,
     plugin_path: str | None = None,
     plugin_id: str | None = None,
-    **kwargs: Any,
+    **_kwargs: Any,
 ) -> dict[str, Any]:
     """Plugin security operations and validation.
 
@@ -394,7 +394,7 @@ async def km_plugin_actions(
     action_id: str | None = None,
     plugin_id: str | None = None,
     parameters: dict[str, Any] | None = None,
-    **kwargs: Any,
+    **_kwargs: Any,
 ) -> dict[str, Any]:
     """Execute and manage custom plugin actions.
 
@@ -480,7 +480,7 @@ async def km_plugin_development(
     plugin_name: str | None = None,
     template_type: str = "utility",
     target_directory: str | None = None,
-    **kwargs: Any,
+    **_kwargs: Any,
 ) -> dict[str, Any]:
     """Plugin development tools and templates.
 
@@ -617,7 +617,7 @@ This plugin was generated from the {template_type} template.
 
 from src.plugins.plugin_sdk import UtilityPlugin, create_plugin_metadata
 from src.core.plugin_architecture import PluginPermissions, PermissionId
-from src.core.either import Either
+
 
 class Plugin(UtilityPlugin):
     """Main plugin class."""

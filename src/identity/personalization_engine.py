@@ -319,7 +319,7 @@ class PersonalizationEngine:
         self,
         context: PersonalizationContext,
         user_profile: UserProfile,
-        settings: PersonalizationSettings,
+        _settings: PersonalizationSettings,
     ) -> list[PersonalizationRecommendation]:
         """Generate interface personalization recommendations."""
         recommendations = []
@@ -393,9 +393,9 @@ class PersonalizationEngine:
 
     async def _generate_automation_recommendations(
         self,
-        context: PersonalizationContext,
+        _context: PersonalizationContext,
         user_profile: UserProfile,
-        settings: PersonalizationSettings,
+        _settings: PersonalizationSettings,
     ) -> list[PersonalizationRecommendation]:
         """Generate automation personalization recommendations."""
         recommendations = []
@@ -454,9 +454,9 @@ class PersonalizationEngine:
 
     async def _generate_accessibility_recommendations(
         self,
-        context: PersonalizationContext,
+        _context: PersonalizationContext,
         user_profile: UserProfile,
-        settings: PersonalizationSettings,
+        _settings: PersonalizationSettings,
     ) -> list[PersonalizationRecommendation]:
         """Generate accessibility personalization recommendations."""
         recommendations = []
@@ -503,8 +503,8 @@ class PersonalizationEngine:
     async def _generate_behavioral_recommendations(
         self,
         context: PersonalizationContext,
-        user_profile: UserProfile,
-        settings: PersonalizationSettings,
+        _user_profile: UserProfile,
+        _settings: PersonalizationSettings,
     ) -> list[PersonalizationRecommendation]:
         """Generate behavioral adaptation recommendations."""
         recommendations = []
@@ -551,10 +551,10 @@ class PersonalizationEngine:
 
     async def _apply_adaptation(
         self,
-        context: PersonalizationContext,
+        _context: PersonalizationContext,
         recommendation: PersonalizationRecommendation,
         user_profile: UserProfile,
-        settings: PersonalizationSettings,
+        _settings: PersonalizationSettings,
     ) -> bool:
         """Apply a specific adaptation."""
         try:

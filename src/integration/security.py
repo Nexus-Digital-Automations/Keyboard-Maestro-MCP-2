@@ -344,7 +344,7 @@ def _validate_field(
 
 def _validate_field_combinations(
     data: dict[str, Any],
-    level: SecurityLevel,
+    _level: SecurityLevel,
 ) -> list[SecurityViolation]:
     """Validate combinations of fields for security issues."""
     violations = []

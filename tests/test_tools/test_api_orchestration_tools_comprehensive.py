@@ -4,6 +4,7 @@ Tests cover API workflow orchestration, service mesh management, microservices
 coordination, health monitoring, and integration with property-based testing.
 """
 
+from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
@@ -24,7 +25,7 @@ km_monitor_api_health = api_orch.km_monitor_api_health.fn
 
 # Test data generators
 @st.composite
-def orchestration_type_strategy(draw: Callable[..., Any]) -> Any:
+def orchestration_type_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid orchestration types."""
     types = ["sequential", "parallel", "conditional", "pipeline", "scatter_gather"]
     return draw(st.sampled_from(types))
@@ -38,15 +39,27 @@ def error_handling_strategy(draw: Callable[..., Any]) -> None:
 
 
 @st.composite
-def api_sequence_strategy(draw: Callable[..., Any]) -> Any:
-    """Generate valid API sequence configurations."""
+def api_sequence_strategy(draw: Callable[..., Any]) -> Mock:
+    """Generate valid API sequence configurations efficiently without filtering."""
+    # Predefined alphanumeric service names to avoid filtering
+    service_names = [
+        "auth",
+        "users",
+        "orders",
+        "payments",
+        "inventory",
+        "catalog",
+        "analytics",
+        "reporting",
+        "notifications",
+        "audit",
+    ]
+
     return draw(
         st.lists(
             st.fixed_dictionaries(
                 {
-                    "service_name": st.text(min_size=3, max_size=20).filter(
-                        lambda x: x.isalnum(),
-                    ),
+                    "service_name": st.sampled_from(service_names),
                     "name": st.text(min_size=5, max_size=30),
                     "endpoint_id": st.text(min_size=5, max_size=25),
                     "input_mapping": st.dictionaries(
@@ -81,28 +94,28 @@ def api_sequence_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def service_mesh_operation_strategy(draw: Callable[..., Any]) -> Any:
+def service_mesh_operation_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid service mesh operations."""
     operations = ["configure", "monitor", "route", "secure"]
     return draw(st.sampled_from(operations))
 
 
 @st.composite
-def coordination_type_strategy(draw: Callable[..., Any]) -> Any:
+def coordination_type_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid coordination types."""
     types = ["discovery", "communication", "dependency", "health"]
     return draw(st.sampled_from(types))
 
 
 @st.composite
-def monitoring_scope_strategy(draw: Callable[..., Any]) -> Any:
+def monitoring_scope_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid monitoring scopes."""
     scopes = ["gateway", "services", "endpoints", "workflows"]
     return draw(st.sampled_from(scopes))
 
 
 @st.composite
-def service_names_strategy(draw: Callable[..., Any]) -> Any:
+def service_names_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid service names."""
     service_names = [
         "auth-service",
@@ -118,7 +131,7 @@ def service_names_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def health_metrics_strategy(draw: Callable[..., Any]) -> Any:
+def health_metrics_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid health metrics."""
     metrics = [
         "response_time",
@@ -145,7 +158,7 @@ def load_balancing_strategy_names(draw: Callable[..., Any]) -> None:
 
 
 @st.composite
-def failover_strategy_names(draw: Callable[..., Any]) -> Any:
+def failover_strategy_names(draw: Callable[..., Any]) -> Mock:
     """Generate valid failover strategy names."""
     strategies = ["none", "circuit_breaker", "retry", "fallback"]
     return draw(st.sampled_from(strategies))

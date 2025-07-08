@@ -7,6 +7,7 @@ user interaction tracking.
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -48,7 +49,7 @@ class TestNotificationManager:
         self,
         title: str,
         message: str,
-        duration: int | float,
+        duration: float,
     ) -> None:
         """Property test: NotificationSpec creation with valid inputs."""
         assume(len(title.strip()) > 0 and len(message.strip()) > 0)
@@ -69,7 +70,11 @@ class TestNotificationManager:
         title=st.text(min_size=101) | st.text(max_size=0),
         message=st.text(min_size=501) | st.text(max_size=0),
     )
-    def test_notification_spec_validation_failures(self, title: str, message: str) -> bool:
+    def test_notification_spec_validation_failures(
+        self,
+        title: str,
+        message: str,
+    ) -> bool:
         """Property test: NotificationSpec validation with invalid inputs."""
         with pytest.raises(ValueError):
             NotificationSpec(
@@ -176,7 +181,11 @@ class TestNotificationManager:
         mock_sleep.assert_called_once_with(2.0)
 
     @pytest.mark.asyncio
-    async def test_sound_notification(self, notification_manager: Any, mock_km_client: Any) -> None:
+    async def test_sound_notification(
+        self,
+        notification_manager: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test sound notification with custom audio file."""
         # Setup mock response
         mock_km_client.play_sound.return_value = Mock(
@@ -218,7 +227,11 @@ class TestNotificationManager:
             ),
         ),
     )
-    def test_content_validation_security(self, notification_manager: Any, content: str) -> bool:
+    def test_content_validation_security(
+        self,
+        notification_manager: Any,
+        content: str,
+    ) -> bool:
         """Property test: Content validation prevents dangerous patterns."""
         is_valid = notification_manager._validate_notification_content(content)
 
@@ -233,7 +246,11 @@ class TestNotificationManager:
             ),
         ),
     )
-    def test_content_validation_safe_content(self, notification_manager: Any, content: str) -> bool:
+    def test_content_validation_safe_content(
+        self,
+        notification_manager: Any,
+        content: str,
+    ) -> bool:
         """Property test: Safe content passes validation."""
         assume(len(content.strip()) > 0)
 
@@ -261,7 +278,11 @@ class TestNotificationManager:
             assert km_value == expected
 
     @pytest.mark.asyncio
-    async def test_notification_tracking(self, notification_manager: Any, mock_km_client: Any) -> None:
+    async def test_notification_tracking(
+        self,
+        notification_manager: Any,
+        mock_km_client: Any,
+    ) -> None:
         """Test active notification tracking and management."""
         # Setup mock response
         mock_km_client.execute_applescript.return_value = Mock(

@@ -30,7 +30,7 @@ class PatternRecognitionEngine:
 
     async def analyze_patterns(
         self,
-        data: dict[str, Any],
+        _data: dict[str, Any],
     ) -> Either[Exception, list[PatternAnalysis]]:
         """Analyze patterns in automation data."""
         try:

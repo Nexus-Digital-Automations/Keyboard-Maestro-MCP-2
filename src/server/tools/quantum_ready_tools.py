@@ -12,7 +12,7 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
-from fastmcp import Context, FastMCP
+from fastmcp import FastMCP
 from pydantic import Field
 
 from ...core.quantum_architecture import (
@@ -69,7 +69,7 @@ async def km_analyze_quantum_readiness(
         bool,
         Field(description="Estimate quantum threat timeline"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Analyze current cryptographic security for quantum vulnerabilities and readiness assessment.
 
@@ -332,7 +332,7 @@ async def km_upgrade_to_post_quantum(
         bool,
         Field(description="Optimize post-quantum performance"),
     ] = True,
-    key_migration: Annotated[
+    _key_migration: Annotated[
         bool,
         Field(description="Migrate existing cryptographic keys"),
     ] = True,
@@ -340,7 +340,7 @@ async def km_upgrade_to_post_quantum(
         bool,
         Field(description="Prepare rollback mechanisms"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Upgrade cryptographic systems to post-quantum algorithms with migration management.
 
@@ -659,7 +659,7 @@ async def km_prepare_quantum_interface(
         bool,
         Field(description="Create compatibility layer for current systems"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Prepare quantum computing interface and protocol definitions for future integration.
 
@@ -920,7 +920,7 @@ async def km_manage_quantum_security(
         bool,
         Field(description="Track quantum security compliance"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Manage quantum-ready security policies, key management, and monitoring systems.
 
@@ -1216,7 +1216,7 @@ async def km_simulate_quantum_algorithms(
         bool,
         Field(description="Perform result analysis and visualization"),
     ] = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Simulate quantum algorithms for development, testing, and educational purposes.
 

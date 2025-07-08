@@ -557,7 +557,7 @@ class SecurityManager:
             logger.error(error_msg)
             return Either.error(IoTIntegrationError(error_msg, device_id))
 
-    @require(lambda __self, communication_data, patterns: communication_data)
+    @require(lambda __self, communication_data, _patterns: communication_data)
     async def analyze_threat_patterns(
         self,
         communication_data: str,
@@ -695,7 +695,7 @@ class SecurityManager:
                 if field not in credential_data:
                     return Either.error(
                         IoTIntegrationError(
-                            f"OAuth2 authentication requires '{field}'"
+                            f"OAuth2 authentication requires '{field}'",
                         ),
                     )
 
@@ -867,7 +867,7 @@ class SecurityManager:
     async def _analyze_behavioral_patterns(
         self,
         communication_data: str,
-        device_id: DeviceId | None,
+        _device_id: DeviceId | None,
     ) -> list[dict[str, Any]]:
         """Analyze behavioral patterns for anomaly detection."""
         behavioral_threats = []

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import string
 import time
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from hypothesis import HealthCheck, assume, given, settings
@@ -33,6 +34,9 @@ from tests.utils.generators import (
     permission_sets,
     simple_macro_definitions,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class TestEngineProperties:
@@ -130,7 +134,10 @@ class TestEngineProperties:
 
     @given(permission_sets(min_size=1, max_size=5))
     @settings(max_examples=20)
-    def test_permission_enforcement(self, available_permissions: frozenset[Permission]) -> bool:
+    def test_permission_enforcement(
+        self,
+        available_permissions: frozenset[Permission],
+    ) -> bool:
         """Property: Commands requiring unavailable permissions are rejected."""
         # Create a macro that requires a permission not in the available set
         all_permissions = set(Permission)
@@ -197,7 +204,10 @@ class TestEngineProperties:
         ]
 
         # Test thread safety
-        def execute_single(macro: Callable[..., Any], context: dict[str, Any] | Any) -> bool:
+        def execute_single(
+            macro: Callable[..., Any],
+            context: dict[str, Any] | Any,
+        ) -> bool:
             return engine.execute_macro(macro, context)
 
         args_list = list(zip(macros, contexts, strict=False))
@@ -244,7 +254,10 @@ class TestEngineProperties:
 
     @given(simple_macro_definitions())
     @settings(max_examples=15)
-    def test_execution_status_transitions_valid(self, macro_def: MacroDefinition) -> None:
+    def test_execution_status_transitions_valid(
+        self,
+        macro_def: MacroDefinition,
+    ) -> None:
         """Property: Execution status follows valid state transitions."""
         assume(macro_def.is_valid())
 

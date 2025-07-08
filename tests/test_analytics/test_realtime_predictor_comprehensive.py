@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from hypothesis import given
@@ -30,6 +30,9 @@ from src.core.predictive_modeling import (
     RealtimePredictionError,
     create_model_id,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 # Test data generators

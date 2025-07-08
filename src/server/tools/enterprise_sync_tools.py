@@ -76,10 +76,10 @@ async def km_enterprise_sync(
     query_filter: str | None = None,
     batch_size: int = 100,
     timeout: int = 30,
-    enable_caching: bool = True,
-    security_level: str = "high",
-    audit_level: str = "detailed",
-    retry_attempts: int = 3,
+    _enable_caching: bool = True,
+    _security_level: str = "high",
+    _audit_level: str = "detailed",
+    _retry_attempts: int = 3,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Enterprise system integration for LDAP, SSO, database, and API connectivity.
@@ -717,10 +717,10 @@ async def _handle_sso_login_operation(
 
 
 async def _handle_authenticate_operation(
-    sync_manager: EnterpriseSyncManager,
-    integration_type: IntegrationType,
-    auth_options: dict | None,
-    ctx: Context | None,
+    _sync_manager: EnterpriseSyncManager,
+    _integration_type: IntegrationType,
+    _auth_options: dict | None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Handle enterprise authentication."""
     return {
@@ -733,10 +733,10 @@ async def _handle_authenticate_operation(
 
 
 async def _handle_configure_operation(
-    sync_manager: EnterpriseSyncManager,
+    _sync_manager: EnterpriseSyncManager,
     integration_type: IntegrationType,
-    config: dict | None,
-    ctx: Context | None,
+    _config: dict | None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Handle enterprise configuration."""
     return {

@@ -288,7 +288,7 @@ class EventLogger:
             if event_size > self.config.security_limits.max_event_size:
                 return Either.left(
                     AuditError.logging_failed(
-                        f"Event size exceeds limit: {event_size}"
+                        f"Event size exceeds limit: {event_size}",
                     ),
                 )
 

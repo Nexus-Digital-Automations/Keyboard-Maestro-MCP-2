@@ -412,7 +412,7 @@ class ReportGenerator:
     def _generate_detailed_findings(
         self,
         violation_details: list[dict],
-        standard: ComplianceStandard,
+        _standard: ComplianceStandard,
     ) -> list[dict[str, Any]]:
         """Generate detailed findings from violation analysis."""
         findings = []
@@ -698,7 +698,7 @@ class ReportGenerator:
         self,
         period_start: datetime,
         period_end: datetime,
-        standards: list[ComplianceStandard],
+        _standards: list[ComplianceStandard],
     ) -> dict[str, Any]:
         """Generate key compliance metrics."""
         try:
@@ -909,8 +909,8 @@ class ReportGenerator:
 
     async def _export_pdf_report(
         self,
-        report: ComplianceReport,
-        file_path: str | None,
+        _report: ComplianceReport,
+        _file_path: str | None,
     ) -> Either[AuditError, str]:
         """Export report to PDF format (placeholder)."""
         # PDF generation would require additional dependencies

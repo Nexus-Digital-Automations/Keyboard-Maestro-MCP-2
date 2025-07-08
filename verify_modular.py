@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Quick verification that the modularized Keyboard Maestro MCP server is working correctly."""
+"""Quick verification that the modularized Keyboard Maestro MCP server is working correctly.
+
+Verifies the modular structure and basic functionality of the MCP server.
+"""
 
 from __future__ import annotations
 
@@ -18,8 +21,8 @@ def main() -> bool:
         import src.main as server
 
         # Check that the FastMCP server is properly configured
-        assert hasattr(server, "mcp"), "FastMCP server not found"
-        assert server.mcp.name == "KeyboardMaestroMCP", (
+        assert hasattr(server, "mcp"), "FastMCP server not found"  # noqa: S101 # Verification script assertion
+        assert server.mcp.name == "KeyboardMaestroMCP", (  # noqa: S101 # Verification script assertion
             f"Unexpected server name: {server.mcp.name}"
         )
 
@@ -46,7 +49,8 @@ def main() -> bool:
             print(f"✅ All {expected_tools} expected tools are available")
         else:
             print(
-                f"⚠️  Only {len(available_tools)} tools found, expected {expected_tools}",
+                f"⚠️  Only {len(available_tools)} tools found, "
+                f"expected {expected_tools}",
             )
 
         # Check resources
@@ -54,7 +58,7 @@ def main() -> bool:
         print(f"✅ Found {len(resources)} resources")
 
         # Check main function exists
-        assert hasattr(server, "main"), "Main function not found"
+        assert hasattr(server, "main"), "Main function not found"  # noqa: S101 # Verification script assertion
         print("✅ Main entry point function found")
 
         print("\n🎉 Modular server verification successful!")

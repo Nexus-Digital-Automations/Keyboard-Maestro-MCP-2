@@ -76,7 +76,13 @@ class TestCoordinateProperties:
         st.integers(min_value=0, max_value=8192),
         st.integers(min_value=0, max_value=8192),
     )
-    def test_distance_calculation_properties(self, x1: int, y1: int, x2: int, y2: int) -> None:
+    def test_distance_calculation_properties(
+        self,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+    ) -> None:
         """Property: Distance calculation should be symmetric and non-negative."""
         coord1 = Coordinate(x1, y1)
         coord2 = Coordinate(x2, y2)
@@ -132,7 +138,11 @@ class TestMouseEventProperties:
         st.integers(min_value=-10, max_value=20),
         st.integers(min_value=-100, max_value=10000),
     )
-    def test_mouse_event_validation_boundaries(self, click_count: int, duration: int) -> None:
+    def test_mouse_event_validation_boundaries(
+        self,
+        click_count: int,
+        duration: int,
+    ) -> None:
         """Property: Mouse events should validate parameter boundaries."""
         coord = Coordinate(100, 100)
 

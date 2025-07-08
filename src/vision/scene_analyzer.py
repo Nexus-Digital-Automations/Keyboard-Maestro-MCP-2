@@ -442,7 +442,7 @@ class SceneAnalyzer:
 
     async def _classify_scene_type(
         self,
-        image_content: ImageContent,
+        _image_content: ImageContent,
         detected_objects: list[DetectedObject] | None,
     ) -> dict[str, Any]:
         """Classify the type of scene."""
@@ -506,7 +506,7 @@ class SceneAnalyzer:
 
     async def _analyze_environment(
         self,
-        image_content: ImageContent,
+        _image_content: ImageContent,
         detected_objects: list[DetectedObject] | None,
     ) -> dict[str, Any]:
         """Analyze environmental characteristics."""
@@ -608,7 +608,7 @@ class SceneAnalyzer:
         # Simulate color analysis (in real implementation, would use actual image processing)
         import random
 
-        random.seed(len(image_content) % 1000)
+        random.seed(len(image_content) % 1000)  # noqa: S311 # ML/analytics randomness
 
         # Generate realistic color palette
         base_colors = [
@@ -622,8 +622,11 @@ class SceneAnalyzer:
         ]
 
         # Select 3-5 colors for palette
-        palette_size = random.randint(3, 5)  # noqa: S311 # Simulation data generation
-        selected_colors = random.sample(base_colors, palette_size)
+        palette_size = random.randint(  # noqa: S311 # ML/analytics data simulation
+            3,
+            5,
+        )  # Simulation data generation
+        selected_colors = random.sample(base_colors, palette_size)  # noqa: S311 # Statistical sampling
 
         # Determine color temperature
         avg_red = sum(color[0] for color in selected_colors) / len(selected_colors)
@@ -637,8 +640,14 @@ class SceneAnalyzer:
             color_temperature = "neutral"
 
         # Determine saturation and brightness
-        avg_saturation = random.uniform(0.3, 0.8)  # noqa: S311 # Simulation data generation
-        avg_brightness = random.uniform(0.4, 0.9)  # noqa: S311 # Simulation data generation
+        avg_saturation = random.uniform(  # noqa: S311 # ML/analytics data simulation
+            0.3,
+            0.8,
+        )  # Simulation data generation
+        avg_brightness = random.uniform(  # noqa: S311 # ML/analytics data simulation
+            0.4,
+            0.9,
+        )  # Simulation data generation
 
         saturation_level = (
             "low"
@@ -662,15 +671,23 @@ class SceneAnalyzer:
             "saturation_level": saturation_level,
             "brightness_level": brightness_level,
             "lighting": {
-                "estimated_lux": random.randint(100, 1000),  # noqa: S311 # Simulation data generation
-                "light_direction": random.choice(["natural", "artificial", "mixed"]),  # noqa: S311 # Simulation data generation
-                "shadow_intensity": random.uniform(0.2, 0.8),  # noqa: S311 # Simulation data generation
+                "estimated_lux": random.randint(  # noqa: S311 # ML/analytics randomness
+                    100,
+                    1000,
+                ),  # Simulation data generation
+                "light_direction": random.choice(  # noqa: S311 # ML/analytics randomness
+                    ["natural", "artificial", "mixed"],
+                ),  # Simulation data generation
+                "shadow_intensity": random.uniform(  # noqa: S311 # ML/analytics randomness
+                    0.2,
+                    0.8,
+                ),  # Simulation data generation
             },
         }
 
     async def _analyze_spatial_layout(
         self,
-        image_content: ImageContent,
+        _image_content: ImageContent,
         detected_objects: list[DetectedObject] | None,
     ) -> SpatialLayout | None:
         """Analyze spatial layout and composition."""
@@ -755,7 +772,7 @@ class SceneAnalyzer:
 
     async def _extract_contextual_information(
         self,
-        image_content: ImageContent,
+        _image_content: ImageContent,
         detected_objects: list[DetectedObject] | None,
         scene_classification: dict[str, Any],
     ) -> ContextualInformation:

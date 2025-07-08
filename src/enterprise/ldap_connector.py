@@ -177,7 +177,8 @@ class LDAPConnector:
         and len(connection_id) > 0,
     )
     @require(
-        lambda _self, search_base: isinstance(search_base, str) and len(search_base) > 0,
+        lambda _self, search_base: isinstance(search_base, str)
+        and len(search_base) > 0,
     )
     async def search_users(
         self,
@@ -531,7 +532,10 @@ class LDAPConnector:
 
         return username  # Use as-is
 
-    def _convert_ldap_entry_to_user(self, entry: list[Any] | str) -> Either[EnterpriseError, LDAPUser]:
+    def _convert_ldap_entry_to_user(
+        self,
+        entry: list[Any] | str,
+    ) -> Either[EnterpriseError, LDAPUser]:
         """Convert LDAP entry to LDAPUser object with comprehensive validation."""
         try:
             # Extract basic attributes

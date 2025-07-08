@@ -50,7 +50,7 @@ async def km_interface_automation(
     gesture_type: str | None = None,
     gesture_magnitude: float = 1.0,
     finger_count: int = 2,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Universal interface automation for mouse, keyboard, and gesture interactions.
 
@@ -199,7 +199,7 @@ async def _handle_mouse_click(
     button: str,
     click_count: int,
     duration_ms: int,
-    validate_coordinates: bool,
+    _validate_coordinates: bool,
 ) -> dict[str, Any]:
     """Handle mouse click operations."""
     if not coordinates:
@@ -248,7 +248,7 @@ async def _handle_mouse_move(
     coordinates: dict[str, int] | None,
     duration_ms: int,
     smooth_movement: bool,
-    validate_coordinates: bool,
+    _validate_coordinates: bool,
 ) -> dict[str, Any]:
     """Handle mouse movement operations."""
     if not coordinates:
@@ -286,7 +286,7 @@ async def _handle_mouse_drag(
     duration_ms: int,
     smooth_movement: bool,
     button: str,
-    validate_coordinates: bool,
+    _validate_coordinates: bool,
 ) -> dict[str, Any]:
     """Handle mouse drag operations."""
     if not coordinates or not drag_destination:
@@ -337,7 +337,7 @@ async def _handle_mouse_scroll(
     scroll_amount: int,
     duration_ms: int,
     smooth_movement: bool,
-    validate_coordinates: bool,
+    _validate_coordinates: bool,
 ) -> dict[str, Any]:
     """Handle mouse scroll operations."""
     if not coordinates:
@@ -383,7 +383,7 @@ async def _handle_mouse_scroll(
 
 async def _handle_key_press(
     key_combination: list[str] | None,
-    modifier_keys: list[str] | None,
+    _modifier_keys: list[str] | None,
     duration_ms: int,
 ) -> dict[str, Any]:
     """Handle key press operations."""
@@ -447,7 +447,7 @@ async def _handle_gesture(
     gesture_magnitude: float,
     finger_count: int,
     duration_ms: int,
-    validate_coordinates: bool,
+    _validate_coordinates: bool,
 ) -> dict[str, Any]:
     """Handle gesture operations."""
     if not gesture_type or not coordinates:
@@ -494,7 +494,7 @@ async def _handle_gesture(
 
 async def _handle_accessibility_interaction(
     coordinates: dict[str, int] | None,
-    validate_coordinates: bool,
+    _validate_coordinates: bool,
 ) -> dict[str, Any]:
     """Handle accessibility interactions."""
     if not coordinates:
@@ -529,7 +529,7 @@ async def _handle_accessibility_interaction(
 # Additional utility tools for interface automation
 
 
-async def km_get_mouse_position(ctx: Context | Any=None) -> dict[str, Any]:
+async def km_get_mouse_position(ctx: Any = None) -> dict[str, Any]:
     """Get current mouse cursor position.
 
     Returns:
@@ -562,7 +562,7 @@ async def km_get_mouse_position(ctx: Context | Any=None) -> dict[str, Any]:
 
 async def km_validate_coordinates(
     coordinates: dict[str, int],
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Validate coordinates are within screen bounds and safe for interaction.
 

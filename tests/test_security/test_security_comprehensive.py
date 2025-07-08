@@ -4,8 +4,10 @@ Tests cover access control, policy enforcement, security monitoring,
 input validation, and threat detection with property-based testing.
 """
 
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 from hypothesis import assume, given
@@ -26,7 +28,7 @@ AccessLevel = AccessResult
 
 # Security test data generators
 @st.composite
-def security_event_data(draw: Callable[..., Any]) -> Any:
+def security_event_data(draw: Callable[..., Any]) -> Mock:
     """Generate test security event data."""
     event_types = [
         "access_attempt",
@@ -51,7 +53,7 @@ def security_event_data(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def malicious_input_data(draw: Callable[..., Any]) -> Any:
+def malicious_input_data(draw: Callable[..., Any]) -> Mock:
     """Generate potentially malicious input data for testing."""
     injection_patterns = [
         "'; DROP TABLE users; --",
@@ -320,7 +322,10 @@ class TestPolicyEnforcer:
             enforcer.enforce_policies(blocked_request)
 
     @given(malicious_input_data())
-    def test_policy_enforcement_injection_protection(self, malicious_input: str) -> None:
+    def test_policy_enforcement_injection_protection(
+        self,
+        malicious_input: str,
+    ) -> None:
         """Property test for injection attack protection."""
         enforcer = PolicyEnforcer()
 
@@ -552,7 +557,10 @@ class TestSecurityMonitor:
             assert events[-1].severity == AlertSeverity.CRITICAL
 
     @given(security_event_data())
-    def test_security_monitor_property_validation(self, event_data: dict[str, Any]) -> None:
+    def test_security_monitor_property_validation(
+        self,
+        event_data: dict[str, Any],
+    ) -> None:
         """Property test for security monitor."""
         monitor = SecurityMonitor()
 

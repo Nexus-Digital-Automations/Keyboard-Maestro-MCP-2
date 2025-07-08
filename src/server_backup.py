@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 from typing import Annotated, Any
 
-from fastmcp import FastMCP
+from fastmcp import Context, FastMCP
 from fastmcp.prompts import Message
 from pydantic import Field
 
@@ -80,7 +80,7 @@ async def km_execute_macro(
         int,
         Field(default=30, description="Maximum execution time in seconds"),
     ] = 30,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Execute a Keyboard Maestro macro with comprehensive error handling."""
     from .server.tools.core_tools import km_execute_macro as _km_execute_macro
@@ -100,7 +100,7 @@ async def km_list_macros(
     ] = True,
     sort_by: Annotated[str, Field(default="name", description="Sort field")] = "name",
     limit: Annotated[int, Field(default=20, description="Maximum results")] = 20,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """List and filter Keyboard Maestro macros."""
     from .server.tools.core_tools import km_list_macros as _km_list_macros
@@ -127,7 +127,7 @@ async def km_variable_manager(
         str,
         Field(default="", description="Instance ID for local variables"),
     ] = "",
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Manage Keyboard Maestro variables across all scopes."""
     from .server.tools.core_tools import km_variable_manager as _km_variable_manager
@@ -158,7 +158,7 @@ async def km_search_macros_advanced(
         str,
         Field(default="name", description="Sort criteria"),
     ] = "name",
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Advanced macro search with comprehensive filtering and metadata analysis."""
     from .server.tools.advanced_tools import (
@@ -183,7 +183,7 @@ async def km_analyze_macro_metadata(
         bool,
         Field(default=True, description="Include relationship analysis"),
     ] = True,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Deep analysis of individual macro metadata and patterns."""
     from .server.tools.advanced_tools import (
@@ -203,7 +203,7 @@ async def km_start_realtime_sync(
         int,
         Field(default=30, description="Base polling interval"),
     ] = 30,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Start real-time macro library synchronization and monitoring."""
     from .server.tools.sync_tools import (
@@ -218,7 +218,7 @@ async def km_start_realtime_sync(
 
 
 @mcp.tool()
-async def km_stop_realtime_sync(ctx: Context | Any=None) -> dict[str, Any]:
+async def km_stop_realtime_sync(ctx: Context | Any = None) -> dict[str, Any]:
     """Stop real-time macro library synchronization and monitoring."""
     from .server.tools.sync_tools import km_stop_realtime_sync as _km_stop_realtime_sync
 
@@ -231,7 +231,7 @@ async def km_sync_status(
         bool,
         Field(default=True, description="Include performance metrics"),
     ] = True,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Get current status of real-time synchronization with performance metrics."""
     from .server.tools.sync_tools import km_sync_status as _km_sync_status
@@ -245,7 +245,7 @@ async def km_force_sync(
         bool,
         Field(default=False, description="Force complete resynchronization"),
     ] = False,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Force immediate synchronization of macro library state."""
     from .server.tools.sync_tools import km_force_sync as _km_force_sync
@@ -267,7 +267,7 @@ async def km_list_macro_groups(
         str,
         Field(default="name", description="Sort criteria"),
     ] = "name",
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """List all macro groups from Keyboard Maestro with comprehensive statistics."""
     from .server.tools.group_tools import km_list_macro_groups as _km_list_macro_groups

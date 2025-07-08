@@ -514,26 +514,50 @@ class AuditEventValidator:
         try:
             # Basic field validation
             if len(event.user_id) > 255:
-                return Either.left(ValidationError("user_id", event.user_id, "User ID must be less than 256 characters"))
+                return Either.left(
+                    ValidationError(
+                        "user_id",
+                        event.user_id,
+                        "User ID must be less than 256 characters",
+                    ),
+                )
 
             if len(event.action) > 1000:
                 return Either.left(
-                    ValidationError("action", event.action, "Action description must be less than 1000 characters"),
+                    ValidationError(
+                        "action",
+                        event.action,
+                        "Action description must be less than 1000 characters",
+                    ),
                 )
 
             if len(event.result) > 1000:
                 return Either.left(
-                    ValidationError("result", event.result, "Result description must be less than 1000 characters"),
+                    ValidationError(
+                        "result",
+                        event.result,
+                        "Result description must be less than 1000 characters",
+                    ),
                 )
 
             # Details validation
             if len(event.details) > AuditEventValidator.MAX_DETAILS_KEYS:
-                return Either.left(ValidationError("details", len(event.details), "Details must have less than 50 keys"))
+                return Either.left(
+                    ValidationError(
+                        "details",
+                        len(event.details),
+                        "Details must have less than 50 keys",
+                    ),
+                )
 
             # Compliance tags validation
             if len(event.compliance_tags) > AuditEventValidator.MAX_COMPLIANCE_TAGS:
                 return Either.left(
-                    ValidationError("compliance_tags", len(event.compliance_tags), "Compliance tags must be less than 20"),
+                    ValidationError(
+                        "compliance_tags",
+                        len(event.compliance_tags),
+                        "Compliance tags must be less than 20",
+                    ),
                 )
 
             # Security validation
@@ -546,18 +570,30 @@ class AuditEventValidator:
                 json.dumps(event.details, ensure_ascii=False).encode("utf-8"),
             )
             if serialized_size > AuditEventValidator.MAX_EVENT_SIZE:
-                return Either.left(ValidationError("event_size", serialized_size, "Event must be less than 1MB"))
+                return Either.left(
+                    ValidationError(
+                        "event_size",
+                        serialized_size,
+                        "Event must be less than 1MB",
+                    ),
+                )
 
             # Integrity validation
             if not event.verify_integrity():
                 return Either.left(
-                    ValidationError("integrity", event.checksum, "Event integrity check failed"),
+                    ValidationError(
+                        "integrity",
+                        event.checksum,
+                        "Event integrity check failed",
+                    ),
                 )
 
             return Either.right(None)
 
         except Exception as e:
-            return Either.left(ValidationError("validation_error", str(e), "Event validation failed"))
+            return Either.left(
+                ValidationError("validation_error", str(e), "Event validation failed"),
+            )
 
     @staticmethod
     def _validate_security(event: AuditEvent) -> Either[ValidationError, None]:
@@ -575,30 +611,54 @@ class AuditEventValidator:
 
         for field_value in string_fields:
             if field_value and len(field_value) > AuditEventValidator.MAX_STRING_LENGTH:
-                return Either.left(ValidationError("security", len(field_value), "String field must be less than 10000 characters"))
+                return Either.left(
+                    ValidationError(
+                        "security",
+                        len(field_value),
+                        "String field must be less than 10000 characters",
+                    ),
+                )
 
             for pattern in AuditEventValidator.DANGEROUS_PATTERNS:
                 if re.search(pattern, field_value, re.IGNORECASE):
                     return Either.left(
-                        ValidationError("security", field_value, "Dangerous pattern detected in field"),
+                        ValidationError(
+                            "security",
+                            field_value,
+                            "Dangerous pattern detected in field",
+                        ),
                     )
 
         # Check details for dangerous content
         details_str = json.dumps(event.details)
         if len(details_str) > AuditEventValidator.MAX_STRING_LENGTH:
-            return Either.left(ValidationError("security", len(details_str), "Details must be less than 10000 characters"))
+            return Either.left(
+                ValidationError(
+                    "security",
+                    len(details_str),
+                    "Details must be less than 10000 characters",
+                ),
+            )
 
         for pattern in AuditEventValidator.DANGEROUS_PATTERNS:
             if re.search(pattern, details_str, re.IGNORECASE):
                 return Either.left(
-                    ValidationError("security", details_str, "Dangerous pattern detected in details"),
+                    ValidationError(
+                        "security",
+                        details_str,
+                        "Dangerous pattern detected in details",
+                    ),
                 )
 
         # Validate compliance tags
         for tag in event.compliance_tags:
             if len(tag) > 100:
                 return Either.left(
-                    ValidationError("security", tag, "Compliance tag must be less than 100 characters"),
+                    ValidationError(
+                        "security",
+                        tag,
+                        "Compliance tag must be less than 100 characters",
+                    ),
                 )
 
             if not re.match(r"^[a-zA-Z0-9_\-\.]+$", tag):

@@ -8,10 +8,13 @@ Tests follow the proven systematic pattern that achieved 100% success across 24+
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import pytest
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 # Import existing modules
 
@@ -21,10 +24,10 @@ import pytest
 
 async def mock_km_process_natural_command(
     text: str,
-    language: str="auto",
-    processing_mode: Any="comprehensive",
-    context_aware: Context | Any=True,
-    ctx: Context | Any=None,
+    language: str = "auto",
+    processing_mode: Any = "comprehensive",
+    context_aware: Context | Any = True,
+    ctx: Context | Any = None,
 ) -> None:
     """Mock implementation for natural command processing."""
     if not text or not text.strip():
@@ -80,11 +83,11 @@ async def mock_km_process_natural_command(
 
 async def mock_km_recognize_intent(
     text: str,
-    intent_model: Any="default",
-    confidence_threshold: Any=0.7,
-    max_alternatives: Any=3,
-    ctx: Context | Any=None,
-) -> Any:
+    intent_model: Any = "default",
+    confidence_threshold: Any = 0.7,
+    max_alternatives: Any = 3,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for intent recognition."""
     if not text or not text.strip():
         return {
@@ -153,11 +156,11 @@ async def mock_km_recognize_intent(
 
 async def mock_km_generate_from_description(
     description: str,
-    output_format: Any="macro",
-    complexity_level: Any="standard",
-    include_comments: Any=True,
-    ctx: Context | Any=None,
-) -> Any:
+    output_format: Any = "macro",
+    complexity_level: Any = "standard",
+    include_comments: Any = True,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for generating code from natural language descriptions."""
     if not description or not description.strip():
         return {
@@ -235,11 +238,11 @@ end tell
 
 async def mock_km_conversational_interface(
     message: str,
-    conversation_id: str=None,
-    conversation_mode: Any="assistant",
-    maintain_context: Context | Any=True,
-    ctx: Context | Any=None,
-) -> Any:
+    conversation_id: str = None,
+    conversation_mode: Any = "assistant",
+    maintain_context: Context | Any = True,
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for conversational interface."""
     if not message or not message.strip():
         return {
@@ -300,10 +303,10 @@ async def mock_km_conversational_interface(
 
 async def mock_km_analyze_text_patterns(
     text: str,
-    analysis_types: Any=None,
-    pattern_depth: Any="standard",
-    ctx: Context | Any=None,
-) -> Any:
+    analysis_types: Any = None,
+    pattern_depth: Any = "standard",
+    ctx: Context | Any = None,
+) -> Mock:
     """Mock implementation for text pattern analysis."""
     if not text or not text.strip():
         return {
@@ -375,14 +378,14 @@ class TestKMProcessNaturalCommand:
     """Test suite for km_process_natural_command MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-nlp-001"}
         return context
 
     @pytest.fixture
-    def sample_command_data(self) -> Any:
+    def sample_command_data(self) -> Mock:
         """Sample command processing data for testing."""
         return {
             "basic_command": {
@@ -454,7 +457,10 @@ class TestKMProcessNaturalCommand:
         assert "must not be empty" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_process_natural_command_invalid_mode(self, mock_context: Any) -> None:
+    async def test_process_natural_command_invalid_mode(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test natural command processing with invalid processing mode."""
         result = await km_process_natural_command(
             text="Open Safari",
@@ -471,7 +477,7 @@ class TestKMRecognizeIntent:
     """Test suite for km_recognize_intent MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-intent-001"}
@@ -545,7 +551,7 @@ class TestKMGenerateFromDescription:
     """Test suite for km_generate_from_description MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-generate-001"}
@@ -572,7 +578,10 @@ class TestKMGenerateFromDescription:
         assert "quality_metrics" in result
 
     @pytest.mark.asyncio
-    async def test_generate_from_description_no_comments(self, mock_context: Any) -> None:
+    async def test_generate_from_description_no_comments(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test code generation without comments."""
         result = await km_generate_from_description(
             description="Simple Safari automation",
@@ -587,7 +596,10 @@ class TestKMGenerateFromDescription:
         assert len(result["generation_result"]["generated_code"]) > 0
 
     @pytest.mark.asyncio
-    async def test_generate_from_description_empty_description(self, mock_context: Any) -> None:
+    async def test_generate_from_description_empty_description(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test code generation with empty description."""
         result = await km_generate_from_description(description="", ctx=mock_context)
 
@@ -596,7 +608,10 @@ class TestKMGenerateFromDescription:
         assert "Description is required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_generate_from_description_invalid_format(self, mock_context: Any) -> None:
+    async def test_generate_from_description_invalid_format(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test code generation with invalid output format."""
         result = await km_generate_from_description(
             description="Open an application",
@@ -613,7 +628,7 @@ class TestKMConversationalInterface:
     """Test suite for km_conversational_interface MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-conversation-001"}
@@ -657,7 +672,10 @@ class TestKMConversationalInterface:
         assert result["conversation_result"]["conversation_mode"] == "expert"
 
     @pytest.mark.asyncio
-    async def test_conversational_interface_empty_message(self, mock_context: Any) -> None:
+    async def test_conversational_interface_empty_message(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test conversational interface with empty message."""
         result = await km_conversational_interface(message="", ctx=mock_context)
 
@@ -666,7 +684,10 @@ class TestKMConversationalInterface:
         assert "Message is required" in result["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_conversational_interface_invalid_mode(self, mock_context: Any) -> None:
+    async def test_conversational_interface_invalid_mode(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test conversational interface with invalid conversation mode."""
         result = await km_conversational_interface(
             message="Hello",
@@ -683,7 +704,7 @@ class TestKMAnalyzeTextPatterns:
     """Test suite for km_analyze_text_patterns MCP tool using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-request-patterns-001"}
@@ -758,7 +779,7 @@ class TestNaturalLanguageIntegration:
     """Integration tests for natural language tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-integration-nlp-001"}
@@ -822,14 +843,17 @@ class TestNaturalLanguageProperties:
     """Property-based tests for natural language tools using systematic pattern."""
 
     @pytest.fixture
-    def mock_context(self) -> Any:
+    def mock_context(self) -> Mock:
         """Mock FastMCP context using systematic pattern."""
         context = Mock()
         context.get_meta.return_value = {"request_id": "test-property-nlp-001"}
         return context
 
     @pytest.mark.asyncio
-    async def test_command_processing_with_various_inputs(self, mock_context: Any) -> None:
+    async def test_command_processing_with_various_inputs(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test command processing with various text inputs."""
         test_inputs = [
             "Open Safari",
@@ -846,7 +870,10 @@ class TestNaturalLanguageProperties:
             assert result["confidence_score"] > 0.0
 
     @pytest.mark.asyncio
-    async def test_intent_recognition_confidence_thresholds(self, mock_context: Any) -> None:
+    async def test_intent_recognition_confidence_thresholds(
+        self,
+        mock_context: Any,
+    ) -> None:
         """Test intent recognition with various confidence thresholds."""
         test_thresholds = [0.1, 0.3, 0.5, 0.7, 0.9]
 

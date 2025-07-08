@@ -45,10 +45,10 @@ class AuthenticationType(Enum):
     """Git authentication methods."""
 
     SSH_KEY = "ssh_key"
-    HTTPS_TOKEN = "https_token"  # noqa: S105 - Type identifier, not a secret
-    USERNAME_PASSWORD = "username_password"  # noqa: S105 - Type identifier, not a secret
-    GITHUB_TOKEN = "github_token"  # noqa: S105 - Type identifier, not a secret
-    GITLAB_TOKEN = "gitlab_token"  # noqa: S105 - Type identifier, not a secret
+    HTTPS_TOKEN = "https_token"  # noqa: S105 # Enum value, not password
+    USERNAME_PASSWORD = "username_password"  # noqa: S105 # Enum value, not password
+    GITHUB_TOKEN = "github_token"  # noqa: S105 # Enum value, not password
+    GITLAB_TOKEN = "gitlab_token"  # noqa: S105 # Enum value, not password
 
 
 class MergeStrategy(Enum):

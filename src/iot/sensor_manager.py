@@ -335,7 +335,13 @@ class SensorManager:
         self._analytics_task: asyncio.Task | None = None
 
         # Start background services
-        asyncio.create_task(self._start_background_services())
+        # Start background services (only if event loop is running)
+        try:
+            asyncio.get_running_loop()
+            asyncio.create_task(self._start_background_services())
+        except RuntimeError:
+            # No event loop running, skip background task
+            pass
 
     @require(lambda config: isinstance(config, SensorConfiguration))
     async def register_sensor(
@@ -496,7 +502,7 @@ class SensorManager:
             if condition.sensor_id and condition.sensor_id not in self.sensors:
                 return Either.error(
                     IoTIntegrationError(
-                        f"Sensor not registered: {condition.sensor_id}"
+                        f"Sensor not registered: {condition.sensor_id}",
                     ),
                 )
 
@@ -740,7 +746,7 @@ class SensorManager:
     async def _evaluate_triggers(
         self,
         reading: SensorReading,
-        config: SensorConfiguration,
+        _config: SensorConfiguration,
     ) -> list[AutomationCondition]:
         """Evaluate automation triggers for sensor reading."""
         triggered_conditions = []
@@ -934,7 +940,10 @@ class SensorManager:
 
     # Event handler management
 
-    def add_reading_received_handler(self, handler: Callable[[SensorReading], None]) -> None:
+    def add_reading_received_handler(
+        self,
+        handler: Callable[[SensorReading], None],
+    ) -> None:
         """Add reading received event handler."""
         self.reading_received_handlers.append(handler)
 
@@ -945,7 +954,10 @@ class SensorManager:
         """Add trigger activated event handler."""
         self.trigger_activated_handlers.append(handler)
 
-    def add_alert_generated_handler(self, handler: Callable[[SensorAlert], None]) -> None:
+    def add_alert_generated_handler(
+        self,
+        handler: Callable[[SensorAlert], None],
+    ) -> None:
         """Add alert generated event handler."""
         self.alert_generated_handlers.append(handler)
 
@@ -1011,22 +1023,22 @@ class SensorManager:
             import random
 
             if config.sensor_type == SensorType.TEMPERATURE:
-                value = round(random.uniform(18.0, 28.0), 1)  # noqa: S311 - Sensor simulation only
+                value = round(random.uniform(18.0, 28.0), 1)  # noqa: S311 # Sensor simulation data
                 unit = "°C"
             elif config.sensor_type == SensorType.HUMIDITY:
-                value = round(random.uniform(30.0, 70.0), 1)  # noqa: S311 - Sensor simulation only
+                value = round(random.uniform(30.0, 70.0), 1)  # noqa: S311 # Sensor simulation data
                 unit = "%"
             elif config.sensor_type == SensorType.LIGHT:
-                value = random.randint(0, 1000)  # noqa: S311 - Sensor simulation only
+                value = random.randint(0, 1000)  # noqa: S311 # Sensor simulation data
                 unit = "lux"
             elif config.sensor_type == SensorType.MOTION:
-                value = random.choice([True, False])  # noqa: S311 - Sensor simulation only
+                value = random.choice([True, False])  # noqa: S311 # Sensor simulation data
                 unit = None
             elif config.sensor_type == SensorType.AIR_QUALITY:
-                value = random.randint(50, 300)  # noqa: S311 - Sensor simulation only
+                value = random.randint(50, 300)  # noqa: S311 # Sensor simulation data
                 unit = "AQI"
             else:
-                value = round(random.uniform(0.0, 100.0), 2)  # noqa: S311 - Sensor simulation only
+                value = round(random.uniform(0.0, 100.0), 2)  # noqa: S311 # Sensor simulation data
                 unit = "units"
 
             reading = SensorReading(
@@ -1035,7 +1047,7 @@ class SensorManager:
                 value=value,
                 unit=unit,
                 timestamp=datetime.now(UTC),
-                quality=random.uniform(0.8, 1.0),  # noqa: S311 - Sensor simulation only
+                quality=random.uniform(0.8, 1.0),  # noqa: S311 # Sensor simulation data
                 location=config.location,
                 device_id=config.device_id,
             )

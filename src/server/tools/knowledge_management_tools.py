@@ -13,7 +13,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from fastmcp import Context, FastMCP
+from fastmcp import FastMCP
 
 from ...core.knowledge_architecture import (
     ContentFormat,
@@ -60,7 +60,7 @@ async def km_generate_documentation(
     auto_update: bool = False,
     knowledge_base_id: str | None = None,
     author: str = "system",
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Generate comprehensive documentation automatically from macros, workflows, or system components.
 
@@ -267,9 +267,9 @@ async def km_manage_knowledge_base(
     categories: list[str] | None = None,
     access_permissions: dict[str, Any] | None = None,
     auto_categorize: bool = True,
-    index_content: bool = True,
+    _index_content: bool = True,
     enable_search: bool = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Create and manage knowledge bases for organizing automation documentation and resources.
 
@@ -415,15 +415,15 @@ async def km_manage_knowledge_base(
 @mcp.tool()
 async def km_search_knowledge(
     query: str,
-    search_scope: str = "all",  # all|knowledge_base|documentation|macros
+    _search_scope: str = "all",  # all|knowledge_base|documentation|macros
     knowledge_base_id: str | None = None,
     search_type: str = "semantic",  # text|semantic|fuzzy|exact
-    include_content_types: list[str] = None,
+    _include_content_types: list[str] = None,
     max_results: int = 20,
     include_snippets: bool = True,
     rank_by_relevance: bool = True,
     include_suggestions: bool = True,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Search knowledge bases with advanced semantic understanding and intelligent ranking.
 
@@ -545,14 +545,14 @@ async def km_update_documentation(
     document_id: str,
     update_type: str,  # content|metadata|structure|review
     content_updates: dict[str, Any] | None = None,
-    metadata_updates: dict[str, Any] | None = None,
+    _metadata_updates: dict[str, Any] | None = None,
     version_note: str | None = None,
-    auto_validate: bool = True,
+    _auto_validate: bool = True,
     preserve_history: bool = True,
-    notify_stakeholders: bool = False,
-    schedule_review: str | None = None,
+    _notify_stakeholders: bool = False,
+    _schedule_review: str | None = None,
     author: str = "system",
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Update documentation with version control and change tracking.
 
@@ -693,7 +693,7 @@ async def km_create_content_template(
     auto_populate: bool = True,
     validation_rules: dict[str, Any] | None = None,
     author: str = "system",
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Create reusable content templates for standardized documentation generation.
 
@@ -836,10 +836,10 @@ async def km_analyze_content_quality(
     quality_metrics: list[str] = None,
     include_improvements: bool = True,
     ai_analysis: bool = True,
-    benchmark_against: str | None = None,
-    generate_report: bool = True,
-    auto_fix_issues: bool = False,
-    ctx: Context = None,
+    _benchmark_against: str | None = None,
+    _generate_report: bool = True,
+    _auto_fix_issues: bool = False,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Analyze content quality and provide improvement recommendations.
 
@@ -940,7 +940,7 @@ async def km_export_knowledge(
     export_options: dict[str, Any] | None = None,
     destination_path: str | None = None,
     compress_output: bool = False,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Export knowledge base content in various formats for sharing and distribution.
 
@@ -1045,7 +1045,7 @@ async def km_schedule_content_review(
     auto_reminders: bool = True,
     escalation_rules: dict[str, Any] | None = None,
     completion_actions: list[str] | None = None,
-    ctx: Context = None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Schedule content reviews with automated reminders and escalation management.
 

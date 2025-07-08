@@ -91,7 +91,7 @@ class DocumentationGenerator:
         self,
         context: DocumentationContext,
         config: MacroDocumentationConfig,
-        knowledge_base_id: KnowledgeBaseId,
+        _knowledge_base_id: KnowledgeBaseId,
         author: str,
     ) -> Either[str, KnowledgeDocument]:
         """Generate comprehensive documentation from automation context."""
@@ -224,7 +224,7 @@ class DocumentationGenerator:
     async def _process_workflow_documentation(
         self,
         context: DocumentationContext,
-        config: MacroDocumentationConfig,
+        _config: MacroDocumentationConfig,
     ) -> Either[str, dict[str, Any]]:
         """Process workflow documentation content."""
         try:
@@ -247,7 +247,7 @@ class DocumentationGenerator:
     async def _process_group_documentation(
         self,
         context: DocumentationContext,
-        config: MacroDocumentationConfig,
+        _config: MacroDocumentationConfig,
     ) -> Either[str, dict[str, Any]]:
         """Process group documentation content."""
         try:
@@ -269,7 +269,7 @@ class DocumentationGenerator:
     async def _process_system_documentation(
         self,
         context: DocumentationContext,
-        config: MacroDocumentationConfig,
+        _config: MacroDocumentationConfig,
     ) -> Either[str, dict[str, Any]]:
         """Process system documentation content."""
         try:
@@ -363,7 +363,7 @@ Macro execution completed successfully.
 """
         return examples
 
-    def _generate_macro_troubleshooting(self, macro_data: dict[str, Any]) -> str:
+    def _generate_macro_troubleshooting(self, _macro_data: dict[str, Any]) -> str:
         """Generate macro troubleshooting section."""
         troubleshooting = """## Troubleshooting
 
@@ -468,8 +468,8 @@ Macro execution completed successfully.
     async def _apply_template(
         self,
         content_data: dict[str, Any],
-        template: dict[str, Any],
-        config: MacroDocumentationConfig,
+        _template: dict[str, Any],
+        _config: MacroDocumentationConfig,
     ) -> Either[str, dict[str, Any]]:
         """Apply content template to generated data."""
         try:

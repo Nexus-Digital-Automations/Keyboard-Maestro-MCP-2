@@ -7,7 +7,7 @@ error handling, and integration with property-based testing.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -15,10 +15,13 @@ from hypothesis import assume, given
 from hypothesis import strategies as st
 from src.server.tools.file_operation_tools import km_file_operations
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 # Test data generators
 @st.composite
-def valid_file_operation_strategy(draw: Callable[..., Any]) -> Any:
+def valid_file_operation_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid file operations."""
     operations = ["copy", "move", "delete", "rename", "create_folder", "get_info"]
     return draw(st.sampled_from(operations))
@@ -44,7 +47,7 @@ def safe_path_strategy(draw: Callable[..., Any]) -> str:
 
 
 @st.composite
-def file_operation_config_strategy(draw: Callable[..., Any]) -> Any:
+def file_operation_config_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate valid file operation configurations."""
     return {
         "overwrite": draw(st.booleans()),
@@ -55,7 +58,7 @@ def file_operation_config_strategy(draw: Callable[..., Any]) -> Any:
 
 
 @st.composite
-def unsafe_path_strategy(draw: Callable[..., Any]) -> Any:
+def unsafe_path_strategy(draw: Callable[..., Any]) -> Mock:
     """Generate potentially unsafe paths for security testing."""
     unsafe_patterns = [
         "../../etc/passwd",

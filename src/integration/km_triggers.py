@@ -349,7 +349,7 @@ end tell
 
     async def _execute_applescript(
         self,
-        applescript: str,
+        _applescript: str,
     ) -> Either[IntegrationError, dict[str, Any]]:
         """Execute AppleScript for trigger integration."""
         # Simulated execution for now - in production this would use osascript
@@ -437,7 +437,7 @@ end tell
 
 
 # Helper functions for common KM trigger patterns
-def create_km_scheduled_trigger(macro_id: MacroId, when: datetime) -> TriggerSpec:
+def create_km_scheduled_trigger(_macro_id: MacroId, when: datetime) -> TriggerSpec:
     """Create a KM-compatible scheduled trigger."""
     from src.core.triggers import TriggerBuilder
 
@@ -449,7 +449,7 @@ def create_km_scheduled_trigger(macro_id: MacroId, when: datetime) -> TriggerSpe
 
 
 def create_km_file_watcher(
-    macro_id: MacroId,
+    _macro_id: MacroId,
     watch_path: str,
     pattern: str | None = None,
 ) -> TriggerSpec:
@@ -469,7 +469,7 @@ def create_km_file_watcher(
 
 
 def create_km_app_trigger(
-    macro_id: MacroId,
+    _macro_id: MacroId,
     app_id: str,
     on_launch: bool = True,
 ) -> TriggerSpec:

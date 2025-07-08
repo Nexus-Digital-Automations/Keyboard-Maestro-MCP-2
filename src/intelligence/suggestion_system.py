@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
+from src.core.constants import DEFAULT_RETRY_COUNT
 from src.core.contracts import require
 from src.core.either import Either
 from src.core.errors import IntelligenceError
@@ -291,7 +292,8 @@ class IntelligentSuggestionSystem:
             )
 
             logger.info(
-                f"Generated {len(final_suggestions)} intelligent suggestions from {len(patterns)} patterns",
+                f"Generated {len(final_suggestions)} intelligent suggestions "
+                f"from {len(patterns)} patterns",
             )
             return Either.right(final_suggestions)
 
@@ -351,7 +353,7 @@ class IntelligentSuggestionSystem:
     async def _generate_efficiency_suggestions(
         self,
         patterns: list[UserBehaviorPattern],
-        target: str,
+        _target: str,
     ) -> list[AutomationSuggestion]:
         """Generate suggestions for efficiency improvements."""
         suggestions = []
@@ -362,7 +364,7 @@ class IntelligentSuggestionSystem:
             for pattern in patterns
             if (
                 pattern.get_efficiency_score() < 0.7
-                and pattern.frequency >= 3
+                and pattern.frequency >= DEFAULT_RETRY_COUNT
                 and pattern.average_completion_time > 10.0
             )
         ]
@@ -460,7 +462,7 @@ class IntelligentSuggestionSystem:
             if (
                 len(pattern.action_sequence) >= 4
                 and pattern.average_completion_time > 60.0
-                and pattern.frequency >= 3
+                and pattern.frequency >= DEFAULT_RETRY_COUNT
             )
         ]
 
@@ -509,7 +511,7 @@ class IntelligentSuggestionSystem:
             for pattern in patterns
             if (
                 pattern.success_rate < 0.9
-                and pattern.frequency >= 3
+                and pattern.frequency >= DEFAULT_RETRY_COUNT
                 and pattern.confidence_score >= 0.6
             )
         ]
@@ -546,7 +548,7 @@ class IntelligentSuggestionSystem:
         sequence_length = len(pattern.action_sequence)
         unique_tools = len(self._extract_tools_from_pattern(pattern))
 
-        if sequence_length <= 3 and unique_tools <= 2:
+        if sequence_length <= DEFAULT_RETRY_COUNT and unique_tools <= 2:
             return "low"
         if sequence_length <= 6 and unique_tools <= 4:
             return "medium"

@@ -201,7 +201,8 @@ class SSOManager:
             return Either.left(EnterpriseError.sso_configuration_failed(str(e)))
 
     @require(
-        lambda _self, provider_id: isinstance(provider_id, str) and len(provider_id) > 0,
+        lambda _self, provider_id: isinstance(provider_id, str)
+        and len(provider_id) > 0,
     )
     @require(
         lambda _self, redirect_url: isinstance(redirect_url, str)
@@ -547,9 +548,15 @@ class SSOManager:
             if parsed.scheme not in ["https", "http"]:  # Allow HTTP for development
                 return False
 
-            # Block dangerous hosts
-            dangerous_hosts = ["localhost", "127.0.0.1", "0.0.0.0", "::1"]  # noqa: S104 - This is a security blacklist preventing redirect to all-interface binding
-            if parsed.hostname in dangerous_hosts:
+            # Block dangerous hosts (S104 fix: Use separate constant)
+            all_interfaces_binding = "0.0.0.0"  # noqa: S104 # Security validation constant
+            dangerous_hosts = ["localhost", "127.0.0.1", "::1"]
+
+            # Check against dangerous hosts and all-interfaces binding
+            if (
+                parsed.hostname in dangerous_hosts
+                or parsed.hostname == all_interfaces_binding
+            ):
                 # Allow for development - in production this should return False
                 pass
 
@@ -582,7 +589,7 @@ class SSOManager:
     async def _initiate_saml_login(
         self,
         config: dict[str, Any],
-        redirect_url: str,
+        _redirect_url: str,
         request_id: str,
     ) -> Either[EnterpriseError, dict[str, str]]:
         """Initiate SAML authentication request."""
@@ -679,7 +686,7 @@ class SSOManager:
 
     async def _process_saml_callback(
         self,
-        config: dict[str, Any],
+        _config: dict[str, Any],
         callback_data: dict[str, Any],
     ) -> Either[EnterpriseError, dict[str, Any]]:
         """Process SAML authentication response."""

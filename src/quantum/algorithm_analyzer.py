@@ -623,7 +623,7 @@ class AlgorithmAnalyzer:
         algorithm_name: str,
         key_size: int,
         algorithm_type: str,
-        detailed: bool,
+        _detailed: bool,
     ) -> dict[str, Any]:
         """Analyze detailed vulnerability information."""
         details = {
@@ -804,7 +804,7 @@ class AlgorithmAnalyzer:
     async def _generate_assessment_recommendations(
         self,
         vulnerable_algs: list[AlgorithmAnalysis],
-        secure_algs: list[AlgorithmAnalysis],
+        _secure_algs: list[AlgorithmAnalysis],
         risk_score: float,
     ) -> list[str]:
         """Generate assessment recommendations."""
@@ -874,7 +874,7 @@ class AlgorithmAnalyzer:
 
     def _create_risk_mitigation_plan(
         self,
-        assessment: VulnerabilityAssessment,
+        _assessment: VulnerabilityAssessment,
     ) -> dict[str, Any]:
         """Create risk mitigation plan."""
         return {
@@ -900,7 +900,7 @@ class AlgorithmAnalyzer:
             ],
         }
 
-    def _infer_usage_context(self, match_text: str, full_content: str) -> str:
+    def _infer_usage_context(self, _match_text: str, full_content: str) -> str:
         """Infer algorithm usage context from code."""
         context_indicators = {
             "authentication": ["auth", "login", "verify", "credential"],

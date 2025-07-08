@@ -140,7 +140,7 @@ class UsageRecord:
     def get_cost_per_token(self) -> Decimal:
         """Calculate cost per token."""
         if self.total_tokens == 0:
-            return Decimal("0")
+            return Decimal(0)
         return Decimal(str(self.cost)) / Decimal(str(self.total_tokens))
 
     def get_tokens_per_second(self) -> float:
@@ -223,7 +223,13 @@ class CostOptimizer:
             return Either.right(budget.budget_id)
 
         except Exception as e:
-            return Either.left(ValidationError("budget_creation_failed", str(e), "Budget creation operation failed"))
+            return Either.left(
+                ValidationError(
+                    "budget_creation_failed",
+                    str(e),
+                    "Budget creation operation failed",
+                ),
+            )
 
     def _periods_overlap(self, budget1: CostBudget, budget2: CostBudget) -> bool:
         """Check if two budget periods overlap."""
@@ -358,7 +364,7 @@ class CostOptimizer:
         period_end: datetime,
     ) -> Decimal:
         """Calculate total usage for budget period."""
-        total_cost = Decimal("0")
+        total_cost = Decimal(0)
 
         for record in self.usage_records:
             if record.timestamp < period_start or record.timestamp >= period_end:
@@ -383,7 +389,7 @@ class CostOptimizer:
 
     def _get_budget_alert_actions(
         self,
-        budget: CostBudget,
+        _budget: CostBudget,
         usage_percentage: float,
     ) -> list[str]:
         """Get recommended actions for budget alert."""
@@ -573,26 +579,32 @@ class CostOptimizer:
             return Either.right(request)
 
         except Exception as e:
-            return Either.left(ValidationError("optimization_failed", str(e), "Cost optimization operation failed"))
+            return Either.left(
+                ValidationError(
+                    "optimization_failed",
+                    str(e),
+                    "Cost optimization operation failed",
+                ),
+            )
 
     def predict_monthly_cost(self, days_to_analyze: int = 7) -> CostProjection:
         """Predict monthly cost based on recent usage."""
         if not self.usage_records:
-            return CostProjection(Decimal("0"))
+            return CostProjection(Decimal(0))
 
         # Get recent usage
         cutoff = datetime.now(UTC) - timedelta(days=days_to_analyze)
         recent_records = [r for r in self.usage_records if r.timestamp > cutoff]
 
         if not recent_records:
-            return CostProjection(Decimal("0"))
+            return CostProjection(Decimal(0))
 
         # Calculate average daily cost
         total_cost = sum(Decimal(str(r.cost)) for r in recent_records)
         daily_average = total_cost / Decimal(str(days_to_analyze))
 
         # Project to monthly (30 days)
-        monthly_projection = daily_average * Decimal("30")
+        monthly_projection = daily_average * Decimal(30)
 
         return CostProjection(monthly_projection)
 
@@ -613,20 +625,20 @@ class CostOptimizer:
             # By operation
             op_key = record.operation.value
             if op_key not in operation_costs:
-                operation_costs[op_key] = {"cost": Decimal("0"), "count": 0}
+                operation_costs[op_key] = {"cost": Decimal(0), "count": 0}
             operation_costs[op_key]["cost"] += Decimal(str(record.cost))
             operation_costs[op_key]["count"] += 1
 
             # By model
             if record.model_used not in model_costs:
-                model_costs[record.model_used] = {"cost": Decimal("0"), "count": 0}
+                model_costs[record.model_used] = {"cost": Decimal(0), "count": 0}
             model_costs[record.model_used]["cost"] += Decimal(str(record.cost))
             model_costs[record.model_used]["count"] += 1
 
             # By day
             day_key = record.timestamp.strftime("%Y-%m-%d")
             if day_key not in daily_costs:
-                daily_costs[day_key] = Decimal("0")
+                daily_costs[day_key] = Decimal(0)
             daily_costs[day_key] += Decimal(str(record.cost))
 
         total_cost = sum(Decimal(str(r.cost)) for r in recent_records)

@@ -75,9 +75,15 @@ class IdentityAuthenticationManager:
 
     async def _create_default_admin_user(self) -> None:
         """Create default admin user for development only."""
+        import os
+
+        # Use environment variables for default passwords or generate secure defaults
+        admin_password = os.getenv("DEFAULT_ADMIN_PASSWORD", "SecureAdmin123!")  # noqa: S106 # Development default
+        user_password = os.getenv("DEFAULT_USER_PASSWORD", "TestUser123!")  # noqa: S106 # Development default
+
         admin_result = await self.register_user(
             username="admin",
-            password="SecureAdmin123!",  # noqa: S106 - Development-only default password for testing
+            password=admin_password,
             display_name="Administrator",
             email="admin@example.com",
             permissions={"admin", "user_management", "system_config"},
@@ -89,7 +95,7 @@ class IdentityAuthenticationManager:
         # Create default regular user
         user_result = await self.register_user(
             username="testuser",
-            password="TestUser123!",  # noqa: S106 - Development-only default password for testing
+            password=user_password,
             display_name="Test User",
             email="test@example.com",
             permissions={"user", "automation"},
@@ -321,7 +327,7 @@ class IdentityAuthenticationManager:
 
     async def _authenticate_with_password(
         self,
-        username: str,
+        _username: str,
         password: str | None,
         security_warnings: list[str],
     ) -> bool:

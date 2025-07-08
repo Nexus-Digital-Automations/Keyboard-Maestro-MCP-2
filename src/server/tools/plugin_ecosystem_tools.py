@@ -50,12 +50,12 @@ class PluginEcosystemTools:
         parameters: dict | None = None,
         plugin_config: dict | None = None,
         security_profile: str = "standard",
-        api_version: str = "1.0",
+        _api_version: str = "1.0",
         auto_update: bool = False,
         dependency_resolution: bool = True,
         validation_level: str = "strict",
         timeout: int = 60,
-        ctx: Any=None,
+        _ctx: Any = None,
     ) -> dict[str, Any]:
         """Comprehensive plugin ecosystem management tool.
 
@@ -166,8 +166,8 @@ class PluginEcosystemTools:
         plugin_config: dict | None,
         security_profile: str,
         auto_update: bool,
-        dependency_resolution: bool,
-        validation_level: str,
+        _dependency_resolution: bool,
+        _validation_level: str,
         timeout: int,
     ) -> dict[str, Any]:
         """Handle plugin installation."""
@@ -866,7 +866,7 @@ async def km_plugin_ecosystem(
     dependency_resolution: bool = True,
     validation_level: str = "strict",
     timeout: int = 60,
-    ctx: Any=None,
+    ctx: Any = None,
 ) -> dict[str, Any]:
     """Standalone wrapper for plugin ecosystem operations.
 
