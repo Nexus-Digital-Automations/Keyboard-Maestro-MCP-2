@@ -16,7 +16,6 @@ from typing import Any
 
 from src.core.contracts import ensure, require
 from src.core.displays import (
-    GRID_PATTERN_SPECS,
     DisplayInfo,
     WindowGridPattern,
 )
@@ -58,10 +57,7 @@ class GridCalculator:
 
     @staticmethod
     # FIXME: Contract disabled - @require(lambda display: display.resolution[0] > 0 and display.resolution[1] > 0)
-    # FIXME: Contract disabled - @require(
-        lambda pattern: pattern in GRID_PATTERN_SPECS
-        or pattern == WindowGridPattern.CUSTOM,
-    )
+    # FIXME: Contract disabled - @require( lambda pattern: pattern in GRID_PATTERN_SPECS or pattern == WindowGridPattern.CUSTOM, )
     # FIXME: Contract disabled - @require(lambda window_count: window_count > 0)
     # FIXME: Contract disabled - @require(lambda padding: padding >= 0)
     @ensure(

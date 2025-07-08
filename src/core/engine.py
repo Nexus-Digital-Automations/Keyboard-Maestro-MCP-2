@@ -139,10 +139,7 @@ class MacroEngine:
         object.__setattr__(self, "_active_executions", {})
         object.__setattr__(self, "_execution_lock", asyncio.Lock())
 
-    # FIXME: Contract disabled - @require(
-    #     lambda _self, macro, _context=None: macro is not None,
-    #     "macro cannot be None",
-    # )
+    # FIXME: Contract disabled - @require(lambda _self, macro, _context=None: macro is not None, "macro cannot be None")
     @ensure(
         lambda _self, _macro, _context=None, result=None: result.execution_token
         is not None,

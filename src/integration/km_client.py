@@ -160,9 +160,7 @@ class KMClient:
         result = self._send_command("execute_macro", command_data)
         return result
 
-    # FIXME: Contract disabled - @require(
-    #     lambda __self, trigger_def: trigger_def.trigger_id and trigger_def.macro_id,
-    # )
+    # FIXME: Contract disabled - @require(lambda __self, trigger_def: trigger_def.trigger_id and trigger_def.macro_id)
     def register_trigger(
         self,
         trigger_def: TriggerDefinition,

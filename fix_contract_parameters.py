@@ -110,7 +110,7 @@ def find_python_files(root_dir: Path) -> List[Path]:
     """Find all Python files with @require decorators."""
     python_files = []
     
-    for root, dirs, files in os.walk(root_dir):
+    for root, _dirs, files in os.walk(root_dir):
         # Skip test directories and cache
         if any(skip in root for skip in ['tests', '__pycache__', '.git', 'cache']):
             continue

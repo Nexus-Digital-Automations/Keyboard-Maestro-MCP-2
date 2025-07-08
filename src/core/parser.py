@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from .contracts import ensure, is_valid_string, require
+from .contracts import ensure, is_valid_string
 from .errors import (
     SecurityViolationError,
     ValidationError,
@@ -431,10 +431,7 @@ class CommandValidator:
 class MacroParser:
     """Main parser for macro definitions with comprehensive validation."""
 
-    # FIXME: Contract disabled - @require(
-    #     lambda _self, macro_data: macro_data is not None,
-    #     "macro_data cannot be None",
-    # )
+    # FIXME: Contract disabled - @require(lambda _self, macro_data: macro_data is not None, "macro_data cannot be None")
     @ensure(
         lambda _self, _macro_data, result: isinstance(result, ParseResult),
         "must return ParseResult",

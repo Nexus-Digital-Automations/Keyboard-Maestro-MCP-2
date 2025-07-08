@@ -217,19 +217,19 @@ class TestTokensReliable:
             assert result is not None
 
     def test_km_token_integration_basic(self) -> None:
-        """Basic KMTokenIntegration testing."""
-        from src.tokens.km_token_integration import KMTokenIntegration
+        """Basic KMTokenEngine testing."""
+        from src.tokens.km_token_integration import KMTokenEngine
 
-        integration = KMTokenIntegration()
+        engine = KMTokenEngine()
 
-        # Test getting available tokens
-        tokens = integration.get_available_tokens()
-        assert isinstance(tokens, list)
+        # Test getting processing stats
+        stats = engine.get_processing_stats()
+        assert isinstance(stats, dict)
 
-        # Test token validation if method exists
-        if hasattr(integration, "validate_token"):
-            is_valid = integration.validate_token("%|MacroName|%")
-            assert isinstance(is_valid, bool)
+        # Test reset stats
+        engine.reset_stats()
+        reset_stats = engine.get_processing_stats()
+        assert isinstance(reset_stats, dict)
 
 
 class TestCoreModulesReliable:
@@ -269,8 +269,8 @@ class TestCoreModulesReliable:
         # Test that ValidationError is an exception class
         assert issubclass(ValidationError, Exception)
 
-        # Test creating the exception
-        error = ValidationError("test error")
+        # Test creating the exception with message parameter
+        error = ValidationError(message="test error")
         assert str(error) == "test error"
 
 
