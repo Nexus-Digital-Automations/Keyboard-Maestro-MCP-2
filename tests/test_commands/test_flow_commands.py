@@ -1,5 +1,8 @@
 """Tests for flow control commands.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests conditional, loop, and break commands with security validation
 and proper contract enforcement.
 """

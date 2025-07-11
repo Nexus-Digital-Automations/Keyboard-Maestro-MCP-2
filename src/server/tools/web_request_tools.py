@@ -15,14 +15,16 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from fastmcp.exceptions import ToolError
+
 from src.core.contracts import require
 from src.core.either import Either
 from src.core.errors import MCPError
 from src.core.http_client import HTTPClient, HTTPMethod, HTTPRequest, HTTPResponse
 from src.tokens.token_processor import TokenProcessor
-from src.web.authentication import (
-    AuthenticationManager,
-)
+
+# from src.web.authentication import (
+#     AuthenticationManager,
+# )  # Module deleted
 
 if TYPE_CHECKING:
     from fastmcp import Context
@@ -348,41 +350,72 @@ class WebRequestProcessor:
             if auth_type == "none" or not auth_credentials:
                 return Either.right(None)
 
-            # Create authentication
-            auth_result = AuthenticationManager.create_authentication(
-                auth_type,
-                auth_credentials,
-            )
+            # Basic authentication handling without external AuthenticationManager
+            headers = {}
 
-            if auth_result.is_left():
-                validation_error = auth_result.get_left()
+            if auth_type == "api_key":
+                api_key = auth_credentials.get("api_key")
+                if not api_key:
+                    return Either.left(
+                        MCPError(
+                            "AUTHENTICATION_ERROR",
+                            "API key is required for api_key authentication",
+                        )
+                    )
+                headers["X-API-Key"] = api_key
+
+            elif auth_type == "bearer_token":
+                token = auth_credentials.get("token")
+                if not token:
+                    return Either.left(
+                        MCPError(
+                            "AUTHENTICATION_ERROR",
+                            "Token is required for bearer_token authentication",
+                        )
+                    )
+                headers["Authorization"] = f"Bearer {token}"
+
+            elif auth_type == "basic_auth":
+                username = auth_credentials.get("username")
+                password = auth_credentials.get("password")
+                if not username or not password:
+                    return Either.left(
+                        MCPError(
+                            "AUTHENTICATION_ERROR",
+                            "Username and password are required for basic_auth authentication",
+                        )
+                    )
+                import base64
+
+                credentials = base64.b64encode(
+                    f"{username}:{password}".encode()
+                ).decode()
+                headers["Authorization"] = f"Basic {credentials}"
+
+            elif auth_type == "custom_header":
+                header_name = auth_credentials.get("header_name")
+                header_value = auth_credentials.get("header_value")
+                if not header_name or not header_value:
+                    return Either.left(
+                        MCPError(
+                            "AUTHENTICATION_ERROR",
+                            "Header name and value are required for custom_header authentication",
+                        )
+                    )
+                headers[header_name] = header_value
+
+            else:
                 return Either.left(
                     MCPError(
                         "AUTHENTICATION_ERROR",
-                        f"Authentication validation failed: {validation_error.constraint}",
-                    ),
+                        f"Unsupported authentication type: {auth_type}",
+                    )
                 )
-
-            auth = auth_result.get_right()
-
-            # Apply authentication
-            headers_result = AuthenticationManager.apply_authentication(auth)
-
-            if headers_result.is_left():
-                validation_error = headers_result.get_left()
-                return Either.left(
-                    MCPError(
-                        "AUTHENTICATION_APPLICATION_ERROR",
-                        f"Failed to apply authentication: {validation_error.constraint}",
-                    ),
-                )
-
-            auth_data = headers_result.get_right()
 
             if ctx:
                 await ctx.info(f"Applied {auth_type} authentication")
 
-            return Either.right(auth_data.get("headers"))
+            return Either.right(headers)
 
         except Exception as e:
             return Either.left(

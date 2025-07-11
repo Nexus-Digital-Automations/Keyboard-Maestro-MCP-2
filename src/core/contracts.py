@@ -31,12 +31,12 @@ class ContractValidator:
         try:
             # Get the condition's signature to determine parameter binding
             sig = inspect.signature(condition)
-
-            # Try to bind all available arguments to the condition
-            condition_kwargs = {}
             param_names = list(sig.parameters.keys())
 
-            # Map positional arguments to parameter names
+            # Use direct argument binding approach
+            condition_kwargs = {}
+
+            # Map positional arguments to parameter names directly
             for i, arg in enumerate(args):
                 if i < len(param_names) and param_names[i] != "result":
                     condition_kwargs[param_names[i]] = arg

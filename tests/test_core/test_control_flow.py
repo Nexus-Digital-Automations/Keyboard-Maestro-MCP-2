@@ -1,5 +1,8 @@
 """Unit tests for control flow types and AST representation.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests the core control flow functionality including type safety, security validation,
 and builder patterns with comprehensive edge case coverage.
 """

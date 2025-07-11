@@ -1,5 +1,8 @@
 """Comprehensive test suite for computer vision tools using systematic MCP tool test pattern.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests the complete computer vision functionality including object detection, scene analysis,
 image classification, text extraction (OCR), and computer vision metrics.
 Tests follow the proven systematic pattern that achieved 100% success across 31+ tool suites.

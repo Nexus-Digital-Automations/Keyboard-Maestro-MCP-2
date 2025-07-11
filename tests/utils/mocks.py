@@ -1,5 +1,8 @@
 """Mock objects and test doubles for comprehensive testing of the macro system.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This module provides sophisticated mocks for external dependencies and
 complex system components to enable isolated testing.
 """

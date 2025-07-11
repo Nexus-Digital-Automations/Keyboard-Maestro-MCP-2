@@ -670,14 +670,14 @@ class HotkeyManager:
                 if not self.is_hotkey_available(hotkey_spec):
                     logger.warning(f"Hotkey {hotkey_string} is not available")
                     return False
-                    
+
             # Register the hotkey
             hotkey_string = hotkey_spec.to_km_string()
             self._registered_hotkeys[hotkey_string] = (macro_id, hotkey_spec)
-            
+
             logger.info(f"Registered hotkey {hotkey_string} for macro {macro_id}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to register hotkey for macro {macro_id}: {e}")
             return False

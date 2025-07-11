@@ -1,5 +1,8 @@
 """Comprehensive tests for Action Builder module with systematic coverage.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover ActionType, ActionConfiguration, ActionBuilder with property-based testing,
 security validation, XML generation, and comprehensive enterprise-grade validation.
 """
@@ -289,9 +292,16 @@ class TestActionConfiguration:
                     "<script",
                     "javascript:",
                     "vbscript:",
+                    "data:text/html",
+                    "<!doctype",
+                    "<!entity",
+                    "<?xml",
+                    "<![cdata[",
                     "eval(",
                     "exec(",
                     "system(",
+                    "shell_exec(",
+                    "passthru(",
                 ]
             ):
                 safe_parameters[key] = value

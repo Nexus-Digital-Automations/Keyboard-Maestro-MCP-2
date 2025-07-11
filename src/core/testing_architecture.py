@@ -405,8 +405,8 @@ class RegressionError(TestingArchitectureError):
 # Utility Functions for Test Management
 
 
-    # FIXME: Contract disabled - @require(lambda test_name: len(test_name.strip()) > 0)
-    # FIXME: Contract disabled - @require(lambda test_type: isinstance(test_type, TestType))
+# FIXME: Contract disabled - @require(lambda test_name: len(test_name.strip()) > 0)
+# FIXME: Contract disabled - @require(lambda test_type: isinstance(test_type, TestType))
 def create_simple_test(
     test_name: str,
     test_type: TestType,
@@ -455,14 +455,16 @@ def create_simple_test(
         test_steps=[test_step],
     )
 
-
     # FIXME: Contract disabled - @require(lambda suite_name: len(suite_name.strip()) > 0)
     # FIXME: Contract disabled - @require(lambda tests: len(tests) > 0)
+
+
 def create_test_suite(
     suite_name: str,
     tests: list[AutomationTest],
     parallel_execution: bool = False,
     max_concurrent: int = 5,
+    abort_on_failure: bool = False,
 ) -> TestSuite:
     """Create a test suite from a collection of tests."""
     suite_id = create_test_suite_id()
@@ -484,6 +486,7 @@ def create_test_suite(
         configuration=configuration,
         parallel_execution=parallel_execution,
         max_concurrent_tests=max_concurrent,
+        abort_on_failure=abort_on_failure,
     )
 
 

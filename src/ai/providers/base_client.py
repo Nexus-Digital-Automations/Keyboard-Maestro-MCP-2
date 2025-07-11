@@ -245,6 +245,8 @@ class BaseProviderClient(ABC):
                 "success_rate": 100.0,
                 "average_tokens": 0,
                 "recent_errors": [],
+                "health_status": self.health.status.value,
+                "uptime_percentage": self.health.uptime_percentage,
             }
 
         total_requests = len(self.request_history)

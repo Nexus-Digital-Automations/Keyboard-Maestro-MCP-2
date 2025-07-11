@@ -51,7 +51,10 @@ class VisualComposer:
 
     @require(
         lambda self, name, description=None, canvas_config=None: len(name) > 0
-        and len(name) <= 100,
+        and len(name) <= 100
+        and self is not None
+        and (description is None or isinstance(description, str))
+        and (canvas_config is None or isinstance(canvas_config, dict)),
     )
     async def create_workflow(
         self,

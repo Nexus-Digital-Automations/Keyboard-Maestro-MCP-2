@@ -10,6 +10,7 @@ from typing import Annotated, Any
 
 from fastmcp import Context
 from pydantic import Field
+
 from src.core import (
     ExecutionError,
     MacroId,

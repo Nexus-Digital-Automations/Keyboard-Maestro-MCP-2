@@ -1,5 +1,8 @@
 """Tests for the macro parser and validation system.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This module tests parsing of macro definitions, input validation,
 and security boundary enforcement.
 """

@@ -1,5 +1,8 @@
 """Examples of how to set up execution contexts with different permission levels.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This file demonstrates practical permission configurations for various use cases.
 """
 

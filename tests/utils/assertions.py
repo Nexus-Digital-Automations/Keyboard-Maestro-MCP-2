@@ -1,5 +1,8 @@
 """Custom test assertions for the Keyboard Maestro MCP testing framework.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This module provides specialized assertion functions for validating
 macro system behavior, security properties, and performance characteristics.
 """

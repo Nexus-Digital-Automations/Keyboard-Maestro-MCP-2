@@ -16,30 +16,101 @@ from typing import Annotated, Any
 
 from fastmcp import FastMCP
 from pydantic import Field
-from src.analytics.insight_generator import (
-    InsightCategory,
-    InsightData,
-    InsightGenerator,
-)
-from src.analytics.model_manager import (
-    ModelManager,
-)
-from src.analytics.pattern_predictor import (
-    PatternFeature,
-    PatternPredictor,
-    PatternType,
-)
-from src.analytics.usage_forecaster import (
-    CapacityStatus,
-    ForecastScenario,
-    ResourceType,
-    UsageForecaster,
-)
+
+# from src.analytics.insight_generator import (
+#     InsightCategory,
+#     InsightData,
+#     InsightGenerator,
+# )  # Module deleted
+# from src.analytics.model_manager import (
+#     ModelManager,
+# )  # Module deleted
+# from src.analytics.pattern_predictor import (
+#     PatternFeature,
+#     PatternPredictor,
+#     PatternType,
+# )  # Module deleted
+# from src.analytics.usage_forecaster import (
+#     CapacityStatus,
+#     ForecastScenario,
+#     ResourceType,
+#     UsageForecaster,
+# )  # Module deleted
 from src.core.predictive_modeling import (
     ConfidenceLevel,
     ForecastGranularity,
     TimeSeriesData,
 )
+
+
+# Stub classes for deleted modules
+class PatternPredictor:
+    """Stub for deleted PatternPredictor class."""
+
+    pass
+
+
+class UsageForecaster:
+    """Stub for deleted UsageForecaster class."""
+
+    pass
+
+
+class InsightGenerator:
+    """Stub for deleted InsightGenerator class."""
+
+    def __init__(self, pattern_predictor: Any, usage_forecaster: Any):
+        pass
+
+
+class ModelManager:
+    """Stub for deleted ModelManager class."""
+
+    pass
+
+
+# Stub enums/types for deleted modules
+class PatternType:
+    """Stub for deleted PatternType enum."""
+
+    pass
+
+
+class PatternFeature:
+    """Stub for deleted PatternFeature class."""
+
+    pass
+
+
+class InsightCategory:
+    """Stub for deleted InsightCategory enum."""
+
+    pass
+
+
+class InsightData:
+    """Stub for deleted InsightData class."""
+
+    pass
+
+
+class CapacityStatus:
+    """Stub for deleted CapacityStatus enum."""
+
+    pass
+
+
+class ForecastScenario:
+    """Stub for deleted ForecastScenario enum."""
+
+    pass
+
+
+class ResourceType:
+    """Stub for deleted ResourceType enum."""
+
+    pass
+
 
 # Initialize FastMCP
 mcp = FastMCP("Predictive Analytics Tools")

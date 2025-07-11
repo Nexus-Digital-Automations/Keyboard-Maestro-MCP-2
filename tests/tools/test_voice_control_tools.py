@@ -1,5 +1,8 @@
 """Comprehensive test suite for voice control tools using systematic MCP tool test pattern.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests the complete voice control functionality including voice command processing, voice control
 configuration, voice feedback synthesis, and voice recognition training capabilities.
 Tests follow the proven systematic pattern that achieved 100% success across 35+ tool suites.
@@ -310,18 +313,26 @@ async def mock_km_configure_voice_control(
 
     if configuration_type in ["accessibility_options", "full_setup"]:
         config_results["accessibility_configuration"] = {
-            "voice_feedback_enabled": accessibility_options.get("voice_feedback", True)
-            if accessibility_options
-            else True,
-            "visual_indicators": accessibility_options.get("visual_indicators", True)
-            if accessibility_options
-            else True,
-            "command_repetition": accessibility_options.get("command_repetition", True)
-            if accessibility_options
-            else True,
-            "slow_speech_support": accessibility_options.get("slow_speech", True)
-            if accessibility_options
-            else True,
+            "voice_feedback_enabled": (
+                accessibility_options.get("voice_feedback", True)
+                if accessibility_options
+                else True
+            ),
+            "visual_indicators": (
+                accessibility_options.get("visual_indicators", True)
+                if accessibility_options
+                else True
+            ),
+            "command_repetition": (
+                accessibility_options.get("command_repetition", True)
+                if accessibility_options
+                else True
+            ),
+            "slow_speech_support": (
+                accessibility_options.get("slow_speech", True)
+                if accessibility_options
+                else True
+            ),
             "hearing_assistance": True,
         }
 
@@ -591,9 +602,11 @@ async def mock_km_train_voice_recognition(
 
     # Training progress and metrics
     training_results["training_metrics"] = {
-        "samples_processed": voice_samples
-        if voice_samples is not None
-        else (len(training_data) if training_data else 25),
+        "samples_processed": (
+            voice_samples
+            if voice_samples is not None
+            else (len(training_data) if training_data else 25)
+        ),
         "training_accuracy": 0.94 if quality_threshold <= 0.9 else 0.87,
         "validation_accuracy": 0.91,
         "improvement_percentage": 23.4,

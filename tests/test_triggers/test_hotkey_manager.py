@@ -1,5 +1,8 @@
 """Property-based tests for hotkey trigger management.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests hotkey validation, conflict detection, and security boundaries using
 hypothesis-driven property-based testing for comprehensive coverage.
 """
@@ -75,8 +78,10 @@ class TestHotkeySpecValidation:
 
     @given(st.integers().filter(lambda x: x < 1 or x > 4))
     def test_invalid_tap_count_raises_error(self, invalid_tap_count: int) -> None:
-        """Property: Tap counts outside 1-4 range should raise ValidationError."""
-        with pytest.raises(ValidationError):
+        """Property: Tap counts outside 1-4 range should raise ContractViolationError due to @require decorator."""
+        from src.core.errors import ContractViolationError
+
+        with pytest.raises(ContractViolationError):
             HotkeySpec(
                 key="a",
                 modifiers=set(),
@@ -100,19 +105,23 @@ class TestHotkeySpecValidation:
     def test_system_conflict_detection(self) -> None:
         """Test detection of system-reserved hotkey conflicts."""
         # Test known system shortcuts
-        with pytest.raises(SecurityViolationError):
-            HotkeySpec(
-                key="space",
-                modifiers={ModifierKey.COMMAND},
-                activation_mode=ActivationMode.PRESSED,
-                tap_count=1,
-                allow_repeat=False,
-            )
+        spec = HotkeySpec(
+            key="space",
+            modifiers={ModifierKey.COMMAND},
+            activation_mode=ActivationMode.PRESSED,
+            tap_count=1,
+            allow_repeat=False,
+        )
 
-    @given(st.text(min_size=1, max_size=5))
+        # System conflict checking is done via separate method
+        with pytest.raises(SecurityViolationError):
+            spec._check_system_conflicts()
+
+    @given(
+        st.text(min_size=1, max_size=1).filter(lambda x: x.isalnum() and x.isascii())
+    )
     def test_display_string_formatting(self, key: str) -> None:
         """Property: Display strings should be consistently formatted."""
-        assume(len(key) == 1 and key.isalnum() and key.isascii())
 
         spec = HotkeySpec(
             key=key.lower(),
@@ -228,8 +237,8 @@ class TestHotkeyManager:
         )
 
         result = await hotkey_manager.create_hotkey_trigger(
-            macro_id=macro_id,
-            hotkey=hotkey_spec,
+            macro_id,
+            hotkey_spec,
             check_conflicts=False,  # Skip conflict checking for this test
         )
 
@@ -293,7 +302,7 @@ class TestHotkeyManager:
         assert hotkey_manager.is_hotkey_available(available_hotkey)
 
         # System reserved hotkey
-        HotkeySpec(
+        system_reserved_hotkey = HotkeySpec(
             key="space",
             modifiers={ModifierKey.COMMAND},
             activation_mode=ActivationMode.PRESSED,
@@ -301,15 +310,8 @@ class TestHotkeyManager:
             allow_repeat=False,
         )
 
-        # This should raise SecurityViolationError during creation
-        with pytest.raises(SecurityViolationError):
-            HotkeySpec(
-                key="space",
-                modifiers={ModifierKey.COMMAND},
-                activation_mode=ActivationMode.PRESSED,
-                tap_count=1,
-                allow_repeat=False,
-            )
+        # System reserved hotkey should not be available
+        assert not hotkey_manager.is_hotkey_available(system_reserved_hotkey)
 
 
 class TestHotkeySpecToKMString:
@@ -357,11 +359,10 @@ class TestHotkeySpecToKMString:
 class TestHotkeySecurityValidation:
     """Test security aspects of hotkey validation."""
 
-    @given(st.text().filter(lambda x: not x.isascii() if x else False))
-    def test_non_ascii_keys_rejected(self, non_ascii_key: list[Any] | str) -> None:
+    @given(st.characters(min_codepoint=128, max_codepoint=65535))
+    def test_non_ascii_keys_rejected(self, non_ascii_key: str) -> None:
         """Property: Non-ASCII characters should be rejected for security."""
-        assume(len(non_ascii_key) == 1)  # Single character
-
+        # Single non-ASCII character should be rejected
         with pytest.raises((ValidationError, SecurityViolationError)):
             HotkeySpec(
                 key=non_ascii_key,
@@ -379,14 +380,16 @@ class TestHotkeySecurityValidation:
         ]
 
         for key, modifiers in critical_shortcuts:
+            spec = HotkeySpec(
+                key=key,
+                modifiers=modifiers,
+                activation_mode=ActivationMode.PRESSED,
+                tap_count=1,
+                allow_repeat=False,
+            )
+            # System conflict checking is done via separate method
             with pytest.raises(SecurityViolationError):
-                HotkeySpec(
-                    key=key,
-                    modifiers=modifiers,
-                    activation_mode=ActivationMode.PRESSED,
-                    tap_count=1,
-                    allow_repeat=False,
-                )
+                spec._check_system_conflicts()
 
     @given(st.text(min_size=2, max_size=10).filter(lambda x: x.isascii()))
     def test_multi_character_keys_validation(self, multi_char_key: Any) -> None:

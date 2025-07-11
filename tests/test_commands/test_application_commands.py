@@ -1,5 +1,8 @@
 """Tests for application control commands.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests launch, quit, and activation commands with security validation
 and proper contract enforcement.
 """

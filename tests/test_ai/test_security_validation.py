@@ -1,5 +1,8 @@
 """Security validation tests for AI infrastructure components.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This module provides comprehensive security testing for the AI infrastructure
 including API key protection, data encryption, secure communication, audit
 logging, and threat prevention with enterprise-grade security requirements.
@@ -26,7 +29,7 @@ from cryptography.fernet import Fernet
 from src.ai.caching_system import CacheKey, IntelligentCacheManager
 from src.ai.config.ai_config import AIConfigManager
 from src.ai.providers.openai_client import OpenAIClient
-from src.ai.security.api_key_manager import APIKeyManager
+from src.ai.security.api_key_manager import APIKeyManager, StorageBackend
 from src.core.ai_integration import (
     AIOperation,
     create_ai_request,
@@ -38,21 +41,32 @@ class TestAPIKeySecurityValidation:
 
     def test_api_key_encryption_at_rest(self) -> None:
         """Test API keys are encrypted when stored."""
-        api_key_manager = APIKeyManager()
-        test_key = "sk-test-key-for-encryption-validation"
-        provider = "security_test"
+        # Use FILE storage backend for encryption at rest
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Use a test password that's clearly for testing purposes
+            test_password = "test_password_123"  # noqa: S105
+            api_key_manager = APIKeyManager(
+                storage_backend=StorageBackend.FILE,
+                storage_path=Path(temp_dir),
+                master_password=test_password,
+            )
+            test_key = "sk-test-key-for-encryption-validation"
+            provider = "security_test"
 
-        # Store key
-        store_result = api_key_manager.store_key(provider, test_key)
-        assert store_result.is_right()
+            # Store key
+            store_result = api_key_manager.store_key(provider, test_key)
+            assert store_result.is_right()
 
-        # Verify key is encrypted in storage
-        # Check that raw key is not present in any storage mechanism
-        stored_data = api_key_manager._get_raw_storage_data(provider)
-        if stored_data:
-            # Ensure the actual key value is not stored in plain text
-            assert test_key not in str(stored_data)
-            assert "sk-test-key" not in str(stored_data)
+            # Verify key is encrypted in storage
+            # Check that raw key is not present in any storage mechanism
+            stored_data = api_key_manager._get_raw_storage_data(provider)
+            if stored_data:
+                # Ensure the actual key value is not stored in plain text
+                assert test_key not in str(stored_data)
+                assert "sk-test-key" not in str(stored_data)
+                # Verify that we have encrypted data
+                assert "encrypted_key" in stored_data
+                assert "salt" in stored_data
 
     def test_api_key_validation_security(self) -> None:
         """Test API key validation prevents injection attacks."""
@@ -437,22 +451,38 @@ class TestRateLimitingSecurityValidation:
         """Test request size limits prevent DoS attacks."""
         client = OpenAIClient(api_key="test-key-size-limit", model="gpt-3.5-turbo")
 
-        # Test oversized request
-        large_input = "x" * 1000000  # 1MB of text
+        # Test oversized request that exceeds context window
+        large_input = "x" * 1000000  # 1MB of text - exceeds 16,385 token context window
+
+        from src.core.ai_integration import AIModelId
 
         request_result = create_ai_request(
             operation=AIOperation.ANALYZE,
             input_data=large_input,
             temperature=0.7,
+            model_id=AIModelId("gpt-3.5-turbo"),  # Explicitly specify model for test
         )
-        assert request_result.is_right()
-        request = request_result.value
 
-        # Should handle large requests gracefully
-        # In real implementation, this might truncate or reject
+        # Should reject oversized request due to context window limits
+        assert request_result.is_left()
+        error_message = str(request_result.get_left())
+        assert "cannot handle operation" in error_message
+
+        # Test normal-sized request works
+        normal_input = "x" * 1000  # 1KB of text - well within limits
+        normal_request_result = create_ai_request(
+            operation=AIOperation.ANALYZE,
+            input_data=normal_input,
+            temperature=0.7,
+            model_id=AIModelId("gpt-3.5-turbo"),
+        )
+        assert normal_request_result.is_right()
+        request = normal_request_result.value
+
+        # Should handle normal requests gracefully
         payload = client._build_request_payload(request)
 
-        # Verify payload was created (implementation might truncate)
+        # Verify payload was created for normal request
         assert payload is not None
         assert "messages" in payload
 
@@ -507,12 +537,13 @@ class TestConfigurationSecurityValidation:
         config_manager = AIConfigManager()
 
         # Test with potentially malicious environment variables
+        # Note: OS prevents null bytes in environment variables, so we test other injection patterns
         with patch.dict(
             os.environ,
             {
                 "AI_DEBUG_MODE": 'true; echo "injection"',
                 "AI_DEFAULT_PROVIDER": "openai$(malicious)",
-                "OPENAI_API_KEY": "sk-test" + "\x00" + "null-byte",
+                "AI_DEFAULT_MODEL": "gpt-3.5-turbo; rm -rf /",
             },
         ):
             result = config_manager.load_config()
@@ -522,6 +553,13 @@ class TestConfigurationSecurityValidation:
                 # Verify environment variables are properly sanitized
                 assert config.debug_mode in [True, False]
                 assert "$(malicious)" not in config.default_provider
+                assert "rm -rf" not in config.default_model
+
+        # Test null byte handling in manual sanitization
+        # This tests our sanitization function directly since OS won't allow null bytes in env vars
+        test_value = "sk-test\x00null-byte"
+        sanitized_value = config_manager._sanitize_config_value(test_value)
+        assert "\x00" not in sanitized_value
 
     def test_configuration_validation_security(self) -> None:
         """Test configuration validation prevents security issues."""

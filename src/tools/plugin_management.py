@@ -615,7 +615,7 @@ async def _create_plugin_template(
 This plugin was generated from the {template_type} template.
 """
 
-from src.plugins.plugin_sdk import UtilityPlugin, create_plugin_metadata
+# from src.plugins.plugin_sdk import UtilityPlugin, create_plugin_metadata  # Module deleted
 from src.core.plugin_architecture import PluginPermissions, PermissionId
 
 

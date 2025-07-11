@@ -1,5 +1,8 @@
 """Hypothesis strategies for property-based testing of the Keyboard Maestro MCP system.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This module provides comprehensive data generators for testing system behavior
 across wide input ranges with property-based testing techniques.
 """

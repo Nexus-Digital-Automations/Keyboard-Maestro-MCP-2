@@ -1,5 +1,8 @@
 """Comprehensive tests for Natural Language Tools module using systematic MCP tool test pattern.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover natural language processing capabilities including command interpretation,
 intent recognition, conversation management, and language understanding with property-based
 testing and comprehensive enterprise-grade validation using the proven pattern that achieved

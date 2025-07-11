@@ -1,5 +1,8 @@
 """Comprehensive Test Suite for Hotkey Tools - Following Proven MCP Tool Test Pattern.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This test suite validates the Hotkey Tools functionality using the systematic
 testing approach that achieved 100% success rate across 14 tool suites.
 

@@ -1,5 +1,8 @@
 """Comprehensive tests for macro movement tools.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover validation, security, execution, error handling, and property-based scenarios
 following ADDER+ testing methodology.
 """

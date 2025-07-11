@@ -1,5 +1,8 @@
 """Comprehensive tests for clipboard tools module.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover clipboard operations, security validation, named clipboard management,
 history tracking, and integration with property-based testing.
 """

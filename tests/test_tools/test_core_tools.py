@@ -1,5 +1,8 @@
 """Comprehensive tests for core MCP tools functionality.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This module provides extensive testing for the core MCP tools that handle
 fundamental macro operations including execution, listing, and variable management.
 Tests cover success paths, error conditions, validation, and edge cases.

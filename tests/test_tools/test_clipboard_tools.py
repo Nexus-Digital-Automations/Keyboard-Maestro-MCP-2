@@ -1,5 +1,8 @@
 """Comprehensive Test Suite for Clipboard Tools - Following Proven MCP Tool Test Pattern.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This test suite validates the Clipboard Tools functionality using the systematic
 testing approach that achieved 100% success rate across 11 tool suites.
 

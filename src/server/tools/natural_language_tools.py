@@ -14,6 +14,7 @@ from typing import Annotated, Any
 
 from fastmcp import FastMCP
 from pydantic import Field
+
 from src.core.nlp_architecture import (
     ConversationId,
     ConversationMode,

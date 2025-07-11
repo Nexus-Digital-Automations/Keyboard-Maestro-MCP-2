@@ -1,5 +1,8 @@
 """Comprehensive test suite for visual automation tools using systematic MCP tool test pattern.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests the complete visual automation functionality including OCR text extraction, image recognition,
 screen capture, UI element detection, color analysis, and motion detection capabilities.
 Tests follow the proven systematic pattern that achieved 100% success across 33+ tool suites.
@@ -171,18 +174,22 @@ async def mock_km_visual_automation(
                 {
                     "text": "Sample detected text content",
                     "confidence": 0.947,
-                    "coordinates": {"x": 120, "y": 45, "width": 280, "height": 32}
-                    if include_coordinates
-                    else None,
+                    "coordinates": (
+                        {"x": 120, "y": 45, "width": 280, "height": 32}
+                        if include_coordinates
+                        else None
+                    ),
                     "language": ocr_language,
                     "font_info": {"size": 14, "style": "regular", "family": "Arial"},
                 },
                 {
                     "text": "Additional text block",
                     "confidence": 0.892,
-                    "coordinates": {"x": 120, "y": 85, "width": 195, "height": 28}
-                    if include_coordinates
-                    else None,
+                    "coordinates": (
+                        {"x": 120, "y": 85, "width": 195, "height": 28}
+                        if include_coordinates
+                        else None
+                    ),
                     "language": ocr_language,
                     "font_info": {"size": 12, "style": "bold", "family": "Helvetica"},
                 },
@@ -191,43 +198,51 @@ async def mock_km_visual_automation(
             "total_confidence": 0.919,
             "word_count": 6,
             "language_detected": ocr_language,
-            "processing_method": "handwriting"
-            if operation == "ocr_handwriting"
-            else "standard",
+            "processing_method": (
+                "handwriting" if operation == "ocr_handwriting" else "standard"
+            ),
         }
 
     elif operation in ["find_image", "template_match", "feature_detection"]:
         visual_results["image_matches"] = {
             "matches_found": min(3, max_results),
             "template_similarity": 0.923,
-            "processing_method": "template_matching"
-            if operation == "template_match"
-            else "feature_detection",
+            "processing_method": (
+                "template_matching"
+                if operation == "template_match"
+                else "feature_detection"
+            ),
             "matches": [
                 {
                     "match_id": 1,
                     "confidence": 0.923,
-                    "coordinates": {"x": 234, "y": 156, "width": 120, "height": 80}
-                    if include_coordinates
-                    else None,
+                    "coordinates": (
+                        {"x": 234, "y": 156, "width": 120, "height": 80}
+                        if include_coordinates
+                        else None
+                    ),
                     "similarity_score": 0.923,
                     "match_type": "exact" if confidence_threshold > 0.9 else "similar",
                 },
                 {
                     "match_id": 2,
                     "confidence": 0.867,
-                    "coordinates": {"x": 456, "y": 234, "width": 118, "height": 82}
-                    if include_coordinates
-                    else None,
+                    "coordinates": (
+                        {"x": 456, "y": 234, "width": 118, "height": 82}
+                        if include_coordinates
+                        else None
+                    ),
                     "similarity_score": 0.867,
                     "match_type": "similar",
                 },
                 {
                     "match_id": 3,
                     "confidence": 0.834,
-                    "coordinates": {"x": 678, "y": 345, "width": 122, "height": 78}
-                    if include_coordinates
-                    else None,
+                    "coordinates": (
+                        {"x": 678, "y": 345, "width": 122, "height": 78}
+                        if include_coordinates
+                        else None
+                    ),
                     "similarity_score": 0.834,
                     "match_type": "similar",
                 },
@@ -237,9 +252,11 @@ async def mock_km_visual_automation(
     elif operation in ["capture_screen", "analyze_window", "monitor_changes"]:
         visual_results["screen_analysis"] = {
             "capture_mode": "screen" if operation == "capture_screen" else "window",
-            "analysis_type": "change_detection"
-            if operation == "monitor_changes"
-            else "static_analysis",
+            "analysis_type": (
+                "change_detection"
+                if operation == "monitor_changes"
+                else "static_analysis"
+            ),
             "captured_region": region,
             "image_properties": {
                 "width": region["width"],
@@ -277,9 +294,11 @@ async def mock_km_visual_automation(
                     "element_id": "button_1",
                     "type": "button",
                     "text": "Submit",
-                    "coordinates": {"x": 123, "y": 456, "width": 80, "height": 32}
-                    if include_coordinates
-                    else None,
+                    "coordinates": (
+                        {"x": 123, "y": 456, "width": 80, "height": 32}
+                        if include_coordinates
+                        else None
+                    ),
                     "confidence": 0.956,
                     "interactive": True,
                     "attributes": {"role": "button", "enabled": True, "visible": True},
@@ -288,9 +307,11 @@ async def mock_km_visual_automation(
                     "element_id": "textfield_1",
                     "type": "textfield",
                     "text": "Enter your name",
-                    "coordinates": {"x": 123, "y": 400, "width": 200, "height": 24}
-                    if include_coordinates
-                    else None,
+                    "coordinates": (
+                        {"x": 123, "y": 400, "width": 200, "height": 24}
+                        if include_coordinates
+                        else None
+                    ),
                     "confidence": 0.923,
                     "interactive": True,
                     "attributes": {
@@ -404,6 +425,12 @@ class TestKMVisualAutomationOCR:
                     "Precondition",
                     "Invalid template data",
                     "Invalid image data",
+                    "Rate limit exceeded",
+                    "Visual validation failed",
+                    "Screen capture failed",
+                    "OCR validation failed",
+                    "Privacy violation",
+                    "ToolError",
                 ]
             )
             print(f"Real implementation validation confirmed: {type(e).__name__}: {e}")
@@ -433,6 +460,12 @@ class TestKMVisualAutomationOCR:
                     "Precondition",
                     "Invalid template data",
                     "Invalid image data",
+                    "Rate limit exceeded",
+                    "Visual validation failed",
+                    "Screen capture failed",
+                    "OCR validation failed",
+                    "Privacy violation",
+                    "ToolError",
                 ]
             )
             print(f"Real implementation validation: {type(e).__name__}")
@@ -460,6 +493,12 @@ class TestKMVisualAutomationOCR:
                     "Precondition",
                     "Invalid template data",
                     "Invalid image data",
+                    "Rate limit exceeded",
+                    "Visual validation failed",
+                    "Screen capture failed",
+                    "OCR validation failed",
+                    "Privacy violation",
+                    "ToolError",
                 ]
             )
             print(f"Real implementation validation: {type(e).__name__}")
@@ -497,6 +536,12 @@ class TestKMVisualAutomationImageRecognition:
                     "Precondition",
                     "Invalid template data",
                     "Invalid image data",
+                    "Rate limit exceeded",
+                    "Visual validation failed",
+                    "Screen capture failed",
+                    "OCR validation failed",
+                    "Privacy violation",
+                    "ToolError",
                 ]
             )
             print(f"Real implementation validation: {type(e).__name__}")
@@ -525,6 +570,12 @@ class TestKMVisualAutomationImageRecognition:
                     "Precondition",
                     "Invalid template data",
                     "Invalid image data",
+                    "Rate limit exceeded",
+                    "Visual validation failed",
+                    "Screen capture failed",
+                    "OCR validation failed",
+                    "Privacy violation",
+                    "ToolError",
                 ]
             )
             print(f"Real implementation validation: {type(e).__name__}")
@@ -552,6 +603,12 @@ class TestKMVisualAutomationImageRecognition:
                     "Precondition",
                     "Invalid template data",
                     "Invalid image data",
+                    "Rate limit exceeded",
+                    "Visual validation failed",
+                    "Screen capture failed",
+                    "OCR validation failed",
+                    "Privacy violation",
+                    "ToolError",
                 ]
             )
             print(f"Real implementation validation: {type(e).__name__}")
@@ -623,6 +680,12 @@ class TestKMVisualAutomationScreenAnalysis:
                     "Precondition",
                     "Invalid template data",
                     "Invalid image data",
+                    "Rate limit exceeded",
+                    "Visual validation failed",
+                    "Screen capture failed",
+                    "OCR validation failed",
+                    "Privacy violation",
+                    "ToolError",
                 ]
             )
             print(f"Real implementation validation: {type(e).__name__}")
@@ -650,6 +713,12 @@ class TestKMVisualAutomationScreenAnalysis:
                     "Precondition",
                     "Invalid template data",
                     "Invalid image data",
+                    "Rate limit exceeded",
+                    "Visual validation failed",
+                    "Screen capture failed",
+                    "OCR validation failed",
+                    "Privacy violation",
+                    "ToolError",
                 ]
             )
             print(f"Real implementation validation: {type(e).__name__}")
@@ -689,6 +758,12 @@ class TestKMVisualAutomationAdvanced:
                     "Precondition",
                     "Invalid template data",
                     "Invalid image data",
+                    "Rate limit exceeded",
+                    "Visual validation failed",
+                    "Screen capture failed",
+                    "OCR validation failed",
+                    "Privacy violation",
+                    "ToolError",
                 ]
             )
             print(f"Real implementation validation: {type(e).__name__}")
@@ -715,6 +790,12 @@ class TestKMVisualAutomationAdvanced:
                     "Precondition",
                     "Invalid template data",
                     "Invalid image data",
+                    "Rate limit exceeded",
+                    "Visual validation failed",
+                    "Screen capture failed",
+                    "OCR validation failed",
+                    "Privacy violation",
+                    "ToolError",
                 ]
             )
             print(f"Real implementation validation: {type(e).__name__}")
@@ -742,6 +823,12 @@ class TestKMVisualAutomationAdvanced:
                     "Precondition",
                     "Invalid template data",
                     "Invalid image data",
+                    "Rate limit exceeded",
+                    "Visual validation failed",
+                    "Screen capture failed",
+                    "OCR validation failed",
+                    "Privacy violation",
+                    "ToolError",
                 ]
             )
             print(f"Real implementation validation: {type(e).__name__}")

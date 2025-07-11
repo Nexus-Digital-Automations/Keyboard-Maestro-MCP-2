@@ -1,5 +1,7 @@
 """Comprehensive tests for computer vision tools module using systematic MCP tool test pattern.
 
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover advanced computer vision capabilities including object detection, scene analysis,
 image classification, OCR text extraction, and performance monitoring with property-based testing
 and comprehensive enterprise-grade validation using the proven pattern that achieved

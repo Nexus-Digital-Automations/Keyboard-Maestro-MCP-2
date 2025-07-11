@@ -1,5 +1,8 @@
 """Comprehensive tests for file operation tools module.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover file system operations, path security validation, transaction safety,
 error handling, and integration with property-based testing.
 """

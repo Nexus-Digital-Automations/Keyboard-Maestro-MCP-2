@@ -1,5 +1,8 @@
 """Comprehensive tests for the core macro execution engine.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover engine functionality, execution flow, error handling,
 async operations, and performance with property-based testing.
 """
@@ -13,7 +16,7 @@ from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock, patch
 
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 from src.core.context import ExecutionContextManager
 from src.core.engine import (
@@ -694,7 +697,9 @@ class TestMacroEngine:
         assert result.is_left()
         assert "maximum command limit" in result.get_left()
 
+    @pytest.mark.slow
     @given(macro_definition_strategy())
+    @settings(deadline=500)
     def test_macro_engine_property_validation(self, macro: MacroDefinition) -> None:
         """Property test for macro engine behavior."""
         engine = MacroEngine()

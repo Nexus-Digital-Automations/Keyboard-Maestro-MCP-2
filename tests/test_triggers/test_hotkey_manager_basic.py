@@ -1,5 +1,8 @@
 """Basic tests for Hotkey Manager module focusing on existing functionality.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover ModifierKey, ActivationMode, and basic validation patterns.
 """
 

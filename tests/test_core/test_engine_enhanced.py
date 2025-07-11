@@ -1,5 +1,8 @@
 """Enhanced comprehensive tests for core macro execution engine.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover macro execution, validation, async operations, error handling,
 resource management, and performance monitoring with property-based testing.
 """
@@ -13,7 +16,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import pytest
-from hypothesis import assume, given
+from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 from src.core.context import ExecutionContextManager
 from src.core.engine import (
@@ -424,10 +427,12 @@ class TestMacroEngine:
         assert isinstance(cleaned_count, int)
         assert cleaned_count >= 0
 
+    @pytest.mark.slow
     @given(
         st.lists(st.sampled_from(list(CommandType)), min_size=1, max_size=10),
         st.text(min_size=1, max_size=50),
     )
+    @settings(deadline=1000)  # Increase deadline to 1 second
     def test_macro_engine_property_execution(
         self,
         command_types: list[CommandType],

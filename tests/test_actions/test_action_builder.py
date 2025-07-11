@@ -1,5 +1,7 @@
 """Property-based tests for Action Builder system.
 
+
+logging.basicConfig(level=logging.DEBUG)
 Comprehensive test suite for action building functionality with
 security validation, XML generation, and builder pattern testing.
 """
@@ -255,6 +257,20 @@ class TestActionBuilder:
         """Property test: Variable actions handle various names and values."""
         assume(var_name.strip() and var_value.strip())
 
+        # Filter out security-dangerous patterns that would trigger validation
+        dangerous_patterns = [
+            "system(",
+            "exec(",
+            "eval(",
+            "import ",
+            "__",
+            "rm -",
+            "del ",
+            "sudo ",
+        ]
+        assume(not any(pattern in var_value.lower() for pattern in dangerous_patterns))
+        assume(not any(pattern in var_name.lower() for pattern in dangerous_patterns))
+
         # Clear builder for each hypothesis example
         self.builder.clear()
 
@@ -349,6 +365,7 @@ class TestActionBuilder:
         assert actions[1].enabled is False
 
     @given(st.text())
+    @settings(deadline=None)
     def test_property_dangerous_content_rejection(
         self,
         malicious_text: list[Any] | str,

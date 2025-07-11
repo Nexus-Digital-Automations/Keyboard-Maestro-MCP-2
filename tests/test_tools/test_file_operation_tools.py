@@ -1,5 +1,7 @@
 """Comprehensive Test Suite for File Operation Tools - Following Proven MCP Tool Test Pattern.
 
+
+logging.basicConfig(level=logging.DEBUG)
 This test suite validates the File Operation Tools functionality using the systematic
 testing approach that achieved 100% success rate across 9 tool suites.
 

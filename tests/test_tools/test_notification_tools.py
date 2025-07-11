@@ -1,5 +1,8 @@
 """Test suite for notification system implementation (TASK_17).
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Comprehensive property-based testing for notification display, user interaction,
 and multi-channel notification management with security validation.
 

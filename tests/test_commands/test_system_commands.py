@@ -1,5 +1,8 @@
 """Tests for system control commands.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests pause, sound, and volume control commands with security validation
 and proper contract enforcement.
 """
@@ -8,7 +11,7 @@ from __future__ import annotations
 
 import time
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from src.commands.system import PauseCommand, PlaySoundCommand, SetVolumeCommand
@@ -147,10 +150,18 @@ class TestPlaySoundCommand:
         assert cmd.get_repeat_count() == 5
         assert cmd.validate() is True
 
-    @patch("subprocess.run")
-    def test_sound_execution_system_sound(self, mock_subprocess: Any) -> None:
+    @patch("src.commands.system.secure_subprocess_run")
+    @patch("os.path.exists")
+    def test_sound_execution_system_sound(
+        self, mock_exists: Any, mock_secure_subprocess: Any
+    ) -> None:
         """Test sound command execution with system sound."""
-        mock_subprocess.return_value.returncode = 0
+        # Mock secure_subprocess_run to simulate successful sound playback
+        mock_secure_subprocess.return_value = (
+            None  # Function doesn't return anything on success
+        )
+        # Mock os.path.exists to return True for system sound files
+        mock_exists.return_value = True
 
         params = CommandParameters(
             {
@@ -242,11 +253,24 @@ class TestSetVolumeCommand:
         assert fade_duration is not None
         assert fade_duration.seconds == 10.0
 
-    @patch("subprocess.run")
-    def test_volume_execution(self, mock_subprocess: Any) -> None:
+    @patch("src.commands.system.secure_subprocess_run")
+    def test_volume_execution(self, mock_secure_subprocess: Any) -> None:
         """Test volume command execution."""
-        mock_subprocess.return_value.returncode = 0
-        mock_subprocess.return_value.stdout = "50"
+        # Mock secure_subprocess_run for both get_current_volume and set_volume_immediate
+        # First call is for getting current volume, second is for setting new volume
+        get_volume_result = Mock()
+        get_volume_result.returncode = 0
+        get_volume_result.stdout = "50"  # Current volume is 50%
+
+        set_volume_result = Mock()
+        set_volume_result.returncode = 0
+
+        # Side effect to return different results for different calls
+        mock_secure_subprocess.side_effect = [
+            get_volume_result,  # First call: get current volume
+            set_volume_result,  # Second call: set new volume
+            get_volume_result,  # Third call: verify new volume (still mocked as 50 for simplicity)
+        ]
 
         params = CommandParameters({"volume_level": 0.8})
         cmd = SetVolumeCommand(CommandId("test"), params)

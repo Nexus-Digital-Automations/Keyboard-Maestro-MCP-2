@@ -12,7 +12,9 @@ Type Safety: Complete integration with AI processing architecture.
 from __future__ import annotations
 
 import asyncio
+import html
 import json
+import re
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
@@ -200,6 +202,36 @@ class OpenAIClient(BaseProviderClient):
 
         return payload
 
+    def _sanitize_content(self, content: str) -> str:
+        """Sanitize user input to prevent injection attacks."""
+        if not isinstance(content, str):
+            return str(content)
+
+        # HTML escape to prevent script injection
+        content = html.escape(content)
+
+        # Remove common injection patterns
+        content = re.sub(
+            r"<script[^>]*>.*?</script>", "", content, flags=re.IGNORECASE | re.DOTALL
+        )
+        content = re.sub(r"javascript:", "", content, flags=re.IGNORECASE)
+        content = re.sub(r"on\w+\s*=", "", content, flags=re.IGNORECASE)
+
+        # Remove SQL injection patterns
+        content = re.sub(
+            r"(drop\s+table|delete\s+from|insert\s+into|update\s+\w+\s+set)",
+            "",
+            content,
+            flags=re.IGNORECASE,
+        )
+        content = re.sub(r"(--|\/\*|\*\/)", "", content)
+
+        # Remove template injection patterns
+        content = re.sub(r"\{\{.*?\}\}", "", content)
+        content = re.sub(r"\$\{.*?\}", "", content)
+
+        return content
+
     def _format_messages(self, request: AIRequest) -> list[dict[str, str]]:
         """Format input data as OpenAI messages."""
         input_data = request.input_data
@@ -209,27 +241,46 @@ class OpenAIClient(BaseProviderClient):
             system_prompt = self._get_system_prompt(request.operation)
             return [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": input_data},
+                {"role": "user", "content": self._sanitize_content(input_data)},
             ]
         if isinstance(input_data, list):
-            # Assume it's already in message format
-            return input_data
+            # Assume it's already in message format, but sanitize content
+            sanitized_messages = []
+            for msg in input_data:
+                if isinstance(msg, dict) and "content" in msg:
+                    sanitized_msg = msg.copy()
+                    sanitized_msg["content"] = self._sanitize_content(msg["content"])
+                    sanitized_messages.append(sanitized_msg)
+                else:
+                    sanitized_messages.append(msg)
+            return sanitized_messages
         if isinstance(input_data, dict):
             # Handle structured input
             if "messages" in input_data:
-                return input_data["messages"]
+                # Sanitize message content
+                sanitized_messages = []
+                for msg in input_data["messages"]:
+                    if isinstance(msg, dict) and "content" in msg:
+                        sanitized_msg = msg.copy()
+                        sanitized_msg["content"] = self._sanitize_content(
+                            msg["content"]
+                        )
+                        sanitized_messages.append(sanitized_msg)
+                    else:
+                        sanitized_messages.append(msg)
+                return sanitized_messages
             # Convert dict to user message
             content = json.dumps(input_data)
             system_prompt = self._get_system_prompt(request.operation)
             return [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": content},
+                {"role": "user", "content": self._sanitize_content(content)},
             ]
         # Fallback
         system_prompt = self._get_system_prompt(request.operation)
         return [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": str(input_data)},
+            {"role": "user", "content": self._sanitize_content(str(input_data))},
         ]
 
     def _get_system_prompt(self, operation: AIOperation) -> str:
@@ -271,7 +322,7 @@ class OpenAIClient(BaseProviderClient):
             response_data = await self._make_api_call(endpoint, headers, payload)
 
             # Parse response
-            return self._parse_response(response_data)
+            return self._parse_response(response_data, request)
 
         except Exception as e:
             return Either.left(
@@ -332,6 +383,7 @@ class OpenAIClient(BaseProviderClient):
     def _parse_response(
         self,
         response_data: dict[str, Any],
+        request: AIRequest,
     ) -> Either[ValidationError, AIResponse]:
         """Parse OpenAI response into standard format."""
         try:
@@ -341,9 +393,19 @@ class OpenAIClient(BaseProviderClient):
 
                 return Either.right(
                     AIResponse(
-                        content=embedding,
-                        token_count=TokenCount(usage.get("total_tokens", 0)),
-                        cost=self._calculate_cost(usage.get("prompt_tokens", 0), 0),
+                        request_id=request.request_id,
+                        operation=request.operation,
+                        result=embedding,
+                        model_used=response_data.get("model", self.model),
+                        tokens_used=TokenCount(usage.get("total_tokens", 0)),
+                        input_tokens=TokenCount(usage.get("prompt_tokens", 0)),
+                        output_tokens=TokenCount(
+                            0
+                        ),  # No completion tokens for embeddings
+                        processing_time=0.0,  # TODO: Add actual timing
+                        cost_estimate=self._calculate_cost(
+                            usage.get("prompt_tokens", 0), 0
+                        ),
                         metadata={
                             "model": response_data.get("model", self.model),
                             "usage": usage,
@@ -357,9 +419,15 @@ class OpenAIClient(BaseProviderClient):
 
             return Either.right(
                 AIResponse(
-                    content=content,
-                    token_count=TokenCount(usage.get("total_tokens", 0)),
-                    cost=self._calculate_cost(
+                    request_id=request.request_id,  # Use request's ID
+                    operation=request.operation,  # Use request's operation
+                    result=content,  # Store content as result
+                    model_used=response_data.get("model", self.model),
+                    tokens_used=TokenCount(usage.get("total_tokens", 0)),
+                    input_tokens=TokenCount(usage.get("prompt_tokens", 0)),
+                    output_tokens=TokenCount(usage.get("completion_tokens", 0)),
+                    processing_time=0.0,  # TODO: Add actual timing
+                    cost_estimate=self._calculate_cost(
                         usage.get("prompt_tokens", 0),
                         usage.get("completion_tokens", 0),
                     ),

@@ -1,5 +1,8 @@
 """Test suite for visual workflow composer.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Comprehensive testing for visual workflow creation, editing, and validation
 with property-based testing and contract verification.
 
@@ -34,7 +37,7 @@ class TestVisualComposer:
     """Test visual workflow composer functionality."""
 
     @pytest.fixture
-    def composer(self) -> bool:
+    def composer(self) -> VisualComposer:
         """Create fresh composer instance for each test."""
         return VisualComposer()
 
@@ -208,7 +211,7 @@ class TestVisualComposer:
             position=CanvasPosition(x=100, y=100),
             properties=ComponentProperties(title="Original Title"),
         )
-        component = comp_result.right()
+        component = comp_result.get_right()
 
         # Update component
         new_properties = ComponentProperties(
@@ -277,7 +280,7 @@ class TestVisualComposer:
         )
 
         assert remove_result.is_right()
-        assert remove_result.right()
+        assert remove_result.get_right()
 
         # Verify component and connections removed
         updated_workflow = composer.workflows[workflow.workflow_id]
@@ -583,7 +586,7 @@ class TestVisualComposerPerformance:
                 position=CanvasPosition(x=i * 50, y=100),
                 properties=ComponentProperties(title=f"Component {i}"),
             )
-            components.append(comp_result.right())
+            components.append(comp_result.get_right())
 
         # Connect components sequentially
         for i in range(len(components) - 1):

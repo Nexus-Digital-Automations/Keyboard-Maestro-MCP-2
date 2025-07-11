@@ -16,6 +16,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from fastmcp.exceptions import ToolError
+
 from src.core.either import Either
 from src.core.logging import get_logger
 from src.core.visual import (

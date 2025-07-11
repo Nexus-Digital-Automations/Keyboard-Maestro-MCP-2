@@ -195,10 +195,10 @@ class AppController:
     def launch_application(self, app_name: str) -> bool:
         """Launch application synchronously for test compatibility."""
         import asyncio
-        
+
         try:
             app_id = AppIdentifier(app_name=app_name)
-            
+
             # Try to get an existing event loop
             try:
                 loop = asyncio.get_event_loop()
@@ -208,11 +208,13 @@ class AppController:
                     return True
                 else:
                     # Loop exists but not running, use it
-                    result = loop.run_until_complete(self.launch_application_async(app_id))
+                    result = loop.run_until_complete(
+                        self.launch_application_async(app_id)
+                    )
             except RuntimeError:
                 # No event loop exists, create one
                 result = asyncio.run(self.launch_application_async(app_id))
-            
+
             return result.is_right()
         except Exception:
             return False
@@ -301,10 +303,10 @@ class AppController:
     def quit_application(self, app_name: str) -> bool:
         """Quit application synchronously for test compatibility."""
         import asyncio
-        
+
         try:
             app_id = AppIdentifier(app_name=app_name)
-            
+
             # Try to get an existing event loop
             try:
                 loop = asyncio.get_event_loop()
@@ -314,19 +316,21 @@ class AppController:
                     return True
                 else:
                     # Loop exists but not running, use it
-                    result = loop.run_until_complete(self.quit_application_async(app_id))
+                    result = loop.run_until_complete(
+                        self.quit_application_async(app_id)
+                    )
             except RuntimeError:
                 # No event loop exists, create one
                 result = asyncio.run(self.quit_application_async(app_id))
-            
+
             return result.is_right()
         except Exception:
             return False
-    
+
     def get_running_applications(self) -> list[str]:
         """Get list of running applications for test compatibility."""
         import asyncio
-        
+
         try:
             # Try to get an existing event loop
             try:
@@ -337,18 +341,20 @@ class AppController:
                     return []
                 else:
                     # Loop exists but not running, use it
-                    result = loop.run_until_complete(self.get_running_applications_async())
+                    result = loop.run_until_complete(
+                        self.get_running_applications_async()
+                    )
             except RuntimeError:
                 # No event loop exists, create one
                 result = asyncio.run(self.get_running_applications_async())
-            
+
             if result.is_right():
                 return result.get_right()
             else:
                 return []
         except Exception:
             return []
-    
+
     async def get_running_applications_async(self) -> Either[KMError, list[str]]:
         """Get list of running applications."""
         try:
@@ -356,7 +362,9 @@ class AppController:
             # For now, return a mock list for test compatibility
             return Either.right(["Finder", "Safari", "Mail", "Calendar"])
         except Exception as e:
-            return Either.left(KMError.execution_error(f"Failed to get running applications: {e!s}"))
+            return Either.left(
+                KMError.execution_error(f"Failed to get running applications: {e!s}")
+            )
 
     async def quit_application_async(
         self,

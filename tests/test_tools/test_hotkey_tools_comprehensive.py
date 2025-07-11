@@ -1,5 +1,8 @@
 """Comprehensive tests for hotkey tools module.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover hotkey trigger creation, conflict detection, validation,
 key combination management, and integration with property-based testing.
 """
@@ -101,7 +104,7 @@ def macro_id_strategy(draw: Callable[..., Any]) -> Mock:
                 min_size=1,
                 max_size=50,
                 alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _-",
-            ),
+            ).filter(lambda x: len(x.strip()) > 0),  # Ensure non-empty after stripping
         ),
         # UUID-like format
         "550e8400-e29b-41d4-a716-446655440000",

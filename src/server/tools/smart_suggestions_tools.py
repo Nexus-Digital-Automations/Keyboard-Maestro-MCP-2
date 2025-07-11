@@ -13,6 +13,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from fastmcp import FastMCP
+
 from src.core.either import Either
 from src.core.logging import get_logger
 from src.core.suggestion_system import (

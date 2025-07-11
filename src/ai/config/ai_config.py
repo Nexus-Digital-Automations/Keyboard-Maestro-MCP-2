@@ -345,13 +345,29 @@ class AIConfigManager:
 
             # Update with provided data
             if "default_provider" in data:
-                config.default_provider = data["default_provider"]
+                config.default_provider = self._sanitize_config_value(
+                    data["default_provider"]
+                )
             if "default_model" in data:
-                config.default_model = data["default_model"]
+                config.default_model = self._sanitize_config_value(
+                    data["default_model"]
+                )
             if "environment" in data:
-                config.environment = data["environment"]
+                config.environment = self._sanitize_config_value(data["environment"])
             if "debug_mode" in data:
-                config.debug_mode = data["debug_mode"]
+                # Convert to boolean properly
+                debug_value = self._sanitize_config_value(data["debug_mode"])
+                if isinstance(debug_value, str):
+                    config.debug_mode = debug_value.lower() in (
+                        "true",
+                        "1",
+                        "yes",
+                        "on",
+                    )
+                elif isinstance(debug_value, bool):
+                    config.debug_mode = debug_value
+                else:
+                    config.debug_mode = False
 
             # Load providers (simplified)
             if "providers" in data:
@@ -360,7 +376,9 @@ class AIConfigManager:
                     # Update with provider data
                     for key, value in provider_data.items():
                         if hasattr(provider_config, key) and key != "models":
-                            setattr(provider_config, key, value)
+                            # Sanitize all provider config values
+                            sanitized_value = self._sanitize_config_value(value)
+                            setattr(provider_config, key, sanitized_value)
                     config.providers[provider_name] = provider_config
 
             return Either.right(config)
@@ -433,23 +451,85 @@ class AIConfigManager:
         """Apply environment variable overrides."""
         # Check for common environment variables
         if os.getenv("AI_DEBUG_MODE"):
-            self.config.debug_mode = os.getenv("AI_DEBUG_MODE").lower() == "true"
+            debug_value = self._sanitize_config_value(os.getenv("AI_DEBUG_MODE"))
+            self.config.debug_mode = debug_value.lower() == "true"
 
         if os.getenv("AI_DEFAULT_PROVIDER"):
-            self.config.default_provider = os.getenv("AI_DEFAULT_PROVIDER")
+            self.config.default_provider = self._sanitize_config_value(
+                os.getenv("AI_DEFAULT_PROVIDER")
+            )
 
         if os.getenv("AI_DEFAULT_MODEL"):
-            self.config.default_model = os.getenv("AI_DEFAULT_MODEL")
+            self.config.default_model = self._sanitize_config_value(
+                os.getenv("AI_DEFAULT_MODEL")
+            )
 
         if os.getenv("AI_CACHE_ENABLED"):
-            self.config.cache.enabled = os.getenv("AI_CACHE_ENABLED").lower() == "true"
+            cache_value = self._sanitize_config_value(os.getenv("AI_CACHE_ENABLED"))
+            self.config.cache.enabled = cache_value.lower() == "true"
 
         if os.getenv("AI_COST_TRACKING"):
-            self.config.cost.enabled = os.getenv("AI_COST_TRACKING").lower() == "true"
+            cost_value = self._sanitize_config_value(os.getenv("AI_COST_TRACKING"))
+            self.config.cost.enabled = cost_value.lower() == "true"
 
         # Apply any custom overrides
         for key, value in self._environment_overrides.items():
-            self._set_nested_value(self.config, key, value)
+            self._set_nested_value(self.config, key, self._sanitize_config_value(value))
+
+    def _sanitize_config_value(self, value: Any) -> Any:
+        """Sanitize configuration value to prevent injection attacks."""
+        if not isinstance(value, str):
+            return value
+
+        # Remove null bytes
+        value = value.replace("\x00", "")
+
+        # Remove command injection patterns
+        dangerous_patterns = [
+            "$(",
+            "${",
+            "`",
+            ";",
+            "&&",
+            "||",
+            "|",
+            ">",
+            "<",
+            "rm ",
+            "del ",
+            "drop ",
+            "delete ",
+            "--",
+            "/*",
+            "*/",
+            "exec(",
+            "eval(",
+            "system(",
+            "__import__",
+        ]
+
+        for pattern in dangerous_patterns:
+            if pattern in value:
+                # Remove the dangerous pattern
+                value = value.replace(pattern, "")
+
+        # Remove SQL injection patterns
+        sql_patterns = [
+            "'; drop table",
+            "'; delete from",
+            "'; update ",
+            "'; insert into",
+        ]
+        for pattern in sql_patterns:
+            if pattern.lower() in value.lower():
+                value = value.split(pattern.lower())[0]
+
+        # Limit length to prevent buffer overflow
+        max_length = 1000
+        if len(value) > max_length:
+            value = value[:max_length]
+
+        return value.strip()
 
     def _set_nested_value(self, obj: Any, key: str, value: Any) -> None:
         """Set nested configuration value using dot notation."""

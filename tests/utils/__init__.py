@@ -1,5 +1,8 @@
 """Test utilities package for the Keyboard Maestro MCP testing framework.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This package provides comprehensive testing utilities including:
 - Hypothesis data generators for property-based testing
 - Mock objects for external dependencies

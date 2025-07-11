@@ -1,5 +1,8 @@
 """Comprehensive Test Suite for Engine Tools - Following Proven MCP Tool Test Pattern.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This test suite validates the Engine Tools functionality using the systematic
 testing approach that achieved 100% success rate across 17 tool suites.
 

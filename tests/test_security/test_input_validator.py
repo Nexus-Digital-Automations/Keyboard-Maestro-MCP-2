@@ -1,5 +1,8 @@
 """Comprehensive tests for the security input validator module.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests all validation methods, threat detection, sanitization, and edge cases.
 """
 

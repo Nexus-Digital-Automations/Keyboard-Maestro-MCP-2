@@ -15,6 +15,7 @@ from typing import Annotated, Any
 
 from fastmcp import FastMCP
 from pydantic import Field
+
 from src.core.computer_vision_architecture import (
     create_image_content,
 )

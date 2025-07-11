@@ -1,5 +1,8 @@
 """Tests for the design-by-contract system.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This module tests contract decorators, validation, and error handling
 for preconditions, postconditions, and invariants.
 """

@@ -170,6 +170,10 @@ class Duration:
     def from_milliseconds(cls, milliseconds: int) -> Duration:
         return cls(seconds=milliseconds / 1000.0)
 
+    @classmethod
+    def from_minutes(cls, minutes: float) -> Duration:
+        return cls(seconds=minutes * 60.0)
+
     def total_seconds(self) -> float:
         return self.seconds
 

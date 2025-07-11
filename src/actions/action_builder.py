@@ -140,7 +140,7 @@ class ActionConfiguration:
             r"system\s*\(",
             r"shell_exec\s*\(",
             r"passthru\s*\(",
-            r"`\s*[a-zA-Z_][a-zA-Z0-9_]*\s*`",  # Backtick execution (command patterns only)
+            r"`\s*[a-zA-Z_][a-zA-Z0-9_]*\s+[^`]*`",  # Backtick command execution with parameters
         ]
 
         value_lower = value.lower()
@@ -209,7 +209,7 @@ class ActionBuilder:
         """Create a single action configuration without adding to builder."""
         if parameters is None:
             parameters = {}
-            
+
         # Get action definition from registry
         action_def = self._registry.get_action_type(action_type)
         if not action_def:
@@ -220,16 +220,24 @@ class ActionBuilder:
                 constraint=f"Unknown action type: {action_type}. Available: {available}...",
             )
 
+        # Separate configuration kwargs from action parameter kwargs
+        config_kwargs = {"position", "enabled", "timeout", "abort_on_failure"}
+        action_params = {k: v for k, v in kwargs.items() if k not in config_kwargs}
+        config_params = {k: v for k, v in kwargs.items() if k in config_kwargs}
+
+        # Merge action parameters with explicit parameters dict
+        merged_parameters = {**parameters, **action_params}
+
         # Create configuration with validation
         config = ActionConfiguration(
             action_type=action_def,
-            parameters=parameters,
-            position=kwargs.get("position"),
-            enabled=kwargs.get("enabled", True),
-            timeout=kwargs.get("timeout"),
-            abort_on_failure=kwargs.get("abort_on_failure", False),
+            parameters=merged_parameters,
+            position=config_params.get("position"),
+            enabled=config_params.get("enabled", True),
+            timeout=config_params.get("timeout"),
+            abort_on_failure=config_params.get("abort_on_failure", False),
         )
-        
+
         return config
 
     def add_text_action(
@@ -292,15 +300,19 @@ class ActionBuilder:
         )
 
     @ensure(
-        lambda _self, result: result
-        and isinstance(result, str)
-        and len(result) > 0,
+        lambda _self, result: result and isinstance(result, dict) and "xml" in result,
     )
-    def build_xml(self) -> str:
+    def build_xml(self) -> dict[str, Any]:
         """Generate XML for all actions with security validation."""
         try:
             if not self.actions:
-                return "<!-- No actions to build -->"
+                return {
+                    "success": False,
+                    "xml": "",
+                    "action_count": 0,
+                    "validation_passed": True,
+                    "error": "No actions to build",
+                }
 
             # Create root element
             root = ET.Element("actions")
@@ -315,16 +327,33 @@ class ActionBuilder:
 
             # Validate XML security
             if not self._validate_xml_security(xml_string):
-                return "<!-- Error: Generated XML failed security validation -->"
+                return {
+                    "success": False,
+                    "xml": "",
+                    "action_count": len(self.actions),
+                    "validation_passed": False,
+                    "error": "XML failed security validation",
+                }
 
             # Pretty format XML
             formatted_xml = self._format_xml(xml_string)
 
-            return formatted_xml
+            return {
+                "success": True,
+                "xml": formatted_xml,
+                "action_count": len(self.actions),
+                "validation_passed": True,
+            }
 
         except Exception as e:
             logger.error(f"XML generation failed: {e!s}")
-            return f"<!-- Error: XML generation failed: {e!s} -->"
+            return {
+                "success": False,
+                "xml": "",
+                "action_count": len(self.actions) if hasattr(self, "actions") else 0,
+                "validation_passed": False,
+                "error": str(e),
+            }
 
     def _generate_action_xml(
         self,

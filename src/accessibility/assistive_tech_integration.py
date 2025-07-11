@@ -583,7 +583,8 @@ class AssistiveTechIntegrationManager:
         """Execute a specific assistive technology test scenario."""
         try:
             # Simulate test scenario execution
-            # In a real implementation, this would actually test the assistive technology
+            # In a real implementation, this would actually test the assistive
+            # technology
 
             if scenario.technology == AssistiveTechnology.SCREEN_READER:
                 return await self._test_screen_reader_scenario(
@@ -780,7 +781,8 @@ class AssistiveTechIntegrationManager:
             if scenario.technology == technology
         ]
 
-    # FIXME: Contract disabled - @require(lambda __self, command: command.confidence_threshold >= 0.0)
+    # FIXME: Contract disabled - @require(lambda __self, command:
+    # command.confidence_threshold >= 0.0)
     def add_voice_command(
         self,
         command: VoiceCommand,

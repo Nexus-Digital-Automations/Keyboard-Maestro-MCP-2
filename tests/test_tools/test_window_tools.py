@@ -1,5 +1,8 @@
 """Comprehensive Test Suite for Window Tools - Following Proven MCP Tool Test Pattern.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This test suite validates the Window Tools functionality using the systematic
 testing approach that achieved 100% success rate across 13 tool suites.
 

@@ -933,7 +933,7 @@ class WindowManager:
     def list_windows(self, app_identifier: str | None = None) -> list[WindowInfo]:
         """List all windows synchronously for test compatibility."""
         import asyncio
-        
+
         try:
             # Try to get an existing event loop
             loop = asyncio.get_event_loop()
@@ -943,18 +943,22 @@ class WindowManager:
                 return []
             else:
                 # Loop exists but not running, use it
-                result = loop.run_until_complete(self.list_windows_async(app_identifier))
+                result = loop.run_until_complete(
+                    self.list_windows_async(app_identifier)
+                )
         except RuntimeError:
             # No event loop exists, create one
             result = asyncio.run(self.list_windows_async(app_identifier))
-        
+
         if result.is_right():
             return result.get_right()
         else:
             # Return empty list on error for test compatibility
             return []
-    
-    async def list_windows_async(self, app_identifier: str | None = None) -> Either[KMError, list[WindowInfo]]:
+
+    async def list_windows_async(
+        self, app_identifier: str | None = None
+    ) -> Either[KMError, list[WindowInfo]]:
         """List all windows, optionally filtered by application identifier."""
         try:
             if app_identifier:
@@ -965,7 +969,7 @@ class WindowManager:
                         set appProcess to process "{self._escape_applescript_string(app_identifier)}"
                         set windowList to every window of appProcess
                         set windowData to {{}}
-                        
+
                         repeat with i from 1 to count of windowList
                             set currentWindow to item i of windowList
                             set windowBounds to get position of currentWindow
@@ -973,7 +977,7 @@ class WindowManager:
                             set windowTitle to get title of currentWindow
                             set end of windowData to ((item 1 of windowBounds) & "," & (item 2 of windowBounds) & "," & (item 1 of windowSize) & "," & (item 2 of windowSize) & "," & windowTitle)
                         end repeat
-                        
+
                         return windowData as string
                     on error errorMessage
                         return "ERROR: " & errorMessage
@@ -987,11 +991,11 @@ class WindowManager:
                     try
                         set allProcesses to every process whose background only is false
                         set allWindowData to {}
-                        
+
                         repeat with currentProcess in allProcesses
                             set processName to name of currentProcess
                             set windowList to every window of currentProcess
-                            
+
                             repeat with currentWindow in windowList
                                 set windowBounds to get position of currentWindow
                                 set windowSize to get size of currentWindow
@@ -999,41 +1003,41 @@ class WindowManager:
                                 set end of allWindowData to (processName & "|" & (item 1 of windowBounds) & "," & (item 2 of windowBounds) & "," & (item 1 of windowSize) & "," & (item 2 of windowSize) & "," & windowTitle)
                             end repeat
                         end repeat
-                        
+
                         return allWindowData as string
                     on error errorMessage
                         return "ERROR: " & errorMessage
                     end try
                 end tell
                 """
-            
+
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
                 return Either.left(result.get_left())
-                
+
             output = result.get_right().strip()
-            
+
             if output.startswith("ERROR:"):
                 return Either.left(
                     KMError.execution_error(f"Window listing failed: {output[6:]}")
                 )
-                
+
             if not output or output == "{}":
                 return Either.right([])
-                
+
             # Parse window data
             windows = []
-            
+
             # Handle AppleScript list format
             if output.startswith("{") and output.endswith("}"):
                 output = output[1:-1]  # Remove braces
-                
+
             if output:
                 window_entries = output.split(", ")
-                
+
                 for i, entry in enumerate(window_entries):
                     entry = entry.strip('"')  # Remove quotes
-                    
+
                     if app_identifier:
                         # Format: "x,y,width,height,title"
                         parts = entry.split(",")
@@ -1042,7 +1046,7 @@ class WindowManager:
                                 position = Position(int(parts[0]), int(parts[1]))
                                 size = Size(int(parts[2]), int(parts[3]))
                                 title = parts[4] if len(parts) > 4 else None
-                                
+
                                 window_info = WindowInfo(
                                     app_identifier=app_identifier,
                                     window_index=i,
@@ -1064,7 +1068,7 @@ class WindowManager:
                                     position = Position(int(parts[0]), int(parts[1]))
                                     size = Size(int(parts[2]), int(parts[3]))
                                     title = parts[4] if len(parts) > 4 else None
-                                    
+
                                     window_info = WindowInfo(
                                         app_identifier=app_part,
                                         window_index=0,  # Index within this listing
@@ -1076,10 +1080,8 @@ class WindowManager:
                                     windows.append(window_info)
                                 except (ValueError, IndexError):
                                     continue
-                
+
             return Either.right(windows)
-            
+
         except Exception as e:
-            return Either.left(
-                KMError.execution_error(f"Window listing failed: {e!s}")
-            )
+            return Either.left(KMError.execution_error(f"Window listing failed: {e!s}"))

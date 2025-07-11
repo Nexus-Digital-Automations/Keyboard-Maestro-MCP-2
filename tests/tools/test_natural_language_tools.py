@@ -1,5 +1,8 @@
 """Comprehensive test suite for natural language tools using systematic MCP tool test pattern.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests the complete natural language processing functionality including command processing,
 intent recognition, conversation management, and text generation capabilities.
 Tests follow the proven systematic pattern that achieved 100% success across 24+ tool suites.

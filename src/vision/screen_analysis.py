@@ -303,8 +303,8 @@ class PrivacyProtection:
                 logger.info(
                     f"Privacy filtering applied to region overlapping {window.title}",
                 )
-                # Return empty region to indicate content should be blocked
-                return ScreenRegion(0, 0, 0, 0)
+                # Return minimal region to indicate content should be blocked (1x1 pixel)
+                return ScreenRegion(0, 0, 1, 1)
 
         return region
 
@@ -348,7 +348,7 @@ class ScreenAnalysisEngine:
             f"Screen Analysis Engine initialized with privacy protection {'enabled' if enable_privacy_protection else 'disabled'}",
         )
 
-    @require(lambda region: region.width > 0 and region.height > 0)
+    @require(lambda _self, region: region.width > 0 and region.height > 0)
     @ensure(
         lambda result: result.is_right() or isinstance(result.get_left(), VisualError),
     )
@@ -405,7 +405,9 @@ class ScreenAnalysisEngine:
                     region,
                     windows,
                 )
-                if filtered_region.area == 0:
+                if (
+                    filtered_region.area == 1
+                ):  # Minimal 1x1 region indicates privacy filtering
                     return Either.left(
                         PrivacyError(
                             "Capture blocked due to privacy protection - region contains sensitive content",
@@ -786,21 +788,17 @@ class ScreenAnalysisEngine:
             logger.error(f"Color analysis failed: {e!s}")
             return Either.left(ProcessingError(f"Color analysis failed: {e!s}"))
 
-    def set_change_detection_baseline(self, region: ScreenRegion) -> None:
+    async def set_change_detection_baseline(self, region: ScreenRegion) -> None:
         """Set new baseline for change detection."""
-
-        async def _set_baseline() -> Any:
-            capture_result = await self.capture_screen_region(
-                region,
-                CaptureMode.PERFORMANCE,
+        capture_result = await self.capture_screen_region(
+            region,
+            CaptureMode.PERFORMANCE,
+        )
+        if capture_result.is_right():
+            self.change_detection_baseline = capture_result.get_right()
+            logger.info(
+                f"Change detection baseline set for region {region.to_dict()}",
             )
-            if capture_result.is_right():
-                self.change_detection_baseline = capture_result.get_right()
-                logger.info(
-                    f"Change detection baseline set for region {region.to_dict()}",
-                )
-
-        asyncio.create_task(_set_baseline())
 
     def get_analysis_stats(self) -> dict[str, Any]:
         """Get screen analysis statistics."""
@@ -828,10 +826,12 @@ async def capture_full_screen(
     display_id: int = 1,
     privacy_mode: bool = True,
 ) -> Either[VisualError, ScreenCapture]:
-    """Capture full screen with privacy protection."""
+    """Capture full screen with optional privacy protection."""
     # Simulate full screen dimensions
     full_screen_region = ScreenRegion(0, 0, 1920, 1080, display_id)
 
+    # When privacy_mode is False, disable privacy protection in the engine
+    # to ensure consistent behavior and avoid conflicts
     engine = ScreenAnalysisEngine(enable_privacy_protection=privacy_mode)
     return await engine.capture_screen_region(
         full_screen_region,
@@ -864,7 +864,7 @@ async def monitor_region_for_changes(
     changes = []
 
     # Set baseline
-    engine.set_change_detection_baseline(region)
+    await engine.set_change_detection_baseline(region)
     await asyncio.sleep(0.5)  # Wait for baseline to be set
 
     # Monitor for specified duration

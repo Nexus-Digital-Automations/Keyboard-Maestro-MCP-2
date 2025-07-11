@@ -1,5 +1,8 @@
 """Integration tests for real AI infrastructure implementations.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This module provides comprehensive testing for the real AI infrastructure including
 provider clients, cache systems, cost optimization, and end-to-end workflows
 with mocked API responses for reliable testing.
@@ -116,9 +119,9 @@ class TestProviderIntegration:
             assert result.is_right()
             response = result.value
             assert isinstance(response, AIResponse)
-            assert "test response" in response.content.lower()
-            assert response.token_count == 75
-            assert response.cost > 0
+            assert "test response" in str(response.result).lower()
+            assert response.tokens_used == 75
+            assert response.cost_estimate > 0
 
     @pytest.mark.asyncio
     async def test_provider_registry_fallback(
@@ -139,8 +142,12 @@ class TestProviderIntegration:
         provider_registry.fallback_order = ["failing", "openai"]  # Try failing first
 
         # Mock successful health check for OpenAI
+        from src.ai.providers.base_client import ProviderStatus
+
         openai_client = provider_registry.get_provider("openai")
-        openai_client.check_health = AsyncMock(return_value=MagicMock(status="healthy"))
+        openai_client.check_health = AsyncMock(
+            return_value=MagicMock(status=ProviderStatus.HEALTHY)
+        )
 
         # Test fallback works
         healthy_provider = await provider_registry.get_healthy_provider()
@@ -172,7 +179,14 @@ class TestCacheIntegration:
     @pytest.fixture
     def cache_manager(self) -> Any:
         """Create cache manager for testing."""
-        return IntelligentCacheManager()
+        manager = IntelligentCacheManager()
+        # Clear any existing cache data to ensure test isolation
+        manager.cache.l1_cache.clear()
+        if hasattr(manager.cache, "l2_cache"):
+            manager.cache.l2_cache.clear()
+        if hasattr(manager.cache, "l3_cache"):
+            manager.cache.l3_cache.clear()
+        return manager
 
     @pytest.mark.asyncio
     async def test_multi_level_cache_operations(self, cache_manager: Any) -> None:
@@ -180,6 +194,9 @@ class TestCacheIntegration:
         test_key = CacheKey("test_analysis_123")
         test_namespace = CacheNamespace("ai_operations")
         test_value = {"result": "analysis complete", "confidence": 0.95}
+
+        # Clear the specific key to ensure test isolation
+        cache_manager.cache.invalidate(test_key, test_namespace)
 
         # Test cache miss
         result = await cache_manager.cache.get(test_key, test_namespace)
@@ -489,12 +506,13 @@ class TestEndToEndWorkflows:
             "processing_mode": request.processing_mode.value,
         }
 
-        # Test cache miss scenario
-        cache_manager._generate_ai_cache_key(
+        # Clear cache to ensure test isolation
+        cache_key = cache_manager._generate_ai_cache_key(
             request.operation,
             request.input_data,
             processing_params,
         )
+        cache_manager.cache.invalidate(cache_key, cache_manager.ai_cache_namespace)
 
         cached_result = await cache_manager.get_ai_result(
             request.operation,

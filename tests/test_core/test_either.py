@@ -1,5 +1,8 @@
 """Comprehensive tests for Either monad implementation.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover all Either functionality including Left/Right creation,
 transformations, error handling, and property-based testing.
 """
@@ -281,6 +284,187 @@ class TestEitherConstructors:
 
         assert result.is_left() is True
         assert result.get_left() == "No value"
+
+
+class TestEitherAdditional:
+    """Additional tests for Either to achieve 100% coverage."""
+
+    def test_try_operation_success(self) -> None:
+        """Test try_operation with successful operation."""
+
+        def operation():
+            return 42
+
+        def error_handler(e: Exception) -> str:
+            return f"Error: {str(e)}"
+
+        result = Either.try_operation(operation, error_handler)
+
+        assert result.is_right() is True
+        assert result.get_right() == 42
+
+    def test_try_operation_failure(self) -> None:
+        """Test try_operation with failing operation."""
+
+        def operation():
+            raise ValueError("Test error")
+
+        def error_handler(e: Exception) -> str:
+            return f"Caught: {str(e)}"
+
+        result = Either.try_operation(operation, error_handler)
+
+        assert result.is_left() is True
+        assert result.get_left() == "Caught: Test error"
+
+    def test_success_alias(self) -> None:
+        """Test Either.success() alias for right()."""
+        result = Either.success(42)
+
+        assert result.is_right() is True
+        assert result.get_right() == 42
+
+    def test_error_alias(self) -> None:
+        """Test Either.error() alias for left()."""
+        result = Either.error("Error message")
+
+        assert result.is_left() is True
+        assert result.get_left() == "Error message"
+
+    def test_is_success_alias(self) -> None:
+        """Test is_success() alias for is_right()."""
+        success = Right(42)
+        failure = Left("error")
+
+        assert success.is_success() is True
+        assert failure.is_success() is False
+
+    def test_is_error_alias(self) -> None:
+        """Test is_error() alias for is_left()."""
+        success = Right(42)
+        failure = Left("error")
+
+        assert success.is_error() is False
+        assert failure.is_error() is True
+
+    def test_value_property(self) -> None:
+        """Test value property alias for get_right()."""
+        success = Right(42)
+
+        assert success.value == 42
+
+        # Test on Left should raise
+        failure = Left("error")
+        with pytest.raises(ValueError):
+            _ = failure.value
+
+    def test_error_value_property(self) -> None:
+        """Test error_value property alias for get_left()."""
+        failure = Left("error message")
+
+        assert failure.error_value == "error message"
+
+        # Test on Right should raise
+        success = Right(42)
+        with pytest.raises(ValueError):
+            _ = success.error_value
+
+
+class TestEitherSequenceTraverse:
+    """Test sequence and traverse utility functions."""
+
+    def test_sequence_all_right(self) -> None:
+        """Test sequence with all Right values."""
+        from src.core.either import sequence
+
+        eithers = [Right(1), Right(2), Right(3)]
+        result = sequence(eithers)
+
+        assert result.is_right() is True
+        assert result.get_right() == [1, 2, 3]
+
+    def test_sequence_with_left(self) -> None:
+        """Test sequence with a Left value."""
+        from src.core.either import sequence
+
+        eithers = [Right(1), Left("error"), Right(3)]
+        result = sequence(eithers)
+
+        assert result.is_left() is True
+        assert result.get_left() == "error"
+
+    def test_sequence_first_left_returned(self) -> None:
+        """Test that sequence returns the first Left encountered."""
+        from src.core.either import sequence
+
+        eithers = [Right(1), Left("first error"), Left("second error")]
+        result = sequence(eithers)
+
+        assert result.is_left() is True
+        assert result.get_left() == "first error"
+
+    def test_sequence_empty_list(self) -> None:
+        """Test sequence with empty list."""
+        from src.core.either import sequence
+
+        result = sequence([])
+
+        assert result.is_right() is True
+        assert result.get_right() == []
+
+    def test_traverse_all_success(self) -> None:
+        """Test traverse with all successful operations."""
+        from src.core.either import traverse
+
+        def validate(x: int) -> Either[str, int]:
+            if x > 0:
+                return Right(x * 2)
+            return Left(f"Invalid: {x}")
+
+        result = traverse([1, 2, 3], validate)
+
+        assert result.is_right() is True
+        assert result.get_right() == [2, 4, 6]
+
+    def test_traverse_with_failure(self) -> None:
+        """Test traverse with a failing operation."""
+        from src.core.either import traverse
+
+        def validate(x: int) -> Either[str, int]:
+            if x > 0:
+                return Right(x * 2)
+            return Left(f"Invalid: {x}")
+
+        result = traverse([1, -2, 3], validate)
+
+        assert result.is_left() is True
+        assert result.get_left() == "Invalid: -2"
+
+    def test_traverse_first_error_returned(self) -> None:
+        """Test that traverse returns the first error encountered."""
+        from src.core.either import traverse
+
+        def validate(x: int) -> Either[str, int]:
+            if x > 0:
+                return Right(x * 2)
+            return Left(f"Invalid: {x}")
+
+        result = traverse([1, -2, -3], validate)
+
+        assert result.is_left() is True
+        assert result.get_left() == "Invalid: -2"
+
+    def test_traverse_empty_list(self) -> None:
+        """Test traverse with empty list."""
+        from src.core.either import traverse
+
+        def validate(x: int) -> Either[str, int]:
+            return Right(x * 2)
+
+        result = traverse([], validate)
+
+        assert result.is_right() is True
+        assert result.get_right() == []
 
 
 class TestPropertyBasedEither:

@@ -1,5 +1,8 @@
 """Comprehensive Test Suite for Action Tools - Following Proven MCP Tool Test Pattern.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This test suite validates the Action Tools functionality using the systematic
 testing approach that achieved 100% success rate across 6 tool suites.
 

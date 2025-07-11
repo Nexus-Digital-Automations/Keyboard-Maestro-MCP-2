@@ -1,5 +1,8 @@
 """Comprehensive tests for core AI integration module.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover all AI processing functionality including model management,
 request/response handling, security validation, and cost optimization.
 Implements property-based testing for robust validation.

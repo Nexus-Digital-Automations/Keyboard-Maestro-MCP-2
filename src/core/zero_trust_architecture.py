@@ -211,6 +211,16 @@ class ComplianceError(ZeroTrustError):
 
 
 @dataclass(frozen=True)
+class ComplianceMonitoringError(ZeroTrustError):
+    """Error in compliance monitoring operations."""
+
+
+@dataclass(frozen=True)
+class ThreatDetectionError(ZeroTrustError):
+    """Error in threat detection operations."""
+
+
+@dataclass(frozen=True)
 class ValidationCriteria:
     """Criteria for trust validation."""
 

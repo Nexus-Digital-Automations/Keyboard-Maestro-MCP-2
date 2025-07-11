@@ -335,18 +335,21 @@ class SpeechRecognitionError(VoiceControlError):
 
     @classmethod
     def recognition_failed(cls, reason: str) -> SpeechRecognitionError:
-        return cls(f"Speech recognition failed: {reason}")
+        return cls("speech_recognition", f"Speech recognition failed: {reason}")
 
     @classmethod
     def audio_input_invalid(cls, details: str) -> SpeechRecognitionError:
-        return cls(f"Invalid audio input: {details}")
+        return cls("speech_recognition", f"Invalid audio input: {details}")
 
     @classmethod
     def engine_unavailable(
         cls,
         engine: SpeechRecognitionEngine,
     ) -> SpeechRecognitionError:
-        return cls(f"Speech recognition engine unavailable: {engine.value}")
+        return cls(
+            "speech_recognition",
+            f"Speech recognition engine unavailable: {engine.value}",
+        )
 
     @classmethod
     def confidence_too_low(
@@ -354,7 +357,10 @@ class SpeechRecognitionError(VoiceControlError):
         confidence: float,
         threshold: float,
     ) -> SpeechRecognitionError:
-        return cls(f"Recognition confidence too low: {confidence} < {threshold}")
+        return cls(
+            "speech_recognition",
+            f"Recognition confidence too low: {confidence} < {threshold}",
+        )
 
 
 class VoiceCommandError(VoiceControlError):
@@ -362,7 +368,7 @@ class VoiceCommandError(VoiceControlError):
 
     @classmethod
     def intent_not_recognized(cls, text: str) -> VoiceCommandError:
-        return cls(f"Could not recognize intent in: {text}")
+        return cls("voice_command", f"Could not recognize intent in: {text}")
 
     @classmethod
     def command_execution_failed(
@@ -370,15 +376,18 @@ class VoiceCommandError(VoiceControlError):
         command_id: str,
         reason: str,
     ) -> VoiceCommandError:
-        return cls(f"Command {command_id} execution failed: {reason}")
+        return cls("voice_command", f"Command {command_id} execution failed: {reason}")
 
     @classmethod
     def speaker_not_authorized(cls, speaker_id: str, command: str) -> VoiceCommandError:
-        return cls(f"Speaker {speaker_id} not authorized for command: {command}")
+        return cls(
+            "voice_command",
+            f"Speaker {speaker_id} not authorized for command: {command}",
+        )
 
     @classmethod
     def unsafe_command_detected(cls, command: str) -> VoiceCommandError:
-        return cls(f"Unsafe command detected: {command}")
+        return cls("voice_command", f"Unsafe command detected: {command}")
 
 
 class VoiceAuthenticationError(VoiceControlError):
@@ -386,11 +395,14 @@ class VoiceAuthenticationError(VoiceControlError):
 
     @classmethod
     def speaker_not_recognized(cls) -> VoiceAuthenticationError:
-        return cls("Speaker voice pattern not recognized")
+        return cls("voice_authentication", "Speaker voice pattern not recognized")
 
     @classmethod
     def authentication_required(cls, command_type: str) -> VoiceAuthenticationError:
-        return cls(f"Authentication required for command type: {command_type}")
+        return cls(
+            "voice_authentication",
+            f"Authentication required for command type: {command_type}",
+        )
 
 
 # Helper functions for voice architecture
@@ -424,36 +436,54 @@ def validate_audio_input_security(
             # Check for path traversal
             if ".." in str(audio_path):
                 return Either.error(
-                    VoiceControlError("Path traversal detected in audio file"),
+                    VoiceControlError(
+                        "audio_validation", "Path traversal detected in audio file"
+                    ),
                 )
 
             # Validate file extension
             allowed_extensions = {".wav", ".mp3", ".m4a", ".aiff", ".flac"}
             if audio_path.suffix.lower() not in allowed_extensions:
-                return Either.error(VoiceControlError("Unsupported audio file format"))
+                return Either.error(
+                    VoiceControlError(
+                        "audio_validation", "Unsupported audio file format"
+                    )
+                )
 
             # Check file size (max 50MB)
             if audio_path.exists() and audio_path.stat().st_size > 50 * 1024 * 1024:
-                return Either.error(VoiceControlError("Audio file too large"))
+                return Either.error(
+                    VoiceControlError("audio_validation", "Audio file too large")
+                )
 
         # Validate audio data if provided
         if audio_input.audio_data and len(audio_input.audio_data) > 50 * 1024 * 1024:
-            return Either.error(VoiceControlError("Audio data too large"))
+            return Either.error(
+                VoiceControlError("audio_validation", "Audio data too large")
+            )
 
         # Validate technical parameters
         if not (8000 <= audio_input.sample_rate <= 48000):
-            return Either.error(VoiceControlError("Invalid sample rate"))
+            return Either.error(
+                VoiceControlError("audio_validation", "Invalid sample rate")
+            )
 
         if not (1 <= audio_input.channels <= 2):
-            return Either.error(VoiceControlError("Invalid channel count"))
+            return Either.error(
+                VoiceControlError("audio_validation", "Invalid channel count")
+            )
 
         if not (8 <= audio_input.bit_depth <= 32):
-            return Either.error(VoiceControlError("Invalid bit depth"))
+            return Either.error(
+                VoiceControlError("audio_validation", "Invalid bit depth")
+            )
 
         return Either.success(None)
 
     except Exception as e:
-        return Either.error(VoiceControlError(f"Audio validation failed: {e!s}"))
+        return Either.error(
+            VoiceControlError("audio_validation", f"Audio validation failed: {e!s}")
+        )
 
 
 def validate_voice_command_security(
@@ -503,7 +533,9 @@ def validate_voice_command_security(
         return Either.success(None)
 
     except Exception as e:
-        return Either.error(VoiceControlError(f"Command validation failed: {e!s}"))
+        return Either.error(
+            VoiceControlError("command_validation", f"Command validation failed: {e!s}")
+        )
 
 
 def estimate_recognition_cost(

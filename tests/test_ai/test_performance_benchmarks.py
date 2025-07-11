@@ -1,5 +1,8 @@
 """Performance benchmark tests for AI infrastructure components.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This module provides comprehensive performance testing and validation for the AI
 infrastructure including cache operations, cost calculations, provider clients,
 and end-to-end workflows with enterprise-grade performance requirements.

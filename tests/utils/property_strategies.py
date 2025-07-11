@@ -1,5 +1,8 @@
 """Optimized property test strategies for enterprise testing.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This module provides efficient Hypothesis strategies that avoid excessive filtering
 and health check failures while maintaining comprehensive property-based testing.
 """

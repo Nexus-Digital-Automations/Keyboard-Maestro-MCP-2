@@ -50,10 +50,23 @@ class ActionCategory(Enum):
 
 
 @require(
-    lambda component_type, title, description="", default_properties=None, category=ComponentCategory.ACTIONS, subcategory=None, icon=None, color="#007AFF": len(title) > 0
+    lambda component_type,
+    title,
+    description="",
+    default_properties=None,
+    category=ComponentCategory.ACTIONS,
+    subcategory=None,
+    icon=None,
+    color="#007AFF": len(title) > 0
     and len(title) <= 100
+    and component_type is not None
+    and isinstance(description, str)
+    and (default_properties is None or isinstance(default_properties, dict))
+    and isinstance(category, ComponentCategory)
+    and (subcategory is None or isinstance(subcategory, str))
+    and (icon is None or isinstance(icon, str))
+    and isinstance(color, str)
 )
-@require(lambda component_type, title, description="", default_properties=None, category=ComponentCategory.ACTIONS, subcategory=None, icon=None, color="#007AFF": component_type is not None)
 def create_component_definition(
     component_type: ComponentType,
     title: str,

@@ -500,8 +500,8 @@ class ScenarioModelingError(PredictiveModelingError):
 # Utility Functions for Predictive Modeling
 
 
-    # FIXME: Contract disabled - @require(lambda data: len(data.timestamps) >= 10)
-    # FIXME: Contract disabled - @require(lambda horizon_days: 1 <= horizon_days <= 365)
+# FIXME: Contract disabled - @require(lambda data: len(data.timestamps) >= 10)
+# FIXME: Contract disabled - @require(lambda horizon_days: 1 <= horizon_days <= 365)
 def validate_time_series_data(
     data: TimeSeriesData,
     horizon_days: int,
@@ -574,8 +574,9 @@ def categorize_confidence_level(confidence_score: float) -> ConfidenceLevel:
         return ConfidenceLevel.MEDIUM
     return ConfidenceLevel.LOW
 
-
     # FIXME: Contract disabled - @require(lambda insight_data: len(insight_data) > 0)
+
+
 def prioritize_insights(insights: list[PredictiveInsight]) -> list[PredictiveInsight]:
     """Prioritize insights based on impact, confidence, and urgency."""
 

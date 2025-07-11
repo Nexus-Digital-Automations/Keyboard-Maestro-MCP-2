@@ -1,5 +1,8 @@
 """Example of how to integrate permissions into your MCP server.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This shows practical patterns for permission management in a real application.
 """
 
@@ -123,9 +126,9 @@ class MacroExecutionService:
             "success": result.status.value == "completed",
             "status": result.status.value,
             "execution_token": str(result.execution_token),
-            "total_duration": result.total_duration.total_seconds()
-            if result.total_duration
-            else None,
+            "total_duration": (
+                result.total_duration.total_seconds() if result.total_duration else None
+            ),
             "error_details": result.error_details,
             "user_type": user_type,
             "permissions_used": [p.value for p in context.permissions],

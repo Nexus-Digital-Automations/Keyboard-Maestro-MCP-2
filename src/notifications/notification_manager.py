@@ -464,14 +464,14 @@ class NotificationManager:
 
         # Basic safety patterns (prevent script injection)
         dangerous_patterns = [
-            r"<script[^>]*>",
+            r"<script",  # Script tags (any form)
             r"javascript:",
             r"on\w+\s*=",
             r"eval\s*\(",
             r"exec\s*\(",
             r"system\s*\(",
-            r"`[^`]*`",  # Command substitution
-            r"\$\([^)]*\)",  # Command substitution
+            r"`",  # Command substitution (any backtick)
+            r"\$\(",  # Command substitution
         ]
 
         for pattern in dangerous_patterns:

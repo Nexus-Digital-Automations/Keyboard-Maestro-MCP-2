@@ -1,5 +1,8 @@
 """Unit tests for control flow tools.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests the MCP tool interface for control flow functionality including parameter
 validation, security checks, and Keyboard Maestro integration.
 """

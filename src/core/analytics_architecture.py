@@ -13,6 +13,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from enum import Enum
 from typing import Any, NewType
 
@@ -98,12 +99,12 @@ class MetricDefinition:
     metric_id: MetricId
     name: str
     metric_type: MetricType
-    unit: str
+    scope: AnalyticsScope
     description: str
-    collection_frequency: timedelta
-    aggregation_methods: list[str]
-    privacy_level: PrivacyMode = PrivacyMode.COMPLIANT
-    retention_period: timedelta = field(default_factory=lambda: timedelta(days=365))
+    unit: str
+    category: str = ""
+    tags: list[str] = field(default_factory=list)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def __post_init__(self):
         if not self.metric_id or len(self.metric_id) == 0:
@@ -115,13 +116,6 @@ class MetricDefinition:
         if len(self.name) > 100:
             raise ValidationError("name", self.name, "must be 100 characters or less")
 
-        if self.collection_frequency.total_seconds() < 1:
-            raise ValidationError(
-                "collection_frequency",
-                self.collection_frequency,
-                "must be at least 1 second",
-            )
-
 
 @dataclass(frozen=True)
 class MetricValue:
@@ -130,59 +124,43 @@ class MetricValue:
     metric_id: MetricId
     value: float | int | str | bool
     timestamp: datetime
-    source_tool: str
     context: dict[str, Any] = field(default_factory=dict)
-    quality_score: float = 1.0  # 0.0 to 1.0
 
     def __post_init__(self):
         if not self.metric_id:
             raise ValidationError("metric_id", self.metric_id, "cannot be empty")
-
-        if not self.source_tool:
-            raise ValidationError("source_tool", self.source_tool, "cannot be empty")
-
-        if not (0.0 <= self.quality_score <= 1.0):
-            raise ValidationError(
-                "quality_score",
-                self.quality_score,
-                "must be between 0.0 and 1.0",
-            )
 
 
 @dataclass(frozen=True)
 class PerformanceMetrics:
     """Performance-specific metrics collection."""
 
-    tool_name: str
-    operation: str
-    execution_time_ms: float
-    memory_usage_mb: float
-    cpu_utilization: float
-    success_rate: float
-    error_count: int
-    throughput: float
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    response_time_ms: float
+    throughput_per_second: int
+    error_rate_percent: float
+    resource_usage_percent: float
+    measurement_time: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def __post_init__(self):
-        if self.execution_time_ms < 0:
+        if self.response_time_ms < 0:
             raise ValidationError(
-                "execution_time_ms",
-                self.execution_time_ms,
+                "response_time_ms",
+                self.response_time_ms,
                 "cannot be negative",
             )
 
-        if self.memory_usage_mb < 0:
+        if self.throughput_per_second < 0:
             raise ValidationError(
-                "memory_usage_mb",
-                self.memory_usage_mb,
+                "throughput_per_second",
+                self.throughput_per_second,
                 "cannot be negative",
             )
 
-        if not (0.0 <= self.success_rate <= 1.0):
+        if not (0.0 <= self.error_rate_percent <= 100.0):
             raise ValidationError(
-                "success_rate",
-                self.success_rate,
-                "must be between 0.0 and 1.0",
+                "error_rate_percent",
+                self.error_rate_percent,
+                "must be between 0.0 and 100.0",
             )
 
 
@@ -190,28 +168,23 @@ class PerformanceMetrics:
 class ROIMetrics:
     """Return on Investment metrics."""
 
-    tool_name: str
-    time_saved_hours: float
-    cost_saved_dollars: float
+    investment_amount: Decimal
+    savings_amount: Decimal
+    time_period_days: int
     efficiency_gain_percent: float
-    automation_accuracy: float
-    user_satisfaction: float
-    implementation_cost: float
-    maintenance_cost: float
-    calculated_roi: float
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    calculation_date: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def calculate_roi(self) -> float:
-        """Calculate ROI based on costs and benefits."""
-        total_benefits = self.cost_saved_dollars + (
-            self.time_saved_hours * 50
-        )  # $50/hour assumption
-        total_costs = self.implementation_cost + self.maintenance_cost
+        """Calculate ROI based on investment and savings."""
+        if self.investment_amount == Decimal("0.00"):
+            return 0.0
 
-        if total_costs == 0:
-            return float("inf") if total_benefits > 0 else 0.0
-
-        return (total_benefits - total_costs) / total_costs
+        roi_decimal = (
+            (self.savings_amount - self.investment_amount)
+            / self.investment_amount
+            * 100
+        )
+        return float(roi_decimal)
 
 
 @dataclass(frozen=True)
@@ -220,25 +193,17 @@ class MLInsight:
 
     insight_id: InsightId
     model_type: MLModelType
-    confidence: float
-    description: str
-    recommendation: str
-    supporting_data: dict[str, Any]
-    impact_score: float  # 0.0 to 1.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    confidence_score: float
+    prediction_data: dict[str, Any]
+    model_version: str
+    feature_importance: dict[str, float] = field(default_factory=dict)
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def __post_init__(self):
-        if not (0.0 <= self.confidence <= 1.0):
+        if not (0.0 <= self.confidence_score <= 1.0):
             raise ValidationError(
-                "confidence",
-                self.confidence,
-                "must be between 0.0 and 1.0",
-            )
-
-        if not (0.0 <= self.impact_score <= 1.0):
-            raise ValidationError(
-                "impact_score",
-                self.impact_score,
+                "confidence_score",
+                self.confidence_score,
                 "must be between 0.0 and 1.0",
             )
 

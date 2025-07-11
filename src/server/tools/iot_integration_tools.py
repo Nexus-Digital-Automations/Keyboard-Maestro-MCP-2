@@ -15,6 +15,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from pydantic import Field
+
 from src.core.either import Either
 from src.core.errors import ValidationError
 from src.core.iot_architecture import (

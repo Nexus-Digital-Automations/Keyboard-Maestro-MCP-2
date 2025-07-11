@@ -1,5 +1,8 @@
 """Comprehensive tests for window management tools module.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover window operations, multi-monitor support, coordinate validation,
 arrangement management, and integration with property-based testing.
 """

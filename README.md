@@ -1,6 +1,6 @@
 # Keyboard Maestro MCP Server
 
-An advanced macOS automation toolkit that integrates Keyboard Maestro with AI through the Model Context Protocol (MCP). This server provides 51+ production-ready tools for comprehensive macOS automation, featuring enterprise-grade security, functional programming patterns, and property-based testing.
+An advanced macOS automation toolkit that deeply integrates Keyboard Maestro with AI through the Model Context Protocol (MCP). This server provides a robust set of production-ready tools specifically designed for comprehensive macOS *computer automation*, enabling the MCP client to directly control the machine the server is running on. It features enterprise-grade security, functional programming patterns, and property-based testing.
 
 ## 🚀 Features
 
@@ -15,12 +15,12 @@ An advanced macOS automation toolkit that integrates Keyboard Maestro with AI th
 - **Functional Programming**: Immutable data structures and pure functions
 - **Design by Contract**: Pre/post conditions with comprehensive validation
 - **Type Safety**: Branded types with complete type system
-- **Property-Based Testing**: Hypothesis-driven behavior validation
+- **Property-Based Testing**: Focused hypothesis-driven behavior validation for core automation
 - **Security Boundaries**: Defense-in-depth with threat modeling
 
 ### MCP Integration
 - **FastMCP Framework**: Modern Python MCP server implementation
-- **10 Production Tools**: Comprehensive macro automation suite
+- **Core Production Tools**: A comprehensive suite for client-driven macro automation and direct computer control
 - **Modular Architecture**: Organized tools by functionality (core, advanced, sync, groups)
 - **Resource System**: Server status and help documentation
 - **Prompt Templates**: Intelligent macro creation assistance
@@ -63,13 +63,15 @@ An advanced macOS automation toolkit that integrates Keyboard Maestro with AI th
 4. **Test the installation**:
    ```bash
    # Run the server
-   uv run python -m src.main
+   uv run python -m src.main_dynamic
    
    # Or with script entry point
    km-mcp-server --help
    ```
 
 ## 🔧 Claude Desktop Configuration
+
+This configuration enables Claude Desktop to act as an MCP client, connecting to and controlling your local Keyboard Maestro MCP Server.
 
 Add the following configuration to your Claude Desktop `claude_desktop_config.json` file:
 
@@ -87,7 +89,7 @@ Add the following configuration to your Claude Desktop `claude_desktop_config.js
       "command": "/Users/YOUR_USERNAME/path/to/keyboard-maestro-mcp/.venv/bin/python",
       "args": [
         "-m",
-        "src.main"
+        "src.main_dynamic"
       ],
       "cwd": "/Users/YOUR_USERNAME/path/to/keyboard-maestro-mcp",
       "env": {
@@ -113,7 +115,7 @@ Add the following configuration to your Claude Desktop `claude_desktop_config.js
         "run",
         "python",
         "-m",
-        "src.main"
+        "src.main_dynamic"
       ],
       "env": {
         "KM_WEB_SERVER_PORT": "4490",
@@ -139,10 +141,12 @@ Add the following configuration to your Claude Desktop `claude_desktop_config.js
 
 ## 🛠️ Available Tools
 
+The server provides a comprehensive suite of MCP tools for computer automation through Keyboard Maestro. Below are the primary tools for macro execution and control:
+
 ### Core MCP Tools
 
 #### 1. `km_execute_macro`
-Execute Keyboard Maestro macros with comprehensive error handling.
+Execute Keyboard Maestro macros with comprehensive error handling, directly from the MCP client to control your macOS system.
 
 **Parameters**:
 - `identifier` (string): Macro name or UUID
@@ -161,7 +165,7 @@ result = await km_execute_macro(
 ```
 
 #### 2. `km_list_macros`
-List and filter Keyboard Maestro macros with search capabilities.
+List and filter Keyboard Maestro macros with search capabilities, enabling the MCP client to discover available automation options.
 
 **Parameters**:
 - `group_filter` (optional string): Filter by macro group
@@ -181,7 +185,7 @@ macros = await km_list_macros(
 ```
 
 #### 3. `km_variable_manager`
-Comprehensive variable management across all KM scopes.
+Comprehensive variable management across all KM scopes, allowing the MCP client to manage Keyboard Maestro variables for dynamic automation.
 
 **Parameters**:
 - `operation` (string): Operation type (get, set, delete, list)
@@ -255,7 +259,7 @@ List all macro groups with comprehensive statistics.
 ```
 keyboard-maestro-mcp/
 ├── src/
-│   ├── main.py              # Main server entry point (modular)
+│   ├── main_dynamic.py      # Main server entry point with dynamic registration
 │   ├── core/                # Core engine and types
 │   │   ├── engine.py        # Macro execution engine
 │   │   ├── types.py         # Branded types and protocols
@@ -270,25 +274,32 @@ keyboard-maestro-mcp/
 │   │   ├── smart_filtering.py # Advanced search capabilities
 │   │   ├── sync_manager.py  # Real-time synchronization
 │   │   └── file_monitor.py  # File system monitoring
-│   ├── server/              # Modular server components
+│   ├── server/              # **MCP Server components enabling client control**
 │   │   ├── initialization.py # Component initialization
 │   │   ├── resources.py     # MCP resources and prompts
 │   │   ├── utils.py         # Utility functions
-│   │   └── tools/           # Tool modules by functionality
-│   │       ├── core_tools.py    # Basic macro operations
-│   │       ├── advanced_tools.py # Enhanced search & metadata
-│   │       ├── sync_tools.py    # Real-time synchronization
-│   │       └── group_tools.py   # Macro group management
-│   ├── commands/            # Macro command library
+│   │   └── tools/           # Comprehensive tool suite for computer automation
+│   │       ├── core_tools.py         # Basic macro operations
+│   │       ├── app_control_tools.py  # Application control
+│   │       ├── window_tools.py       # Window management
+│   │       ├── clipboard_tools.py    # Clipboard operations
+│   │       ├── file_operation_tools.py # File system control
+│   │       ├── hotkey_tools.py       # Hotkey management
+│   │       ├── visual_automation_tools.py # Screen automation
+│   │       └── [30+ specialized automation tools]
+│   ├── commands/            # Macro command library for computer control
 │   │   ├── text.py          # Text manipulation commands
 │   │   ├── system.py        # System commands
 │   │   ├── application.py   # Application control
 │   │   └── validation.py    # Input validation
-│   └── tools/               # Legacy tool implementations
+│   ├── ai/                  # AI integration for intelligent automation
+│   ├── security/            # Security validation and threat detection
+│   ├── voice/               # Voice control integration
+│   ├── vision/              # Computer vision for screen automation
+│   └── workflow/            # Workflow composition and management
 ├── tests/                   # Comprehensive test suite
 │   ├── property_tests/      # Property-based testing
 │   ├── integration/         # Integration tests
-│   ├── performance/         # Performance benchmarks
 │   └── security/            # Security validation tests
 ├── development/             # Project management
 │   ├── TODO.md             # Task tracking
@@ -319,11 +330,10 @@ keyboard-maestro-mcp/
 ## 🧪 Testing
 
 ### Test Suite Overview
-- **150+ Test Cases**: Comprehensive coverage of all functionality
-- **Property-Based Testing**: Hypothesis-driven behavior validation
-- **Integration Testing**: End-to-end macro execution
-- **Performance Benchmarks**: Sub-10ms startup, sub-5ms validation
-- **Security Testing**: Injection prevention and boundary validation
+- **Comprehensive Test Cases**: Focused coverage of computer automation functionality
+- **Property-Based Testing**: Focused hypothesis-driven behavior validation for core automation features
+- **Integration Testing**: End-to-end macro execution and key integration points
+- **Security Testing**: Injection prevention and boundary validation for automation control
 
 ### Running Tests
 
@@ -334,9 +344,6 @@ uv run pytest --cov=src --cov-report=term-missing
 # Property-based testing
 uv run pytest tests/property_tests/ -v
 
-# Performance benchmarks
-uv run pytest tests/performance/ --benchmark-sort=mean
-
 # Security validation
 uv run pytest tests/security/ -v
 
@@ -346,13 +353,14 @@ uv run pytest tests/integration/ -v
 
 ### Test Categories
 
-- **Unit Tests**: Core engine, types, and command validation
-- **Integration Tests**: KM client integration and event system
-- **Property Tests**: System behavior across input ranges
-- **Security Tests**: Injection prevention and input validation
-- **Performance Tests**: Timing requirements and resource usage
+- **Unit Tests**: Core engine, types, and command validation for precise computer control
+- **Integration Tests**: KM client integration and event system, validating the end-to-end control flow
+- **Property Tests**: System behavior across input ranges for automation reliability
+- **Security Tests**: Injection prevention and input validation for safe computer control
 
 ## 🔒 Security
+
+Given its role in direct computer control, the Keyboard Maestro MCP Server incorporates a robust security framework.
 
 ### Security Features
 - **Multi-Level Validation**: 5 security levels from Minimal to Paranoid
@@ -375,14 +383,16 @@ uv run pytest tests/integration/ -v
 2. **Command Injection**: System command execution prevention
 3. **Path Traversal**: File system access restriction
 4. **SQL Injection**: Database query protection
-5. **Macro Abuse**: Malicious macro execution prevention
+5. **Macro Abuse**: Prevention of malicious macro execution that could compromise computer control
 
 ## 📊 Performance
+
+Optimized for responsive client-driven computer automation.
 
 ### Performance Targets
 - **Engine Startup**: <10ms
 - **Command Validation**: <5ms per command
-- **Macro Execution**: <100ms overhead
+- **Macro Execution**: <100ms overhead for typical automation commands executed via the MCP client
 - **Trigger Response**: <50ms
 - **Memory Usage**: <50MB peak
 
@@ -405,7 +415,7 @@ pre-commit install
 
 # Run code quality checks
 uv run ruff check src tests
-uv run black --check src tests
+uv run ruff format src tests
 uv run mypy src
 
 # Run all tests
@@ -414,7 +424,7 @@ uv run pytest
 
 ### Code Quality Standards
 - **Type Safety**: 100% type coverage with mypy
-- **Code Formatting**: Black with 88-character line length
+- **Code Formatting**: Ruff format with 88-character line length
 - **Linting**: Ruff with security-focused rules
 - **Documentation**: Comprehensive docstrings and contracts
 - **Test Coverage**: >95% coverage target
@@ -451,7 +461,7 @@ uv run pytest
 ### Known Limitations
 - **macOS Only**: Requires macOS and Keyboard Maestro
 - **KM Dependencies**: Full functionality requires Keyboard Maestro 10.0+
-- **Accessibility**: May require accessibility permissions for some operations
+- **Accessibility**: May require accessibility permissions for some operations to enable full computer control
 - **Performance**: Complex macros may exceed timing targets
 
 ## 📄 License

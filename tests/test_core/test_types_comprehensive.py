@@ -1,5 +1,8 @@
 """Comprehensive tests for core types and data structures.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover branded types, enums, dataclasses, protocols, and type safety
 with property-based testing and comprehensive validation.
 """
@@ -34,9 +37,13 @@ from src.core.types import (
     MoveConflictType,
     Permission,
     Priority,
+    Result,
     UserId,
+    ValidationResult,
     VariableName,
+    create_error_result,
     create_macro_id,
+    create_success_result,
 )
 
 
@@ -872,6 +879,146 @@ class TestExecutionResult:
         )
 
         assert not result_without_error.has_error_info()
+
+
+class TestResult:
+    """Test Result class functionality."""
+
+    def test_create_success_result(self) -> None:
+        """Test create_success_result factory function."""
+        result = create_success_result("test_value")
+
+        assert result.success is True
+        assert result.value == "test_value"
+        assert result.error_message is None
+        assert result.error_code is None
+        assert result.is_success() is True
+        assert result.is_error() is False
+        assert result.message == ""
+
+    def test_create_error_result(self) -> None:
+        """Test create_error_result factory function."""
+        result = create_error_result("Test error", "ERR_TEST")
+
+        assert result.success is False
+        assert result.value is None
+        assert result.error_message == "Test error"
+        assert result.error_code == "ERR_TEST"
+        assert result.is_success() is False
+        assert result.is_error() is True
+        assert result.message == "Test error"
+
+    def test_result_message_property(self) -> None:
+        """Test Result.message property for backwards compatibility."""
+        # With error message
+        result_with_message = Result(
+            success=False, error_message="Error occurred", error_code="ERR_001"
+        )
+        assert result_with_message.message == "Error occurred"
+
+        # Without error message
+        result_without_message = Result(
+            success=False, error_message=None, error_code="ERR_002"
+        )
+        assert result_without_message.message == ""
+
+
+class TestValidationResult:
+    """Test ValidationResult class functionality."""
+
+    def test_validation_result_success_factory(self) -> None:
+        """Test ValidationResult.success() factory method."""
+        result = ValidationResult.success(check_type="syntax", duration=0.5)
+
+        assert result.is_valid is True
+        assert result.errors == []
+        assert result.warnings == []
+        assert result.metadata["check_type"] == "syntax"
+        assert result.metadata["duration"] == 0.5
+
+    def test_validation_result_failure_factory(self) -> None:
+        """Test ValidationResult.failure() factory method."""
+        errors = ["Invalid syntax", "Missing parameter"]
+        result = ValidationResult.failure(errors, severity="high")
+
+        assert result.is_valid is False
+        assert result.errors == errors
+        assert result.warnings == []
+        assert result.metadata["severity"] == "high"
+
+    def test_validation_result_add_error(self) -> None:
+        """Test ValidationResult.add_error() method."""
+        # Start with successful result
+        original = ValidationResult.success()
+
+        # Add an error
+        with_error = original.add_error("First error")
+
+        # Original should be unchanged
+        assert original.is_valid is True
+        assert original.errors == []
+
+        # New result should have error
+        assert with_error.is_valid is False
+        assert with_error.errors == ["First error"]
+        assert with_error.warnings == original.warnings
+        assert with_error.metadata == original.metadata
+
+        # Add another error
+        with_two_errors = with_error.add_error("Second error")
+        assert with_two_errors.errors == ["First error", "Second error"]
+        assert with_error.errors == ["First error"]  # Original unchanged
+
+    def test_validation_result_with_warnings(self) -> None:
+        """Test ValidationResult with warnings."""
+        result = ValidationResult(
+            is_valid=True, warnings=["Deprecated API usage", "Unused parameter"]
+        )
+
+        assert result.is_valid is True
+        assert result.errors == []
+        assert len(result.warnings) == 2
+        assert "Deprecated API usage" in result.warnings
+
+
+class TestDurationAdditional:
+    """Additional tests for Duration class to achieve 100% coverage."""
+
+    def test_duration_from_minutes(self) -> None:
+        """Test Duration.from_minutes() class method."""
+        # Integer minutes
+        duration1 = Duration.from_minutes(5)
+        assert duration1.seconds == 300.0
+
+        # Float minutes
+        duration2 = Duration.from_minutes(1.5)
+        assert duration2.seconds == 90.0
+
+        # Zero minutes
+        duration3 = Duration.from_minutes(0)
+        assert duration3.seconds == 0.0
+
+
+class TestExecutionContextAdditional:
+    """Additional tests for ExecutionContext to achieve 100% coverage."""
+
+    async def test_execution_context_info_method(self) -> None:
+        """Test ExecutionContext.info() mock method."""
+        context = ExecutionContext.default()
+
+        # Should not raise exception
+        await context.info("Test info message")
+
+        # Method is a no-op, so nothing to assert
+
+    async def test_execution_context_error_method(self) -> None:
+        """Test ExecutionContext.error() mock method."""
+        context = ExecutionContext.default()
+
+        # Should not raise exception
+        await context.error("Test error message")
+
+        # Method is a no-op, so nothing to assert
 
 
 class TestMacroMoveResult:

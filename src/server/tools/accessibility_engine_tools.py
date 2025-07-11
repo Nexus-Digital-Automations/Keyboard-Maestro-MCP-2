@@ -12,12 +12,17 @@ from datetime import UTC, datetime
 from typing import Any
 
 from fastmcp import Context
+
 from src.accessibility.assistive_tech_integration import (
     AssistiveTechConfig,
     AssistiveTechIntegrationManager,
     VoiceCommand,
 )
-from src.accessibility.compliance_validator import ComplianceValidator, WCAGAnalyzer
+from src.accessibility.compliance_validator import (
+    ComplianceValidator,
+    ValidationContext,
+    WCAGAnalyzer,
+)
 from src.accessibility.report_generator import (
     AccessibilityReportGenerator,
     ReportConfiguration,
@@ -25,20 +30,17 @@ from src.accessibility.report_generator import (
 from src.accessibility.testing_framework import (
     AccessibilityTestRunner,
     AccessibilityTestSuite,
+    TestExecutionContext,
 )
 from src.core.accessibility_architecture import (
     AccessibilityStandard,
     AccessibilityTest,
     AssistiveTechnology,
     ConformanceLevel,
-    TestExecutionContext,
     TestType,
-    ValidationContext,
     WCAGVersion,
     create_accessibility_test_id,
 )
-
-from ..mcp_server import mcp
 
 # Global accessibility engine components
 compliance_validator = ComplianceValidator()
@@ -49,7 +51,6 @@ test_suite = AccessibilityTestSuite(test_runner)
 report_generator = AccessibilityReportGenerator()
 
 
-@mcp.tool()
 async def km_test_accessibility(
     test_scope: str,  # interface|automation|workflow|system
     target_id: str | None = None,
@@ -335,7 +336,6 @@ async def km_test_accessibility(
         }
 
 
-@mcp.tool()
 async def km_validate_wcag(
     validation_target: str,  # interface|content|automation
     target_id: str,
@@ -563,7 +563,6 @@ async def km_validate_wcag(
         }
 
 
-@mcp.tool()
 async def km_integrate_assistive_tech(
     integration_type: str,  # screen_reader|voice_control|switch_access|eye_tracking
     target_automation: str,
@@ -860,7 +859,6 @@ async def km_integrate_assistive_tech(
         }
 
 
-@mcp.tool()
 async def km_generate_accessibility_report(
     report_scope: str,  # system|automation|interface|compliance
     target_ids: list[str],

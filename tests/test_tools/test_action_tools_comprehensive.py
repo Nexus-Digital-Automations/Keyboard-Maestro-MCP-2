@@ -1,5 +1,8 @@
 """Comprehensive tests for action tools module.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover action building functionality, XML generation, security validation,
 parameter validation, and integration with Keyboard Maestro with property-based testing.
 """

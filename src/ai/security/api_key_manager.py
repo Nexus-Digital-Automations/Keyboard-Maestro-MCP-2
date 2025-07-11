@@ -324,6 +324,35 @@ class APIKeyManager:
 
         return expiring
 
+    def get_key_status(
+        self, provider: str, key_id: str | None = None
+    ) -> APIKeyMetadata | None:
+        """Get key status metadata for provider."""
+        cache_key = f"{provider}:{key_id or 'default'}"
+        return self._metadata_cache.get(cache_key)
+
+    def _get_raw_storage_data(
+        self, provider: str, key_id: str | None = None
+    ) -> dict[str, Any] | None:
+        """Get raw storage data for testing purposes only."""
+        if self.storage_backend == StorageBackend.FILE:
+            if key_id:
+                file_path = self.storage_path / f"{provider}_{key_id}.json"
+            else:
+                # Find the most recent active key for provider
+                files = list(self.storage_path.glob(f"{provider}_*.json"))
+                if not files:
+                    return None
+                file_path = max(files, key=lambda f: f.stat().st_mtime)
+
+            if file_path.exists():
+                try:
+                    with open(file_path) as f:
+                        return json.load(f)
+                except Exception:
+                    return None
+        return None
+
     def _generate_key_id(self, provider: str, key_value: str) -> str:
         """Generate unique key ID."""
         data = f"{provider}:{key_value}:{datetime.now(UTC).isoformat()}"
@@ -396,7 +425,7 @@ class APIKeyManager:
 
         # Save to file
         file_path = self.storage_path / f"{provider}_{metadata.key_id}.json"
-        with open(file_path, "w"):
+        with open(file_path, "w") as f:
             json.dump(
                 {
                     "encrypted_key": encrypted_obj.encrypted_key,
@@ -422,6 +451,7 @@ class APIKeyManager:
                         "tags": metadata.tags,
                     },
                 },
+                f,
                 indent=2,
             )
 
@@ -536,8 +566,77 @@ class APIKeyManager:
             metadata.last_used = datetime.now(UTC)
             metadata.usage_count += 1
 
+    def _check_malicious_patterns(
+        self, key_value: str
+    ) -> Either[ValidationError, bool]:
+        """Check for common injection and malicious patterns in API keys."""
+        # Check for SQL injection patterns
+        if any(
+            pattern in key_value.lower()
+            for pattern in ["drop table", "delete from", "--", "/*", "*/"]
+        ):
+            return Either.left(
+                ValidationError(
+                    "malicious_key_pattern",
+                    key_value,
+                    "Key contains suspicious SQL injection patterns",
+                ),
+            )
+
+        # Check for script injection
+        if any(
+            pattern in key_value.lower()
+            for pattern in ["<script", "</script>", "javascript:", "onerror="]
+        ):
+            return Either.left(
+                ValidationError(
+                    "malicious_key_pattern",
+                    key_value,
+                    "Key contains suspicious script injection patterns",
+                ),
+            )
+
+        # Check for command injection
+        if any(
+            char in key_value for char in ["$", "`", ";", "&", "|", "\n", "\r", "\x00"]
+        ):
+            return Either.left(
+                ValidationError(
+                    "malicious_key_pattern",
+                    key_value,
+                    "Key contains suspicious command injection characters",
+                ),
+            )
+
+        # Check for excessive length
+        if len(key_value) > 200:
+            return Either.left(
+                ValidationError(
+                    "malicious_key_pattern",
+                    key_value,
+                    "Key is suspiciously long",
+                ),
+            )
+
+        # Check for non-printable characters
+        if not key_value.isprintable():
+            return Either.left(
+                ValidationError(
+                    "malicious_key_pattern",
+                    key_value,
+                    "Key contains non-printable characters",
+                ),
+            )
+
+        return Either.right(True)
+
     def _validate_openai_key(self, key_value: str) -> Either[ValidationError, bool]:
         """Validate OpenAI API key format."""
+        # Check for malicious patterns first
+        malicious_validation = self._check_malicious_patterns(key_value)
+        if malicious_validation.is_left():
+            return malicious_validation
+
         if not key_value.startswith("sk-"):
             return Either.left(
                 ValidationError(
@@ -558,6 +657,11 @@ class APIKeyManager:
 
     def _validate_anthropic_key(self, key_value: str) -> Either[ValidationError, bool]:
         """Validate Anthropic API key format."""
+        # Check for malicious patterns first
+        malicious_validation = self._check_malicious_patterns(key_value)
+        if malicious_validation.is_left():
+            return malicious_validation
+
         if not key_value.startswith("sk-ant-"):
             return Either.left(
                 ValidationError(
@@ -570,6 +674,11 @@ class APIKeyManager:
 
     def _validate_google_key(self, key_value: str) -> Either[ValidationError, bool]:
         """Validate Google AI API key format."""
+        # Check for malicious patterns first
+        malicious_validation = self._check_malicious_patterns(key_value)
+        if malicious_validation.is_left():
+            return malicious_validation
+
         if len(key_value) < 20:
             return Either.left(
                 ValidationError(

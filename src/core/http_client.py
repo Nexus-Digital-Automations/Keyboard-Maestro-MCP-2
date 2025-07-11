@@ -20,6 +20,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 import httpx
+
 from src.core.constants import (
     ASCII_PRINTABLE_MIN,
     HTTP_CLIENT_ERROR_MIN,

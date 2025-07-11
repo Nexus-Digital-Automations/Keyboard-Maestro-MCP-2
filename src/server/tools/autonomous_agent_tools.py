@@ -21,7 +21,8 @@ from ...agents.agent_manager import AgentManager
 
 # from ...core.ai_integration import AIProcessor  # Not implemented yet
 from ...ai.model_manager import AIModelManager as ModelManager
-from ...audit.audit_system_manager import AuditEventType, AuditSystemManager
+
+# from ...audit.audit_system_manager import AuditEventType, AuditSystemManager  # Module deleted
 from ...core.autonomous_systems import (
     AgentGoal,
     AgentId,
@@ -42,7 +43,7 @@ logger = logging.getLogger(__name__)
 _agent_manager: AgentManager | None = None
 # _ai_processor: Optional[AIProcessor] = None  # Not implemented yet
 _model_manager: ModelManager | None = None
-_audit_manager: AuditSystemManager | None = None
+_audit_manager: Any | None = None  # AuditSystemManager deleted
 
 
 def get_agent_manager() -> AgentManager:
@@ -77,12 +78,13 @@ def get_model_manager() -> ModelManager | None:
     return _model_manager
 
 
-def get_audit_manager() -> AuditSystemManager | None:
+def get_audit_manager() -> Any | None:
     """Get audit manager if available."""
     global _audit_manager
     if _audit_manager is None:
         try:
-            _audit_manager = AuditSystemManager()
+            # _audit_manager = AuditSystemManager()  # Module deleted
+            pass
         except Exception as e:
             # Audit manager not available
             logger.debug(f"Audit manager initialization failed: {e!s}")
@@ -112,14 +114,15 @@ async def _log_agent_operation(
     if details:
         event_data.update(details)
 
-    await audit_manager.log_event(
-        event_type=AuditEventType.DATA_ACCESS
-        if operation == "monitor"
-        else AuditEventType.CONFIGURATION_CHANGE,
-        event_data=event_data,
-        user_id="autonomous_agent_system",
-        severity="INFO" if success else "WARNING",
-    )
+    # Audit logging disabled - module deleted
+    # await audit_manager.log_event(
+    #     event_type=AuditEventType.DATA_ACCESS
+    #     if operation == "monitor"
+    #     else AuditEventType.CONFIGURATION_CHANGE,
+    #     event_data=event_data,
+    #     user_id="autonomous_agent_system",
+    #     severity="INFO" if success else "WARNING",
+    # )
 
 
 async def km_autonomous_agent(

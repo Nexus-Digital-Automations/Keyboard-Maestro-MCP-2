@@ -541,13 +541,13 @@ class TokenProcessor:
         """Simple synchronous text processing for basic token replacement."""
         if not text or not text.strip():
             return text
-            
+
         if variables is None:
             variables = {}
-            
+
         # Simple token replacement for basic cases
         processed = text
-        
+
         # Replace some common system tokens synchronously
         for token_name, resolver in self.system_tokens.items():
             token_pattern = f"%{token_name}%"
@@ -556,14 +556,16 @@ class TokenProcessor:
                     value = resolver()
                     processed = processed.replace(token_pattern, value)
                 except Exception:
-                    processed = processed.replace(token_pattern, f"[{token_name} Error]")
-                    
+                    processed = processed.replace(
+                        token_pattern, f"[{token_name} Error]"
+                    )
+
         # Replace variable tokens
         for var_name, var_value in variables.items():
             var_pattern = f"%Variable%{var_name}%"
             if var_pattern in processed:
                 processed = processed.replace(var_pattern, var_value)
-                
+
         return processed
 
     async def process_tokens_in_text(

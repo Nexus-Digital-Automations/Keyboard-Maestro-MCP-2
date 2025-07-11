@@ -1,5 +1,8 @@
 """Comprehensive tests for app control tools module.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 Tests cover application lifecycle management, menu automation, state tracking,
 security validation, and integration with property-based testing.
 """

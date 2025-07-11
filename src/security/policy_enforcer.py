@@ -1613,14 +1613,14 @@ def create_security_policy(
     """Create a security policy with validation."""
     return SecurityPolicy(
         policy_id=create_policy_id(policy_name),
-        policy_name=policy_name,
-        policy_type=policy_type,
+        name=policy_name,
         description=f"Security policy for {policy_type.value}",
-        enforcement_mode=enforcement_mode,
-        scope=scope,
-        conditions=conditions,
-        actions=actions,
-        priority=priority,
+        rules=conditions,
+        enforcement_level=enforcement_mode.value,
+        validation_scope=scope,  # Use scope parameter
+        remediation_actions=actions,  # Use actions parameter
+        priority_level=priority,  # Use priority parameter
+        enabled=True,
     )
 
 

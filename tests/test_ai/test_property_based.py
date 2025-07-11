@@ -1,5 +1,8 @@
 """Property-based tests for AI infrastructure components.
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 This module provides advanced property-based testing using Hypothesis to validate
 cache behavior, cost calculations, and security properties across all possible
 input scenarios with comprehensive edge case coverage.
@@ -431,7 +434,9 @@ class TestSecurityProperties:
             assert result.is_left()
 
     @given(
-        provider=st.text(min_size=1, max_size=50),
+        provider=st.text(min_size=1, max_size=50).filter(
+            lambda x: x.isalnum() or x in ["_", "-"]
+        ),
         key=st.text(min_size=1, max_size=200),
         tags=st.dictionaries(
             st.text(min_size=1, max_size=20),
@@ -460,7 +465,13 @@ class TestSecurityProperties:
 
         # Property: Valid storage should succeed
         # Skip tests with null bytes or other invalid characters that would fail security validation
-        if len(provider_str) > 0 and len(key) > 0 and '\x00' not in key and '\x00' not in provider_str:
+        if (
+            len(provider_str) > 0
+            and len(key) > 0
+            and "\x00" not in key
+            and "\x00" not in provider_str
+            and provider_str.replace("_", "").replace("-", "").isalnum()
+        ):
             assert store_result.is_right()
 
             # Property: Stored key should be retrievable
@@ -525,7 +536,7 @@ class TestProviderClientProperties:
 
         # Should be within reasonable bounds - special characters can create more tokens
         # due to encoding, so we need to be more flexible
-        max_expected_tokens = max(char_count, len(input_text.encode('utf-8')))
+        max_expected_tokens = max(char_count, len(input_text.encode("utf-8")))
         assert token_count <= max_expected_tokens  # Account for encoding differences
 
         # More realistic minimum: some very short text might have fewer tokens
@@ -585,6 +596,7 @@ TestCacheStateMachine.settings = settings(max_examples=50, stateful_step_count=2
 class TestPerformanceProperties:
     """Property-based tests for performance characteristics."""
 
+    @pytest.mark.slow
     @given(operation_count=st.integers(min_value=10, max_value=1000))
     def test_cache_operation_performance_scaling(self, operation_count: int) -> None:
         """Property: Cache operations should scale linearly."""
@@ -614,6 +626,7 @@ class TestPerformanceProperties:
             f"Operations took {total_time}s for {operation_count} ops"
         )
 
+    @pytest.mark.slow
     @given(record_count=st.integers(min_value=5, max_value=100))
     def test_cost_tracking_performance_scaling(self, record_count: int) -> None:
         """Property: Cost tracking should handle increasing record counts efficiently."""

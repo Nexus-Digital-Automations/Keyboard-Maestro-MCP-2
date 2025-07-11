@@ -18,9 +18,9 @@ from typing import Any
 from src.core.contracts import ensure, require
 from src.core.either import Either
 from src.core.zero_trust_architecture import (
+    ComplianceError,
     ComplianceFramework,
     ComplianceId,
-    ComplianceMonitoringError,
     create_compliance_id,
 )
 
@@ -276,7 +276,7 @@ class ComplianceMonitor:
         assessment_level: ComplianceLevel = ComplianceLevel.STANDARD,
         assessor: str = "automated_system",
         include_evidence: bool = True,
-    ) -> Either[ComplianceMonitoringError, ComplianceReport]:
+    ) -> Either[ComplianceError, ComplianceReport]:
         """Perform comprehensive compliance assessment for specified framework.
 
         Args:
@@ -296,7 +296,7 @@ class ComplianceMonitor:
 
             if not framework_controls:
                 return Either.error(
-                    ComplianceMonitoringError(
+                    ComplianceError(
                         f"No controls defined for framework: {framework.value}",
                     ),
                 )
@@ -414,7 +414,7 @@ class ComplianceMonitor:
 
         except Exception as e:
             return Either.error(
-                ComplianceMonitoringError(f"Compliance assessment failed: {e!s}"),
+                ComplianceError(f"Compliance assessment failed: {e!s}"),
             )
 
     async def _assess_control(
@@ -424,7 +424,7 @@ class ComplianceMonitor:
         assessment_level: ComplianceLevel,
         assessor: str,
         include_evidence: bool,
-    ) -> Either[ComplianceMonitoringError, ComplianceAssessment]:
+    ) -> Either[ComplianceError, ComplianceAssessment]:
         """Assess individual compliance control."""
         try:
             # Perform automated testing based on control category
@@ -486,7 +486,7 @@ class ComplianceMonitor:
 
         except Exception as e:
             return Either.error(
-                ComplianceMonitoringError(f"Control assessment failed: {e!s}"),
+                ComplianceError(f"Control assessment failed: {e!s}"),
             )
 
     async def _perform_control_testing(
