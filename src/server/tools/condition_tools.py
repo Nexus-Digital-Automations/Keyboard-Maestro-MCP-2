@@ -9,13 +9,6 @@ import re
 from typing import Any
 
 from src.core.either import Either
-
-try:
-    from fastmcp import Server
-except ImportError:
-    # Fallback if Server is not available
-    Server = None
-
 from src.core.conditions import (
     ComparisonOperator,
     ConditionBuilder,
@@ -315,9 +308,3 @@ def _perform_security_validation(
                 return Either.left(path_result.get_left())
 
     return Either.right(None)
-
-
-# Register the tool with the MCP server
-def register_condition_tools(server: Server) -> None:
-    """Register condition-related tools with the MCP server."""
-    server.add_tool(km_add_condition)

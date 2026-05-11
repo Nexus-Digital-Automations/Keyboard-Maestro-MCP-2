@@ -157,7 +157,7 @@ async def km_clipboard_manager(
 
         # Get current clipboard content
         if operation == "get":
-            result = await clipboard_manager.get_clipboard(include_sensitive)
+            result = await clipboard_manager.get_clipboard_async(include_sensitive)
             if result.is_left():
                 error = result.get_left()
                 return {
@@ -329,7 +329,7 @@ async def km_clipboard_manager(
             # Create or update named clipboard
             if content is not None:
                 # Get current clipboard content to create ClipboardContent object
-                current_result = await clipboard_manager.get_clipboard(
+                current_result = await clipboard_manager.get_clipboard_async(
                     True,
                 )  # Include sensitive for internal operations
                 if current_result.is_left():
