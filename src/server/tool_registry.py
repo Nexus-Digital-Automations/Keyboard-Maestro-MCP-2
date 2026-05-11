@@ -206,23 +206,13 @@ class ToolDiscovery:
             return None
 
     def _determine_category(self, module_name: str) -> str:
-        """Determine tool category from module name."""
+        """Map a tool module name to its category bucket."""
         if "core" in module_name:
             return "core"
-        if "advanced" in module_name:
-            return "advanced"
-        if "sync" in module_name:
-            return "synchronization"
-        if "clipboard" in module_name:
-            return "clipboard"
-        if "file" in module_name:
-            return "file_operations"
         if "window" in module_name:
             return "window_management"
         if "notification" in module_name:
             return "notifications"
-        if "calculator" in module_name:
-            return "calculations"
         if "token" in module_name:
             return "token_processing"
         if "condition" in module_name:
@@ -233,20 +223,8 @@ class ToolDiscovery:
             return "triggers"
         if "audit" in module_name:
             return "security_audit"
-        if "analytics" in module_name:
-            return "analytics"
-        if "workflow" in module_name:
-            return "workflow_intelligence"
-        if "iot" in module_name:
-            return "iot_integration"
-        if "voice" in module_name:
-            return "voice_control"
-        if "quantum" in module_name:
-            return "quantum_ready"
-        if "ai" in module_name or "processing" in module_name:
-            return "ai_intelligence"
-        if "plugin" in module_name:
-            return "plugin_ecosystem"
+        if "advanced" in module_name:
+            return "advanced"
         return "general"
 
 
