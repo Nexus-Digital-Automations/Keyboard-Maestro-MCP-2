@@ -253,7 +253,7 @@ class WindowManager:
             screens = await self._get_screen_info()
             if not screens:
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return Either.left(KMError.system_error("No screens detected"))
+                return Either.left(KMError.execution_error("No screens detected"))
 
             target_screen = self._select_target_screen(screens, screen_target)
             if not target_screen:
@@ -275,7 +275,7 @@ class WindowManager:
             current_info = await self._get_window_info(app_identifier, window_index)
             if current_info.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return current_info
+                return Either.left(current_info.get_left())
 
             # Phase 4: Execute window movement via AppleScript
             move_result = await self._move_window_applescript(
@@ -285,7 +285,7 @@ class WindowManager:
             )
             if move_result.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return move_result
+                return Either.left(move_result.get_left())
 
             # Phase 5: Verify movement and get updated window info
             updated_info = await self._get_window_info(app_identifier, window_index)
@@ -301,7 +301,7 @@ class WindowManager:
                     ),
                 )
             return Either.left(
-                KMError.system_error("Failed to verify window movement"),
+                KMError.execution_error("Failed to verify window movement"),
             )
 
         except Exception as e:
@@ -335,7 +335,7 @@ class WindowManager:
             current_info = await self._get_window_info(app_identifier, window_index)
             if current_info.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return current_info
+                return Either.left(current_info.get_left())
 
             # Phase 3: Execute window resize via AppleScript
             resize_result = await self._resize_window_applescript(
@@ -345,7 +345,7 @@ class WindowManager:
             )
             if resize_result.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return resize_result
+                return Either.left(resize_result.get_left())
 
             # Phase 4: Get updated window information
             updated_info = await self._get_window_info(app_identifier, window_index)
@@ -361,7 +361,7 @@ class WindowManager:
                     ),
                 )
             return Either.left(
-                KMError.system_error("Failed to verify window resize"),
+                KMError.execution_error("Failed to verify window resize"),
             )
 
         except Exception as e:
@@ -387,7 +387,7 @@ class WindowManager:
             current_info = await self._get_window_info(app_identifier, window_index)
             if current_info.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return current_info
+                return Either.left(current_info.get_left())
 
             # Execute state change via AppleScript
             state_result = await self._set_window_state_applescript(
@@ -397,7 +397,7 @@ class WindowManager:
             )
             if state_result.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return state_result
+                return Either.left(state_result.get_left())
 
             # Get updated window information
             updated_info = await self._get_window_info(app_identifier, window_index)
@@ -413,7 +413,7 @@ class WindowManager:
                     ),
                 )
             return Either.left(
-                KMError.system_error("Failed to verify window state change"),
+                KMError.execution_error("Failed to verify window state change"),
             )
 
         except Exception as e:
@@ -440,7 +440,7 @@ class WindowManager:
             screens = await self._get_screen_info()
             if not screens:
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return Either.left(KMError.system_error("No screens detected"))
+                return Either.left(KMError.execution_error("No screens detected"))
 
             target_screen = self._select_target_screen(screens, screen_target)
             if not target_screen:
@@ -460,13 +460,19 @@ class WindowManager:
                 screen_target,
             )
             if move_result.is_left():
-                return move_result
+                return Either.left(move_result.get_left())
 
             resize_result = await self.resize_window(app_identifier, size, window_index)
             operation_time = Duration.from_seconds(time.time() - start_time)
 
             if resize_result.is_right():
                 window_info = resize_result.get_right().window_info
+                if window_info is None:
+                    return Either.left(
+                        KMError.execution_error(
+                            "Window info missing after arrangement",
+                        ),
+                    )
                 return Either.right(
                     WindowOperationResult.success_result(
                         window_info,
@@ -474,7 +480,7 @@ class WindowManager:
                         f"Applied {arrangement.value} arrangement",
                     ),
                 )
-            return resize_result
+            return Either.left(resize_result.get_left())
 
         except Exception as e:
             operation_time = Duration.from_seconds(time.time() - start_time)
@@ -728,7 +734,7 @@ class WindowManager:
 
                 return Either.right(window_info)
             return Either.left(
-                KMError.parsing_error("Invalid window information format"),
+                KMError.validation_error("Invalid window information format"),
             )
 
         except Exception as e:
@@ -761,7 +767,7 @@ class WindowManager:
 
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -801,7 +807,7 @@ class WindowManager:
 
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -858,7 +864,7 @@ class WindowManager:
 
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -906,11 +912,7 @@ class WindowManager:
             return Either.right(stdout.decode())
 
         except asyncio.TimeoutError:
-            return Either.left(
-                KMError.timeout_error(
-                    f"AppleScript execution timeout ({timeout.total_seconds()}s)",
-                ),
-            )
+            return Either.left(KMError.timeout_error(timeout))
         except Exception as e:
             return Either.left(
                 KMError.execution_error(f"AppleScript execution error: {e!s}"),
@@ -918,9 +920,6 @@ class WindowManager:
 
     def _escape_applescript_string(self, value: str) -> str:
         """Escape string for safe AppleScript inclusion."""
-        if not isinstance(value, str):
-            value = str(value)
-
         # Security: Escape quotes and special characters
         escaped = value.replace("\\", "\\\\")  # Escape backslashes first
         escaped = escaped.replace('"', '\\"')  # Escape quotes

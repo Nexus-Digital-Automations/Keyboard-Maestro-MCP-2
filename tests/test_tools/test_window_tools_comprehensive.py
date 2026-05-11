@@ -36,7 +36,7 @@ def window_operation_strategy(draw: Callable[..., Any]) -> str:
         "get_info",
         "get_screens",
     ]
-    return cast(str, draw(st.sampled_from(operations)))
+    return cast("str", draw(st.sampled_from(operations)))
 
 
 @st.composite
@@ -63,7 +63,7 @@ def window_identifier_strategy(draw: Callable[..., Any]) -> str:
             ),
         ),
     ]
-    return cast(str, draw(st.sampled_from(identifiers)))
+    return cast("str", draw(st.sampled_from(identifiers)))
 
 
 @st.composite
@@ -92,7 +92,7 @@ def size_strategy(draw: Callable[..., Any]) -> dict[str, int]:
 def screen_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid screen identifiers."""
     screens = ["main", "external", "0", "1", "2"]
-    return cast(str, draw(st.sampled_from(screens)))
+    return cast("str", draw(st.sampled_from(screens)))
 
 
 @st.composite
@@ -110,20 +110,20 @@ def arrangement_strategy(draw: Callable[..., Any]) -> str:
         "center",
         "maximize",
     ]
-    return cast(str, draw(st.sampled_from(arrangements)))
+    return cast("str", draw(st.sampled_from(arrangements)))
 
 
 @st.composite
 def window_state_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid window states."""
     states = ["normal", "minimized", "maximized", "fullscreen"]
-    return cast(str, draw(st.sampled_from(states)))
+    return cast("str", draw(st.sampled_from(states)))
 
 
 @st.composite
 def window_index_strategy(draw: Callable[..., Any]) -> int:
     """Generate valid window indices."""
-    return cast(int, draw(st.integers(min_value=0, max_value=20)))
+    return cast("int", draw(st.integers(min_value=0, max_value=20)))
 
 
 @st.composite
@@ -139,7 +139,7 @@ def invalid_window_identifier_strategy(draw: Callable[..., Any]) -> str:
         "../../../etc/passwd",  # Path traversal
         "app\x00name",  # Null bytes
     ]
-    return cast(str, draw(st.sampled_from(invalid_identifiers)))
+    return cast("str", draw(st.sampled_from(invalid_identifiers)))
 
 
 class TestWindowToolsDependencies:

@@ -140,7 +140,7 @@ def require(
         )
         wrapper.__contracts__["preconditions"].append((condition, message))
 
-        return cast(F, wrapper)
+        return cast("F", wrapper)
 
     return decorator
 
@@ -231,7 +231,7 @@ def ensure(
         )
         wrapper.__contracts__["postconditions"].append((condition, message))
 
-        return cast(F, wrapper)
+        return cast("F", wrapper)
 
     return decorator
 

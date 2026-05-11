@@ -128,7 +128,7 @@ class ComplianceMonitor:
         # Initialize compliance frameworks and controls
         self._initialize_compliance_frameworks()
 
-    def _initialize_compliance_frameworks(self) -> bool:
+    def _initialize_compliance_frameworks(self) -> None:
         """Initialize compliance frameworks and their controls."""
         # SOC2 Type II Controls
         soc2_controls = [
@@ -297,7 +297,8 @@ class ComplianceMonitor:
             if not framework_controls:
                 return Either.error(
                     ComplianceError(
-                        f"No controls defined for framework: {framework.value}",
+                        message=f"No controls defined for framework: {framework.value}",
+                        error_code="NO_CONTROLS_FOR_FRAMEWORK",
                     ),
                 )
 
@@ -414,7 +415,10 @@ class ComplianceMonitor:
 
         except Exception as e:
             return Either.error(
-                ComplianceError(f"Compliance assessment failed: {e!s}"),
+                ComplianceError(
+                    message=f"Compliance assessment failed: {e!s}",
+                    error_code="ASSESSMENT_FAILED",
+                ),
             )
 
     async def _assess_control(
@@ -486,7 +490,10 @@ class ComplianceMonitor:
 
         except Exception as e:
             return Either.error(
-                ComplianceError(f"Control assessment failed: {e!s}"),
+                ComplianceError(
+                    message=f"Control assessment failed: {e!s}",
+                    error_code="CONTROL_ASSESSMENT_FAILED",
+                ),
             )
 
     async def _perform_control_testing(
@@ -496,7 +503,7 @@ class ComplianceMonitor:
         _assessment_level: ComplianceLevel,
     ) -> dict[str, Any]:
         """Perform automated testing for compliance control."""
-        test_results = {
+        test_results: dict[str, Any] = {
             "tests_performed": [],
             "tests_passed": 0,
             "tests_failed": 0,
@@ -677,12 +684,12 @@ class ComplianceMonitor:
         if total_tests == 0:
             return 0.0
 
-        passed_tests = test_results["tests_passed"]
-        failed_tests = test_results["tests_failed"]
+        passed_tests: int = test_results["tests_passed"]
+        failed_tests: int = test_results["tests_failed"]
         partial_tests = total_tests - passed_tests - failed_tests
 
         # Calculate weighted score
-        score = (passed_tests * 100.0 + partial_tests * 50.0) / total_tests
+        score: float = (passed_tests * 100.0 + partial_tests * 50.0) / total_tests
 
         # Adjust for criticality
         if control.criticality == "critical":
@@ -834,11 +841,11 @@ class ComplianceMonitor:
         assessments: list[ComplianceAssessment],
     ) -> list[str]:
         """Extract key findings from control assessments."""
-        key_findings = []
+        key_findings: list[str] = []
 
         # Count findings by type
         critical_failures = 0
-        common_issues = {}
+        common_issues: dict[str, int] = {}
 
         for assessment in assessments:
             if assessment.status == ComplianceStatus.NON_COMPLIANT:

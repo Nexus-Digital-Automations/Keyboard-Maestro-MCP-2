@@ -17,7 +17,10 @@ import statistics
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 from src.core.contracts import ensure, require
 from src.core.either import Either
@@ -197,8 +200,8 @@ class SecurityMonitor:
 
         # Real-time monitoring
         self.monitoring_tasks: dict[MonitoringScope, asyncio.Task] = {}
-        self.alert_callbacks: list[callable] = []
-        self.incident_callbacks: list[callable] = []
+        self.alert_callbacks: list[Callable[..., Any]] = []
+        self.incident_callbacks: list[Callable[..., Any]] = []
 
         # Initialize monitoring status
         for scope in MonitoringScope:
@@ -218,12 +221,12 @@ class SecurityMonitor:
             # Validate rule
             rule_validation = self._validate_monitoring_rule(rule)
             if rule_validation.is_left():
-                return rule_validation
+                return Either.left(rule_validation.get_left())
 
             # Check for rule conflicts
             conflict_check = self._check_rule_conflicts(rule)
             if conflict_check.is_left():
-                return conflict_check
+                return Either.left(conflict_check.get_left())
 
             # Register rule
             self.monitoring_rules[rule.rule_id] = rule
@@ -288,9 +291,9 @@ class SecurityMonitor:
                 generated_alerts.extend(threat_alerts)
 
             # Store generated alerts
-            for alert in generated_alerts:
-                self.active_alerts[alert.alert_id] = alert
-                await self._handle_new_alert(alert)
+            for generated_alert in generated_alerts:
+                self.active_alerts[generated_alert.alert_id] = generated_alert
+                await self._handle_new_alert(generated_alert)
 
             # Mark event as processed (create a new SecurityEvent since it's frozen)
             processed_event = SecurityEvent(
@@ -635,11 +638,11 @@ class SecurityMonitor:
                 ),
             )
 
-    def register_alert_callback(self, callback: callable) -> None:
+    def register_alert_callback(self, callback: Callable[..., Any]) -> None:
         """Register callback for new alerts."""
         self.alert_callbacks.append(callback)
 
-    def register_incident_callback(self, callback: callable) -> None:
+    def register_incident_callback(self, callback: Callable[..., Any]) -> None:
         """Register callback for new incidents."""
         self.incident_callbacks.append(callback)
 
@@ -1273,7 +1276,7 @@ class SecurityMonitor:
         anomalies = []
         if user_id:
             resources = [event.data.get("resource", "") for event in filtered_events]
-            resource_counts = {}
+            resource_counts: dict[str, int] = {}
             for resource in resources:
                 if resource:
                     resource_counts[resource] = resource_counts.get(resource, 0) + 1
@@ -1294,7 +1297,7 @@ class SecurityMonitor:
 
         return anomalies
 
-    def set_alert_handler(self, handler: callable) -> None:
+    def set_alert_handler(self, handler: Callable[..., Any]) -> None:
         """Set alert handler (simple interface for test compatibility)."""
         if handler not in self.alert_callbacks:
             self.alert_callbacks.append(handler)

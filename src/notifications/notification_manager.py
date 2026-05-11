@@ -14,11 +14,11 @@ import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, assert_never
 
 from ..core.contracts import ensure, require
 from ..core.either import Either
-from ..core.errors import MacroEngineError
+from ..core.errors import ErrorCategory, ErrorContext, MacroEngineError
 
 if TYPE_CHECKING:
     from ..integration.km_client import KMClient
@@ -202,39 +202,45 @@ class NotificationManager:
             ) or not self._validate_notification_content(spec.message):
                 return Either.left(
                     MacroEngineError(
-                        code="CONTENT_VALIDATION_ERROR",
                         message="Notification content failed safety validation",
-                        details={
-                            "title_length": len(spec.title),
-                            "message_length": len(spec.message),
-                        },
+                        category=ErrorCategory.VALIDATION,
+                        error_code="CONTENT_VALIDATION_ERROR",
+                        context=ErrorContext(
+                            operation="display_notification",
+                            component="notifications",
+                            metadata={
+                                "title_length": len(spec.title),
+                                "message_length": len(spec.message),
+                            },
+                        ),
                     ),
                 )
 
-            # Route to appropriate display method
-            if spec.notification_type == NotificationType.NOTIFICATION:
-                return await self._display_system_notification(spec)
-            if spec.notification_type == NotificationType.ALERT:
-                return await self._display_alert_dialog(spec)
-            if spec.notification_type == NotificationType.HUD:
-                return await self._display_hud(spec)
-            if spec.notification_type == NotificationType.SOUND:
-                return await self._display_sound_notification(spec)
-            return Either.left(
-                MacroEngineError(
-                    code="INVALID_NOTIFICATION_TYPE",
-                    message=f"Unsupported notification type: {spec.notification_type}",
-                    details={"type": spec.notification_type.value},
-                ),
-            )
+            # Route to appropriate display method (enum is closed; assert_never catches drift)
+            match spec.notification_type:
+                case NotificationType.NOTIFICATION:
+                    return await self._display_system_notification(spec)
+                case NotificationType.ALERT:
+                    return await self._display_alert_dialog(spec)
+                case NotificationType.HUD:
+                    return await self._display_hud(spec)
+                case NotificationType.SOUND:
+                    return await self._display_sound_notification(spec)
+                case _ as unreachable:
+                    assert_never(unreachable)
 
         except Exception as e:
             logger.error(f"Failed to display notification: {e}")
             return Either.left(
                 MacroEngineError(
-                    code="DISPLAY_ERROR",
                     message=f"Notification display failed: {e!s}",
-                    details={"error_type": type(e).__name__},
+                    category=ErrorCategory.SYSTEM,
+                    error_code="DISPLAY_ERROR",
+                    context=ErrorContext(
+                        operation="display_notification",
+                        component="notifications",
+                        metadata={"error_type": type(e).__name__},
+                    ),
                 ),
             )
 
@@ -262,10 +268,17 @@ class NotificationManager:
             applescript = " ".join(script_parts)
 
             # Execute through KM client
-            result = await self.km_client.execute_applescript(applescript)
+            result = await self.km_client.execute_applescript_async(applescript)
 
             if result.is_left():
-                return Either.left(result.get_left())
+                left = result.get_left()
+                return Either.left(
+                    MacroEngineError(
+                        message=str(left),
+                        category=ErrorCategory.SYSTEM,
+                        error_code="SYSTEM_NOTIFICATION_ERROR",
+                    ),
+                )
 
             display_time = time.time() - start_time
 
@@ -288,9 +301,14 @@ class NotificationManager:
         except Exception as e:
             return Either.left(
                 MacroEngineError(
-                    code="SYSTEM_NOTIFICATION_ERROR",
                     message=f"System notification failed: {e!s}",
-                    details={"notification_id": notification_id},
+                    category=ErrorCategory.SYSTEM,
+                    error_code="SYSTEM_NOTIFICATION_ERROR",
+                    context=ErrorContext(
+                        operation="display_system_notification",
+                        component="notifications",
+                        metadata={"notification_id": notification_id},
+                    ),
                 ),
             )
 
@@ -319,10 +337,17 @@ class NotificationManager:
                 """
 
             # Execute through KM client
-            result = await self.km_client.execute_applescript(script)
+            result = await self.km_client.execute_applescript_async(script)
 
             if result.is_left():
-                return Either.left(result.get_left())
+                left = result.get_left()
+                return Either.left(
+                    MacroEngineError(
+                        message=str(left),
+                        category=ErrorCategory.SYSTEM,
+                        error_code="ALERT_DIALOG_ERROR",
+                    ),
+                )
 
             display_time = time.time() - start_time
 
@@ -353,9 +378,14 @@ class NotificationManager:
         except Exception as e:
             return Either.left(
                 MacroEngineError(
-                    code="ALERT_DIALOG_ERROR",
                     message=f"Alert dialog failed: {e!s}",
-                    details={"notification_id": notification_id},
+                    category=ErrorCategory.SYSTEM,
+                    error_code="ALERT_DIALOG_ERROR",
+                    context=ErrorContext(
+                        operation="display_alert_dialog",
+                        component="notifications",
+                        metadata={"notification_id": notification_id},
+                    ),
                 ),
             )
 
@@ -371,15 +401,25 @@ class NotificationManager:
             # Use Keyboard Maestro's HUD display action
             duration = spec.duration or 3.0
 
-            # Create HUD display through KM client
-            hud_result = await self.km_client.display_hud_text(
-                text=f"{spec.title}\n{spec.message}",
-                duration=duration,
-                position=self._get_hud_position_value(spec.position),
+            # Create HUD display via KM AppleScript (no direct HUD primitive exists)
+            hud_text = self._escape_applescript_string(
+                f"{spec.title}\n{spec.message}",
             )
+            hud_script = (
+                f'tell application "Keyboard Maestro Engine" to '
+                f'do script "DisplayTextBriefly \\"{hud_text}\\""'
+            )
+            hud_result = await self.km_client.execute_applescript_async(hud_script)
 
             if hud_result.is_left():
-                return Either.left(hud_result.get_left())
+                left = hud_result.get_left()
+                return Either.left(
+                    MacroEngineError(
+                        message=str(left),
+                        category=ErrorCategory.SYSTEM,
+                        error_code="HUD_DISPLAY_ERROR",
+                    ),
+                )
 
             # Wait for display duration
             if duration > 0:
@@ -402,9 +442,14 @@ class NotificationManager:
         except Exception as e:
             return Either.left(
                 MacroEngineError(
-                    code="HUD_DISPLAY_ERROR",
                     message=f"HUD display failed: {e!s}",
-                    details={"notification_id": notification_id},
+                    category=ErrorCategory.SYSTEM,
+                    error_code="HUD_DISPLAY_ERROR",
+                    context=ErrorContext(
+                        operation="display_hud",
+                        component="notifications",
+                        metadata={"notification_id": notification_id},
+                    ),
                 ),
             )
 
@@ -419,11 +464,24 @@ class NotificationManager:
         try:
             sound_file = spec.sound or "default"
 
-            # Play sound through KM client
-            sound_result = await self.km_client.play_sound(sound_file)
+            # Play sound via AppleScript (KM client has no direct sound primitive)
+            sound_escaped = self._escape_applescript_string(sound_file)
+            sound_script = (
+                f'do shell script "afplay {sound_escaped}"'
+                if os.path.exists(sound_file)
+                else 'beep'
+            )
+            sound_result = await self.km_client.execute_applescript_async(sound_script)
 
             if sound_result.is_left():
-                return Either.left(sound_result.get_left())
+                left = sound_result.get_left()
+                return Either.left(
+                    MacroEngineError(
+                        message=str(left),
+                        category=ErrorCategory.SYSTEM,
+                        error_code="SOUND_NOTIFICATION_ERROR",
+                    ),
+                )
 
             display_time = time.time() - start_time
 
@@ -439,9 +497,14 @@ class NotificationManager:
         except Exception as e:
             return Either.left(
                 MacroEngineError(
-                    code="SOUND_NOTIFICATION_ERROR",
                     message=f"Sound notification failed: {e!s}",
-                    details={"notification_id": notification_id},
+                    category=ErrorCategory.SYSTEM,
+                    error_code="SOUND_NOTIFICATION_ERROR",
+                    context=ErrorContext(
+                        operation="display_sound_notification",
+                        component="notifications",
+                        metadata={"notification_id": notification_id},
+                    ),
                 ),
             )
 
