@@ -1,8 +1,4 @@
-"""Security utilities for the Keyboard Maestro MCP server.
-
-This package provides input sanitization, validation, and security checks
-for all user-provided data to prevent injection attacks and ensure system safety.
-"""
+"""Input sanitization and validation for the Keyboard Maestro MCP server."""
 
 from .input_sanitizer import InputSanitizer
 from .input_validator import InputValidator, ThreatType, ValidationResult
