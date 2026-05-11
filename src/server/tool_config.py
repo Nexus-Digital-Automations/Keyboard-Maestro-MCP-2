@@ -16,26 +16,14 @@ class ToolCategory(Enum):
     """Tool categories for organization and feature grouping."""
 
     CORE = "core"
-    ADVANCED = "advanced"
-    SYNCHRONIZATION = "synchronization"
     CLIPBOARD = "clipboard"
     FILE_OPERATIONS = "file_operations"
     WINDOW_MANAGEMENT = "window_management"
     NOTIFICATIONS = "notifications"
-    CALCULATIONS = "calculations"
     TOKEN_PROCESSING = "token_processing"  # noqa: S105 # Enum value, not password
     CONDITIONAL_LOGIC = "conditional_logic"
     CONTROL_FLOW = "control_flow"
-    TRIGGERS = "triggers"
-    SECURITY_AUDIT = "security_audit"
-    ANALYTICS = "analytics"
-    WORKFLOW_INTELLIGENCE = "workflow_intelligence"
     IOT_INTEGRATION = "iot_integration"
-    VOICE_CONTROL = "voice_control"
-    QUANTUM_READY = "quantum_ready"
-    AI_INTELLIGENCE = "ai_intelligence"
-    PLUGIN_ECOSYSTEM = "plugin_ecosystem"
-    GENERAL = "general"
 
 
 class SecurityLevel(Enum):
@@ -97,10 +85,8 @@ class ToolConfigurationManager:
         self._load_default_configurations()
 
     def _load_default_configurations(self) -> None:
-        """Load default configurations for all tool categories."""
-        # Core Tools
-        core_tools = ["km_execute_macro", "km_list_macros", "km_variable_manager"]
-        for tool in core_tools:
+        """Register every tool whose module is present in src/server/tools/."""
+        for tool in ("km_execute_macro", "km_list_macros", "km_variable_manager"):
             self.configurations[tool] = ToolConfiguration(
                 name=tool,
                 category=ToolCategory.CORE,
@@ -113,34 +99,6 @@ class ToolConfigurationManager:
                 ),
             )
 
-        # Advanced Tools
-        advanced_tools = ["km_search_macros_advanced", "km_analyze_macro_metadata"]
-        for tool in advanced_tools:
-            self.configurations[tool] = ToolConfiguration(
-                name=tool,
-                category=ToolCategory.ADVANCED,
-                description=f"Advanced macro operation: {tool}",
-                module_path="src.server.tools.advanced_tools",
-                priority=8,
-            )
-
-        # Synchronization Tools
-        sync_tools = [
-            "km_start_realtime_sync",
-            "km_stop_realtime_sync",
-            "km_sync_status",
-            "km_force_sync",
-        ]
-        for tool in sync_tools:
-            self.configurations[tool] = ToolConfiguration(
-                name=tool,
-                category=ToolCategory.SYNCHRONIZATION,
-                description=f"Real-time synchronization: {tool}",
-                module_path="src.server.tools.sync_tools",
-                priority=7,
-            )
-
-        # File Operations
         self.configurations["km_file_operations"] = ToolConfiguration(
             name="km_file_operations",
             category=ToolCategory.FILE_OPERATIONS,
@@ -153,20 +111,14 @@ class ToolConfigurationManager:
             ),
         )
 
-        # Window Management
-        window_tools = ["km_window_manager", "km_window_manager_advanced"]
-        for tool in window_tools:
-            self.configurations[tool] = ToolConfiguration(
-                name=tool,
-                category=ToolCategory.WINDOW_MANAGEMENT,
-                description=f"Window management: {tool}",
-                module_path="src.server.tools.window_tools"
-                if tool == "km_window_manager"
-                else "src.server.tools.advanced_window_tools",
-                priority=5,
-            )
+        self.configurations["km_window_manager"] = ToolConfiguration(
+            name="km_window_manager",
+            category=ToolCategory.WINDOW_MANAGEMENT,
+            description="Window management",
+            module_path="src.server.tools.window_tools",
+            priority=5,
+        )
 
-        # Clipboard Operations
         self.configurations["km_clipboard_manager"] = ToolConfiguration(
             name="km_clipboard_manager",
             category=ToolCategory.CLIPBOARD,
@@ -180,33 +132,23 @@ class ToolConfigurationManager:
             ),
         )
 
-        # Calculations
-        calculation_tools = ["km_calculator", "km_token_processor"]
-        for tool in calculation_tools:
-            category = (
-                ToolCategory.CALCULATIONS
-                if "calculator" in tool
-                else ToolCategory.TOKEN_PROCESSING
-            )
-            self.configurations[tool] = ToolConfiguration(
-                name=tool,
-                category=category,
-                description=f"Mathematical and token operations: {tool}",
-                module_path=f"src.server.tools.{tool.replace('km_', '').replace('_processor', '')}_tools",
-                priority=5,
-                security_policy=ToolSecurityPolicy(
-                    level=SecurityLevel.STANDARD,
-                    input_validation=True,
-                ),
-            )
+        self.configurations["km_token_processor"] = ToolConfiguration(
+            name="km_token_processor",
+            category=ToolCategory.TOKEN_PROCESSING,
+            description="Keyboard Maestro token processing",
+            module_path="src.server.tools.token_tools",
+            priority=5,
+            security_policy=ToolSecurityPolicy(
+                level=SecurityLevel.STANDARD,
+                input_validation=True,
+            ),
+        )
 
-        # Notifications
-        notification_tools = [
+        for tool in (
             "km_notifications",
             "km_notification_status",
             "km_dismiss_notifications",
-        ]
-        for tool in notification_tools:
+        ):
             self.configurations[tool] = ToolConfiguration(
                 name=tool,
                 category=ToolCategory.NOTIFICATIONS,
@@ -215,68 +157,28 @@ class ToolConfigurationManager:
                 priority=4,
             )
 
-        # Control Flow and Conditions
-        control_tools = [
-            "km_add_condition",
-            "km_control_flow",
-            "km_create_trigger_advanced",
-        ]
-        for tool in control_tools:
-            if "condition" in tool:
-                category = ToolCategory.CONDITIONAL_LOGIC
-                module = "condition_tools"
-            elif "control_flow" in tool:
-                category = ToolCategory.CONTROL_FLOW
-                module = "control_flow_tools"
-            else:
-                category = ToolCategory.TRIGGERS
-                module = "advanced_trigger_tools"
+        self.configurations["km_add_condition"] = ToolConfiguration(
+            name="km_add_condition",
+            category=ToolCategory.CONDITIONAL_LOGIC,
+            description="Macro condition evaluation",
+            module_path="src.server.tools.condition_tools",
+            priority=7,
+        )
 
-            self.configurations[tool] = ToolConfiguration(
-                name=tool,
-                category=category,
-                description=f"Flow control: {tool}",
-                module_path=f"src.server.tools.{module}",
-                priority=7,
-            )
+        self.configurations["km_control_flow"] = ToolConfiguration(
+            name="km_control_flow",
+            category=ToolCategory.CONTROL_FLOW,
+            description="Macro control flow",
+            module_path="src.server.tools.control_flow_tools",
+            priority=7,
+        )
 
-        # Enterprise and AI Tools
-        enterprise_tools = [
-            ("km_audit_system", ToolCategory.SECURITY_AUDIT, "audit_system_tools"),
-            ("km_analytics_engine", ToolCategory.ANALYTICS, "analytics_engine_tools"),
-            (
-                "km_analyze_workflow_intelligence",
-                ToolCategory.WORKFLOW_INTELLIGENCE,
-                "workflow_intelligence_tools",
-            ),
-            (
-                "km_create_workflow_from_description",
-                ToolCategory.WORKFLOW_INTELLIGENCE,
-                "workflow_intelligence_tools",
-            ),
-        ]
-
-        for tool, category, module in enterprise_tools:
-            self.configurations[tool] = ToolConfiguration(
-                name=tool,
-                category=category,
-                description=f"Enterprise feature: {tool}",
-                module_path=f"src.server.tools.{module}",
-                priority=9,
-                security_policy=ToolSecurityPolicy(
-                    level=SecurityLevel.ENTERPRISE,
-                    audit_level="comprehensive",
-                ),
-            )
-
-        # IoT and Advanced Integration
-        iot_tools = [
+        for tool in (
             "km_control_iot_devices",
             "km_monitor_sensors",
             "km_manage_smart_home",
             "km_coordinate_iot_workflows",
-        ]
-        for tool in iot_tools:
+        ):
             self.configurations[tool] = ToolConfiguration(
                 name=tool,
                 category=ToolCategory.IOT_INTEGRATION,
@@ -285,19 +187,6 @@ class ToolConfigurationManager:
                 priority=6,
                 experimental=True,
             )
-
-        # Plugin Ecosystem
-        self.configurations["km_plugin_ecosystem"] = ToolConfiguration(
-            name="km_plugin_ecosystem",
-            category=ToolCategory.PLUGIN_ECOSYSTEM,
-            description="Plugin management and custom action creation",
-            module_path="src.server.tools.plugin_ecosystem_tools",
-            priority=5,
-            security_policy=ToolSecurityPolicy(
-                level=SecurityLevel.STRICT,
-                audit_level="comprehensive",
-            ),
-        )
 
     def get_configuration(self, tool_name: str) -> ToolConfiguration | None:
         """Get configuration for a specific tool."""
