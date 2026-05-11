@@ -9,8 +9,9 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+from fastmcp import Context
 from fastmcp.exceptions import ToolError
 
 from ...core.contracts import require
@@ -25,9 +26,6 @@ from ...integration.km_client import ConnectionConfig, KMClient
 from ...integration.km_macro_editor import KMMacroEditor
 
 logger = logging.getLogger(__name__)
-
-if TYPE_CHECKING:
-    from fastmcp import Context
 
 connection_config = ConnectionConfig()
 km_client = KMClient(connection_config)
