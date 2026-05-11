@@ -10,7 +10,7 @@ arrangement management, and integration with property-based testing.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 # Test data generators
 @st.composite
-def window_operation_strategy(draw: Callable[..., Any]) -> Mock:
+def window_operation_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid window operations."""
     operations = [
         "move",
@@ -36,11 +36,11 @@ def window_operation_strategy(draw: Callable[..., Any]) -> Mock:
         "get_info",
         "get_screens",
     ]
-    return draw(st.sampled_from(operations))
+    return cast(str, draw(st.sampled_from(operations)))
 
 
 @st.composite
-def window_identifier_strategy(draw: Callable[..., Any]) -> Mock:
+def window_identifier_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid window identifiers."""
     # Mix of bundle IDs and app names (systematic pattern alignment)
     identifiers = [
@@ -63,11 +63,11 @@ def window_identifier_strategy(draw: Callable[..., Any]) -> Mock:
             ),
         ),
     ]
-    return draw(st.sampled_from(identifiers))
+    return cast(str, draw(st.sampled_from(identifiers)))
 
 
 @st.composite
-def position_strategy(draw: Callable[..., Any]) -> Mock:
+def position_strategy(draw: Callable[..., Any]) -> dict[str, int]:
     """Generate valid window positions."""
     return {
         "x": draw(st.integers(min_value=0, max_value=3840)),  # 4K width
@@ -76,7 +76,7 @@ def position_strategy(draw: Callable[..., Any]) -> Mock:
 
 
 @st.composite
-def size_strategy(draw: Callable[..., Any]) -> Mock:
+def size_strategy(draw: Callable[..., Any]) -> dict[str, int]:
     """Generate valid window sizes."""
     return {
         "width": draw(
@@ -89,14 +89,14 @@ def size_strategy(draw: Callable[..., Any]) -> Mock:
 
 
 @st.composite
-def screen_strategy(draw: Callable[..., Any]) -> Mock:
+def screen_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid screen identifiers."""
     screens = ["main", "external", "0", "1", "2"]
-    return draw(st.sampled_from(screens))
+    return cast(str, draw(st.sampled_from(screens)))
 
 
 @st.composite
-def arrangement_strategy(draw: Callable[..., Any]) -> Mock:
+def arrangement_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid window arrangements."""
     arrangements = [
         "left_half",
@@ -110,24 +110,24 @@ def arrangement_strategy(draw: Callable[..., Any]) -> Mock:
         "center",
         "maximize",
     ]
-    return draw(st.sampled_from(arrangements))
+    return cast(str, draw(st.sampled_from(arrangements)))
 
 
 @st.composite
-def window_state_strategy(draw: Callable[..., Any]) -> Mock:
+def window_state_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid window states."""
     states = ["normal", "minimized", "maximized", "fullscreen"]
-    return draw(st.sampled_from(states))
+    return cast(str, draw(st.sampled_from(states)))
 
 
 @st.composite
-def window_index_strategy(draw: Callable[..., Any]) -> Mock:
+def window_index_strategy(draw: Callable[..., Any]) -> int:
     """Generate valid window indices."""
-    return draw(st.integers(min_value=0, max_value=20))
+    return cast(int, draw(st.integers(min_value=0, max_value=20)))
 
 
 @st.composite
-def invalid_window_identifier_strategy(draw: Callable[..., Any]) -> Mock:
+def invalid_window_identifier_strategy(draw: Callable[..., Any]) -> str:
     """Generate invalid window identifiers."""
     invalid_identifiers = [
         "",  # Empty
@@ -139,7 +139,7 @@ def invalid_window_identifier_strategy(draw: Callable[..., Any]) -> Mock:
         "../../../etc/passwd",  # Path traversal
         "app\x00name",  # Null bytes
     ]
-    return draw(st.sampled_from(invalid_identifiers))
+    return cast(str, draw(st.sampled_from(invalid_identifiers)))
 
 
 class TestWindowToolsDependencies:
@@ -880,8 +880,8 @@ class TestWindowIntegration:
 
             # Setup different operation results
             def create_mock_operation_result(
-                operation_details: dict[str, Any] | list[Any],
-            ) -> None:
+                operation_details: dict[str, Any],
+            ) -> Mock:
                 mock_operation_result = Mock()
                 mock_operation_result.window_info = Mock()
                 mock_operation_result.window_info.app_identifier = "com.apple.finder"
@@ -1126,7 +1126,7 @@ class TestWindowProperties:
         assume(operation_id.strip() != "")
 
         # Mock result structure
-        result_structure = {
+        result_structure: dict[str, Any] = {
             "success": True,
             "operation": "move",
             "window": {
