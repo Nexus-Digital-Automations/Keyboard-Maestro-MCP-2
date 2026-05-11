@@ -18,11 +18,11 @@ from src.core.either import Either
 
 
 # Create convenience aliases for test readability
-def Left(value):
+def Left(value: Any) -> Either[Any, Any]:
     return Either.left(value)
 
 
-def Right(value):
+def Right(value: Any) -> Either[Any, Any]:
     return Either.right(value)
 
 
@@ -280,7 +280,7 @@ class TestEitherConstructors:
 
     def test_from_optional_none(self) -> None:
         """Test creating Either from None value."""
-        result = Either.from_optional(None, "No value")
+        result: Either[str, Any] = Either.from_optional(None, "No value")
 
         assert result.is_left() is True
         assert result.get_left() == "No value"
@@ -292,7 +292,7 @@ class TestEitherAdditional:
     def test_try_operation_success(self) -> None:
         """Test try_operation with successful operation."""
 
-        def operation():
+        def operation() -> int:
             return 42
 
         def error_handler(e: Exception) -> str:
@@ -306,7 +306,7 @@ class TestEitherAdditional:
     def test_try_operation_failure(self) -> None:
         """Test try_operation with failing operation."""
 
-        def operation():
+        def operation() -> int:
             raise ValueError("Test error")
 
         def error_handler(e: Exception) -> str:
@@ -319,14 +319,14 @@ class TestEitherAdditional:
 
     def test_success_alias(self) -> None:
         """Test Either.success() alias for right()."""
-        result = Either.success(42)
+        result: Either[Any, int] = Either.success(42)
 
         assert result.is_right() is True
         assert result.get_right() == 42
 
     def test_error_alias(self) -> None:
         """Test Either.error() alias for left()."""
-        result = Either.error("Error message")
+        result: Either[str, Any] = Either.error("Error message")
 
         assert result.is_left() is True
         assert result.get_left() == "Error message"
@@ -407,7 +407,7 @@ class TestEitherSequenceTraverse:
         """Test sequence with empty list."""
         from src.core.either import sequence
 
-        result = sequence([])
+        result: Either[Any, list[Any]] = sequence([])
 
         assert result.is_right() is True
         assert result.get_right() == []
