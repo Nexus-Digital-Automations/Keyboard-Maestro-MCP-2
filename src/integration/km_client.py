@@ -2106,6 +2106,246 @@ class KMClient:
             return Either.left(KMError.execution_error(output[6:].strip()))
         return Either.right(True)
 
+    async def list_macro_triggers_async(
+        self,
+        macro_id: MacroId,
+    ) -> Either[KMError, list[dict[str, Any]]]:
+        """List triggers attached to a macro (description + enabled flag)."""
+        escaped = self._escape_applescript_string(str(macro_id))
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set output to ""
+                set trigList to triggers of (first macro whose name is "{escaped}")
+                repeat with t in trigList
+                    set output to output & (description of t) & "␟" & (enabled of t) & "\n"
+                end repeat
+                return output
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.not_found_error(output[6:].strip()))
+        triggers: list[dict[str, Any]] = []
+        for idx, line in enumerate(filter(None, output.split("\n")), start=1):
+            parts = line.split("␟")
+            triggers.append(
+                {
+                    "index": idx,
+                    "description": parts[0] if parts else line,
+                    "enabled": (parts[1].strip().lower() == "true") if len(parts) > 1 else True,
+                },
+            )
+        return Either.right(triggers)
+
+    async def remove_macro_trigger_async(
+        self,
+        macro_id: MacroId,
+        trigger_index: int,
+    ) -> Either[KMError, bool]:
+        """Remove the Nth trigger (1-indexed) from a macro."""
+        if trigger_index < 1:
+            return Either.left(KMError.validation_error("trigger_index must be >= 1"))
+        escaped = self._escape_applescript_string(str(macro_id))
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                delete trigger {trigger_index} of (first macro whose name is "{escaped}")
+                return "deleted"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.not_found_error(output[6:].strip()))
+        return Either.right(True)
+
+    async def clear_macro_triggers_async(
+        self,
+        macro_id: MacroId,
+    ) -> Either[KMError, bool]:
+        """Remove all triggers from a macro."""
+        escaped = self._escape_applescript_string(str(macro_id))
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                delete every trigger of (first macro whose name is "{escaped}")
+                return "cleared"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.not_found_error(output[6:].strip()))
+        return Either.right(True)
+
+    async def set_trigger_enabled_async(
+        self,
+        macro_id: MacroId,
+        trigger_index: int,
+        enabled: bool,
+    ) -> Either[KMError, bool]:
+        """Enable or disable the Nth trigger (1-indexed) of a macro."""
+        if trigger_index < 1:
+            return Either.left(KMError.validation_error("trigger_index must be >= 1"))
+        escaped = self._escape_applescript_string(str(macro_id))
+        flag = "true" if enabled else "false"
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set enabled of trigger {trigger_index} of (first macro whose name is "{escaped}") to {flag}
+                return "ok"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.execution_error(output[6:].strip()))
+        return Either.right(True)
+
+    async def list_macro_actions_async(
+        self,
+        macro_id: MacroId,
+    ) -> Either[KMError, list[dict[str, Any]]]:
+        """List actions inside a macro (description + enabled flag, 1-indexed)."""
+        escaped = self._escape_applescript_string(str(macro_id))
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set output to ""
+                set actList to actions of (first macro whose name is "{escaped}")
+                repeat with a in actList
+                    set output to output & (name of a) & "␟" & (enabled of a) & "\n"
+                end repeat
+                return output
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.not_found_error(output[6:].strip()))
+        actions: list[dict[str, Any]] = []
+        for idx, line in enumerate(filter(None, output.split("\n")), start=1):
+            parts = line.split("␟")
+            actions.append(
+                {
+                    "index": idx,
+                    "name": parts[0] if parts else line,
+                    "enabled": (parts[1].strip().lower() == "true") if len(parts) > 1 else True,
+                },
+            )
+        return Either.right(actions)
+
+    async def append_macro_action_async(
+        self,
+        macro_id: MacroId,
+        action_xml: str,
+    ) -> Either[KMError, bool]:
+        """Append an action to a macro by setting its XML.
+
+        Caller builds the action XML (one ``<dict>...</dict>`` element in KM's
+        action format). Tool layer (`action_builder_tools`) owns the
+        type-to-XML mapping; this primitive only escapes + dispatches.
+        """
+        escaped_id = self._escape_applescript_string(str(macro_id))
+        escaped_xml = action_xml.replace("\\", "\\\\").replace('"', '\\"')
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set targetMacro to first macro whose name is "{escaped_id}"
+                set newAction to make new action at end of actions of targetMacro
+                set XML of newAction to "{escaped_xml}"
+                return "appended"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.execution_error(output[6:].strip()))
+        return Either.right(True)
+
+    async def delete_macro_action_async(
+        self,
+        macro_id: MacroId,
+        action_index: int,
+    ) -> Either[KMError, bool]:
+        """Delete the Nth action (1-indexed) from a macro."""
+        if action_index < 1:
+            return Either.left(KMError.validation_error("action_index must be >= 1"))
+        escaped = self._escape_applescript_string(str(macro_id))
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                delete action {action_index} of (first macro whose name is "{escaped}")
+                return "deleted"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.not_found_error(output[6:].strip()))
+        return Either.right(True)
+
+    async def clear_macro_actions_async(
+        self,
+        macro_id: MacroId,
+    ) -> Either[KMError, bool]:
+        """Remove all actions from a macro (leaves the shell intact)."""
+        escaped = self._escape_applescript_string(str(macro_id))
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                delete every action of (first macro whose name is "{escaped}")
+                return "cleared"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.not_found_error(output[6:].strip()))
+        return Either.right(True)
+
 
 # Functional utilities for working with KM client
 
