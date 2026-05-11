@@ -171,14 +171,14 @@ class TestInvariantDecorator:
 class TestConditionCombiners:
     """Test cases for condition combining functions."""
 
-    def test_combine_conditions(self) -> bool:
+    def test_combine_conditions(self) -> None:
         """Test combining conditions with AND logic."""
 
         def is_positive(x: Any) -> bool:
-            return x > 0
+            return bool(x > 0)
 
         def is_even(x: Any) -> bool:
-            return x % 2 == 0
+            return bool(x % 2 == 0)
 
         combined = combine_conditions(is_positive, is_even)
 
@@ -187,14 +187,14 @@ class TestConditionCombiners:
         assert not combined(3)  # Positive but odd
         assert not combined(-3)  # Negative and odd
 
-    def test_any_condition(self) -> bool:
+    def test_any_condition(self) -> None:
         """Test combining conditions with OR logic."""
 
         def is_negative(x: Any) -> bool:
-            return x < 0
+            return bool(x < 0)
 
         def is_even(x: Any) -> bool:
-            return x % 2 == 0
+            return bool(x % 2 == 0)
 
         any_cond = any_condition(is_negative, is_even)
 
@@ -203,11 +203,11 @@ class TestConditionCombiners:
         assert any_cond(-2)  # Both
         assert not any_cond(3)  # Neither
 
-    def test_not_condition(self) -> bool:
+    def test_not_condition(self) -> None:
         """Test negating a condition."""
 
         def is_positive(x: Any) -> bool:
-            return x > 0
+            return bool(x > 0)
 
         is_not_positive = not_condition(is_positive)
 
@@ -308,7 +308,7 @@ class TestContractErrorHandling:
         """Test that contract errors contain proper details."""
 
         @require(lambda x: x > 0, "x must be positive")
-        def test_func(x: Any) -> None:
+        def test_func(x: Any) -> Any:
             return x
 
         with pytest.raises(ContractViolationError) as exc_info:
@@ -323,7 +323,7 @@ class TestContractErrorHandling:
         """Test that contract errors include execution context."""
 
         @require(lambda x, y: x > 0 and y > 0, "both parameters must be positive")
-        def test_func(x: Any, y: Any) -> None:
+        def test_func(x: Any, y: Any) -> Any:
             return x + y
 
         with pytest.raises(ContractViolationError) as exc_info:

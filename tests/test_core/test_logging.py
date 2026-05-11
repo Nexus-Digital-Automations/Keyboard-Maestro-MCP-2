@@ -55,6 +55,7 @@ class TestGetLogger:
         formatter = console_handler.formatter
 
         # Check format string
+        assert formatter is not None
         assert formatter._fmt == "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     def test_get_logger_no_propagation(self) -> None:
@@ -80,7 +81,7 @@ class TestGetLogger:
         assert len(logger2.handlers) == initial_handler_count  # No new handlers added
 
     @patch("pathlib.Path.exists")
-    def test_get_logger_with_file_handler(self, mock_exists) -> None:
+    def test_get_logger_with_file_handler(self, mock_exists: MagicMock) -> None:
         """Test that file handler is added when logs directory exists."""
         mock_exists.return_value = True
 
@@ -108,7 +109,7 @@ class TestGetLogger:
             assert mock_file_handler in logger.handlers
 
     @patch("pathlib.Path.exists")
-    def test_get_logger_without_logs_directory(self, mock_exists) -> None:
+    def test_get_logger_without_logs_directory(self, mock_exists: MagicMock) -> None:
         """Test that no file handler is added when logs directory doesn't exist."""
         mock_exists.return_value = False
 
@@ -162,7 +163,7 @@ class TestGetLogger:
         # Child should not propagate
         assert child_logger.propagate is False
 
-    def test_logger_actually_logs_to_stderr(self, capsys) -> None:
+    def test_logger_actually_logs_to_stderr(self, capsys: pytest.CaptureFixture[str]) -> None:
         """Test that logger actually outputs to stderr."""
         logger = get_logger("test_stderr_output")
 
@@ -175,7 +176,7 @@ class TestGetLogger:
         assert test_message in captured.err
         assert captured.out == ""  # Nothing in stdout
 
-    def test_logger_respects_log_level(self, capsys) -> None:
+    def test_logger_respects_log_level(self, capsys: pytest.CaptureFixture[str]) -> None:
         """Test that logger respects log level settings."""
         logger = get_logger("test_log_level")
 
@@ -196,7 +197,9 @@ class TestGetLogger:
 
     @patch("pathlib.Path.exists")
     @patch("logging.FileHandler")
-    def test_file_handler_level_is_debug(self, mock_file_handler_class, mock_exists) -> None:
+    def test_file_handler_level_is_debug(
+        self, mock_file_handler_class: MagicMock, mock_exists: MagicMock,
+    ) -> None:
         """Test that file handler level is set to DEBUG while console is INFO."""
         mock_exists.return_value = True
 
@@ -240,7 +243,7 @@ class TestGetLogger:
         logger_name = "test_thread_safety"
         results = []
 
-        def get_logger_in_thread():
+        def get_logger_in_thread() -> None:
             logger = get_logger(logger_name)
             results.append(logger)
 
@@ -258,7 +261,7 @@ class TestGetLogger:
         assert len(results[0].handlers) <= 2  # Console + possibly file
 
     @patch("src.core.logging.Path")
-    def test_file_handler_creation_failure(self, mock_path_class) -> None:
+    def test_file_handler_creation_failure(self, mock_path_class: MagicMock) -> None:
         """Test graceful handling when file handler creation fails."""
         # Make Path("logs").exists() return True
         mock_logs_path = Mock()

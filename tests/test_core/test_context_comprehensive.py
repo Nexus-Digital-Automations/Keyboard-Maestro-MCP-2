@@ -276,7 +276,7 @@ class TestExecutionContextManager:
         results = []
         errors = []
 
-        def register_contexts():
+        def register_contexts() -> None:
             try:
                 for _ in range(10):
                     context = ExecutionContext.create_test_context()
@@ -329,8 +329,8 @@ class TestSecurityContextManager:
             SecurityContextManager.validate_permissions(self.context, required)
 
         error = exc_info.value
-        assert Permission.SYSTEM_CONTROL in error.required_permissions
-        assert Permission.SYSTEM_CONTROL not in error.available_permissions
+        assert Permission.SYSTEM_CONTROL.value in error.required_permissions
+        assert Permission.SYSTEM_CONTROL.value not in error.available_permissions
 
     def test_validate_permissions_partial_failure(self) -> None:
         """Test permission validation with some missing permissions."""
@@ -340,10 +340,10 @@ class TestSecurityContextManager:
             SecurityContextManager.validate_permissions(self.context, required)
 
         error = exc_info.value
-        assert Permission.SYSTEM_CONTROL in error.required_permissions
-        assert Permission.TEXT_INPUT in error.required_permissions
-        assert Permission.TEXT_INPUT in error.available_permissions
-        assert Permission.SYSTEM_CONTROL not in error.available_permissions
+        assert Permission.SYSTEM_CONTROL.value in error.required_permissions
+        assert Permission.TEXT_INPUT.value in error.required_permissions
+        assert Permission.TEXT_INPUT.value in error.available_permissions
+        assert Permission.SYSTEM_CONTROL.value not in error.available_permissions
 
     def test_validate_timeout(self) -> None:
         """Test timeout validation."""
@@ -670,7 +670,7 @@ class TestErrorHandling:
         """Test variable manager handles concurrent access."""
         errors = []
 
-        def worker():
+        def worker() -> None:
             try:
                 for i in range(10):
                     name = VariableName(f"var_{i}")

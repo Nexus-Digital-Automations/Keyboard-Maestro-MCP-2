@@ -9,12 +9,15 @@ and builder patterns with comprehensive edge case coverage.
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 from src.core.control_flow import (
     ActionBlock,
     ComparisonOperator,
     ConditionExpression,
     ControlFlowBuilder,
+    ControlFlowNodeType,
     ControlFlowType,
     ControlFlowValidator,
     ForLoopNode,
@@ -144,7 +147,7 @@ class TestActionBlock:
 
     def test_valid_action_block(self) -> None:
         """Test valid action block creation."""
-        actions = [
+        actions: list[dict[str, Any]] = [
             {"type": "type_text", "text": "Hello World"},
             {"type": "pause", "duration": 1.0},
         ]
@@ -277,13 +280,13 @@ class TestSwitchCase:
 class TestControlFlowValidator:
     """Test control flow security validator."""
 
-    def setup_method(self) -> bool:
+    def setup_method(self) -> None:
         """Setup test validator."""
         self.validator = ControlFlowValidator()
 
-    def test_nesting_depth_validation(self) -> bool:
+    def test_nesting_depth_validation(self) -> None:
         """Test nesting depth validation."""
-        nodes = []
+        nodes: list[IfThenElseNode] = []
         for depth in range(5):
             node = IfThenElseNode(
                 flow_type=ControlFlowType.IF_THEN_ELSE,
@@ -297,7 +300,9 @@ class TestControlFlowValidator:
             )
             nodes.append(node)
 
-        assert self.validator.validate_nesting_depth(nodes) is True
+        assert self.validator.validate_nesting_depth(
+            cast("list[ControlFlowNodeType]", nodes),
+        ) is True
 
         # Add node with excessive depth
         deep_node = IfThenElseNode(
@@ -312,9 +317,11 @@ class TestControlFlowValidator:
         )
         nodes.append(deep_node)
 
-        assert self.validator.validate_nesting_depth(nodes) is False
+        assert self.validator.validate_nesting_depth(
+            cast("list[ControlFlowNodeType]", nodes),
+        ) is False
 
-    def test_loop_bounds_validation(self) -> bool:
+    def test_loop_bounds_validation(self) -> None:
         """Test loop bounds validation."""
         # Valid for loop
         for_loop = ForLoopNode(
@@ -364,7 +371,7 @@ class TestControlFlowValidator:
                 max_iterations=15000,  # This should violate security contract
             )
 
-    def test_action_count_validation(self) -> bool:
+    def test_action_count_validation(self) -> None:
         """Test action count validation."""
         # Create node with acceptable action count
         actions = [{"type": "test", "id": i} for i in range(50)]
@@ -480,6 +487,7 @@ class TestControlFlowBuilder:
         assert if_node.condition.operator == ComparisonOperator.CONTAINS
         assert if_node.condition.operand == "password"
         assert len(if_node.then_actions.actions) == 1
+        assert if_node.else_actions is not None
         assert len(if_node.else_actions.actions) == 1
 
     def test_for_each_loop(self) -> None:

@@ -125,7 +125,7 @@ class TestAsyncContractViolations:
         @require(lambda x: x >= 0, "Input must be non-negative")
         @ensure(lambda result: result >= 0, "Result must be non-negative")
         async def async_safe_sqrt(x: float) -> float:
-            return x**0.5
+            return float(x**0.5)
 
         # Test successful execution
         result = await async_safe_sqrt(16.0)
@@ -181,7 +181,7 @@ class TestInvariantErrorContext:
         @invariant(lambda self: len(self.items) <= self.max_capacity)
         class LimitedContainer:
             def __init__(self, max_capacity: int):
-                self.items = []
+                self.items: list[str] = []
                 self.max_capacity = max_capacity
 
             def add_item(self, item: str) -> None:

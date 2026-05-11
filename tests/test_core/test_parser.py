@@ -10,6 +10,7 @@ and security boundary enforcement.
 from __future__ import annotations
 
 import json
+from typing import Any
 
 import pytest
 from src.core import (
@@ -138,7 +139,7 @@ class TestCommandValidator:
         assert result.get("duration") == 2.5
 
         # Invalid duration (too long)
-        invalid_params = {"duration": 500}  # Exceeds max
+        invalid_params: dict[str, Any] = {"duration": 500}  # Exceeds max
         with pytest.raises(ValidationError):
             CommandValidator.validate_command_parameters(
                 CommandType.PAUSE,
@@ -165,7 +166,7 @@ class TestCommandValidator:
         assert result.get("volume") == 75
 
         # Invalid sound name
-        invalid_params = {"sound_name": "invalid_sound"}
+        invalid_params: dict[str, Any] = {"sound_name": "invalid_sound"}
         with pytest.raises(ValidationError):
             CommandValidator.validate_command_parameters(
                 CommandType.PLAY_SOUND,
@@ -237,6 +238,7 @@ class TestMacroParser:
         result = parser.parse_macro(macro_data)
 
         assert result.success
+        assert result.macro_definition is not None
         assert len(result.macro_definition.commands) == 3
 
     def test_parse_macro_validation_errors(self) -> None:
@@ -292,6 +294,7 @@ class TestJSONParsing:
         result = parse_macro_from_json(json_data)
 
         assert result.success
+        assert result.macro_definition is not None
         assert result.macro_definition.name == "JSON Macro"
 
     def test_parse_invalid_json(self) -> None:

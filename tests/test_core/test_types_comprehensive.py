@@ -10,7 +10,7 @@ with property-based testing and comprehensive validation.
 import uuid
 from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, cast
 from unittest.mock import Mock
 
 import pytest
@@ -49,13 +49,13 @@ from src.core.types import (
 
 # Test data generators
 @st.composite
-def duration_strategy(draw: Callable[..., Any]) -> Mock:
+def duration_strategy(draw: Callable[..., Any]) -> float:
     """Generate valid duration values."""
-    return draw(st.floats(min_value=0.0, max_value=3600.0))
+    return cast("float", draw(st.floats(min_value=0.0, max_value=3600.0)))
 
 
 @st.composite
-def command_parameters_strategy(draw: Callable[..., Any]) -> Mock:
+def command_parameters_strategy(draw: Callable[..., Any]) -> dict[str, Any]:
     """Generate valid command parameters."""
     params = draw(
         st.dictionaries(
@@ -64,11 +64,11 @@ def command_parameters_strategy(draw: Callable[..., Any]) -> Mock:
             max_size=10,
         ),
     )
-    return params
+    return cast("dict[str, Any]", params)
 
 
 @st.composite
-def permission_set_strategy(draw: Callable[..., Any]) -> Mock:
+def permission_set_strategy(draw: Callable[..., Any]) -> frozenset[Permission]:
     """Generate valid permission sets."""
     permissions = draw(
         st.lists(st.sampled_from(list(Permission)), min_size=0, max_size=5),
@@ -77,13 +77,16 @@ def permission_set_strategy(draw: Callable[..., Any]) -> Mock:
 
 
 @st.composite
-def variable_dict_strategy(draw: Callable[..., Any]) -> Mock:
+def variable_dict_strategy(draw: Callable[..., Any]) -> dict[VariableName, str]:
     """Generate valid variable dictionaries."""
-    return draw(
-        st.dictionaries(
-            st.text(min_size=1, max_size=50).map(VariableName),
-            st.text(max_size=100),
-            max_size=10,
+    return cast(
+        "dict[VariableName, str]",
+        draw(
+            st.dictionaries(
+                st.text(min_size=1, max_size=50).map(VariableName),
+                st.text(max_size=100),
+                max_size=10,
+            ),
         ),
     )
 
@@ -257,30 +260,30 @@ class TestEnumerations:
 class TestDuration:
     """Test Duration class functionality."""
 
-    def test_duration_creation(self) -> bool:
+    def test_duration_creation(self) -> None:
         """Test Duration creation with valid values."""
         duration = Duration(5.0)
         assert duration.seconds == 5.0
         assert duration.total_seconds() == 5.0
 
-    def test_duration_negative_validation(self) -> bool:
+    def test_duration_negative_validation(self) -> None:
         """Test Duration validation for negative values."""
         with pytest.raises(ValueError, match="Duration cannot be negative"):
             Duration(-1.0)
 
-    def test_duration_from_seconds(self) -> bool:
+    def test_duration_from_seconds(self) -> None:
         """Test Duration.from_seconds class method."""
         duration = Duration.from_seconds(10.5)
         assert duration.seconds == 10.5
         assert duration.total_seconds() == 10.5
 
-    def test_duration_from_milliseconds(self) -> bool:
+    def test_duration_from_milliseconds(self) -> None:
         """Test Duration.from_milliseconds class method."""
         duration = Duration.from_milliseconds(1500)
         assert duration.seconds == 1.5
         assert duration.total_seconds() == 1.5
 
-    def test_duration_arithmetic_operations(self) -> bool:
+    def test_duration_arithmetic_operations(self) -> None:
         """Test Duration arithmetic operations."""
         d1 = Duration(5.0)
         d2 = Duration(3.0)
@@ -328,11 +331,12 @@ class TestDuration:
 
     def test_duration_zero_constant(self) -> None:
         """Test Duration.ZERO constant."""
-        assert Duration.ZERO.seconds == 0.0
-        assert Duration.ZERO.total_seconds() == 0.0
+        zero = cast("Duration", Duration.ZERO)
+        assert zero.seconds == 0.0
+        assert zero.total_seconds() == 0.0
 
         # Should be immutable
-        assert Duration.ZERO == Duration(0.0)
+        assert zero == Duration(0.0)
 
     @given(duration_strategy())
     def test_duration_property_validation(self, seconds: float) -> None:
@@ -344,7 +348,7 @@ class TestDuration:
         # Properties that should always hold
         assert duration.seconds == seconds
         assert duration.total_seconds() == seconds
-        assert duration >= Duration.ZERO
+        assert duration >= cast("Duration", Duration.ZERO)
 
         # Test with from_seconds
         duration2 = Duration.from_seconds(seconds)
@@ -607,6 +611,7 @@ class TestCommandResult:
         assert result.success
         assert result.output == "Operation completed"
         assert result.error_message is None
+        assert result.execution_time is not None
         assert result.execution_time.seconds == 1.5
         assert result.metadata["command_id"] == "cmd_123"
 
@@ -621,6 +626,7 @@ class TestCommandResult:
         assert not result.success
         assert result.output is None
         assert result.error_message == "Operation failed"
+        assert result.execution_time is not None
         assert result.execution_time.seconds == 0.5
 
     def test_command_result_success_result_factory(self) -> None:
@@ -635,6 +641,7 @@ class TestCommandResult:
         assert result.success
         assert result.output == "Success message"
         assert result.error_message is None
+        assert result.execution_time is not None
         assert result.execution_time.seconds == 2.0
         assert result.metadata["command_id"] == "test_cmd"
         assert result.metadata["extra_data"] == "additional"
@@ -651,6 +658,7 @@ class TestCommandResult:
         assert not result.success
         assert result.output is None
         assert result.error_message == "Command execution failed"
+        assert result.execution_time is not None
         assert result.execution_time.seconds == 0.1
         assert result.metadata["error_code"] == 500
         assert result.metadata["component"] == "parser"
@@ -795,6 +803,7 @@ class TestExecutionResult:
         assert result.status == ExecutionStatus.COMPLETED
         assert result.started_at == started_at
         assert result.completed_at == completed_at
+        assert result.total_duration is not None
         assert result.total_duration.seconds == 5.0
         assert len(result.command_results) == 2
         assert result.error_details is None

@@ -5,6 +5,7 @@ including if/then/else, loops, switch/case, try/catch with security validation.
 """
 
 from datetime import datetime
+from typing import Any, cast
 
 import pytest
 from hypothesis import given
@@ -18,6 +19,7 @@ from src.core.control_flow import (
     ControlFlowBuilder,
     ControlFlowId,
     ControlFlowNode,
+    ControlFlowNodeType,
     ControlFlowType,
     ControlFlowValidator,
     ForLoopNode,
@@ -244,7 +246,7 @@ class TestActionBlock:
 
     def test_action_block_creation(self) -> None:
         """Test basic ActionBlock creation."""
-        actions = [
+        actions: list[dict[str, Any]] = [
             {"type": "text_input", "text": "Hello"},
             {"type": "pause", "duration": 1.0},
         ]
@@ -277,7 +279,7 @@ class TestActionBlock:
 
     def test_action_block_from_actions_valid(self) -> None:
         """Test ActionBlock.from_actions with valid actions."""
-        actions = [
+        actions: list[dict[str, Any]] = [
             {"type": "text_input", "text": "Hello"},
             {"type": "pause", "duration": 2.0},
             {"type": "click", "x": 100, "y": 200},
@@ -301,7 +303,7 @@ class TestActionBlock:
             {"type": "another_valid"},
             "not_a_dict",  # Should be filtered out
         ]
-        block = ActionBlock.from_actions(actions)
+        block = ActionBlock.from_actions(cast("list[dict[str, Any]]", actions))
         assert len(block.actions) == 2
         assert all(
             action["type"] in ["valid_action", "another_valid"]
@@ -794,12 +796,16 @@ class TestControlFlowValidator:
             ControlFlowNode(flow_type=ControlFlowType.FOR_LOOP, depth=2),
             ControlFlowNode(flow_type=ControlFlowType.WHILE_LOOP, depth=5),
         ]
-        assert self.validator.validate_nesting_depth(nodes) is True
+        assert self.validator.validate_nesting_depth(
+            cast("list[ControlFlowNodeType]", nodes),
+        ) is True
 
     def test_validate_nesting_depth_failure(self) -> None:
         """Test nesting depth validation with excessive depth."""
         nodes = [ControlFlowNode(flow_type=ControlFlowType.IF_THEN_ELSE, depth=15)]
-        assert self.validator.validate_nesting_depth(nodes) is False
+        assert self.validator.validate_nesting_depth(
+            cast("list[ControlFlowNodeType]", nodes),
+        ) is False
 
     def test_validate_nesting_depth_empty(self) -> None:
         """Test nesting depth validation with empty nodes list."""
@@ -1004,7 +1010,7 @@ class TestControlFlowBuilder:
 
     def test_then_actions_success(self) -> None:
         """Test adding then actions successfully."""
-        actions = [
+        actions: list[dict[str, Any]] = [
             {"type": "text_input", "text": "Hello"},
             {"type": "pause", "duration": 1.0},
         ]
@@ -1217,7 +1223,9 @@ class TestPropertyBasedControlFlow:
             ]
 
             # All depths 0-20 should be valid (within contract limits)
-            validation_result = self.validator.validate_nesting_depth(nodes)
+            validation_result = self.validator.validate_nesting_depth(
+                cast("list[ControlFlowNodeType]", nodes),
+            )
             assert validation_result is True
         except Exception:
             # Some edge cases might cause issues, which is acceptable for property tests
@@ -1244,7 +1252,7 @@ class TestErrorHandling:
             {"type": "final_valid"},
         ]
 
-        block = ActionBlock.from_actions(mixed_actions)
+        block = ActionBlock.from_actions(cast("list[dict[str, Any]]", mixed_actions))
         # Only 3 valid actions should remain
         assert len(block.actions) == 3
         assert all(
@@ -1283,4 +1291,4 @@ class TestErrorHandling:
 
         mock_node = MockNode()
         # Should return False for unknown node types
-        assert validator.validate_loop_bounds(mock_node) is False
+        assert validator.validate_loop_bounds(cast("ForLoopNode", mock_node)) is False

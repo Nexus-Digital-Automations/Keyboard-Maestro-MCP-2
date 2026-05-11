@@ -10,6 +10,7 @@ validation, error handling, and contract enforcement.
 from __future__ import annotations
 
 import time
+from typing import cast
 
 import pytest
 
@@ -23,9 +24,12 @@ from src.core.parser import CommandType
 from src.core.types import (
     Duration,
     ExecutionContext,
+    ExecutionResult,
     ExecutionStatus,
     MacroDefinition,
+    MacroId,
     Permission,
+    VariableName,
 )
 
 
@@ -96,7 +100,7 @@ class TestMacroEngine:
 
         # Create an invalid macro (empty commands list)
         invalid_macro = MacroDefinition(
-            macro_id="invalid",
+            macro_id=MacroId("invalid"),
             name="Invalid Macro",
             commands=[],  # Empty commands should make it invalid
         )
@@ -140,7 +144,7 @@ class TestMacroEngine:
         # Start execution in separate thread for cancellation test
         import threading
 
-        result_container = []
+        result_container: list[ExecutionResult | Exception] = []
 
         def execute_macro() -> None:
             try:
@@ -220,7 +224,7 @@ class TestExecutionContext:
         context = ExecutionContext.create_test_context()
 
         # Test adding variable
-        var_name = "test_var"
+        var_name = VariableName("test_var")
         var_value = "test_value"
 
         new_context = context.with_variable(var_name, var_value)
@@ -251,7 +255,7 @@ class TestContractEnforcement:
         with pytest.raises(
             (ContractViolationError, AttributeError)
         ):  # Contract violation or AttributeError
-            engine.execute_macro(None, context)
+            engine.execute_macro(cast("MacroDefinition", None), context)
 
     def test_postcondition_verification(self) -> None:
         """Test that postconditions are verified."""
