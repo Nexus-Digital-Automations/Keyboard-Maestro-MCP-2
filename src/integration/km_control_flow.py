@@ -10,7 +10,7 @@ import re
 import uuid
 
 try:
-    from defusedxml import ElementTree as ET
+    from defusedxml import ElementTree as ET  # type: ignore[import-untyped]
 except ImportError:
     # Fallback with security warning if defusedxml not available
     import warnings
@@ -22,11 +22,10 @@ except ImportError:
         stacklevel=2,
     )
 
-from typing import TYPE_CHECKING
-
 from ..core.control_flow import (
     ActionBlock,
     ComparisonOperator,
+    ConditionExpression,
     ControlFlowNodeType,
     ForLoopNode,
     IfThenElseNode,
@@ -35,9 +34,6 @@ from ..core.control_flow import (
     WhileLoopNode,
 )
 from ..core.errors import SecurityError, ValidationError
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 class KMControlFlowGenerator:
@@ -246,7 +242,7 @@ class KMControlFlowGenerator:
 
         return self._validate_and_clean_xml(xml_template)
 
-    def _generate_condition_xml(self, condition: Callable[..., bool] | bool) -> str:
+    def _generate_condition_xml(self, condition: ConditionExpression) -> str:
         """Generate secure XML for condition expressions."""
         # Escape and validate condition components
         expression = self._escape_xml(condition.expression)
@@ -321,9 +317,6 @@ class KMControlFlowGenerator:
 
     def _escape_xml(self, text: str) -> str:
         """Escape XML special characters and validate content."""
-        if not isinstance(text, str):
-            text = str(text)
-
         # Basic XML escaping
         text = text.replace("&", "&amp;")
         text = text.replace("<", "&lt;")
@@ -335,39 +328,42 @@ class KMControlFlowGenerator:
 
     def _validate_condition_security(self, text: str) -> None:
         """Validate condition text for security threats."""
-        if not isinstance(text, str):
-            return
-
         text_lower = text.lower()
 
         for pattern in self.dangerous_patterns:
             if pattern in text_lower:
-                raise SecurityError(f"Dangerous pattern detected: {pattern}")
+                raise SecurityError(
+                    "DANGEROUS_PATTERN",
+                    f"Dangerous pattern detected: {pattern}",
+                )
 
         # Check for excessive length
         if len(text) > 1000:
-            raise SecurityError("Condition text too long")
+            raise SecurityError("CONDITION_TOO_LONG", "Condition text too long")
 
         # Check for suspicious characters
         suspicious_chars = ["`", "$", "\\", "|", ";", "&&", "||"]
         for char in suspicious_chars:
             if char in text:
-                raise SecurityError(f"Suspicious character detected: {char}")
+                raise SecurityError(
+                    "SUSPICIOUS_CHARACTER",
+                    f"Suspicious character detected: {char}",
+                )
 
     def _validate_action_parameter(self, value: str) -> None:
         """Validate action parameter for security."""
-        if not isinstance(value, str):
-            return
-
         value_lower = value.lower()
 
         for pattern in self.dangerous_patterns:
             if pattern in value_lower:
-                raise SecurityError(f"Dangerous pattern in action parameter: {pattern}")
+                raise SecurityError(
+                    "DANGEROUS_PARAMETER",
+                    f"Dangerous pattern in action parameter: {pattern}",
+                )
 
         # Limit parameter size
         if len(value) > 5000:
-            raise SecurityError("Action parameter too long")
+            raise SecurityError("PARAMETER_TOO_LONG", "Action parameter too long")
 
     def _validate_and_clean_xml(self, xml_string: str) -> str:
         """Validate and clean generated XML."""
@@ -442,11 +438,14 @@ class KMAppleScriptGenerator:
 
         for pattern in self.dangerous_patterns:
             if pattern in script_lower:
-                raise SecurityError(f"Dangerous AppleScript pattern: {pattern}")
+                raise SecurityError(
+                    "DANGEROUS_APPLESCRIPT",
+                    f"Dangerous AppleScript pattern: {pattern}",
+                )
 
         # Check script length
         if len(script) > 10000:
-            raise SecurityError("AppleScript too long")
+            raise SecurityError("APPLESCRIPT_TOO_LONG", "AppleScript too long")
 
 
 # Public interface functions

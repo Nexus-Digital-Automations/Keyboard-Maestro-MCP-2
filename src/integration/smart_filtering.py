@@ -48,10 +48,10 @@ class SearchQuery:
 
     text: str | None = None
     scope: SearchScope = SearchScope.NAME_AND_GROUP
-    action_categories: set[ActionCategory] = None
-    trigger_categories: set[TriggerCategory] = None
-    complexity_levels: set[ComplexityLevel] = None
-    groups: set[str] = None
+    action_categories: set[ActionCategory] | None = None
+    trigger_categories: set[TriggerCategory] | None = None
+    complexity_levels: set[ComplexityLevel] | None = None
+    groups: set[str] | None = None
     enabled_only: bool = True
     min_usage_count: int = 0
     max_days_since_used: int | None = None
@@ -90,7 +90,7 @@ class SmartMacroFilter:
 
         # Apply filters sequentially
         filtered_macros = macros.copy()
-        applied_filters = {}
+        applied_filters: dict[str, Any] = {}
 
         # Text search
         if query.text:
@@ -268,7 +268,7 @@ class SmartMacroFilter:
             )
 
         # Complexity distribution
-        complexity_counts = defaultdict(int)
+        complexity_counts: dict[ComplexityLevel, int] = defaultdict(int)
         for macro in macros:
             complexity_counts[macro.complexity] += 1
 
@@ -278,7 +278,7 @@ class SmartMacroFilter:
             )
 
         # Function distribution
-        function_counts = defaultdict(int)
+        function_counts: dict[ActionCategory, int] = defaultdict(int)
         for macro in macros:
             function_counts[macro.primary_function] += 1
 
@@ -396,12 +396,11 @@ class SmartMacroFilter:
                 key=lambda m: m.usage_stats.success_rate,
                 reverse=True,
             )
-        if sort_by == SortCriteria.PRIMARY_FUNCTION:
-            return sorted(
-                macros,
-                key=lambda m: (m.primary_function.value, m.name.lower()),
-            )
-        return macros
+        # SortCriteria.PRIMARY_FUNCTION (exhaustive enum — last branch)
+        return sorted(
+            macros,
+            key=lambda m: (m.primary_function.value, m.name.lower()),
+        )
 
     def _calculate_similarity(
         self,
@@ -457,7 +456,7 @@ class SmartMacroFilter:
             return 1.0
 
         # Count matching characters at same positions
-        matches = sum(
+        matches: float = sum(
             1 for i, c in enumerate(shorter) if i < len(longer) and longer[i] == c
         )
 
@@ -521,7 +520,7 @@ class SmartMacroFilter:
 
     def _get_popular_categories(self, macros: list[EnhancedMacroMetadata]) -> list[str]:
         """Get most popular action categories in the macro library."""
-        category_counts = defaultdict(int)
+        category_counts: dict[str, int] = defaultdict(int)
         for macro in macros:
             category_counts[macro.primary_function.value] += 1
 
@@ -533,7 +532,7 @@ class SmartMacroFilter:
 
     def _get_popular_groups(self, macros: list[EnhancedMacroMetadata]) -> list[str]:
         """Get most popular groups in the macro library."""
-        group_counts = defaultdict(int)
+        group_counts: dict[str, int] = defaultdict(int)
         for macro in macros:
             if macro.group:
                 group_counts[macro.group] += 1
