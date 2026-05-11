@@ -107,3 +107,7 @@ uv.lock
 
 # Pre-commit
 .pre-commit-config.yaml.lock
+
+# Claude Code session artifacts
+.claude/
+specs/
