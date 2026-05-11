@@ -172,7 +172,7 @@ class ClipboardManager:
             # Get clipboard content via AppleScript
             result = await self._get_clipboard_applescript()
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             content = result.get_right()
             timestamp = time.time()
@@ -230,7 +230,7 @@ class ClipboardManager:
             # Get clipboard history via AppleScript
             result = await self._get_clipboard_history_applescript(index)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             content = result.get_right()
             if not content:
@@ -302,7 +302,7 @@ class ClipboardManager:
                 break
             else:
                 # Other error - return it
-                return result
+                return Either.left(result.get_left())
 
         return Either.right(history_items)
 
@@ -505,9 +505,6 @@ class ClipboardManager:
 
     def _escape_applescript_string(self, text: str) -> str:
         """Escape string for safe use in AppleScript."""
-        if not isinstance(text, str):
-            text = str(text)
-
         # Replace dangerous characters
         text = text.replace("\\", "\\\\")  # Escape backslashes
         text = text.replace('"', '\\"')  # Escape quotes

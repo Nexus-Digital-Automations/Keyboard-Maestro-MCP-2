@@ -244,14 +244,9 @@ class FileOperationManager:
                 result = await self._rename_operation(request)
             elif request.operation == FileOperationType.CREATE_FOLDER:
                 result = await self._create_folder_operation(request)
-            elif request.operation == FileOperationType.GET_INFO:
-                result = await self._get_info_operation(request)
             else:
-                return Either.left(
-                    KMError.validation_error(
-                        f"Unsupported operation: {request.operation.value}",
-                    ),
-                )
+                # FileOperationType.GET_INFO is the only remaining variant.
+                result = await self._get_info_operation(request)
 
             if result.is_right():
                 operation_result = result.get_right()
@@ -324,6 +319,8 @@ class FileOperationManager:
                         ),
                     )
 
+                # COPY requires destination; validated above by requires_destination
+                assert request.destination_path is not None
                 dest_parent = request.destination_path.get_parent()
                 if dest_parent and not self._security.check_disk_space(
                     Path(dest_parent.path),
@@ -343,6 +340,8 @@ class FileOperationManager:
         request: FileOperationRequest,
     ) -> Either[KMError, FileOperationResult]:
         """Execute copy operation with backup and rollback support."""
+        # COPY requires destination; validated upstream in _validate_operation
+        assert request.destination_path is not None
         try:
             source_path = Path(request.source_path.path)
             dest_path = Path(request.destination_path.path)
@@ -394,6 +393,8 @@ class FileOperationManager:
         request: FileOperationRequest,
     ) -> Either[KMError, FileOperationResult]:
         """Execute move operation with atomic transaction safety."""
+        # MOVE requires destination; validated upstream in _validate_operation
+        assert request.destination_path is not None
         try:
             source_path = Path(request.source_path.path)
             dest_path = Path(request.destination_path.path)
@@ -480,6 +481,8 @@ class FileOperationManager:
         request: FileOperationRequest,
     ) -> Either[KMError, FileOperationResult]:
         """Execute rename operation with validation."""
+        # RENAME requires destination; validated upstream in _validate_operation
+        assert request.destination_path is not None
         try:
             source_path = Path(request.source_path.path)
             dest_path = Path(request.destination_path.path)

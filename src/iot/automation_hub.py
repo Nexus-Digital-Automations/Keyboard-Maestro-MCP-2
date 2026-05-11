@@ -923,7 +923,7 @@ class AutomationHub:
         # For now, just a placeholder
         return False
 
-    async def _schedule_rule(self, rule: AutomationRule) -> Any:
+    async def _schedule_rule(self, _rule: AutomationRule) -> Any:
         """Schedule rule for execution."""
         # This would implement rule scheduling based on cron expressions
         return None

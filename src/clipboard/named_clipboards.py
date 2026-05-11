@@ -37,7 +37,7 @@ class NamedClipboard:
     description: str | None = None
 
     @require(lambda self: len(self.name) > 0 and len(self.name) <= 100)
-    @require(lambda self: re.match(r"^[a-zA-Z0-9_\-\s]+$", self.name))
+    @require(lambda self: bool(re.match(r"^[a-zA-Z0-9_\-\s]+$", self.name)))
     def __post_init__(self) -> None:
         """Validate named clipboard constraints."""
 
@@ -146,7 +146,7 @@ class NamedClipboardManager:
         )
         > 0
         and len(name) <= 100
-        and re.match(r"^[a-zA-Z0-9_\-\s]+$", name),
+        and bool(re.match(r"^[a-zA-Z0-9_\-\s]+$", name)),
     )
     @ensure(
         lambda result: result.is_right()
@@ -420,7 +420,7 @@ class NamedClipboardManager:
                 return Either.right(stats)
 
             # Calculate format distribution
-            format_counts = {}
+            format_counts: dict[str, int] = {}
             for clipboard in self._clipboards.values():
                 format_name = clipboard.content.format.value
                 format_counts[format_name] = format_counts.get(format_name, 0) + 1
