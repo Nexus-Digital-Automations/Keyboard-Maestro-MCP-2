@@ -98,7 +98,7 @@ def mock_file_manager() -> Mock:
 
 
 @pytest.fixture
-def sample_file_paths() -> Mock:
+def sample_file_paths() -> dict[str, str]:
     """Sample file paths for testing."""
     return {
         "valid_source": "/Users/test/Documents/source.txt",
@@ -364,7 +364,7 @@ class TestKMFileOperations:
     async def test_path_validation_failure(
         self,
         mock_context: Any,
-        sample_file_paths: dict[str, Any] | list[Any],
+        sample_file_paths: dict[str, str],
     ) -> None:
         """Test path validation failure handling."""
         with patch(
@@ -541,7 +541,7 @@ class TestKMFileOperations:
     async def test_permission_error_handling(
         self,
         mock_context: Any,
-        sample_file_paths: dict[str, Any] | list[Any],
+        sample_file_paths: dict[str, str],
     ) -> None:
         """Test permission error handling."""
         with (
@@ -574,7 +574,7 @@ class TestKMFileOperations:
     async def test_unexpected_error_handling(
         self,
         mock_context: Any,
-        sample_file_paths: dict[str, Any] | list[Any],
+        sample_file_paths: dict[str, str],
     ) -> None:
         """Test unexpected error handling."""
         with (
@@ -652,7 +652,7 @@ class TestFileOperationIntegration:
     async def test_backup_creation_workflow(
         self,
         mock_context: Any,
-        sample_file_paths: dict[str, Any] | list[Any],
+        sample_file_paths: dict[str, str],
     ) -> None:
         """Test backup creation in file operations."""
         with (
@@ -837,8 +837,9 @@ class TestFileOperationSecurity:
 class TestFileOperationPropertyBased:
     """Property-based testing for file operations."""
 
+    @staticmethod
     @composite
-    def valid_file_path_strategy(draw: Callable[..., Any]) -> Mock:
+    def valid_file_path_strategy(draw: Callable[..., Any]) -> str:
         """Generate valid file paths for testing."""
         # Generate realistic path components
         components = draw(
@@ -872,7 +873,7 @@ class TestFileOperationPropertyBased:
         max_examples=20,
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
-    def test_path_validation_properties(self, path: str | Path) -> None:
+    def test_path_validation_properties(self, path: str) -> None:
         """Property: Valid paths should pass basic validation checks."""
         # Test basic path properties
         assert len(path) > 0

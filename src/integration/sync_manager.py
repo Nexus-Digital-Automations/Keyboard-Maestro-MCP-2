@@ -161,7 +161,7 @@ class MacroSyncManager:
             # Initialize with full sync
             initial_sync_result = await self._perform_full_sync()
             if initial_sync_result.is_left():
-                return initial_sync_result
+                return Either.left(initial_sync_result.get_left())
 
             # Start background tasks
             self._sync_task = asyncio.create_task(self._sync_loop())
@@ -213,6 +213,8 @@ class MacroSyncManager:
         if listener in self._change_listeners:
             self._change_listeners.remove(listener)
             logger.info("Unregistered change listener")
+            return True
+        return False
 
     async def get_cached_macro(self, macro_id: MacroId) -> EnhancedMacroMetadata | None:
         """Get macro from cache if available and current."""
@@ -594,4 +596,4 @@ class MacroSyncManager:
     def _is_cache_valid(self, macro: EnhancedMacroMetadata) -> bool:
         """Check if cached macro metadata is still valid."""
         cache_age = datetime.now(UTC) - macro.last_analyzed
-        return cache_age < self.config.cache_ttl
+        return cache_age.total_seconds() < self.config.cache_ttl.total_seconds()

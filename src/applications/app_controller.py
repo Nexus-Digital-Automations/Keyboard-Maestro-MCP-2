@@ -68,11 +68,17 @@ class AppIdentifier:
 
     def primary_identifier(self) -> str:
         """Get primary identifier for operations - prefer bundle ID for specificity."""
-        return self.bundle_id if self.bundle_id else self.app_name
+        # __post_init__ guarantees at least one of bundle_id/app_name is non-empty
+        identifier = self.bundle_id if self.bundle_id else self.app_name
+        assert identifier is not None
+        return identifier
 
     def display_name(self) -> str:
         """Get human-readable display name."""
-        return self.app_name if self.app_name else self.bundle_id
+        # __post_init__ guarantees at least one of bundle_id/app_name is non-empty
+        name = self.app_name if self.app_name else self.bundle_id
+        assert name is not None
+        return name
 
     def is_bundle_id(self) -> bool:
         """Check if primary identifier is a bundle ID."""
@@ -247,7 +253,7 @@ class AppController:
             # Phase 1: Security validation
             security_check = self._validate_app_security(app_id)
             if security_check.is_left():
-                return security_check
+                return Either.left(security_check.get_left())
 
             # Phase 2: Check current state
             current_state = await self._get_app_state_async(app_id)
@@ -276,7 +282,7 @@ class AppController:
                 wait_result = await self._wait_for_launch(app_id, config.timeout)
                 if wait_result.is_left():
                     operation_time = Duration.from_seconds(time.time() - start_time)
-                    return wait_result
+                    return Either.left(wait_result.get_left())
                 final_state = wait_result.get_right()
 
             # Phase 5: Handle post-launch configuration
@@ -410,7 +416,7 @@ class AppController:
             # Attempt graceful quit first
             quit_result = await self._quit_via_applescript(app_id, force, timeout)
             if quit_result.is_left():
-                return quit_result
+                return Either.left(quit_result.get_left())
 
             # Wait for termination
             final_state = await self._wait_for_termination(app_id, timeout)
@@ -454,7 +460,7 @@ class AppController:
             # Activate via AppleScript
             activate_result = await self._activate_via_applescript(app_id)
             if activate_result.is_left():
-                return activate_result
+                return Either.left(activate_result.get_left())
 
             # Update state cache
             self._invalidate_state_cache(app_id)
@@ -495,7 +501,7 @@ class AppController:
             if current_state != AppState.FOREGROUND:
                 activate_result = await self.activate_application(app_id)
                 if activate_result.is_left():
-                    return activate_result
+                    return Either.left(activate_result.get_left())
 
                 # Brief wait for activation
                 await asyncio.sleep(0.5)
@@ -509,7 +515,7 @@ class AppController:
 
             operation_time = Duration.from_seconds(time.time() - start_time)
             if menu_result.is_left():
-                return menu_result
+                return Either.left(menu_result.get_left())
 
             return Either.right(
                 AppOperationResult.success_result(
@@ -616,6 +622,8 @@ class AppController:
         cache_key = app_id.primary_identifier()
         if cache_key in self._state_cache:
             del self._state_cache[cache_key]
+            return True
+        return False
 
     def _is_force_quit_allowed(self, app_id: AppIdentifier) -> bool:
         """Check if force quit is allowed for application."""
@@ -670,7 +678,7 @@ class AppController:
 
             result = await self._execute_applescript(script, config.timeout)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -724,7 +732,7 @@ class AppController:
 
             result = await self._execute_applescript(script, timeout)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -761,7 +769,7 @@ class AppController:
 
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -817,7 +825,7 @@ class AppController:
 
             result = await self._execute_applescript(script, timeout)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -898,9 +906,7 @@ class AppController:
             await asyncio.sleep(0.5)
 
         return Either.left(
-            KMError.timeout_error(
-                f"Application launch timeout: {app_id.display_name()}",
-            ),
+            KMError.timeout_error(timeout),
         )
 
     async def _wait_for_termination(
@@ -944,7 +950,7 @@ class AppController:
 
             result = await self._execute_applescript(script, Duration.from_seconds(5))
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -991,9 +997,7 @@ class AppController:
 
         except asyncio.TimeoutError:
             return Either.left(
-                KMError.timeout_error(
-                    f"AppleScript execution timeout ({timeout.total_seconds()}s)",
-                ),
+                KMError.timeout_error(timeout),
             )
         except Exception as e:
             return Either.left(
@@ -1002,9 +1006,6 @@ class AppController:
 
     def _escape_applescript_string(self, value: str) -> str:
         """Escape string for safe AppleScript inclusion."""
-        if not isinstance(value, str):
-            value = str(value)
-
         # Security: Escape quotes and special characters
         escaped = value.replace("\\", "\\\\")  # Escape backslashes first
         escaped = escaped.replace('"', '\\"')  # Escape quotes

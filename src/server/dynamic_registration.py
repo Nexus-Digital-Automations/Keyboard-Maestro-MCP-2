@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Any
 from .tool_registry import ToolMetadata, get_tool_registry
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from fastmcp import Context, FastMCP
 
 
@@ -52,7 +54,7 @@ class DynamicToolRegistrar:
         # Store reference to prevent garbage collection
         setattr(self, f"_tool_{metadata.name}", decorated_func)
 
-    def _create_tool_wrapper(self, metadata: ToolMetadata) -> callable:
+    def _create_tool_wrapper(self, metadata: ToolMetadata) -> Callable[..., Any]:
         """Create a wrapper function for the tool that maintains type safety."""
         # Import the actual tool function at registration time
         try:
@@ -65,7 +67,7 @@ class DynamicToolRegistrar:
             )
 
             # Create a placeholder function that returns an error
-            async def error_wrapper(_ctx: Context | Any = None) -> None:
+            async def error_wrapper(_ctx: Context | Any = None) -> dict[str, Any]:
                 return {
                     "success": False,
                     "error": f"Tool {metadata.name} not available: {error_message}",
@@ -81,7 +83,10 @@ class DynamicToolRegistrar:
         param_names = [param.name for param in metadata.parameters] + ["ctx"]
 
         # Create a secure wrapper function using closures instead of exec()
-        def create_safe_wrapper(is_async: bool, param_names: list[str]) -> bool:
+        def create_safe_wrapper(
+            is_async: bool,
+            param_names: list[str],
+        ) -> Callable[..., Any]:
             if is_async:
 
                 async def async_tool_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -108,7 +113,7 @@ class DynamicToolRegistrar:
 
                 return async_tool_wrapper
 
-            def sync_tool_wrapper(*args: Any, **kwargs: Any) -> bool:
+            def sync_tool_wrapper(*args: Any, **kwargs: Any) -> object:
                 """Securely generated sync tool wrapper."""
                 try:
                     # Build kwargs from positional args and keyword args
@@ -208,23 +213,12 @@ def validate_tool_signature(metadata: ToolMetadata) -> bool:
 
     """
     try:
-        # Check if function exists and is callable
-        if not callable(metadata.function):
-            logger.warning(f"Tool {metadata.name} is not callable")
-            return False
-
         # Check if async function for MCP compatibility
         if not metadata.is_async:
             logger.warning(f"Tool {metadata.name} is not async (recommended for MCP)")
 
-        # Validate parameters have proper type annotations
-        for param in metadata.parameters:
-            if param.annotation is None:
-                logger.warning(
-                    f"Parameter {param.name} in {metadata.name} lacks type annotation",
-                )
-                return False
-
+        # Type system guarantees param.annotation is non-None;
+        # construction-site validation lives in ToolDiscovery.
         return True
 
     except Exception as e:

@@ -120,14 +120,6 @@ class MenuNavigator:
             )
 
         for i, item in enumerate(menu_path):
-            # Basic validation
-            if not isinstance(item, str):
-                return Either.left(
-                    KMError.validation_error(
-                        f"Menu item {i} must be string: {type(item)}",
-                    ),
-                )
-
             if len(item) == 0:
                 return Either.left(
                     KMError.validation_error(f"Menu item {i} cannot be empty"),
@@ -215,9 +207,6 @@ class MenuNavigator:
 
     def _escape_applescript_string(self, value: str) -> str:
         """Escape string for safe use in AppleScript."""
-        if not isinstance(value, str):
-            value = str(value)
-
         # Replace dangerous characters
         value = value.replace("\\", "\\\\")  # Escape backslashes
         value = value.replace('"', '\\"')  # Escape quotes
@@ -355,8 +344,10 @@ class MenuNavigator:
             cache_key = app_id.primary_identifier()
             if cache_key in self._menu_cache:
                 del self._menu_cache[cache_key]
-        else:
-            self._menu_cache.clear()
+                return True
+            return False
+        self._menu_cache.clear()
+        return True
 
     def _is_menu_cache_valid(self, app_id: AppIdentifier) -> bool:
         """Check if menu cache is still valid."""
@@ -365,5 +356,5 @@ class MenuNavigator:
             return False
 
         cache_data = self._menu_cache[cache_key]
-        cache_time = cache_data.get("timestamp", 0)
+        cache_time: float = cache_data.get("timestamp", 0)
         return time.time() - cache_time < self._cache_timeout

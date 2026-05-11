@@ -209,7 +209,7 @@ class TokenProcessor:
                 ),
             )
 
-    def _initialize_system_tokens(self) -> dict[str, Callable[[], str]]:
+    def _initialize_system_tokens(self) -> dict[str, Callable[[], str | None]]:
         """Initialize system token resolvers with security boundaries."""
         return {
             "CurrentUser": self._get_current_user,
@@ -295,7 +295,7 @@ class TokenProcessor:
         context: ProcessingContext,
     ) -> Either[KMError, tuple[str, list[str]]]:
         """Process a single token with context-specific handling."""
-        warnings = []
+        warnings: list[str] = []
         token_type = token_info["type"]
         content = token_info["content"]
 

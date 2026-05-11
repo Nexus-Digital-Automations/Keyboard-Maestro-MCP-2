@@ -10,7 +10,7 @@ history tracking, and integration with property-based testing.
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 # Test data generators
 @st.composite
-def clipboard_operation_strategy(draw: Callable[..., Any]) -> Mock:
+def clipboard_operation_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid clipboard operations."""
     operations = [
         "get",
@@ -39,11 +39,11 @@ def clipboard_operation_strategy(draw: Callable[..., Any]) -> Mock:
         "search_named",
         "stats",
     ]
-    return draw(st.sampled_from(operations))
+    return cast("str", draw(st.sampled_from(operations)))
 
 
 @st.composite
-def clipboard_content_strategy(draw: Callable[..., Any]) -> Mock:
+def clipboard_content_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid clipboard content."""
     content_types = [
         # Regular text content (ensure non-empty)
@@ -67,7 +67,7 @@ def clipboard_content_strategy(draw: Callable[..., Any]) -> Mock:
             ),
         ),
     ]
-    return draw(st.sampled_from(content_types))
+    return cast("str", draw(st.sampled_from(content_types)))
 
 
 @st.composite
@@ -89,7 +89,7 @@ def clipboard_name_strategy(draw: Callable[..., Any]) -> str:
 
 
 @st.composite
-def sensitive_content_strategy(draw: Callable[..., Any]) -> Mock:
+def sensitive_content_strategy(draw: Callable[..., Any]) -> str:
     """Generate potentially sensitive content for testing."""
     sensitive_patterns = [
         "password: " + draw(st.text(min_size=8, max_size=20)),
@@ -102,21 +102,21 @@ def sensitive_content_strategy(draw: Callable[..., Any]) -> Mock:
         ),
         "ssn: " + str(draw(st.integers(min_value=100000000, max_value=999999999))),
     ]
-    return draw(st.sampled_from(sensitive_patterns))
+    return cast("str", draw(st.sampled_from(sensitive_patterns)))
 
 
 @st.composite
-def format_filter_strategy(draw: Callable[..., Any]) -> None:
+def format_filter_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid format filters."""
     formats = ["text", "image", "file", "url", "all"]
-    return draw(st.sampled_from(formats))
+    return cast("str", draw(st.sampled_from(formats)))
 
 
 @st.composite
-def sort_field_strategy(draw: Callable[..., Any]) -> list[Any]:
+def sort_field_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid sort fields."""
     fields = ["name", "created_at", "accessed_at", "access_count"]
-    return draw(st.sampled_from(fields))
+    return cast("str", draw(st.sampled_from(fields)))
 
 
 class TestClipboardManagerDependencies:

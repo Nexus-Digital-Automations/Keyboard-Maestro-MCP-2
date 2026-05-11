@@ -10,7 +10,7 @@ across wide input ranges with property-based testing techniques.
 import re
 import string
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 from hypothesis import strategies as st
 from hypothesis.strategies import composite
@@ -21,6 +21,7 @@ from src.core import (
     Duration,
     ExecutionContext,
     ExecutionToken,
+    MacroCommand,
     MacroDefinition,
     MacroId,
     Permission,
@@ -117,7 +118,7 @@ def permission_sets(
             max_size=max_size,
         ),
     )
-    return permissions
+    return cast("frozenset[Permission]", permissions)
 
 
 # Command parameter generators
@@ -221,15 +222,18 @@ def safe_text_content(
     for pattern in dangerous_patterns:
         if re.search(pattern, text, re.IGNORECASE):
             # Generate simpler safe text
-            return draw(
-                st.text(
-                    alphabet=string.ascii_letters + string.digits + " ",
-                    min_size=min_length,
-                    max_size=min(max_length, 100),
+            return cast(
+                "str",
+                draw(
+                    st.text(
+                        alphabet=string.ascii_letters + string.digits + " ",
+                        min_size=min_length,
+                        max_size=min(max_length, 100),
+                    ),
                 ),
             )
 
-    return text
+    return cast("str", text)
 
 
 @composite
@@ -257,7 +261,7 @@ def malicious_text_content(draw: Callable[..., Any]) -> str:
         )
         return f"{legitimate_text} {base_pattern}"
 
-    return base_pattern
+    return cast("str", base_pattern)
 
 
 # Execution context generators
@@ -323,7 +327,7 @@ def simple_macro_definitions(draw: Callable[..., Any]) -> MacroDefinition:
     # For now, we'll use placeholder commands from the engine
     from src.core.engine import PlaceholderCommand
 
-    commands = []
+    commands: list[MacroCommand] = []
     for i, cmd_type in enumerate(command_types):
         command_id = CommandId(f"cmd_{i}")
         parameters = draw(command_parameters(cmd_type))
@@ -370,7 +374,7 @@ def complex_macro_definitions(draw: Callable[..., Any]) -> MacroDefinition:
 
     from src.core.engine import PlaceholderCommand
 
-    commands = []
+    commands: list[MacroCommand] = []
     for i, cmd_type in enumerate(command_types):
         command_id = CommandId(f"cmd_{i}")
         parameters = draw(command_parameters(cmd_type))
@@ -417,7 +421,7 @@ def invalid_identifiers(draw: Callable[..., Any]) -> str:
         "system()",
     ]
 
-    return draw(st.sampled_from(invalid_types))
+    return cast("str", draw(st.sampled_from(invalid_types)))
 
 
 @composite

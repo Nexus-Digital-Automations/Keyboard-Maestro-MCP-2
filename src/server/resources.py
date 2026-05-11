@@ -103,8 +103,9 @@ Please provide a detailed macro design including:
 Focus on reliability, user experience, and maintainability.
     """
 
+    # MCP prompt messages support only "user"/"assistant"; embed system context as assistant priming.
     return [
-        Message(role="system", content=system_prompt),
+        Message(role="assistant", content=system_prompt),
         Message(role="user", content=user_prompt.strip()),
     ]
 

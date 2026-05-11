@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any
 
 try:
-    from defusedxml import ElementTree as ET
+    from defusedxml import ElementTree as ET  # type: ignore[import-untyped]
 except ImportError:
     # Fallback with security warning if defusedxml not available
     import warnings
@@ -96,7 +96,7 @@ class KMConditionIntegrator:
             applescript = script_result.get_right()
 
             # Execute AppleScript
-            execution_result = await self.km_client.execute_applescript(applescript)
+            execution_result = await self.km_client.execute_applescript_async(applescript)
             if execution_result.is_left():
                 return Either.left(
                     IntegrationError(
@@ -152,7 +152,7 @@ class KMConditionIntegrator:
                 end tell
             """
 
-            result = await self.km_client.execute_applescript(script)
+            result = await self.km_client.execute_applescript_async(script)
             if result.is_left():
                 return Either.left(
                     IntegrationError(
@@ -241,7 +241,7 @@ class KMConditionIntegrator:
             # Validate generated XML for security
             security_check = self._validate_xml_security(xml_string)
             if security_check.is_left():
-                return security_check
+                return Either.left(security_check.get_left())
 
             return Either.right(xml_string)
 

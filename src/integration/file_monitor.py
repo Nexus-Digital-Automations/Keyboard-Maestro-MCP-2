@@ -125,7 +125,7 @@ class KMFileMonitor:
             logger.exception(f"Failed to start file monitoring: {e}")
             return False
 
-    def stop_monitoring(self) -> bool:
+    def stop_monitoring(self) -> None:
         """Stop file system monitoring."""
         if self._observer and self._is_monitoring:
             try:
@@ -150,7 +150,7 @@ class KMFileMonitor:
             "km_macros_path": str(self.km_macros_path),
         }
 
-    def _on_file_change(self, event: FileSystemEvent) -> bool:
+    def _on_file_change(self, event: FileSystemEvent) -> None:
         """Handle file system change events."""
         current_time = time.time()
 
@@ -281,8 +281,8 @@ if WATCHDOG_AVAILABLE:
             self.callback(event)
 
 else:
-    # Fallback implementation when watchdog is not available
-    class KMFileEventHandler:
+    # Fallback when watchdog is unavailable: stub allows imports to succeed.
+    class KMFileEventHandler:  # type: ignore[no-redef]
         def __init__(self, callback: Callable[..., Any]):
             self.callback = callback
             logger.warning("KMFileEventHandler created without watchdog support")
@@ -309,7 +309,6 @@ class SimpleFileMonitor:
 
         # Start monitoring task
         self._monitor_task = asyncio.create_task(self._monitor_loop(paths))
-        return True
 
     async def stop_monitoring(self) -> None:
         """Stop simple file monitoring."""

@@ -9,10 +9,9 @@ macro system behavior, security properties, and performance characteristics.
 
 import re
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from typing import Any
-from unittest.mock import Mock
 
 from src.core import (
     CommandResult,
@@ -115,10 +114,10 @@ def assert_permissions_required(
 
 
 def assert_security_violation_blocked(
-    func: Callable,
-    args: tuple = (),
-    kwargs: dict[str, Any] = None,
-    expected_error_type: type = MacroEngineError,
+    func: Callable[..., Any],
+    args: tuple[Any, ...] = (),
+    kwargs: dict[str, Any] | None = None,
+    expected_error_type: type[BaseException] = MacroEngineError,
     message: str = "",
 ) -> None:
     """Assert that a security violation is properly blocked."""
@@ -234,8 +233,8 @@ def assert_duration_valid(
 
 
 def assert_thread_safe_operation(
-    operation: Callable,
-    args_list: list[tuple],
+    operation: Callable[..., Any],
+    args_list: list[tuple[Any, ...]],
     max_workers: int = 5,
     message: str = "",
 ) -> None:
@@ -245,11 +244,11 @@ def assert_thread_safe_operation(
 
     prefix = f"{message}: " if message else ""
 
-    results = []
-    errors = []
+    results: list[Any] = []
+    errors: list[Exception] = []
     lock = threading.Lock()
 
-    def worker(args: list[Any]) -> None:
+    def worker(args: tuple[Any, ...]) -> None:
         try:
             result = operation(*args)
             with lock:
@@ -273,11 +272,11 @@ def assert_thread_safe_operation(
 
 
 @contextmanager
-def assert_no_memory_leaks(max_growth_mb: float = 10.0) -> None:
+def assert_no_memory_leaks(max_growth_mb: float = 10.0) -> Iterator[None]:
     """Context manager to assert no significant memory growth."""
     import os
 
-    import psutil
+    import psutil  # type: ignore[import-untyped]
 
     process = psutil.Process(os.getpid())
     initial_memory = process.memory_info().rss / 1024 / 1024  # MB
@@ -293,7 +292,7 @@ def assert_no_memory_leaks(max_growth_mb: float = 10.0) -> None:
 
 
 @contextmanager
-def assert_execution_time(max_time: float, min_time: float = 0.0) -> None:
+def assert_execution_time(max_time: float, min_time: float = 0.0) -> Iterator[None]:
     """Context manager to assert execution time bounds."""
     start_time = time.perf_counter()
 
@@ -335,7 +334,7 @@ def assert_invariant_maintained(
     operation: Callable[[], Any],
     invariant_name: str = "invariant",
     message: str = "",
-) -> Mock:
+) -> Any:
     """Assert that an invariant is maintained across an operation."""
     prefix = f"{message}: " if message else ""
 

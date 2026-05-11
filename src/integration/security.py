@@ -465,12 +465,9 @@ def _sanitize_value(value: str, level: SecurityLevel) -> str:
 
         return sanitized[:500]
 
-    if level == SecurityLevel.PARANOID:
-        # Very strict whitelist approach - only allow safe characters
-        sanitized = re.sub(r"[^a-zA-Z0-9\s\-_.,!?]", "", value)
-        return sanitized[:200]
-
-    return value
+    # Very strict whitelist approach - only allow safe characters
+    sanitized = re.sub(r"[^a-zA-Z0-9\s\-_.,!?]", "", value)
+    return sanitized[:200]
 
 
 def sanitize_trigger_data(
@@ -610,10 +607,6 @@ def validate_km_input_safe(raw_input: dict) -> TypeGuard[ValidatedKMInput]:
 
 def validate_trigger_input(trigger_config: dict[str, Any]) -> bool:
     """Validate trigger configuration input for security."""
-    if not isinstance(trigger_config, dict):
-        return False
-
-    # Use existing validation infrastructure
     validation_result = validate_km_input(trigger_config, SecurityLevel.STANDARD)
     return validation_result.is_safe and not validation_result.has_critical_violations()
 

@@ -116,10 +116,11 @@ async def km_file_operations(
 
     try:
         # Validate and sanitize paths using comprehensive security validation
-        if not PathSecurity.validate_path(source_path):
+        path_security = PathSecurity()
+        if not path_security.validate_path(source_path):
             raise ValidationError(f"Source path validation failed: {source_path}")
 
-        if destination_path and not PathSecurity.validate_path(destination_path):
+        if destination_path and not path_security.validate_path(destination_path):
             raise ValidationError(
                 f"Destination path validation failed: {destination_path}",
             )

@@ -175,7 +175,7 @@ class MCPProtocolHandler:
             )
 
         # Find and execute handler
-        handler = self._method_handlers.get(message.method)
+        handler = self._method_handlers.get(message.method or "")
         if not handler:
             return MCPMessage.create_error(
                 message.id,
@@ -184,7 +184,7 @@ class MCPProtocolHandler:
             )
 
         # Execute handler with validated parameters
-        result = handler(validation.sanitized_params)
+        result = handler(validation.sanitized_params or {})
 
         if result.is_right():
             return MCPMessage.create_response(message.id, result.get_right())
@@ -220,7 +220,7 @@ class MCPProtocolHandler:
     ) -> MCPValidationResult:
         """Validate execute_macro parameters."""
         errors = []
-        sanitized = {}
+        sanitized: dict[str, Any] = {}
 
         # Required: macro_id
         macro_id = params.get("macro_id")
@@ -255,7 +255,7 @@ class MCPProtocolHandler:
         params: dict[str, Any],
     ) -> MCPValidationResult:
         """Validate list_macros parameters."""
-        sanitized = {}
+        sanitized: dict[str, Any] = {}
         errors = []
 
         # Optional: group_filter
@@ -285,7 +285,7 @@ class MCPProtocolHandler:
     ) -> MCPValidationResult:
         """Validate register_trigger parameters."""
         errors = []
-        sanitized = {}
+        sanitized: dict[str, Any] = {}
 
         # Required: trigger_id, macro_id, trigger_type
         required_fields = ["trigger_id", "macro_id", "trigger_type"]
@@ -315,7 +315,7 @@ class MCPProtocolHandler:
     ) -> MCPValidationResult:
         """Validate get_macro_status parameters."""
         errors = []
-        sanitized = {}
+        sanitized: dict[str, Any] = {}
 
         macro_id = params.get("macro_id")
         if not macro_id or not isinstance(macro_id, str):
@@ -335,7 +335,7 @@ class MCPProtocolHandler:
     ) -> MCPValidationResult:
         """Validate process_event parameters."""
         errors = []
-        sanitized = {}
+        sanitized: dict[str, Any] = {}
 
         # Validate event data structure
         event_data = params.get("event")

@@ -293,18 +293,25 @@ def get_security_focused_pipeline() -> EventHandler:
 # NOTE: These will be created when first accessed to avoid contract issues during module loading
 
 
+# Module-level cache (lazy-init to avoid contract evaluation during import).
+_default_pipeline_cache: EventHandler | None = None
+_security_pipeline_cache: EventHandler | None = None
+
+
 def get_default_event_pipeline_cached() -> EventHandler:
     """Get the default event processing pipeline (cached version)."""
-    if not hasattr(get_default_event_pipeline_cached, "_cached"):
-        get_default_event_pipeline_cached._cached = get_default_event_pipeline()
-    return get_default_event_pipeline_cached._cached
+    global _default_pipeline_cache
+    if _default_pipeline_cache is None:
+        _default_pipeline_cache = get_default_event_pipeline()
+    return _default_pipeline_cache
 
 
 def get_security_focused_pipeline_cached() -> EventHandler:
     """Get the security-focused event processing pipeline (cached version)."""
-    if not hasattr(get_security_focused_pipeline_cached, "_cached"):
-        get_security_focused_pipeline_cached._cached = get_security_focused_pipeline()
-    return get_security_focused_pipeline_cached._cached
+    global _security_pipeline_cache
+    if _security_pipeline_cache is None:
+        _security_pipeline_cache = get_security_focused_pipeline()
+    return _security_pipeline_cache
 
 
 # Event Management Classes for test compatibility

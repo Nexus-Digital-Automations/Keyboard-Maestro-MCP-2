@@ -137,7 +137,7 @@ class KMTriggerIntegrator:
             # Add trigger-specific configuration
             config_result = self._add_trigger_config(root, trigger_spec)
             if config_result.is_left():
-                return config_result
+                return Either.left(config_result.get_left())
 
             # Add conditions if present
             if trigger_spec.conditions:
@@ -292,9 +292,6 @@ class KMTriggerIntegrator:
 
     def _escape_xml_value(self, text: str) -> str:
         """Escape XML attribute values."""
-        if not isinstance(text, str):
-            text = str(text)
-
         # Escape XML special characters
         text = text.replace("&", "&amp;")
         text = text.replace("<", "&lt;")

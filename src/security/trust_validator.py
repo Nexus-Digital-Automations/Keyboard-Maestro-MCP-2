@@ -21,6 +21,7 @@ from src.core.contracts import ensure, require
 from src.core.either import Either
 from src.core.zero_trust_architecture import (
     SecurityContext,
+    SecurityContextId,
     SecurityOperation,
     TrustLevel,
     TrustScore,
@@ -155,7 +156,7 @@ class TrustValidator:
             # Validate request
             request_validation = self._validate_request(request)
             if request_validation.is_left():
-                return request_validation
+                return Either.left(request_validation.get_left())
 
             # Check cache first
             cached_result = self._get_cached_trust_score(
@@ -177,7 +178,7 @@ class TrustValidator:
             # Perform factor validations
             factor_results = await self._validate_trust_factors(request)
             if factor_results.is_left():
-                return factor_results
+                return Either.left(factor_results.get_left())
 
             factors = factor_results.get_right()
 
@@ -933,7 +934,7 @@ class TrustValidator:
                         # Create basic validation request
                         validation_id = create_validation_id()
                         context = SecurityContext(
-                            context_id=f"continuous_{target_id}",
+                            context_id=SecurityContextId(f"continuous_{target_id}"),
                             user_id=target_id,
                         )
                         criteria = ValidationCriteria()

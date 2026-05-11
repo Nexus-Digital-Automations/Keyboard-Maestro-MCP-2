@@ -402,7 +402,7 @@ class AccessController:
             # Validate request
             request_validation = self._validate_access_request(request)
             if request_validation.is_left():
-                return request_validation
+                return Either.left(request_validation.get_left())
 
             # Get subject
             if request.subject_id not in self.subjects:
@@ -646,7 +646,7 @@ class AccessController:
                 subject.subject_id,
             )
             if effective_permissions_result.is_left():
-                return effective_permissions_result
+                return Either.left(effective_permissions_result.get_left())
 
             effective_permissions = effective_permissions_result.get_right()
 
@@ -1372,11 +1372,11 @@ class AccessController:
     # Simple interface methods for test compatibility
     def check_access(
         self,
-        user_id_or_dict=None,
+        user_id_or_dict: str | dict[str, Any] | None = None,
         resource: str | None = None,
-        required_permission: Permission | None = None,
-        **kwargs,
-    ) -> AccessDecision | bool | dict | object:
+        required_permission: Permission | str | None = None,
+        **kwargs: Any,
+    ) -> AccessDecision | bool | dict[str, Any] | object:
         """
         Simple access check interface for test compatibility.
 
@@ -1430,8 +1430,8 @@ class AccessController:
             decision="allow" if user_id in self.subjects else "deny",
             reason=f"User {user_id} {'has' if user_id in self.subjects else 'lacks'} required permissions",
             context=context,
-            resource=resource,
-            action=required_permission.value if required_permission else "unknown",
+            resource=resource or "",
+            action=required_permission.permission_id if required_permission else "unknown",
         )
         return decision
 
@@ -1443,14 +1443,14 @@ class AccessController:
                 subject_id=user_id,
                 subject_type="user",
                 roles=set(),
-                direct_permissions={permission.value},
+                direct_permissions={permission.permission_id},
                 attributes={},
             )
             self.subjects[user_id] = subject
         else:
             # Update existing subject with new permission
             existing = self.subjects[user_id]
-            updated_permissions = existing.direct_permissions | {permission.value}
+            updated_permissions = existing.direct_permissions | {permission.permission_id}
             updated_subject = Subject(
                 subject_id=existing.subject_id,
                 subject_type=existing.subject_type,
@@ -1469,7 +1469,7 @@ class AccessController:
         """Revoke permission from user (simple interface for test compatibility)."""
         if user_id in self.subjects:
             existing = self.subjects[user_id]
-            updated_permissions = existing.direct_permissions - {permission.value}
+            updated_permissions = existing.direct_permissions - {permission.permission_id}
             updated_subject = Subject(
                 subject_id=existing.subject_id,
                 subject_type=existing.subject_type,

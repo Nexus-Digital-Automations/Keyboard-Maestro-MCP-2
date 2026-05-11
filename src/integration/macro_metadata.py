@@ -148,7 +148,7 @@ class MacroMetadataExtractor:
         # Get detailed macro information from KM
         macro_details_result = await self._get_detailed_macro_info(macro_id)
         if macro_details_result.is_left():
-            return macro_details_result
+            return Either.left(macro_details_result.get_left())
 
         macro_details = macro_details_result.get_right()
 
@@ -335,7 +335,7 @@ class MacroMetadataExtractor:
             return ActionCategory.OTHER
 
         # Count actions by category
-        category_counts = {}
+        category_counts: dict[ActionCategory, int] = {}
         for action in actions:
             category_counts[action.category] = (
                 category_counts.get(action.category, 0) + 1
@@ -404,7 +404,7 @@ class MacroMetadataExtractor:
                 enabled_only=False,  # Include disabled macros for metadata extraction
             )
             if macros_result.is_left():
-                return macros_result
+                return Either.left(macros_result.get_left())
 
             macros = macros_result.get_right()
             for macro in macros:
@@ -435,7 +435,7 @@ class MacroMetadataExtractor:
 
             # Macro not found
             return Either.left(
-                KMError.not_found(f"Macro with ID '{macro_id}' not found"),
+                KMError.not_found_error(f"Macro with ID '{macro_id}' not found"),
             )
 
         except Exception as e:

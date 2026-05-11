@@ -80,7 +80,7 @@ async def km_notifications(
         ),
     ] = None,
     buttons: Annotated[
-        list[str],
+        list[str] | None,
         Field(
             default_factory=list,
             description="Button labels for alert dialogs (max 3)",
@@ -193,6 +193,7 @@ async def km_notifications(
                     correlation_id,
                     "INVALID_TYPE",
                     f"Invalid notification type: {notification_type}",
+                    f"Unrecognized notification type '{notification_type}'",
                     "Supported types: notification, alert, hud, sound",
                     (datetime.now() - start_time).total_seconds(),
                 )
@@ -205,6 +206,7 @@ async def km_notifications(
                     correlation_id,
                     "INVALID_PRIORITY",
                     f"Invalid priority: {priority}",
+                    f"Unrecognized priority '{priority}'",
                     "Supported priorities: low, normal, high, urgent",
                     (datetime.now() - start_time).total_seconds(),
                 )
@@ -217,6 +219,7 @@ async def km_notifications(
                     correlation_id,
                     "INVALID_POSITION",
                     f"Invalid HUD position: {position}",
+                    f"Unrecognized HUD position '{position}'",
                     "Supported positions: center, top, bottom, left, right, top_left, top_right, bottom_left, bottom_right",
                     (datetime.now() - start_time).total_seconds(),
                 )
@@ -299,7 +302,7 @@ async def km_notifications(
 
             return _create_error_response(
                 correlation_id,
-                error.code,
+                error.error_code,
                 error.message,
                 f"Notification display failed: {error.message}",
                 "Check system permissions and notification settings",

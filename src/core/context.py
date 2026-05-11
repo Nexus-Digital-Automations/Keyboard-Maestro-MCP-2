@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import threading
 import time
-from contextlib import AbstractContextManager, contextmanager
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -160,8 +161,8 @@ class SecurityContextManager:
                 missing=list(missing),
             )
             raise PermissionDeniedError(
-                required_permissions=list(required_permissions),
-                available_permissions=list(context.permissions),
+                required_permissions=[p.value for p in required_permissions],
+                available_permissions=[p.value for p in context.permissions],
                 context=error_context,
             )
 
@@ -193,7 +194,7 @@ class SecurityContextManager:
 def security_context(
     context: ExecutionContext,
     required_permissions: frozenset[Permission],
-) -> AbstractContextManager[ExecutionContext]:
+) -> Iterator[ExecutionContext]:
     """Context manager for secure execution with permission validation.
 
     Args:

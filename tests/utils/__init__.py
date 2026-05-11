@@ -13,6 +13,8 @@ This package provides comprehensive testing utilities including:
 # Import key utilities for easy access
 from __future__ import annotations
 
+from typing import Any
+
 from .assertions import (
     assert_command_failed,
     assert_command_successful,
@@ -136,7 +138,7 @@ __all__ = [
 ]
 
 
-def get_test_utilities_info() -> None:
+def get_test_utilities_info() -> dict[str, Any]:
     """Get information about available test utilities."""
     return {
         "version": __version__,

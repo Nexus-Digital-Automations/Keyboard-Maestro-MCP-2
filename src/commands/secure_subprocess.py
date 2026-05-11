@@ -43,7 +43,7 @@ class SecureCommand:
     executable: str
     args: list[str]
     timeout: float = 5.0
-    allowed_return_codes: set[int] = frozenset({0})
+    allowed_return_codes: frozenset[int] = frozenset({0})
 
     def __post_init__(self) -> None:
         """Validate command specification."""

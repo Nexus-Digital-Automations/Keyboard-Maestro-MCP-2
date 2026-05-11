@@ -24,6 +24,7 @@ from src.core.either import Either
 from src.core.iot_architecture import (
     AutomationAction,
     AutomationCondition,
+    DeviceId,
     IoTIntegrationError,
     SensorId,
     SensorReading,
@@ -31,7 +32,20 @@ from src.core.iot_architecture import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Awaitable, Callable
+
+    # Event handlers may be synchronous (returning None) or asynchronous
+    # (returning an Awaitable[None]); callers fire-and-forget the result.
+    ReadingReceivedHandler = Callable[[SensorReading], None | Awaitable[None]]
+    TriggerActivatedHandler = Callable[
+        [AutomationCondition, SensorReading],
+        None | Awaitable[None],
+    ]
+    AlertGeneratedHandler = Callable[["SensorAlert"], None | Awaitable[None]]
+    AnomalyDetectedHandler = Callable[
+        [SensorId, SensorReading, dict[str, Any]],
+        None | Awaitable[None],
+    ]
 
 
 class DataAggregationMethod(Enum):
@@ -146,7 +160,7 @@ class SensorStatistics:
     anomalies_detected: int = 0
     last_anomaly: datetime | None = None
 
-    def update_statistics(self, readings: list[SensorReading]) -> bool:
+    def update_statistics(self, readings: list[SensorReading]) -> None:
         """Update statistics from readings."""
         if not readings:
             return
@@ -321,14 +335,10 @@ class SensorManager:
         }
 
         # Event handlers
-        self.reading_received_handlers: list[Callable[[SensorReading], None]] = []
-        self.trigger_activated_handlers: list[
-            Callable[[AutomationCondition, SensorReading], None]
-        ] = []
-        self.alert_generated_handlers: list[Callable[[SensorAlert], None]] = []
-        self.anomaly_detected_handlers: list[
-            Callable[[SensorId, SensorReading, dict[str, Any]], None]
-        ] = []
+        self.reading_received_handlers: list[ReadingReceivedHandler] = []
+        self.trigger_activated_handlers: list[TriggerActivatedHandler] = []
+        self.alert_generated_handlers: list[AlertGeneratedHandler] = []
+        self.anomaly_detected_handlers: list[AnomalyDetectedHandler] = []
 
         # Background processing
         self._processing_task: asyncio.Task | None = None
@@ -409,13 +419,13 @@ class SensorManager:
             # Validate reading
             validation_result = self._validate_reading(reading, config)
             if validation_result.is_error():
-                return validation_result
+                return Either.error(validation_result.error_value)
 
             # Store reading
             self.sensor_data[reading.sensor_id].append(reading)
 
             # Process reading
-            processing_results = {
+            processing_results: dict[str, Any] = {
                 "sensor_id": reading.sensor_id,
                 "reading_timestamp": reading.timestamp.isoformat(),
                 "value": reading.value,
@@ -442,9 +452,9 @@ class SensorManager:
                     )
 
                     # Trigger anomaly event handlers
-                    for handler in self.anomaly_detected_handlers:
+                    for anomaly_handler in self.anomaly_detected_handlers:
                         with contextlib.suppress(Exception):
-                            handler(reading.sensor_id, reading, anomaly_result)
+                            anomaly_handler(reading.sensor_id, reading, anomaly_result)
 
             # Trigger evaluation
             if config.enable_triggers:
@@ -554,7 +564,7 @@ class SensorManager:
                 readings = [r for r in readings if r.timestamp >= cutoff_time]
 
             # Prepare base result
-            result = {
+            result: dict[str, Any] = {
                 "sensor_id": sensor_id,
                 "sensor_type": self.sensors[sensor_id].sensor_type.value,
                 "readings_count": len(readings),
@@ -787,7 +797,11 @@ class SensorManager:
             title=f"Sensor Trigger: {condition.condition_id}",
             description=f"Condition {condition.condition_id} triggered for sensor {reading.sensor_id}",
             trigger_value=reading.value,
-            threshold_value=condition.threshold_value,
+            threshold_value=(
+                condition.threshold_value
+                if condition.threshold_value is not None
+                else 0.0
+            ),
             triggered_at=datetime.now(UTC),
             sensor_reading=reading,
             trigger_condition=condition,
@@ -942,28 +956,28 @@ class SensorManager:
 
     def add_reading_received_handler(
         self,
-        handler: Callable[[SensorReading], None],
+        handler: ReadingReceivedHandler,
     ) -> None:
         """Add reading received event handler."""
         self.reading_received_handlers.append(handler)
 
     def add_trigger_activated_handler(
         self,
-        handler: Callable[[AutomationCondition, SensorReading], None],
+        handler: TriggerActivatedHandler,
     ) -> None:
         """Add trigger activated event handler."""
         self.trigger_activated_handlers.append(handler)
 
     def add_alert_generated_handler(
         self,
-        handler: Callable[[SensorAlert], None],
+        handler: AlertGeneratedHandler,
     ) -> None:
         """Add alert generated event handler."""
         self.alert_generated_handlers.append(handler)
 
     def add_anomaly_detected_handler(
         self,
-        handler: Callable[[SensorId, SensorReading, dict[str, Any]], None],
+        handler: AnomalyDetectedHandler,
     ) -> None:
         """Add anomaly detected event handler."""
         self.anomaly_detected_handlers.append(handler)
@@ -1049,7 +1063,9 @@ class SensorManager:
                 timestamp=datetime.now(UTC),
                 quality=random.uniform(0.8, 1.0),  # noqa: S311 # Sensor simulation data
                 location=config.location,
-                device_id=config.device_id,
+                device_id=(
+                    DeviceId(config.device_id) if config.device_id else None
+                ),
             )
 
             return Either.success(reading)

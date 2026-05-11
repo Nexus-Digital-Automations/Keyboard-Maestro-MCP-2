@@ -5,8 +5,9 @@ Contains server configuration, logging setup, and FastMCP initialization.
 
 import logging
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from fastmcp import FastMCP
 
@@ -29,16 +30,10 @@ class ServerConfig:
 class ToolConfig:
     """Configuration for tool management."""
 
-    enabled_tools: list[str] = None
-    disabled_tools: list[str] = None
+    enabled_tools: list[str] = field(default_factory=list)
+    disabled_tools: list[str] = field(default_factory=list)
     tool_timeout: float = 30.0
     max_concurrent_tools: int = 10
-
-    def __post_init__(self) -> None:
-        if self.enabled_tools is None:
-            self.enabled_tools = []
-        if self.disabled_tools is None:
-            self.disabled_tools = []
 
 
 def setup_logging(config: ServerConfig) -> logging.Logger:
@@ -48,7 +43,7 @@ def setup_logging(config: ServerConfig) -> logging.Logger:
     logs_path.mkdir(exist_ok=True)
 
     # Configure logging to stderr to avoid corrupting MCP communications
-    handlers = [logging.StreamHandler(sys.stderr)]
+    handlers: list[logging.Handler] = [logging.StreamHandler(sys.stderr)]
 
     # Add file handler if logs directory exists
     if logs_path.exists():
@@ -94,20 +89,21 @@ def get_server_config() -> ServerConfig:
     return ServerConfig()
 
 
-def load_config_from_file(config_path: str) -> dict:
+def load_config_from_file(config_path: str) -> dict[str, Any]:
     """Load configuration from JSON file."""
     import json
 
     try:
         with open(config_path) as f:
-            return json.load(f)
+            loaded: dict[str, Any] = json.load(f)
+            return loaded
     except FileNotFoundError:
         return {}
     except json.JSONDecodeError:
         return {}
 
 
-def load_config_with_env_override() -> dict:
+def load_config_with_env_override() -> dict[str, Any]:
     """Load configuration with environment variable overrides."""
     import os
 

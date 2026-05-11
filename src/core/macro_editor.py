@@ -245,14 +245,6 @@ class MacroEditorValidator:
         action_config: dict,
     ) -> Either[SecurityViolationError, dict]:
         """Prevent malicious action modifications."""
-        if not isinstance(action_config, dict):
-            return Either.left(
-                SecurityViolationError(
-                    "invalid_action_config",
-                    "Action configuration must be a dictionary",
-                ),
-            )
-
         # Sanitize script content
         if "script" in action_config:
             script = str(action_config["script"])
@@ -295,14 +287,6 @@ class MacroEditorValidator:
         debug_config: dict,
     ) -> Either[SecurityViolationError, None]:
         """Prevent abuse of debugging capabilities."""
-        if not isinstance(debug_config, dict):
-            return Either.left(
-                SecurityViolationError(
-                    "invalid_debug_config",
-                    "Debug configuration must be a dictionary",
-                ),
-            )
-
         # Limit breakpoint count
         breakpoints = debug_config.get("breakpoints", [])
         if not isinstance(breakpoints, list):
@@ -345,9 +329,6 @@ class MacroEditorValidator:
 # Utility functions for macro analysis
 def calculate_macro_complexity(macro_data: dict[str, Any]) -> int:
     """Calculate complexity score for a macro (0-100)."""
-    if not isinstance(macro_data, dict):
-        return 0
-
     base_score = 0
 
     # Action count contribution (0-40 points)
@@ -375,9 +356,6 @@ def calculate_macro_complexity(macro_data: dict[str, Any]) -> int:
 
 def calculate_macro_health(macro_data: dict[str, Any]) -> int:
     """Calculate health score for a macro (0-100)."""
-    if not isinstance(macro_data, dict):
-        return 0
-
     health_score = 100
 
     # Deduct for missing elements

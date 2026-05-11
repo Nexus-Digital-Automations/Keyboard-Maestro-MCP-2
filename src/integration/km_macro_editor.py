@@ -78,7 +78,7 @@ class KMMacroEditor:
             end tell
             """
 
-            result = await self.km_client.execute_applescript(applescript)
+            result = await self.km_client.execute_applescript_async(applescript)
             if result.is_left():
                 return Either.left(
                     IntegrationError(
@@ -115,7 +115,7 @@ class KMMacroEditor:
             # Parse actions and triggers
             actions = self._parse_xml_elements(actions_xml)
             triggers = self._parse_xml_elements(triggers_xml)
-            conditions = []  # In real implementation, parse conditions from actions
+            conditions: list[dict[str, Any]] = []  # In real implementation, parse conditions from actions
 
             # Calculate metrics
             macro_data = {
@@ -292,7 +292,7 @@ class KMMacroEditor:
             macro2 = macro2_result.get_right()
 
             # Calculate differences
-            differences = []
+            differences: list[dict[str, Any]] = []
 
             # Compare basic properties
             if macro1.macro_name != macro2.macro_name:
@@ -452,7 +452,7 @@ class KMMacroEditor:
         end tell
         """
 
-        result = await self.km_client.execute_applescript(applescript)
+        result = await self.km_client.execute_applescript_async(applescript)
         if result.is_left():
             return Either.left(
                 IntegrationError(
@@ -538,7 +538,7 @@ class KMMacroEditor:
         end tell
         """
 
-        result = await self.km_client.execute_applescript(applescript)
+        result = await self.km_client.execute_applescript_async(applescript)
         if result.is_left():
             return Either.left(
                 IntegrationError(
@@ -568,7 +568,7 @@ class KMMacroEditor:
         end tell
         """
 
-        result = await self.km_client.execute_applescript(applescript)
+        result = await self.km_client.execute_applescript_async(applescript)
         if result.is_left():
             return Either.left(
                 IntegrationError(

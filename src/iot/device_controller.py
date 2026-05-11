@@ -36,7 +36,19 @@ from src.core.iot_architecture import (
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Awaitable, Callable
+
+    # Event handlers may be synchronous (returning None) or asynchronous
+    # (returning an Awaitable[None]); callers fire-and-forget the result.
+    DeviceConnectedHandler = Callable[[DeviceId], None | Awaitable[None]]
+    CommandExecutedHandler = Callable[
+        [DeviceId, DeviceAction, dict[str, Any]],
+        None | Awaitable[None],
+    ]
+    DiscoveryHandler = Callable[
+        ["DiscoveryResult"],
+        None | Awaitable[None],
+    ]
 
 
 class DiscoveryMethod(Enum):
@@ -188,12 +200,10 @@ class DeviceController:
         self.discovery_history: list[DiscoveryResult] = []
 
         # Event handlers
-        self.device_discovered_handlers: list[Callable[[DiscoveryResult], None]] = []
-        self.device_connected_handlers: list[Callable[[DeviceId], None]] = []
-        self.device_disconnected_handlers: list[Callable[[DeviceId], None]] = []
-        self.command_executed_handlers: list[
-            Callable[[DeviceId, DeviceAction, dict[str, Any]], None]
-        ] = []
+        self.device_discovered_handlers: list[DiscoveryHandler] = []
+        self.device_connected_handlers: list[DeviceConnectedHandler] = []
+        self.device_disconnected_handlers: list[DeviceConnectedHandler] = []
+        self.command_executed_handlers: list[CommandExecutedHandler] = []
 
         # Background tasks
         self._discovery_task: asyncio.Task | None = None
@@ -289,17 +299,17 @@ class DeviceController:
                 for result in results:
                     if isinstance(result, list):
                         all_results.extend(result)
-                    elif not isinstance(result, Exception):
-                        all_results.append(result)
+                    # Exceptions returned by gather(return_exceptions=True) are
+                    # logged and skipped rather than re-raised.
 
             # Store discovery history
             self.discovery_history.extend(all_results)
 
             # Trigger discovery event handlers
-            for result in all_results:
+            for discovered in all_results:
                 for handler in self.device_discovered_handlers:
                     try:
-                        handler(result)
+                        handler(discovered)
                     except Exception as e:
                         # SIM105/S110 fix: Proper error handling instead of silent pass
                         logger.warning(f"Device discovery handler error: {e}")
@@ -366,9 +376,9 @@ class DeviceController:
 
                     connection.connection_state = ConnectionState.AUTHENTICATED
 
-                # Update device status
-                device.status = DeviceStatus.ONLINE
-                device.last_seen = datetime.now(UTC)
+                # Update device status (IoTDevice is frozen; use __setattr__)
+                object.__setattr__(device, "status", DeviceStatus.ONLINE)
+                object.__setattr__(device, "last_seen", datetime.now(UTC))
 
                 # Trigger connection event handlers
                 for handler in self.device_connected_handlers:
@@ -560,8 +570,8 @@ class DeviceController:
             connection.authentication_token = None
             connection.encryption_active = False
 
-            # Update device status
-            device.status = DeviceStatus.OFFLINE
+            # Update device status (IoTDevice is frozen; use __setattr__)
+            object.__setattr__(device, "status", DeviceStatus.OFFLINE)
 
             # Trigger disconnection event handlers
             for handler in self.device_disconnected_handlers:
@@ -608,7 +618,11 @@ class DeviceController:
                         if ping_result.is_error():
                             # Device not responding, mark as offline
                             connection.connection_state = ConnectionState.ERROR
-                            self.devices[device_id].status = DeviceStatus.OFFLINE
+                            object.__setattr__(
+                                self.devices[device_id],
+                                "status",
+                                DeviceStatus.OFFLINE,
+                            )
 
             except asyncio.CancelledError:
                 break
@@ -809,28 +823,32 @@ class DeviceController:
 
     def add_device_discovered_handler(
         self,
-        handler: Callable[[DiscoveryResult], None],
+        handler: DiscoveryHandler,
     ) -> bool:
         """Add device discovered event handler."""
         self.device_discovered_handlers.append(handler)
+        return True
 
-    def add_device_connected_handler(self, handler: Callable[[DeviceId], None]) -> bool:
+    def add_device_connected_handler(self, handler: DeviceConnectedHandler) -> bool:
         """Add device connected event handler."""
         self.device_connected_handlers.append(handler)
+        return True
 
     def add_device_disconnected_handler(
         self,
-        handler: Callable[[DeviceId], None],
+        handler: DeviceConnectedHandler,
     ) -> bool:
         """Add device disconnected event handler."""
         self.device_disconnected_handlers.append(handler)
+        return True
 
     def add_command_executed_handler(
         self,
-        handler: Callable[[DeviceId, DeviceAction, dict[str, Any]], None],
+        handler: CommandExecutedHandler,
     ) -> bool:
         """Add command executed event handler."""
         self.command_executed_handlers.append(handler)
+        return True
 
     # Utility methods
 

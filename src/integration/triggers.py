@@ -280,10 +280,14 @@ def update_trigger_state(current: TriggerState, event: TriggerEvent) -> TriggerS
     """Pure state transition function for trigger events."""
     if event.event_type == TriggerEventType.REGISTER:
         # Extract trigger info from event details
+        macro_id_val = event.details.get("macro_id")
+        trigger_type_val = event.details.get("trigger_type")
+        if macro_id_val is None or trigger_type_val is None:
+            return current
         trigger_info = TriggerInfo(
             trigger_id=event.trigger_id,
-            macro_id=event.details.get("macro_id"),
-            trigger_type=event.details.get("trigger_type"),
+            macro_id=macro_id_val,
+            trigger_type=trigger_type_val,
             status=TriggerStatus.REGISTERED,
             configuration=event.details.get("configuration", {}),
             metadata=TriggerMetadata(
@@ -535,7 +539,7 @@ class TriggerRegistrationManager:
             # Get current state from KM
             km_result = await self._km_client.list_triggers_async()
             if km_result.is_left():
-                return km_result
+                return Either.left(km_result.get_left())
 
             km_triggers = km_result.get_right()
 
@@ -639,12 +643,17 @@ class EventRouter:
         event: KMEvent,
     ) -> Either[KMError, bool]:
         """Execute macro associated with trigger."""
+        # Local import: avoids circular imports while keeping engine call typed.
+        from ..core.types import MacroDefinition
+
         try:
-            # Execute macro through engine
-            execution_result = await self._macro_engine.execute_macro_async(
+            macro_stub = MacroDefinition(
                 macro_id=trigger_info.macro_id,
-                trigger_value=event.get_payload_value("trigger_value"),
-                context_data=event.payload,
+                name=str(trigger_info.macro_id),
+                commands=[],
+            )
+            execution_result = await self._macro_engine.execute_macro_async(
+                macro=macro_stub,
             )
 
             if execution_result.status.value in ["completed"]:
@@ -663,7 +672,7 @@ class EventRouter:
                 )
             return Either.left(
                 KMError.execution_error(
-                    f"Macro execution failed: {execution_result.error_message}",
+                    f"Macro execution failed: {execution_result.error_details}",
                 ),
             )
 

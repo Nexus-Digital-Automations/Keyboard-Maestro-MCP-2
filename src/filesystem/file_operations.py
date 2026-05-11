@@ -231,7 +231,7 @@ class FileOperationManager:
             # Pre-operation validation
             validation_result = await self._validate_operation(request)
             if validation_result.is_left():
-                return validation_result
+                return Either.left(validation_result.get_left())
 
             # Execute operation based on type
             if request.operation == FileOperationType.COPY:

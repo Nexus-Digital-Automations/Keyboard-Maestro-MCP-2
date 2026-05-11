@@ -159,10 +159,14 @@ class AutomationRule:
 
         for condition in self.conditions:
             sensor_reading = (
-                sensor_data.get(condition.sensor_id) if sensor_data else None
+                sensor_data.get(condition.sensor_id)
+                if sensor_data and condition.sensor_id is not None
+                else None
             )
             device_state = (
-                device_states.get(condition.device_id) if device_states else None
+                device_states.get(condition.device_id)
+                if device_states and condition.device_id is not None
+                else None
             )
 
             if not condition.evaluate(sensor_reading, device_state):
@@ -564,8 +568,9 @@ class AutomationHub:
                         "activation_result": result.value,
                     },
                 )
+                return Either.success(result.value)
 
-            return result
+            return Either.error(IoTIntegrationError(result.error_value))
 
         except Exception as e:
             return Either.error(
@@ -614,8 +619,9 @@ class AutomationHub:
                             "execution_result": result.value,
                         },
                     )
+                    return Either.success(result.value)
 
-                return result
+                return Either.error(IoTIntegrationError(result.error_value))
 
             finally:
                 # Clean up execution tracking
@@ -675,17 +681,17 @@ class AutomationHub:
             # Check workflow triggers
             for workflow in self.workflows.values():
                 if workflow.is_triggered(list(sensor_data.values()), device_states):
-                    execution_result = await self.execute_workflow(
+                    workflow_result = await self.execute_workflow(
                         workflow.workflow_id,
                         trigger_data,
                     )
 
-                    if execution_result.is_success():
+                    if workflow_result.is_success():
                         triggered_results.append(
                             {
                                 "workflow_id": workflow.workflow_id,
                                 "workflow_name": workflow.workflow_name,
-                                "execution_result": execution_result.value,
+                                "execution_result": workflow_result.value,
                             },
                         )
 
@@ -920,10 +926,12 @@ class AutomationHub:
     async def _schedule_rule(self, rule: AutomationRule) -> Any:
         """Schedule rule for execution."""
         # This would implement rule scheduling based on cron expressions
+        return None
 
     async def _optimize_automation_rules(self) -> Any:
         """Optimize automation rules based on execution patterns."""
         # This would implement ML-based rule optimization
+        return None
 
     # Utility methods
 
@@ -934,6 +942,7 @@ class AutomationHub:
     ) -> bool:
         """Add event handler for specific event type."""
         self.event_handlers[event_type].append(handler)
+        return True
 
     def get_hub_status(self) -> dict[str, Any]:
         """Get automation hub status."""
@@ -976,7 +985,7 @@ class AutomationHub:
                     "timestamp": datetime.now(UTC).isoformat(),
                 },
             )
-        return result
+        return Either.error(result.error_value)
 
     async def create_schedule(
         self,

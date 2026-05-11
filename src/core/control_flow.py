@@ -325,9 +325,7 @@ class ControlFlowValidator:
         """Validate loop iteration limits."""
         if isinstance(node, ForLoopNode):
             return node.loop_config.max_iterations <= self.limits.max_iterations
-        if isinstance(node, WhileLoopNode):
-            return node.max_iterations <= self.limits.max_iterations
-        return False
+        return node.max_iterations <= self.limits.max_iterations
 
     def validate_action_count(self, node: ControlFlowNodeType) -> bool:
         """Validate total action count in control flow."""
@@ -1038,6 +1036,7 @@ class ControlFlowOptimizer:
             return None  # Remove empty switch
 
         return SwitchCaseNode(
+            flow_type=node.flow_type,
             node_id=node.node_id,
             switch_variable=node.switch_variable,
             cases=optimized_cases,
@@ -1131,6 +1130,7 @@ def create_loop_with_controls(
             )
 
     # Create the appropriate loop type
+    node: ForLoopNode | WhileLoopNode
     if loop_type == "for" and isinstance(condition_or_config, LoopConfiguration):
         node = ForLoopNode(
             flow_type=ControlFlowType.FOR_LOOP,
@@ -1154,7 +1154,7 @@ class ControlFlowEngine:
 
     def __init__(self) -> None:
         self.security_limits = SecurityLimits()
-        self.evaluation_context = {}
+        self.evaluation_context: dict[str, Any] = {}
 
     def evaluate_condition(self, condition: dict[str, Any]) -> bool:
         """Evaluate a condition for control flow decisions."""

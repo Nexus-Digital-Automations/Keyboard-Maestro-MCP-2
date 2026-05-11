@@ -137,18 +137,13 @@ def validate_device_parameters(
     if parameters is None:
         return Either.success({})
 
-    if not isinstance(parameters, dict):
-        return Either.error(
-            ValidationError("parameters", parameters, "must be a dictionary"),
-        )
-
     if len(parameters) > 20:
         return Either.error(
             ValidationError("parameters", parameters, "cannot exceed 20 parameters"),
         )
 
     # Validate parameter values
-    safe_params = {}
+    safe_params: dict[str, str | int | float | bool | None] = {}
     for key, value in parameters.items():
         if not isinstance(key, str) or len(key) > 50:
             return Either.error(
@@ -452,9 +447,9 @@ async def km_monitor_sensors(
                                     automation_actions.append(action)
 
         # Data aggregation
-        aggregated_data = {}
+        aggregated_data: dict[SensorId, float] = {}
         if data_aggregation and readings:
-            for sensor_id in sensor_identifiers:
+            for sensor_id in sensor_ids:
                 sensor_readings = [r for r in readings if r["sensor_id"] == sensor_id]
                 if sensor_readings:
                     values = [
@@ -593,12 +588,16 @@ async def km_manage_smart_home(
 
             scene_id = create_scene_id(scene_name)
 
+            # Tool boundary: convert opaque str keys into DeviceId branded keys.
+            branded_settings: dict[DeviceId, dict[str, Any]] = {
+                create_device_id(k): v for k, v in (device_settings or {}).items()
+            }
             # Create smart home scene
             scene = SmartHomeScene(
                 scene_id=scene_id,
                 scene_name=scene_name,
                 description=f"Scene created via IoT integration: {scene_name}",
-                device_settings=device_settings or {},
+                device_settings=branded_settings,
                 schedule=schedule_config,
                 category=location_context or "general",
             )
@@ -854,7 +853,7 @@ async def km_coordinate_iot_workflows(
             execution_mode = WorkflowExecutionMode.SEQUENTIAL
 
         # Build automation conditions
-        conditions = []
+        conditions: list[AutomationCondition] = []
         for condition_config in trigger_conditions:
             condition = AutomationCondition(
                 condition_id=f"condition_{len(conditions)}",

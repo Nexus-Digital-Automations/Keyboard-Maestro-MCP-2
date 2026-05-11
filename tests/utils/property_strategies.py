@@ -9,7 +9,7 @@ and health check failures while maintaining comprehensive property-based testing
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from hypothesis import strategies as st
 from hypothesis.strategies import composite
@@ -54,7 +54,7 @@ def enterprise_domains(draw: Callable[..., Any]) -> str:
         "dev.company",
         "prod.enterprise",
     ]
-    return draw(st.sampled_from(domains))
+    return cast("str", draw(st.sampled_from(domains)))
 
 
 @composite
@@ -77,7 +77,7 @@ def enterprise_usernames(draw: Callable[..., Any]) -> str:
         "qa",
         "support",
     ]
-    return draw(st.sampled_from(usernames))
+    return cast("str", draw(st.sampled_from(usernames)))
 
 
 @composite
@@ -101,7 +101,7 @@ def api_service_names(draw: Callable[..., Any]) -> str:
         "reviews",
         "chat",
     ]
-    return draw(st.sampled_from(services))
+    return cast("str", draw(st.sampled_from(services)))
 
 
 @composite
@@ -124,7 +124,7 @@ def http_header_names(draw: Callable[..., Any]) -> str:
         "X-Correlation-ID",
         "X-Client-Version",
     ]
-    return draw(st.sampled_from(headers))
+    return cast("str", draw(st.sampled_from(headers)))
 
 
 @composite
@@ -165,7 +165,7 @@ def safe_urls(draw: Callable[..., Any]) -> str:
 def api_versions(draw: Callable[..., Any]) -> str:
     """Generate valid API versions without filtering."""
     versions = ["v1", "v2", "v3", "1.0", "2.0", "3.0", "latest", "stable", "beta"]
-    return draw(st.sampled_from(versions))
+    return cast("str", draw(st.sampled_from(versions)))
 
 
 @composite
@@ -180,7 +180,7 @@ def enterprise_base_dns(draw: Callable[..., Any]) -> str:
         "ou=departments,dc=company,dc=org",
         "cn=admin,dc=test,dc=io",
     ]
-    return draw(st.sampled_from(base_dns))
+    return cast("str", draw(st.sampled_from(base_dns)))
 
 
 @composite
@@ -194,7 +194,7 @@ def certificate_paths(draw: Callable[..., Any]) -> str:
         "/home/user/.ssl/client.key",
         "/etc/pki/tls/private/server.key",
     ]
-    return draw(st.sampled_from(paths))
+    return cast("str", draw(st.sampled_from(paths)))
 
 
 @composite
@@ -212,14 +212,14 @@ def auth_methods(draw: Callable[..., Any]) -> str:
         "digest",
         "kerberos",
     ]
-    return draw(st.sampled_from(methods))
+    return cast("str", draw(st.sampled_from(methods)))
 
 
 @composite
 def sync_types(draw: Callable[..., Any]) -> str:
     """Generate valid sync types without filtering."""
     types = ["full", "incremental", "delta", "partial", "selective"]
-    return draw(st.sampled_from(types))
+    return cast("str", draw(st.sampled_from(types)))
 
 
 @composite
@@ -235,21 +235,21 @@ def enterprise_entity_lists(draw: Callable[..., Any]) -> list[str]:
         ["applications", "services"],
         ["policies", "rules"],
     ]
-    return draw(st.sampled_from(entity_sets))
+    return cast("list[str]", draw(st.sampled_from(entity_sets)))
 
 
 @composite
 def property_test_timeouts(draw: Callable[..., Any]) -> int:
     """Generate valid timeout values for property tests."""
     timeouts = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 300]
-    return draw(st.sampled_from(timeouts))
+    return cast("int", draw(st.sampled_from(timeouts)))
 
 
 @composite
 def property_test_batch_sizes(draw: Callable[..., Any]) -> int:
     """Generate valid batch sizes for property tests."""
     sizes = [10, 25, 50, 100, 250, 500, 1000]
-    return draw(st.sampled_from(sizes))
+    return cast("int", draw(st.sampled_from(sizes)))
 
 
 # User identity strategies
@@ -263,7 +263,7 @@ def user_identification_contexts(draw: Callable[..., Any]) -> dict[str, Any]:
         {"method": "token", "provider": "sso"},
         {"method": "certificate", "authority": "internal"},
     ]
-    return draw(st.sampled_from(contexts))
+    return cast("dict[str, Any]", draw(st.sampled_from(contexts)))
 
 
 @composite
@@ -276,7 +276,7 @@ def authentication_inputs(draw: Callable[..., Any]) -> dict[str, Any]:
         {"api_key": "key_12345", "secret": "secret_67890"},
         {"certificate": "cert.pem", "private_key": "key.pem"},
     ]
-    return draw(st.sampled_from(inputs))
+    return cast("dict[str, Any]", draw(st.sampled_from(inputs)))
 
 
 # Knowledge management strategies
@@ -290,7 +290,7 @@ def documentation_configs(draw: Callable[..., Any]) -> dict[str, Any]:
         {"format": "json", "template": "api"},
         {"format": "xml", "template": "structured"},
     ]
-    return draw(st.sampled_from(configs))
+    return cast("dict[str, Any]", draw(st.sampled_from(configs)))
 
 
 @composite
@@ -308,11 +308,11 @@ def search_queries(draw: Callable[..., Any]) -> str:
         "monitoring",
         "backup",
     ]
-    return draw(st.sampled_from(queries))
+    return cast("str", draw(st.sampled_from(queries)))
 
 
 @composite
 def content_quality_scores(draw: Callable[..., Any]) -> float:
     """Generate valid content quality scores without filtering."""
     scores = [0.1, 0.25, 0.5, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0]
-    return draw(st.sampled_from(scores))
+    return cast("float", draw(st.sampled_from(scores)))

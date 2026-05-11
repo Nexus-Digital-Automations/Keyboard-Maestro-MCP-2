@@ -58,7 +58,7 @@ class MockKeyboardMaestroClient:
         self.registered_triggers: dict[str, dict[str, Any]] = {}
         self.macro_executions: dict[str, MockKMResponse] = {}
         self.connection_status = "connected"
-        self.last_error = None
+        self.last_error: str | None = None
 
         # Statistics
         self.call_count = 0
@@ -226,7 +226,7 @@ class MockExecutionContext:
         )
         self.get_variable = Mock(side_effect=lambda name: self.variables.get(name))
 
-    def with_variable(self, name: str, value: str) -> None:
+    def with_variable(self, name: str, value: str) -> "MockExecutionContext":
         """Add variable to mock context."""
         new_vars = self.variables.copy()
         new_vars[name] = value
@@ -254,7 +254,7 @@ class MockCommand:
 
         # Execution tracking
         self.execution_count = 0
-        self.last_context = None
+        self.last_context: ExecutionContext | None = None
 
     def execute(self, context: ExecutionContext) -> CommandResult:
         """Mock command execution."""
@@ -290,7 +290,7 @@ class MockCommand:
 class MockMacroEngine:
     """Mock macro engine for testing integration scenarios."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.executions: dict[ExecutionToken, ExecutionResult] = {}
         self.execution_count = 0
         self.active_executions: dict[ExecutionToken, ExecutionStatus] = {}
@@ -356,7 +356,7 @@ class MockMacroEngine:
 class MockFileSystem:
     """Mock file system for testing file operations."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.files: dict[str, str] = {}
         self.directories: set[str] = {"/", "/test", "/mock_data"}
         self.permissions: dict[str, str] = {}  # path -> permission level
