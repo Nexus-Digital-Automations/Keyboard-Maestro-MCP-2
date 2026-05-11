@@ -23,7 +23,6 @@ class ToolCategory(Enum):
     TOKEN_PROCESSING = "token_processing"  # noqa: S105 # Enum value, not password
     CONDITIONAL_LOGIC = "conditional_logic"
     CONTROL_FLOW = "control_flow"
-    IOT_INTEGRATION = "iot_integration"
     APPLICATION_CONTROL = "application_control"
     MACRO_EDITING = "macro_editing"
     MACRO_GROUPS = "macro_groups"
@@ -175,21 +174,6 @@ class ToolConfigurationManager:
             module_path="src.server.tools.control_flow_tools",
             priority=7,
         )
-
-        for tool in (
-            "km_control_iot_devices",
-            "km_monitor_sensors",
-            "km_manage_smart_home",
-            "km_coordinate_iot_workflows",
-        ):
-            self.configurations[tool] = ToolConfiguration(
-                name=tool,
-                category=ToolCategory.IOT_INTEGRATION,
-                description=f"IoT integration: {tool}",
-                module_path="src.server.tools.iot_integration_tools",
-                priority=6,
-                experimental=True,
-            )
 
         self.configurations["km_application_control"] = ToolConfiguration(
             name="km_application_control",

@@ -3,17 +3,14 @@
 This package contains the modular MCP tools organized by functionality.
 """
 
+from .application_tools import km_application_control
 from .clipboard_tools import km_clipboard_manager
 from .condition_tools import km_add_condition
 from .control_flow_tools import km_control_flow
 from .core_tools import km_execute_macro, km_list_macros, km_variable_manager
 from .file_operation_tools import km_file_operations
-from .iot_integration_tools import (
-    km_control_iot_devices,
-    km_coordinate_iot_workflows,
-    km_manage_smart_home,
-    km_monitor_sensors,
-)
+from .macro_editor_tools import km_macro_editor
+from .macro_group_tools import km_macro_group_manager
 from .notification_tools import (
     km_dismiss_notifications,
     km_notification_status,
@@ -24,16 +21,15 @@ from .window_tools import km_window_manager
 
 __all__ = [
     "km_add_condition",
+    "km_application_control",
     "km_clipboard_manager",
     "km_control_flow",
-    "km_control_iot_devices",
-    "km_coordinate_iot_workflows",
     "km_dismiss_notifications",
     "km_execute_macro",
     "km_file_operations",
     "km_list_macros",
-    "km_manage_smart_home",
-    "km_monitor_sensors",
+    "km_macro_editor",
+    "km_macro_group_manager",
     "km_notification_status",
     "km_notifications",
     "km_token_processor",
