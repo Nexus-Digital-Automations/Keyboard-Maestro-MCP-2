@@ -378,7 +378,7 @@ class TestMacroEngine:
             result = engine.execute_macro(macro)
 
             assert result.status == ExecutionStatus.FAILED
-            assert "ValidationError" in result.error_details
+            assert "ValidationError" in (result.error_details or "")
 
     def test_macro_execution_command_failure(self) -> None:
         """Test macro execution with failing command."""
@@ -403,7 +403,7 @@ class TestMacroEngine:
         assert result.status == ExecutionStatus.FAILED
         assert len(result.command_results) >= 1  # May have wrapper results
         assert any(not cmd_result.success for cmd_result in result.command_results)
-        assert "Command failures" in result.error_details
+        assert "Command failures" in (result.error_details or "")
 
     def test_macro_execution_permission_denied(self) -> None:
         """Test macro execution with permission denied."""
@@ -426,7 +426,7 @@ class TestMacroEngine:
             result = engine.execute_macro(macro)
 
             assert result.status == ExecutionStatus.FAILED
-            assert "PermissionDeniedError" in result.error_details
+            assert "PermissionDeniedError" in (result.error_details or "")
 
     @pytest.mark.asyncio
     async def test_async_macro_execution_success(self) -> None:
@@ -464,7 +464,7 @@ class TestMacroEngine:
             result = await engine.execute_macro_async(macro)
 
             assert result.status == ExecutionStatus.FAILED
-            assert "Validation failed" in result.error_details
+            assert "Validation failed" in (result.error_details or "")
 
     @pytest.mark.asyncio
     async def test_async_macro_execution_concurrent_limit(self) -> None:
@@ -514,7 +514,7 @@ class TestMacroEngine:
         result = await mock_engine.execute_macro_async(macro)
 
         assert result.status == ExecutionStatus.FAILED
-        assert "Maximum concurrent executions" in result.error_details
+        assert "Maximum concurrent executions" in (result.error_details or "")
 
     @pytest.mark.asyncio
     async def test_async_command_execution_timeout(self) -> None:
@@ -998,6 +998,7 @@ class TestEngineIntegration:
         assert result.status == ExecutionStatus.COMPLETED
         assert len(result.command_results) == 3
         assert all(cmd_result.success for cmd_result in result.command_results)
+        assert result.total_duration is not None
         assert result.total_duration.total_seconds() > 0
 
         # Record metrics
@@ -1056,7 +1057,7 @@ class TestEngineIntegration:
 
         # Engine should handle error gracefully
         assert result.status == ExecutionStatus.FAILED
-        assert "Simulated failure" in result.error_details
+        assert "Simulated failure" in (result.error_details or "")
         assert result.execution_token is not None
 
         # Verify cleanup occurred (context should be cleaned up)
@@ -1090,6 +1091,7 @@ class TestEngineIntegration:
             execution_times.append(execution_time)
 
             # Record in metrics
+            assert result.total_duration is not None
             metrics.record_execution(
                 result.total_duration,
                 result.status == ExecutionStatus.COMPLETED,
