@@ -104,18 +104,6 @@ class ToolConfigurationManager:
                 audit_level="detailed",
             ),
         )
-        self.configurations["km_clipboard_manager"] = ToolConfiguration(
-            name="km_clipboard_manager",
-            category=ToolCategory.CLIPBOARD,
-            description="Clipboard inspection via Keyboard Maestro",
-            module_path="src.server.tools.token_tools",
-            priority=6,
-            security_policy=ToolSecurityPolicy(
-                level=SecurityLevel.STANDARD,
-                input_validation=True,
-                output_sanitization=True,
-            ),
-        )
 
     def get_configuration(self, tool_name: str) -> ToolConfiguration | None:
         """Get configuration for a specific tool."""
