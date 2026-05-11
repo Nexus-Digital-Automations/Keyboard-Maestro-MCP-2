@@ -2108,6 +2108,77 @@ class KMClient:
             return Either.left(KMError.execution_error(output[6:].strip()))
         return Either.right(True)
 
+    async def attach_trigger_async(
+        self,
+        macro_id: MacroId,
+        trigger_type: str,
+        config: dict[str, Any],
+    ) -> Either[KMError, bool]:
+        """Attach a new trigger to an existing macro.
+
+        Supports trigger_type values: "hotkey" (config: key, modifiers),
+        "application" (config: application, event).
+        Other types are deferred to a later round.
+
+        Existing `register_trigger_async` predates the macro-scoping concept
+        in this codebase and doesn't attach to a specific macro — this is
+        the proper macro-scoped primitive.
+        """
+        escaped_id = self._escape_applescript_string(str(macro_id))
+        if trigger_type == "hotkey":
+            key = config.get("key")
+            if not isinstance(key, str) or not key:
+                return Either.left(KMError.validation_error("hotkey requires 'key' (str)"))
+            allowed_mods = {"command", "option", "control", "shift"}
+            mods_raw = config.get("modifiers", [])
+            if not isinstance(mods_raw, list):
+                return Either.left(KMError.validation_error("'modifiers' must be a list"))
+            safe_mods = [m for m in mods_raw if isinstance(m, str) and m in allowed_mods]
+            mods_clause = "{" + ", ".join(f'"{m}"' for m in safe_mods) + "}"
+            escaped_key = self._escape_applescript_string(key)
+            props = f'key:"{escaped_key}", modifiers:{mods_clause}'
+            type_clause = "hot key trigger"
+        elif trigger_type == "application":
+            app_name = config.get("application")
+            event = config.get("event", "launches")
+            if not isinstance(app_name, str) or not app_name:
+                return Either.left(
+                    KMError.validation_error("application trigger requires 'application' (str)"),
+                )
+            if event not in {"launches", "quits", "activates"}:
+                return Either.left(
+                    KMError.validation_error("'event' must be launches|quits|activates"),
+                )
+            escaped_app = self._escape_applescript_string(app_name)
+            props = f'application:"{escaped_app}", event:"{event}"'
+            type_clause = "application trigger"
+        else:
+            return Either.left(
+                KMError.validation_error(
+                    f"trigger_type '{trigger_type}' not supported; "
+                    "use 'hotkey' or 'application'",
+                ),
+            )
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set targetMacro to first macro whose name is "{escaped_id}"
+                make new {type_clause} at end of triggers of targetMacro ¬
+                    with properties {{{props}}}
+                return "attached"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.execution_error(output[6:].strip()))
+        return Either.right(True)
+
     async def list_macro_triggers_async(
         self,
         macro_id: MacroId,
