@@ -305,7 +305,7 @@ class SecureSubprocessManager:
                     command_type=CommandType.PROCESS_DISCOVERY,
                     executable="pgrep",
                     args=["-f", app_name],
-                    allowed_return_codes={0, 1},  # 1 means no matches found
+                    allowed_return_codes=frozenset({0, 1}),  # 1 means no matches found
                 )
 
                 result = self.execute_secure_command(command)
@@ -329,7 +329,7 @@ class SecureSubprocessManager:
                     command_type=CommandType.PROCESS_DISCOVERY,
                     executable="tasklist",
                     args=["/FI", f"IMAGENAME eq {safe_app_name}*"],
-                    allowed_return_codes={0, 1},  # 1 means no matches found
+                    allowed_return_codes=frozenset({0, 1}),  # 1 means no matches found
                 )
 
                 result = self.execute_secure_command(command)
@@ -370,14 +370,14 @@ class SecureSubprocessManager:
                         command_type=CommandType.PROCESS_TERMINATION,
                         executable="taskkill",
                         args=["/F", "/PID", str(pid)],
-                        allowed_return_codes={0, 128, 1},  # Process might not exist
+                        allowed_return_codes=frozenset({0, 128, 1}),  # Process might not exist
                     )
                 else:
                     command = SecureCommand(
                         command_type=CommandType.PROCESS_TERMINATION,
                         executable="taskkill",
                         args=["/PID", str(pid)],
-                        allowed_return_codes={0, 128, 1},  # Process might not exist
+                        allowed_return_codes=frozenset({0, 128, 1}),  # Process might not exist
                     )
             else:
                 # Unix-like systems
@@ -386,7 +386,7 @@ class SecureSubprocessManager:
                     command_type=CommandType.PROCESS_TERMINATION,
                     executable="kill",
                     args=[signal_arg, str(pid)],
-                    allowed_return_codes={0, 1},  # 1 means process not found
+                    allowed_return_codes=frozenset({0, 1}),  # 1 means process not found
                 )
 
             result = self.execute_secure_command(command)
@@ -416,7 +416,7 @@ class SecureSubprocessManager:
                     command_type=CommandType.PROCESS_DISCOVERY,
                     executable="tasklist",
                     args=["/FI", f"PID eq {pid}"],
-                    allowed_return_codes={0, 1},
+                    allowed_return_codes=frozenset({0, 1}),
                 )
 
                 result = self.execute_secure_command(command)
@@ -428,7 +428,7 @@ class SecureSubprocessManager:
                 command_type=CommandType.PROCESS_SIGNAL,
                 executable="kill",
                 args=["-0", str(pid)],
-                allowed_return_codes={0, 1},  # 1 means process not found
+                allowed_return_codes=frozenset({0, 1}),  # 1 means process not found
             )
 
             result = self.execute_secure_command(command)

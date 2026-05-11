@@ -661,7 +661,7 @@ def get_engine_metrics() -> EngineMetrics:
 
 def create_test_macro(name: str, command_types: list[CommandType]) -> MacroDefinition:
     """Create a test macro with specified command types."""
-    commands = []
+    commands: list[MacroCommand] = []
     for i, cmd_type in enumerate(command_types):
         # Create basic parameters for each command type
         if cmd_type == CommandType.TEXT_INPUT:
@@ -701,10 +701,9 @@ def create_test_macro(name: str, command_types: list[CommandType]) -> MacroDefin
                     "else_commands": [],
                 },
             )
-        elif cmd_type == CommandType.LOOP:
-            params = CommandParameters({"count": 3, "commands": []})
         else:
-            params = CommandParameters({})
+            # cmd_type is CommandType.LOOP (the only remaining enum value).
+            params = CommandParameters({"count": 3, "commands": []})
 
         command = PlaceholderCommand(
             command_id=CommandId(f"test_cmd_{i}"),

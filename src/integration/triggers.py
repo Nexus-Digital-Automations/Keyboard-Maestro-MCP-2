@@ -640,7 +640,7 @@ class EventRouter:
     async def _execute_macro_for_event(
         self,
         trigger_info: TriggerInfo,
-        event: KMEvent,
+        _event: KMEvent,
     ) -> Either[KMError, bool]:
         """Execute macro associated with trigger."""
         # Local import: avoids circular imports while keeping engine call typed.

@@ -1222,7 +1222,7 @@ class ControlFlowEngine:
                     }
 
                     if operator in comparison_operations:
-                        return comparison_operations[operator](left_val, right_val)
+                        return bool(comparison_operations[operator](left_val, right_val))
                 except (ValueError, TypeError):
                     # Fall back to string comparison for non-numeric values
                     return (
