@@ -1893,6 +1893,219 @@ class KMClient:
 
         return value
 
+    async def delete_macro_async(
+        self,
+        macro_id: MacroId,
+    ) -> Either[KMError, bool]:
+        """Delete a macro by name or UUID via Keyboard Maestro AppleScript."""
+        escaped = self._escape_applescript_string(str(macro_id))
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                delete (first macro whose name is "{escaped}")
+                return "deleted"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.not_found_error(output[6:].strip()))
+        return Either.right(True)
+
+    async def rename_macro_async(
+        self,
+        macro_id: MacroId,
+        new_name: str,
+    ) -> Either[KMError, bool]:
+        """Rename a macro. Fails if the target name already exists in the same group."""
+        if not new_name.strip():
+            return Either.left(KMError.validation_error("new_name cannot be empty"))
+        escaped_old = self._escape_applescript_string(str(macro_id))
+        escaped_new = self._escape_applescript_string(new_name)
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set name of (first macro whose name is "{escaped_old}") to "{escaped_new}"
+                return "renamed"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.execution_error(output[6:].strip()))
+        return Either.right(True)
+
+    async def duplicate_macro_async(
+        self,
+        macro_id: MacroId,
+        new_name: str | None = None,
+    ) -> Either[KMError, dict[str, Any]]:
+        """Duplicate a macro. If new_name is provided, the copy is renamed to it."""
+        escaped_src = self._escape_applescript_string(str(macro_id))
+        rename_block = ""
+        if new_name and new_name.strip():
+            escaped_new = self._escape_applescript_string(new_name)
+            rename_block = f'set name of newMacro to "{escaped_new}"'
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set sourceMacro to first macro whose name is "{escaped_src}"
+                set newMacro to duplicate sourceMacro
+                {rename_block}
+                return name of newMacro
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.not_found_error(output[6:].strip()))
+        return Either.right({"new_name": output, "source": str(macro_id)})
+
+    async def set_macro_enabled_async(
+        self,
+        macro_id: MacroId,
+        enabled: bool,
+    ) -> Either[KMError, bool]:
+        """Enable or disable a macro."""
+        escaped = self._escape_applescript_string(str(macro_id))
+        flag = "true" if enabled else "false"
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set enabled of (first macro whose name is "{escaped}") to {flag}
+                return "ok"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.execution_error(output[6:].strip()))
+        return Either.right(True)
+
+    async def create_group_async(
+        self,
+        group_name: str,
+    ) -> Either[KMError, dict[str, Any]]:
+        """Create a new macro group. Fails if the name already exists."""
+        if not group_name.strip():
+            return Either.left(KMError.validation_error("group_name cannot be empty"))
+        escaped = self._escape_applescript_string(group_name)
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set newGroup to make new macro group with properties {{name:"{escaped}"}}
+                return uid of newGroup
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.execution_error(output[6:].strip()))
+        return Either.right({"group_id": output, "name": group_name})
+
+    async def delete_group_async(
+        self,
+        group_id: GroupId,
+    ) -> Either[KMError, bool]:
+        """Delete a macro group by name or UUID. All macros inside are deleted with it."""
+        escaped = self._escape_applescript_string(str(group_id))
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                delete (first macro group whose name is "{escaped}")
+                return "deleted"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.not_found_error(output[6:].strip()))
+        return Either.right(True)
+
+    async def rename_group_async(
+        self,
+        group_id: GroupId,
+        new_name: str,
+    ) -> Either[KMError, bool]:
+        """Rename a macro group."""
+        if not new_name.strip():
+            return Either.left(KMError.validation_error("new_name cannot be empty"))
+        escaped_old = self._escape_applescript_string(str(group_id))
+        escaped_new = self._escape_applescript_string(new_name)
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set name of (first macro group whose name is "{escaped_old}") to "{escaped_new}"
+                return "renamed"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.execution_error(output[6:].strip()))
+        return Either.right(True)
+
+    async def set_group_enabled_async(
+        self,
+        group_id: GroupId,
+        enabled: bool,
+    ) -> Either[KMError, bool]:
+        """Enable or disable a macro group."""
+        escaped = self._escape_applescript_string(str(group_id))
+        flag = "true" if enabled else "false"
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set enabled of (first macro group whose name is "{escaped}") to {flag}
+                return "ok"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.execution_error(output[6:].strip()))
+        return Either.right(True)
+
 
 # Functional utilities for working with KM client
 

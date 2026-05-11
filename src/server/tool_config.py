@@ -26,6 +26,9 @@ class ToolCategory(Enum):
     TRIGGERS = "triggers"
     SECURITY_AUDIT = "security_audit"
     GENERAL = "general"
+    APPLICATION_CONTROL = "application_control"
+    MACRO_EDITING = "macro_editing"
+    MACRO_GROUPS = "macro_groups"
 
 
 class SecurityLevel(Enum):
@@ -102,6 +105,83 @@ class ToolConfigurationManager:
             security_policy=ToolSecurityPolicy(
                 level=SecurityLevel.STANDARD,
                 audit_level="detailed",
+            ),
+        )
+
+        self.configurations["km_token_processor"] = ToolConfiguration(
+            name="km_token_processor",
+            category=ToolCategory.TOKEN_PROCESSING,
+            description="Keyboard Maestro token processing",
+            module_path="src.server.tools.token_tools",
+            priority=5,
+            security_policy=ToolSecurityPolicy(
+                level=SecurityLevel.STANDARD,
+                input_validation=True,
+            ),
+        )
+
+        for tool in (
+            "km_notifications",
+            "km_notification_status",
+            "km_dismiss_notifications",
+        ):
+            self.configurations[tool] = ToolConfiguration(
+                name=tool,
+                category=ToolCategory.NOTIFICATIONS,
+                description=f"User notification system: {tool}",
+                module_path="src.server.tools.notification_tools",
+                priority=4,
+            )
+
+        self.configurations["km_add_condition"] = ToolConfiguration(
+            name="km_add_condition",
+            category=ToolCategory.CONDITIONAL_LOGIC,
+            description="Macro condition evaluation",
+            module_path="src.server.tools.condition_tools",
+            priority=7,
+        )
+
+        self.configurations["km_control_flow"] = ToolConfiguration(
+            name="km_control_flow",
+            category=ToolCategory.CONTROL_FLOW,
+            description="Macro control flow",
+            module_path="src.server.tools.control_flow_tools",
+            priority=7,
+        )
+
+        self.configurations["km_application_control"] = ToolConfiguration(
+            name="km_application_control",
+            category=ToolCategory.APPLICATION_CONTROL,
+            description="Launch, quit, activate, and query macOS applications",
+            module_path="src.server.tools.application_tools",
+            priority=6,
+            security_policy=ToolSecurityPolicy(
+                level=SecurityLevel.STRICT,
+                audit_level="detailed",
+            ),
+        )
+
+        self.configurations["km_macro_editor"] = ToolConfiguration(
+            name="km_macro_editor",
+            category=ToolCategory.MACRO_EDITING,
+            description="Create, delete, rename, duplicate, and toggle macros",
+            module_path="src.server.tools.macro_editor_tools",
+            priority=8,
+            security_policy=ToolSecurityPolicy(
+                level=SecurityLevel.STRICT,
+                audit_level="comprehensive",
+            ),
+        )
+
+        self.configurations["km_macro_group_manager"] = ToolConfiguration(
+            name="km_macro_group_manager",
+            category=ToolCategory.MACRO_GROUPS,
+            description="List, create, delete, rename, and toggle macro groups",
+            module_path="src.server.tools.macro_group_tools",
+            priority=7,
+            security_policy=ToolSecurityPolicy(
+                level=SecurityLevel.STRICT,
+                audit_level="comprehensive",
             ),
         )
 
