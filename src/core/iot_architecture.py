@@ -14,7 +14,7 @@ import asyncio
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any
+from typing import Any, cast
 
 from src.core.constants import IDENTIFIER_LENGTH_LIMIT
 from src.core.either import Either
@@ -408,19 +408,31 @@ class AutomationCondition:
 
         value = reading.value
         threshold = self.threshold_value
+        op = self.comparison_operator
 
-        if self.comparison_operator == ">":
-            return value > threshold
-        if self.comparison_operator == "<":
-            return value < threshold
-        if self.comparison_operator == ">=":
-            return value >= threshold
-        if self.comparison_operator == "<=":
-            return value <= threshold
-        if self.comparison_operator == "==":
+        # Equality works across all union members.
+        if op == "==":
             return value == threshold
-        if self.comparison_operator == "!=":
+        if op == "!=":
             return value != threshold
+
+        # WHY: ordering ops only make sense when both sides are numerics or
+        # both are strings; mixed comparisons would raise at runtime.
+        numeric_pair = isinstance(value, int | float) and isinstance(
+            threshold, int | float,
+        )
+        string_pair = isinstance(value, str) and isinstance(threshold, str)
+        if not (numeric_pair or string_pair):
+            return False
+
+        if op == ">":
+            return bool(value > threshold)  # type: ignore[operator]
+        if op == "<":
+            return bool(value < threshold)  # type: ignore[operator]
+        if op == ">=":
+            return bool(value >= threshold)  # type: ignore[operator]
+        if op == "<=":
+            return bool(value <= threshold)  # type: ignore[operator]
 
         return False
 
@@ -616,10 +628,15 @@ class IoTWorkflow:
         if not self.enabled or not self.triggers:
             return False
 
+        # WHY: DeviceId is a str newtype, so the outer dict is structurally
+        # compatible with dict[str, Any] expected by AutomationCondition.
+        device_state_view = (
+            cast("dict[str, Any]", device_states) if device_states else None
+        )
         for trigger in self.triggers:
             if trigger.evaluate(
                 sensor_reading=sensor_readings[0] if sensor_readings else None,
-                device_state=device_states,
+                device_state=device_state_view,
             ):
                 return True
 
@@ -689,20 +706,22 @@ class IoTWorkflow:
         # Limit parallel execution
         semaphore = asyncio.Semaphore(self.parallel_limit)
 
-        async def execute_with_semaphore(action: str) -> None:
+        async def execute_with_semaphore(
+            action: AutomationAction,
+        ) -> Either[str, dict[str, Any]]:
             async with semaphore:
                 return await action.execute()
 
         tasks = [execute_with_semaphore(action) for action in self.actions]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        successful_results = []
-        errors = []
+        successful_results: list[Any] = []
+        errors: list[str] = []
 
         for result in results:
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 errors.append(str(result))
-            elif hasattr(result, "is_success") and result.is_success():
+            elif result.is_success():
                 successful_results.append(result.value)
             else:
                 errors.append("Unknown execution error")

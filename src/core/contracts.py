@@ -9,7 +9,7 @@ from __future__ import annotations
 import inspect
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from .errors import ContractViolationError, create_error_context
 
@@ -110,7 +110,7 @@ def require(
             return await func(*args, **kwargs)
 
         @wraps(func)
-        def sync_wrapper(*args: Any, **kwargs: Any) -> bool:
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             # Evaluate precondition
             if not ContractValidator.evaluate_condition(condition, args, kwargs):
                 context = create_error_context(
@@ -128,7 +128,9 @@ def require(
             return func(*args, **kwargs)
 
         # Return appropriate wrapper based on function type
-        wrapper = async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+        wrapper: Any = (
+            async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+        )
 
         # Add contract metadata
         wrapper.__contracts__ = getattr(func, "__contracts__", {})
@@ -138,7 +140,7 @@ def require(
         )
         wrapper.__contracts__["preconditions"].append((condition, message))
 
-        return wrapper
+        return cast(F, wrapper)
 
     return decorator
 
@@ -191,7 +193,7 @@ def ensure(
             return result
 
         @wraps(func)
-        def sync_wrapper(*args: Any, **kwargs: Any) -> bool:
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             # Execute the original sync function
             result = func(*args, **kwargs)
 
@@ -217,7 +219,9 @@ def ensure(
             return result
 
         # Return appropriate wrapper based on function type
-        wrapper = async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+        wrapper: Any = (
+            async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+        )
 
         # Add contract metadata
         wrapper.__contracts__ = getattr(func, "__contracts__", {})
@@ -227,7 +231,7 @@ def ensure(
         )
         wrapper.__contracts__["postconditions"].append((condition, message))
 
-        return wrapper
+        return cast(F, wrapper)
 
     return decorator
 
@@ -253,15 +257,15 @@ def invariant(
 
     def class_decorator(cls: type) -> type:
         # Store original methods
-        original_init = cls.__init__
-        original_methods = {}
+        original_init = cls.__init__  # type: ignore[misc]
+        original_methods: dict[str, Callable[..., Any]] = {}
 
         # Collect all public methods
         for name in dir(cls):
             if not name.startswith("_") and callable(getattr(cls, name)):
                 original_methods[name] = getattr(cls, name)
 
-        def check_invariant(instance: Any) -> bool:
+        def check_invariant(instance: Any) -> None:
             """Check the class invariant."""
             if not condition(instance):
                 context = create_error_context(
@@ -278,20 +282,25 @@ def invariant(
 
         # Wrap __init__ to check invariant after construction
         @wraps(original_init)
-        def wrapped_init(self: Any, *args: Any, **kwargs: Any) -> bool:
+        def wrapped_init(self: Any, *args: Any, **kwargs: Any) -> None:
             original_init(self, *args, **kwargs)
             check_invariant(self)
 
         # Wrap public methods to check invariant before and after
-        def wrap_method(method_name: str, method: Callable[..., Any] | str) -> bool:
+        def wrap_method(
+            method_name: str,
+            method: Callable[..., Any],
+        ) -> Callable[..., Any]:
             @wraps(method)
-            def wrapped_method(self: Any, *args: Any, **kwargs: Any) -> bool:
+            def wrapped_method(self: Any, *args: Any, **kwargs: Any) -> Any:
                 # Check invariant before method execution
                 try:
                     check_invariant(self)
                 except ContractViolationError as e:
-                    # Add method context for debugging
-                    e.context = f"Before {method_name}: {e.context}"
+                    # WHY: preserve original debug behavior by attaching context
+                    # info as a string; ErrorContext field is typed as object,
+                    # so we bypass the strict union to keep behavior unchanged.
+                    e.context = f"Before {method_name}: {e.context}"  # type: ignore[assignment]
                     raise
 
                 # Execute method
@@ -301,8 +310,8 @@ def invariant(
                 try:
                     check_invariant(self)
                 except ContractViolationError as e:
-                    # Add method context for debugging
-                    e.context = f"After {method_name}: {e.context}"
+                    # WHY: see above; preserves prior contextual annotation.
+                    e.context = f"After {method_name}: {e.context}"  # type: ignore[assignment]
                     raise
 
                 return result
@@ -310,14 +319,14 @@ def invariant(
             return wrapped_method
 
         # Apply wrapping
-        cls.__init__ = wrapped_init
+        cls.__init__ = wrapped_init  # type: ignore[misc]
         for name, method in original_methods.items():
             setattr(cls, name, wrap_method(name, method))
 
         # Add contract metadata
-        cls.__contracts__ = getattr(cls, "__contracts__", {})
-        cls.__contracts__["invariants"] = cls.__contracts__.get("invariants", [])
-        cls.__contracts__["invariants"].append((condition, message))
+        cls.__contracts__ = getattr(cls, "__contracts__", {})  # type: ignore[attr-defined]
+        cls.__contracts__["invariants"] = cls.__contracts__.get("invariants", [])  # type: ignore[attr-defined]
+        cls.__contracts__["invariants"].append((condition, message))  # type: ignore[attr-defined]
 
         return cls
 
@@ -387,7 +396,7 @@ def get_contract_info(func_or_class: Any) -> dict[str, Any]:
     """
     contracts = getattr(func_or_class, "__contracts__", {})
 
-    info = {
+    info: dict[str, Any] = {
         "has_contracts": bool(contracts),
         "preconditions": len(contracts.get("preconditions", [])),
         "postconditions": len(contracts.get("postconditions", [])),
@@ -417,11 +426,15 @@ def is_non_negative(value: float) -> bool:
 
 
 def is_valid_string(
-    value: str,
+    value: Any,
     min_length: int = 1,
     max_length: int | None = None,
 ) -> bool:
-    """Helper condition to validate string length."""
+    """Helper condition to validate string length.
+
+    WHY Any: this is a defensive runtime contract helper invoked on untyped
+    user values; the isinstance check must remain meaningful.
+    """
     if not isinstance(value, str):
         return False
     if len(value) < min_length:
