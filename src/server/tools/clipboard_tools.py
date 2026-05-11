@@ -201,9 +201,9 @@ async def km_clipboard_manager(
                     },
                 }
 
-            result = await clipboard_manager.set_clipboard(content)
-            if result.is_left():
-                error = result.get_left()
+            set_result = await clipboard_manager.set_clipboard_async(content)
+            if set_result.is_left():
+                error = set_result.get_left()
                 return {
                     "success": False,
                     "error": {
@@ -273,12 +273,12 @@ async def km_clipboard_manager(
 
         # List clipboard history
         if operation == "list_history":
-            result = await clipboard_manager.get_history_list(
-                history_count,
+            list_result = await clipboard_manager.get_history_list(
+                history_count if history_count is not None else 10,
                 include_sensitive,
             )
-            if result.is_left():
-                error = result.get_left()
+            if list_result.is_left():
+                error = list_result.get_left()
                 return {
                     "success": False,
                     "error": {
@@ -288,7 +288,7 @@ async def km_clipboard_manager(
                     },
                 }
 
-            history_items = result.get_right()
+            history_items = list_result.get_right()
             return {
                 "success": True,
                 "data": {
@@ -350,7 +350,7 @@ async def km_clipboard_manager(
                 # Convert tags list to set
                 tag_set = set(tags) if tags else set()
 
-                result = await named_manager.create_named_clipboard(
+                create_result = await named_manager.create_named_clipboard(
                     clipboard_name,
                     content_obj,
                     tag_set,
@@ -358,8 +358,8 @@ async def km_clipboard_manager(
                     overwrite,
                 )
 
-                if result.is_left():
-                    error = result.get_left()
+                if create_result.is_left():
+                    error = create_result.get_left()
                     return {
                         "success": False,
                         "error": {
@@ -380,9 +380,9 @@ async def km_clipboard_manager(
                 }
 
             # Get named clipboard
-            result = await named_manager.get_named_clipboard(clipboard_name)
-            if result.is_left():
-                error = result.get_left()
+            named_result = await named_manager.get_named_clipboard(clipboard_name)
+            if named_result.is_left():
+                error = named_result.get_left()
                 return {
                     "success": False,
                     "error": {
@@ -392,7 +392,7 @@ async def km_clipboard_manager(
                     },
                 }
 
-            named_cb = result.get_right()
+            named_cb = named_result.get_right()
             return {
                 "success": True,
                 "data": {
@@ -420,16 +420,19 @@ async def km_clipboard_manager(
         if operation == "search_named":
             if not search_query:
                 # List all named clipboards
-                result = await named_manager.list_named_clipboards(tag_filter, sort_by)
+                search_result = await named_manager.list_named_clipboards(
+                    tag_filter,
+                    sort_by,
+                )
             else:
-                result = await named_manager.search_named_clipboards(
+                search_result = await named_manager.search_named_clipboards(
                     search_query,
                     search_content,
                     50,
                 )
 
-            if result.is_left():
-                error = result.get_left()
+            if search_result.is_left():
+                error = search_result.get_left()
                 return {
                     "success": False,
                     "error": {
@@ -439,7 +442,7 @@ async def km_clipboard_manager(
                     },
                 }
 
-            clipboards = result.get_right()
+            clipboards = search_result.get_right()
             return {
                 "success": True,
                 "data": {
@@ -471,9 +474,9 @@ async def km_clipboard_manager(
 
         # Get clipboard statistics
         if operation == "stats":
-            result = await named_manager.get_clipboard_stats()
-            if result.is_left():
-                error = result.get_left()
+            stats_result = await named_manager.get_clipboard_stats()
+            if stats_result.is_left():
+                error = stats_result.get_left()
                 return {
                     "success": False,
                     "error": {
@@ -483,7 +486,7 @@ async def km_clipboard_manager(
                     },
                 }
 
-            stats = result.get_right()
+            stats = stats_result.get_right()
             return {"success": True, "data": stats, "metadata": {"operation": "stats"}}
 
         return {
