@@ -40,17 +40,15 @@ async def km_create_hotkey_trigger(
         ),
     ],
     modifiers: Annotated[
-        list[str],
+        list[str] | None,
         Field(
             description="Modifier keys (cmd, opt, shift, ctrl, fn)",
-            default_factory=list,
             examples=[["cmd", "shift"], ["ctrl", "opt"]],
         ),
     ] = None,
     activation_mode: Annotated[
         str,
         Field(
-            default="pressed",
             description="Activation mode for the hotkey",
             pattern=r"^(pressed|released|tapped|held)$",
             examples=["pressed", "tapped", "held"],
@@ -59,7 +57,6 @@ async def km_create_hotkey_trigger(
     tap_count: Annotated[
         int,
         Field(
-            default=1,
             description="Number of taps required (1-4)",
             ge=1,
             le=4,
@@ -68,18 +65,15 @@ async def km_create_hotkey_trigger(
     ] = 1,
     allow_repeat: Annotated[
         bool,
-        Field(default=False, description="Allow key repeat for continuous execution"),
+        Field(description="Allow key repeat for continuous execution"),
     ] = False,
     check_conflicts: Annotated[
         bool,
-        Field(default=True, description="Check for hotkey conflicts before creation"),
+        Field(description="Check for hotkey conflicts before creation"),
     ] = True,
     suggest_alternatives: Annotated[
         bool,
-        Field(
-            default=True,
-            description="Provide alternative suggestions if conflicts are found",
-        ),
+        Field(description="Provide alternative suggestions if conflicts are found"),
     ] = True,
     ctx: Context | None = None,
 ) -> dict[str, Any]:

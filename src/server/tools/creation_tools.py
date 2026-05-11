@@ -39,15 +39,15 @@ async def km_create_macro(
     ],
     group_name: Annotated[
         str | None,
-        Field(default=None, description="Target macro group name", max_length=255),
+        Field(description="Target macro group name", max_length=255),
     ] = None,
     enabled: Annotated[
         bool,
-        Field(default=True, description="Initial enabled state"),
+        Field(description="Initial enabled state"),
     ] = True,
     parameters: Annotated[
-        dict[str, Any],
-        Field(default_factory=dict, description="Template-specific parameters"),
+        dict[str, Any] | None,
+        Field(description="Template-specific parameters"),
     ] = None,
     ctx: Context = None,
 ) -> dict[str, Any]:

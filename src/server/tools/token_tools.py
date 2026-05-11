@@ -26,33 +26,25 @@ async def km_token_processor(
     context: Annotated[
         str,
         Field(
-            default="text",
             description="Processing context for token evaluation",
             pattern=r"^(text|calculation|regex|filename|url)$",
         ),
     ] = "text",
     variables: Annotated[
-        dict[str, str],
-        Field(
-            default_factory=dict,
-            description="Variable values for token substitution",
-        ),
+        dict[str, str] | None,
+        Field(description="Variable values for token substitution"),
     ] = None,
     use_km_engine: Annotated[
         bool,
-        Field(
-            default=True,
-            description="Use Keyboard Maestro's token processing engine",
-        ),
+        Field(description="Use Keyboard Maestro's token processing engine"),
     ] = True,
     preview_only: Annotated[
         bool,
-        Field(default=False, description="Preview tokens without processing"),
+        Field(description="Preview tokens without processing"),
     ] = False,
     security_level: Annotated[
         str,
         Field(
-            default="standard",
             description="Security validation level",
             pattern=r"^(minimal|standard|strict)$",
         ),

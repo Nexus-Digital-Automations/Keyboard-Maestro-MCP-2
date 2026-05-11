@@ -65,7 +65,6 @@ async def km_notifications(
     sound: Annotated[
         str | None,
         Field(
-            default=None,
             description="Sound name (system sound) or file path",
             max_length=255,
         ),
@@ -73,24 +72,21 @@ async def km_notifications(
     duration: Annotated[
         float | None,
         Field(
-            default=None,
             description="Display duration in seconds (0.1-60.0)",
             ge=0.1,
             le=60.0,
         ),
     ] = None,
     buttons: Annotated[
-        list[str],
+        list[str] | None,
         Field(
-            default_factory=list,
             description="Button labels for alert dialogs (max 3)",
-            max_items=3,
+            max_length=3,
         ),
     ] = None,
     position: Annotated[
         str,
         Field(
-            default="center",
             description="HUD position: center, top, bottom, left, right, top_left, top_right, bottom_left, bottom_right",
             pattern=r"^(center|top|bottom|left|right|top_left|top_right|bottom_left|bottom_right)$",
         ),
@@ -98,17 +94,13 @@ async def km_notifications(
     priority: Annotated[
         str,
         Field(
-            default="normal",
             description="Notification priority: low, normal, high, urgent",
             pattern=r"^(low|normal|high|urgent)$",
         ),
     ] = "normal",
     dismissible: Annotated[
         bool,
-        Field(
-            default=True,
-            description="Whether notification can be dismissed by user",
-        ),
+        Field(description="Whether notification can be dismissed by user"),
     ] = True,
     ctx: Context = None,
 ) -> dict[str, Any]:
