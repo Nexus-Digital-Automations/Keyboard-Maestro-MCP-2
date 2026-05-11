@@ -188,6 +188,10 @@ show_error_codes = true
 [[tool.mypy.overrides]]
 module = [
     "fastmcp.*",
+    "hypothesis.*",
+    "watchdog.*",
+    "defusedxml.*",
+    "psutil.*",
 ]
 ignore_missing_imports = true
 
