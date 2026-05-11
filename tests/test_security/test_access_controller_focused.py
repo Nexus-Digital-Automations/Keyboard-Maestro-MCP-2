@@ -302,7 +302,7 @@ class TestAccessRequest:
     """Test AccessRequest dataclass."""
 
     @pytest.fixture
-    def sample_context(self) -> None:
+    def sample_context(self) -> SecurityContext:
         """Create sample security context."""
         from src.core.zero_trust_architecture import create_security_context_id
 
@@ -313,7 +313,7 @@ class TestAccessRequest:
             trust_level=TrustLevel.HIGH,
         )
 
-    def test_access_request_creation(self, sample_context) -> None:
+    def test_access_request_creation(self, sample_context: SecurityContext) -> None:
         """Test AccessRequest creation with valid data."""
         request = AccessRequest(
             request_id="req-001",
@@ -335,7 +335,7 @@ class TestAccessRequest:
         assert request.additional_context["purpose"] == "audit"
         assert request.urgency == "high"
 
-    def test_access_request_validation(self, sample_context) -> None:
+    def test_access_request_validation(self, sample_context: SecurityContext) -> None:
         """Test AccessRequest validation."""
         # Test empty request_id
         with pytest.raises(
@@ -463,12 +463,12 @@ class TestAccessController:
     """Test AccessController class."""
 
     @pytest.fixture
-    def controller(self) -> None:
+    def controller(self) -> AccessController:
         """Create AccessController instance for testing."""
         return AccessController()
 
     @pytest.fixture
-    def sample_permission(self) -> None:
+    def sample_permission(self) -> Permission:
         """Create sample permission for testing."""
         return Permission(
             permission_id="perm-001",
@@ -478,7 +478,7 @@ class TestAccessController:
         )
 
     @pytest.fixture
-    def sample_role(self) -> None:
+    def sample_role(self) -> Role:
         """Create sample role for testing."""
         return Role(
             role_id="role-001",
@@ -488,7 +488,7 @@ class TestAccessController:
         )
 
     @pytest.fixture
-    def sample_subject(self) -> None:
+    def sample_subject(self) -> Subject:
         """Create sample subject for testing."""
         return Subject(
             subject_id="user-001",
@@ -498,7 +498,7 @@ class TestAccessController:
         )
 
     @pytest.fixture
-    def sample_context(self) -> None:
+    def sample_context(self) -> SecurityContext:
         """Create sample security context."""
         from src.core.zero_trust_architecture import create_security_context_id
 
@@ -510,7 +510,7 @@ class TestAccessController:
         )
 
     @pytest.fixture
-    def sample_access_request(self, sample_context) -> None:
+    def sample_access_request(self, sample_context: SecurityContext) -> AccessRequest:
         """Create sample access request for testing."""
         return AccessRequest(
             request_id="req-001",
@@ -521,7 +521,7 @@ class TestAccessController:
             context=sample_context,
         )
 
-    def test_access_controller_initialization(self, controller) -> None:
+    def test_access_controller_initialization(self, controller: AccessController) -> None:
         """Test AccessController initialization."""
         assert isinstance(controller.subjects, dict)
         assert isinstance(controller.roles, dict)
@@ -541,9 +541,7 @@ class TestAccessController:
         assert controller.cache_hit_rate == 0.0
         assert controller.denial_rate == 0.0
 
-    async def test_register_subject_success(
-        self, controller, sample_subject, sample_role, sample_permission
-    ):
+    async def test_register_subject_success(self, controller: AccessController, sample_subject: Subject, sample_role: Role, sample_permission: Permission) -> None:
         """Test successful subject registration."""
         # Register dependencies first
         await controller.register_permission(sample_permission)
@@ -556,7 +554,7 @@ class TestAccessController:
         assert "registered successfully" in success_message
         assert sample_subject.subject_id in controller.subjects
 
-    async def test_register_subject_duplicate(self, controller, sample_subject) -> None:
+    async def test_register_subject_duplicate(self, controller: AccessController, sample_subject: Subject) -> None:
         """Test subject registration with duplicate ID."""
         # Register subject first time
         controller.subjects[sample_subject.subject_id] = sample_subject
@@ -568,7 +566,7 @@ class TestAccessController:
         assert isinstance(error, AccessControlError)
         assert "already exists" in error.message
 
-    async def test_register_subject_invalid_role(self, controller, sample_permission) -> None:
+    async def test_register_subject_invalid_role(self, controller: AccessController, sample_permission: Permission) -> None:
         """Test subject registration with invalid role."""
         # Register permission but not role
         await controller.register_permission(sample_permission)
@@ -601,7 +599,7 @@ class TestAccessController:
         assert "registered successfully" in success_message
         assert sample_role.role_id in controller.roles
 
-    async def test_register_role_duplicate(self, controller, sample_role) -> None:
+    async def test_register_role_duplicate(self, controller: AccessController, sample_role: Role) -> None:
         """Test role registration with duplicate ID."""
         # Register role first time
         controller.roles[sample_role.role_id] = sample_role
@@ -613,7 +611,7 @@ class TestAccessController:
         assert isinstance(error, AccessControlError)
         assert "already exists" in error.message
 
-    async def test_register_permission_success(self, controller, sample_permission) -> None:
+    async def test_register_permission_success(self, controller: AccessController, sample_permission: Permission) -> None:
         """Test successful permission registration."""
         result = await controller.register_permission(sample_permission)
 
@@ -622,7 +620,7 @@ class TestAccessController:
         assert "registered successfully" in success_message
         assert sample_permission.permission_id in controller.permissions
 
-    async def test_register_permission_duplicate(self, controller, sample_permission) -> None:
+    async def test_register_permission_duplicate(self, controller: AccessController, sample_permission: Permission) -> None:
         """Test permission registration with duplicate ID."""
         # Register permission first time
         controller.permissions[sample_permission.permission_id] = sample_permission
@@ -693,9 +691,7 @@ class TestAccessController:
         assert isinstance(auth_result, AuthorizationResult)
         assert auth_result.request_id == sample_access_request.request_id
 
-    async def test_revoke_permissions_success(
-        self, controller, sample_subject, sample_role, sample_permission
-    ):
+    async def test_revoke_permissions_success(self, controller: AccessController, sample_subject: Subject, sample_role: Role, sample_permission: Permission) -> None:
         """Test successful permission revocation."""
         # Register and setup subject
         await controller.register_permission(sample_permission)
@@ -711,7 +707,7 @@ class TestAccessController:
         success_message = result.get_right()
         assert "Revoked" in success_message and "permissions" in success_message
 
-    async def test_revoke_permissions_subject_not_found(self, controller) -> None:
+    async def test_revoke_permissions_subject_not_found(self, controller: AccessController) -> None:
         """Test permission revocation with non-existent subject."""
         result = await controller.revoke_permissions(
             "non-existent-user",
@@ -723,9 +719,7 @@ class TestAccessController:
         assert isinstance(error, AccessControlError)
         assert "not found" in error.message
 
-    async def test_get_effective_permissions_success(
-        self, controller, sample_subject, sample_role, sample_permission
-    ):
+    async def test_get_effective_permissions_success(self, controller: AccessController, sample_subject: Subject, sample_role: Role, sample_permission: Permission) -> None:
         """Test getting effective permissions for subject."""
         # Register dependencies
         await controller.register_permission(sample_permission)
@@ -739,7 +733,7 @@ class TestAccessController:
         assert isinstance(permissions, list)
         assert len(permissions) > 0
 
-    async def test_get_effective_permissions_subject_not_found(self, controller) -> None:
+    async def test_get_effective_permissions_subject_not_found(self, controller: AccessController) -> None:
         """Test getting effective permissions for non-existent subject."""
         result = await controller.get_effective_permissions("non-existent-user")
 
