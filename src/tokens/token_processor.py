@@ -488,7 +488,7 @@ class TokenProcessor:
                 executable="osascript",
                 args=["-e", script],
                 timeout=5.0,
-                allowed_return_codes={0, 1},
+                allowed_return_codes=frozenset({0, 1}),
             )
             result = secure_manager.execute_secure_command(command)
             return result.stdout.strip() if result.returncode == 0 else "Unknown Window"
@@ -522,7 +522,7 @@ class TokenProcessor:
                 executable="osascript",
                 args=["-e", script],
                 timeout=5.0,
-                allowed_return_codes={0, 1},
+                allowed_return_codes=frozenset({0, 1}),
             )
             result = secure_manager.execute_secure_command(command)
             return (
@@ -554,7 +554,7 @@ class TokenProcessor:
             if token_pattern in processed:
                 try:
                     value = resolver()
-                    processed = processed.replace(token_pattern, value)
+                    processed = processed.replace(token_pattern, value or "")
                 except Exception:
                     processed = processed.replace(
                         token_pattern, f"[{token_name} Error]"

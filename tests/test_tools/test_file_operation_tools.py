@@ -51,7 +51,6 @@ from src.server.tools.file_operation_tools import km_file_operations
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 

@@ -446,7 +446,7 @@ class KMClient:
                 executable="osascript",
                 args=["-e", script],
                 timeout=self.config.timeout.total_seconds(),
-                allowed_return_codes={0, 1},
+                allowed_return_codes=frozenset({0, 1}),
             )
             result = secure_manager.execute_secure_command(secure_cmd)
 
@@ -736,7 +736,7 @@ class KMClient:
                     executable="osascript",
                     args=["-e", script],
                     timeout=config.timeout.total_seconds(),
-                    allowed_return_codes={0, 1},
+                    allowed_return_codes=frozenset({0, 1}),
                 )
                 result = secure_manager.execute_secure_command(secure_cmd)
 
@@ -778,7 +778,7 @@ class KMClient:
                     executable="osascript",
                     args=["-e", ping_script],
                     timeout=5.0,
-                    allowed_return_codes={0, 1},
+                    allowed_return_codes=frozenset({0, 1}),
                 )
                 result = secure_manager.execute_secure_command(secure_cmd)
                 alive = result.returncode == 0 and "true" in result.stdout.lower()
@@ -826,7 +826,7 @@ class KMClient:
                     executable="osascript",
                     args=["-e", register_script],
                     timeout=config.timeout.total_seconds(),
-                    allowed_return_codes={0, 1},
+                    allowed_return_codes=frozenset({0, 1}),
                 )
                 result = secure_manager.execute_secure_command(secure_cmd)
 
@@ -881,7 +881,7 @@ class KMClient:
                     executable="osascript",
                     args=["-e", unregister_script],
                     timeout=config.timeout.total_seconds(),
-                    allowed_return_codes={0, 1},
+                    allowed_return_codes=frozenset({0, 1}),
                 )
                 result = secure_manager.execute_secure_command(secure_cmd)
 
@@ -958,7 +958,7 @@ class KMClient:
                     executable="osascript",
                     args=["-e", create_script],
                     timeout=config.timeout.total_seconds(),
-                    allowed_return_codes={0, 1},
+                    allowed_return_codes=frozenset({0, 1}),
                 )
                 result = secure_manager.execute_secure_command(secure_cmd)
 
@@ -1021,7 +1021,7 @@ class KMClient:
                     executable="osascript",
                     args=["-e", activate_script],
                     timeout=config.timeout.total_seconds(),
-                    allowed_return_codes={0, 1},
+                    allowed_return_codes=frozenset({0, 1}),
                 )
                 result = secure_manager.execute_secure_command(secure_cmd)
 
@@ -1076,7 +1076,7 @@ class KMClient:
                     executable="open",
                     args=[url],
                     timeout=config.timeout.total_seconds(),
-                    allowed_return_codes={0, 1},
+                    allowed_return_codes=frozenset({0, 1}),
                 )
                 secure_manager.execute_secure_command(secure_cmd)
                 return Either.right({"success": True, "url": url})

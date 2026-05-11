@@ -586,7 +586,7 @@ async def km_variable_manager(
                     executable="osascript",
                     args=["-e", script],
                     timeout=30.0,
-                    allowed_return_codes={0, 1},
+                    allowed_return_codes=frozenset({0, 1}),
                 )
                 result = secure_manager.execute_secure_command(command)
 

@@ -10,12 +10,14 @@ import importlib
 import inspect
 import logging
 import pkgutil
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Annotated, Any, get_args, get_type_hints
+from typing import TYPE_CHECKING, Annotated, Any, get_args, get_type_hints
 
 from pydantic.fields import FieldInfo
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 

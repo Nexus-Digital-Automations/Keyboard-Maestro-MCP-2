@@ -24,8 +24,21 @@ from src.core.zero_trust_architecture import (
     ThreatId,
     ThreatSeverity,
     create_risk_score,
-    create_threat_id,
 )
+
+# Severity ordering for `max()` comparisons; ThreatSeverity is a plain str Enum.
+_SEVERITY_ORDER: dict[str, int] = {
+    "info": 0,
+    "low": 1,
+    "medium": 2,
+    "high": 3,
+    "critical": 4,
+    "emergency": 5,
+}
+
+
+def _severity_rank(severity: ThreatSeverity) -> int:
+    return _SEVERITY_ORDER.get(severity.value, 0)
 
 
 class ThreatType(Enum):
@@ -163,7 +176,7 @@ class AIThreatDetector:
         # Initialize threat indicators from intelligence feeds
         self._initialize_threat_indicators()
 
-    def _initialize_threat_patterns(self) -> bool:
+    def _initialize_threat_patterns(self) -> None:
         """Initialize default threat detection patterns."""
         patterns = [
             ThreatPattern(
@@ -213,7 +226,7 @@ class AIThreatDetector:
         for pattern in patterns:
             self.threat_patterns[pattern.pattern_id] = pattern
 
-    def _initialize_threat_indicators(self) -> bool:
+    def _initialize_threat_indicators(self) -> None:
         """Initialize threat indicators from intelligence feeds."""
         # Placeholder for threat intelligence integration
         # In production, this would load from external threat feeds
@@ -327,7 +340,10 @@ class AIThreatDetector:
 
         except Exception as e:
             return Either.error(
-                ThreatDetectionError(f"Threat detection failed: {e!s}"),
+                ThreatDetectionError(
+                    message=f"Threat detection failed: {e!s}",
+                    error_code="THREAT_DETECTION_FAILED",
+                ),
             )
 
     async def _analyze_threat_patterns(
@@ -341,7 +357,7 @@ class AIThreatDetector:
             pattern_score = await self._calculate_pattern_score(events, pattern)
 
             if pattern_score >= pattern.threshold_score:
-                threat_id = create_threat_id(f"pattern_{pattern.pattern_id}")
+                threat_id = ThreatId(f"pattern_{pattern.pattern_id}")
 
                 # Determine primary threat type and vector
                 threat_type = (
@@ -397,7 +413,7 @@ class AIThreatDetector:
                 ]
 
                 for indicator in matching_indicators:
-                    threat_id = create_threat_id(f"indicator_{indicator.indicator_id}")
+                    threat_id = ThreatId(f"indicator_{indicator.indicator_id}")
 
                     # Use indicator's threat types and severity
                     threat_type = (
@@ -460,7 +476,7 @@ class AIThreatDetector:
                 )
 
                 if anomaly_score > 0.7:  # Threshold for anomalous behavior
-                    threat_id = create_threat_id(f"behavioral_{entity_id}")
+                    threat_id = ThreatId(f"behavioral_{entity_id}")
 
                     detection = ThreatDetection(
                         threat_id=threat_id,
@@ -513,7 +529,7 @@ class AIThreatDetector:
             ml_score = min(0.95, len(events) * 0.05)  # Simulated ML confidence
 
             if ml_score > 0.6:
-                threat_id = create_threat_id("ml_detection")
+                threat_id = ThreatId("ml_detection")
 
                 detection = ThreatDetection(
                     threat_id=threat_id,
@@ -537,7 +553,7 @@ class AIThreatDetector:
     ) -> list[ThreatDetection]:
         """Correlate and deduplicate threat detections."""
         # Group similar detections
-        correlated = {}
+        correlated: dict[str, list[ThreatDetection]] = {}
 
         for detection in detections:
             # Create correlation key based on threat type, vector, and targets
@@ -585,7 +601,10 @@ class AIThreatDetector:
             threat_id=base_detection.threat_id,
             threat_type=base_detection.threat_type,
             threat_vector=base_detection.threat_vector,
-            severity=max(d.severity for d in detections),  # Use highest severity
+            severity=max(
+                (d.severity for d in detections),
+                key=_severity_rank,
+            ),
             confidence=merged_confidence,
             risk_score=create_risk_score(merged_confidence * 100),
             source_ip=base_detection.source_ip,
@@ -725,7 +744,7 @@ class AIThreatDetector:
         events: list[dict[str, Any]],
     ) -> dict[str, list[dict[str, Any]]]:
         """Group events by entity (user, system, application)."""
-        grouped = {}
+        grouped: dict[str, list[dict[str, Any]]] = {}
 
         for event in events:
             entity_id = (
@@ -822,7 +841,7 @@ class AIThreatDetector:
 
     def _get_immediate_actions(self, detections: list[ThreatDetection]) -> list[str]:
         """Get immediate actions recommended across all detections."""
-        all_actions = set()
+        all_actions: set[str] = set()
 
         for detection in detections:
             all_actions.update(action.value for action in detection.recommended_actions)

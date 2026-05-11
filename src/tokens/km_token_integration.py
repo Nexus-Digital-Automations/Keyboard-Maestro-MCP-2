@@ -80,7 +80,7 @@ class KMTokenEngine:
                 executable="osascript",
                 args=["-e", script],
                 timeout=self.timeout.total_seconds(),
-                allowed_return_codes={0, 1},
+                allowed_return_codes=frozenset({0, 1}),
             )
             result = secure_manager.execute_secure_command(command)
 
