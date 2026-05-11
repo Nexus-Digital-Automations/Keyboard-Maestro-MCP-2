@@ -12,7 +12,7 @@ from __future__ import annotations
 import asyncio
 import time
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import Mock, patch
 
 import pytest
@@ -40,6 +40,7 @@ from src.core.types import (
     ExecutionResult,
     ExecutionStatus,
     ExecutionToken,
+    MacroCommand,
     MacroDefinition,
 )
 from src.integration.km_client import Either
@@ -50,9 +51,9 @@ if TYPE_CHECKING:
 
 # Test data generators
 @st.composite
-def command_type_strategy(draw: Callable[..., Any]) -> Mock:
+def command_type_strategy(draw: Callable[..., Any]) -> CommandType:
     """Generate valid command types."""
-    return draw(
+    result: CommandType = draw(
         st.sampled_from(
             [
                 CommandType.TEXT_INPUT,
@@ -64,13 +65,14 @@ def command_type_strategy(draw: Callable[..., Any]) -> Mock:
             ],
         ),
     )
+    return result
 
 
 @st.composite
 def command_parameters_strategy(
     draw: Callable[..., Any],
-    command_type: str = None,
-) -> bool:
+    command_type: CommandType | None = None,
+) -> CommandParameters:
     """Generate valid command parameters."""
     if command_type is None:
         command_type = draw(command_type_strategy())
@@ -97,7 +99,7 @@ def command_parameters_strategy(
 
 
 @st.composite
-def placeholder_command_strategy(draw: Callable[..., Any]) -> Mock:
+def placeholder_command_strategy(draw: Callable[..., Any]) -> PlaceholderCommand:
     """Generate valid placeholder commands."""
     command_type = draw(command_type_strategy())
     parameters = draw(command_parameters_strategy(command_type))
@@ -110,7 +112,7 @@ def placeholder_command_strategy(draw: Callable[..., Any]) -> Mock:
 
 
 @st.composite
-def macro_definition_strategy(draw: Callable[..., Any]) -> bool:
+def macro_definition_strategy(draw: Callable[..., Any]) -> MacroDefinition:
     """Generate valid macro definitions."""
     commands = draw(st.lists(placeholder_command_strategy(), min_size=1, max_size=10))
     macro_name = draw(st.text(min_size=1, max_size=100))
@@ -121,7 +123,7 @@ def macro_definition_strategy(draw: Callable[..., Any]) -> bool:
 class TestPlaceholderCommand:
     """Test placeholder command functionality."""
 
-    def test_placeholder_command_creation(self) -> bool:
+    def test_placeholder_command_creation(self) -> None:
         """Test creating placeholder command."""
         command = PlaceholderCommand(
             command_id=CommandId("test_cmd"),
@@ -133,7 +135,7 @@ class TestPlaceholderCommand:
         assert command.command_type == CommandType.TEXT_INPUT
         assert command.parameters.get("text") == "Hello World"
 
-    def test_placeholder_command_text_input_execution(self) -> bool:
+    def test_placeholder_command_text_input_execution(self) -> None:
         """Test text input command execution."""
         command = PlaceholderCommand(
             command_id=CommandId("text_cmd"),
@@ -145,11 +147,12 @@ class TestPlaceholderCommand:
         result = command.execute(context)
 
         assert result.success
-        assert "Test input" in result.output
+        assert "Test input" in (result.output or "")
         assert result.metadata.get("command_id") == "text_cmd"
+        assert result.execution_time is not None
         assert result.execution_time.total_seconds() >= 0
 
-    def test_placeholder_command_pause_execution(self) -> bool:
+    def test_placeholder_command_pause_execution(self) -> None:
         """Test pause command execution."""
         command = PlaceholderCommand(
             command_id=CommandId("pause_cmd"),
@@ -163,10 +166,10 @@ class TestPlaceholderCommand:
         end_time = time.time()
 
         assert result.success
-        assert "Paused for 0.1 seconds" in result.output
+        assert "Paused for 0.1 seconds" in (result.output or "")
         assert (end_time - start_time) >= 0.1  # Should actually pause
 
-    def test_placeholder_command_sound_execution(self) -> bool:
+    def test_placeholder_command_sound_execution(self) -> None:
         """Test sound command execution."""
         command = PlaceholderCommand(
             command_id=CommandId("sound_cmd"),
@@ -178,10 +181,10 @@ class TestPlaceholderCommand:
         result = command.execute(context)
 
         assert result.success
-        assert "Played sound: chime" in result.output
+        assert "Played sound: chime" in (result.output or "")
         assert result.metadata.get("command_type") == "play_sound"
 
-    def test_placeholder_command_validation_success(self) -> bool:
+    def test_placeholder_command_validation_success(self) -> None:
         """Test command validation with valid parameters."""
         command = PlaceholderCommand(
             command_id=CommandId("valid_cmd"),
@@ -191,7 +194,7 @@ class TestPlaceholderCommand:
 
         assert command.validate()
 
-    def test_placeholder_command_validation_failure(self) -> bool:
+    def test_placeholder_command_validation_failure(self) -> None:
         """Test command validation with invalid parameters."""
         # Create command with invalid parameters for CommandValidator
         command = PlaceholderCommand(
@@ -205,7 +208,7 @@ class TestPlaceholderCommand:
         is_valid = command.validate()
         assert isinstance(is_valid, bool)
 
-    def test_placeholder_command_dependencies(self) -> bool:
+    def test_placeholder_command_dependencies(self) -> None:
         """Test command dependencies."""
         command = PlaceholderCommand(
             command_id=CommandId("dep_cmd"),
@@ -217,7 +220,7 @@ class TestPlaceholderCommand:
         assert isinstance(dependencies, list)
         assert len(dependencies) == 0  # Placeholder commands have no dependencies
 
-    def test_placeholder_command_permissions(self) -> bool:
+    def test_placeholder_command_permissions(self) -> None:
         """Test command permissions."""
         command = PlaceholderCommand(
             command_id=CommandId("perm_cmd"),
@@ -229,7 +232,7 @@ class TestPlaceholderCommand:
         assert isinstance(permissions, frozenset)
         # Permissions should be returned from CommandValidator
 
-    def test_placeholder_command_execution_error_handling(self) -> bool:
+    def test_placeholder_command_execution_error_handling(self) -> None:
         """Test command execution error handling."""
         # Create a mock parameters object that will raise an error
         mock_params = Mock()
@@ -243,7 +246,7 @@ class TestPlaceholderCommand:
             mock_command.parameters = mock_params
 
             # Set up the execute method to behave like the real one but with error
-            def mock_execute(context: dict[str, Any] | Any) -> bool:
+            def mock_execute(context: dict[str, Any] | Any) -> CommandResult:
                 try:
                     # This will trigger the error from parameters.get()
                     text = mock_command.parameters.get("text", "")
@@ -273,7 +276,7 @@ class TestPlaceholderCommand:
     def test_placeholder_command_property_validation(
         self,
         command: PlaceholderCommand,
-    ) -> bool:
+    ) -> None:
         """Property test for placeholder command behavior."""
         # Properties that should always hold
         assert command.command_id is not None
@@ -293,7 +296,7 @@ class TestPlaceholderCommand:
 class TestMacroEngine:
     """Test macro engine functionality."""
 
-    def test_macro_engine_creation(self) -> bool:
+    def test_macro_engine_creation(self) -> None:
         """Test creating macro engine."""
         engine = MacroEngine()
 
@@ -302,7 +305,7 @@ class TestMacroEngine:
         assert engine.max_concurrent_executions == 10
         assert isinstance(engine.default_timeout, Duration)
 
-    def test_macro_engine_custom_configuration(self) -> bool:
+    def test_macro_engine_custom_configuration(self) -> None:
         """Test creating macro engine with custom configuration."""
         context_manager = ExecutionContextManager()
         custom_timeout = Duration.from_seconds(60)
@@ -317,12 +320,12 @@ class TestMacroEngine:
         assert engine.max_concurrent_executions == 5
         assert engine.default_timeout == custom_timeout
 
-    def test_macro_execution_success(self) -> bool:
+    def test_macro_execution_success(self) -> None:
         """Test successful macro execution."""
         engine = MacroEngine()
 
         # Create simple test macro
-        commands = [
+        commands: list[MacroCommand] = [
             PlaceholderCommand(
                 command_id=CommandId("cmd1"),
                 command_type=CommandType.TEXT_INPUT,
@@ -345,12 +348,12 @@ class TestMacroEngine:
         assert len(result.command_results) == 2
         assert all(cmd_result.success for cmd_result in result.command_results)
 
-    def test_macro_execution_with_custom_context(self) -> bool:
+    def test_macro_execution_with_custom_context(self) -> None:
         """Test macro execution with custom context."""
         engine = MacroEngine()
         custom_context = ExecutionContext.default()
 
-        commands = [
+        commands: list[MacroCommand] = [
             PlaceholderCommand(
                 command_id=CommandId("custom_cmd"),
                 command_type=CommandType.TEXT_INPUT,
@@ -365,7 +368,7 @@ class TestMacroEngine:
         assert len(result.command_results) == 1
         assert result.command_results[0].success
 
-    def test_macro_execution_invalid_macro(self) -> bool:
+    def test_macro_execution_invalid_macro(self) -> None:
         """Test execution with invalid macro."""
         engine = MacroEngine()
 
@@ -377,7 +380,7 @@ class TestMacroEngine:
             assert result.status == ExecutionStatus.FAILED
             assert "ValidationError" in result.error_details
 
-    def test_macro_execution_command_failure(self) -> bool:
+    def test_macro_execution_command_failure(self) -> None:
         """Test macro execution with failing command."""
         engine = MacroEngine()
 
@@ -402,7 +405,7 @@ class TestMacroEngine:
         assert any(not cmd_result.success for cmd_result in result.command_results)
         assert "Command failures" in result.error_details
 
-    def test_macro_execution_permission_denied(self) -> bool:
+    def test_macro_execution_permission_denied(self) -> None:
         """Test macro execution with permission denied."""
         engine = MacroEngine()
 
@@ -430,7 +433,7 @@ class TestMacroEngine:
         """Test successful async macro execution."""
         engine = MacroEngine()
 
-        commands = [
+        commands: list[MacroCommand] = [
             PlaceholderCommand(
                 command_id=CommandId("async_cmd1"),
                 command_type=CommandType.TEXT_INPUT,
@@ -472,7 +475,7 @@ class TestMacroEngine:
         mock_engine._active_executions = {ExecutionToken("existing1"): {"mock": "data"}}
 
         # Set up the execute_macro_async method to behave like the real one
-        async def mock_execute_macro_async(macro: Any) -> None:
+        async def mock_execute_macro_async(macro: Any) -> ExecutionResult:
             # Simulate the concurrent limit check
             if (
                 len(mock_engine._active_executions)
@@ -499,7 +502,7 @@ class TestMacroEngine:
 
         mock_engine.execute_macro_async = mock_execute_macro_async
 
-        commands = [
+        commands: list[MacroCommand] = [
             PlaceholderCommand(
                 command_id=CommandId("concurrent_cmd"),
                 command_type=CommandType.TEXT_INPUT,
@@ -527,9 +530,9 @@ class TestMacroEngine:
 
         # Set up _execute_command_safe to simulate timeout
         async def mock_execute_command_safe(
-            command: str,
+            command: Any,
             context: dict[str, Any] | Any,
-        ) -> None:
+        ) -> CommandResult:
             # Simulate timeout when context has very short timeout
             if hasattr(context, "timeout") and context.timeout.total_seconds() < 1.0:
                 return CommandResult.failure_result(
@@ -555,7 +558,7 @@ class TestMacroEngine:
         assert not result.success
         assert "timeout" in result.error_message.lower()
 
-    def test_execution_status_retrieval(self) -> bool:
+    def test_execution_status_retrieval(self) -> None:
         """Test execution status retrieval."""
         engine = MacroEngine()
 
@@ -569,7 +572,7 @@ class TestMacroEngine:
             assert status == ExecutionStatus.RUNNING
             mock_get_status.assert_called_once_with(token)
 
-    def test_execution_cancellation(self) -> bool:
+    def test_execution_cancellation(self) -> None:
         """Test execution cancellation simulation."""
         # Create a mock engine that simulates cancellation behavior
         mock_engine = Mock(spec=MacroEngine)
@@ -659,7 +662,7 @@ class TestMacroEngine:
         engine = MacroEngine()
 
         # Test valid macro
-        commands = [
+        commands: list[MacroCommand] = [
             PlaceholderCommand(
                 command_id=CommandId("valid_cmd"),
                 command_type=CommandType.TEXT_INPUT,
@@ -682,7 +685,7 @@ class TestMacroEngine:
         engine = MacroEngine()
 
         # Create macro with too many commands
-        many_commands = [
+        many_commands: list[MacroCommand] = [
             PlaceholderCommand(
                 command_id=CommandId(f"cmd_{i}"),
                 command_type=CommandType.TEXT_INPUT,
@@ -845,7 +848,7 @@ class TestEngineMetrics:
 class TestEngineHelperFunctions:
     """Test engine helper functions."""
 
-    def test_get_default_engine(self) -> bool:
+    def test_get_default_engine(self) -> None:
         """Test getting default engine."""
         engine = get_default_engine()
 
@@ -855,7 +858,7 @@ class TestEngineHelperFunctions:
         engine2 = get_default_engine()
         assert engine is engine2
 
-    def test_get_engine_metrics(self) -> bool:
+    def test_get_engine_metrics(self) -> None:
         """Test getting engine metrics."""
         metrics = get_engine_metrics()
 
@@ -872,8 +875,8 @@ class TestEngineHelperFunctions:
 
         assert macro.name == "test_simple"
         assert len(macro.commands) == 2
-        assert macro.commands[0].command_type == CommandType.TEXT_INPUT
-        assert macro.commands[1].command_type == CommandType.PAUSE
+        assert cast("PlaceholderCommand", macro.commands[0]).command_type == CommandType.TEXT_INPUT
+        assert cast("PlaceholderCommand", macro.commands[1]).command_type == CommandType.PAUSE
 
     def test_create_test_macro_complex(self) -> None:
         """Test creating complex test macro."""
@@ -892,27 +895,27 @@ class TestEngineHelperFunctions:
         assert len(macro.commands) == 6
 
         # Check each command has appropriate parameters
-        text_cmd = macro.commands[0]
+        text_cmd = cast("PlaceholderCommand", macro.commands[0])
         assert text_cmd.command_type == CommandType.TEXT_INPUT
         assert text_cmd.parameters.get("text") is not None
 
-        pause_cmd = macro.commands[1]
+        pause_cmd = cast("PlaceholderCommand", macro.commands[1])
         assert pause_cmd.command_type == CommandType.PAUSE
         assert pause_cmd.parameters.get("duration") == 1.0
 
-        sound_cmd = macro.commands[2]
+        sound_cmd = cast("PlaceholderCommand", macro.commands[2])
         assert sound_cmd.command_type == CommandType.PLAY_SOUND
         assert sound_cmd.parameters.get("sound_name") == "beep"
 
-        var_set_cmd = macro.commands[3]
+        var_set_cmd = cast("PlaceholderCommand", macro.commands[3])
         assert var_set_cmd.command_type == CommandType.VARIABLE_SET
         assert var_set_cmd.parameters.get("name") is not None
 
-        var_get_cmd = macro.commands[4]
+        var_get_cmd = cast("PlaceholderCommand", macro.commands[4])
         assert var_get_cmd.command_type == CommandType.VARIABLE_GET
         assert var_get_cmd.parameters.get("name") is not None
 
-        app_cmd = macro.commands[5]
+        app_cmd = cast("PlaceholderCommand", macro.commands[5])
         assert app_cmd.command_type == CommandType.APPLICATION_CONTROL
         assert app_cmd.parameters.get("action") == "activate"
 
@@ -937,9 +940,10 @@ class TestEngineHelperFunctions:
         assert len(macro.commands) == len(command_types)
 
         for i, expected_type in enumerate(command_types):
-            assert macro.commands[i].command_type == expected_type
-            assert isinstance(macro.commands[i].parameters, CommandParameters)
-            assert macro.commands[i].command_id is not None
+            cmd = cast("PlaceholderCommand", macro.commands[i])
+            assert cmd.command_type == expected_type
+            assert isinstance(cmd.parameters, CommandParameters)
+            assert cmd.command_id is not None
 
 
 class TestEngineIntegration:
@@ -951,7 +955,7 @@ class TestEngineIntegration:
         metrics = EngineMetrics()
 
         # Create comprehensive test macro
-        commands = [
+        commands: list[MacroCommand] = [
             PlaceholderCommand(
                 command_id=CommandId("workflow_cmd1"),
                 command_type=CommandType.TEXT_INPUT,
@@ -1014,7 +1018,7 @@ class TestEngineIntegration:
         # Create multiple test macros
         macros = []
         for i in range(3):
-            commands = [
+            commands: list[MacroCommand] = [
                 PlaceholderCommand(
                     command_id=CommandId(f"concurrent_cmd_{i}"),
                     command_type=CommandType.TEXT_INPUT,
@@ -1068,7 +1072,7 @@ class TestEngineIntegration:
         execution_times = []
 
         for i in range(10):
-            commands = [
+            commands: list[MacroCommand] = [
                 PlaceholderCommand(
                     command_id=CommandId(f"perf_cmd_{i}"),
                     command_type=CommandType.TEXT_INPUT,
