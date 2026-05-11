@@ -173,12 +173,12 @@ class TestKMClient:
     """Test KMClient main functionality."""
 
     @pytest.fixture
-    def client(self) -> None:
+    def client(self) -> KMClient:
         """Create KMClient instance."""
         return KMClient()
 
     @pytest.fixture
-    def web_api_client(self) -> None:
+    def web_api_client(self) -> KMClient:
         """Create KMClient with Web API configuration."""
         config = ConnectionConfig(method=ConnectionMethod.WEB_API)
         return KMClient(config)
@@ -240,7 +240,7 @@ class TestKMClient:
     @patch("src.commands.secure_subprocess.get_secure_subprocess_manager")
     def test_execute_macro_with_trigger_value(
         self, mock_get_manager: Mock, client: KMClient
-    ):
+    ) -> None:
         """Test macro execution with trigger value."""
         # Mock the secure subprocess manager
         mock_manager = Mock()
@@ -477,7 +477,7 @@ class TestKMClient:
     )
     def test_execute_macro_property(
         self, macro_id: str, trigger_value: str, client: KMClient
-    ):
+    ) -> None:
         """Property test for macro execution with various inputs."""
         assume(not any(char in macro_id for char in ['"', "'", "\\", "\n"]))
 
@@ -502,7 +502,7 @@ class TestKMClientAsync:
     """Test asynchronous KMClient methods."""
 
     @pytest.fixture
-    def client(self) -> None:
+    def client(self) -> KMClient:
         """Create KMClient instance."""
         return KMClient()
 
@@ -588,7 +588,7 @@ class TestKMClientEdgeCases:
     """Test edge cases and error conditions."""
 
     @pytest.fixture
-    def client(self) -> None:
+    def client(self) -> KMClient:
         """Create KMClient instance."""
         return KMClient()
 
@@ -640,7 +640,7 @@ class TestKMClientEdgeCases:
     @patch("src.commands.secure_subprocess.get_secure_subprocess_manager")
     def test_special_characters_in_macro_id(
         self, mock_get_manager: Mock, client: KMClient
-    ):
+    ) -> None:
         """Test handling of special characters in macro IDs."""
         mock_manager = Mock()
         mock_get_manager.return_value = mock_manager
@@ -688,7 +688,7 @@ class TestKMClientPrivateMethods:
     """Test private methods of KMClient for better coverage."""
 
     @pytest.fixture
-    def client(self) -> None:
+    def client(self) -> KMClient:
         """Create KMClient instance."""
         return KMClient()
 
@@ -857,7 +857,7 @@ class TestKMClientWebAPIFallback:
     """Test Web API fallback functionality."""
 
     @pytest.fixture
-    def client(self) -> None:
+    def client(self) -> KMClient:
         """Create KMClient instance."""
         return KMClient()
 

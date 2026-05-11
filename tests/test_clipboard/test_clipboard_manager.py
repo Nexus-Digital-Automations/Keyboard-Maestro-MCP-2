@@ -235,12 +235,13 @@ class TestClipboardManager:
             timestamp=time.time(),
         )
 
-        # Should not be able to modify
+        # Should not be able to modify; setattr bypasses static read-only check
+        # so the test exercises the runtime AttributeError raised by the property.
         with pytest.raises(AttributeError):
-            content.content = "modified"
+            content.content = "modified"  # type: ignore[misc]
 
         with pytest.raises(AttributeError):
-            content.format = ClipboardFormat.URL
+            content.format = ClipboardFormat.URL  # type: ignore[misc]
 
     @pytest.mark.asyncio
     async def test_named_clipboard_access_tracking(self, named_manager: Any) -> None:

@@ -4,6 +4,7 @@ This module tests edge cases, error paths, and private methods to achieve
 higher coverage for the km_client module.
 """
 
+from typing import Any
 from unittest.mock import Mock, patch
 
 import httpx
@@ -46,6 +47,7 @@ class TestKMClientEdgeCases:
         error = KMError.timeout_error(timeout)
         assert error.code == "TIMEOUT_ERROR"
         assert "30" in error.message
+        assert error.retry_after is not None
         assert error.retry_after.total_seconds() == 1.0
 
         # Test validation_error
@@ -307,9 +309,9 @@ class TestKMClientEdgeCases:
             mock_send.return_value = Either.right({"success": True})
 
             # Unregister trigger
-            result = client.unregister_trigger(trigger_id)
-            assert result.is_right()
-            assert result.get_right() is True
+            unregister_result = client.unregister_trigger(trigger_id)
+            assert unregister_result.is_right()
+            assert unregister_result.get_right() is True
 
     def test_list_macros_variations(self) -> None:
         """Test list_macros with different parameters."""
@@ -437,17 +439,17 @@ class TestKMClientEdgeCases:
             mock_send.return_value = Either.right(
                 {"triggers": [{"id": "trigger-1", "type": "hotkey", "enabled": True}]}
             )
-            result = client.list_triggers()
-            assert result.is_right()
-            assert isinstance(result.get_right(), list)
+            list_result = client.list_triggers()
+            assert list_result.is_right()
+            assert isinstance(list_result.get_right(), list)
 
             # Get trigger status
             mock_send.return_value = Either.right(
                 {"status": {"enabled": True, "last_fired": None}}
             )
-            result = client.get_trigger_status(TriggerId("test-trigger"))
-            assert result.is_right()
-            assert isinstance(result.get_right(), dict)
+            status_result = client.get_trigger_status(TriggerId("test-trigger"))
+            assert status_result.is_right()
+            assert isinstance(status_result.get_right(), dict)
 
     @pytest.mark.asyncio
     async def test_async_trigger_methods(self) -> None:
@@ -487,24 +489,24 @@ class TestKMClientEdgeCases:
         # Mock sync methods for activation/deactivation
         with patch.object(client, "activate_trigger") as mock_activate:
             mock_activate.return_value = Either.right(True)
-            result = await client.activate_trigger_async(trigger_id)
-            assert result.is_right()
+            activate_result = await client.activate_trigger_async(trigger_id)
+            assert activate_result.is_right()
 
         with patch.object(client, "deactivate_trigger") as mock_deactivate:
             mock_deactivate.return_value = Either.right(True)
-            result = await client.deactivate_trigger_async(trigger_id)
-            assert result.is_right()
+            deactivate_result = await client.deactivate_trigger_async(trigger_id)
+            assert deactivate_result.is_right()
 
         # Mock list methods
         with patch.object(client, "list_triggers") as mock_list_triggers:
             mock_list_triggers.return_value = Either.right([{"id": "trigger-1"}])
-            result = await client.list_triggers_async()
-            assert result.is_right()
+            list_triggers_result = await client.list_triggers_async()
+            assert list_triggers_result.is_right()
 
         with patch.object(client, "_list_macros_applescript") as mock_list_macros:
             mock_list_macros.return_value = Either.right([{"name": "Test Macro"}])
-            result = await client.list_macros_async()
-            assert result.is_right()
+            list_macros_result = await client.list_macros_async()
+            assert list_macros_result.is_right()
 
     def test_parse_applescript_records(self) -> None:
         """Test _parse_applescript_records method."""
@@ -635,7 +637,7 @@ class TestKMClientEdgeCases:
         assert result.is_right()
 
         # Test with missing required field
-        bad_config = {}  # Missing "key" for HOTKEY trigger
+        bad_config: dict[str, Any] = {}  # Missing "key" for HOTKEY trigger
         bad_trigger_def = TriggerDefinition(
             trigger_id=TriggerId("bad-trigger"),
             trigger_type=TriggerType.HOTKEY,

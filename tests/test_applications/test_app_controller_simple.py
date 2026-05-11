@@ -3,6 +3,8 @@
 Focuses on basic functionality that can be easily tested to achieve coverage.
 """
 
+from typing import cast
+
 import pytest
 from src.applications.app_controller import (
     AppController,
@@ -319,8 +321,9 @@ class TestAppController:
         """Test _escape_applescript_string with non-string input."""
         controller = AppController()
 
-        result = controller._escape_applescript_string(123)
+        # Method coerces non-str inputs via str() at runtime; signature is str-only.
+        result = controller._escape_applescript_string(cast("str", 123))
         assert result == "123"
 
-        result = controller._escape_applescript_string(None)
+        result = controller._escape_applescript_string(cast("str", None))
         assert result == "None"

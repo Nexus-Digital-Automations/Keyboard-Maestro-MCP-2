@@ -421,6 +421,7 @@ class TestStructureBuilding:
         assert node.condition.operator == ComparisonOperator.CONTAINS
         assert node.condition.operand == "password"
         assert len(node.then_actions.actions) == 1
+        assert node.else_actions is not None
         assert len(node.else_actions.actions) == 1
 
     @pytest.mark.asyncio

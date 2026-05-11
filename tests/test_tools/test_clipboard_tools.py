@@ -29,7 +29,7 @@ Testing Strategy:
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -166,7 +166,7 @@ def mock_named_clipboard_manager() -> Mock:
 
 
 @pytest.fixture
-def sample_clipboard_data() -> Mock:
+def sample_clipboard_data() -> dict[str, str | list[str]]:
     """Sample clipboard data for testing."""
     return {
         "short_text": "Hello World",
@@ -768,8 +768,9 @@ class TestClipboardSecurity:
 class TestClipboardPropertyBased:
     """Property-based testing for clipboard operations."""
 
+    @staticmethod
     @composite
-    def clipboard_content_strategy(draw: Callable[..., Any]) -> Mock:
+    def clipboard_content_strategy(draw: Callable[..., Any]) -> str:
         """Generate valid clipboard content for testing."""
         content_type = draw(st.sampled_from(["text", "short", "long", "unicode"]))
 
@@ -791,7 +792,7 @@ class TestClipboardPropertyBased:
             )
 
         assume(len(content.strip()) > 0)
-        return content
+        return cast("str", content)
 
     @given(clipboard_content_strategy())
     @settings(

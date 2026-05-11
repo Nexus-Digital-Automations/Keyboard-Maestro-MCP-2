@@ -8,7 +8,7 @@ Tests all validation methods, threat detection, sanitization, and edge cases.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from hypothesis import given
 from hypothesis import strategies as st
@@ -59,6 +59,7 @@ class TestValidationResult:
             threat_description="Multiple threats detected",
         )
 
+        assert result.detected_threats is not None
         assert len(result.detected_threats) == 2
         assert ThreatType.SQL_INJECTION in result.detected_threats
         assert ThreatType.XSS_INJECTION in result.detected_threats
@@ -158,6 +159,7 @@ class TestSQLValidation:
         for malicious_input in malicious_inputs:
             result = self.validator.validate_sql_input(malicious_input)
             assert result.is_safe is False
+            assert result.detected_threats is not None
             assert ThreatType.SQL_INJECTION in result.detected_threats
             assert len(result.threat_description) > 0
             assert result.confidence_score == 0.9
@@ -178,7 +180,8 @@ class TestSQLValidation:
 
     def test_none_sql_input(self) -> None:
         """Test None SQL input handling."""
-        result = self.validator.validate_sql_input(None)
+        # Validator gracefully handles None at runtime via falsy check; signature is str-only.
+        result = self.validator.validate_sql_input(cast("str", None))
         assert result.is_safe is True
 
     def test_sql_sanitization(self) -> None:
@@ -250,6 +253,7 @@ class TestHTMLValidation:
         for malicious_input in malicious_inputs:
             result = self.validator.validate_html_input(malicious_input)
             assert result.is_safe is False
+            assert result.detected_threats is not None
             assert ThreatType.XSS_INJECTION in result.detected_threats
             assert len(result.threat_description) > 0
             assert result.confidence_score == 0.9
@@ -320,6 +324,7 @@ class TestCommandValidation:
         for malicious_input in malicious_inputs:
             result = self.validator.validate_command_input(malicious_input)
             assert result.is_safe is False
+            assert result.detected_threats is not None
             assert ThreatType.COMMAND_INJECTION in result.detected_threats
             assert len(result.threat_description) > 0
             assert result.confidence_score == 0.9
@@ -396,6 +401,7 @@ class TestPathValidation:
         for malicious_path in malicious_paths:
             result = self.validator.validate_file_path(malicious_path)
             assert result.is_safe is False
+            assert result.detected_threats is not None
             assert ThreatType.PATH_TRAVERSAL in result.detected_threats
             assert len(result.threat_description) > 0
             assert result.confidence_score == 0.9
@@ -508,6 +514,8 @@ class TestIntegrationScenarios:
 
         assert sql_result.is_safe is False
         assert html_result.is_safe is False
+        assert sql_result.detected_threats is not None
+        assert html_result.detected_threats is not None
         assert ThreatType.SQL_INJECTION in sql_result.detected_threats
         assert ThreatType.XSS_INJECTION in html_result.detected_threats
 
@@ -552,10 +560,11 @@ class TestIntegrationScenarios:
         edge_cases = ["", "   ", "\n", "\t", None]
 
         for edge_case in edge_cases:
-            sql_result = self.validator.validate_sql_input(edge_case)
-            html_result = self.validator.validate_html_input(edge_case)
-            cmd_result = self.validator.validate_command_input(edge_case)
-            path_result = self.validator.validate_file_path(edge_case)
+            # Validator gracefully handles None/empty via falsy check; signature is str-only.
+            sql_result = self.validator.validate_sql_input(cast("str", edge_case))
+            html_result = self.validator.validate_html_input(cast("str", edge_case))
+            cmd_result = self.validator.validate_command_input(cast("str", edge_case))
+            path_result = self.validator.validate_file_path(cast("str", edge_case))
 
             # All should be safe for empty/whitespace inputs
             assert sql_result.is_safe is True

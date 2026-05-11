@@ -57,7 +57,7 @@ class TestNotificationManager:
         return client
 
     @pytest.fixture
-    def notification_manager(self, mock_km_client: Any) -> Mock:
+    def notification_manager(self, mock_km_client: Any) -> NotificationManager:
         """Create notification manager with mocked client."""
         return NotificationManager(mock_km_client)
 
@@ -657,8 +657,9 @@ class TestNotificationMCPTools:
 class TestNotificationPropertyBasedTesting:
     """Property-based testing for notification system."""
 
+    @staticmethod
     @composite
-    def notification_spec_strategy(draw: Callable[..., Any]) -> Mock:
+    def notification_spec_strategy(draw: Callable[..., Any]) -> NotificationSpec:
         """Generate valid notification specifications."""
         notification_type = draw(st.sampled_from(list(NotificationType)))
         title = draw(st.text(min_size=1, max_size=100).filter(lambda x: x.strip()))

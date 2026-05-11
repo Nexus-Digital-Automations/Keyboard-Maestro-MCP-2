@@ -30,7 +30,7 @@ class TestNotificationManager:
     """Test suite for NotificationManager with comprehensive validation."""
 
     @pytest.fixture
-    def mock_km_client(self) -> bool:
+    def mock_km_client(self) -> Mock:
         """Mock KM client for testing."""
         km_client = Mock()
         km_client.execute_applescript = AsyncMock()
@@ -39,7 +39,7 @@ class TestNotificationManager:
         return km_client
 
     @pytest.fixture
-    def notification_manager(self, mock_km_client: Any) -> bool:
+    def notification_manager(self, mock_km_client: Any) -> NotificationManager:
         """NotificationManager instance with mocked dependencies."""
         return NotificationManager(mock_km_client)
 
@@ -77,7 +77,7 @@ class TestNotificationManager:
         self,
         title: str,
         message: str,
-    ) -> bool:
+    ) -> None:
         """Property test: NotificationSpec validation with invalid inputs."""
         with pytest.raises(ValueError):
             NotificationSpec(
@@ -239,7 +239,7 @@ class TestNotificationManager:
         self,
         notification_manager: Any,
         content: str,
-    ) -> bool:
+    ) -> None:
         """Property test: Content validation prevents dangerous patterns."""
         is_valid = notification_manager._validate_notification_content(content)
 
@@ -259,14 +259,14 @@ class TestNotificationManager:
         self,
         notification_manager: Any,
         content: str,
-    ) -> bool:
+    ) -> None:
         """Property test: Safe content passes validation."""
         assume(len(content.strip()) > 0)
 
         is_valid = notification_manager._validate_notification_content(content)
         assert is_valid
 
-    def test_applescript_string_escaping(self, notification_manager: Any) -> bool:
+    def test_applescript_string_escaping(self, notification_manager: Any) -> None:
         """Test AppleScript string escaping for security."""
         dangerous_text = 'Text with "quotes" and \\backslashes'
         escaped = notification_manager._escape_applescript_string(dangerous_text)
@@ -274,7 +274,7 @@ class TestNotificationManager:
         assert '\\"' in escaped  # Quotes should be escaped
         assert "\\\\" in escaped  # Backslashes should be escaped
 
-    def test_hud_position_mapping(self, notification_manager: Any) -> bool:
+    def test_hud_position_mapping(self, notification_manager: Any) -> None:
         """Test HUD position enum to KM value mapping."""
         position_tests = [
             (NotificationPosition.CENTER, "Center"),

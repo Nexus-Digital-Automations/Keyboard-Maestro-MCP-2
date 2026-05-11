@@ -306,7 +306,7 @@ class TestKMListMacros:
         return client
 
     @pytest.fixture
-    def sample_macros(self) -> Mock:
+    def sample_macros(self) -> list[dict[str, Any]]:
         """Sample macro data."""
         return [
             {

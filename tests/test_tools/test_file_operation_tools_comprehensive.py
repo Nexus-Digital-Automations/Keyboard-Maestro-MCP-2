@@ -10,7 +10,7 @@ error handling, and integration with property-based testing.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -24,10 +24,10 @@ if TYPE_CHECKING:
 
 # Test data generators
 @st.composite
-def valid_file_operation_strategy(draw: Callable[..., Any]) -> Mock:
+def valid_file_operation_strategy(draw: Callable[..., Any]) -> str:
     """Generate valid file operations."""
     operations = ["copy", "move", "delete", "rename", "create_folder", "get_info"]
-    return draw(st.sampled_from(operations))
+    return cast("str", draw(st.sampled_from(operations)))
 
 
 @st.composite
@@ -50,7 +50,7 @@ def safe_path_strategy(draw: Callable[..., Any]) -> str:
 
 
 @st.composite
-def file_operation_config_strategy(draw: Callable[..., Any]) -> Mock:
+def file_operation_config_strategy(draw: Callable[..., Any]) -> dict[str, bool]:
     """Generate valid file operation configurations."""
     return {
         "overwrite": draw(st.booleans()),
@@ -61,7 +61,7 @@ def file_operation_config_strategy(draw: Callable[..., Any]) -> Mock:
 
 
 @st.composite
-def unsafe_path_strategy(draw: Callable[..., Any]) -> Mock:
+def unsafe_path_strategy(draw: Callable[..., Any]) -> str:
     """Generate potentially unsafe paths for security testing."""
     unsafe_patterns = [
         "../../etc/passwd",
@@ -73,7 +73,7 @@ def unsafe_path_strategy(draw: Callable[..., Any]) -> Mock:
         "file:///etc/passwd",
         "//network/share/../../../etc",
     ]
-    return draw(st.sampled_from(unsafe_patterns))
+    return cast("str", draw(st.sampled_from(unsafe_patterns)))
 
 
 class TestFileOperationDependencies:
@@ -792,7 +792,7 @@ class TestFileOperationProperties:
         assume(operation_id.strip() != "")
 
         # Mock result structure
-        result_structure = {
+        result_structure: dict[str, Any] = {
             "success": True,
             "operation": "copy",
             "source_path": "/safe/source.txt",

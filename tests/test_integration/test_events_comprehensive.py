@@ -6,6 +6,7 @@ on functional event processing, immutable transformations, and security validati
 
 import uuid
 from datetime import datetime
+from typing import Any
 from unittest.mock import patch
 
 from hypothesis import given
@@ -943,7 +944,7 @@ class TestEventSecurity:
         """Test that events are properly immutable."""
         import copy
 
-        original_payload = {"mutable_list": [1, 2, 3], "text": "original"}
+        original_payload: dict[str, Any] = {"mutable_list": [1, 2, 3], "text": "original"}
         event = KMEvent.create(
             trigger_type=TriggerType.FILE,
             trigger_id=TriggerId("test"),

@@ -68,6 +68,7 @@ class TestSecurityPatterns:
             result = self.validator.validate_html_input(dangerous_input)
             # Should detect and reject dangerous patterns
             assert not result.is_safe, f"Failed to detect: {dangerous_input}"
+            assert result.detected_threats is not None
             assert ThreatType.XSS_INJECTION in result.detected_threats
 
     def test_sql_injection_detection(self) -> None:
@@ -84,6 +85,7 @@ class TestSecurityPatterns:
             result = self.validator.validate_sql_input(injection)
             # Should detect SQL injection patterns
             assert not result.is_safe, f"Failed to detect SQL injection: {injection}"
+            assert result.detected_threats is not None
             assert ThreatType.SQL_INJECTION in result.detected_threats
 
     def test_command_injection_detection(self) -> None:
@@ -102,6 +104,7 @@ class TestSecurityPatterns:
             assert not result.is_safe, (
                 f"Failed to detect command injection: {injection}"
             )
+            assert result.detected_threats is not None
             assert ThreatType.COMMAND_INJECTION in result.detected_threats
 
     def test_path_traversal_detection(self) -> None:
@@ -118,6 +121,7 @@ class TestSecurityPatterns:
             result = self.validator.validate_file_path(traversal)
             # Should detect path traversal patterns
             assert not result.is_safe, f"Failed to detect path traversal: {traversal}"
+            assert result.detected_threats is not None
             assert ThreatType.PATH_TRAVERSAL in result.detected_threats
 
 

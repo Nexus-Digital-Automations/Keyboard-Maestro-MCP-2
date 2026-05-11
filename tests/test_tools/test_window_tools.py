@@ -35,7 +35,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import timedelta
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -891,25 +891,28 @@ class TestWindowToolsSecurity:
 class TestWindowToolsPropertyBased:
     """Property-based testing for window tools with Hypothesis."""
 
+    @staticmethod
     @composite
-    def valid_app_names(draw: Callable[..., Any]) -> dict[str, Any]:
+    def valid_app_names(draw: Callable[..., Any]) -> str:
         """Generate valid application names."""
         # Generate names without dangerous characters
         chars = st.characters(
             whitelist_categories=("Lu", "Ll", "Nd", "Pc"),
             whitelist_characters=" -._",
         )
-        return draw(st.text(chars, min_size=1, max_size=100))
+        return cast("str", draw(st.text(chars, min_size=1, max_size=100)))
 
+    @staticmethod
     @composite
-    def valid_coordinates(draw: Callable[..., Any]) -> dict[str, Any]:
+    def valid_coordinates(draw: Callable[..., Any]) -> dict[str, int]:
         """Generate valid coordinate pairs."""
         x = draw(st.integers(min_value=-10000, max_value=10000))
         y = draw(st.integers(min_value=-10000, max_value=10000))
         return {"x": x, "y": y}
 
+    @staticmethod
     @composite
-    def valid_sizes(draw: Callable[..., Any]) -> dict[str, Any]:
+    def valid_sizes(draw: Callable[..., Any]) -> dict[str, int]:
         """Generate valid size dimensions."""
         width = draw(st.integers(min_value=1, max_value=5000))
         height = draw(st.integers(min_value=1, max_value=5000))
@@ -926,8 +929,9 @@ class TestWindowToolsPropertyBased:
         result = _is_valid_app_identifier(app_name)
         assert result is True
 
+    @staticmethod
     @composite
-    def valid_app_identifiers(draw: Callable[..., Any]) -> Mock:
+    def valid_app_identifiers(draw: Callable[..., Any]) -> str:
         """Generate valid application identifiers that pass both _is_valid_app_identifier and AppIdentifier validation."""
         # Generate either a valid bundle ID or app name
         choice = draw(st.integers(min_value=0, max_value=1))
@@ -994,7 +998,9 @@ class TestWindowToolsPropertyBased:
     @pytest.mark.asyncio
     @given(valid_coordinates())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    async def test_move_operation_coordinates_property(self, position: float) -> None:
+    async def test_move_operation_coordinates_property(
+        self, position: dict[str, int]
+    ) -> None:
         """Property: Valid coordinates should not cause validation errors in move operation."""
         mock_context = Mock(spec=Context)
         mock_context.info = AsyncMock()
@@ -1047,7 +1053,9 @@ class TestWindowToolsPropertyBased:
     @pytest.mark.asyncio
     @given(valid_sizes())
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-    async def test_resize_operation_sizes_property(self, size: int) -> None:
+    async def test_resize_operation_sizes_property(
+        self, size: dict[str, int]
+    ) -> None:
         """Property: Valid sizes should not cause validation errors in resize operation."""
         mock_context = Mock(spec=Context)
         mock_context.info = AsyncMock()
@@ -1123,7 +1131,7 @@ class TestWindowToolsPerformance:
                 return_value=True,
             ),
         ):
-            operations = [
+            operations: list[dict[str, Any]] = [
                 {"operation": "move", "position": {"x": 100, "y": 100}},
                 {"operation": "resize", "size": {"width": 800, "height": 600}},
                 {"operation": "minimize"},

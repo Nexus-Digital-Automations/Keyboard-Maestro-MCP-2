@@ -249,12 +249,12 @@ class TestAppController:
     """Test AppController class methods."""
 
     @pytest.fixture
-    def app_controller(self) -> None:
+    def app_controller(self) -> AppController:
         """Create AppController instance for testing."""
         return AppController()
 
     @pytest.fixture
-    def sample_app_id(self) -> None:
+    def sample_app_id(self) -> AppIdentifier:
         """Create sample AppIdentifier for testing."""
         return AppIdentifier(
             app_name="TestApp",
@@ -262,7 +262,7 @@ class TestAppController:
         )
 
     @pytest.fixture
-    def sample_launch_config(self) -> None:
+    def sample_launch_config(self) -> LaunchConfiguration:
         """Create sample LaunchConfiguration for testing."""
         return LaunchConfiguration(
             wait_for_launch=True,
@@ -270,14 +270,19 @@ class TestAppController:
             activate_on_launch=True,
         )
 
-    def test_app_controller_initialization(self, app_controller) -> None:
+    def test_app_controller_initialization(
+        self, app_controller: AppController
+    ) -> None:
         """Test AppController initialization."""
         assert isinstance(app_controller, AppController)
 
     @pytest.mark.asyncio
     async def test_launch_application_async_success(
-        self, app_controller, sample_app_id, sample_launch_config
-    ):
+        self,
+        app_controller: AppController,
+        sample_app_id: AppIdentifier,
+        sample_launch_config: LaunchConfiguration,
+    ) -> None:
         """Test successful application launch."""
         with patch.object(
             app_controller, "_launch_via_applescript", new_callable=AsyncMock
@@ -304,7 +309,9 @@ class TestAppController:
                     assert operation_result.app_state == AppState.RUNNING
 
     @pytest.mark.asyncio
-    async def test_launch_application_validation_error(self, app_controller) -> None:
+    async def test_launch_application_validation_error(
+        self, app_controller: AppController
+    ) -> None:
         """Test application launch with validation error."""
         # Test with invalid app identifier (no name or bundle_id)
         with pytest.raises(
@@ -312,26 +319,32 @@ class TestAppController:
         ):
             AppIdentifier()
 
-    def test_synchronous_launch_application(self, app_controller) -> None:
+    def test_synchronous_launch_application(
+        self, app_controller: AppController
+    ) -> None:
         """Test synchronous launch_application method."""
         # Test that synchronous method exists and handles basic input
         result = app_controller.launch_application("TextEdit")
         assert isinstance(result, bool)
 
-    def test_synchronous_quit_application(self, app_controller) -> None:
+    def test_synchronous_quit_application(
+        self, app_controller: AppController
+    ) -> None:
         """Test synchronous quit_application method."""
         # Test that synchronous method exists and handles basic input
         result = app_controller.quit_application("TextEdit")
         assert isinstance(result, bool)
 
-    def test_get_running_applications(self, app_controller) -> None:
+    def test_get_running_applications(self, app_controller: AppController) -> None:
         """Test get_running_applications method."""
         # Test that method exists and returns a list
         result = app_controller.get_running_applications()
         assert isinstance(result, list)
 
     @pytest.mark.asyncio
-    async def test_get_application_state(self, app_controller, sample_app_id) -> None:
+    async def test_get_application_state(
+        self, app_controller: AppController, sample_app_id: AppIdentifier
+    ) -> None:
         """Test get_application_state method."""
         result = await app_controller.get_application_state(sample_app_id)
 
@@ -339,7 +352,9 @@ class TestAppController:
         assert hasattr(result, "is_right")
         assert hasattr(result, "is_left")
 
-    def test_app_identifier_primary_identifier(self, sample_app_id) -> None:
+    def test_app_identifier_primary_identifier(
+        self, sample_app_id: AppIdentifier
+    ) -> None:
         """Test AppIdentifier primary_identifier method."""
         # Should prefer bundle_id over app_name
         assert sample_app_id.primary_identifier() == "com.example.testapp"
@@ -348,7 +363,9 @@ class TestAppController:
         app_id_name_only = AppIdentifier(app_name="TestApp")
         assert app_id_name_only.primary_identifier() == "TestApp"
 
-    def test_app_identifier_display_name(self, sample_app_id) -> None:
+    def test_app_identifier_display_name(
+        self, sample_app_id: AppIdentifier
+    ) -> None:
         """Test AppIdentifier display_name method."""
         # Should prefer app_name over bundle_id
         assert sample_app_id.display_name() == "TestApp"
@@ -357,7 +374,9 @@ class TestAppController:
         app_id_bundle_only = AppIdentifier(bundle_id="com.test.app")
         assert app_id_bundle_only.display_name() == "com.test.app"
 
-    def test_app_identifier_is_bundle_id(self, sample_app_id) -> None:
+    def test_app_identifier_is_bundle_id(
+        self, sample_app_id: AppIdentifier
+    ) -> None:
         """Test AppIdentifier is_bundle_id method."""
         assert sample_app_id.is_bundle_id() is True
 

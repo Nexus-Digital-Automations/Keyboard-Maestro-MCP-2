@@ -33,7 +33,7 @@ Key Mocking Pattern:
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -146,7 +146,7 @@ def mock_input_sanitizer() -> Mock:
 
 
 @pytest.fixture
-def sample_condition_data() -> Mock:
+def sample_condition_data() -> dict[str, list[str]]:
     """Sample condition data for testing."""
     return {
         "macro_ids": ["macro-test-123", "backup-macro-456", "temp-macro-789"],
@@ -1290,8 +1290,9 @@ class TestConditionSecurity:
 class TestConditionPropertyBased:
     """Property-based testing for condition operations."""
 
+    @staticmethod
     @composite
-    def condition_operand_strategy(draw: Callable[..., Any]) -> Mock:
+    def condition_operand_strategy(draw: Callable[..., Any]) -> str:
         """Generate valid condition operands for testing."""
         operand_type = draw(st.sampled_from(["text", "numeric", "boolean", "regex"]))
 
@@ -1307,7 +1308,7 @@ class TestConditionPropertyBased:
             )
 
         assume(len(operand.strip()) > 0)
-        return operand
+        return cast("str", operand)
 
     @given(condition_operand_strategy())
     @settings(
@@ -1331,7 +1332,7 @@ class TestConditionPropertyBased:
 
     @given(st.sampled_from(["contains", "equals", "greater_than", "matches_regex"]))
     @settings(max_examples=10)
-    def test_operator_properties(self, operator: Callable[..., Any]) -> None:
+    def test_operator_properties(self, operator: str) -> None:
         """Property: Valid operators should be supported."""
         result = _validate_operator(operator)
         assert result.is_right()
