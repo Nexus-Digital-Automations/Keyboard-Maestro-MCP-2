@@ -44,7 +44,7 @@ class ClipboardContent:
 
     @require(lambda self: self.size_bytes >= 0)
     @require(lambda self: self.size_bytes <= 100_000_000)  # 100MB limit
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate clipboard content constraints."""
 
     def preview(self, max_length: int = 50) -> str:
@@ -99,7 +99,7 @@ class ClipboardManager:
         re.compile(r"secret\s*[:=]\s*\S+", re.IGNORECASE),  # Secrets
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize clipboard manager with security settings."""
         self._max_content_size = 100_000_000  # 100MB
         self._max_history_size = 200

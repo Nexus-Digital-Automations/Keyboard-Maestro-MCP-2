@@ -82,7 +82,7 @@ class SecurityLimits:
         lambda self: self.max_timeout_seconds > 0 and self.max_timeout_seconds <= 600,
     )
     @require(lambda self: self.max_action_count > 0 and self.max_action_count <= 1000)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate security limits."""
 
 
@@ -101,7 +101,7 @@ class ConditionExpression:
     @require(lambda self: len(self.expression) <= 500)
     @require(lambda self: len(self.operand) <= 1000)
     @require(lambda self: self.timeout_seconds > 0 and self.timeout_seconds <= 60)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate condition expression."""
 
     @classmethod
@@ -140,7 +140,7 @@ class ActionBlock:
     @require(lambda self: len(self.actions) > 0)
     @require(lambda self: len(self.actions) <= 100)
     @require(lambda self: self.timeout_seconds > 0 and self.timeout_seconds <= 300)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate action block."""
 
     @classmethod
@@ -177,7 +177,7 @@ class LoopConfiguration:
     @require(lambda self: len(self.collection_expression.strip()) > 0)
     @require(lambda self: self.max_iterations > 0 and self.max_iterations <= 10000)
     @require(lambda self: self.timeout_seconds > 0 and self.timeout_seconds <= 300)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate loop configuration."""
 
 
@@ -191,7 +191,7 @@ class SwitchCase:
     is_default: bool = False
 
     @require(lambda self: len(self.case_value.strip()) > 0 or self.is_default)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate switch case."""
 
 
@@ -208,7 +208,7 @@ class ControlFlowNode:
     created_at: datetime = field(default_factory=datetime.now)
 
     @require(lambda self: self.depth >= 0 and self.depth <= 20)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate control flow node."""
 
 
@@ -263,7 +263,7 @@ class WhileLoopNode:
     created_at: datetime = field(default_factory=datetime.now)
 
     @require(lambda self: self.max_iterations > 0 and self.max_iterations <= 10000)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate while loop configuration."""
 
 
@@ -285,7 +285,7 @@ class SwitchCaseNode:
     @require(lambda self: len(self.switch_variable.strip()) > 0)
     @require(lambda self: len(self.cases) > 0)
     @require(lambda self: len(self.cases) <= 50)  # Prevent excessive case counts
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate switch/case configuration."""
 
     def has_default_case(self) -> bool:
@@ -707,7 +707,7 @@ class NestedControlFlow:
 
     @require(lambda self: self.nesting_level >= 0 and self.nesting_level <= 20)
     @require(lambda self: len(self.child_nodes) <= 50)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate nested structure."""
 
     def get_total_depth(self) -> int:
@@ -756,7 +756,7 @@ class ParallelExecutionNode:
     @require(
         lambda self: self.timeout_per_branch > 0 and self.timeout_per_branch <= 300,
     )
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate parallel execution configuration."""
 
 
@@ -944,7 +944,7 @@ class AdvancedControlFlowBuilder(ControlFlowBuilder):
 class ControlFlowOptimizer:
     """Optimizer for control flow structures."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize optimizer."""
         self.optimization_stats = {
             "redundant_conditions_removed": 0,
@@ -1152,7 +1152,7 @@ def create_loop_with_controls(
 class ControlFlowEngine:
     """Control flow evaluation engine for systematic testing."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.security_limits = SecurityLimits()
         self.evaluation_context = {}
 

@@ -89,7 +89,7 @@ class ThreatIndicator:
     sources: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not (0.0 <= self.confidence <= 1.0):
             raise ValueError("Confidence must be between 0.0 and 1.0")
 
@@ -128,7 +128,7 @@ class ThreatDetection:
     recommended_actions: list[ResponseAction] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not (0.0 <= self.confidence <= 1.0):
             raise ValueError("Confidence must be between 0.0 and 1.0")
 
@@ -150,7 +150,7 @@ class ThreatResponse:
 class AIThreatDetector:
     """AI-powered threat detection and response system."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.threat_indicators: dict[str, ThreatIndicator] = {}
         self.threat_patterns: dict[str, ThreatPattern] = {}
         self.active_detections: dict[ThreatId, ThreatDetection] = {}

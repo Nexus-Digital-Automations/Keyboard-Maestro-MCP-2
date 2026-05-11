@@ -297,7 +297,7 @@ class SensorAlert:
 class SensorManager:
     """Advanced sensor data management with real-time processing and analytics."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.sensors: dict[SensorId, SensorConfiguration] = {}
         self.sensor_data: dict[SensorId, deque] = {}  # Recent readings
         self.sensor_statistics: dict[SensorId, SensorStatistics] = {}

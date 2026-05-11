@@ -83,7 +83,7 @@ class PolicyEvaluationRequest:
     priority: str = "normal"  # low, normal, high, critical
     timeout: int = 30  # seconds
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.request_id or not self.resource or not self.action:
             raise ValueError("Request ID, resource, and action are required")
         if self.timeout <= 0:
@@ -104,7 +104,7 @@ class PolicyEvaluationResult:
     evaluation_time: float = 0.0  # milliseconds
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not (0.0 <= self.confidence <= 1.0):
             raise ValueError("Confidence must be between 0.0 and 1.0")
         if self.evaluation_time < 0:
@@ -125,7 +125,7 @@ class EnforcementAction:
     error_message: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.action_id or not self.action_type or not self.target:
             raise ValueError("Action ID, type, and target are required")
 
@@ -144,7 +144,7 @@ class ComplianceRule:
     remediation_actions: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.rule_id or not self.requirement_id or not self.description:
             raise ValueError("Rule ID, requirement ID, and description are required")
 
@@ -152,7 +152,7 @@ class ComplianceRule:
 class PolicyEnforcer:
     """Dynamic security policy enforcement and compliance monitoring system."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.active_policies: dict[PolicyId, SecurityPolicy] = {}
         self.policy_status: dict[PolicyId, PolicyStatus] = {}
         self.enforcement_history: list[PolicyEvaluationResult] = []
@@ -1578,7 +1578,7 @@ class SecurityPolicy:
     enabled: bool = True
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Convert to PolicyId type if needed
         if isinstance(self.policy_id, str):
             self.policy_id = create_policy_id(self.policy_id)

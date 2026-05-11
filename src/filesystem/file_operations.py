@@ -44,7 +44,7 @@ class FilePath:
     _security: PathSecurity = field(default_factory=PathSecurity, init=False)
 
     @require(lambda self: len(self.path) > 0 and len(self.path) <= 1000)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate path constraints on creation."""
 
     def is_safe_path(
@@ -128,7 +128,7 @@ class FileOperationRequest:
     @require(
         lambda self: not self.destination_path or self.destination_path.is_safe_path(),
     )
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate operation request constraints."""
         # Additional validation for specific operations
         if (
@@ -193,7 +193,7 @@ class FileOperationManager:
     defensive programming patterns for reliable file system automation.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize file operation manager with security validation."""
         self._security = PathSecurity()
         self._active_transactions: dict[str, dict[str, Any]] = {}

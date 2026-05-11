@@ -90,7 +90,7 @@ class TriggerSpec:
     max_executions: int | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Contract validation for trigger specification."""
         if not (0 < self.timeout_seconds <= 300):
             raise ValueError("Timeout must be between 1 and 300 seconds")
@@ -109,7 +109,7 @@ class TimeTriggerConfig:
     recurring_pattern: str | None = None  # cron-style pattern
     timezone: str = "local"
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate time trigger configuration."""
         has_schedule = self.schedule_time is not None
         has_interval = self.recurring_interval is not None
@@ -132,7 +132,7 @@ class FileTriggerConfig:
     ignore_hidden: bool = True
     debounce_seconds: float = 1.0
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate file trigger configuration."""
         if not self.watch_path or len(self.watch_path.strip()) == 0:
             raise ValueError("Watch path cannot be empty")
@@ -150,7 +150,7 @@ class SystemTriggerConfig:
     battery_threshold: int | None = None
     idle_threshold_seconds: int | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate system trigger configuration."""
         if self.battery_threshold is not None and not (
             0 <= self.battery_threshold <= 100
@@ -363,7 +363,7 @@ class TriggerValidator:
 class TriggerBuilder:
     """Fluent API for building advanced trigger specifications."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._trigger_id: str = str(uuid.uuid4())
         self._trigger_type: TriggerType | None = None
         self._config: dict[str, Any] = {}

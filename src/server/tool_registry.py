@@ -253,7 +253,7 @@ class ToolDiscovery:
 class ToolRegistry:
     """Central registry for managing discovered tools."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.tools: dict[str, ToolMetadata] = {}
         self.categories: dict[str, list[str]] = {}
         self.discovery = ToolDiscovery()

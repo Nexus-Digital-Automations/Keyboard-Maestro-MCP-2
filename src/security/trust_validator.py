@@ -77,7 +77,7 @@ class TrustValidationRequest:
     timeout: int = 30  # seconds
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.target_id:
             raise ValueError("Target ID cannot be empty")
         if self.timeout <= 0:
@@ -96,7 +96,7 @@ class TrustFactorResult:
     validation_time: float = 0.0  # milliseconds
     status: ValidationStatus = ValidationStatus.COMPLETED
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not (0.0 <= self.confidence <= 1.0):
             raise ValueError("Confidence must be between 0.0 and 1.0")
         if self.validation_time < 0:
@@ -126,7 +126,7 @@ class ContinuousValidationConfig:
 class TrustValidator:
     """Continuous trust validation and verification system."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.active_validations: dict[ValidationId, TrustValidationRequest] = {}
         self.validation_results: dict[ValidationId, TrustValidationResult] = {}
         self.continuous_configs: dict[str, ContinuousValidationConfig] = {}

@@ -150,7 +150,7 @@ class MCPValidationResult:
 class MCPProtocolHandler:
     """Handles MCP protocol communication with functional patterns."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._method_handlers: dict[
             str,
             Callable[[dict[str, Any]], Either[KMError, dict[str, Any]]],

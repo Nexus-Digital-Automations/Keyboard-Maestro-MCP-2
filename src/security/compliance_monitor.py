@@ -120,7 +120,7 @@ class ComplianceReport:
 class ComplianceMonitor:
     """Automated compliance monitoring and reporting system."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.compliance_controls: dict[str, dict[str, ComplianceControl]] = {}
         self.assessment_history: dict[ComplianceId, ComplianceAssessment] = {}
         self.monitoring_schedules: dict[str, dict[str, Any]] = {}

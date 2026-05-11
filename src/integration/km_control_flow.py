@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 class KMControlFlowGenerator:
     """Generate Keyboard Maestro compatible control flow structures."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize generator with security settings."""
         self.dangerous_patterns = [
             'tell application "Terminal"',
@@ -387,7 +387,7 @@ class KMControlFlowGenerator:
 class KMAppleScriptGenerator:
     """Generate AppleScript for Keyboard Maestro control flow operations."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize AppleScript generator."""
         self.dangerous_patterns = [
             "do shell script",

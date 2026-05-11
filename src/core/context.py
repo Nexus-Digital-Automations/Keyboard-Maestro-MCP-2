@@ -56,7 +56,7 @@ class ExecutionContextManager:
     security enforcement and resource monitoring.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._active_contexts: dict[ExecutionToken, ExecutionContext] = {}
         self._context_status: dict[ExecutionToken, ExecutionStatus] = {}
         self._context_start_times: dict[ExecutionToken, datetime] = {}
@@ -246,7 +246,7 @@ class VariableManager:
     and audit logging for sensitive operations.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._global_variables: dict[VariableName, str] = {}
         self._context_variables: dict[ExecutionToken, dict[VariableName, str]] = {}
         self._protected_variables: set[VariableName] = set()

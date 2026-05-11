@@ -163,7 +163,7 @@ class DiscoveryResult:
 class DeviceController:
     """Advanced IoT device controller with multi-protocol support."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.devices: dict[DeviceId, IoTDevice] = {}
         self.connections: dict[DeviceId, DeviceConnection] = {}
         self.capabilities: dict[DeviceId, list[DeviceCapability]] = {}

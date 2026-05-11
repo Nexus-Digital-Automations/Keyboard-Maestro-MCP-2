@@ -38,7 +38,7 @@ class NamedClipboard:
 
     @require(lambda self: len(self.name) > 0 and len(self.name) <= 100)
     @require(lambda self: re.match(r"^[a-zA-Z0-9_\-\s]+$", self.name))
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate named clipboard constraints."""
 
     def with_access(self) -> NamedClipboard:

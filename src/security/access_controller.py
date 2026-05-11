@@ -92,7 +92,7 @@ class Permission:
     granted_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.permission_id or not self.resource_path:
             raise ValueError("Permission ID and resource path are required")
 
@@ -133,7 +133,7 @@ class Role:
     created_by: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.role_id or not self.role_name:
             raise ValueError("Role ID and name are required")
 
@@ -153,7 +153,7 @@ class Subject:
     last_authenticated: datetime | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.subject_id or not self.subject_type:
             raise ValueError("Subject ID and type are required")
 
@@ -172,7 +172,7 @@ class AccessRequest:
     additional_context: dict[str, Any] = field(default_factory=dict)
     urgency: str = "normal"  # low, normal, high, critical
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not all([self.request_id, self.subject_id, self.resource_path]):
             raise ValueError("Request ID, subject ID, and resource path are required")
 
@@ -196,7 +196,7 @@ class AuthorizationResult:
     audit_trail: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not (0.0 <= self.confidence <= 1.0):
             raise ValueError("Confidence must be between 0.0 and 1.0")
 
@@ -208,7 +208,7 @@ class AuthorizationResult:
 class AccessController:
     """Granular access control with context-aware permissions system."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.subjects: dict[str, Subject] = {}
         self.roles: dict[str, Role] = {}
         self.permissions: dict[str, Permission] = {}

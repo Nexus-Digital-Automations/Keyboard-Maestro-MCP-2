@@ -333,7 +333,7 @@ class Event:
 class EventManager:
     """Simple event manager for test compatibility."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._handlers: dict[EventType, list[Callable[[Event], None]]] = {}
 
     def subscribe(

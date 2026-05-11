@@ -1938,7 +1938,7 @@ def create_client_with_fallback(
     """Create client that falls back to secondary method on failure."""
 
     class FallbackClient(KMClient):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(primary_config)
             self._fallback = KMClient(fallback_config)
 

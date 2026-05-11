@@ -99,7 +99,7 @@ class SecurityAlert:
     remediation_steps: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.alert_id or not self.alert_type or not self.title:
             raise ValueError("Alert ID, type, and title are required")
         if not (0.0 <= self.confidence <= 1.0):
@@ -127,7 +127,7 @@ class SecurityIncident:
     resolution_notes: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.incident_id or not self.incident_type or not self.title:
             raise ValueError("Incident ID, type, and title are required")
 
@@ -148,7 +148,7 @@ class MonitoringRule:
     time_window: int = 300  # Time window in seconds
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.rule_id or not self.rule_name or not self.description:
             raise ValueError("Rule ID, name, and description are required")
         if not (1 <= self.priority <= 100):
@@ -173,7 +173,7 @@ class SecurityEvent:
     severity: AlertSeverity = AlertSeverity.INFO
     processed: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.event_id or not self.event_type or not self.source:
             raise ValueError("Event ID, type, and source are required")
 
@@ -181,7 +181,7 @@ class SecurityEvent:
 class SecurityMonitor:
     """Real-time security monitoring and threat detection system."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.monitoring_rules: dict[str, MonitoringRule] = {}
         self.active_alerts: dict[str, SecurityAlert] = {}
         self.active_incidents: dict[str, SecurityIncident] = {}

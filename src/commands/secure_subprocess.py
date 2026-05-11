@@ -45,7 +45,7 @@ class SecureCommand:
     timeout: float = 5.0
     allowed_return_codes: set[int] = frozenset({0})
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate command specification."""
         if self.timeout <= 0 or self.timeout > 30:
             raise ValueError(f"Invalid timeout: {self.timeout}")
@@ -56,7 +56,7 @@ class SecureCommand:
 class SecureSubprocessManager:
     """Enterprise-grade secure subprocess execution manager."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._executable_cache: dict[str, str | None] = {}
         self._platform = platform.system().lower()
 
