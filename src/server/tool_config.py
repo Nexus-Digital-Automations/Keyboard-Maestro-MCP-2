@@ -29,6 +29,9 @@ class ToolCategory(Enum):
     APPLICATION_CONTROL = "application_control"
     MACRO_EDITING = "macro_editing"
     MACRO_GROUPS = "macro_groups"
+    TRIGGER_MANAGEMENT = "trigger_management"
+    ACTION_BUILDING = "action_building"
+    INPUT_SIMULATION = "input_simulation"
 
 
 class SecurityLevel(Enum):
@@ -178,6 +181,18 @@ class ToolConfigurationManager:
             category=ToolCategory.MACRO_GROUPS,
             description="List, create, delete, rename, and toggle macro groups",
             module_path="src.server.tools.macro_group_tools",
+            priority=7,
+            security_policy=ToolSecurityPolicy(
+                level=SecurityLevel.STRICT,
+                audit_level="comprehensive",
+            ),
+        )
+
+        self.configurations["km_trigger_manager"] = ToolConfiguration(
+            name="km_trigger_manager",
+            category=ToolCategory.TRIGGER_MANAGEMENT,
+            description="Attach, list, remove, clear, and toggle macro triggers",
+            module_path="src.server.tools.trigger_tools",
             priority=7,
             security_policy=ToolSecurityPolicy(
                 level=SecurityLevel.STRICT,
