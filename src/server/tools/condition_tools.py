@@ -8,7 +8,6 @@ conditions with advanced security validation and functional programming patterns
 import re
 from typing import Any
 
-from src.core.either import Either
 from src.core.conditions import (
     ComparisonOperator,
     ConditionBuilder,
@@ -16,6 +15,7 @@ from src.core.conditions import (
     ConditionValidator,
     RegexValidator,
 )
+from src.core.either import Either
 from src.core.errors import SecurityError, ValidationError
 from src.core.logging import get_logger
 from src.core.types import MacroId
