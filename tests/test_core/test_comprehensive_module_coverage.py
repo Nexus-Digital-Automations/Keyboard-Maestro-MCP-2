@@ -68,7 +68,7 @@ from src.core.types import (
 class TestErrorHierarchy:
     """Test comprehensive error hierarchy functionality."""
 
-    def test_macro_engine_error_initialization(self):
+    def test_macro_engine_error_initialization(self) -> None:
         """Test MacroEngineError initialization."""
         from src.core.errors import ErrorCategory
 
@@ -78,7 +78,7 @@ class TestErrorHierarchy:
         assert error.message == message
         assert isinstance(error, Exception)
 
-    def test_validation_error_functionality(self):
+    def test_validation_error_functionality(self) -> None:
         """Test ValidationError functionality."""
         # Create ValidationError with basic constructor (no args)
         error = ValidationError()
@@ -94,7 +94,7 @@ class TestErrorHierarchy:
         assert "test_field" in field_error.message
         assert "must be valid" in field_error.message
 
-    def test_execution_error_functionality(self):
+    def test_execution_error_functionality(self) -> None:
         """Test ExecutionError functionality."""
         message = "Execution failed"
 
@@ -104,7 +104,7 @@ class TestErrorHierarchy:
         assert error.cause == message
         assert isinstance(error, MacroEngineError)
 
-    def test_timeout_error_functionality(self):
+    def test_timeout_error_functionality(self) -> None:
         """Test TimeoutError functionality."""
         error = TimeoutError("test_operation", 30.0)
 
@@ -112,14 +112,14 @@ class TestErrorHierarchy:
         assert error.timeout_seconds == 30.0
         assert isinstance(error, MacroEngineError)
 
-    def test_permission_denied_error_functionality(self):
+    def test_permission_denied_error_functionality(self) -> None:
         """Test PermissionDeniedError functionality."""
         error = PermissionDeniedError(["test_permission"], [])
 
         assert "test_permission" in str(error)
         assert isinstance(error, MacroEngineError)
 
-    def test_security_error_functionality(self):
+    def test_security_error_functionality(self) -> None:
         """Test SecurityError functionality."""
         message = "Security violation"
 
@@ -128,7 +128,7 @@ class TestErrorHierarchy:
         assert error.security_code == "SEC001"
         assert isinstance(error, MacroEngineError)
 
-    def test_configuration_error_functionality(self):
+    def test_configuration_error_functionality(self) -> None:
         """Test ConfigurationError functionality."""
         message = "Invalid configuration"
 
@@ -137,7 +137,7 @@ class TestErrorHierarchy:
         assert error.config_item == "test_config"
         assert isinstance(error, MacroEngineError)
 
-    def test_resource_not_found_error_functionality(self):
+    def test_resource_not_found_error_functionality(self) -> None:
         """Test ResourceNotFoundError functionality."""
         error = ResourceNotFoundError("file", "test_resource")
 
@@ -145,7 +145,7 @@ class TestErrorHierarchy:
         assert error.resource_id == "test_resource"
         assert isinstance(error, MacroEngineError)
 
-    def test_system_error_functionality(self):
+    def test_system_error_functionality(self) -> None:
         """Test SystemError functionality."""
         message = "System error"
 
@@ -154,7 +154,7 @@ class TestErrorHierarchy:
         assert error.system_component == "test_component"
         assert isinstance(error, MacroEngineError)
 
-    def test_error_inheritance_chain(self):
+    def test_error_inheritance_chain(self) -> None:
         """Test error inheritance chain."""
         # All custom errors should inherit from MacroEngineError
         custom_errors = [
@@ -172,7 +172,7 @@ class TestErrorHierarchy:
             assert isinstance(error, MacroEngineError)
             assert isinstance(error, Exception)
 
-    def test_error_serialization(self):
+    def test_error_serialization(self) -> None:
         """Test error serialization for logging/debugging."""
         error = ValidationError(
             field_name="test_field", value="test_value", constraint="must be valid"
@@ -190,7 +190,7 @@ class TestErrorHierarchy:
         assert "error_code" in error_dict
         assert "category" in error_dict
 
-    def test_error_context_functionality(self):
+    def test_error_context_functionality(self) -> None:
         """Test error context functionality."""
         from src.core.errors import ErrorContext
 
@@ -205,7 +205,7 @@ class TestErrorHierarchy:
 class TestParserComponents:
     """Test comprehensive parser functionality."""
 
-    def test_command_type_enum(self):
+    def test_command_type_enum(self) -> None:
         """Test CommandType enum functionality."""
         # Test basic enum values
         assert CommandType.TEXT_INPUT.value == "text_input"
@@ -216,28 +216,28 @@ class TestParserComponents:
         assert CommandType.TEXT_INPUT != CommandType.PAUSE
         assert CommandType.TEXT_INPUT == CommandType.TEXT_INPUT
 
-    def test_command_parser_initialization(self):
+    def test_command_parser_initialization(self) -> None:
         """Test CommandParser initialization."""
         if not isinstance(CommandParser, type):  # Only test if actually imported
             parser = CommandParser()
             assert parser is not None
             assert hasattr(parser, "parse") or hasattr(parser, "parse_command")
 
-    def test_macro_parser_initialization(self):
+    def test_macro_parser_initialization(self) -> None:
         """Test MacroParser initialization."""
         if not isinstance(MacroParser, type):  # Only test if actually imported
             parser = MacroParser()
             assert parser is not None
             assert hasattr(parser, "parse") or hasattr(parser, "parse_macro")
 
-    def test_parameter_parser_initialization(self):
+    def test_parameter_parser_initialization(self) -> None:
         """Test ParameterParser initialization."""
         if not isinstance(ParameterParser, type):  # Only test if actually imported
             parser = ParameterParser()
             assert parser is not None
             assert hasattr(parser, "parse") or hasattr(parser, "parse_parameters")
 
-    def test_parse_result_functionality(self):
+    def test_parse_result_functionality(self) -> None:
         """Test ParseResult functionality."""
         if not isinstance(ParseResult, type):  # Only test if actually imported
             # Test successful parse result
@@ -250,7 +250,7 @@ class TestParserComponents:
             assert error_result.success is False
             assert error_result.error == "Parse failed"
 
-    def test_parse_error_functionality(self):
+    def test_parse_error_functionality(self) -> None:
         """Test ParseError functionality."""
         message = "Parse error occurred"
         line_number = 42
@@ -264,7 +264,7 @@ class TestParserComponents:
         if hasattr(error, "column"):
             assert error.column == column
 
-    def test_parser_command_parsing(self):
+    def test_parser_command_parsing(self) -> None:
         """Test parser command parsing functionality."""
         if not isinstance(CommandParser, type):
             parser = CommandParser()
@@ -280,7 +280,7 @@ class TestParserComponents:
                 result = parser.parse_command(command_data)
                 assert result is not None
 
-    def test_parser_macro_parsing(self):
+    def test_parser_macro_parsing(self) -> None:
         """Test parser macro parsing functionality."""
         if not isinstance(MacroParser, type):
             parser = MacroParser()
@@ -297,7 +297,7 @@ class TestParserComponents:
                 result = parser.parse_macro(macro_data)
                 assert result is not None
 
-    def test_parser_parameter_parsing(self):
+    def test_parser_parameter_parsing(self) -> None:
         """Test parser parameter parsing functionality."""
         if not isinstance(ParameterParser, type):
             parser = ParameterParser()
@@ -315,7 +315,7 @@ class TestParserComponents:
                 result = parser.parse_parameters(param_data)
                 assert result is not None
 
-    def test_parser_validation(self):
+    def test_parser_validation(self) -> None:
         """Test parser validation functionality."""
         parsers = []
 
@@ -341,7 +341,7 @@ class TestParserComponents:
                     # Expected for invalid data
                     pass
 
-    def test_parser_error_handling(self):
+    def test_parser_error_handling(self) -> None:
         """Test parser error handling."""
         parsers = []
 
@@ -372,7 +372,7 @@ class TestParserComponents:
 class TestCoreIntegration:
     """Test integration between core components."""
 
-    def test_error_and_parser_integration(self):
+    def test_error_and_parser_integration(self) -> None:
         """Test integration between error handling and parsing."""
         # Test that parsers can raise appropriate errors
         if not isinstance(CommandParser, type):
@@ -389,7 +389,7 @@ class TestCoreIntegration:
                 # Alternative error types are acceptable
                 pass
 
-    def test_duration_and_timeout_integration(self):
+    def test_duration_and_timeout_integration(self) -> None:
         """Test integration between Duration and timeout errors."""
         # Test timeout error with duration - test basic functionality
         error = TimeoutError("test_operation", 30.0)
@@ -397,7 +397,7 @@ class TestCoreIntegration:
         assert error.operation == "test_operation"
         assert error.timeout_seconds == 30.0
 
-    def test_command_types_and_parser_integration(self):
+    def test_command_types_and_parser_integration(self) -> None:
         """Test integration between CommandType and parsers."""
         # Test that all command types can be parsed
         command_types = [
@@ -421,7 +421,7 @@ class TestCoreIntegration:
                     # Some command types might require specific parameters
                     pass
 
-    def test_execution_context_and_errors_integration(self):
+    def test_execution_context_and_errors_integration(self) -> None:
         """Test integration between ExecutionContext and error handling."""
         context = ExecutionContext.create_test_context()
 
@@ -442,7 +442,7 @@ class TestCoreIntegration:
             # Should not raise an exception when handling errors
             assert True  # Test passes if no exception is raised
 
-    def test_command_parameters_and_validation_integration(self):
+    def test_command_parameters_and_validation_integration(self) -> None:
         """Test integration between CommandParameters and validation."""
         # Test valid parameters
         valid_params = CommandParameters(
@@ -470,7 +470,7 @@ class TestCoreIntegration:
             # Expected for invalid parameters
             pass
 
-    def test_macro_id_and_parser_integration(self):
+    def test_macro_id_and_parser_integration(self) -> None:
         """Test integration between MacroId and macro parsing."""
         macro_id = MacroId("test-macro-123")
 
@@ -493,7 +493,7 @@ class TestCoreIntegration:
                 pass
 
     @pytest.mark.asyncio
-    async def test_async_operations_and_error_handling(self):
+    async def test_async_operations_and_error_handling(self) -> None:
         """Test async operations with error handling."""
 
         async def async_operation_that_fails():
@@ -516,7 +516,7 @@ class TestCoreIntegration:
         result = await async_operation_that_succeeds()
         assert result == "Success"
 
-    def test_comprehensive_error_context(self):
+    def test_comprehensive_error_context(self) -> None:
         """Test comprehensive error context and debugging info."""
         # Create a complex error scenario
 
@@ -540,7 +540,7 @@ class TestCoreIntegration:
             if hasattr(exec_error, "__cause__"):
                 assert isinstance(exec_error.__cause__, ValueError)
 
-    def test_performance_and_resource_monitoring(self):
+    def test_performance_and_resource_monitoring(self) -> None:
         """Test performance monitoring and resource error integration."""
         # Test resource monitoring
         # Test using existing ResourceNotFoundError for resource-related errors
@@ -550,7 +550,7 @@ class TestCoreIntegration:
         assert resource_error.resource_type == "memory"
         assert resource_error.resource_id == "insufficient_memory"
 
-    def test_security_and_permission_integration(self):
+    def test_security_and_permission_integration(self) -> None:
         """Test security and permission error integration."""
         # Test security context validation
         security_error = SecurityError("SEC001", "Unauthorized access attempt")

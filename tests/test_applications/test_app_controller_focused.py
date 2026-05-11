@@ -23,7 +23,7 @@ from src.integration.km_client import Either
 class TestAppState:
     """Test AppState enum values."""
 
-    def test_app_state_enum_values(self):
+    def test_app_state_enum_values(self) -> None:
         """Test AppState enum has expected values."""
         assert AppState.NOT_RUNNING.value == "not_running"
         assert AppState.LAUNCHING.value == "launching"
@@ -38,7 +38,7 @@ class TestAppState:
 class TestApplicationPermission:
     """Test ApplicationPermission enum values."""
 
-    def test_application_permission_enum_values(self):
+    def test_application_permission_enum_values(self) -> None:
         """Test ApplicationPermission enum has expected values."""
         assert ApplicationPermission.LAUNCH.value == "launch"
         assert ApplicationPermission.QUIT.value == "quit"
@@ -51,7 +51,7 @@ class TestApplicationPermission:
 class TestAppIdentifier:
     """Test AppIdentifier dataclass."""
 
-    def test_app_identifier_creation(self):
+    def test_app_identifier_creation(self) -> None:
         """Test AppIdentifier creation with valid data."""
         app_id = AppIdentifier(
             app_name="TextEdit",
@@ -61,7 +61,7 @@ class TestAppIdentifier:
         assert app_id.app_name == "TextEdit"
         assert app_id.bundle_id == "com.apple.TextEdit"
 
-    def test_app_identifier_validation_valid_name(self):
+    def test_app_identifier_validation_valid_name(self) -> None:
         """Test AppIdentifier with valid app name."""
         app_id = AppIdentifier(
             app_name="Valid App Name",
@@ -71,7 +71,7 @@ class TestAppIdentifier:
         # Should not raise validation errors
         assert app_id.app_name == "Valid App Name"
 
-    def test_app_identifier_validation_valid_bundle_id(self):
+    def test_app_identifier_validation_valid_bundle_id(self) -> None:
         """Test AppIdentifier with valid bundle ID."""
         app_id = AppIdentifier(
             app_name="App",
@@ -81,7 +81,7 @@ class TestAppIdentifier:
         # Should not raise validation errors
         assert app_id.bundle_id == "com.company.application"
 
-    def test_app_identifier_equality(self):
+    def test_app_identifier_equality(self) -> None:
         """Test AppIdentifier equality comparison."""
         app_id1 = AppIdentifier(
             app_name="TextEdit",
@@ -98,7 +98,7 @@ class TestAppIdentifier:
 class TestMenuPath:
     """Test MenuPath dataclass."""
 
-    def test_menu_path_creation(self):
+    def test_menu_path_creation(self) -> None:
         """Test MenuPath creation with valid data."""
         menu_path = MenuPath(
             path=["File", "Open"],
@@ -106,20 +106,20 @@ class TestMenuPath:
 
         assert menu_path.path == ["File", "Open"]
 
-    def test_menu_path_string_representation(self):
+    def test_menu_path_string_representation(self) -> None:
         """Test MenuPath string representation."""
         menu_path = MenuPath(path=["Edit", "Copy"])
 
         assert menu_path.path == ["Edit", "Copy"]
         assert str(menu_path) == "Edit → Copy"
 
-    def test_menu_path_depth(self):
+    def test_menu_path_depth(self) -> None:
         """Test MenuPath depth method."""
         menu_path = MenuPath(path=["View", "Zoom", "Actual Size"])
 
         assert menu_path.depth() == 3
 
-    def test_menu_path_empty_validation(self):
+    def test_menu_path_empty_validation(self) -> None:
         """Test MenuPath validation for empty path."""
         with pytest.raises(ValueError, match="Menu path cannot be empty"):
             MenuPath(path=[])
@@ -128,7 +128,7 @@ class TestMenuPath:
 class TestLaunchConfiguration:
     """Test LaunchConfiguration dataclass."""
 
-    def test_launch_configuration_creation(self):
+    def test_launch_configuration_creation(self) -> None:
         """Test LaunchConfiguration creation with valid data."""
         config = LaunchConfiguration(
             wait_for_launch=True,
@@ -144,7 +144,7 @@ class TestLaunchConfiguration:
         assert config.activate_on_launch is True
         assert config.launch_arguments == ["--verbose", "--debug"]
 
-    def test_launch_configuration_defaults(self):
+    def test_launch_configuration_defaults(self) -> None:
         """Test LaunchConfiguration with default values."""
         config = LaunchConfiguration()
 
@@ -154,21 +154,21 @@ class TestLaunchConfiguration:
         assert config.activate_on_launch is True
         assert config.launch_arguments == []
 
-    def test_launch_configuration_custom_timeout(self):
+    def test_launch_configuration_custom_timeout(self) -> None:
         """Test LaunchConfiguration with custom timeout."""
         custom_timeout = Duration.from_seconds(60)
         config = LaunchConfiguration(timeout=custom_timeout)
 
         assert config.timeout == custom_timeout
 
-    def test_launch_configuration_with_arguments(self):
+    def test_launch_configuration_with_arguments(self) -> None:
         """Test LaunchConfiguration with command line arguments."""
         args = ["--file", "document.txt", "--read-only"]
         config = LaunchConfiguration(launch_arguments=args)
 
         assert config.launch_arguments == args
 
-    def test_launch_configuration_timeout_validation(self):
+    def test_launch_configuration_timeout_validation(self) -> None:
         """Test LaunchConfiguration timeout validation."""
         # Valid timeout
         config = LaunchConfiguration(timeout=Duration.from_seconds(60))
@@ -182,7 +182,7 @@ class TestLaunchConfiguration:
 class TestAppOperationResult:
     """Test AppOperationResult dataclass."""
 
-    def test_app_operation_result_success(self):
+    def test_app_operation_result_success(self) -> None:
         """Test AppOperationResult for successful operation."""
         result = AppOperationResult(
             success=True,
@@ -197,7 +197,7 @@ class TestAppOperationResult:
         assert result.operation_time == Duration.from_seconds(2.5)
         assert result.error_code is None
 
-    def test_app_operation_result_failure(self):
+    def test_app_operation_result_failure(self) -> None:
         """Test AppOperationResult for failed operation."""
         result = AppOperationResult(
             success=False,
@@ -213,7 +213,7 @@ class TestAppOperationResult:
         assert result.operation_time == Duration.from_seconds(1.0)
         assert result.error_code == "LAUNCH_FAILED"
 
-    def test_app_operation_result_success_classmethod(self):
+    def test_app_operation_result_success_classmethod(self) -> None:
         """Test AppOperationResult.success_result class method."""
         operation_time = Duration.from_seconds(1.5)
         result = AppOperationResult.success_result(
@@ -228,7 +228,7 @@ class TestAppOperationResult:
         assert result.details == "Operation completed successfully"
         assert result.error_code is None
 
-    def test_app_operation_result_failure_classmethod(self):
+    def test_app_operation_result_failure_classmethod(self) -> None:
         """Test AppOperationResult.failure_result class method."""
         operation_time = Duration.from_seconds(0.8)
         result = AppOperationResult.failure_result(
@@ -249,12 +249,12 @@ class TestAppController:
     """Test AppController class methods."""
 
     @pytest.fixture
-    def app_controller(self):
+    def app_controller(self) -> None:
         """Create AppController instance for testing."""
         return AppController()
 
     @pytest.fixture
-    def sample_app_id(self):
+    def sample_app_id(self) -> None:
         """Create sample AppIdentifier for testing."""
         return AppIdentifier(
             app_name="TestApp",
@@ -262,7 +262,7 @@ class TestAppController:
         )
 
     @pytest.fixture
-    def sample_launch_config(self):
+    def sample_launch_config(self) -> None:
         """Create sample LaunchConfiguration for testing."""
         return LaunchConfiguration(
             wait_for_launch=True,
@@ -270,7 +270,7 @@ class TestAppController:
             activate_on_launch=True,
         )
 
-    def test_app_controller_initialization(self, app_controller):
+    def test_app_controller_initialization(self, app_controller) -> None:
         """Test AppController initialization."""
         assert isinstance(app_controller, AppController)
 
@@ -304,7 +304,7 @@ class TestAppController:
                     assert operation_result.app_state == AppState.RUNNING
 
     @pytest.mark.asyncio
-    async def test_launch_application_validation_error(self, app_controller):
+    async def test_launch_application_validation_error(self, app_controller) -> None:
         """Test application launch with validation error."""
         # Test with invalid app identifier (no name or bundle_id)
         with pytest.raises(
@@ -312,26 +312,26 @@ class TestAppController:
         ):
             AppIdentifier()
 
-    def test_synchronous_launch_application(self, app_controller):
+    def test_synchronous_launch_application(self, app_controller) -> None:
         """Test synchronous launch_application method."""
         # Test that synchronous method exists and handles basic input
         result = app_controller.launch_application("TextEdit")
         assert isinstance(result, bool)
 
-    def test_synchronous_quit_application(self, app_controller):
+    def test_synchronous_quit_application(self, app_controller) -> None:
         """Test synchronous quit_application method."""
         # Test that synchronous method exists and handles basic input
         result = app_controller.quit_application("TextEdit")
         assert isinstance(result, bool)
 
-    def test_get_running_applications(self, app_controller):
+    def test_get_running_applications(self, app_controller) -> None:
         """Test get_running_applications method."""
         # Test that method exists and returns a list
         result = app_controller.get_running_applications()
         assert isinstance(result, list)
 
     @pytest.mark.asyncio
-    async def test_get_application_state(self, app_controller, sample_app_id):
+    async def test_get_application_state(self, app_controller, sample_app_id) -> None:
         """Test get_application_state method."""
         result = await app_controller.get_application_state(sample_app_id)
 
@@ -339,7 +339,7 @@ class TestAppController:
         assert hasattr(result, "is_right")
         assert hasattr(result, "is_left")
 
-    def test_app_identifier_primary_identifier(self, sample_app_id):
+    def test_app_identifier_primary_identifier(self, sample_app_id) -> None:
         """Test AppIdentifier primary_identifier method."""
         # Should prefer bundle_id over app_name
         assert sample_app_id.primary_identifier() == "com.example.testapp"
@@ -348,7 +348,7 @@ class TestAppController:
         app_id_name_only = AppIdentifier(app_name="TestApp")
         assert app_id_name_only.primary_identifier() == "TestApp"
 
-    def test_app_identifier_display_name(self, sample_app_id):
+    def test_app_identifier_display_name(self, sample_app_id) -> None:
         """Test AppIdentifier display_name method."""
         # Should prefer app_name over bundle_id
         assert sample_app_id.display_name() == "TestApp"
@@ -357,7 +357,7 @@ class TestAppController:
         app_id_bundle_only = AppIdentifier(bundle_id="com.test.app")
         assert app_id_bundle_only.display_name() == "com.test.app"
 
-    def test_app_identifier_is_bundle_id(self, sample_app_id):
+    def test_app_identifier_is_bundle_id(self, sample_app_id) -> None:
         """Test AppIdentifier is_bundle_id method."""
         assert sample_app_id.is_bundle_id() is True
 

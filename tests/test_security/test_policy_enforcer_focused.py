@@ -29,7 +29,7 @@ from src.security.policy_enforcer import (
 class TestPolicyStatus:
     """Test PolicyStatus enum values."""
 
-    def test_policy_status_enum_values(self):
+    def test_policy_status_enum_values(self) -> None:
         """Test PolicyStatus enum has expected values."""
         assert PolicyStatus.ACTIVE.value == "active"
         assert PolicyStatus.INACTIVE.value == "inactive"
@@ -42,7 +42,7 @@ class TestPolicyStatus:
 class TestEnforcementResult:
     """Test EnforcementResult enum values."""
 
-    def test_enforcement_result_enum_values(self):
+    def test_enforcement_result_enum_values(self) -> None:
         """Test EnforcementResult enum has expected values."""
         assert EnforcementResult.ALLOWED.value == "allowed"
         assert EnforcementResult.DENIED.value == "denied"
@@ -55,7 +55,7 @@ class TestEnforcementResult:
 class TestComplianceStatus:
     """Test ComplianceStatus enum values."""
 
-    def test_compliance_status_enum_values(self):
+    def test_compliance_status_enum_values(self) -> None:
         """Test ComplianceStatus enum has expected values."""
         assert ComplianceStatus.COMPLIANT.value == "compliant"
         assert ComplianceStatus.NON_COMPLIANT.value == "non_compliant"
@@ -68,7 +68,7 @@ class TestComplianceStatus:
 class TestPolicyEvaluationRequestBasic:
     """Test PolicyEvaluationRequest dataclass basic functionality."""
 
-    def test_policy_evaluation_request_creation(self):
+    def test_policy_evaluation_request_creation(self) -> None:
         """Test PolicyEvaluationRequest creation with basic data."""
         request = PolicyEvaluationRequest(
             request_id="req-001",
@@ -81,7 +81,7 @@ class TestPolicyEvaluationRequestBasic:
         assert request.resource == "document.txt"
         assert request.action == "read"
 
-    def test_policy_evaluation_request_validation_errors(self):
+    def test_policy_evaluation_request_validation_errors(self) -> None:
         """Test PolicyEvaluationRequest validation failures."""
         # Test empty request_id
         with pytest.raises(ValueError):
@@ -115,7 +115,7 @@ class TestPolicyEvaluationRequestBasic:
 class TestSecurityPolicyWrapper:
     """Test SecurityPolicy compatibility wrapper."""
 
-    def test_security_policy_creation(self):
+    def test_security_policy_creation(self) -> None:
         """Test SecurityPolicy wrapper creation."""
         policy = SecurityPolicy(
             policy_id="policy-001",
@@ -132,7 +132,7 @@ class TestSecurityPolicyWrapper:
         assert policy.enforcement_level == "strict"
         assert policy.enabled is True
 
-    def test_security_policy_id_conversion(self):
+    def test_security_policy_id_conversion(self) -> None:
         """Test PolicyId conversion in SecurityPolicy."""
         policy = SecurityPolicy(
             policy_id="policy-string-id",
@@ -147,7 +147,7 @@ class TestSecurityPolicyWrapper:
 class TestPolicyViolationWrapper:
     """Test PolicyViolation compatibility wrapper."""
 
-    def test_policy_violation_creation(self):
+    def test_policy_violation_creation(self) -> None:
         """Test PolicyViolation wrapper creation."""
         violation = PolicyViolation(
             violation_id="violation-001",
@@ -167,7 +167,7 @@ class TestPolicyViolationWrapper:
         assert violation.severity == "high"
         assert violation.description == "Unauthorized access attempt"
 
-    def test_policy_violation_defaults(self):
+    def test_policy_violation_defaults(self) -> None:
         """Test PolicyViolation default values."""
         violation = PolicyViolation(
             violation_id="violation-002",
@@ -184,7 +184,7 @@ class TestPolicyViolationWrapper:
 class TestPolicyValidationResult:
     """Test PolicyValidationResult dataclass."""
 
-    def test_policy_validation_result_creation(self):
+    def test_policy_validation_result_creation(self) -> None:
         """Test PolicyValidationResult creation."""
         violations = [
             PolicyViolation(violation_id="v1", policy_id="p1"),
@@ -200,7 +200,7 @@ class TestPolicyValidationResult:
         assert len(result.violations) == 2
         assert result.violations[0].violation_id == "v1"
 
-    def test_policy_validation_result_valid(self):
+    def test_policy_validation_result_valid(self) -> None:
         """Test PolicyValidationResult for valid case."""
         result = PolicyValidationResult(is_valid=True)
 
@@ -212,12 +212,12 @@ class TestPolicyEnforcer:
     """Test PolicyEnforcer class."""
 
     @pytest.fixture
-    def enforcer(self):
+    def enforcer(self) -> None:
         """Create PolicyEnforcer instance for testing."""
         return PolicyEnforcer()
 
     @pytest.fixture
-    def sample_policy_dict(self):
+    def sample_policy_dict(self) -> None:
         """Create sample policy in dictionary format."""
         return {
             "name": "Test Policy",
@@ -226,7 +226,7 @@ class TestPolicyEnforcer:
             "priority": 100,
         }
 
-    def test_policy_enforcer_initialization(self, enforcer):
+    def test_policy_enforcer_initialization(self, enforcer) -> None:
         """Test PolicyEnforcer initialization."""
         assert isinstance(enforcer.active_policies, dict)
         assert isinstance(enforcer.policy_status, dict)
@@ -241,12 +241,12 @@ class TestPolicyEnforcer:
         assert enforcer.cache_hit_rate == 0.0
         assert enforcer.violation_rate == 0.0
 
-    def test_add_policy_dict_format(self, enforcer, sample_policy_dict):
+    def test_add_policy_dict_format(self, enforcer, sample_policy_dict) -> None:
         """Test adding policy in dictionary format."""
         # Should not raise error for valid policy dict
         enforcer.add_policy(sample_policy_dict)
 
-    def test_add_policy_security_policy_format(self, enforcer):
+    def test_add_policy_security_policy_format(self, enforcer) -> None:
         """Test adding policy as SecurityPolicy object."""
         policy = SecurityPolicy(
             policy_id="policy-obj-001",
@@ -258,7 +258,7 @@ class TestPolicyEnforcer:
         # Should not raise error for SecurityPolicy object
         enforcer.add_policy(policy)
 
-    def test_validate_against_policies_no_policies(self, enforcer):
+    def test_validate_against_policies_no_policies(self, enforcer) -> None:
         """Test validation against policies when no policies exist."""
         data = {"resource": "test.txt", "action": "read"}
         result = enforcer.validate_against_policies(data)
@@ -266,7 +266,7 @@ class TestPolicyEnforcer:
         assert isinstance(result, PolicyValidationResult)
         assert result.is_valid is True  # No policies to violate
 
-    def test_validate_against_policies_with_data(self, enforcer, sample_policy_dict):
+    def test_validate_against_policies_with_data(self, enforcer, sample_policy_dict) -> None:
         """Test validation against policies with data."""
         # Add a policy first
         enforcer.add_policy(sample_policy_dict)
@@ -277,13 +277,13 @@ class TestPolicyEnforcer:
         assert isinstance(result, PolicyValidationResult)
         # Result depends on policy logic implementation
 
-    def test_enforce_policies_no_policies(self, enforcer):
+    def test_enforce_policies_no_policies(self, enforcer) -> None:
         """Test policy enforcement when no policies exist."""
         request_data = {"resource": "test.txt", "action": "read"}
         # Should not raise error when no policies exist
         enforcer.enforce_policies(request_data)
 
-    def test_enforce_policies_with_data(self, enforcer, sample_policy_dict):
+    def test_enforce_policies_with_data(self, enforcer, sample_policy_dict) -> None:
         """Test policy enforcement with data."""
         # Add a policy first
         enforcer.add_policy(sample_policy_dict)
@@ -292,13 +292,13 @@ class TestPolicyEnforcer:
         # Should not raise error during enforcement
         enforcer.enforce_policies(request_data)
 
-    def test_list_policies_empty(self, enforcer):
+    def test_list_policies_empty(self, enforcer) -> None:
         """Test listing policies when none exist."""
         policies = enforcer.list_policies()
         assert isinstance(policies, list)
         assert len(policies) == 0
 
-    def test_list_policies_with_policies(self, enforcer, sample_policy_dict):
+    def test_list_policies_with_policies(self, enforcer, sample_policy_dict) -> None:
         """Test listing policies when policies exist."""
         # Add a policy first
         enforcer.add_policy(sample_policy_dict)
@@ -308,7 +308,7 @@ class TestPolicyEnforcer:
         assert len(policies) == 1
         assert policies[0]["name"] == "Test Policy"
 
-    def test_evaluate_policy_basic(self, enforcer):
+    def test_evaluate_policy_basic(self, enforcer) -> None:
         """Test basic policy evaluation method."""
         policy_data = {"resource": "test.txt", "action": "read"}
         context = {"user": "test_user", "role": "admin"}
@@ -319,7 +319,7 @@ class TestPolicyEnforcer:
         assert "policy_name" in result
         assert "reason" in result
 
-    def test_evaluate_policy_with_different_contexts(self, enforcer):
+    def test_evaluate_policy_with_different_contexts(self, enforcer) -> None:
         """Test policy evaluation with different contexts."""
         policy_data = {"resource": "secret.txt", "action": "write"}
 
@@ -333,7 +333,7 @@ class TestPolicyEnforcer:
         user_result = enforcer.evaluate_policy(policy_data, user_context)
         assert isinstance(user_result, dict)
 
-    def test_enforce_policy_basic(self, enforcer):
+    def test_enforce_policy_basic(self, enforcer) -> None:
         """Test basic policy enforcement method."""
         policy_data = {"resource": "test.txt", "action": "read"}
         context = {"user": "test_user", "role": "admin"}
@@ -342,7 +342,7 @@ class TestPolicyEnforcer:
         # enforce_policy returns a boolean (True for allow, False for deny)
         assert isinstance(result, bool)
 
-    def test_enforce_policy_with_restrictions(self, enforcer):
+    def test_enforce_policy_with_restrictions(self, enforcer) -> None:
         """Test policy enforcement with different restriction levels."""
         # Test high-security resource
         restricted_data = {"resource": "classified.doc", "action": "delete"}
@@ -351,19 +351,19 @@ class TestPolicyEnforcer:
         result = enforcer.enforce_policy(restricted_data, context)
         assert isinstance(result, bool)
 
-    def test_get_cached_evaluation_miss(self, enforcer):
+    def test_get_cached_evaluation_miss(self, enforcer) -> None:
         """Test cache miss for evaluation."""
         result = enforcer._get_cached_evaluation("non-existent-key")
         assert result is None
 
-    def test_update_evaluation_metrics(self, enforcer):
+    def test_update_evaluation_metrics(self, enforcer) -> None:
         """Test evaluation metrics update."""
         initial_count = enforcer.evaluation_count
         enforcer._update_evaluation_metrics(100.5, True)
 
         assert enforcer.evaluation_count == initial_count + 1
 
-    def test_update_evaluation_metrics_multiple_calls(self, enforcer):
+    def test_update_evaluation_metrics_multiple_calls(self, enforcer) -> None:
         """Test multiple evaluation metrics updates."""
         # Update metrics several times
         enforcer._update_evaluation_metrics(50.0, False)
@@ -372,7 +372,7 @@ class TestPolicyEnforcer:
 
         assert enforcer.evaluation_count == 3
 
-    def test_check_policy_rules_edge_cases(self, enforcer):
+    def test_check_policy_rules_edge_cases(self, enforcer) -> None:
         """Test _check_policy_rules with various edge cases."""
         # Create a SecurityPolicy object for testing
         policy = SecurityPolicy(
@@ -405,7 +405,7 @@ class TestPolicyEnforcer:
         violations = enforcer._check_policy_rules(policy, empty_context)
         assert isinstance(violations, list)
 
-    def test_evaluate_rule_conditions(self, enforcer):
+    def test_evaluate_rule_conditions(self, enforcer) -> None:
         """Test _evaluate_rule method with various conditions."""
         # Test simple equality rule
         simple_rule = {
@@ -444,7 +444,7 @@ class TestPolicyEnforcer:
 class TestUtilityFunctions:
     """Test utility functions for policy creation."""
 
-    def test_create_security_policy_function(self):
+    def test_create_security_policy_function(self) -> None:
         """Test create_security_policy utility function."""
         policy = create_security_policy(
             policy_name="Test_Security_Policy",
@@ -459,7 +459,7 @@ class TestUtilityFunctions:
         assert policy is not None
         # Function should return a SecurityPolicy-like object
 
-    def test_create_compliance_rule_function(self):
+    def test_create_compliance_rule_function(self) -> None:
         """Test create_compliance_rule utility function."""
         rule = create_compliance_rule(
             rule_id="test-rule-001",
@@ -478,7 +478,7 @@ class TestIntegrationScenarios:
     """Test integration scenarios combining multiple components."""
 
     @pytest.fixture
-    def configured_enforcer(self):
+    def configured_enforcer(self) -> None:
         """Create configured PolicyEnforcer with policies."""
         enforcer = PolicyEnforcer()
 
@@ -503,7 +503,7 @@ class TestIntegrationScenarios:
 
         return enforcer
 
-    def test_policy_lifecycle_workflow(self, configured_enforcer):
+    def test_policy_lifecycle_workflow(self, configured_enforcer) -> None:
         """Test complete policy lifecycle workflow."""
         # Test policy listing
         policies = configured_enforcer.list_policies()
@@ -523,7 +523,7 @@ class TestIntegrationScenarios:
         # Test policy enforcement
         configured_enforcer.enforce_policies(test_data)
 
-    def test_policy_evaluation_scenarios(self, configured_enforcer):
+    def test_policy_evaluation_scenarios(self, configured_enforcer) -> None:
         """Test various policy evaluation scenarios."""
         scenarios = [
             # Regular user accessing document
@@ -565,7 +565,7 @@ class TestIntegrationScenarios:
             assert isinstance(result, dict)
             assert "decision" in result
 
-    def test_policy_enforcement_scenarios(self, configured_enforcer):
+    def test_policy_enforcement_scenarios(self, configured_enforcer) -> None:
         """Test various policy enforcement scenarios."""
         enforcement_scenarios = [
             {
@@ -595,7 +595,7 @@ class TestIntegrationScenarios:
             result = configured_enforcer.enforce_policy(policy_data, context)
             assert isinstance(result, bool)
 
-    def test_policy_violation_detection(self, configured_enforcer):
+    def test_policy_violation_detection(self, configured_enforcer) -> None:
         """Test policy violation detection and handling."""
         # Create a policy that should trigger violations
         restrictive_policy = {
@@ -624,7 +624,7 @@ class TestIntegrationScenarios:
         # The result may or may not indicate violations depending on implementation
         # but it should not raise errors
 
-    def test_metrics_tracking(self, configured_enforcer):
+    def test_metrics_tracking(self, configured_enforcer) -> None:
         """Test that metrics are properly tracked during operations."""
 
         # Perform multiple operations

@@ -34,7 +34,7 @@ from src.security.access_controller import (
 class TestAccessResult:
     """Test AccessResult enum values."""
 
-    def test_access_result_enum_values(self):
+    def test_access_result_enum_values(self) -> None:
         """Test AccessResult enum has expected values."""
         assert AccessResult.ALLOW.value == "allow"
         assert AccessResult.DENY.value == "deny"
@@ -47,7 +47,7 @@ class TestAccessResult:
 class TestPermissionType:
     """Test PermissionType enum values."""
 
-    def test_permission_type_enum_values(self):
+    def test_permission_type_enum_values(self) -> None:
         """Test PermissionType enum has expected values."""
         assert PermissionType.READ.value == "read"
         assert PermissionType.WRITE.value == "write"
@@ -61,7 +61,7 @@ class TestPermissionType:
 class TestResourceType:
     """Test ResourceType enum values."""
 
-    def test_resource_type_enum_values(self):
+    def test_resource_type_enum_values(self) -> None:
         """Test ResourceType enum has expected values."""
         assert ResourceType.FILE.value == "file"
         assert ResourceType.DIRECTORY.value == "directory"
@@ -77,7 +77,7 @@ class TestResourceType:
 class TestAuthorizationModel:
     """Test AuthorizationModel enum values."""
 
-    def test_authorization_model_enum_values(self):
+    def test_authorization_model_enum_values(self) -> None:
         """Test AuthorizationModel enum has expected values."""
         assert AuthorizationModel.RBAC.value == "rbac"
         assert AuthorizationModel.ABAC.value == "abac"
@@ -90,7 +90,7 @@ class TestAuthorizationModel:
 class TestPermission:
     """Test Permission dataclass."""
 
-    def test_permission_creation(self):
+    def test_permission_creation(self) -> None:
         """Test Permission creation with valid data."""
         permission = Permission(
             permission_id="perm-001",
@@ -112,7 +112,7 @@ class TestPermission:
         assert permission.granted_by == "admin-001"
         assert permission.expires_at is not None
 
-    def test_permission_validation(self):
+    def test_permission_validation(self) -> None:
         """Test Permission validation."""
         # Test empty permission_id
         with pytest.raises(
@@ -136,7 +136,7 @@ class TestPermission:
                 resource_path="",
             )
 
-    def test_permission_is_expired(self):
+    def test_permission_is_expired(self) -> None:
         """Test Permission expiration check."""
         # Test not expired permission
         future_permission = Permission(
@@ -167,7 +167,7 @@ class TestPermission:
         )
         assert not no_expiry_permission.is_expired()
 
-    def test_permission_matches_request(self):
+    def test_permission_matches_request(self) -> None:
         """Test Permission matches_request method."""
         # Test exact match
         permission = Permission(
@@ -217,7 +217,7 @@ class TestPermission:
 class TestRole:
     """Test Role dataclass."""
 
-    def test_role_creation(self):
+    def test_role_creation(self) -> None:
         """Test Role creation with valid data."""
         role = Role(
             role_id="role-001",
@@ -237,7 +237,7 @@ class TestRole:
         assert role.conditions["department"] == "finance"
         assert role.created_by == "admin-001"
 
-    def test_role_validation(self):
+    def test_role_validation(self) -> None:
         """Test Role validation."""
         # Test empty role_id
         with pytest.raises(ValueError, match="Role ID and name are required"):
@@ -259,7 +259,7 @@ class TestRole:
 class TestSubject:
     """Test Subject dataclass."""
 
-    def test_subject_creation(self):
+    def test_subject_creation(self) -> None:
         """Test Subject creation with valid data."""
         subject = Subject(
             subject_id="user-001",
@@ -281,7 +281,7 @@ class TestSubject:
         assert subject.security_clearance == "high"
         assert subject.last_authenticated is not None
 
-    def test_subject_validation(self):
+    def test_subject_validation(self) -> None:
         """Test Subject validation."""
         # Test empty subject_id
         with pytest.raises(ValueError, match="Subject ID and type are required"):
@@ -302,7 +302,7 @@ class TestAccessRequest:
     """Test AccessRequest dataclass."""
 
     @pytest.fixture
-    def sample_context(self):
+    def sample_context(self) -> None:
         """Create sample security context."""
         from src.core.zero_trust_architecture import create_security_context_id
 
@@ -313,7 +313,7 @@ class TestAccessRequest:
             trust_level=TrustLevel.HIGH,
         )
 
-    def test_access_request_creation(self, sample_context):
+    def test_access_request_creation(self, sample_context) -> None:
         """Test AccessRequest creation with valid data."""
         request = AccessRequest(
             request_id="req-001",
@@ -335,7 +335,7 @@ class TestAccessRequest:
         assert request.additional_context["purpose"] == "audit"
         assert request.urgency == "high"
 
-    def test_access_request_validation(self, sample_context):
+    def test_access_request_validation(self, sample_context) -> None:
         """Test AccessRequest validation."""
         # Test empty request_id
         with pytest.raises(
@@ -380,7 +380,7 @@ class TestAccessRequest:
 class TestAuthorizationResult:
     """Test AuthorizationResult dataclass."""
 
-    def test_authorization_result_creation(self):
+    def test_authorization_result_creation(self) -> None:
         """Test AuthorizationResult creation with valid data."""
         result = AuthorizationResult(
             request_id="req-001",
@@ -404,7 +404,7 @@ class TestAuthorizationResult:
         assert result.resource_path == "/documents/file.txt"
         assert result.permission_type == PermissionType.READ
 
-    def test_authorization_result_validation(self):
+    def test_authorization_result_validation(self) -> None:
         """Test AuthorizationResult validation."""
         # Test invalid confidence score
         with pytest.raises(ValueError, match="Confidence must be between 0.0 and 1.0"):
@@ -418,7 +418,7 @@ class TestAuthorizationResult:
                 confidence=1.5,
             )
 
-    def test_authorization_result_is_expired(self):
+    def test_authorization_result_is_expired(self) -> None:
         """Test AuthorizationResult expiration check."""
         # Test not expired result
         future_result = AuthorizationResult(
@@ -463,12 +463,12 @@ class TestAccessController:
     """Test AccessController class."""
 
     @pytest.fixture
-    def controller(self):
+    def controller(self) -> None:
         """Create AccessController instance for testing."""
         return AccessController()
 
     @pytest.fixture
-    def sample_permission(self):
+    def sample_permission(self) -> None:
         """Create sample permission for testing."""
         return Permission(
             permission_id="perm-001",
@@ -478,7 +478,7 @@ class TestAccessController:
         )
 
     @pytest.fixture
-    def sample_role(self):
+    def sample_role(self) -> None:
         """Create sample role for testing."""
         return Role(
             role_id="role-001",
@@ -488,7 +488,7 @@ class TestAccessController:
         )
 
     @pytest.fixture
-    def sample_subject(self):
+    def sample_subject(self) -> None:
         """Create sample subject for testing."""
         return Subject(
             subject_id="user-001",
@@ -498,7 +498,7 @@ class TestAccessController:
         )
 
     @pytest.fixture
-    def sample_context(self):
+    def sample_context(self) -> None:
         """Create sample security context."""
         from src.core.zero_trust_architecture import create_security_context_id
 
@@ -510,7 +510,7 @@ class TestAccessController:
         )
 
     @pytest.fixture
-    def sample_access_request(self, sample_context):
+    def sample_access_request(self, sample_context) -> None:
         """Create sample access request for testing."""
         return AccessRequest(
             request_id="req-001",
@@ -521,7 +521,7 @@ class TestAccessController:
             context=sample_context,
         )
 
-    def test_access_controller_initialization(self, controller):
+    def test_access_controller_initialization(self, controller) -> None:
         """Test AccessController initialization."""
         assert isinstance(controller.subjects, dict)
         assert isinstance(controller.roles, dict)
@@ -556,7 +556,7 @@ class TestAccessController:
         assert "registered successfully" in success_message
         assert sample_subject.subject_id in controller.subjects
 
-    async def test_register_subject_duplicate(self, controller, sample_subject):
+    async def test_register_subject_duplicate(self, controller, sample_subject) -> None:
         """Test subject registration with duplicate ID."""
         # Register subject first time
         controller.subjects[sample_subject.subject_id] = sample_subject
@@ -568,7 +568,7 @@ class TestAccessController:
         assert isinstance(error, AccessControlError)
         assert "already exists" in error.message
 
-    async def test_register_subject_invalid_role(self, controller, sample_permission):
+    async def test_register_subject_invalid_role(self, controller, sample_permission) -> None:
         """Test subject registration with invalid role."""
         # Register permission but not role
         await controller.register_permission(sample_permission)
@@ -601,7 +601,7 @@ class TestAccessController:
         assert "registered successfully" in success_message
         assert sample_role.role_id in controller.roles
 
-    async def test_register_role_duplicate(self, controller, sample_role):
+    async def test_register_role_duplicate(self, controller, sample_role) -> None:
         """Test role registration with duplicate ID."""
         # Register role first time
         controller.roles[sample_role.role_id] = sample_role
@@ -613,7 +613,7 @@ class TestAccessController:
         assert isinstance(error, AccessControlError)
         assert "already exists" in error.message
 
-    async def test_register_permission_success(self, controller, sample_permission):
+    async def test_register_permission_success(self, controller, sample_permission) -> None:
         """Test successful permission registration."""
         result = await controller.register_permission(sample_permission)
 
@@ -622,7 +622,7 @@ class TestAccessController:
         assert "registered successfully" in success_message
         assert sample_permission.permission_id in controller.permissions
 
-    async def test_register_permission_duplicate(self, controller, sample_permission):
+    async def test_register_permission_duplicate(self, controller, sample_permission) -> None:
         """Test permission registration with duplicate ID."""
         # Register permission first time
         controller.permissions[sample_permission.permission_id] = sample_permission
@@ -711,7 +711,7 @@ class TestAccessController:
         success_message = result.get_right()
         assert "Revoked" in success_message and "permissions" in success_message
 
-    async def test_revoke_permissions_subject_not_found(self, controller):
+    async def test_revoke_permissions_subject_not_found(self, controller) -> None:
         """Test permission revocation with non-existent subject."""
         result = await controller.revoke_permissions(
             "non-existent-user",
@@ -739,7 +739,7 @@ class TestAccessController:
         assert isinstance(permissions, list)
         assert len(permissions) > 0
 
-    async def test_get_effective_permissions_subject_not_found(self, controller):
+    async def test_get_effective_permissions_subject_not_found(self, controller) -> None:
         """Test getting effective permissions for non-existent subject."""
         result = await controller.get_effective_permissions("non-existent-user")
 
@@ -752,7 +752,7 @@ class TestAccessController:
 class TestUtilityFunctions:
     """Test utility functions for access control."""
 
-    def test_create_subject_function(self):
+    def test_create_subject_function(self) -> None:
         """Test create_subject utility function."""
         subject = create_subject(
             subject_id="user-001",
@@ -768,7 +768,7 @@ class TestUtilityFunctions:
         assert "role-001" in subject.roles
         assert "perm-001" in subject.direct_permissions
 
-    def test_create_role_function(self):
+    def test_create_role_function(self) -> None:
         """Test create_role utility function."""
         role = create_role(
             role_name="Finance Manager",
@@ -781,7 +781,7 @@ class TestUtilityFunctions:
         assert role.description == "Finance department manager role"
         assert "perm-001" in role.permissions
 
-    def test_create_permission_function(self):
+    def test_create_permission_function(self) -> None:
         """Test create_permission utility function."""
         permission = create_permission(
             permission_type=PermissionType.READ,
@@ -794,7 +794,7 @@ class TestUtilityFunctions:
         assert permission.resource_type == ResourceType.FILE
         assert permission.resource_path == "/documents/file.txt"
 
-    def test_create_access_request_function(self):
+    def test_create_access_request_function(self) -> None:
         """Test create_access_request utility function."""
         context = SecurityContext(
             context_id=create_security_context_id(),
@@ -823,12 +823,12 @@ class TestIntegrationScenarios:
     """Test integration scenarios combining multiple components."""
 
     @pytest.fixture
-    def configured_controller(self):
+    def configured_controller(self) -> None:
         """Create configured AccessController with subjects, roles, and permissions."""
         controller = AccessController()
         return controller
 
-    async def test_full_access_control_lifecycle(self, configured_controller):
+    async def test_full_access_control_lifecycle(self, configured_controller) -> None:
         """Test complete access control lifecycle: register, authorize, revoke."""
         # Create permission
         permission = Permission(
@@ -898,7 +898,7 @@ class TestIntegrationScenarios:
         )
         assert revoke_result.is_right()
 
-    async def test_rbac_authorization_scenarios(self, configured_controller):
+    async def test_rbac_authorization_scenarios(self, configured_controller) -> None:
         """Test various RBAC authorization scenarios."""
         configured_controller.authorization_model = AuthorizationModel.RBAC
 
@@ -988,7 +988,7 @@ class TestIntegrationScenarios:
         user_result = await configured_controller.authorize_access(user_request)
         assert user_result.is_right()
 
-    async def test_abac_authorization_scenarios(self, configured_controller):
+    async def test_abac_authorization_scenarios(self, configured_controller) -> None:
         """Test various ABAC authorization scenarios."""
         configured_controller.authorization_model = AuthorizationModel.ABAC
 
@@ -1045,7 +1045,7 @@ class TestIntegrationScenarios:
         abac_result = await configured_controller.authorize_access(abac_request)
         assert abac_result.is_right()
 
-    async def test_permission_inheritance_and_revocation(self, configured_controller):
+    async def test_permission_inheritance_and_revocation(self, configured_controller) -> None:
         """Test permission inheritance through roles and revocation."""
         # Create permissions
         read_perm = Permission(
@@ -1108,7 +1108,7 @@ class TestIntegrationScenarios:
         )
         assert revoke_result.is_right()
 
-    async def test_error_handling_scenarios(self, configured_controller):
+    async def test_error_handling_scenarios(self, configured_controller) -> None:
         """Test various error handling scenarios."""
         # Test authorization with expired permission
         expired_permission = Permission(

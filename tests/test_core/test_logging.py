@@ -18,18 +18,18 @@ from src.core.logging import get_logger
 class TestGetLogger:
     """Test the get_logger function comprehensively."""
 
-    def test_get_logger_returns_logger_instance(self):
+    def test_get_logger_returns_logger_instance(self) -> None:
         """Test that get_logger returns a Logger instance."""
         logger = get_logger("test_logger")
         assert isinstance(logger, logging.Logger)
         assert logger.name == "test_logger"
 
-    def test_get_logger_sets_info_level(self):
+    def test_get_logger_sets_info_level(self) -> None:
         """Test that logger level is set to INFO."""
         logger = get_logger("test_logger_level")
         assert logger.level == logging.INFO
 
-    def test_get_logger_adds_console_handler(self):
+    def test_get_logger_adds_console_handler(self) -> None:
         """Test that console handler is added to stderr."""
         logger = get_logger("test_console_handler")
 
@@ -45,7 +45,7 @@ class TestGetLogger:
         assert console_handler.level == logging.INFO
         assert isinstance(console_handler.formatter, logging.Formatter)
 
-    def test_get_logger_formatter_format(self):
+    def test_get_logger_formatter_format(self) -> None:
         """Test the formatter format string."""
         logger = get_logger("test_formatter")
 
@@ -57,12 +57,12 @@ class TestGetLogger:
         # Check format string
         assert formatter._fmt == "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
-    def test_get_logger_no_propagation(self):
+    def test_get_logger_no_propagation(self) -> None:
         """Test that logger doesn't propagate to root logger."""
         logger = get_logger("test_no_propagate")
         assert logger.propagate is False
 
-    def test_get_logger_idempotent(self):
+    def test_get_logger_idempotent(self) -> None:
         """Test that calling get_logger multiple times doesn't add duplicate handlers."""
         logger_name = "test_idempotent"
 
@@ -80,7 +80,7 @@ class TestGetLogger:
         assert len(logger2.handlers) == initial_handler_count  # No new handlers added
 
     @patch("pathlib.Path.exists")
-    def test_get_logger_with_file_handler(self, mock_exists):
+    def test_get_logger_with_file_handler(self, mock_exists) -> None:
         """Test that file handler is added when logs directory exists."""
         mock_exists.return_value = True
 
@@ -108,7 +108,7 @@ class TestGetLogger:
             assert mock_file_handler in logger.handlers
 
     @patch("pathlib.Path.exists")
-    def test_get_logger_without_logs_directory(self, mock_exists):
+    def test_get_logger_without_logs_directory(self, mock_exists) -> None:
         """Test that no file handler is added when logs directory doesn't exist."""
         mock_exists.return_value = False
 
@@ -124,14 +124,14 @@ class TestGetLogger:
         ]
         assert len(file_handlers) == 0
 
-    def test_get_logger_with_empty_name(self):
+    def test_get_logger_with_empty_name(self) -> None:
         """Test get_logger with empty string name."""
         logger = get_logger("")
         assert isinstance(logger, logging.Logger)
         # Empty string logger name becomes 'root'
         assert logger.name == "root"
 
-    def test_get_logger_with_special_characters(self):
+    def test_get_logger_with_special_characters(self) -> None:
         """Test get_logger with special characters in name."""
         special_names = [
             "test.logger",
@@ -150,7 +150,7 @@ class TestGetLogger:
             assert isinstance(logger, logging.Logger)
             assert logger.name == name
 
-    def test_get_logger_handler_inheritance(self):
+    def test_get_logger_handler_inheritance(self) -> None:
         """Test that child loggers don't inherit handlers due to propagate=False."""
         parent_logger = get_logger("parent")
         child_logger = get_logger("parent.child")
@@ -162,7 +162,7 @@ class TestGetLogger:
         # Child should not propagate
         assert child_logger.propagate is False
 
-    def test_logger_actually_logs_to_stderr(self, capsys):
+    def test_logger_actually_logs_to_stderr(self, capsys) -> None:
         """Test that logger actually outputs to stderr."""
         logger = get_logger("test_stderr_output")
 
@@ -175,7 +175,7 @@ class TestGetLogger:
         assert test_message in captured.err
         assert captured.out == ""  # Nothing in stdout
 
-    def test_logger_respects_log_level(self, capsys):
+    def test_logger_respects_log_level(self, capsys) -> None:
         """Test that logger respects log level settings."""
         logger = get_logger("test_log_level")
 
@@ -196,7 +196,7 @@ class TestGetLogger:
 
     @patch("pathlib.Path.exists")
     @patch("logging.FileHandler")
-    def test_file_handler_level_is_debug(self, mock_file_handler_class, mock_exists):
+    def test_file_handler_level_is_debug(self, mock_file_handler_class, mock_exists) -> None:
         """Test that file handler level is set to DEBUG while console is INFO."""
         mock_exists.return_value = True
 
@@ -221,7 +221,7 @@ class TestGetLogger:
         )
         assert console_handler.level == logging.INFO
 
-    def test_multiple_loggers_independent(self):
+    def test_multiple_loggers_independent(self) -> None:
         """Test that multiple loggers are independent."""
         logger1 = get_logger("logger1")
         logger2 = get_logger("logger2")
@@ -233,7 +233,7 @@ class TestGetLogger:
         # Each should have its own handlers
         assert logger1.handlers != logger2.handlers
 
-    def test_logger_thread_safety(self):
+    def test_logger_thread_safety(self) -> None:
         """Test that get_logger is thread-safe."""
         from concurrent.futures import ThreadPoolExecutor
 
@@ -258,7 +258,7 @@ class TestGetLogger:
         assert len(results[0].handlers) <= 2  # Console + possibly file
 
     @patch("src.core.logging.Path")
-    def test_file_handler_creation_failure(self, mock_path_class):
+    def test_file_handler_creation_failure(self, mock_path_class) -> None:
         """Test graceful handling when file handler creation fails."""
         # Make Path("logs").exists() return True
         mock_logs_path = Mock()

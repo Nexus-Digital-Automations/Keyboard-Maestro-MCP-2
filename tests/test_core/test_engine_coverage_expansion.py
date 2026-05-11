@@ -94,7 +94,7 @@ class TestEngineUncoveredLines:
 
             mock_validate.return_value = Either.left("Validation failed")
 
-            async def test_async():
+            async def test_async() -> None:
                 result = await engine.execute_macro_async(mock_macro)
 
                 # Should handle validation failure (line 316)

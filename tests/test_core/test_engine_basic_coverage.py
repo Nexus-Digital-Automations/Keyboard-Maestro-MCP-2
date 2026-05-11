@@ -24,7 +24,7 @@ from src.core.types import (
 class TestPlaceholderCommandBasic:
     """Basic tests for PlaceholderCommand functionality."""
 
-    def test_placeholder_command_text_input_execution(self):
+    def test_placeholder_command_text_input_execution(self) -> None:
         """Test PlaceholderCommand TEXT_INPUT execution."""
         command = PlaceholderCommand(
             command_id=CommandId("text-cmd"),
@@ -39,7 +39,7 @@ class TestPlaceholderCommandBasic:
         assert "Typed text: Hello World" in result.output
         assert result.execution_time is not None
 
-    def test_placeholder_command_pause_execution(self):
+    def test_placeholder_command_pause_execution(self) -> None:
         """Test PlaceholderCommand PAUSE execution."""
         command = PlaceholderCommand(
             command_id=CommandId("pause-cmd"),
@@ -54,7 +54,7 @@ class TestPlaceholderCommandBasic:
         assert "Paused for 0.01 seconds" in result.output
         assert result.execution_time is not None
 
-    def test_placeholder_command_play_sound_execution(self):
+    def test_placeholder_command_play_sound_execution(self) -> None:
         """Test PlaceholderCommand PLAY_SOUND execution."""
         command = PlaceholderCommand(
             command_id=CommandId("sound-cmd"),
@@ -69,7 +69,7 @@ class TestPlaceholderCommandBasic:
         assert "Played sound: alert" in result.output
         assert result.execution_time is not None
 
-    def test_placeholder_command_other_type_execution(self):
+    def test_placeholder_command_other_type_execution(self) -> None:
         """Test PlaceholderCommand execution for other command types."""
         command = PlaceholderCommand(
             command_id=CommandId("other-cmd"),
@@ -86,7 +86,7 @@ class TestPlaceholderCommandBasic:
         assert "Executed variable_set command" in result.output
         assert result.execution_time is not None
 
-    def test_placeholder_command_validate_success(self):
+    def test_placeholder_command_validate_success(self) -> None:
         """Test PlaceholderCommand validation success."""
         command = PlaceholderCommand(
             command_id=CommandId("valid-cmd"),
@@ -98,7 +98,7 @@ class TestPlaceholderCommandBasic:
         result = command.validate()
         assert result is True
 
-    def test_placeholder_command_get_dependencies(self):
+    def test_placeholder_command_get_dependencies(self) -> None:
         """Test PlaceholderCommand get_dependencies method."""
         command = PlaceholderCommand(
             command_id=CommandId("dep-cmd"),
@@ -109,7 +109,7 @@ class TestPlaceholderCommandBasic:
         dependencies = command.get_dependencies()
         assert dependencies == []
 
-    def test_placeholder_command_get_required_permissions(self):
+    def test_placeholder_command_get_required_permissions(self) -> None:
         """Test PlaceholderCommand get_required_permissions method."""
         command = PlaceholderCommand(
             command_id=CommandId("perm-cmd"),
@@ -124,7 +124,7 @@ class TestPlaceholderCommandBasic:
 class TestEngineMetricsComplete:
     """Complete tests for EngineMetrics class."""
 
-    def test_engine_metrics_initialization(self):
+    def test_engine_metrics_initialization(self) -> None:
         """Test EngineMetrics initialization."""
         metrics = EngineMetrics()
 
@@ -134,7 +134,7 @@ class TestEngineMetricsComplete:
         assert metrics.total_execution_time == 0.0
         assert metrics.average_execution_time == 0.0
 
-    def test_engine_metrics_single_success(self):
+    def test_engine_metrics_single_success(self) -> None:
         """Test recording single successful execution."""
         metrics = EngineMetrics()
         duration = Duration.from_seconds(2.5)
@@ -147,7 +147,7 @@ class TestEngineMetricsComplete:
         assert metrics.total_execution_time == 2.5
         assert metrics.average_execution_time == 2.5
 
-    def test_engine_metrics_single_failure(self):
+    def test_engine_metrics_single_failure(self) -> None:
         """Test recording single failed execution."""
         metrics = EngineMetrics()
         duration = Duration.from_seconds(1.5)
@@ -160,7 +160,7 @@ class TestEngineMetricsComplete:
         assert metrics.total_execution_time == 1.5
         assert metrics.average_execution_time == 1.5
 
-    def test_engine_metrics_multiple_executions(self):
+    def test_engine_metrics_multiple_executions(self) -> None:
         """Test recording multiple executions."""
         metrics = EngineMetrics()
 
@@ -175,7 +175,7 @@ class TestEngineMetricsComplete:
         assert metrics.total_execution_time == 6.0
         assert metrics.average_execution_time == 2.0
 
-    def test_engine_metrics_get_metrics_empty(self):
+    def test_engine_metrics_get_metrics_empty(self) -> None:
         """Test getting metrics when no executions recorded."""
         metrics = EngineMetrics()
         result = metrics.get_metrics()
@@ -187,7 +187,7 @@ class TestEngineMetricsComplete:
         assert result["average_execution_time"] == 0.0
         assert result["total_execution_time"] == 0.0
 
-    def test_engine_metrics_get_metrics_with_data(self):
+    def test_engine_metrics_get_metrics_with_data(self) -> None:
         """Test getting metrics with recorded data."""
         metrics = EngineMetrics()
 
@@ -204,7 +204,7 @@ class TestEngineMetricsComplete:
         assert result["average_execution_time"] == 3.0
         assert result["total_execution_time"] == 6.0
 
-    def test_engine_metrics_reset(self):
+    def test_engine_metrics_reset(self) -> None:
         """Test resetting metrics."""
         metrics = EngineMetrics()
 
@@ -225,7 +225,7 @@ class TestEngineMetricsComplete:
         assert metrics.total_execution_time == 0.0
         assert metrics.average_execution_time == 0.0
 
-    def test_engine_metrics_zero_division_protection(self):
+    def test_engine_metrics_zero_division_protection(self) -> None:
         """Test metrics calculations when execution_count is 0."""
         metrics = EngineMetrics()
 
@@ -240,7 +240,7 @@ class TestEngineMetricsComplete:
 class TestGlobalEngineFunctions:
     """Tests for global engine functions."""
 
-    def test_get_default_engine_singleton(self):
+    def test_get_default_engine_singleton(self) -> None:
         """Test get_default_engine returns singleton instance."""
         engine1 = get_default_engine()
         engine2 = get_default_engine()
@@ -253,7 +253,7 @@ class TestGlobalEngineFunctions:
 
         assert isinstance(engine1, MacroEngine)
 
-    def test_get_engine_metrics_singleton(self):
+    def test_get_engine_metrics_singleton(self) -> None:
         """Test get_engine_metrics returns singleton instance."""
         metrics1 = get_engine_metrics()
         metrics2 = get_engine_metrics()
@@ -264,7 +264,7 @@ class TestGlobalEngineFunctions:
         # Should be EngineMetrics instance
         assert isinstance(metrics1, EngineMetrics)
 
-    def test_create_test_macro_simple(self):
+    def test_create_test_macro_simple(self) -> None:
         """Test create_test_macro with simple command types."""
         macro = create_test_macro("Simple Test", [CommandType.TEXT_INPUT])
 
@@ -276,7 +276,7 @@ class TestGlobalEngineFunctions:
         assert command.command_type == CommandType.TEXT_INPUT
         assert command.parameters.get("text") == "Test text 0"
 
-    def test_create_test_macro_multiple_types(self):
+    def test_create_test_macro_multiple_types(self) -> None:
         """Test create_test_macro with multiple command types."""
         types = [CommandType.TEXT_INPUT, CommandType.PAUSE, CommandType.PLAY_SOUND]
         macro = create_test_macro("Multi Test", types)
@@ -293,7 +293,7 @@ class TestGlobalEngineFunctions:
         assert macro.commands[1].parameters.get("duration") == 1.0
         assert macro.commands[2].parameters.get("sound_name") == "beep"
 
-    def test_create_test_macro_variable_commands(self):
+    def test_create_test_macro_variable_commands(self) -> None:
         """Test create_test_macro with variable command types."""
         types = [CommandType.VARIABLE_SET, CommandType.VARIABLE_GET]
         macro = create_test_macro("Variable Test", types)
@@ -312,7 +312,7 @@ class TestGlobalEngineFunctions:
         assert get_cmd.parameters.get("name") == "test_var_1"
         assert get_cmd.parameters.get("default") == "default_value"
 
-    def test_create_test_macro_control_commands(self):
+    def test_create_test_macro_control_commands(self) -> None:
         """Test create_test_macro with control command types."""
         types = [CommandType.APPLICATION_CONTROL, CommandType.SYSTEM_CONTROL]
         macro = create_test_macro("Control Test", types)
@@ -331,7 +331,7 @@ class TestGlobalEngineFunctions:
         assert sys_cmd.parameters.get("action") == "volume"
         assert sys_cmd.parameters.get("value") == 50
 
-    def test_create_test_macro_flow_commands(self):
+    def test_create_test_macro_flow_commands(self) -> None:
         """Test create_test_macro with flow control command types."""
         types = [CommandType.CONDITIONAL, CommandType.LOOP]
         macro = create_test_macro("Flow Test", types)
@@ -351,7 +351,7 @@ class TestGlobalEngineFunctions:
         assert loop_cmd.parameters.get("count") == 3
         assert loop_cmd.parameters.get("commands") == []
 
-    def test_create_test_macro_unknown_command_type(self):
+    def test_create_test_macro_unknown_command_type(self) -> None:
         """Test create_test_macro with unknown command type."""
         # This will test the 'else' branch in the parameter assignment
         # We can't easily create an unknown CommandType, but we can test
@@ -368,7 +368,7 @@ class TestGlobalEngineFunctions:
 class TestMacroDefinitionBasic:
     """Basic tests for MacroDefinition functionality."""
 
-    def test_macro_definition_validation_valid(self):
+    def test_macro_definition_validation_valid(self) -> None:
         """Test MacroDefinition validation with valid macro."""
         # Create a valid command
         command = PlaceholderCommand(
@@ -385,7 +385,7 @@ class TestMacroDefinitionBasic:
 
         assert macro.is_valid() is True
 
-    def test_macro_definition_validation_empty_name(self):
+    def test_macro_definition_validation_empty_name(self) -> None:
         """Test MacroDefinition validation with empty name."""
         command = PlaceholderCommand(
             command_id=CommandId("cmd"),
@@ -401,7 +401,7 @@ class TestMacroDefinitionBasic:
 
         assert macro.is_valid() is False
 
-    def test_macro_definition_validation_no_commands(self):
+    def test_macro_definition_validation_no_commands(self) -> None:
         """Test MacroDefinition validation with no commands."""
         macro = MacroDefinition(
             macro_id=MacroId("macro"),
