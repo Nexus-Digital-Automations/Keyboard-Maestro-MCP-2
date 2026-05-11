@@ -45,15 +45,18 @@ def get_server_status() -> dict[str, Any]:
         "engine_status": "initialized",
         "km_connection": km_status,
         "km_macro_count": macro_count,
-        "tools_available": 16,  # km_* tools registered in tool_config.py
-        "tools_planned": 16,
+        "tools_available": 20,  # km_* tools registered in tool_config.py
+        "tools_planned": 20,
         "integration_methods": ["applescript", "web_api", "url_scheme"],
         "features": {
             "macro_execution": True,
-            "macro_listing": True,  # Now implemented with real data
+            "macro_listing": True,
+            "macro_editing": True,
+            "macro_group_management": True,
+            "application_control": True,
             "variable_management": True,
-            "real_time_sync": False,  # TASK_7 implementation
-            "enhanced_metadata": True,  # TASK_6 completed
+            "real_time_sync": False,
+            "enhanced_metadata": True,
             "trigger_management": False,
             "plugin_system": False,
             "ocr_integration": False,
