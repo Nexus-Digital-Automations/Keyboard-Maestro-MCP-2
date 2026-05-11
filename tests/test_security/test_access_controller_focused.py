@@ -586,8 +586,8 @@ class TestAccessController:
         assert "does not exist" in error.message
 
     async def test_register_role_success(
-        self, controller, sample_role, sample_permission
-    ):
+        self, controller: AccessController, sample_role: Role, sample_permission: Permission
+    ) -> None:
         """Test successful role registration."""
         # Register permission first
         await controller.register_permission(sample_permission)
@@ -633,8 +633,8 @@ class TestAccessController:
         assert "already exists" in error.message
 
     async def test_authorize_access_subject_not_found(
-        self, controller, sample_access_request
-    ):
+        self, controller: AccessController, sample_access_request: AccessRequest
+    ) -> None:
         """Test authorization with non-existent subject."""
         result = await controller.authorize_access(sample_access_request)
 
@@ -645,12 +645,12 @@ class TestAccessController:
 
     async def test_authorize_access_rbac_success(
         self,
-        controller,
-        sample_subject,
-        sample_role,
-        sample_permission,
-        sample_access_request,
-    ):
+        controller: AccessController,
+        sample_subject: Subject,
+        sample_role: Role,
+        sample_permission: Permission,
+        sample_access_request: AccessRequest,
+    ) -> None:
         """Test successful RBAC authorization."""
         # Set up RBAC mode
         controller.authorization_model = AuthorizationModel.RBAC
@@ -669,12 +669,12 @@ class TestAccessController:
 
     async def test_authorize_access_abac_success(
         self,
-        controller,
-        sample_subject,
-        sample_role,
-        sample_permission,
-        sample_access_request,
-    ):
+        controller: AccessController,
+        sample_subject: Subject,
+        sample_role: Role,
+        sample_permission: Permission,
+        sample_access_request: AccessRequest,
+    ) -> None:
         """Test successful ABAC authorization."""
         # Set up ABAC mode (default)
         controller.authorization_model = AuthorizationModel.ABAC
@@ -817,12 +817,12 @@ class TestIntegrationScenarios:
     """Test integration scenarios combining multiple components."""
 
     @pytest.fixture
-    def configured_controller(self) -> None:
+    def configured_controller(self) -> AccessController:
         """Create configured AccessController with subjects, roles, and permissions."""
         controller = AccessController()
         return controller
 
-    async def test_full_access_control_lifecycle(self, configured_controller) -> None:
+    async def test_full_access_control_lifecycle(self, configured_controller: AccessController) -> None:
         """Test complete access control lifecycle: register, authorize, revoke."""
         # Create permission
         permission = Permission(
@@ -892,7 +892,7 @@ class TestIntegrationScenarios:
         )
         assert revoke_result.is_right()
 
-    async def test_rbac_authorization_scenarios(self, configured_controller) -> None:
+    async def test_rbac_authorization_scenarios(self, configured_controller: AccessController) -> None:
         """Test various RBAC authorization scenarios."""
         configured_controller.authorization_model = AuthorizationModel.RBAC
 
@@ -982,7 +982,7 @@ class TestIntegrationScenarios:
         user_result = await configured_controller.authorize_access(user_request)
         assert user_result.is_right()
 
-    async def test_abac_authorization_scenarios(self, configured_controller) -> None:
+    async def test_abac_authorization_scenarios(self, configured_controller: AccessController) -> None:
         """Test various ABAC authorization scenarios."""
         configured_controller.authorization_model = AuthorizationModel.ABAC
 
@@ -1039,7 +1039,7 @@ class TestIntegrationScenarios:
         abac_result = await configured_controller.authorize_access(abac_request)
         assert abac_result.is_right()
 
-    async def test_permission_inheritance_and_revocation(self, configured_controller) -> None:
+    async def test_permission_inheritance_and_revocation(self, configured_controller: AccessController) -> None:
         """Test permission inheritance through roles and revocation."""
         # Create permissions
         read_perm = Permission(
@@ -1102,7 +1102,7 @@ class TestIntegrationScenarios:
         )
         assert revoke_result.is_right()
 
-    async def test_error_handling_scenarios(self, configured_controller) -> None:
+    async def test_error_handling_scenarios(self, configured_controller: AccessController) -> None:
         """Test various error handling scenarios."""
         # Test authorization with expired permission
         expired_permission = Permission(
