@@ -77,7 +77,7 @@ async def km_file_operations(
             description="Use secure deletion (multiple overwrite passes)",
         ),
     ] = False,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Secure file system operations with comprehensive validation and safety features.
 

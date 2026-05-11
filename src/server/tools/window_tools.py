@@ -88,7 +88,7 @@ async def km_window_manager(
             pattern=r"^(normal|minimized|maximized|fullscreen)$",
         ),
     ] = None,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Comprehensive window management with multi-monitor support and validation.
 

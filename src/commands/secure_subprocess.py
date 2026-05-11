@@ -358,7 +358,7 @@ class SecureSubprocessManager:
         self,
         pid: int,
         force: bool = False,
-        timeout: Duration = None,
+        timeout: Duration | None = None,
     ) -> dict[str, Any]:
         """Terminate process using secure process termination."""
         if timeout is None:

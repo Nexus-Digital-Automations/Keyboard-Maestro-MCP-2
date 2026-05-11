@@ -221,7 +221,7 @@ class CommandParameters:
 
 
 # Initialize Duration constants after class definition
-Duration.ZERO = Duration(0.0)
+Duration.ZERO = Duration(0.0)  # type: ignore[assignment]
 
 
 class MacroCommand(Protocol):

@@ -408,7 +408,7 @@ class SecurityMonitor:
         severity: ThreatSeverity,
         title: str,
         description: str,
-        related_alerts: list[str] = None,
+        related_alerts: list[str] | None = None,
     ) -> Either[SecurityMonitoringError, SecurityIncident]:
         """Create a new security incident."""
         try:
@@ -1209,7 +1209,7 @@ class SecurityMonitor:
 
     def detect_threats(
         self,
-        user_id: str = None,
+        user_id: str | None = None,
         time_window: timedelta = timedelta(hours=1),
     ) -> list[SecurityEvent]:
         """Detect threats for user (simple interface for test compatibility)."""
@@ -1252,7 +1252,7 @@ class SecurityMonitor:
 
     def detect_anomalies(
         self,
-        user_id: str = None,
+        user_id: str | None = None,
         time_window: timedelta = timedelta(hours=1),
     ) -> list[SecurityEvent]:
         """Detect anomalies for user (simple interface for test compatibility)."""
@@ -1305,7 +1305,7 @@ class SecurityMonitor:
 
     def get_threat_summary(
         self,
-        user_id: str = None,
+        user_id: str | None = None,
         time_window: timedelta = timedelta(hours=1),
     ) -> ThreatSummary:
         """Get threat summary for user (simple interface for test compatibility)."""
@@ -1408,7 +1408,7 @@ def create_security_event(
     source: str,
     data: dict[str, Any],
     context: SecurityContext | None = None,
-    risk_indicators: list[str] = None,
+    risk_indicators: list[str] | None = None,
     severity: AlertSeverity = AlertSeverity.INFO,
 ) -> SecurityEvent:
     """Create a security event with validation."""

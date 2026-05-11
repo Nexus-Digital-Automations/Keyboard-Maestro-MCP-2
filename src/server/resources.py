@@ -109,7 +109,7 @@ Focus on reliability, user experience, and maintainability.
     ]
 
 
-def get_tool_help(tool_name: str = None) -> str:
+def get_tool_help(tool_name: str | None = None) -> str:
     """Get help for a specific tool or all tools."""
     if tool_name:
         # Return help for specific tool

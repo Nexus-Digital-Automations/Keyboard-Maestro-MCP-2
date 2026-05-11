@@ -1115,7 +1115,7 @@ class AccessController:
     def _get_role_permissions_recursive(
         self,
         role_id: str,
-        visited: set[str] = None,
+        visited: set[str] | None = None,
     ) -> set[str]:
         """Get all permissions for role including inherited ones."""
         if visited is None:
@@ -1142,7 +1142,7 @@ class AccessController:
     def _has_circular_role_inheritance(
         self,
         role: Role,
-        visited: set[str] = None,
+        visited: set[str] | None = None,
     ) -> bool:
         """Check for circular role inheritance."""
         if visited is None:
@@ -1373,8 +1373,8 @@ class AccessController:
     def check_access(
         self,
         user_id_or_dict=None,
-        resource: str = None,
-        required_permission: Permission = None,
+        resource: str | None = None,
+        required_permission: Permission | None = None,
         **kwargs,
     ) -> AccessDecision | bool | dict | object:
         """
@@ -1489,9 +1489,9 @@ class AccessController:
 def create_subject(
     subject_id: str,
     subject_type: str,
-    roles: list[str] = None,
-    permissions: list[str] = None,
-    attributes: dict[str, Any] = None,
+    roles: list[str] | None = None,
+    permissions: list[str] | None = None,
+    attributes: dict[str, Any] | None = None,
 ) -> Subject:
     """Create a subject with validation."""
     if roles is None:
@@ -1513,8 +1513,8 @@ def create_subject(
 def create_role(
     role_name: str,
     description: str,
-    permissions: list[str] = None,
-    parent_roles: list[str] = None,
+    permissions: list[str] | None = None,
+    parent_roles: list[str] | None = None,
 ) -> Role:
     """Create a role with validation."""
     role_id = f"role_{role_name.lower().replace(' ', '_')}"
@@ -1537,7 +1537,7 @@ def create_permission(
     permission_type: PermissionType,
     resource_type: ResourceType,
     resource_path: str,
-    conditions: dict[str, Any] = None,
+    conditions: dict[str, Any] | None = None,
     expires_at: datetime | None = None,
 ) -> Permission:
     """Create a permission with validation."""

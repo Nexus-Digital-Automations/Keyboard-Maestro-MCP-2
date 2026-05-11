@@ -110,7 +110,7 @@ async def km_notifications(
             description="Whether notification can be dismissed by user",
         ),
     ] = True,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Display user notifications with comprehensive formatting and interaction support.
 
@@ -407,7 +407,7 @@ async def km_notification_status(
             description="Notification ID to check status for (optional)",
         ),
     ] = None,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Get status of active notifications with detailed information.
 
@@ -515,7 +515,7 @@ async def km_dismiss_notifications(
             description="Specific notification ID to dismiss (optional - dismisses all if not provided)",
         ),
     ] = None,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Dismiss active notifications with optional ID filtering.
 

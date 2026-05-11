@@ -115,7 +115,7 @@ class AutomationRule:
     created_by: str | None = None
     tags: set[str] = field(default_factory=set)
 
-    def is_applicable(self, _context: dict[str, Any] = None) -> bool:
+    def is_applicable(self, _context: dict[str, Any] | None = None) -> bool:
         """Check if rule is applicable in current context."""
         if not self.enabled:
             return False
@@ -150,8 +150,8 @@ class AutomationRule:
 
     async def evaluate_conditions(
         self,
-        sensor_data: dict[SensorId, SensorReading] = None,
-        device_states: dict[DeviceId, dict[str, Any]] = None,
+        sensor_data: dict[SensorId, SensorReading] | None = None,
+        device_states: dict[DeviceId, dict[str, Any]] | None = None,
     ) -> bool:
         """Evaluate all rule conditions."""
         if not self.conditions:
@@ -172,7 +172,7 @@ class AutomationRule:
 
     async def execute_actions(
         self,
-        context: dict[str, Any] = None,
+        context: dict[str, Any] | None = None,
     ) -> Either[str, list[dict[str, Any]]]:
         """Execute all rule actions."""
         try:
@@ -541,7 +541,7 @@ class AutomationHub:
     async def activate_scene(
         self,
         scene_id: SceneId,
-        context: dict[str, Any] = None,
+        context: dict[str, Any] | None = None,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Activate a smart home scene."""
         try:
@@ -575,7 +575,7 @@ class AutomationHub:
     async def execute_workflow(
         self,
         workflow_id: WorkflowId,
-        context: dict[str, Any] = None,
+        context: dict[str, Any] | None = None,
     ) -> Either[IoTIntegrationError, dict[str, Any]]:
         """Execute an IoT workflow."""
         try:

@@ -127,7 +127,7 @@ async def km_clipboard_manager(
         str | None,
         Field(default=None, description="Filter by tag for listings", max_length=50),
     ] = None,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Comprehensive clipboard management with security and privacy protection.
 

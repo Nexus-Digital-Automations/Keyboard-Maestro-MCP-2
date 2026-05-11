@@ -473,7 +473,7 @@ class AutomationAction:
 
     async def execute(
         self,
-        _context: dict[str, Any] = None,
+        _context: dict[str, Any] | None = None,
     ) -> Either[str, dict[str, Any]]:
         """Execute the automation action."""
         try:
@@ -532,7 +532,7 @@ class SmartHomeScene:
 
     async def activate(
         self,
-        context: dict[str, Any] = None,
+        context: dict[str, Any] | None = None,
     ) -> Either[str, dict[str, Any]]:
         """Activate the scene."""
         try:
@@ -609,8 +609,8 @@ class IoTWorkflow:
 
     def is_triggered(
         self,
-        sensor_readings: list[SensorReading] = None,
-        device_states: dict[DeviceId, dict[str, Any]] = None,
+        sensor_readings: list[SensorReading] | None = None,
+        device_states: dict[DeviceId, dict[str, Any]] | None = None,
     ) -> bool:
         """Check if workflow should be triggered."""
         if not self.enabled or not self.triggers:
@@ -627,7 +627,7 @@ class IoTWorkflow:
 
     async def execute(
         self,
-        context: dict[str, Any] = None,
+        context: dict[str, Any] | None = None,
     ) -> Either[str, dict[str, Any]]:
         """Execute the IoT workflow."""
         try:
@@ -722,7 +722,7 @@ class IoTWorkflow:
 
     async def _execute_conditional(
         self,
-        _context: dict[str, Any] = None,
+        _context: dict[str, Any] | None = None,
     ) -> Either[str, dict[str, Any]]:
         """Execute actions based on conditions."""
         # Conditional execution logic would be implemented here

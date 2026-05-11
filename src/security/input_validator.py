@@ -27,7 +27,7 @@ class ValidationResult:
 
     is_safe: bool
     threat_description: str = ""
-    detected_threats: list[ThreatType] = None
+    detected_threats: list[ThreatType] | None = None
     sanitized_input: str = ""
     confidence_score: float = 0.0
 

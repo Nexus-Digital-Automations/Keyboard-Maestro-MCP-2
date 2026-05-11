@@ -193,7 +193,7 @@ class SmartMacroFilter:
         self,
         target_macro: EnhancedMacroMetadata,
         macro_library: list[EnhancedMacroMetadata],
-        similarity_threshold: float = None,
+        similarity_threshold: float | None = None,
     ) -> list[EnhancedMacroMetadata]:
         """Find macros similar to the target macro."""
         threshold = similarity_threshold or self._similarity_threshold

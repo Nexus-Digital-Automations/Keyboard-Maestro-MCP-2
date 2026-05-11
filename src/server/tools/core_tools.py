@@ -60,7 +60,7 @@ async def km_execute_macro(
             description="Maximum execution time in seconds",
         ),
     ] = 30,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Execute a Keyboard Maestro macro with comprehensive error handling and validation.
 
@@ -285,7 +285,7 @@ async def km_list_macros(
         int,
         Field(default=20, ge=1, le=100, description="Maximum number of results"),
     ] = 20,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """List and filter Keyboard Maestro macros with comprehensive search capabilities.
 
@@ -434,7 +434,7 @@ async def km_variable_manager(
         str | None,
         Field(default=None, description="Instance ID for local/instance variables"),
     ] = None,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Comprehensive Keyboard Maestro variable management with type safety.
 

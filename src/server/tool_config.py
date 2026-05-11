@@ -213,7 +213,7 @@ class ToolConfigurationManager:
 
     def get_category_summary(self) -> dict[str, int]:
         """Get summary of tools by category."""
-        summary = {}
+        summary: dict[str, int] = {}
         for config in self.configurations.values():
             category = config.category.value
             summary[category] = summary.get(category, 0) + 1
