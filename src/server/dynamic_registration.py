@@ -7,14 +7,13 @@ server, eliminating the need for manual tool registration boilerplate.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from .tool_registry import ToolMetadata, get_tool_registry
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
 
-    from fastmcp import Context, FastMCP
+    from fastmcp import FastMCP
 
 
 logger = logging.getLogger(__name__)
@@ -44,115 +43,18 @@ class DynamicToolRegistrar:
         self._log_registration_summary()
 
     def _register_tool(self, metadata: ToolMetadata) -> None:
-        """Register a single tool with FastMCP."""
-        # Create the dynamic wrapper function
-        wrapper_func = self._create_tool_wrapper(metadata)
+        """Register a single tool with FastMCP.
 
-        # Apply the @mcp.tool() decorator
-        decorated_func = self.mcp_server.tool()(wrapper_func)
-
-        # Store reference to prevent garbage collection
+        FastMCP introspects the registered function's signature to build the
+        tool's input schema, so we must pass the original function — a
+        `*args, **kwargs` wrapper is rejected with "Functions with *args
+        are not supported as tools". The tools already centralize their own
+        error handling via `_failure` helpers; no wrapper is needed.
+        """
+        module = __import__(metadata.module_name, fromlist=[metadata.name])
+        actual_tool_func = getattr(module, metadata.name)
+        decorated_func = self.mcp_server.tool()(actual_tool_func)
         setattr(self, f"_tool_{metadata.name}", decorated_func)
-
-    def _create_tool_wrapper(self, metadata: ToolMetadata) -> Callable[..., Any]:
-        """Create a wrapper function for the tool that maintains type safety."""
-        # Import the actual tool function at registration time
-        try:
-            module = __import__(metadata.module_name, fromlist=[metadata.name])
-            actual_tool_func = getattr(module, metadata.name)
-        except (ImportError, AttributeError) as import_error:
-            error_message = str(import_error)
-            logger.error(
-                f"Failed to import tool {metadata.name} from {metadata.module_name}: {error_message}",
-            )
-
-            # Create a placeholder function that returns an error
-            async def error_wrapper(_ctx: Context | Any = None) -> dict[str, Any]:
-                return {
-                    "success": False,
-                    "error": f"Tool {metadata.name} not available: {error_message}",
-                    "tool": metadata.name,
-                }
-
-            error_wrapper.__name__ = metadata.name
-            error_wrapper.__doc__ = f"Error: {metadata.name} not available"
-            return error_wrapper
-
-        # S102 Security Fix: Replace dangerous exec() with safe dynamic function creation
-        # Build the explicit parameter list from metadata
-        param_names = [param.name for param in metadata.parameters] + ["ctx"]
-
-        # Create a secure wrapper function using closures instead of exec()
-        def create_safe_wrapper(
-            is_async: bool,
-            param_names: list[str],
-        ) -> Callable[..., Any]:
-            if is_async:
-
-                async def async_tool_wrapper(*args: Any, **kwargs: Any) -> Any:
-                    """Securely generated async tool wrapper."""
-                    try:
-                        # Build kwargs from positional args and keyword args
-                        combined_kwargs = {}
-                        for i, param_name in enumerate(param_names):
-                            if i < len(args):
-                                combined_kwargs[param_name] = args[i]
-                            elif param_name in kwargs:
-                                combined_kwargs[param_name] = kwargs[param_name]
-                            else:
-                                combined_kwargs[param_name] = None
-
-                        return await actual_tool_func(**combined_kwargs)
-                    except Exception as e:
-                        logger.error(f"Error executing tool {metadata.name}: {e}")
-                        return {
-                            "success": False,
-                            "error": str(e),
-                            "tool": metadata.name,
-                        }
-
-                return async_tool_wrapper
-
-            def sync_tool_wrapper(*args: Any, **kwargs: Any) -> object:
-                """Securely generated sync tool wrapper."""
-                try:
-                    # Build kwargs from positional args and keyword args
-                    combined_kwargs = {}
-                    for i, param_name in enumerate(param_names):
-                        if i < len(args):
-                            combined_kwargs[param_name] = args[i]
-                        elif param_name in kwargs:
-                            combined_kwargs[param_name] = kwargs[param_name]
-                        else:
-                            combined_kwargs[param_name] = None
-
-                    return actual_tool_func(**combined_kwargs)
-                except Exception as e:
-                    logger.error(f"Error executing tool {metadata.name}: {e}")
-                    return {
-                        "success": False,
-                        "error": str(e),
-                        "tool": metadata.name,
-                    }
-
-            return sync_tool_wrapper
-
-        tool_wrapper = create_safe_wrapper(metadata.is_async, param_names)
-
-        # Preserve the original function's signature and metadata
-        tool_wrapper.__name__ = metadata.name
-        tool_wrapper.__doc__ = metadata.docstring
-
-        # Copy annotations from the original function
-        try:
-            if hasattr(actual_tool_func, "__annotations__"):
-                tool_wrapper.__annotations__ = actual_tool_func.__annotations__.copy()
-        except Exception as e:
-            logger.warning(
-                f"Failed to copy annotations for {actual_tool_func.__name__}: {e!s}",
-            )
-
-        return tool_wrapper
 
     def _log_registration_summary(self) -> None:
         """Log a summary of tool registration by category."""

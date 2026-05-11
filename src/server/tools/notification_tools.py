@@ -82,9 +82,8 @@ async def km_notifications(
     buttons: Annotated[
         list[str] | None,
         Field(
-            default_factory=list,
             description="Button labels for alert dialogs (max 3)",
-            max_items=3,
+            max_length=3,
         ),
     ] = None,
     position: Annotated[

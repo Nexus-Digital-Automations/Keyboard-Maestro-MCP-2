@@ -33,10 +33,7 @@ async def km_token_processor(
     ] = "text",
     variables: Annotated[
         dict[str, str] | None,
-        Field(
-            default_factory=dict,
-            description="Variable values for token substitution",
-        ),
+        Field(description="Variable values for token substitution"),
     ] = None,
     use_km_engine: Annotated[
         bool,
