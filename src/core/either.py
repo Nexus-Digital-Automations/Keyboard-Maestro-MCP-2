@@ -7,7 +7,7 @@ using the Either type to represent success (Right) or failure (Left) states.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -261,10 +261,12 @@ def sequence(eithers: list[Either[A, B]]) -> Either[A, list[B]]:
     If all values are Right, returns Right with list of values.
     If any value is Left, returns the first Left encountered.
     """
-    results = []
+    results: list[B] = []
     for either in eithers:
         if either.is_left():
-            return either
+            # WHY cast: Left[A] has no B parameter at runtime; same Left value is valid in
+            # Either[A, list[B]] but mypy cannot narrow without an explicit type assertion.
+            return cast("Either[A, list[B]]", either)
         results.append(either.get_right())
     return Either.right(results)
 
@@ -276,11 +278,11 @@ def traverse(values: list[A], f: Callable[[A], Either[B, C]]) -> Either[B, list[
     - Right contains list of all successful results
     - Left contains the first error encountered
     """
-    results = []
+    results: list[C] = []
     for value in values:
         result = f(value)
         if result.is_left():
-            return result
+            return cast("Either[B, list[C]]", result)
         results.append(result.get_right())
     return Either.right(results)
 
