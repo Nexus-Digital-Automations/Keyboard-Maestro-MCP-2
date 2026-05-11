@@ -24,6 +24,9 @@ class ToolCategory(Enum):
     CONDITIONAL_LOGIC = "conditional_logic"
     CONTROL_FLOW = "control_flow"
     IOT_INTEGRATION = "iot_integration"
+    APPLICATION_CONTROL = "application_control"
+    MACRO_EDITING = "macro_editing"
+    MACRO_GROUPS = "macro_groups"
 
 
 class SecurityLevel(Enum):
@@ -187,6 +190,42 @@ class ToolConfigurationManager:
                 priority=6,
                 experimental=True,
             )
+
+        self.configurations["km_application_control"] = ToolConfiguration(
+            name="km_application_control",
+            category=ToolCategory.APPLICATION_CONTROL,
+            description="Launch, quit, activate, and query macOS applications",
+            module_path="src.server.tools.application_tools",
+            priority=6,
+            security_policy=ToolSecurityPolicy(
+                level=SecurityLevel.STRICT,
+                audit_level="detailed",
+            ),
+        )
+
+        self.configurations["km_macro_editor"] = ToolConfiguration(
+            name="km_macro_editor",
+            category=ToolCategory.MACRO_EDITING,
+            description="Create, delete, rename, duplicate, and toggle macros",
+            module_path="src.server.tools.macro_editor_tools",
+            priority=8,
+            security_policy=ToolSecurityPolicy(
+                level=SecurityLevel.STRICT,
+                audit_level="comprehensive",
+            ),
+        )
+
+        self.configurations["km_macro_group_manager"] = ToolConfiguration(
+            name="km_macro_group_manager",
+            category=ToolCategory.MACRO_GROUPS,
+            description="List, create, delete, rename, and toggle macro groups",
+            module_path="src.server.tools.macro_group_tools",
+            priority=7,
+            security_policy=ToolSecurityPolicy(
+                level=SecurityLevel.STRICT,
+                audit_level="comprehensive",
+            ),
+        )
 
     def get_configuration(self, tool_name: str) -> ToolConfiguration | None:
         """Get configuration for a specific tool."""
