@@ -2,7 +2,7 @@
 """Keyboard Maestro MCP Server - Main Entry Point (Dynamic Registration).
 
 Advanced macOS automation through Model Context Protocol using FastMCP framework
-with dynamic tool registration system. Provides 19 production-ready tools spanning
+with dynamic tool registration system. Provides 18 production-ready tools spanning
 macro execution/editing, group management, application control, triggers, action
 building, input simulation, clipboard, files, windows, tokens, notifications,
 and control flow.

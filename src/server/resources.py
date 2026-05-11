@@ -45,8 +45,8 @@ def get_server_status() -> dict[str, Any]:
         "engine_status": "initialized",
         "km_connection": km_status,
         "km_macro_count": macro_count,
-        "tools_available": 20,  # km_* tools registered in tool_config.py
-        "tools_planned": 20,
+        "tools_available": 18,  # km_* tools registered in tool_config.py
+        "tools_planned": 18,
         "integration_methods": ["applescript", "web_api", "url_scheme"],
         "features": {
             "macro_execution": True,
@@ -55,20 +55,13 @@ def get_server_status() -> dict[str, Any]:
             "macro_group_management": True,
             "application_control": True,
             "variable_management": True,
+            "trigger_management": True,
+            "action_building": True,
+            "input_simulation": True,
             "real_time_sync": False,
             "enhanced_metadata": True,
-            "trigger_management": False,
             "plugin_system": False,
             "ocr_integration": False,
-        },
-        "task_progress": {
-            "task_1_core_engine": "completed",
-            "task_2_km_integration": "completed",
-            "task_3_command_library": "completed",
-            "task_4_testing_framework": "completed",
-            "task_5_real_api_integration": "in_progress",
-            "task_6_enhanced_metadata": "completed",
-            "task_7_realtime_sync": "planned",
         },
     }
 
@@ -126,7 +119,7 @@ def get_tool_help(tool_name: str | None = None) -> str:
             tool_name,
             f"Tool '{tool_name}' not found or unknown tool.",
         )
-    return """Keyboard Maestro MCP Tools — 16 production tools across core, file, window, clipboard, token, notification, conditional, control-flow, and IoT categories."""
+    return """Keyboard Maestro MCP Tools — 18 production tools across core, macro editing, group management, application control, trigger management, action building, input simulation, file, window, clipboard, token, notification, conditional, and control-flow categories."""
 
 
 def get_system_info() -> dict:
@@ -143,4 +136,4 @@ def get_system_info() -> dict:
 
 def get_tool_count() -> int:
     """Get current registered tool count from tool_config.py."""
-    return 16
+    return 18
