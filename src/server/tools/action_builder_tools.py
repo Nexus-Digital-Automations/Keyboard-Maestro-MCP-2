@@ -1,0 +1,246 @@
+"""Action builder tool — list, append, delete, clear actions inside a macro.
+
+Adapter over `KMClient` action primitives. Owns the action_type-to-XML
+mapping (v1: 6 types). All AppleScript / KM-engine logic lives in
+`src/integration/km_client.py`.
+
+v1 action types: ``pause``, ``type_text``, ``paste``, ``set_variable``,
+``run_applescript``, ``execute_macro``. Adding more is a new branch in
+``_build_action_xml`` — no architecture change. ``insert``/``reorder``
+ops deferred (need index-aware AppleScript); user can sequence by
+appending in order.
+"""
+
+import asyncio
+import logging
+from typing import Annotated, Any, Literal
+
+from fastmcp import Context
+from pydantic import Field
+
+from ...core.types import MacroId
+from ..initialization import get_km_client
+
+logger = logging.getLogger(__name__)
+
+
+def _failure(code: str, message: str, suggestion: str) -> dict[str, Any]:
+    return {
+        "success": False,
+        "error": {"code": code, "message": message, "recovery_suggestion": suggestion},
+    }
+
+
+async def _check_kme_alive() -> dict[str, Any] | None:
+    km = get_km_client()
+    connection = await asyncio.get_event_loop().run_in_executor(
+        None, km.check_connection,
+    )
+    if connection.is_left() or not connection.get_right():
+        return _failure(
+            "KM_CONNECTION_FAILED",
+            "Cannot connect to Keyboard Maestro Engine.",
+            "Start Keyboard Maestro and ensure the Engine is running.",
+        )
+    return None
+
+
+def _xml_escape(text: str) -> str:
+    return (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&apos;")
+    )
+
+
+def _build_action_xml(action_type: str, config: dict[str, Any]) -> str | None:
+    """Return KM action <dict> XML for a v1 action_type, or None if unsupported.
+
+    Each KM macro action is a plist <dict> with at minimum a MacroActionType
+    key. Field names below match KM's persisted XML schema (verified
+    against KM's "Copy as XML" output for each action type).
+    """
+    if action_type == "pause":
+        seconds = config.get("seconds", 1)
+        return (
+            "<dict>"
+            "<key>MacroActionType</key><string>Pause</string>"
+            f"<key>Time</key><string>{_xml_escape(str(seconds))}</string>"
+            "</dict>"
+        )
+    if action_type == "type_text":
+        text = _xml_escape(str(config.get("text", "")))
+        return (
+            "<dict>"
+            "<key>Action</key><string>ByTyping</string>"
+            "<key>MacroActionType</key><string>InsertText</string>"
+            f"<key>Text</key><string>{text}</string>"
+            "</dict>"
+        )
+    if action_type == "paste":
+        text = _xml_escape(str(config.get("text", "")))
+        return (
+            "<dict>"
+            "<key>Action</key><string>ByPasting</string>"
+            "<key>MacroActionType</key><string>InsertText</string>"
+            f"<key>Text</key><string>{text}</string>"
+            "</dict>"
+        )
+    if action_type == "set_variable":
+        variable = config.get("variable")
+        if not variable:
+            return None
+        return (
+            "<dict>"
+            "<key>MacroActionType</key><string>SetVariableToText</string>"
+            f"<key>Variable</key><string>{_xml_escape(str(variable))}</string>"
+            f"<key>Text</key><string>{_xml_escape(str(config.get('text', '')))}</string>"
+            "</dict>"
+        )
+    if action_type == "run_applescript":
+        source = _xml_escape(str(config.get("source", "")))
+        return (
+            "<dict>"
+            "<key>MacroActionType</key><string>ExecuteAppleScript</string>"
+            f"<key>Text</key><string>{source}</string>"
+            "<key>TextSource</key><string>Text</string>"
+            "</dict>"
+        )
+    if action_type == "execute_macro":
+        target = config.get("target_macro")
+        if not target:
+            return None
+        return (
+            "<dict>"
+            "<key>MacroActionType</key><string>ExecuteMacro</string>"
+            f"<key>Macro</key><string>{_xml_escape(str(target))}</string>"
+            "</dict>"
+        )
+    return None
+
+
+async def _do_list(macro_id: str | None) -> dict[str, Any]:
+    if not macro_id or not macro_id.strip():
+        return _failure("VALIDATION_ERROR", "macro_id is required.", "Pass macro_id.")
+    result = await get_km_client().list_macro_actions_async(MacroId(macro_id.strip()))
+    if result.is_left():
+        return _failure("LIST_FAILED", result.get_left().message, "Verify the macro exists.")
+    return {"success": True, "data": {"macro_id": macro_id, "actions": result.get_right()}}
+
+
+async def _do_append(
+    macro_id: str | None,
+    action_type: str | None,
+    action_config: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if not macro_id or not macro_id.strip() or not action_type:
+        return _failure(
+            "VALIDATION_ERROR",
+            "macro_id and action_type are required for operation='append'.",
+            "Pass both, plus action_config with type-appropriate fields.",
+        )
+    xml = _build_action_xml(action_type, action_config or {})
+    if xml is None:
+        return _failure(
+            "UNSUPPORTED_ACTION_TYPE",
+            f"action_type '{action_type}' not supported or missing required config field.",
+            "v1 supports: pause, type_text, paste, set_variable (needs 'variable'), "
+            "run_applescript, execute_macro (needs 'target_macro').",
+        )
+    result = await get_km_client().append_macro_action_async(MacroId(macro_id.strip()), xml)
+    if result.is_left():
+        return _failure("APPEND_FAILED", result.get_left().message, "Verify macro exists.")
+    return {
+        "success": True,
+        "data": {"macro_id": macro_id, "action_type": action_type, "appended": True},
+    }
+
+
+async def _do_delete(macro_id: str | None, action_index: int | None) -> dict[str, Any]:
+    if not macro_id or not macro_id.strip() or action_index is None:
+        return _failure(
+            "VALIDATION_ERROR",
+            "macro_id and action_index are required.",
+            "Use operation='list' first to find the 1-indexed position.",
+        )
+    result = await get_km_client().delete_macro_action_async(
+        MacroId(macro_id.strip()), action_index,
+    )
+    if result.is_left():
+        return _failure("DELETE_FAILED", result.get_left().message, "Verify the index is valid.")
+    return {"success": True, "data": {"macro_id": macro_id, "action_index": action_index}}
+
+
+async def _do_clear(macro_id: str | None) -> dict[str, Any]:
+    if not macro_id or not macro_id.strip():
+        return _failure("VALIDATION_ERROR", "macro_id is required.", "Pass macro_id.")
+    result = await get_km_client().clear_macro_actions_async(MacroId(macro_id.strip()))
+    if result.is_left():
+        return _failure("CLEAR_FAILED", result.get_left().message, "Verify the macro exists.")
+    return {"success": True, "data": {"macro_id": macro_id, "cleared": True}}
+
+
+async def km_action_builder(
+    operation: Annotated[
+        Literal["list", "append", "delete", "clear"],
+        Field(description="Action operation."),
+    ],
+    macro_id: Annotated[
+        str | None,
+        Field(default=None, description="Target macro name or UUID.", max_length=255),
+    ] = None,
+    action_type: Annotated[
+        str | None,
+        Field(
+            default=None,
+            description=(
+                "For 'append'. v1: pause, type_text, paste, set_variable, "
+                "run_applescript, execute_macro."
+            ),
+            max_length=64,
+        ),
+    ] = None,
+    action_config: Annotated[
+        dict[str, Any] | None,
+        Field(
+            default=None,
+            description=(
+                "For 'append'. pause: {seconds: 1}. type_text/paste: {text: '...'}. "
+                "set_variable: {variable: 'Name', text: '...'}. "
+                "run_applescript: {source: '...'}. execute_macro: {target_macro: 'Name'}."
+            ),
+        ),
+    ] = None,
+    action_index: Annotated[
+        int | None,
+        Field(default=None, description="1-indexed action position for 'delete'.", ge=1),
+    ] = None,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Build action sequences inside Keyboard Maestro macros.
+
+    Failure modes:
+    - VALIDATION_ERROR: missing or invalid argument for the operation
+    - KM_CONNECTION_FAILED: Keyboard Maestro Engine is not reachable
+    - UNSUPPORTED_ACTION_TYPE: action_type not in v1, or required config
+      field missing (e.g., set_variable without 'variable')
+    - LIST_FAILED / APPEND_FAILED / DELETE_FAILED / CLEAR_FAILED:
+      AppleScript reported an error (macro not found, index out of range,
+      KM rejected the action XML)
+    """
+    if ctx:
+        await ctx.info(f"km_action_builder op={operation} macro={macro_id!r}")
+
+    connection_error = await _check_kme_alive()
+    if connection_error is not None:
+        return connection_error
+
+    if operation == "list":
+        return await _do_list(macro_id)
+    if operation == "append":
+        return await _do_append(macro_id, action_type, action_config)
+    if operation == "delete":
+        return await _do_delete(macro_id, action_index)
+    return await _do_clear(macro_id)

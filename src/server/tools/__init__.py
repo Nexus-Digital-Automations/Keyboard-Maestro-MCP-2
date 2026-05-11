@@ -5,11 +5,13 @@ Tool modules in this package are auto-discovered by
 canonical entry points for callers that import them by name.
 """
 
+from .action_builder_tools import km_action_builder
 from .action_tools import km_add_action, km_list_action_types
 from .application_tools import km_application_control
 from .core_tools import km_execute_macro, km_list_macros, km_variable_manager
 from .engine_tools import km_engine_control
 from .hotkey_tools import km_create_hotkey_trigger, km_list_hotkey_triggers
+from .input_tools import km_input_simulator
 from .interface_tools import km_interface_automation
 from .macro_editor_tools import km_macro_editor
 from .macro_group_tools import km_macro_group_manager
@@ -23,12 +25,14 @@ from .trigger_tools import km_trigger_manager
 from .window_tools import km_window_manager
 
 __all__ = [
+    "km_action_builder",
     "km_add_action",
     "km_application_control",
     "km_create_hotkey_trigger",
     "km_dismiss_notifications",
     "km_engine_control",
     "km_execute_macro",
+    "km_input_simulator",
     "km_interface_automation",
     "km_list_action_types",
     "km_list_hotkey_triggers",

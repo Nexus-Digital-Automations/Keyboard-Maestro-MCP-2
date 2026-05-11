@@ -200,6 +200,30 @@ class ToolConfigurationManager:
             ),
         )
 
+        self.configurations["km_action_builder"] = ToolConfiguration(
+            name="km_action_builder",
+            category=ToolCategory.ACTION_BUILDING,
+            description="List, append, delete, and clear actions inside a macro",
+            module_path="src.server.tools.action_builder_tools",
+            priority=7,
+            security_policy=ToolSecurityPolicy(
+                level=SecurityLevel.STRICT,
+                audit_level="comprehensive",
+            ),
+        )
+
+        self.configurations["km_input_simulator"] = ToolConfiguration(
+            name="km_input_simulator",
+            category=ToolCategory.INPUT_SIMULATION,
+            description="Simulate keyboard input via macOS System Events",
+            module_path="src.server.tools.input_tools",
+            priority=5,
+            security_policy=ToolSecurityPolicy(
+                level=SecurityLevel.STRICT,
+                audit_level="detailed",
+            ),
+        )
+
     def get_configuration(self, tool_name: str) -> ToolConfiguration | None:
         """Get configuration for a specific tool."""
         return self.configurations.get(tool_name)
