@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any
 
 from ..core.contracts import ensure, require
 from ..core.either import Either
-from ..core.errors import MacroEngineError
+from ..core.errors import ErrorCategory, MacroEngineError
 
 if TYPE_CHECKING:
     from ..integration.km_client import KMClient
@@ -202,12 +202,9 @@ class NotificationManager:
             ) or not self._validate_notification_content(spec.message):
                 return Either.left(
                     MacroEngineError(
-                        code="CONTENT_VALIDATION_ERROR",
                         message="Notification content failed safety validation",
-                        details={
-                            "title_length": len(spec.title),
-                            "message_length": len(spec.message),
-                        },
+                        category=ErrorCategory.VALIDATION,
+                        error_code="CONTENT_VALIDATION_ERROR",
                     ),
                 )
 
@@ -222,9 +219,9 @@ class NotificationManager:
                 return await self._display_sound_notification(spec)
             return Either.left(
                 MacroEngineError(
-                    code="INVALID_NOTIFICATION_TYPE",
                     message=f"Unsupported notification type: {spec.notification_type}",
-                    details={"type": spec.notification_type.value},
+                    category=ErrorCategory.VALIDATION,
+                    error_code="INVALID_NOTIFICATION_TYPE",
                 ),
             )
 
@@ -232,9 +229,9 @@ class NotificationManager:
             logger.error(f"Failed to display notification: {e}")
             return Either.left(
                 MacroEngineError(
-                    code="DISPLAY_ERROR",
                     message=f"Notification display failed: {e!s}",
-                    details={"error_type": type(e).__name__},
+                    category=ErrorCategory.EXECUTION,
+                    error_code="DISPLAY_ERROR",
                 ),
             )
 
@@ -288,9 +285,9 @@ class NotificationManager:
         except Exception as e:
             return Either.left(
                 MacroEngineError(
-                    code="SYSTEM_NOTIFICATION_ERROR",
                     message=f"System notification failed: {e!s}",
-                    details={"notification_id": notification_id},
+                    category=ErrorCategory.EXECUTION,
+                    error_code="SYSTEM_NOTIFICATION_ERROR",
                 ),
             )
 
@@ -353,9 +350,9 @@ class NotificationManager:
         except Exception as e:
             return Either.left(
                 MacroEngineError(
-                    code="ALERT_DIALOG_ERROR",
                     message=f"Alert dialog failed: {e!s}",
-                    details={"notification_id": notification_id},
+                    category=ErrorCategory.EXECUTION,
+                    error_code="ALERT_DIALOG_ERROR",
                 ),
             )
 
@@ -402,9 +399,9 @@ class NotificationManager:
         except Exception as e:
             return Either.left(
                 MacroEngineError(
-                    code="HUD_DISPLAY_ERROR",
                     message=f"HUD display failed: {e!s}",
-                    details={"notification_id": notification_id},
+                    category=ErrorCategory.EXECUTION,
+                    error_code="HUD_DISPLAY_ERROR",
                 ),
             )
 
@@ -439,9 +436,9 @@ class NotificationManager:
         except Exception as e:
             return Either.left(
                 MacroEngineError(
-                    code="SOUND_NOTIFICATION_ERROR",
                     message=f"Sound notification failed: {e!s}",
-                    details={"notification_id": notification_id},
+                    category=ErrorCategory.EXECUTION,
+                    error_code="SOUND_NOTIFICATION_ERROR",
                 ),
             )
 

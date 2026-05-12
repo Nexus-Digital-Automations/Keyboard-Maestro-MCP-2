@@ -144,14 +144,13 @@ async def km_create_macro(
                 },
             }
 
-        # Handle group resolution
+        km_client = get_km_client()
+
         group_id = None
         if group_name:
             if ctx:
                 await ctx.report_progress(20, 100, f"Resolving group: {group_name}")
 
-            # Get KM client and resolve group name to ID
-            km_client = get_km_client()
             groups_result = await km_client.list_groups_async()
 
             if groups_result.is_left():
@@ -273,9 +272,9 @@ async def km_create_macro(
         return {
             "success": False,
             "error": {
-                "code": error.code,
+                "code": error.error_code,
                 "message": error.message,
-                "details": error.details,
+                "category": error.category.value,
                 "recovery_suggestion": error.recovery_suggestion,
             },
             "metadata": {
