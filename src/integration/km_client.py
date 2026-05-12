@@ -593,8 +593,16 @@ class KMClient:
     def _parse_applescript_records(
         self,
         applescript_output: str,
+        *,
+        record_start_key: str = "macroId",
     ) -> list[dict[str, Any]]:
-        """Parse AppleScript record format into Python dictionaries."""
+        """Parse AppleScript record format into Python dictionaries.
+
+        AppleScript serialises a list of records as a flat
+        ``key1:val1, key2:val2, key1:val1, key2:val2, ...`` stream. Pass
+        ``record_start_key`` to whichever key always appears first per
+        record (``macroId`` for macros, ``groupName`` for groups, etc.).
+        """
         import re
 
         records = []
@@ -649,20 +657,21 @@ class KMClient:
                     value = True
                 elif value == "false":
                     value = False
-                elif value.isdigit() or value.replace("-", "").isdigit():
+                elif value.isdigit() or (
+                    value.startswith("-") and value[1:].isdigit()
+                ):
+                    # UUIDs (``99999999-2222-...``) also pass ``replace('-','').isdigit()``;
+                    # only coerce real integers (optional leading ``-`` then digits).
                     value = int(value)
 
-                # If we see macroId and we already have a record, start a new one
-                if key == "macroId" and current_record:
-                    # Clean up the previous record before saving
-                    if "macroId" in current_record:
+                if key == record_start_key and current_record:
+                    if record_start_key in current_record:
                         records.append(current_record)
                     current_record = {}
 
                 current_record[key] = value
 
-        # Don't forget the last record
-        if current_record and "macroId" in current_record:
+        if current_record and record_start_key in current_record:
             records.append(current_record)
 
         return records
@@ -1363,7 +1372,9 @@ class KMClient:
 
             # Parse the AppleScript output into a list of dictionaries
             output = result.get_right()
-            groups = self._parse_applescript_records(output)
+            groups = self._parse_applescript_records(
+                output, record_start_key="groupName",
+            )
 
             return Either.right(groups)
 

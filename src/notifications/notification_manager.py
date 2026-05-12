@@ -365,15 +365,19 @@ class NotificationManager:
         start_time = time.time()
 
         try:
-            # Use Keyboard Maestro's HUD display action
             duration = spec.duration or 3.0
 
-            # Create HUD display through KM client
-            hud_result = await self.km_client.display_hud_text(
-                text=f"{spec.title}\n{spec.message}",
-                duration=duration,
-                position=self._get_hud_position_value(spec.position),
+            # KM exposes HUD via the engine; no high-level KMClient wrapper exists,
+            # so build the AppleScript inline.
+            escaped_text = self._escape_applescript_string(
+                f"{spec.title}\n{spec.message}",
             )
+            hud_script = (
+                f'tell application "Keyboard Maestro Engine" '
+                f'to show hud text "{escaped_text}" '
+                f"for {duration} seconds"
+            )
+            hud_result = await self.km_client.execute_applescript_async(hud_script)
 
             if hud_result.is_left():
                 return Either.left(hud_result.get_left())

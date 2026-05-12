@@ -342,7 +342,7 @@ class HotkeyManager:
         return cls(Mock(), Mock())
 
     @require(lambda _self, macro_id: macro_id)
-    @require(lambda _self, _macro_id, hotkey: isinstance(hotkey, HotkeySpec))
+    @require(lambda _self, macro_id, hotkey: isinstance(hotkey, HotkeySpec))  # noqa: ARG005
     async def create_hotkey_trigger(
         self,
         macro_id: MacroId,

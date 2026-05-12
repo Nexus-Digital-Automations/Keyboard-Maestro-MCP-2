@@ -718,7 +718,7 @@ class WindowManager:
                 size = Size(int(parts[2]), int(parts[3]))
             except ValueError as parse_err:
                 return Either.left(
-                    KMError.parsing_error(
+                    KMError.execution_error(
                         f"Could not parse window bounds for {app_identifier}: {parse_err}",
                     ),
                 )

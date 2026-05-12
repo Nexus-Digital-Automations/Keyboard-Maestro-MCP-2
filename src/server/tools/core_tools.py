@@ -536,17 +536,16 @@ async def km_variable_manager(
             if ctx:
                 await ctx.report_progress(25, 100, "Connecting to Keyboard Maestro")
 
-            # Use AppleScript to get variables from KM
+            # Use AppleScript to get variables from KM. KM's dictionary has no
+            # ``global variable`` class — ``variables`` returns all engine
+            # variables (the global scope).
             if scope == "global":
                 script = """
                 tell application "Keyboard Maestro Engine"
                     try
                         set variableList to {}
-                        set globalVars to every global variable
-
-                        repeat with currentVar in globalVars
+                        repeat with currentVar in variables
                             set varName to name of currentVar
-                            set varValue to value of currentVar
                             set variableRecord to {¬
                                 varName:varName, ¬
                                 varScope:"global", ¬
