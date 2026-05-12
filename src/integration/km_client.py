@@ -54,6 +54,22 @@ def _run_osascript_sync(script: str, timeout: float) -> subprocess.CompletedProc
     )
 
 
+def _escape_applescript_xml_literal(xml_text: str) -> str:
+    """Escape arbitrary XML so it can ride inside an AppleScript string literal.
+
+    Multi-line plist XML must survive the round-trip: backslashes first
+    (so we don't double-escape the escapes we add next), then quotes, then
+    CR/LF translated to ``\\r``/``\\n`` because AppleScript string literals
+    cannot contain raw newlines.
+    """
+    return (
+        xml_text.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\r", "\\r")
+        .replace("\n", "\\n")
+    )
+
+
 class ConnectionMethod(Enum):
     """Available connection methods to Keyboard Maestro."""
 
@@ -2208,6 +2224,133 @@ class KMClient:
             try
                 set enabled of trigger {trigger_index} of (first macro whose name is "{escaped}") to {flag}
                 return "ok"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.execution_error(output[6:].strip()))
+        return Either.right(True)
+
+    async def get_macro_trigger_xml_async(
+        self,
+        macro_id: MacroId,
+        trigger_index: int,
+    ) -> Either[KMError, str]:
+        """Return the full plist XML of the Nth trigger (1-indexed) of a macro."""
+        if trigger_index < 1:
+            return Either.left(KMError.validation_error("trigger_index must be >= 1"))
+        escaped = self._escape_applescript_string(str(macro_id))
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                return xml of trigger {trigger_index} of (first macro whose name is "{escaped}")
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right()
+        if output.strip().startswith("ERROR:"):
+            return Either.left(KMError.not_found_error(output.strip()[6:].strip()))
+        return Either.right(output)
+
+    async def list_macro_triggers_with_xml_async(
+        self,
+        macro_id: MacroId,
+    ) -> Either[KMError, list[dict[str, Any]]]:
+        """List triggers with full XML body so callers can edit and replace."""
+        escaped = self._escape_applescript_string(str(macro_id))
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set output to ""
+                set trigList to triggers of (first macro whose name is "{escaped}")
+                repeat with t in trigList
+                    set output to output & (description of t) & "␟" & (enabled of t) & "␟" & (xml of t) & "␞"
+                end repeat
+                return output
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right()
+        stripped = output.strip()
+        if stripped.startswith("ERROR:"):
+            return Either.left(KMError.not_found_error(stripped[6:].strip()))
+        triggers: list[dict[str, Any]] = []
+        for idx, record in enumerate(filter(None, output.split("␞")), start=1):
+            parts = record.split("␟", 2)
+            triggers.append(
+                {
+                    "index": idx,
+                    "description": parts[0].strip() if parts else "",
+                    "enabled": (parts[1].strip().lower() == "true") if len(parts) > 1 else True,
+                    "xml": parts[2] if len(parts) > 2 else "",
+                },
+            )
+        return Either.right(triggers)
+
+    async def append_macro_trigger_xml_async(
+        self,
+        macro_id: MacroId,
+        trigger_xml: str,
+    ) -> Either[KMError, bool]:
+        """Append a trigger by setting its full plist XML.
+
+        Works for every KM trigger type — caller controls the
+        ``MacroTriggerType`` discriminator and per-type fields in the XML.
+        """
+        escaped_id = self._escape_applescript_string(str(macro_id))
+        escaped_xml = _escape_applescript_xml_literal(trigger_xml)
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set targetMacro to first macro whose name is "{escaped_id}"
+                set newTrigger to make new trigger at end of triggers of targetMacro
+                set xml of newTrigger to "{escaped_xml}"
+                return "appended"
+            on error errMsg
+                return "ERROR: " & errMsg
+            end try
+        end tell
+        '''
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right().strip()
+        if output.startswith("ERROR:"):
+            return Either.left(KMError.execution_error(output[6:].strip()))
+        return Either.right(True)
+
+    async def update_macro_trigger_xml_async(
+        self,
+        macro_id: MacroId,
+        trigger_index: int,
+        trigger_xml: str,
+    ) -> Either[KMError, bool]:
+        """Replace the XML of the Nth trigger (1-indexed) of a macro."""
+        if trigger_index < 1:
+            return Either.left(KMError.validation_error("trigger_index must be >= 1"))
+        escaped_id = self._escape_applescript_string(str(macro_id))
+        escaped_xml = _escape_applescript_xml_literal(trigger_xml)
+        script = f'''
+        tell application "Keyboard Maestro"
+            try
+                set xml of trigger {trigger_index} of (first macro whose name is "{escaped_id}") to "{escaped_xml}"
+                return "updated"
             on error errMsg
                 return "ERROR: " & errMsg
             end try

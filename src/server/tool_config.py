@@ -200,6 +200,21 @@ class ToolConfigurationManager:
             ),
         )
 
+        self.configurations["km_trigger_crud"] = ToolConfiguration(
+            name="km_trigger_crud",
+            category=ToolCategory.TRIGGER_MANAGEMENT,
+            description=(
+                "Universal CRUD for macro triggers via XML round-trip; "
+                "supports every KM trigger type"
+            ),
+            module_path="src.server.tools.trigger_crud_tools",
+            priority=7,
+            security_policy=ToolSecurityPolicy(
+                level=SecurityLevel.STRICT,
+                audit_level="comprehensive",
+            ),
+        )
+
         self.configurations["km_action_builder"] = ToolConfiguration(
             name="km_action_builder",
             category=ToolCategory.ACTION_BUILDING,

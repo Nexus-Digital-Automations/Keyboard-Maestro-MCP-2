@@ -22,6 +22,7 @@ from .notification_tools import (
 )
 from .plugin_action_tools import km_build_plugin_action
 from .token_tools import km_token_processor, km_token_stats
+from .trigger_crud_tools import km_trigger_crud
 from .trigger_tools import km_trigger_manager
 from .window_tools import km_window_manager
 
@@ -45,6 +46,7 @@ __all__ = [
     "km_notifications",
     "km_token_processor",
     "km_token_stats",
+    "km_trigger_crud",
     "km_trigger_manager",
     "km_variable_manager",
     "km_window_manager",
