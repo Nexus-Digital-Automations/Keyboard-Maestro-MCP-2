@@ -760,25 +760,17 @@ class KMClient:
             end tell
             """
             try:
-                # S607 SECURITY FIX: Use secure subprocess execution
-                from ..commands.secure_subprocess import (
-                    CommandType,
-                    SecureCommand,
-                    get_secure_subprocess_manager,
-                )
-
-                secure_manager = get_secure_subprocess_manager()
-                command = SecureCommand(
-                    command_type=CommandType.SYSTEM_INFO,
-                    executable="osascript",
-                    args=["-e", ping_script],
+                result = subprocess.run(  # noqa: S603 — hardcoded osascript string, no injection surface
+                    ["/usr/bin/osascript", "-e", ping_script],
+                    capture_output=True,
+                    text=True,
                     timeout=5.0,
-                    allowed_return_codes={0, 1},
+                    check=False,
                 )
-                result = secure_manager.execute_secure_command(command)
                 alive = result.returncode == 0 and "true" in result.stdout.lower()
                 return Either.right({"alive": alive})
-            except Exception:
+            except (subprocess.TimeoutExpired, OSError) as e:
+                logger.warning("KM ping failed: %s", e)
                 return Either.right({"alive": False})
 
         elif command == "register_trigger":
