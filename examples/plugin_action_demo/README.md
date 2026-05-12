@@ -21,7 +21,7 @@ The bundle contains:
 
 | File | What it does |
 |---|---|
-| `Keyboard Maestro Action.plist` | Metadata (name, identifier, params, result mode). |
+| `Keyboard Maestro Action.plist` | Metadata (name, title, params, allowed result targets). |
 | `run.sh` | Wrapper KM executes. Reads `KMPARAM_*`, calls `ui_inspector.py`. |
 | `ui_inspector.py` | A verbatim copy of `examples/ui_inspector/click_button_by_title.py`. |
 
@@ -70,5 +70,6 @@ picks up changes after the next Engine restart.
 `build_wait_for_button_action.py` is ~50 lines and is the canonical example
 of calling `km_build_plugin_action` from Python. Anywhere you'd hand-author
 a `.kmactions` folder, you can instead build the spec dict and call the
-tool — the plist serialisation, identifier validation, path-traversal
-guard, and `chmod 0755` are all handled for you.
+tool — the plist serialisation, result-target validation, path-traversal
+guard, `chmod 0755`, and PNG-magic-byte check on the icon are all handled
+for you.
