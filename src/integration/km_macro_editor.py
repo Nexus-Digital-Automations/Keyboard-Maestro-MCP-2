@@ -78,7 +78,7 @@ class KMMacroEditor:
             end tell
             """
 
-            result = await self.km_client.execute_applescript(applescript)
+            result = await self.km_client.execute_applescript_async(applescript)
             if result.is_left():
                 return Either.left(
                     IntegrationError(
@@ -452,7 +452,7 @@ class KMMacroEditor:
         end tell
         """
 
-        result = await self.km_client.execute_applescript(applescript)
+        result = await self.km_client.execute_applescript_async(applescript)
         if result.is_left():
             return Either.left(
                 IntegrationError(
@@ -538,7 +538,7 @@ class KMMacroEditor:
         end tell
         """
 
-        result = await self.km_client.execute_applescript(applescript)
+        result = await self.km_client.execute_applescript_async(applescript)
         if result.is_left():
             return Either.left(
                 IntegrationError(
@@ -568,7 +568,7 @@ class KMMacroEditor:
         end tell
         """
 
-        result = await self.km_client.execute_applescript(applescript)
+        result = await self.km_client.execute_applescript_async(applescript)
         if result.is_left():
             return Either.left(
                 IntegrationError(

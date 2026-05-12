@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import platform
 import re
+import subprocess
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -475,22 +476,13 @@ class TokenProcessor:
         """
 
         try:
-            # S607 SECURITY FIX: Use secure subprocess execution
-            from ..commands.secure_subprocess import (
-                CommandType,
-                SecureCommand,
-                get_secure_subprocess_manager,
-            )
-
-            secure_manager = get_secure_subprocess_manager()
-            command = SecureCommand(
-                command_type=CommandType.SYSTEM_INFO,
-                executable="osascript",
-                args=["-e", script],
+            result = subprocess.run(  # noqa: S603 — hardcoded osascript, script body is locally constructed
+                ["/usr/bin/osascript", "-e", script],
+                capture_output=True,
+                text=True,
                 timeout=5.0,
-                allowed_return_codes={0, 1},
+                check=False,
             )
-            result = secure_manager.execute_secure_command(command)
             return result.stdout.strip() if result.returncode == 0 else "Unknown Window"
         except Exception:
             return "Unknown Window"
@@ -509,22 +501,13 @@ class TokenProcessor:
         """
 
         try:
-            # S607 SECURITY FIX: Use secure subprocess execution
-            from ..commands.secure_subprocess import (
-                CommandType,
-                SecureCommand,
-                get_secure_subprocess_manager,
-            )
-
-            secure_manager = get_secure_subprocess_manager()
-            command = SecureCommand(
-                command_type=CommandType.SYSTEM_INFO,
-                executable="osascript",
-                args=["-e", script],
+            result = subprocess.run(  # noqa: S603 — hardcoded osascript, script body is locally constructed
+                ["/usr/bin/osascript", "-e", script],
+                capture_output=True,
+                text=True,
                 timeout=5.0,
-                allowed_return_codes={0, 1},
+                check=False,
             )
-            result = secure_manager.execute_secure_command(command)
             return (
                 result.stdout.strip()
                 if result.returncode == 0

@@ -291,7 +291,7 @@ async def km_notifications(
 
             return _create_error_response(
                 correlation_id,
-                error.code,
+                error.error_code,
                 error.message,
                 f"Notification display failed: {error.message}",
                 "Check system permissions and notification settings",

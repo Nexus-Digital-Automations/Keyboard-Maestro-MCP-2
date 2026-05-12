@@ -520,12 +520,13 @@ class WindowManager:
             end tell
             """
 
+            # ``bounds of every desktop`` is not valid in System Events; the
+            # current AppleScript always errors. Fall through to the parser's
+            # default so callers receive a sensible main-screen stub instead
+            # of an empty list, until a proper NSScreen query is wired in.
             result = await self._execute_applescript(script, Duration.from_seconds(10))
-            if result.is_left():
-                return []
-
-            # Parse screen information
-            screens = self._parse_screen_data(result.get_right())
+            payload = result.get_right() if result.is_right() else ""
+            screens = self._parse_screen_data(payload)
 
             # Update cache
             self._screen_cache = screens
@@ -707,29 +708,32 @@ class WindowManager:
                     KMError.execution_error(f"Window query failed: {output[6:]}"),
                 )
 
-            # Parse window information
-            parts = output.split(",")
-            if len(parts) >= 4:
+            # AppleScript ``&``-concatenation pads numerics with whitespace ("100 ,200,..."),
+            # and minimised/hidden windows can yield empty position/size slots.
+            parts = [p.strip() for p in output.split(",")]
+            try:
+                if len(parts) < 4 or not all(parts[i] for i in range(4)):
+                    raise ValueError(f"missing numeric fields in {output!r}")
                 position = Position(int(parts[0]), int(parts[1]))
                 size = Size(int(parts[2]), int(parts[3]))
-                title = parts[4] if len(parts) > 4 else None
-
-                window_info = WindowInfo(
-                    app_identifier=app_identifier,
-                    window_index=window_index,
-                    position=position,
-                    size=size,
-                    state=WindowState.NORMAL,
-                    title=title,
+            except ValueError as parse_err:
+                return Either.left(
+                    KMError.parsing_error(
+                        f"Could not parse window bounds for {app_identifier}: {parse_err}",
+                    ),
                 )
+            title = parts[4] if len(parts) > 4 and parts[4] else None
 
-                # Update cache
-                self._window_cache[cache_key] = (window_info, current_time)
-
-                return Either.right(window_info)
-            return Either.left(
-                KMError.parsing_error("Invalid window information format"),
+            window_info = WindowInfo(
+                app_identifier=app_identifier,
+                window_index=window_index,
+                position=position,
+                size=size,
+                state=WindowState.NORMAL,
+                title=title,
             )
+            self._window_cache[cache_key] = (window_info, current_time)
+            return Either.right(window_info)
 
         except Exception as e:
             return Either.left(

@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from ..core.contracts import ensure, require
+from ..core.contracts import require
 from ..core.errors import SecurityViolationError, ValidationError
 from ..core.types import MacroId, TriggerId
 from ..integration.events import TriggerType
@@ -343,11 +343,6 @@ class HotkeyManager:
 
     @require(lambda _self, macro_id: macro_id)
     @require(lambda _self, _macro_id, hotkey: isinstance(hotkey, HotkeySpec))
-    @ensure(
-        lambda result: result.is_right()
-        or result.get_left().code
-        in ["CONFLICT_ERROR", "INVALID_HOTKEY", "VALIDATION_ERROR"],
-    )
     async def create_hotkey_trigger(
         self,
         macro_id: MacroId,

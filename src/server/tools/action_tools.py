@@ -4,7 +4,6 @@ Provides comprehensive action building functionality for programmatic
 macro construction with security validation and XML generation.
 """
 
-import asyncio
 import logging
 import uuid
 from datetime import UTC, datetime
@@ -219,23 +218,50 @@ async def km_add_action(
         if ctx:
             await ctx.report_progress(70, 100, "Integrating with Keyboard Maestro")
 
-        # Get KM client and add action to macro
         km_client = get_km_client()
+        from ...core.types import MacroId
 
-        # Execute the action addition (simulated for now - would integrate with real KM client)
-        await asyncio.get_event_loop().run_in_executor(
-            None,
-            _add_action_to_km_macro,
-            km_client,
-            macro_id,
+        append_result = await km_client.append_macro_action_async(
+            MacroId(macro_id),
             action_xml,
-            position,
         )
+        if append_result.is_left():
+            km_error = append_result.get_left()
+            logger.warning(
+                "km_add_action append failed",
+                extra={
+                    "correlation_id": correlation_id,
+                    "macro_id": macro_id,
+                    "action_type": action_type,
+                    "km_error": km_error.message,
+                },
+            )
+            return {
+                "success": False,
+                "error": {
+                    "code": "APPEND_FAILED",
+                    "message": km_error.message,
+                    "details": {
+                        "macro_id": macro_id,
+                        "action_type": action_type,
+                    },
+                    "recovery_suggestion": (
+                        "Verify the macro exists. Note: km_add_action's 146-type "
+                        "catalog ships KM-incompatible XML for most types; use "
+                        "km_action_builder for v1 types (pause, type_text, paste, "
+                        "set_variable, run_applescript, execute_macro)."
+                    ),
+                    "error_id": str(uuid.uuid4()),
+                },
+                "metadata": {
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "correlation_id": correlation_id,
+                },
+            }
 
         if ctx:
             await ctx.report_progress(100, 100, "Action added successfully")
 
-        # Calculate execution time
         execution_time = (datetime.now(UTC) - start_time).total_seconds()
 
         return {
@@ -484,30 +510,6 @@ async def km_list_action_types(
                 "correlation_id": correlation_id,
             },
         }
-
-
-def _add_action_to_km_macro(
-    _km_client: Any,
-    macro_id: str,
-    action_xml: str,
-    position: int | None,
-) -> bool:
-    """Add action to Keyboard Maestro macro via client integration.
-
-    This is a placeholder for the actual KM client integration.
-    In a real implementation, this would use AppleScript or KM API.
-    """
-    # Simulate successful action addition
-    logger.info(f"Adding action to macro {macro_id} at position {position}")
-    logger.debug(f"Action XML: {action_xml[:200]}...")
-
-    # In real implementation, would:
-    # 1. Validate macro exists
-    # 2. Insert action XML at specified position
-    # 3. Update macro in Keyboard Maestro
-    # 4. Return success/failure status
-
-    return True
 
 
 def _truncate_xml_for_preview(xml: str, max_length: int = 500) -> str:

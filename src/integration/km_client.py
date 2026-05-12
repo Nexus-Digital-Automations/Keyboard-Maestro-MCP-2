@@ -38,6 +38,22 @@ E = TypeVar("E")
 logger = logging.getLogger(__name__)
 
 
+def _run_osascript_sync(script: str, timeout: float) -> subprocess.CompletedProcess[str]:
+    """Execute an AppleScript via osascript synchronously.
+
+    Replaces the removed ``commands.secure_subprocess`` shim. osascript itself
+    is a hardcoded absolute path; only the script body is variable, and that
+    is escaped at each call site before it reaches us.
+    """
+    return subprocess.run(  # noqa: S603 — hardcoded osascript, script body is caller-escaped
+        ["/usr/bin/osascript", "-e", script],
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        check=False,
+    )
+
+
 class ConnectionMethod(Enum):
     """Available connection methods to Keyboard Maestro."""
 
@@ -436,22 +452,7 @@ class KMClient:
         """
 
         try:
-            # S607 SECURITY FIX: Use secure subprocess execution
-            from ..commands.secure_subprocess import (
-                CommandType,
-                SecureCommand,
-                get_secure_subprocess_manager,
-            )
-
-            secure_manager = get_secure_subprocess_manager()
-            command = SecureCommand(
-                command_type=CommandType.SYSTEM_INFO,
-                executable="osascript",
-                args=["-e", script],
-                timeout=self.config.timeout.total_seconds(),
-                allowed_return_codes={0, 1},
-            )
-            result = secure_manager.execute_secure_command(command)
+            result = _run_osascript_sync(script, self.config.timeout.total_seconds())
 
             if result.returncode != 0:
                 return Either.left(
@@ -675,12 +676,7 @@ class KMClient:
         """Pure function for safe command sending with error handling."""
         try:
             if config.method == ConnectionMethod.APPLESCRIPT:
-                result = KMClient._send_via_applescript(command, payload, config)
-                print(
-                    f"DEBUG _safe_send got from _send_via_applescript: {type(result)} = {result}"
-                )
-                print(f"DEBUG _safe_send returning: {type(result)} = {result}")
-                return result
+                return KMClient._send_via_applescript(command, payload, config)
             if config.method == ConnectionMethod.URL_SCHEME:
                 return KMClient._send_via_url_scheme(command, payload, config)
             if config.method == ConnectionMethod.WEB_API:
@@ -723,32 +719,13 @@ class KMClient:
             """
 
             try:
-                # S607 SECURITY FIX: Use secure subprocess execution
-                from ..commands.secure_subprocess import (
-                    CommandType,
-                    SecureCommand,
-                    get_secure_subprocess_manager,
-                )
-
-                secure_manager = get_secure_subprocess_manager()
-                command = SecureCommand(
-                    command_type=CommandType.SYSTEM_INFO,
-                    executable="osascript",
-                    args=["-e", script],
-                    timeout=config.timeout.total_seconds(),
-                    allowed_return_codes={0, 1},
-                )
-                result = secure_manager.execute_secure_command(command)
+                result = _run_osascript_sync(script, config.timeout.total_seconds())
 
                 if result.returncode == 0:
                     output = result.stdout.strip()
                     if output.startswith("ERROR:"):
                         return Either.left(KMError.execution_error(output[6:].strip()))
-                    either_result = Either.right({"output": output, "success": True})
-                    print(
-                        f"DEBUG _send_via_applescript returning: {type(either_result)} = {either_result}"
-                    )
-                    return either_result
+                    return Either.right({"output": output, "success": True})
                 return Either.left(KMError.execution_error(result.stderr.strip()))
 
             except subprocess.TimeoutExpired:
@@ -803,22 +780,7 @@ class KMClient:
             """
 
             try:
-                # S607 SECURITY FIX: Use secure subprocess execution
-                from ..commands.secure_subprocess import (
-                    CommandType,
-                    SecureCommand,
-                    get_secure_subprocess_manager,
-                )
-
-                secure_manager = get_secure_subprocess_manager()
-                command = SecureCommand(
-                    command_type=CommandType.SYSTEM_INFO,
-                    executable="osascript",
-                    args=["-e", register_script],
-                    timeout=config.timeout.total_seconds(),
-                    allowed_return_codes={0, 1},
-                )
-                result = secure_manager.execute_secure_command(command)
+                result = _run_osascript_sync(register_script, config.timeout.total_seconds())
 
                 if result.returncode == 0 and not result.stdout.startswith("ERROR:"):
                     return Either.right({"trigger_id": trigger_id, "success": True})
@@ -858,22 +820,7 @@ class KMClient:
             """
 
             try:
-                # S607 SECURITY FIX: Use secure subprocess execution
-                from ..commands.secure_subprocess import (
-                    CommandType,
-                    SecureCommand,
-                    get_secure_subprocess_manager,
-                )
-
-                secure_manager = get_secure_subprocess_manager()
-                command = SecureCommand(
-                    command_type=CommandType.SYSTEM_INFO,
-                    executable="osascript",
-                    args=["-e", unregister_script],
-                    timeout=config.timeout.total_seconds(),
-                    allowed_return_codes={0, 1},
-                )
-                result = secure_manager.execute_secure_command(command)
+                result = _run_osascript_sync(unregister_script, config.timeout.total_seconds())
 
                 if result.returncode == 0 and not result.stdout.startswith("ERROR:"):
                     return Either.right({"success": True})
@@ -935,22 +882,7 @@ class KMClient:
             """
 
             try:
-                # S607 SECURITY FIX: Use secure subprocess execution
-                from ..commands.secure_subprocess import (
-                    CommandType,
-                    SecureCommand,
-                    get_secure_subprocess_manager,
-                )
-
-                secure_manager = get_secure_subprocess_manager()
-                command = SecureCommand(
-                    command_type=CommandType.SYSTEM_INFO,
-                    executable="osascript",
-                    args=["-e", create_script],
-                    timeout=config.timeout.total_seconds(),
-                    allowed_return_codes={0, 1},
-                )
-                result = secure_manager.execute_secure_command(command)
+                result = _run_osascript_sync(create_script, config.timeout.total_seconds())
 
                 if result.returncode == 0 and result.stdout.startswith("SUCCESS:"):
                     macro_id = result.stdout.strip()[8:]  # Remove "SUCCESS:" prefix
@@ -998,22 +930,7 @@ class KMClient:
             """
 
             try:
-                # S607 SECURITY FIX: Use secure subprocess execution
-                from ..commands.secure_subprocess import (
-                    CommandType,
-                    SecureCommand,
-                    get_secure_subprocess_manager,
-                )
-
-                secure_manager = get_secure_subprocess_manager()
-                command = SecureCommand(
-                    command_type=CommandType.SYSTEM_INFO,
-                    executable="osascript",
-                    args=["-e", activate_script],
-                    timeout=config.timeout.total_seconds(),
-                    allowed_return_codes={0, 1},
-                )
-                result = secure_manager.execute_secure_command(command)
+                result = _run_osascript_sync(activate_script, config.timeout.total_seconds())
 
                 if result.returncode == 0 and not result.stdout.startswith("ERROR:"):
                     return Either.right({"success": True})
@@ -1053,22 +970,13 @@ class KMClient:
                 url += f"&value={trigger_value}"
 
             try:
-                # S607 SECURITY FIX: Use secure subprocess execution
-                from ..commands.secure_subprocess import (
-                    CommandType,
-                    SecureCommand,
-                    get_secure_subprocess_manager,
-                )
-
-                secure_manager = get_secure_subprocess_manager()
-                command = SecureCommand(
-                    command_type=CommandType.SYSTEM_INFO,
-                    executable="open",
-                    args=[url],
+                subprocess.run(  # noqa: S603 — hardcoded /usr/bin/open with kmtrigger URL
+                    ["/usr/bin/open", url],
+                    capture_output=True,
+                    text=True,
                     timeout=config.timeout.total_seconds(),
-                    allowed_return_codes={0, 1},
+                    check=False,
                 )
-                secure_manager.execute_secure_command(command)
                 return Either.right({"success": True, "url": url})
             except subprocess.TimeoutExpired:
                 return Either.left(KMError.timeout_error(config.timeout))
@@ -1425,22 +1333,26 @@ class KMClient:
         return False
 
     async def list_groups_async(self) -> Either[KMError, list[dict[str, Any]]]:
-        """List macro groups asynchronously."""
+        """List macro groups asynchronously.
+
+        Failure modes: KM internal/sentinel groups (e.g., the synthetic
+        ``99999999-2222-3333-4444-555555555555`` smart-group placeholder) raise
+        on ``uid``/``id`` dereference. We skip those rather than fail the whole
+        listing — they are not user-visible groups.
+        """
         try:
             script = """
             tell application "Keyboard Maestro"
-                set groupList to every macro group
                 set groupData to {}
-
-                repeat with currentGroup in groupList
-                    set groupName to name of currentGroup
-                    set groupID to uid of currentGroup
-                    set groupEnabled to enabled of currentGroup
-
-                    set groupRecord to {groupName:groupName, groupID:groupID, enabled:groupEnabled}
-                    set groupData to groupData & {groupRecord}
+                repeat with currentGroup in (every macro group)
+                    try
+                        set groupName to name of currentGroup
+                        set groupID to (id of currentGroup as string)
+                        set groupEnabled to enabled of currentGroup
+                        set groupRecord to {groupName:groupName, groupID:groupID, enabled:groupEnabled}
+                        set groupData to groupData & {groupRecord}
+                    end try
                 end repeat
-
                 return groupData
             end tell
             """

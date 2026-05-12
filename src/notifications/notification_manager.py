@@ -259,7 +259,7 @@ class NotificationManager:
             applescript = " ".join(script_parts)
 
             # Execute through KM client
-            result = await self.km_client.execute_applescript(applescript)
+            result = await self.km_client.execute_applescript_async(applescript)
 
             if result.is_left():
                 return Either.left(result.get_left())
@@ -316,7 +316,7 @@ class NotificationManager:
                 """
 
             # Execute through KM client
-            result = await self.km_client.execute_applescript(script)
+            result = await self.km_client.execute_applescript_async(script)
 
             if result.is_left():
                 return Either.left(result.get_left())
