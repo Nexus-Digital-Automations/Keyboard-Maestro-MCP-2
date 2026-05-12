@@ -11,7 +11,12 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ..core.contracts import ensure, require
-from ..core.errors import MacroEngineError, SecurityViolationError, ValidationError
+from ..core.errors import (
+    ErrorCategory,
+    MacroEngineError,
+    SecurityViolationError,
+    ValidationError,
+)
 from ..core.types import GroupId, MacroId
 from ..integration.km_client import KMClient
 from .types import MacroTemplate
@@ -186,18 +191,18 @@ class MacroBuilder:
         except (SecurityViolationError, ValidationError) as e:
             logger.error(f"Validation failed for macro {request.name}: {e}")
             return MacroEngineError(
-                code="VALIDATION_ERROR",
                 message=str(e),
-                details=f"Macro creation failed validation: {e}",
+                category=ErrorCategory.VALIDATION,
                 recovery_suggestion="Review input parameters and try again",
+                error_code="VALIDATION_ERROR",
             )
         except Exception as e:
             logger.exception(f"Unexpected error creating macro {request.name}")
             return MacroEngineError(
-                code="CREATION_ERROR",
-                message="Failed to create macro",
-                details=str(e),
+                message=f"Failed to create macro: {e}",
+                category=ErrorCategory.EXECUTION,
                 recovery_suggestion="Check Keyboard Maestro status and permissions",
+                error_code="CREATION_ERROR",
             )
 
     def build_macro(self, config: dict[str, Any]) -> dict[str, Any] | None:

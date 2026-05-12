@@ -78,8 +78,7 @@ def _validate_ast_safety(node: ast.AST) -> None:
         ast.UnaryOp,  # Unary operations (+, -, not)
         ast.Call,  # Function calls (for math functions)
         ast.Name,  # Variable names
-        ast.Constant,  # Literal values (numbers, strings)
-        ast.Num,  # Number literals (deprecated but still used)
+        ast.Constant,  # Literal values (numbers, strings); replaces removed ast.Num in 3.12+
         ast.Load,  # Load context
         # Binary operators
         ast.Add,  # Addition operator
@@ -143,8 +142,6 @@ def _evaluate_ast_node(node: ast.AST, namespace: dict[str, Any]) -> Any:
     """
     if isinstance(node, ast.Constant):
         return node.value
-    if isinstance(node, ast.Num):  # For older Python versions
-        return node.n
     if isinstance(node, ast.Name):
         if node.id not in namespace:
             raise ValidationError("expression", node.id, f"Unknown variable: {node.id}")
