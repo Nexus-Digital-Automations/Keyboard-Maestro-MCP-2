@@ -20,6 +20,7 @@ from .notification_tools import (
     km_notification_status,
     km_notifications,
 )
+from .plugin_action_tools import km_build_plugin_action
 from .token_tools import km_token_processor, km_token_stats
 from .trigger_tools import km_trigger_manager
 from .window_tools import km_window_manager
@@ -28,6 +29,7 @@ __all__ = [
     "km_action_builder",
     "km_add_action",
     "km_application_control",
+    "km_build_plugin_action",
     "km_create_hotkey_trigger",
     "km_dismiss_notifications",
     "km_engine_control",

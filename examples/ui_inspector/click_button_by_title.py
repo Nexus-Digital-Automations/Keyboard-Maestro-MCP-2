@@ -9,22 +9,30 @@ Requires: ``/usr/bin/python3`` (system Python ships with PyObjC). Other
 interpreters won't have ``ApplicationServices`` / ``AppKit`` and will exit 5.
 
 Usage:
-    click_button_by_title.py list  <app-name-or-bundle-id>
-    click_button_by_title.py click <app-name-or-bundle-id> <title-substring>
+    click_button_by_title.py list       <app-name-or-bundle-id>
+    click_button_by_title.py click      <app-name-or-bundle-id> <title-substring>
+    click_button_by_title.py wait_click <app-name-or-bundle-id> <title-substring>
+                                        [timeout_ms=10000] [poll_ms=250]
+
+``wait_click`` polls the front window until the button is present, then clicks
+it. The app does not need to be running when the wait starts — the loop will
+pick it up once it launches and shows a window.
 
 Exit codes:
     0  success
-    2  app not running
-    3  no front window
+    2  app not running (one-shot modes only; wait_click waits instead)
+    3  no front window (one-shot modes only)
     4  no buttons found / no title match
     5  accessibility permission denied or AX call failed
     6  ambiguous match (multiple buttons match the title substring)
+    7  wait_click timed out before the button appeared
     9  invalid arguments
 """
 
 from __future__ import annotations
 
 import sys
+import time
 
 try:
     from AppKit import NSWorkspace
@@ -152,23 +160,38 @@ def require_accessibility() -> None:
         sys.exit(5)
 
 
+class AppNotReady(RuntimeError):
+    """Raised when the target app has no inspectable front window yet.
+
+    The ``exit_code`` mirrors the one-shot CLI semantics: 2 = not running,
+    3 = running but no front window. ``cmd_wait_click`` swallows this to keep
+    polling; ``cmd_list`` / ``cmd_click`` translate it back into ``sys.exit``.
+    """
+
+    def __init__(self, message: str, exit_code: int) -> None:
+        super().__init__(message)
+        self.exit_code = exit_code
+
+
 def buttons_in_front_window(app_id: str) -> list[dict]:
     pid = find_pid(app_id)
     if pid is None:
-        print(f"ERROR: {app_id} is not running.", file=sys.stderr)
-        sys.exit(2)
+        raise AppNotReady(f"{app_id} is not running.", 2)
     app_element = AXUIElementCreateApplication(pid)
     window = front_window(app_element)
     if window is None:
-        print(f"ERROR: {app_id} has no front window.", file=sys.stderr)
-        sys.exit(3)
+        raise AppNotReady(f"{app_id} has no front window.", 3)
     results: list[dict] = []
     walk_buttons(window, results)
     return results
 
 
 def cmd_list(app_id: str) -> int:
-    buttons = buttons_in_front_window(app_id)
+    try:
+        buttons = buttons_in_front_window(app_id)
+    except AppNotReady as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return exc.exit_code
     if not buttons:
         print(f"ERROR: no buttons found in {app_id}'s front window.", file=sys.stderr)
         return 4
@@ -207,8 +230,33 @@ def click_via_quartz(position, size) -> bool:
     return True
 
 
+def press_or_fallback(target: dict) -> int:
+    """Press the button via AX, falling back to a synthesized Quartz click.
+
+    Returns 0 on success, 5 if both paths fail. Used by ``cmd_click`` and
+    ``cmd_wait_click`` — the press semantics are identical once we have a target.
+    """
+    press_err = AXUIElementPerformAction(target["element"], kAXPressAction)
+    if press_err == kAXErrorSuccess:
+        print(f"OK: AXPress on '{target['label']}'")
+        return 0
+    if click_via_quartz(target["position"], target["size"]):
+        print(f"OK: clicked '{target['label']}' at position fallback")
+        return 0
+    print(
+        f"ERROR: AXPress failed (code {press_err}) and position fallback "
+        f"could not synthesise a click for '{target['label']}'.",
+        file=sys.stderr,
+    )
+    return 5
+
+
 def cmd_click(app_id: str, query: str) -> int:
-    buttons = buttons_in_front_window(app_id)
+    try:
+        buttons = buttons_in_front_window(app_id)
+    except AppNotReady as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return exc.exit_code
     matches = [b for b in buttons if matches_title(b["label"], query)]
     if not matches:
         print(
@@ -224,20 +272,65 @@ def cmd_click(app_id: str, query: str) -> int:
             file=sys.stderr,
         )
         return 6
-    target = matches[0]
-    press_err = AXUIElementPerformAction(target["element"], kAXPressAction)
-    if press_err == kAXErrorSuccess:
-        print(f"OK: AXPress on '{target['label']}'")
-        return 0
-    if click_via_quartz(target["position"], target["size"]):
-        print(f"OK: clicked '{target['label']}' at position fallback")
-        return 0
+    return press_or_fallback(matches[0])
+
+
+def cmd_wait_click(
+    app_id: str, query: str, timeout_ms: int, poll_ms: int
+) -> int:
+    """Poll the front window until exactly one button matches ``query``, then click.
+
+    Exit codes:
+        0  matched + clicked (or Quartz fallback succeeded)
+        5  AX press and Quartz fallback both failed
+        6  match remained ambiguous through the entire timeout window
+        7  timeout — no match within ``timeout_ms``
+    """
+    deadline = time.monotonic() + timeout_ms / 1000.0
+    poll_s = poll_ms / 1000.0
+    last_buttons: list[dict] = []
+    last_matches: list[dict] = []
+    while True:
+        try:
+            last_buttons = buttons_in_front_window(app_id)
+        except AppNotReady:
+            last_buttons = []
+        last_matches = [
+            b for b in last_buttons if matches_title(b["label"], query)
+        ]
+        if len(last_matches) == 1:
+            return press_or_fallback(last_matches[0])
+        if time.monotonic() >= deadline:
+            break
+        time.sleep(poll_s)
+    if len(last_matches) > 1:
+        print(
+            f"ERROR: '{query}' remained ambiguous through {timeout_ms}ms: "
+            + ", ".join(b["label"] for b in last_matches),
+            file=sys.stderr,
+        )
+        return 6
+    seen = ", ".join(b["label"] for b in last_buttons[:20]) or "(none)"
     print(
-        f"ERROR: AXPress failed (code {press_err}) and position fallback "
-        f"could not synthesise a click for '{target['label']}'.",
+        f"ERROR: timed out after {timeout_ms}ms waiting for '{query}' in "
+        f"{app_id}. Last-seen buttons: {seen}",
         file=sys.stderr,
     )
-    return 5
+    return 7
+
+
+DEFAULT_TIMEOUT_MS = 10_000
+DEFAULT_POLL_MS = 250
+
+
+def _parse_positive_int(raw: str, label: str) -> int:
+    try:
+        value = int(raw)
+    except ValueError:
+        raise ValueError(f"{label} must be an integer; got {raw!r}") from None
+    if value <= 0:
+        raise ValueError(f"{label} must be > 0; got {value}")
+    return value
 
 
 def main(argv: list[str]) -> int:
@@ -255,7 +348,31 @@ def main(argv: list[str]) -> int:
             return 9
         require_accessibility()
         return cmd_click(app_id, argv[3])
-    print(f"ERROR: unknown mode '{mode}'. Use 'list' or 'click'.", file=sys.stderr)
+    if mode == "wait_click":
+        if len(argv) < 4:
+            print(
+                "ERROR: wait_click requires a button title argument.",
+                file=sys.stderr,
+            )
+            return 9
+        try:
+            timeout_ms = (
+                _parse_positive_int(argv[4], "timeout_ms")
+                if len(argv) > 4 else DEFAULT_TIMEOUT_MS
+            )
+            poll_ms = (
+                _parse_positive_int(argv[5], "poll_ms")
+                if len(argv) > 5 else DEFAULT_POLL_MS
+            )
+        except ValueError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 9
+        require_accessibility()
+        return cmd_wait_click(app_id, argv[3], timeout_ms, poll_ms)
+    print(
+        f"ERROR: unknown mode '{mode}'. Use 'list', 'click', or 'wait_click'.",
+        file=sys.stderr,
+    )
     return 9
 
 
