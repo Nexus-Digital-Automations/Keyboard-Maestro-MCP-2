@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "keyboard-maestro": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/Users/jeremyparker/Desktop/Claude Coding Projects/Keyboard-Maestro-MCP-2",
+        "python",
+        "-m",
+        "src.main_dynamic"
+      ]
+    }
+  }
+}
