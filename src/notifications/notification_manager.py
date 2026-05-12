@@ -380,7 +380,16 @@ class NotificationManager:
             hud_result = await self.km_client.execute_applescript_async(hud_script)
 
             if hud_result.is_left():
-                return Either.left(hud_result.get_left())
+                # KMError uses ``.code``; notification_tools (the outer layer)
+                # reads ``.error_code`` on MacroEngineError, so wrap explicitly.
+                km_err = hud_result.get_left()
+                return Either.left(
+                    MacroEngineError(
+                        message=f"HUD AppleScript failed: {km_err.message}",
+                        category=ErrorCategory.EXECUTION,
+                        error_code="HUD_DISPLAY_ERROR",
+                    ),
+                )
 
             # Wait for display duration
             if duration > 0:

@@ -686,7 +686,10 @@ class WindowManager:
                     set windowSize to get size of targetWindow
                     set windowTitle to get title of targetWindow
 
-                    return (item 1 of windowBounds) & "," & (item 2 of windowBounds) & "," & (item 1 of windowSize) & "," & (item 2 of windowSize) & "," & windowTitle
+                    -- Explicit ``as string`` coercion: without it, AppleScript
+                    -- ``&``-concatenates list items by serialising the whole
+                    -- list and yields outputs like ``162, ,, 119, ,, ...``.
+                    return ((item 1 of windowBounds) as string) & "," & ((item 2 of windowBounds) as string) & "," & ((item 1 of windowSize) as string) & "," & ((item 2 of windowSize) as string) & "," & windowTitle
                 on error errorMessage
                     return "ERROR: " & errorMessage
                 end try
