@@ -17,12 +17,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Annotated, Any, Literal
+from typing import TYPE_CHECKING, Annotated, Any, Literal
 
-from fastmcp import Context
 from pydantic import Field
 
 from ..initialization import get_km_client
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 logger = logging.getLogger(__name__)
 

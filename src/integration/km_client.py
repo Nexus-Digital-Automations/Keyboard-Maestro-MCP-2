@@ -7,6 +7,7 @@ pure functions, error handling monads, and connection management.
 from __future__ import annotations
 
 import asyncio
+import logging
 import subprocess
 import time
 from dataclasses import dataclass, field, replace
@@ -33,6 +34,8 @@ if TYPE_CHECKING:
 
 T = TypeVar("T")
 E = TypeVar("E")
+
+logger = logging.getLogger(__name__)
 
 
 class ConnectionMethod(Enum):
