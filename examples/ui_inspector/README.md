@@ -38,13 +38,18 @@ this is what's missing.
 ## Install
 
 Double-click `UI_Inspector.kmmacros` in Finder — Keyboard Maestro will import
-the group with a single macro: **Click Button by Title**. It lives in the
-group **UI Inspector**.
+the group **UI Inspector** with two macros:
+
+- **Click Button by Title** — one-shot: prompts, lists, clicks now.
+- **Wait for Button** — polls the front window until the named button
+  appears, then clicks. Useful as the Then-action of a "When app launches"
+  trigger (e.g. auto-dismiss an "Update available" dialog).
 
 ## Use
 
-Trigger the macro (no hotkey assigned by default; trigger from the KM editor
-or assign one yourself). You'll see two prompts:
+### Click Button by Title
+
+Trigger from the KM editor or a hotkey of your choice. You'll see two prompts:
 
 1. **App** — e.g. `Safari`, `com.apple.Safari`, `Mail`, `Finder`.
 2. **Title** — typed against the list shown in the prompt body. Substring
@@ -53,26 +58,46 @@ or assign one yourself). You'll see two prompts:
 
 The result (success line or error) is displayed briefly via KM's Display Text.
 
+### Wait for Button
+
+One prompt collects App, Title, and a Timeout in seconds (default 10).
+The CLI then polls the front window every 250 ms until the button appears
+or the timeout elapses. If the app isn't running when the wait starts, the
+loop will pick it up as soon as it launches and shows a front window.
+
+CLI shape (used internally by the macro, also runnable standalone):
+
+```bash
+./click_button_by_title.py wait_click <app> <title> [timeout_ms=10000] [poll_ms=250]
+```
+
+Trigger recipe: pair this macro with a **When this application launches**
+trigger pointed at the same app — Keyboard Maestro fires the macro, the
+macro waits for the button, clicks it, done. No hand-tuned `Pause` chain.
+
 ## Exit codes
 
 | Code | Meaning |
 |---|---|
 | 0 | success |
-| 2 | app not running |
-| 3 | no front window |
+| 2 | app not running (`list` / `click`; `wait_click` waits instead) |
+| 3 | no front window (`list` / `click` only) |
 | 4 | no buttons found / no title match |
-| 5 | accessibility permission denied |
+| 5 | accessibility permission denied or click synthesis failed |
 | 6 | ambiguous title match |
+| 7 | `wait_click` timed out before the button appeared |
 | 9 | invalid arguments |
 
 ## Files
 
-- `click_button_by_title.py` — standalone runnable. Test with
-  `./click_button_by_title.py list Finder` from a Terminal that itself has
-  Accessibility permission (or run from inside the macro).
-- `UI_Inspector.kmmacros` — the importable bundle. The Python source is
-  embedded in a KM variable (`BTN_CLICKER_SCRIPT`); two Execute Shell
-  Script actions pipe it to `/usr/bin/python3` via stdin.
+- `click_button_by_title.py` — standalone runnable. Supports `list`,
+  `click`, and `wait_click` modes. Test with `./click_button_by_title.py
+  list Finder` from a Terminal that itself has Accessibility permission
+  (or run from inside the macro).
+- `UI_Inspector.kmmacros` — the importable bundle. One group, two macros
+  (`Click Button by Title`, `Wait for Button`). The Python source is
+  embedded in a KM variable (`BTN_CLICKER_SCRIPT`) and piped into
+  `/usr/bin/python3` via stdin from each Execute Shell Script action.
 - `build_kmmacros.py` — regenerates `UI_Inspector.kmmacros` from the
   standalone `.py`. Run after edits to the script.
 
