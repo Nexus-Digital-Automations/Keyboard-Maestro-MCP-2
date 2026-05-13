@@ -5,6 +5,7 @@ Contains the fundamental MCP tools for macro execution, listing, and variable ma
 
 import asyncio
 import logging
+import re
 import subprocess
 import uuid
 from datetime import UTC, datetime
@@ -24,6 +25,30 @@ from ..initialization import get_km_client
 from ..utils import parse_variable_records
 
 logger = logging.getLogger(__name__)
+
+_UUID_RE = re.compile(
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+)
+_NAME_NOT_FOUND_FRAGMENT = "no macros with a matching name"
+
+
+async def _resolve_macro_uuid(name: str) -> str | None:
+    """Return the UUID of the first enabled+disabled macro whose name matches.
+
+    KM's `do script` dispatch by name fails with "no macros with a matching name"
+    when the macro's group is freshly created and not yet "active" in the
+    current context. UUID dispatch is unaffected. We use this to recover once.
+    """
+    km_client = get_km_client()
+    list_result = await km_client.list_macros_async(enabled_only=False)
+    if list_result.is_left():
+        return None
+    for record in list_result.get_right():
+        if record.get("name") == name or record.get("macroName") == name:
+            macro_uuid = record.get("id") or record.get("macroId")
+            if macro_uuid and _UUID_RE.match(str(macro_uuid)):
+                return str(macro_uuid)
+    return None
 
 
 async def km_execute_macro(
@@ -144,8 +169,60 @@ async def km_execute_macro(
 
         # Handle execution result
         if execution_result.is_left():
-            # Execution failed - return specific error
             error = execution_result.get_left()
+            error_message = (
+                error.message if hasattr(error, "message") else str(error)
+            )
+
+            # KM macro-group activation lags behind `make new macro`, so a
+            # name-dispatched call against a freshly created macro can fail
+            # with "no macros with a matching name" even when the macro and
+            # group are both enabled. UUID dispatch always works. Recover
+            # once by resolving the name to a UUID and retrying.
+            looked_like_name = not _UUID_RE.match(clean_identifier)
+            name_lookup_failed = (
+                _NAME_NOT_FOUND_FRAGMENT in error_message.lower()
+            )
+            if looked_like_name and name_lookup_failed:
+                resolved_uuid = await _resolve_macro_uuid(clean_identifier)
+                if resolved_uuid:
+                    logger.info(
+                        "execute_macro: name '%s' not dispatchable; retrying by UUID %s",
+                        clean_identifier,
+                        resolved_uuid,
+                    )
+                    retry_result = await asyncio.get_event_loop().run_in_executor(
+                        None,
+                        km_client.execute_macro,
+                        MacroId(resolved_uuid),
+                        sanitized_trigger,
+                    )
+                    if retry_result.is_right():
+                        retry_data = retry_result.get_right()
+                        execution_id = str(uuid.uuid4())
+                        return {
+                            "success": True,
+                            "data": {
+                                "execution_id": execution_id,
+                                "macro_id": resolved_uuid,
+                                "macro_name": clean_identifier,
+                                "execution_time": 0.0,
+                                "method_used": method,
+                                "status": "completed"
+                                if retry_data.get("success")
+                                else "failed",
+                                "output": retry_data.get("output"),
+                                "trigger_value": sanitized_trigger,
+                                "name_to_uuid_retry": True,
+                            },
+                            "metadata": {
+                                "timestamp": datetime.now(UTC).isoformat(),
+                                "server_version": "1.0.0",
+                                "correlation_id": execution_id,
+                            },
+                        }
+                    # Second attempt also failed; fall through to original error envelope.
+
             if ctx:
                 await ctx.error(f"Macro execution failed: {error}")
 
@@ -153,9 +230,7 @@ async def km_execute_macro(
                 "success": False,
                 "error": {
                     "code": error.code if hasattr(error, "code") else "EXECUTION_ERROR",
-                    "message": error.message
-                    if hasattr(error, "message")
-                    else str(error),
+                    "message": error_message,
                     "details": error.details
                     if hasattr(error, "details")
                     else {"raw_error": str(error)},

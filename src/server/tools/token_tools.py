@@ -75,6 +75,11 @@ async def km_token_processor(
     - Context-appropriate validation
     - Security warning system
 
+    Caveat (KM-side limitation): single-value system tokens such as
+    %CurrentUser%, %FrontWindowName%, %FrontAppName%, %FinderInsertionLocation%
+    are returned literally when invoked outside a macro execution context.
+    %Variable%...%, %ICUDateTime%...%, and %Calculate%...% expand normally.
+
     Returns processed text with token metadata and security validation results.
     """
     if variables is None:

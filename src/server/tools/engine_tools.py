@@ -301,7 +301,14 @@ async def km_engine_control(
     Token processing expands:
     - Variable tokens: %Variable%Name%
     - Date tokens: %ICUDateTime%format%
-    - System tokens: %CurrentUser%, %FrontWindowName%, etc.
+    - Calculation tokens: %Calculate%expression%
+
+    Caveat (KM-side limitation): single-value system tokens such as
+    %CurrentUser%, %FrontWindowName%, %FrontAppName%, %FinderInsertionLocation%
+    are returned literally when invoked outside a macro execution context.
+    KM's `process tokens` AppleScript verb only resolves these inside a
+    running macro. Read OS env vars for the current user, or populate a
+    KM variable inside a macro and read it via km_variable_manager.
     """
     if ctx:
         await ctx.info(f"Engine control operation: {operation}")

@@ -41,7 +41,7 @@ def _fail(code: str, message: str, suggestion: str) -> dict[str, Any]:
 
 async def km_add_condition(
     macro_identifier: str,  # Target macro (name or UUID)
-    condition_type: str,  # text|app|system|variable|logic
+    condition_type: str,  # text|application|system|variable|logic
     operator: str,  # contains|equals|greater|less|regex|exists
     operand: str,  # Comparison value with validation
     case_sensitive: bool = True,  # Text comparison sensitivity
@@ -59,7 +59,7 @@ async def km_add_condition(
 
     Args:
         macro_identifier: Target macro name or UUID
-        condition_type: Type of condition (text, app, system, variable, logic)
+        condition_type: Type of condition (text, application, system, variable, logic)
         operator: Comparison operator (contains, equals, greater, less, regex, exists)
         operand: Value to compare against
         case_sensitive: Whether text comparisons are case sensitive
@@ -109,7 +109,7 @@ async def km_add_condition(
             return _fail(
                 "INVALID_CONDITION_TYPE",
                 condition_type_result.get_left().message,
-                "Use one of: text, app, system, variable, logic.",
+                "Use one of: text, application, system, variable, logic.",
             )
 
         operator_result = _validate_operator(operator)

@@ -31,7 +31,6 @@ class ToolCategory(Enum):
     MACRO_GROUPS = "macro_groups"
     TRIGGER_MANAGEMENT = "trigger_management"
     ACTION_BUILDING = "action_building"
-    INPUT_SIMULATION = "input_simulation"
 
 
 class SecurityLevel(Enum):
@@ -224,18 +223,6 @@ class ToolConfigurationManager:
             security_policy=ToolSecurityPolicy(
                 level=SecurityLevel.STRICT,
                 audit_level="comprehensive",
-            ),
-        )
-
-        self.configurations["km_input_simulator"] = ToolConfiguration(
-            name="km_input_simulator",
-            category=ToolCategory.INPUT_SIMULATION,
-            description="Simulate keyboard input via macOS System Events",
-            module_path="src.server.tools.input_tools",
-            priority=5,
-            security_policy=ToolSecurityPolicy(
-                level=SecurityLevel.STRICT,
-                audit_level="detailed",
             ),
         )
 
