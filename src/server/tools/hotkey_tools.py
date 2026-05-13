@@ -340,61 +340,59 @@ async def km_list_hotkey_triggers(
         if ctx:
             await ctx.info("Retrieving hotkey trigger list...")
 
-        # Initialize hotkey manager
-        km_client = KMClient()
-        trigger_manager = TriggerRegistrationManager(km_client)
-        hotkey_manager = HotkeyManager(km_client, trigger_manager)
+        # Previously this tool returned only hotkeys registered by this
+        # process via km_create_hotkey_trigger — i.e. an empty list on
+        # every fresh server start, regardless of what KM actually had on
+        # disk. Query KM directly through list_all_triggers_async and
+        # filter to the HotKey subtype.
+        from ..initialization import get_km_client
 
-        # Get registered hotkeys
-        registered_hotkeys = hotkey_manager.get_registered_hotkeys()
-
-        # Filter by macro_id if provided
-        if macro_id:
-            macro_id = MacroId(macro_id.strip())
-            registered_hotkeys = {
-                hotkey_str: (mid, spec)
-                for hotkey_str, (mid, spec) in registered_hotkeys.items()
-                if mid == macro_id
+        result = await get_km_client().list_all_triggers_async()
+        if result.is_left():
+            err = result.get_left()
+            return {
+                "success": False,
+                "error": {
+                    "code": "LIST_FAILED",
+                    "message": err.message,
+                    "recovery_suggestion": "Verify Keyboard Maestro is running.",
+                },
+                "metadata": {
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "server_version": "1.0.0",
+                },
             }
 
-        # Build response
-        hotkey_list = []
-        for hotkey_string, (
-            assigned_macro_id,
-            hotkey_spec,
-        ) in registered_hotkeys.items():
-            hotkey_info = {
-                "hotkey_string": hotkey_string,
-                "display_string": hotkey_spec.to_display_string(),
-                "macro_id": assigned_macro_id,
-                "key": hotkey_spec.key,
-                "modifiers": [mod.value for mod in hotkey_spec.modifiers],
-                "activation_mode": hotkey_spec.activation_mode.value,
-                "tap_count": hotkey_spec.tap_count,
-                "allow_repeat": hotkey_spec.allow_repeat,
+        wanted = macro_id.strip() if macro_id else None
+        hotkey_list: list[dict[str, Any]] = []
+        for row in result.get_right():
+            if "<string>HotKey</string>" not in row["xml"]:
+                continue
+            if wanted and wanted not in (row["macro_id"], row["macro_name"]):
+                continue
+            hk = {
+                "macro_id": row["macro_id"],
+                "macro_name": row["macro_name"],
+                "macro_enabled": row["macro_enabled"],
+                "group_name": row["group_name"],
+                "group_id": row["group_id"],
+                "display_string": row["description"],
+                "xml": row["xml"],
             }
-
-            # Add conflict information if requested
             if include_conflicts:
-                conflicts = await hotkey_manager.detect_conflicts(hotkey_spec)
-                hotkey_info["conflicts"] = [
-                    {
-                        "conflict_type": c.conflict_type,
-                        "description": c.description,
-                        "suggestion": c.suggestion,
-                    }
-                    for c in conflicts
-                ]
-                hotkey_info["has_conflicts"] = len(conflicts) > 0
-
-            hotkey_list.append(hotkey_info)
+                # Conflict detection against the live data set is not yet
+                # implemented; advertise the field shape rather than lying
+                # about results.
+                hk["conflicts"] = []
+                hk["has_conflicts"] = False
+            hotkey_list.append(hk)
 
         return {
             "success": True,
             "data": {
                 "hotkeys": hotkey_list,
                 "total_count": len(hotkey_list),
-                "filtered_by_macro": macro_id is not None,
+                "filtered_by_macro": wanted is not None,
                 "conflicts_included": include_conflicts,
             },
             "metadata": {

@@ -2386,6 +2386,62 @@ class KMClient:
             ),
         )
 
+    async def list_all_triggers_async(
+        self,
+    ) -> Either[KMError, list[dict[str, Any]]]:
+        """Enumerate every trigger across every macro in every group.
+
+        Single-shot AppleScript scan — much faster than N+1 macro lookups
+        when callers want a system-wide view (e.g. hotkey conflict reports
+        or ``km_list_hotkey_triggers``). Returned rows carry the parent
+        macro/group identifiers so callers can filter without a second
+        round-trip.
+        """
+        script = '''
+        tell application "Keyboard Maestro"
+            set out to ""
+            repeat with grp in (macro groups)
+                set grpName to name of grp
+                set grpID to (id of grp as string)
+                repeat with m in (macros of grp)
+                    set mName to name of m
+                    set mID to (id of m as string)
+                    set mEnabled to enabled of m
+                    repeat with t in (triggers of m)
+                        set tDesc to description of t
+                        set tXml to xml of t
+                        set out to out & grpName & "\\u241F" & grpID & "\\u241F" & mName & "\\u241F" & mID & "\\u241F" & mEnabled & "\\u241F" & tDesc & "\\u241F" & tXml & "\\u241E"
+                    end repeat
+                end repeat
+            end repeat
+            return out
+        end tell
+        '''
+        # AppleScript needs the literal separator characters, not escape
+        # sequences. Inject them after Python concatenation so the file
+        # source stays ASCII-clean.
+        unit_sep, record_sep = "␟", "␞"
+        script = script.replace("\\u241F", unit_sep).replace("\\u241E", record_sep)
+        result = await self.execute_applescript_async(script)
+        if result.is_left():
+            return Either.left(result.get_left())
+        output = result.get_right()
+        rows: list[dict[str, Any]] = []
+        for record in filter(None, output.split(record_sep)):
+            parts = record.split(unit_sep, 6)
+            if len(parts) < 7:
+                continue
+            rows.append({
+                "group_name": parts[0],
+                "group_id": parts[1],
+                "macro_name": parts[2],
+                "macro_id": parts[3],
+                "macro_enabled": parts[4].strip().lower() == "true",
+                "description": parts[5],
+                "xml": parts[6],
+            })
+        return Either.right(rows)
+
     async def get_macro_trigger_xml_async(
         self,
         macro_id: MacroId,
