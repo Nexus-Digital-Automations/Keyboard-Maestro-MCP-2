@@ -154,7 +154,7 @@ async def km_create_macro(
                 "UNSUPPORTED_TEMPLATE",
                 f"Template {template!r} does not yet apply 'parameters' on import.",
                 "Create the macro with template='custom' (or omit parameters), "
-                "then chain km_add_action / km_trigger_crud / km_create_hotkey_trigger.",
+                "then chain km_action_builder / km_trigger_crud / km_create_hotkey_trigger.",
                 template,
             )
         return await _create_via_kmmacros(name, template, group_name, enabled, ctx)
@@ -172,7 +172,7 @@ async def km_create_macro(
     return _error_envelope(
         "UNSUPPORTED_TEMPLATE",
         f"Template {template!r} cannot create a macro on KM 11 yet.",
-        "Use template='custom' (empty macro) and chain km_add_action/km_trigger_crud, "
+        "Use template='custom' (empty macro) and chain km_action_builder/km_trigger_crud, "
         "or use km_macro_editor operation='create'.",
         template,
     )

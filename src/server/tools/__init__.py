@@ -9,7 +9,7 @@ keyboard / screen tools belong in the computer-use MCP, not here.
 """
 
 from .action_builder_tools import km_action_builder
-from .action_tools import km_add_action, km_list_action_types
+from .action_tools import km_list_action_types
 from .application_tools import km_application_control
 from .condition_tools import km_add_condition
 from .control_flow_tools import km_control_flow
@@ -34,7 +34,6 @@ from .window_tools import km_window_manager
 
 __all__ = [
     "km_action_builder",
-    "km_add_action",
     "km_add_condition",
     "km_add_system_trigger",
     "km_application_control",

@@ -16,7 +16,7 @@ Auto-discovered from `src/server/tools/` at startup. Each tool routes through `s
 | Macro groups | `km_macro_group_manager`, `km_move_macro_to_group` | `macro_group_tools.py`, `macro_move_tools.py` |
 | Engine | `km_engine_control` | `engine_tools.py` |
 | Tokens | `km_token_processor`, `km_token_stats` | `token_tools.py` |
-| Actions | `km_add_action`, `km_action_builder`, `km_list_action_types`, `km_build_plugin_action` | `action_tools.py`, `action_builder_tools.py`, `plugin_action_tools.py` |
+| Actions | `km_action_builder` (appends/lists/deletes/clears actions; supports the six verified built-in types plus `plug_in` for any installed third-party plug-in), `km_list_action_types` (lists what `km_action_builder` can append, including every installed plug-in), `km_build_plugin_action` (writes a new `.kmactions` bundle to disk) | `action_builder_tools.py`, `action_tools.py`, `plugin_action_tools.py` |
 | Conditions | `km_add_condition` | `condition_tools.py` |
 | Control flow | `km_control_flow` | `control_flow_tools.py` |
 | Triggers | `km_trigger_crud`, `km_trigger_manager`, `km_add_system_trigger` | `trigger_crud_tools.py`, `trigger_tools.py`, `system_trigger_tools.py` |
@@ -25,7 +25,7 @@ Auto-discovered from `src/server/tools/` at startup. Each tool routes through `s
 | Applications | `km_application_control` | `application_tools.py` |
 | Notifications | `km_notifications`, `km_notification_status`, `km_dismiss_notifications` | `notification_tools.py` |
 
-Some tools currently have partial XML emitters (`km_add_action` for the full 146-action registry, `km_add_condition`, `km_control_flow`, `km_create_macro` for non-`custom` templates). See `docs/km_mcp_audit_report.md` for the known-stub matrix.
+Some tools currently have partial XML emitters (`km_add_condition`, `km_control_flow`, `km_create_macro` for non-`custom` templates). `km_action_builder` covers seven action types end-to-end (`pause`, `type_text`, `paste`, `set_variable`, `run_applescript`, `execute_macro`, `plug_in`); to add another built-in type, add a branch in `action_builder_tools._build_action_xml` and a registry entry in `action_tools._BUILTIN_ACTION_TYPES` in the same change. See `docs/km_mcp_audit_report.md` for the known-stub matrix.
 
 ## Install
 

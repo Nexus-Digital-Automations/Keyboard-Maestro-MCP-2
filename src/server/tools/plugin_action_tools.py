@@ -1,14 +1,19 @@
-"""Keyboard Maestro third-party plug-in action builder.
+"""Keyboard Maestro third-party plug-in: build new bundles and discover installed ones.
 
-Owner: Keyboard-Maestro-MCP-2 server team. Provides ``km_build_plugin_action``,
-which emits a self-contained ``.kmactions`` bundle (the format Keyboard Maestro
-loads from ``~/Library/Application Support/Keyboard Maestro/Keyboard Maestro
-Actions/``). The MCP caller supplies a JSON spec — sidebar name, editor title,
-script source, parameter fields, allowed result targets — and the tool writes
-``Keyboard Maestro Action.plist``, an executable script, and (optionally) an
-``Icon.png`` into a workspace directory of the caller's choosing. No system
-writes; the user installs the bundle by copying it into KM's Actions folder
-themselves.
+Owner: Keyboard-Maestro-MCP-2 server team. Two public surfaces share this
+module because they speak the same plist schema:
+
+- ``km_build_plugin_action`` emits a self-contained ``.kmactions`` bundle (the
+  format Keyboard Maestro loads from ``~/Library/Application Support/Keyboard
+  Maestro/Keyboard Maestro Actions/``). The MCP caller supplies a JSON spec —
+  sidebar name, editor title, script source, parameter fields, allowed result
+  targets — and the tool writes ``Keyboard Maestro Action.plist``, an
+  executable script, and (optionally) an ``Icon.png`` into a workspace
+  directory of the caller's choosing. No system writes; the user installs the
+  bundle by copying it into KM's Actions folder themselves.
+- ``_scan_installed_plugins`` (used by ``km_list_action_types``) parses the
+  same plist schema in reverse: read every installed bundle and return a
+  normalized list. Read-only.
 
 The plist schema matches what shipping third-party plug-ins use (verified
 against eight installed plug-ins): ``Name`` (sidebar label), ``Title`` (canvas
@@ -27,6 +32,7 @@ current working directory (path-traversal guard), bundle already exists with
 
 import base64
 import logging
+import os
 import plistlib
 import re
 import shutil
@@ -73,6 +79,12 @@ PARAM_TYPES = frozenset(
 )
 ON_EXISTING_MODES = frozenset({"error", "replace"})
 ICON_FILENAME = "Icon.png"
+
+# Where Keyboard Maestro Editor scans for plug-in bundles at launch. Override
+# via env for tests; we never write here from this module.
+INSTALLED_KM_ACTIONS_DIR = (
+    Path.home() / "Library/Application Support/Keyboard Maestro/Keyboard Maestro Actions"
+)
 
 FOLDER_FORBIDDEN_RE = re.compile(r'[/\\:?<>|"\x00-\x1f]')
 SCRIPT_FILENAME_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
@@ -232,6 +244,72 @@ def _error_envelope(code: str, message: str, *, field: str | None = None) -> dic
             "timestamp": datetime.now(UTC).isoformat(),
         },
     }
+
+
+def _normalize_plugin_parameters(raw_params: list[Any]) -> list[dict[str, Any]]:
+    """Map the bundle plist's ``Parameters`` array into client-facing dicts.
+
+    Drops entries without a ``Label`` (KM uses ``Label`` to render the field
+    and to derive the parameter key in the macro's ExecutePlugIn dict — a
+    plug-in with no Label is unusable).
+    """
+    out: list[dict[str, Any]] = []
+    for raw in raw_params or []:
+        if not isinstance(raw, dict):
+            continue
+        label = raw.get("Label")
+        if not isinstance(label, str) or not label:
+            continue
+        menu = raw.get("Menu")
+        out.append({
+            "label": label,
+            "type": raw.get("Type", "String"),
+            "default": raw.get("Default"),
+            "menu_options": menu.split("|") if isinstance(menu, str) and menu else [],
+        })
+    return out
+
+
+def _scan_installed_plugins() -> list[dict[str, Any]]:
+    """List installed Keyboard Maestro third-party plug-ins, one dict per bundle.
+
+    Reads each ``Keyboard Maestro Action.plist`` under
+    ``INSTALLED_KM_ACTIONS_DIR`` (or the path in the ``KM_PLUGIN_ACTIONS_DIR``
+    env var, used by tests). Bundles whose plist is malformed or missing
+    ``Name``/``Title`` are skipped with a warning — KM itself ignores them.
+
+    Returns ``[]`` if the directory does not exist. Read-only.
+    """
+    root_override = os.environ.get("KM_PLUGIN_ACTIONS_DIR")
+    root = Path(root_override) if root_override else INSTALLED_KM_ACTIONS_DIR
+    if not root.is_dir():
+        return []
+    plugins: list[dict[str, Any]] = []
+    for bundle in sorted(root.iterdir()):
+        if not bundle.is_dir() or bundle.name.startswith("."):
+            continue
+        plist_path = bundle / "Keyboard Maestro Action.plist"
+        if not plist_path.is_file():
+            continue
+        try:
+            with plist_path.open("rb") as fp:
+                spec = plistlib.load(fp)
+        except (plistlib.InvalidFileException, OSError, ValueError) as exc:
+            logger.warning("skipping plug-in %s: %s", bundle.name, exc)
+            continue
+        name, title = spec.get("Name"), spec.get("Title")
+        if not isinstance(name, str) or not isinstance(title, str):
+            continue
+        results = spec.get("Results") or ""
+        plugins.append({
+            "identifier": name,
+            "title": title,
+            "help": spec.get("Help"),
+            "parameters": _normalize_plugin_parameters(spec.get("Parameters") or []),
+            "result_targets": [s for s in results.split("|") if s],
+            "bundle_path": str(bundle),
+        })
+    return plugins
 
 
 async def km_build_plugin_action(
@@ -405,7 +483,9 @@ async def km_build_plugin_action(
             "install_hint": (
                 "Copy the bundle into "
                 "~/Library/Application Support/Keyboard Maestro/Keyboard Maestro Actions/ "
-                "(create it if missing), then restart Keyboard Maestro Engine."
+                "(create it if missing), then quit and reopen the Keyboard Maestro "
+                "Editor — plug-ins are scanned at Editor launch; reloading the Engine "
+                "alone does not refresh the action picker."
             ),
         },
     }

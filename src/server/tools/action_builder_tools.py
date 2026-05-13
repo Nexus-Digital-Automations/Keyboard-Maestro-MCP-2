@@ -1,18 +1,21 @@
 """Action builder tool — list, append, delete, clear actions inside a macro.
 
-Adapter over `KMClient` action primitives. Owns the action_type-to-XML
-mapping (v1: 6 types). All AppleScript / KM-engine logic lives in
-`src/integration/km_client.py`.
+Adapter over ``KMClient`` action primitives. Owns the action_type-to-XML
+mapping. All AppleScript / KM-engine logic lives in
+``src/integration/km_client.py``.
 
-v1 action types: ``pause``, ``type_text``, ``paste``, ``set_variable``,
-``run_applescript``, ``execute_macro``. Adding more is a new branch in
-``_build_action_xml`` — no architecture change. ``insert``/``reorder``
+Built-in action types (verified against KM's "Copy as XML" output): ``pause``,
+``type_text``, ``paste``, ``set_variable``, ``run_applescript``,
+``execute_macro``. Plus ``plug_in``, which dispatches to any installed
+third-party plug-in by folder name. Adding more built-ins is a new branch
+in ``_build_action_xml`` — no architecture change. ``insert``/``reorder``
 ops deferred (need index-aware AppleScript); user can sequence by
 appending in order.
 """
 
 import asyncio
 import logging
+from pathlib import Path
 from typing import Annotated, Any, Literal
 
 from fastmcp import Context
@@ -20,6 +23,7 @@ from pydantic import Field
 
 from ...core.types import MacroId
 from ..initialization import get_km_client
+from .plugin_action_tools import _scan_installed_plugins
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +122,82 @@ def _build_action_xml(action_type: str, config: dict[str, Any]) -> str | None:
             f"<key>Macro</key><string>{_xml_escape(str(target))}</string>"
             "</dict>"
         )
+    if action_type == "plug_in":
+        return _build_plug_in_xml(config)
     return None
+
+
+# Verified against KM's "Copy as XML" output for an MCP Smoke Plugin action
+# inserted via the editor's Insert Action menu:
+#   MacroActionType=PlugIn (NOT ExecutePlugIn)
+#   PlugInFolderName = bundle directory basename (with .kmactions if present)
+#   PlugInParameters = dict keyed by parameter Label (case-sensitive)
+#   DisplayKind = one of None / Variable / Window / Briefly / Clipboard / Typing / Pasting
+#   Variable key present only when DisplayKind=Variable
+_PLUG_IN_DISPLAY_KINDS = frozenset(
+    {"None", "Variable", "Window", "Briefly", "Clipboard", "Typing", "Pasting"}
+)
+
+
+def _resolve_plug_in_folder_name(identifier: str) -> str | None:
+    """Map a plug-in plist Name or folder basename to its on-disk folder name.
+
+    KM's macro XML stores ``PlugInFolderName`` (the directory basename, with
+    ``.kmactions`` if present) — not the plist ``Name`` value. Clients pick a
+    plug-in by the friendly identifier returned by ``km_list_action_types``,
+    and we resolve to the folder here. Returns ``None`` if no installed
+    plug-in matches.
+    """
+    target = identifier.strip()
+    if not target:
+        return None
+    for spec in _scan_installed_plugins():
+        folder = Path(spec["bundle_path"]).name
+        if target in (spec["identifier"], folder):
+            return folder
+    return None
+
+
+def _build_plug_in_xml(config: dict[str, Any]) -> str | None:
+    """Emit a Keyboard Maestro ``PlugIn`` action plist for an installed plug-in.
+
+    Required config: ``plugin_identifier`` (the friendly name returned by
+    ``km_list_action_types``). Optional: ``parameters`` (dict keyed by the
+    plug-in's parameter labels), ``display_kind`` (default ``None``),
+    ``variable`` (only honored when ``display_kind="Variable"``). Returns
+    ``None`` when the plug-in is not installed or ``display_kind`` is unknown.
+    """
+    identifier = config.get("plugin_identifier")
+    if not identifier or not isinstance(identifier, str):
+        return None
+    folder_name = _resolve_plug_in_folder_name(identifier)
+    if folder_name is None:
+        return None
+    display_kind = config.get("display_kind", "None")
+    if display_kind not in _PLUG_IN_DISPLAY_KINDS:
+        return None
+    params = config.get("parameters") or {}
+    params_xml = "".join(
+        f"<key>{_xml_escape(str(k))}</key><string>{_xml_escape(str(v))}</string>"
+        for k, v in params.items()
+    )
+    variable_xml = ""
+    if display_kind == "Variable":
+        variable_xml = (
+            f"<key>Variable</key><string>{_xml_escape(str(config.get('variable', '')))}</string>"
+        )
+    return (
+        "<dict>"
+        f"<key>DisplayKind</key><string>{display_kind}</string>"
+        "<key>IncludeStdErr</key><true/>"
+        "<key>MacroActionType</key><string>PlugIn</string>"
+        f"<key>PlugInFolderName</key><string>{_xml_escape(folder_name)}</string>"
+        f"<key>PlugInParameters</key><dict>{params_xml}</dict>"
+        "<key>TimeOutAbortsMacro</key><true/>"
+        "<key>TrimResultsNew</key><true/>"
+        f"{variable_xml}"
+        "</dict>"
+    )
 
 
 async def _do_list(macro_id: str | None) -> dict[str, Any]:
@@ -145,9 +224,13 @@ async def _do_append(
     if xml is None:
         return _failure(
             "UNSUPPORTED_ACTION_TYPE",
-            f"action_type '{action_type}' not supported or missing required config field.",
-            "v1 supports: pause, type_text, paste, set_variable (needs 'variable'), "
-            "run_applescript, execute_macro (needs 'target_macro').",
+            f"action_type '{action_type}' not supported, missing required config field, "
+            "or (for plug_in) the plugin_identifier is not installed.",
+            "Supported: pause, type_text, paste, set_variable (needs 'variable'), "
+            "run_applescript, execute_macro (needs 'target_macro'), "
+            "plug_in (needs 'plugin_identifier' matching a name returned by km_list_action_types; "
+            "optional 'parameters' dict, 'display_kind' in None|Variable|Window|Briefly|"
+            "Clipboard|Typing|Pasting, 'variable' for display_kind='Variable').",
         )
     result = await get_km_client().append_macro_action_async(MacroId(macro_id.strip()), xml)
     if result.is_left():
@@ -196,8 +279,8 @@ async def km_action_builder(
         Field(
             default=None,
             description=(
-                "For 'append'. v1: pause, type_text, paste, set_variable, "
-                "run_applescript, execute_macro."
+                "For 'append': pause, type_text, paste, set_variable, run_applescript, "
+                "execute_macro, plug_in."
             ),
             max_length=64,
         ),
@@ -209,7 +292,10 @@ async def km_action_builder(
             description=(
                 "For 'append'. pause: {seconds: 1}. type_text/paste: {text: '...'}. "
                 "set_variable: {variable: 'Name', text: '...'}. "
-                "run_applescript: {source: '...'}. execute_macro: {target_macro: 'Name'}."
+                "run_applescript: {source: '...'}. execute_macro: {target_macro: 'Name'}. "
+                "plug_in: {plugin_identifier: 'MCP Smoke Plugin', parameters: {Label: value}, "
+                "display_kind: 'Variable', variable: 'OutVar'} — plugin_identifier matches "
+                "an entry from km_list_action_types."
             ),
         ),
     ] = None,
