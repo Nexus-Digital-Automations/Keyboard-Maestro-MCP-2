@@ -374,17 +374,29 @@ async def km_engine_control(
         }
 
 
-async def _reload_engine(_km_client: Any, ctx: Context = None) -> dict[str, Any]:
-    """Reload the Keyboard Maestro engine."""
+async def _reload_engine(km_client: Any, ctx: Context = None) -> dict[str, Any]:
+    """Reload the Keyboard Maestro engine.
+
+    Previously this just slept 0.5s and reported success — no engine
+    reload actually happened. Issues a real reload via the engine's
+    AppleScript ``reload`` verb and reports the real wall-clock time.
+    """
     if ctx:
         await ctx.report_progress(50, 100, "Reloading engine macros")
 
-    # AppleScript: tell application "Keyboard Maestro Engine" to reload
     start_time = datetime.now()
-
-    # Simulate reload operation
-    await asyncio.sleep(0.5)  # Simulate reload time
-
+    result = await km_client.execute_applescript_async(
+        'tell application "Keyboard Maestro Engine" to reload',
+    )
+    if result.is_left():
+        return {
+            "success": False,
+            "error": {
+                "code": "RELOAD_FAILED",
+                "message": result.get_left().message,
+                "recovery_suggestion": "Verify Keyboard Maestro Engine is running.",
+            },
+        }
     reload_time = (datetime.now() - start_time).total_seconds()
 
     if ctx:
