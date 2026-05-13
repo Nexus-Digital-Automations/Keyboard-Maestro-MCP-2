@@ -16,6 +16,7 @@ from ...core.types import MacroId
 from ...integration.km_client import KMClient
 from ...integration.triggers import TriggerRegistrationManager
 from ...triggers.hotkey_manager import HotkeyManager, create_hotkey_spec
+from ..initialization import get_km_client
 
 logger = logging.getLogger(__name__)
 
@@ -223,18 +224,26 @@ async def km_create_hotkey_trigger(
 
                 return response
 
-        # Create the hotkey trigger
+        # Create the hotkey trigger via the plist-injection path. KM 11's
+        # AppleScript dictionary rejects `make new <trigger class> with
+        # properties {key:..., ...}` because `key` is a reserved class
+        # name there; attach_trigger_async builds the trigger plist and
+        # appends it through the supported `make new trigger with
+        # properties {xml: ...}` form (see KMClient docstring).
         if ctx:
             await ctx.info(f"Creating hotkey trigger for macro {macro_id}...")
 
-        result = await hotkey_manager.create_hotkey_trigger(
-            macro_id=macro_id,
-            hotkey=hotkey_spec,
-            check_conflicts=False,  # Already checked above
+        attach_config: dict[str, Any] = {
+            "key": hotkey_spec.key,
+            "modifiers": [mod.value for mod in hotkey_spec.modifiers],
+            "activation_mode": hotkey_spec.activation_mode.value,
+        }
+        attach_result = await get_km_client().attach_trigger_async(
+            macro_id, "hotkey", attach_config,
         )
 
-        if result.is_left():
-            error = result.get_left()
+        if attach_result.is_left():
+            error = attach_result.get_left()
             return {
                 "success": False,
                 "error": {
@@ -251,7 +260,7 @@ async def km_create_hotkey_trigger(
                 },
             }
 
-        trigger_id = result.get_right()
+        trigger_id = hotkey_spec.to_km_string()
 
         if ctx:
             await ctx.info(f"Successfully created hotkey trigger {trigger_id}")
