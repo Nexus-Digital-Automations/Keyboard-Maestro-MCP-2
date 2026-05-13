@@ -2,28 +2,30 @@
 
 An MCP server that lets a client drive [Keyboard Maestro](https://www.keyboardmaestro.com/) on macOS — run macros, manage variables, configure triggers and hotkeys, edit macros, and exercise the Keyboard Maestro Engine.
 
-This server **only** controls Keyboard Maestro. It does not embed its own LLM, vision model, IoT controller, or workflow generator — those belong to the client.
+This server **only** controls Keyboard Maestro. It does not embed an LLM, vision model, IoT controller, voice recognizer, analytics engine, identity layer, or raw mouse/keyboard simulator — those belong elsewhere (the computer-use MCP covers raw input and screen interaction).
 
-## Tool surface (21 tools)
+## Tool surface (27 tools)
 
 Auto-discovered from `src/server/tools/` at startup. Each tool routes through `src/integration/km_client.py` to the Keyboard Maestro Engine via AppleScript or the KM web server.
 
 | Area | Tool | Source |
 |---|---|---|
-| Macros | `km_execute_macro`, `km_list_macros`, `km_variable_manager` | `core_tools.py` |
-| Macro lifecycle | `km_create_macro`, `km_list_templates` | `creation_tools.py` |
+| Execution | `km_execute_macro`, `km_list_macros`, `km_variable_manager` | `core_tools.py` |
+| Macro creation | `km_create_macro`, `km_list_templates` | `creation_tools.py` |
 | Macro editing | `km_macro_editor` | `macro_editor_tools.py` |
-| Macro org | `km_move_macro_to_group` | `macro_move_tools.py` |
+| Macro groups | `km_macro_group_manager`, `km_move_macro_to_group` | `macro_group_tools.py`, `macro_move_tools.py` |
 | Engine | `km_engine_control` | `engine_tools.py` |
-| Actions | `km_add_action`, `km_list_action_types` | `action_tools.py` |
+| Tokens | `km_token_processor`, `km_token_stats` | `token_tools.py` |
+| Actions | `km_add_action`, `km_action_builder`, `km_list_action_types`, `km_build_plugin_action` | `action_tools.py`, `action_builder_tools.py`, `plugin_action_tools.py` |
 | Conditions | `km_add_condition` | `condition_tools.py` |
 | Control flow | `km_control_flow` | `control_flow_tools.py` |
+| Triggers | `km_trigger_crud`, `km_trigger_manager`, `km_add_system_trigger` | `trigger_crud_tools.py`, `trigger_tools.py`, `system_trigger_tools.py` |
 | Hotkeys | `km_create_hotkey_trigger`, `km_list_hotkey_triggers` | `hotkey_tools.py` |
-| Triggers | (helpers for `km_add_condition`/control flow) | `advanced_trigger_tools.py` |
-| Tokens | `km_token_processor`, `km_token_stats` | `token_tools.py` |
 | Windows | `km_window_manager` | `window_tools.py` |
-| UI | `km_interface_automation` | `interface_tools.py` |
+| Applications | `km_application_control` | `application_tools.py` |
 | Notifications | `km_notifications`, `km_notification_status`, `km_dismiss_notifications` | `notification_tools.py` |
+
+Some tools currently have partial XML emitters (`km_add_action` for the full 146-action registry, `km_add_condition`, `km_control_flow`, `km_create_macro` for non-`custom` templates). See `docs/km_mcp_audit_report.md` for the known-stub matrix.
 
 ## Install
 
@@ -78,7 +80,7 @@ src/
 │   ├── tool_registry.py     # Auto-discovers km_* functions from src/server/tools/
 │   ├── dynamic_registration.py
 │   ├── tool_config.py       # Security policy overrides per tool
-│   └── tools/               # 15 tool modules — each km_* function becomes an MCP tool
+│   └── tools/               # 19 tool modules — each km_* function becomes an MCP tool
 ├── integration/
 │   ├── km_client.py         # Single bridge to Keyboard Maestro (AppleScript + HTTP)
 │   ├── km_conditions.py     # KM condition spec generation

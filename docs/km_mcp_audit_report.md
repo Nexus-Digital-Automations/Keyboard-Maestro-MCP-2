@@ -452,3 +452,54 @@ No prior-session sandbox state was touched.
 ### Verdict
 
 All 27 tools live-probed. **34 PASS, 4 PARTIAL (KM-side limitations, not regressions), 4 DOCUMENTED STUBS** (`km_add_action` registry types, `km_add_condition`, `km_control_flow`, non-`custom` templates in `km_create_macro`). Every round-3 fix activated post-restart. No regressions vs. round-3.
+
+## Round 5 (2026-05-13, session 20260513-144331-77877) — scope trim
+
+User direction: "really good at making macros and using Keyboard Maestro, almost nothing else" and "no overlap with computer-use MCP." This round is a scope-trim, not a defect pass.
+
+### Findings
+
+- **Marketing surface lied.** `src/main_dynamic.py` lines 73–89 advertised OCR, "Enterprise audit logging with compliance reporting", "Analytics engine with ROI calculation", "Workflow intelligence with NLP", "IoT device control with multi-protocol support", "Smart home automation with scene management", "Voice control with speech recognition", "User identity management with personalization", plus clipboard ops and file ops. Zero implementation backed any of those claims.
+- **Computer-use overlap.** `km_input_simulator` (raw keystrokes via System Events) and `km_interface_automation` (raw mouse via AX) duplicated the computer-use MCP's `type`/`key`/`press_key_code`/`left_click`/`mouse_move`/`left_click_drag`.
+- **Export drift.** `src/server/tools/__init__.py` listed 22 tools in `__all__`. Six more (`km_create_macro`, `km_list_templates`, `km_add_condition`, `km_control_flow`, `km_move_macro_to_group`, `km_add_system_trigger`) were registered by the dynamic registrar (`ToolDiscovery`) but never re-exported. README claimed 21. Three different counts.
+- **Dead code.** `src/debugging/` (426 LOC) — orphan module, 0 imports outside itself, 0 tests. `src/core/constants/analytics.py` (50 LOC) — ML constants for a non-existent analytics engine.
+- **Orphan tests.** `tests/test_tools/test_computer_vision_tools_comprehensive.py` (1179 LOC) tested a `computer_vision_tools` module that doesn't exist in `src/`. `tests/test_tools/test_interface_tools.py` (1112 LOC) covered the now-removed `interface_tools.py`.
+
+### Changes shipped
+
+1. **`src/main_dynamic.py`** — rewrote the FastMCP `instructions` string from a fictional 50-capability boast to a narrow description of the actual surface (execution, macro authoring, engine infrastructure, KM action wrappers). Added a `WHY` comment marking the scope discipline and a closing line pointing callers at computer-use for raw input/screen interaction.
+2. **`src/server/tools/__init__.py`** — dropped `km_input_simulator` and `km_interface_automation` imports + exports; added imports + exports for the six tools that were registered but unexported. Result: `__all__` now contains exactly 27 entries that match what the runtime registers.
+3. **Removed:** `src/server/tools/input_tools.py`, `src/server/tools/interface_tools.py`, `src/server/tool_config.py`'s `km_input_simulator` configuration block, and the orphan `ToolCategory.INPUT_SIMULATION` enum value.
+4. **Removed:** `src/debugging/` (whole directory), `src/core/constants/analytics.py`, plus the analytics imports and `__all__` entries in `src/core/constants/__init__.py`.
+5. **Removed:** `tests/test_tools/test_interface_tools.py`, `tests/test_tools/test_computer_vision_tools_comprehensive.py`.
+6. **`README.md`** — corrected tool count `21` → `27`; rebuilt the tool table to match `__init__.py.__all__` exactly (added `km_macro_group_manager`, `km_action_builder`, `km_build_plugin_action`, `km_trigger_crud`, `km_trigger_manager`, `km_add_system_trigger`, `km_application_control`; removed `km_interface_automation`); rewrote the description's exclusion list to call out computer-use overlap.
+
+Net diff: **−3424 LOC** across 12 files (10 deletions / modifications + 2 new docs).
+
+### Verification (pre-commit, this session)
+
+- `python -m py_compile` on the full `src/` tree — clean.
+- `ruff check src/main_dynamic.py src/server/tools/__init__.py src/server/tool_config.py src/core/constants/__init__.py` — All checks passed.
+- `ruff check src/ tests/` — 2 pre-existing errors in files this round did not touch (`src/integration/kmmacros_import.py:158 SIM115`, `tests/test_massive_coverage_expansion_phase8.py:8:53 W291`). Out of scope for the trim.
+- `python -c "from src.server.tools import __all__; print(len(__all__))"` → `27`.
+- `grep` sweep — no references to deleted modules anywhere in `src/` or `tests/`.
+
+### Post-restart verification (deferred to next session)
+
+The MCP host caches Python at startup. The probes below need the host restarted before they reflect this round's edits:
+
+- `km_build_plugin_action` and `km_add_system_trigger` should appear in the MCP transport's tool list (they were stealth-registered before, not callable via MCP).
+- `km_input_simulator` and `km_interface_automation` should be absent from the tool list.
+- The server startup `instructions` string should no longer mention OCR / IoT / voice / smart home / analytics / audit logging / NLP / identity / file ops / clipboard.
+
+If `km_build_plugin_action` or `km_add_system_trigger` are exposed but broken after restart, document them as `KNOWN_STUB` like the four existing stubs (`km_add_condition`, `km_control_flow`, etc.) — don't unship them; the user asked to surface + document.
+
+### What survived the trim (the canonical 27 tools)
+
+Execution: `km_execute_macro`, `km_list_macros`, `km_variable_manager`.
+Macro authoring: `km_create_macro`, `km_list_templates`, `km_macro_editor`, `km_macro_group_manager`, `km_move_macro_to_group`.
+Action authoring: `km_add_action`, `km_action_builder`, `km_list_action_types`, `km_build_plugin_action`.
+Logic authoring: `km_add_condition`, `km_control_flow`.
+Trigger authoring: `km_trigger_crud`, `km_trigger_manager`, `km_create_hotkey_trigger`, `km_list_hotkey_triggers`, `km_add_system_trigger`.
+Engine: `km_engine_control`, `km_token_processor`, `km_token_stats`.
+KM action wrappers (kept because they map to native KM actions): `km_window_manager`, `km_application_control`, `km_notifications`, `km_notification_status`, `km_dismiss_notifications`.
