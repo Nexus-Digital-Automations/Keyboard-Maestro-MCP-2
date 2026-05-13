@@ -26,7 +26,7 @@ from ..core.types import Duration, GroupId, MacroId, TriggerId
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from ..server.tools.macro_move_tools import MacroMoveResult
+    from ..core.types import MacroMoveResult
     from .events import TriggerType
 
 # Avoid circular import - use string annotation for TriggerType
@@ -112,7 +112,7 @@ class KMError:
         """Create timeout error. Accepts a Duration or a free-text description."""
         if isinstance(timeout, Duration):
             text = f"Operation timed out after {timeout.total_seconds()}s"
-        elif isinstance(timeout, (int, float)):
+        elif isinstance(timeout, int | float):
             text = f"Operation timed out after {float(timeout)}s"
         else:
             text = str(timeout)
