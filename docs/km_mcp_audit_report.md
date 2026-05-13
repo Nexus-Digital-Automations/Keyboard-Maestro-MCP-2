@@ -210,3 +210,31 @@ Black-box re-smoke of the 8 tool paths touched in commit 30635c8, run live throu
 
 - MCP server runs cached Python. The mixed PASS/PARTIAL/FAIL pattern is consistent with the host having been restarted after commit 30635c8 — most fixes show up, but F15 `trigger_crud` and F19 envelope normalization appear to be commit-level misses rather than caching issues (the in-source fix description in the commit message claims both, but the live behavior shows otherwise).
 - F22's degraded fallback (`Quartz unavailable`) is an environment issue inside the MCP host, not a code defect.
+
+## Round 2 (2026-05-12, commit 25a6493)
+
+Targets the two remaining gaps: F19 envelope normalization for real this time, and macro creation via `.kmmacros` plist import (replacing the deferred F2/F3 strategy choice).
+
+### Changes shipped
+
+- **F19:** `src/server/tools/condition_tools.py` — added local `_fail()` helper; converted all 7 flat-string validation/exception returns (`INVALID_MACRO_ID`, `INVALID_OPERAND`, `INVALID_CONDITION_TYPE`, `INVALID_OPERATOR`, `CONDITION_BUILD_FAILED`, `SECURITY_VIOLATION`, `INTERNAL_ERROR`) to nested `{error: {code, message, recovery_suggestion}}`. `INTEGRATION_FAILED` was already nested; left untouched.
+- **Macro creation:** new module `src/integration/kmmacros_import.py` exposes `build_kmmacros_plist(...)` and `create_empty_macro(...)`. Strategy: build a minimal one-macro `.kmmacros` plist via `plistlib`, write to a tempfile, ask KM Editor via `tell application "Keyboard Maestro" to open POSIX file ...`, then poll `list_macros` for up to 3 s for the new UID to appear. Failure codes: `GROUP_NOT_FOUND`, `IMPORT_FAILED`.
+- `km_macro_editor` (operation=`create`) delegates `_do_create` to `create_empty_macro`. Old `KMClient.create_macro` call (which hit the absent `make new macro` verb) removed.
+- `km_create_macro` for `template=custom` and `template=hotkey_action` routes through the same helper (only `name` + `group_name` required for now). Other templates return `UNSUPPORTED_TEMPLATE` instead of the prior `CREATION_ERROR`. ~140 lines of unreachable `MacroBuilder` code removed.
+- **Boy-scout:** `KMError.timeout_error` in `src/integration/km_client.py` used to crash with `AttributeError: 'str' object has no attribute 'total_seconds'` when callers passed a string description (every site outside one passes a string). Now accepts `Duration | str | float`. This was the root cause hidden behind F23's symptoms and surfaced again here.
+
+### Verification status
+
+Live MCP probes immediately after commit `25a6493`:
+
+| Probe | Result | Interpretation |
+|---|---|---|
+| `km_add_condition` w/ bad operator | Returned legacy flat-string `{success:false, error:"INVALID_OPERATOR", message:"..."}` | MCP host is running cached pre-commit Python. |
+| `km_create_macro(name="PlistImportProbe1", template="custom", group_name="KM MCP Audit")` | Returned legacy `GROUP_NOT_FOUND` envelope listing only 4 groups (none of the audit sandbox groups), proving the old `km_create_macro` code path (with its own broken group lookup) is still in use. | Same cache. |
+
+**Action required to verify round-2 fixes live:** restart the Claude / MCP host so the keyboard-maestro MCP server reloads `condition_tools.py`, `creation_tools.py`, `macro_editor_tools.py`, and the new `kmmacros_import.py`. Then re-run the two probes above. Expected after restart:
+
+- F19 probe: `{success:false, error:{code:"INVALID_OPERATOR", message:"...", recovery_suggestion:"..."}}`.
+- Macro creation probe: `{success:true, data:{macro_id:"<uuid>", macro_name:"PlistImportProbe1", group_id:"E18A1949-...", group_name:"KM MCP Audit", ...}}`, and `PlistImportProbe1` visible inside the `KM MCP Audit` group in the KM Editor.
+
+If the macro creation probe instead returns `IMPORT_FAILED` with text about a permission prompt, accept the first-time prompt in KM and retry — that's a one-time per-path approval, not a code defect.
