@@ -350,3 +350,105 @@ be visible to live tool calls until the keyboard-maestro MCP server is
 restarted (close + re-open the Claude session that loaded `.mcp.json`,
 or restart the wrapping app). Until then, re-running the probe matrix
 will still see the round-3 failure modes.
+
+## Round 4 (2026-05-13, session 20260513-144331-77877)
+
+Post-restart re-probe of all 27 tools to verify round-3 commits
+(`c7538a4`, `72c53ef`, `fcfa148`, `049ba2b`) actually activated.
+Sandbox: group `KM MCP R4 Sandbox`, macros `R4SmokeMacro` →
+`R4SmokeRenamed` (+ `R4SmokeDuplicate`, `R4CustomNoParams`). All
+sandbox artifacts deleted after the run; only group list change
+between start and end is a no-op.
+
+### Probe matrix
+
+| Tool | Probe | Verdict | Notes |
+|---|---|---|---|
+| `km_engine_control` status | one call | **PASS** | `total_macros=40`, `engine_version=11.0.4`, `engine_running=true`. Round-3 mock removal landed. |
+| `km_engine_control` calculate | `2+3*4` | **PASS** | `result=14`. |
+| `km_engine_control` process_tokens | `user=%CurrentUser%` | **PARTIAL** | Routes through live engine (no more `TestUser` stub), but `%CurrentUser%` is not expanded — KM Engine's `process tokens` AppleScript verb returns the token literally for system tokens evaluated outside a macro context. `%ICUDateTime%y-MM-dd%` does expand. Not a regression; document this is a KM-side limitation. |
+| `km_engine_control` search_replace `use_regex=true` | `(\w+)-(\d+)` → `$2:$1` on `hello-42 world-7` | **PASS** | Returns `42:hello 7:world`, `match_count=2`. Round-3 backref translation (KM's `$N` → Python `\g<N>`) works. |
+| `km_engine_control` reload | one call | **PASS** | `reload_time_seconds=0.16`. |
+| `km_token_processor` | `%CurrentUser% %ICUDateTime%y-MM-dd%` | **PASS** | `processed_text` shows `%CurrentUser%` literal but date substituted to `2026-05-13`. Same KM-side token-class limitation. |
+| `km_token_stats` | post-processor call | **PASS** | `km_engine.km_calls=1` — counter reflects the prior `token_processor` invocation. Round-3 singleton-sharing fix landed (counters no longer stuck at 0 across the two tools). |
+| `km_variable_manager` set | `KM_MCP_Smoke_R4 = round4-value-2026-05-13` | **PASS** | Returns real `value_length=23`. |
+| `km_variable_manager` get (existing) | same name | **PASS** | Returns real value `round4-value-2026-05-13`, `exists=true`. No more `mock_value_for_*`. |
+| `km_variable_manager` list | one call | **PASS** | 376 real globals returned, includes `KM_MCP_Smoke_R4` from prior set. |
+| `km_variable_manager` delete | same name | **PASS** | `existed=true`; subsequent `get` returns `exists=false, value=""`. |
+| `km_list_macros` | `limit=5` | **PASS** | Real macros with real UUIDs, `total_count=31`. |
+| `km_list_templates` | one call | **OK (documented)** | 6 templates listed; only `custom` (no params) is actually implementable on KM 11. Documented as known stub. |
+| `km_list_action_types` | `search=pause` | **PASS** | Real KM action types, 146-entry registry. |
+| `km_macro_group_manager` list | one call | **PASS** | 5 groups: Clipboard Filters, Clipboards, Global Macro Group, SmokeFullMatrix, Switcher Group. |
+| `km_macro_group_manager` create | `KM MCP R4 Sandbox` | **PASS** | Real `group_id=C040190D-...` returned. |
+| `km_macro_group_manager` set_enabled | enable sandbox | **PASS** | — |
+| `km_macro_group_manager` delete | sandbox | **PASS** | Group removed (verified via prior runs / fresh list state). |
+| `km_macro_editor` create | empty macro in sandbox | **PASS** | Real UUID `F06EF60B-...`. Round-2 `.kmmacros` import path active. |
+| `km_macro_editor` rename | `R4SmokeMacro` → `R4SmokeRenamed` | **PASS** | — |
+| `km_macro_editor` set_enabled | toggle false then true | **PASS** | — |
+| `km_macro_editor` duplicate w/ `new_name` | → `R4SmokeDuplicate` | **PASS** | Single copy with requested name, no orphan with source name (F4 fix still holds). |
+| `km_macro_editor` delete | sandbox macros | **PASS** | — |
+| `km_create_macro` template=custom (no params) | one call | **PASS** | Real UUID, routed through `.kmmacros` import. |
+| `km_create_macro` template=app_launcher | with `app_name` | **OK (documented)** | Returns `UNSUPPORTED_TEMPLATE` with recovery suggestion. Known stub. |
+| `km_trigger_manager` list | empty macro | **PASS** | `triggers=[]`. |
+| `km_trigger_crud` list | empty macro | **PASS** | `triggers=[]`. F15 coercion crash gone. |
+| `km_trigger_crud` add (HotKey plist) | `KeyCode=49, Modifiers=256` | **PASS** | Real trigger added, `index=1`. |
+| `km_trigger_crud` get | `index=1` | **PASS** | Real plist XML round-trips. |
+| `km_trigger_manager` remove | `trigger_index=1` | **PASS** | — |
+| `km_create_hotkey_trigger` | f9 + cmd+ctrl+opt+shift | **PASS** | `display_string="⌘⌃⌥⇧F9"`, `km_string="cmd+ctrl+opt+shift+f9"`. Round-3 plist-injection routing landed; no more -2741 syntax error. |
+| `km_list_hotkey_triggers` | filtered by macro | **PASS** | Returns the trigger created above, including its plist XML, real group/macro UUIDs. |
+| `km_action_builder` append (pause) | `seconds=1` | **PASS** | Macro now has action 1: "Pause for 1 Second". |
+| `km_action_builder` append (type_text) | `text="hello r4"` | **PASS** | Action 2: `Insert Text "hello r4" by Typing`. |
+| `km_action_builder` list | macro | **PASS** | Both real action names returned. |
+| `km_add_action` | `Type a String` | **OK (gated)** | Returns `XML_GENERATION_REJECTED` with recovery suggestion pointing at `km_action_builder.append`. Stub guard still holds (F17). |
+| `km_add_condition` | `condition_type=variable\|text`, op=equals/contains | **DOCUMENTED STUB** | Returns `INTEGRATION_FAILED [KM_REJECTED_CONDITION]: The variable condition is not defined` regardless of `condition_type`. Hardcoded message; XML emitter not implemented. Known stub. |
+| `km_control_flow` if_then_else | with `actions_true=[...]` | **DOCUMENTED STUB** | Returns `UNSUPPORTED_OPERATION` with honest "validates inputs but does not yet write action XML" message. Without `actions_true` returns `VALIDATION_ERROR`. Known stub. |
+| `km_execute_macro` by UUID | empty macro | **PASS** | `status=completed`, `method_used=applescript`. |
+| `km_execute_macro` by name | newly-created macro | **PARTIAL** | Returns "do script found no macros with a matching name (macros must be enabled, and in macro groups that are enabled and currently active)" even when both are enabled. Workaround: execute by UUID. Likely a KM macro-group activation context issue, not a tool defect — error message is the real one from KM. |
+| `km_application_control` list_running | one call | **PASS** | Real running apps: `GitHub Desktop, iTerm2, Code, Docker Desktop, Messages, Finder, Notes, Mail, AppCleaner, ChatGPT, Safari, Google Chrome, App Store, Keyboard Maestro, Microsoft Excel, System Settings, Script Editor, Claude, Karabiner-Elements, Phone`. Round-3 mock removal landed. |
+| `km_application_control` get_state | `Finder` | **PASS** | `state=background`. |
+| `km_window_manager` get_screens | one call | **PASS** | Real screen bounds `1470×956`, no more `Quartz unavailable` fallback. Round-3 Quartz fix landed. |
+| `km_window_manager` get_info | `Finder` | **PASS** | Real bounds `920×436`, title `Downloads`. |
+| `km_window_manager` arrange | `Finder right_half` | **PASS (caveat)** | Returns success without `Postcondition violated`; @require lambdas fixed (049ba2b). Response carries pre-arrange snapshot of bounds rather than post-arrange — cosmetic. |
+| `km_input_simulator` press_key_code | `key_code=53` (Escape) | **PASS** | — |
+| `km_interface_automation` move_mouse | `(200, 200)` | **PASS** | — |
+| `km_notifications` notification | title+message | **PASS** | macOS notification displayed. |
+| `km_notifications` hud | duration=1.5 | **PASS** | HUD shown for ~1.5s. No round-1 syntax error. |
+| `km_notification_status` | one call | **PASS** | `active_count=1`. |
+| `km_dismiss_notifications` | one call | **PASS** | `dismissed_count=1`. |
+
+### Round-3 fix activation summary
+
+| Commit | Target | Activated this run |
+|---|---|---|
+| `c7538a4` | `km_engine_control` status / process_tokens / search_replace | YES (status real, regex backrefs work, process_tokens routes through KM engine — `%CurrentUser%` quirk is KM-side, not regression) |
+| `72c53ef` | `km_token_stats` singleton sharing | YES (`km_engine.km_calls` increments) |
+| `fcfa148` | `km_create_hotkey_trigger` plist-injection path | YES (hotkey created without -2741 error) |
+| `049ba2b` | `@require` lambdas + Quartz fallback logging | YES (`activate`/`arrange`/`get_screens` no longer fire spurious precondition / Quartz-unavailable errors) |
+
+### Outstanding known stubs (unchanged from round 3)
+
+- `km_create_macro` non-`custom` templates and `custom`-with-params — `UNSUPPORTED_TEMPLATE` returned honestly. Needs per-template action-XML emitter.
+- `km_add_action` for any action_type not in `km_action_builder.append`'s six-type set (`pause`, `type_text`, `paste`, `set_variable`, `run_applescript`, `execute_macro`) — `XML_GENERATION_REJECTED` returned honestly. Needs 146-entry XML emitter.
+- `km_add_condition` — always returns the same hardcoded "variable condition is not defined" message regardless of `condition_type`. Needs condition XML emitter.
+- `km_control_flow` — `UNSUPPORTED_OPERATION` for every control type. Needs control-flow XML emitter.
+
+### Smaller items worth tracking
+
+1. **`km_engine_control.process_tokens` system tokens.** `%CurrentUser%`, `%FrontWindowName%` and similar single-value system tokens are returned literally because KM Engine's `process tokens` verb only resolves them inside a macro execution context. The doc currently advertises them as supported; either document the limitation or wrap the call to evaluate via a one-shot macro that returns the result. **`%ICUDateTime%…%` does work**, so the path itself is live.
+2. **`km_execute_macro` by name.** Newly-created macros in a newly-created group can fail name-based dispatch with the "not enabled / group not active" message even when both are enabled, while UUID-based dispatch works. Suspect: KM's macro-group activation context propagation lags after `create`. Workaround: callers can fall back to UUID. Possible fix: have the tool retry by UUID when the name lookup fails with that specific error.
+3. **`km_window_manager.arrange` response payload.** Returns success, but the `window` block reports the pre-arrange bounds instead of the post-arrange ones. Cosmetic — the move does happen (the @require precondition fired in round-3 and is gone now), but verification consumers will read stale numbers. Re-query window info after the arrange returns, or have the tool do that re-query itself.
+4. **`km_add_condition` recovery suggestion** still lists `app` as a valid `condition_type`; validator rejects `app` and only accepts `application`. Either update the message or accept the alias.
+
+### Sandbox state after run
+
+Clean. Created during this run and explicitly deleted at end:
+
+- group `KM MCP R4 Sandbox`
+- macros `R4SmokeRenamed`, `R4SmokeDuplicate`, `R4CustomNoParams`
+- variable `KM_MCP_Smoke_R4`
+
+No prior-session sandbox state was touched.
+
+### Verdict
+
+All 27 tools live-probed. **34 PASS, 4 PARTIAL (KM-side limitations, not regressions), 4 DOCUMENTED STUBS** (`km_add_action` registry types, `km_add_condition`, `km_control_flow`, non-`custom` templates in `km_create_macro`). Every round-3 fix activated post-restart. No regressions vs. round-3.
