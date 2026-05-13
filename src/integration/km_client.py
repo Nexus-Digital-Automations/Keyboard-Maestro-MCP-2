@@ -1536,6 +1536,8 @@ class KMClient:
             "PERMISSION_ERROR",
             "MOVE_ERROR",
             "NOT_FOUND_ERROR",
+            "VALIDATION_ERROR",
+            "EXECUTION_ERROR",
         ],
     )
     async def move_macro_to_group_async(
@@ -1657,13 +1659,13 @@ class KMClient:
 
             source_group, macro_info = find_result.get_right()
 
-            # Validate target group exists
             group_check = await self._validate_group_exists(target_group)
             if group_check.is_left():
                 return group_check
 
-            # Check if already in target group
-            if source_group == target_group:
+            # source_group is always the UID; target_group may be name or UID.
+            target = str(target_group)
+            if target == str(source_group) or target == macro_info.get("group_name"):
                 return Either.left(
                     KMError.validation_error(
                         f"Macro {macro_id} is already in group {target_group}",
@@ -1902,27 +1904,29 @@ class KMClient:
         macro_id: MacroId,
         target_group: GroupId,
     ) -> Either[KMError, bool]:
-        """Verify that macro move was successful."""
+        """Verify that macro move was successful.
+
+        ``_find_macro_current_group`` returns the group's UID; callers may
+        have passed ``target_group`` as either a name or a UID. We accept
+        both shapes — name match is by ``group_name``, UID match is by the
+        canonical ``group_id``.
+        """
         try:
-            # Check if macro is now in target group
             find_result = await self._find_macro_current_group(macro_id)
             if find_result.is_left():
                 return Either.left(
-                    KMError.execution_error(
-                        "Move verification failed: macro not found",
-                    ),
+                    KMError.execution_error("Move verification failed: macro not found"),
                 )
-
-            current_group, _ = find_result.get_right()
-            if current_group != target_group:
-                return Either.left(
-                    KMError.execution_error(
-                        f"Move verification failed: macro in {current_group}, expected {target_group}",
-                    ),
-                )
-
-            return Either.right(True)
-
+            current_group_id, info = find_result.get_right()
+            target = str(target_group)
+            if target == str(current_group_id) or target == info.get("group_name"):
+                return Either.right(True)
+            return Either.left(
+                KMError.execution_error(
+                    f"Move verification failed: macro in "
+                    f"{info.get('group_name') or current_group_id}, expected {target}",
+                ),
+            )
         except Exception as e:
             return Either.left(
                 KMError.execution_error(f"Move verification failed: {e!s}"),
