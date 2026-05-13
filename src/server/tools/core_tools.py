@@ -407,6 +407,91 @@ async def km_list_macros(
         }
 
 
+def _km_escape(text: str) -> str:
+    return text.replace("\\", "\\\\").replace('"', '\\"')
+
+
+async def _exec_variable_op(
+    operation: str,
+    name: str,
+    value: str | None,
+    scope: str,
+) -> dict[str, Any]:
+    """Run a single get/set/delete variable op against KM Engine.
+
+    Password-scope reads mask the value as "[PROTECTED]" — KM stores
+    password-scope variables in memory and AppleScript can read them as
+    plain text via getvariable, but the MCP surface should not relay
+    them. Writes still go through unchanged so callers can populate
+    secrets.
+    """
+    esc_name = _km_escape(name)
+    if operation == "get":
+        script = f'tell application "Keyboard Maestro Engine" to getvariable "{esc_name}"'
+    elif operation == "set":
+        esc_value = _km_escape(value or "")
+        script = (
+            f'tell application "Keyboard Maestro Engine" to '
+            f'setvariable "{esc_name}" to "{esc_value}"'
+        )
+    elif operation == "delete":
+        script = (
+            f'tell application "Keyboard Maestro Engine" to '
+            f'delete variable "{esc_name}"'
+        )
+    else:
+        return {
+            "success": False,
+            "error": {
+                "code": "INVALID_OPERATION",
+                "message": f"unknown operation: {operation}",
+                "recovery_suggestion": "Use get, set, delete, or list.",
+            },
+        }
+    result = await get_km_client().execute_applescript_async(script)
+    if result.is_left():
+        return {
+            "success": False,
+            "error": {
+                "code": "KM_VARIABLE_FAILED",
+                "message": result.get_left().message,
+                "recovery_suggestion": "Verify Keyboard Maestro Engine is running.",
+            },
+        }
+    raw = result.get_right().rstrip("\n")
+    if operation == "get":
+        return {
+            "success": True,
+            "data": {
+                "name": name,
+                "value": "[PROTECTED]" if scope == "password" else raw,
+                "scope": scope,
+                "exists": raw != "",
+                "type": "string",
+            },
+        }
+    if operation == "set":
+        return {
+            "success": True,
+            "data": {
+                "name": name,
+                "scope": scope,
+                "operation": "set",
+                "value_length": len(value or ""),
+                "is_password": scope == "password",
+            },
+        }
+    return {
+        "success": True,
+        "data": {
+            "name": name,
+            "scope": scope,
+            "operation": "delete",
+            "existed": True,
+        },
+    }
+
+
 async def km_variable_manager(
     operation: Annotated[
         str,
@@ -475,54 +560,18 @@ async def km_variable_manager(
         ):
             raise ValidationError("name", name, "Invalid variable name format")
 
-        # Mock implementation - would integrate with actual KM variable system
-        if operation == "get":
+        # KM Engine round-trip for get/set/delete (KM does not expose a
+        # separate "delete" — we clear via setvariable "" and report a
+        # deletion). Earlier revisions returned hard-coded mock values
+        # like "mock_value_for_<name>" and treated set/delete as
+        # success-no-op, so the tool silently dropped every write.
+        if operation in {"get", "set", "delete"}:
+            km_response = await _exec_variable_op(operation, name, value, scope)
+            if not km_response["success"]:
+                return km_response
             if ctx:
-                await ctx.info(f"Getting variable '{name}' from {scope} scope")
-
-            # Mock response
-            mock_value = (
-                f"mock_value_for_{name}" if scope != "password" else "[PROTECTED]"
-            )
-            return {
-                "success": True,
-                "data": {
-                    "name": name,
-                    "value": mock_value,
-                    "scope": scope,
-                    "exists": True,
-                    "type": "string",
-                },
-            }
-
-        if operation == "set":
-            if ctx:
-                await ctx.info(f"Setting variable '{name}' in {scope} scope")
-
-            return {
-                "success": True,
-                "data": {
-                    "name": name,
-                    "scope": scope,
-                    "operation": "set",
-                    "value_length": len(str(value)),
-                    "is_password": scope == "password",
-                },
-            }
-
-        if operation == "delete":
-            if ctx:
-                await ctx.info(f"Deleting variable '{name}' from {scope} scope")
-
-            return {
-                "success": True,
-                "data": {
-                    "name": name,
-                    "scope": scope,
-                    "operation": "delete",
-                    "existed": True,
-                },
-            }
+                await ctx.info(f"Variable {operation} '{name}' [{scope}] OK")
+            return km_response
 
         if operation == "list":
             if ctx:
