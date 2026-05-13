@@ -75,6 +75,120 @@ def _escape_applescript_xml_literal(xml_text: str) -> str:
     )
 
 
+# macOS virtual key codes for the keys accepted by km_trigger_manager /
+# km_create_hotkey_trigger. Letters/digits use the Apple HIToolbox standard
+# (Events.h kVK_ANSI_*). Function keys use kVK_F1..F12.
+_KEY_NAME_TO_KEYCODE: dict[str, int] = {
+    "a": 0, "b": 11, "c": 8, "d": 2, "e": 14, "f": 3, "g": 5, "h": 4,
+    "i": 34, "j": 38, "k": 40, "l": 37, "m": 46, "n": 45, "o": 31,
+    "p": 35, "q": 12, "r": 15, "s": 1, "t": 17, "u": 32, "v": 9,
+    "w": 13, "x": 7, "y": 16, "z": 6,
+    "0": 29, "1": 18, "2": 19, "3": 20, "4": 21, "5": 23,
+    "6": 22, "7": 26, "8": 28, "9": 25,
+    "f1": 122, "f2": 120, "f3": 99, "f4": 118, "f5": 96, "f6": 97,
+    "f7": 98, "f8": 100, "f9": 101, "f10": 109, "f11": 103, "f12": 111,
+    "space": 49, "tab": 48, "return": 36, "enter": 76, "escape": 53,
+    "delete": 51, "backspace": 51, "home": 115, "end": 119,
+    "pageup": 116, "pagedown": 121, "up": 126, "down": 125,
+    "left": 123, "right": 124, "help": 114, "insert": 114, "clear": 71,
+}
+
+# KM bit mask values for the four standard modifiers (Carbon-era constants).
+_MODIFIER_MASK: dict[str, int] = {
+    "command": 256, "cmd": 256,
+    "shift": 512,
+    "option": 2048, "opt": 2048, "alt": 2048,
+    "control": 4096, "ctrl": 4096,
+}
+
+_TRIGGER_FIRE_TYPES = {"pressed", "released", "tapped", "held"}
+
+
+def _trigger_config_to_xml(
+    trigger_type: str,
+    config: dict[str, Any],
+) -> Either[KMError, str]:
+    """Translate a high-level trigger config into KM's plist <dict> XML."""
+    if trigger_type == "hotkey":
+        key_raw = config.get("key")
+        if not isinstance(key_raw, str) or not key_raw:
+            return Either.left(KMError.validation_error("hotkey requires 'key' (str)"))
+        key_code = _KEY_NAME_TO_KEYCODE.get(key_raw.strip().lower())
+        if key_code is None:
+            return Either.left(
+                KMError.validation_error(
+                    f"unknown hotkey 'key': {key_raw!r}; "
+                    "use a-z, 0-9, f1-f12, or a named special key.",
+                ),
+            )
+        mods_raw = config.get("modifiers", [])
+        if not isinstance(mods_raw, list):
+            return Either.left(KMError.validation_error("'modifiers' must be a list"))
+        mod_mask = 0
+        for m in mods_raw:
+            if not isinstance(m, str):
+                continue
+            bit = _MODIFIER_MASK.get(m.strip().lower())
+            if bit is None:
+                return Either.left(
+                    KMError.validation_error(f"unknown modifier: {m!r}"),
+                )
+            mod_mask |= bit
+        fire_type_raw = str(config.get("activation_mode", "pressed")).lower()
+        if fire_type_raw not in _TRIGGER_FIRE_TYPES:
+            return Either.left(
+                KMError.validation_error(
+                    f"'activation_mode' must be one of {sorted(_TRIGGER_FIRE_TYPES)}",
+                ),
+            )
+        fire_type = fire_type_raw.capitalize()
+        xml = (
+            "<dict>"
+            "<key>MacroTriggerType</key><string>HotKey</string>"
+            f"<key>KeyCode</key><integer>{key_code}</integer>"
+            f"<key>Modifiers</key><integer>{mod_mask}</integer>"
+            f"<key>FireType</key><string>{fire_type}</string>"
+            "</dict>"
+        )
+        return Either.right(xml)
+    if trigger_type == "application":
+        app_name = config.get("application")
+        event = config.get("event", "launches")
+        if not isinstance(app_name, str) or not app_name:
+            return Either.left(
+                KMError.validation_error("application trigger requires 'application' (str)"),
+            )
+        if event not in {"launches", "quits", "activates", "deactivates"}:
+            return Either.left(
+                KMError.validation_error(
+                    "'event' must be launches|quits|activates|deactivates",
+                ),
+            )
+        # KM's plist uses an `ApplicationTriggerType` int where 0=Activates,
+        # 1=Deactivates, 2=Launches, 3=Quits. We pass the symbolic name so KM
+        # parses it; if a build of KM ever rejects the symbolic form, swap
+        # to the integer here.
+        event_int = {"activates": 0, "deactivates": 1, "launches": 2, "quits": 3}[event]
+        # Escape <, >, & inside the application name to keep the plist valid.
+        safe_app = (
+            app_name.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        )
+        xml = (
+            "<dict>"
+            "<key>MacroTriggerType</key><string>Application</string>"
+            f"<key>Application</key><dict><key>Name</key><string>{safe_app}</string></dict>"
+            f"<key>Type</key><integer>{event_int}</integer>"
+            "</dict>"
+        )
+        return Either.right(xml)
+    return Either.left(
+        KMError.validation_error(
+            f"trigger_type '{trigger_type}' not supported; "
+            "use 'hotkey' or 'application'.",
+        ),
+    )
+
+
 class ConnectionMethod(Enum):
     """Available connection methods to Keyboard Maestro."""
 
@@ -908,7 +1022,7 @@ class KMClient:
                     set enabled of newMacro to true
 
                     -- Get the macro ID
-                    set macroID to uid of newMacro
+                    set macroID to (id of newMacro as string)
 
                     return "SUCCESS:" & macroID
                 on error errorMessage
@@ -1569,16 +1683,15 @@ class KMClient:
     ) -> Either[KMError, tuple[GroupId, dict[str, Any]]]:
         """Find macro's current group and get macro information."""
         try:
-            # Escape macro ID for AppleScript
-            escaped_macro_id = self._escape_applescript_string(macro_id)
+            macro_selector = self._macro_selector(str(macro_id))
 
             script = f"""
             tell application "Keyboard Maestro"
                 try
-                    set foundMacro to first macro whose name is "{escaped_macro_id}" or uid is "{escaped_macro_id}"
+                    set foundMacro to {macro_selector}
                     set parentGroup to macro group of foundMacro
                     set groupName to name of parentGroup
-                    set groupID to uid of parentGroup
+                    set groupID to (id of parentGroup as string)
                     set macroName to name of foundMacro
                     set macroEnabled to enabled of foundMacro
 
@@ -1623,12 +1736,12 @@ class KMClient:
     async def _validate_group_exists(self, group_id: GroupId) -> Either[KMError, bool]:
         """Validate that target group exists."""
         try:
-            escaped_group_id = self._escape_applescript_string(group_id)
+            group_selector = self._group_selector(str(group_id))
 
             script = f"""
             tell application "Keyboard Maestro"
                 try
-                    set targetGroup to first macro group whose name is "{escaped_group_id}" or uid is "{escaped_group_id}"
+                    set targetGroup to {group_selector}
                     return "SUCCESS"
                 on error
                     return "ERROR: Group not found"
@@ -1663,18 +1776,19 @@ class KMClient:
         try:
             conflicts = []
 
-            # Check for name collision in target group
-            escaped_macro_id = self._escape_applescript_string(macro_id)
-            escaped_target = self._escape_applescript_string(target_group)
+            group_selector = self._group_selector(str(target_group))
+            macro_selector = self._macro_selector(str(macro_id))
 
             script = f"""
             tell application "Keyboard Maestro"
                 try
-                    set targetGroup to first macro group whose name is "{escaped_target}" or uid is "{escaped_target}"
+                    set targetGroup to {group_selector}
+                    set sourceMacro to {macro_selector}
+                    set sourceName to name of sourceMacro
                     set macrosInGroup to every macro of targetGroup
 
                     repeat with currentMacro in macrosInGroup
-                        if name of currentMacro is "{escaped_macro_id}" then
+                        if name of currentMacro is sourceName then
                             return "CONFLICT: Name collision"
                         end if
                     end repeat
@@ -1751,14 +1865,14 @@ class KMClient:
     ) -> Either[KMError, bool]:
         """Execute the actual macro move operation."""
         try:
-            escaped_macro_id = self._escape_applescript_string(macro_id)
-            escaped_target = self._escape_applescript_string(target_group)
+            macro_selector = self._macro_selector(str(macro_id))
+            group_selector = self._group_selector(str(target_group))
 
             script = f"""
             tell application "Keyboard Maestro"
                 try
-                    set sourceMacro to first macro whose name is "{escaped_macro_id}" or uid is "{escaped_macro_id}"
-                    set targetGroup to first macro group whose name is "{escaped_target}" or uid is "{escaped_target}"
+                    set sourceMacro to {macro_selector}
+                    set targetGroup to {group_selector}
 
                     move sourceMacro to targetGroup
                     return "SUCCESS: Macro moved"
@@ -1835,15 +1949,24 @@ class KMClient:
     def _macro_selector(self, macro_id: str) -> str:
         """Return the AppleScript selector for ``macro_id``.
 
-        KM 11 AppleScript distinguishes UUID and name lookups; ``whose name
-        is "<uuid>"`` silently matches nothing rather than erroring. Callers
-        must dispatch on shape — UUIDs go through ``macro id "..."``, names
-        through ``first macro whose name is "..."``.
+        KM 11 AppleScript distinguishes UUID and name lookups. The
+        ``whose name is X or uid is X`` form does NOT work — when the
+        name match fails, the bare ``uid`` token is parsed as a free
+        variable (error -2753). Callers must dispatch on shape: UUIDs go
+        through ``macro id "..."``, names through
+        ``first macro whose name is "..."``.
         """
         escaped = self._escape_applescript_string(macro_id)
         if _KM_UUID_RE.match(macro_id):
             return f'macro id "{escaped}"'
         return f'first macro whose name is "{escaped}"'
+
+    def _group_selector(self, group_id: str) -> str:
+        """Return the AppleScript selector for a macro group by name or UUID."""
+        escaped = self._escape_applescript_string(group_id)
+        if _KM_UUID_RE.match(group_id):
+            return f'macro group id "{escaped}"'
+        return f'first macro group whose name is "{escaped}"'
 
     def _escape_applescript_string(self, value: str) -> str:
         """Escape string for safe use in AppleScript."""
@@ -2136,70 +2259,21 @@ class KMClient:
         trigger_type: str,
         config: dict[str, Any],
     ) -> Either[KMError, bool]:
-        """Attach a new trigger to an existing macro.
+        """Attach a new hotkey or application trigger to a macro.
 
-        Supports trigger_type values: "hotkey" (config: key, modifiers),
-        "application" (config: application, event).
-        Other types are deferred to a later round.
-
-        Existing `register_trigger_async` predates the macro-scoping concept
-        in this codebase and doesn't attach to a specific macro — this is
-        the proper macro-scoped primitive.
+        Translates ``config`` to KM's plist trigger XML, then delegates to
+        ``append_macro_trigger_xml_async``. KM 11 AppleScript will not
+        accept ``make new <trigger class> with properties {key:..., ...}``
+        because ``key`` is a reserved class name; the XML round-trip via
+        ``make new trigger with properties {xml: ...}`` is the supported
+        path.
         """
-        escaped_id = self._escape_applescript_string(str(macro_id))
-        if trigger_type == "hotkey":
-            key = config.get("key")
-            if not isinstance(key, str) or not key:
-                return Either.left(KMError.validation_error("hotkey requires 'key' (str)"))
-            allowed_mods = {"command", "option", "control", "shift"}
-            mods_raw = config.get("modifiers", [])
-            if not isinstance(mods_raw, list):
-                return Either.left(KMError.validation_error("'modifiers' must be a list"))
-            safe_mods = [m for m in mods_raw if isinstance(m, str) and m in allowed_mods]
-            mods_clause = "{" + ", ".join(f'"{m}"' for m in safe_mods) + "}"
-            escaped_key = self._escape_applescript_string(key)
-            props = f'key:"{escaped_key}", modifiers:{mods_clause}'
-            type_clause = "hot key trigger"
-        elif trigger_type == "application":
-            app_name = config.get("application")
-            event = config.get("event", "launches")
-            if not isinstance(app_name, str) or not app_name:
-                return Either.left(
-                    KMError.validation_error("application trigger requires 'application' (str)"),
-                )
-            if event not in {"launches", "quits", "activates"}:
-                return Either.left(
-                    KMError.validation_error("'event' must be launches|quits|activates"),
-                )
-            escaped_app = self._escape_applescript_string(app_name)
-            props = f'application:"{escaped_app}", event:"{event}"'
-            type_clause = "application trigger"
-        else:
-            return Either.left(
-                KMError.validation_error(
-                    f"trigger_type '{trigger_type}' not supported; "
-                    "use 'hotkey' or 'application'",
-                ),
-            )
-        script = f'''
-        tell application "Keyboard Maestro"
-            try
-                set targetMacro to first macro whose name is "{escaped_id}" or uid is "{escaped_id}"
-                make new {type_clause} at end of triggers of targetMacro ¬
-                    with properties {{{props}}}
-                return "attached"
-            on error errMsg
-                return "ERROR: " & errMsg
-            end try
-        end tell
-        '''
-        result = await self.execute_applescript_async(script)
-        if result.is_left():
-            return Either.left(result.get_left())
-        output = result.get_right().strip()
-        if output.startswith("ERROR:"):
-            return Either.left(KMError.execution_error(output[6:].strip()))
-        return Either.right(True)
+        xml_payload = _trigger_config_to_xml(trigger_type, config)
+        if xml_payload.is_left():
+            return Either.left(xml_payload.get_left())
+        return await self.append_macro_trigger_xml_async(
+            macro_id, xml_payload.get_right(),
+        )
 
     async def list_macro_triggers_async(
         self,
@@ -2212,11 +2286,11 @@ class KMClient:
         breaks the whole listing. Older code referenced ``enabled of t``,
         which is why this endpoint always returned ``LIST_FAILED``.
         """
-        escaped = self._escape_applescript_string(str(macro_id))
+        selector = self._macro_selector(str(macro_id))
         script = f'''
         tell application "Keyboard Maestro"
             try
-                set parentMacro to first macro whose name is "{escaped}" or uid is "{escaped}"
+                set parentMacro to {selector}
                 set trigCount to count of triggers of parentMacro
                 set output to ""
                 repeat with i from 1 to trigCount
@@ -2247,11 +2321,11 @@ class KMClient:
         """Remove the Nth trigger (1-indexed) from a macro."""
         if trigger_index < 1:
             return Either.left(KMError.validation_error("trigger_index must be >= 1"))
-        escaped = self._escape_applescript_string(str(macro_id))
+        selector = self._macro_selector(str(macro_id))
         script = f'''
         tell application "Keyboard Maestro"
             try
-                delete trigger {trigger_index} of (first macro whose name is "{escaped}" or uid is "{escaped}")
+                delete trigger {trigger_index} of ({selector})
                 return "deleted"
             on error errMsg
                 return "ERROR: " & errMsg
@@ -2271,11 +2345,11 @@ class KMClient:
         macro_id: MacroId,
     ) -> Either[KMError, bool]:
         """Remove all triggers from a macro."""
-        escaped = self._escape_applescript_string(str(macro_id))
+        selector = self._macro_selector(str(macro_id))
         script = f'''
         tell application "Keyboard Maestro"
             try
-                delete every trigger of (first macro whose name is "{escaped}" or uid is "{escaped}")
+                delete every trigger of ({selector})
                 return "cleared"
             on error errMsg
                 return "ERROR: " & errMsg
@@ -2296,28 +2370,17 @@ class KMClient:
         trigger_index: int,
         enabled: bool,
     ) -> Either[KMError, bool]:
-        """Enable or disable the Nth trigger (1-indexed) of a macro."""
-        if trigger_index < 1:
-            return Either.left(KMError.validation_error("trigger_index must be >= 1"))
-        escaped = self._escape_applescript_string(str(macro_id))
-        flag = "true" if enabled else "false"
-        script = f'''
-        tell application "Keyboard Maestro"
-            try
-                set enabled of trigger {trigger_index} of (first macro whose name is "{escaped}" or uid is "{escaped}") to {flag}
-                return "ok"
-            on error errMsg
-                return "ERROR: " & errMsg
-            end try
-        end tell
-        '''
-        result = await self.execute_applescript_async(script)
-        if result.is_left():
-            return Either.left(result.get_left())
-        output = result.get_right().strip()
-        if output.startswith("ERROR:"):
-            return Either.left(KMError.execution_error(output[6:].strip()))
-        return Either.right(True)
+        """KM 11 does not expose ``enabled`` on individual triggers via
+        AppleScript — they inherit the macro's enabled state. Reject the
+        request explicitly rather than silently coercion-erroring.
+        """
+        del macro_id, trigger_index, enabled
+        return Either.left(
+            KMError.validation_error(
+                "Per-trigger enable/disable is not exposed by KM 11 "
+                "AppleScript. Use set_macro_enabled_async instead.",
+            ),
+        )
 
     async def get_macro_trigger_xml_async(
         self,
@@ -2327,11 +2390,11 @@ class KMClient:
         """Return the full plist XML of the Nth trigger (1-indexed) of a macro."""
         if trigger_index < 1:
             return Either.left(KMError.validation_error("trigger_index must be >= 1"))
-        escaped = self._escape_applescript_string(str(macro_id))
+        selector = self._macro_selector(str(macro_id))
         script = f'''
         tell application "Keyboard Maestro"
             try
-                return xml of trigger {trigger_index} of (first macro whose name is "{escaped}" or uid is "{escaped}")
+                return xml of trigger {trigger_index} of ({selector})
             on error errMsg
                 return "ERROR: " & errMsg
             end try
@@ -2349,15 +2412,19 @@ class KMClient:
         self,
         macro_id: MacroId,
     ) -> Either[KMError, list[dict[str, Any]]]:
-        """List triggers with full XML body so callers can edit and replace."""
-        escaped = self._escape_applescript_string(str(macro_id))
+        """List triggers with full XML body so callers can edit and replace.
+
+        KM 11 doesn't expose ``enabled`` on triggers via AppleScript;
+        callers can read the macro-level enabled state separately.
+        """
+        selector = self._macro_selector(str(macro_id))
         script = f'''
         tell application "Keyboard Maestro"
             try
                 set output to ""
-                set trigList to triggers of (first macro whose name is "{escaped}" or uid is "{escaped}")
+                set trigList to triggers of ({selector})
                 repeat with t in trigList
-                    set output to output & (description of t) & "␟" & (enabled of t) & "␟" & (xml of t) & "␞"
+                    set output to output & (description of t) & "␟" & (xml of t) & "␞"
                 end repeat
                 return output
             on error errMsg
@@ -2374,13 +2441,12 @@ class KMClient:
             return Either.left(KMError.not_found_error(stripped[6:].strip()))
         triggers: list[dict[str, Any]] = []
         for idx, record in enumerate(filter(None, output.split("␞")), start=1):
-            parts = record.split("␟", 2)
+            parts = record.split("␟", 1)
             triggers.append(
                 {
                     "index": idx,
                     "description": parts[0].strip() if parts else "",
-                    "enabled": (parts[1].strip().lower() == "true") if len(parts) > 1 else True,
-                    "xml": parts[2] if len(parts) > 2 else "",
+                    "xml": parts[1] if len(parts) > 1 else "",
                 },
             )
         return Either.right(triggers)
@@ -2394,19 +2460,24 @@ class KMClient:
 
         Works for every KM trigger type — caller controls the
         ``MacroTriggerType`` discriminator and per-type fields in the XML.
+
+        KM 11 only accepts trigger creation via ``make new trigger with
+        properties {xml:"..."}`` inside a ``tell macro ...`` block.
+        ``make new trigger at end of triggers of <macro>`` returns
+        AppleEvent handler failed.
         """
-        escaped_id = self._escape_applescript_string(str(macro_id))
+        selector = self._macro_selector(str(macro_id))
         escaped_xml = _escape_applescript_xml_literal(trigger_xml)
         script = f'''
         tell application "Keyboard Maestro"
-            try
-                set targetMacro to first macro whose name is "{escaped_id}" or uid is "{escaped_id}"
-                set newTrigger to make new trigger at end of triggers of targetMacro
-                set xml of newTrigger to "{escaped_xml}"
-                return "appended"
-            on error errMsg
-                return "ERROR: " & errMsg
-            end try
+            tell {selector}
+                try
+                    make new trigger with properties {{xml:"{escaped_xml}"}}
+                    return "appended"
+                on error errMsg
+                    return "ERROR: " & errMsg
+                end try
+            end tell
         end tell
         '''
         result = await self.execute_applescript_async(script)
@@ -2426,12 +2497,12 @@ class KMClient:
         """Replace the XML of the Nth trigger (1-indexed) of a macro."""
         if trigger_index < 1:
             return Either.left(KMError.validation_error("trigger_index must be >= 1"))
-        escaped_id = self._escape_applescript_string(str(macro_id))
+        selector = self._macro_selector(str(macro_id))
         escaped_xml = _escape_applescript_xml_literal(trigger_xml)
         script = f'''
         tell application "Keyboard Maestro"
             try
-                set xml of trigger {trigger_index} of (first macro whose name is "{escaped_id}" or uid is "{escaped_id}") to "{escaped_xml}"
+                set xml of trigger {trigger_index} of ({selector}) to "{escaped_xml}"
                 return "updated"
             on error errMsg
                 return "ERROR: " & errMsg
@@ -2451,12 +2522,12 @@ class KMClient:
         macro_id: MacroId,
     ) -> Either[KMError, list[dict[str, Any]]]:
         """List actions inside a macro (description + enabled flag, 1-indexed)."""
-        escaped = self._escape_applescript_string(str(macro_id))
+        selector = self._macro_selector(str(macro_id))
         script = f'''
         tell application "Keyboard Maestro"
             try
                 set output to ""
-                set actList to actions of (first macro whose name is "{escaped}" or uid is "{escaped}")
+                set actList to actions of ({selector})
                 repeat with a in actList
                     set output to output & (name of a) & "␟" & (enabled of a) & "\n"
                 end repeat
@@ -2495,18 +2566,18 @@ class KMClient:
         action format). Tool layer (`action_builder_tools`) owns the
         type-to-XML mapping; this primitive only escapes + dispatches.
         """
-        escaped_id = self._escape_applescript_string(str(macro_id))
+        selector = self._macro_selector(str(macro_id))
         escaped_xml = action_xml.replace("\\", "\\\\").replace('"', '\\"')
         script = f'''
         tell application "Keyboard Maestro"
-            try
-                set targetMacro to first macro whose name is "{escaped_id}" or uid is "{escaped_id}"
-                set newAction to make new action at end of actions of targetMacro
-                set XML of newAction to "{escaped_xml}"
-                return "appended"
-            on error errMsg
-                return "ERROR: " & errMsg
-            end try
+            tell {selector}
+                try
+                    make new action with properties {{xml:"{escaped_xml}"}}
+                    return "appended"
+                on error errMsg
+                    return "ERROR: " & errMsg
+                end try
+            end tell
         end tell
         '''
         result = await self.execute_applescript_async(script)
@@ -2525,11 +2596,11 @@ class KMClient:
         """Delete the Nth action (1-indexed) from a macro."""
         if action_index < 1:
             return Either.left(KMError.validation_error("action_index must be >= 1"))
-        escaped = self._escape_applescript_string(str(macro_id))
+        selector = self._macro_selector(str(macro_id))
         script = f'''
         tell application "Keyboard Maestro"
             try
-                delete action {action_index} of (first macro whose name is "{escaped}" or uid is "{escaped}")
+                delete action {action_index} of ({selector})
                 return "deleted"
             on error errMsg
                 return "ERROR: " & errMsg
@@ -2549,11 +2620,11 @@ class KMClient:
         macro_id: MacroId,
     ) -> Either[KMError, bool]:
         """Remove all actions from a macro (leaves the shell intact)."""
-        escaped = self._escape_applescript_string(str(macro_id))
+        selector = self._macro_selector(str(macro_id))
         script = f'''
         tell application "Keyboard Maestro"
             try
-                delete every action of (first macro whose name is "{escaped}" or uid is "{escaped}")
+                delete every action of ({selector})
                 return "cleared"
             on error errMsg
                 return "ERROR: " & errMsg
