@@ -180,10 +180,17 @@ async def km_add_condition(
         )
 
         if integration_result.is_left():
+            err = integration_result.get_left()
             return {
                 "success": False,
-                "error": "INTEGRATION_FAILED",
-                "message": integration_result.get_left().message,
+                "error": {
+                    "code": "INTEGRATION_FAILED",
+                    "message": err.message,
+                    "recovery_suggestion": (
+                        "Check the macro exists, the condition operand is well-formed, "
+                        "and KM Engine is reachable."
+                    ),
+                },
             }
 
         integration_details = integration_result.get_right()

@@ -1,0 +1,172 @@
+# Keyboard Maestro MCP — Smoke Audit Report
+
+**Owner:** session/20260512-180938-43749. **Subject:** all `mcp__keyboard-maestro__km_*` tools shipped by this repo, smoke-tested against a live KM 11.0.4 install.
+
+## TL;DR
+
+27 tools tested. Roughly half work end-to-end. The other half fall into three buckets:
+
+1. **Mocked responses** that look like success but return fake data (variable get/set, engine status, list_running, get_screens, process_tokens).
+2. **Broken AppleScript templates** that target verbs/properties Keyboard Maestro 11 doesn't expose (`make new macro`, `set name of macro`, `<MKen> of MKmt` coercion), causing tools to fail or — worse — to corrupt user macros (`km_add_action` writes garbage XML the user's macro then "logs" as an error).
+3. **Plain Python bugs**: missing attributes (`play_sound`), wrong types (`'str' has no attribute 'total_seconds'`), wrong import (`defusedxml.ElementTree.Element` doesn't exist).
+
+## Per-tool results
+
+| Tool | Happy | Error | Verdict | Defect IDs |
+|---|---|---|---|---|
+| `km_macro_group_manager` (list / create / delete) | list ✓, delete ✓, create false-neg | — | partial | F1 |
+| `km_create_macro` | every template fails | — | broken | F2 |
+| `km_macro_editor.create` | fails (no `make new macro`) | — | broken | F3 |
+| `km_macro_editor.duplicate` (no rename) | ✓ | — | OK | — |
+| `km_macro_editor.duplicate` (with new_name) | partial; leaves orphan | — | broken | F4 |
+| `km_macro_editor.rename` | ✓ | — | OK | — |
+| `km_macro_editor.set_enabled` | ✓ | — | OK | — |
+| `km_macro_editor.delete` | ✓ | — | OK | — |
+| `km_list_macros` (filter / sort name) | ✓ | sort `created_date` useless | UX | F5 |
+| `km_list_action_types` | ✓ | ✓ | OK | — |
+| `km_list_hotkey_triggers` | returns `[]` despite real hotkeys | — | broken | F8 |
+| `km_list_templates` | ✓ | n/a | OK | — |
+| `km_engine_control.status` | mock data (`engine_version` mismatches, `total_macros: 0`) | — | broken | F6 |
+| `km_engine_control.calculate` | ✓ | nested error msg | UX | F9 |
+| `km_engine_control.process_tokens` | mock (`%CurrentUser%` → `TestUser`, actual is `jeremyparker`) | — | broken | F12 |
+| `km_engine_control.search_replace` | ✓ | — | OK | — |
+| `km_engine_control.reload` | ✓ | — | OK | — |
+| `km_token_stats` | ✓ | n/a | OK | — |
+| `km_token_processor` | ✓ (real engine) | — | OK | — |
+| `km_notification_status` | ✓ | — | OK | — |
+| `km_dismiss_notifications` | ✓ | — | OK | — |
+| `km_notifications` (notification type) | ✓ but `sound_played: false` even when implicit | — | partial | — |
+| `km_notifications` (HUD type) | AppleScript syntax error | — | broken | F24 |
+| `km_notifications` (alert type) | not tested (blocks on modal) | — | n/t | — |
+| `km_notifications` (sound type) | AttributeError `play_sound` | — | broken | F25 |
+| `km_variable_manager.list` | ✓ (374 real variables returned) | — | OK | — |
+| `km_variable_manager.get` | returns `mock_value_for_<name>` for ANY name | — | broken | F7 |
+| `km_variable_manager.set` | reports success, value not written | — | broken | F11 |
+| `km_action_builder.list` | ✓ | macro name with `⌥` → `Invalid index` | partial | F14 |
+| `km_action_builder.append` | ✓ | unknown action type → clean error | OK | — |
+| `km_action_builder.delete` | ✓ | — | OK | — |
+| `km_action_builder.clear` | not tested (would mutate) | — | n/t | — |
+| `km_add_action` | reports success; **adds malformed XML** to the macro (KM logs "Invalid XML From AppleScript" in place of the requested action) | — | broken | F17 |
+| `km_add_condition` | `module 'defusedxml.ElementTree' has no attribute 'Element'` | — | broken | F18 |
+| `km_control_flow` | validation rejects valid-looking input; error envelope differs from sibling tool | — | partial | F19 |
+| `km_trigger_crud.list` | coercion error (`«class MKen» ... into Unicode text`) | — | broken | F15 |
+| `km_trigger_manager.list` | same | — | broken | F15 |
+| `km_create_hotkey_trigger` | AppleScript syntax error | — | broken | F16 |
+| `km_execute_macro` | ✓ (real run, but `execution_time: 0`) | ✓ (real KM err msg) | OK | — |
+| `km_application_control.list_running` | mock (`Finder, Safari, Mail, Calendar` regardless of actual) | — | broken | F21 |
+| `km_application_control.get_state` | ✓ | ✓ (clear validation msg) | OK | — |
+| `km_application_control.activate/launch/quit` | not tested (would disrupt) | — | n/t | — |
+| `km_window_manager.get_info` (real app) | ✓ (real bounds + title) | TypeError on bad app | partial | F23 |
+| `km_window_manager.get_screens` | mock (`1920×1080` regardless of actual display) | — | broken | F22 |
+| `km_move_macro_to_group` | AppleScript syntax error (`Expected "then", etc. but found "and"`) | — | broken | F20 |
+| `km_input_simulator` | required-arg validator fires before content tests | n/t | — | — |
+| `km_interface_automation.click` | reports success; effect unverified (likely real but not observable from MCP) | — | unverified | F26 |
+
+## Defects in detail
+
+### F1 [P1] `km_macro_group_manager.create` — false-negative envelope
+Group IS created but tool returns `success: false, code: CREATE_FAILED`. Root cause: post-create AppleScript reads back the new group with `set X to uid of macro group "..."`, which coerces a macro-group reference into a value KM can't return.
+**Fix:** treat "group exists with this name after the create" as success.
+
+### F2 [P0] `km_create_macro` — every template fails
+Returns `CREATION_ERROR: Precondition violated`. Caller has no way to create a macro.
+**Root cause:** templates layer assumes a working `KMClient.create_macro` underneath, which itself is F3.
+
+### F3 [P0] `km_macro_editor.create` — KM has no `make new macro` verb
+`tell application "Keyboard Maestro" to make new macro at end of macros of group` always fails with `AppleEvent handler failed`. KM 11's scripting dictionary only supports `make new macro group`, not `make new macro`. Verified by direct osascript.
+**Fix options** (none simple): UI-script the Editor menu, write a `.kmmacros` plist and have KM import it, or call into the Editor's URL scheme. All are larger than this audit's fix budget — recommend punting with a clear `UNSUPPORTED_BY_KM` error until a strategy is chosen.
+
+### F4 [P0] `km_macro_editor.duplicate` with `new_name` — orphans an unrenamed copy
+`set newMacro to duplicate sourceMacro` succeeds. The next line `set name of newMacro to "X"` fails: KM 11 doesn't allow `set name of macro`. Result: the duplicate is created with the source's name, and the tool returns an error — caller is left thinking nothing happened, but a stray copy exists.
+**Fix:** don't rely on `set name of`. Either rename via a separate `rename` call (which works), or stop offering the `new_name` parameter and let callers chain `duplicate` + `rename`.
+
+### F5 [P2] `km_list_macros` sort by `created_date`
+Every macro reports `created_date: null` from the data source, so the sort is a no-op. Either populate or reject the sort key.
+
+### F6 [P0] `km_engine_control.status` — mocked
+Returns `engine_version: "11.0.3"` (actual: 11.0.4), `total_macros: 0` (actual: 26+), and exact-looking `performance` numbers that don't change between calls. The code under this branch is generating canned data.
+
+### F7 [P0] `km_variable_manager.get` — mocked
+`get` of an existing variable returns `value: "mock_value_for_<name>", exists: true`; `get` of a nonexistent variable returns the same shape — pure synthetic. Real KM Engine value never read.
+
+### F8 [P1] `km_list_hotkey_triggers` — returns empty
+The current user has at least one hotkey-triggered macro (`Quick Macro for ⌥F1`, `^F1` hotkey). Tool returns `hotkeys: []`. Either the AppleScript that enumerates triggers is wrong, or the post-enumeration coercion silently drops rows.
+
+### F9 [P1] `km_engine_control.calculate` — error message is nested noise
+On invalid input, error message reads: `Failed to calculate engine ... Validation failed for field 'expression': Calculation failed: Validation failed for field 'expression': Unsafe operation detected: Compare. Got: AST validation. Got: this is not math`. Three layers of wrapping. Trim to one.
+
+### F11 [P0] `km_variable_manager.set` — silent no-op
+Returns success but the variable is not actually written (verified by querying KM Engine directly via osascript: returns empty). Probably mock-handler companion to F7.
+
+### F12 [P0] `km_engine_control.process_tokens` — mocked
+`%CurrentUser%` expands to `"TestUser"`. Actual current user is `jeremyparker`. Token processing is being faked.
+
+### F14 [P2] Macro names with non-ASCII (`⌥`) — `Invalid index`
+`km_action_builder.list` with `macro_id: "Quick Macro for ⌥F1"` returns `Can't get macro 1 whose name = "Quick Macro for ⌥F1". Invalid index.` `whose` clauses on KM 11 don't reliably match strings containing non-ASCII glyphs. Workaround for callers: use UUID instead of name. Real fix: KM-side, not actionable here — but the error message should suggest the workaround.
+
+### F15 [P0] `km_trigger_crud.list` / `km_trigger_manager.list` — coercion crash
+`Can't make «class MKen» of item 1 of {«class MKmt» 1 of «class MKma» id "..."} into type Unicode text.` The AppleScript is trying to coerce the `enabled` (`MKen`) property of a trigger reference (`MKmt`) into a string, which KM refuses. Fix: read each property individually with explicit coercion, e.g. `enabled of trigger 1 of macro X as boolean`.
+
+### F16 [P0] `km_create_hotkey_trigger` — generated AppleScript syntax error
+`syntax error: Expected end of line but found class name. (-2741)` at line 123. The generated script almost certainly has an unescaped identifier conflicting with an AppleScript keyword (e.g. `key`).
+
+### F17 [P0] `km_add_action` — corrupts user macros
+The tool returns `success: true` with an `xml_preview`, but the action that ends up in the macro is `Log "Invalid XML From AppleScript"` — KM's fallback when it parses garbage XML. So the tool generates malformed XML, KM rejects it, KM logs the rejection as a new action inside the user's macro, and the tool reports success. **This is the worst defect in the audit:** silent corruption of caller data.
+
+### F18 [P0] `km_add_condition` — Python import error
+`module 'defusedxml.ElementTree' has no attribute 'Element'`. `defusedxml.ElementTree` does not re-export `Element`. Fix: import `Element` from `xml.etree.ElementTree` (it's data construction, not parsing — defusedxml's safety story doesn't apply).
+
+### F19 [P1] `km_control_flow` vs `km_add_condition` — envelope inconsistency
+`km_add_condition` returns flat strings: `{"success": false, "error": "INTEGRATION_FAILED", "message": "..."}`.
+`km_control_flow` returns nested dict: `{"success": false, "error": {"code": "...", "message": "...", ...}}`.
+Both should match the project standard (nested dict, per `_failure` in `macro_editor_tools.py`).
+
+### F20 [P0] `km_move_macro_to_group` — generated AppleScript syntax error
+`syntax error: Expected "then", etc. but found "and". (-2741)`. Generated script likely uses `and` outside a boolean expression or has malformed `if`. Tool completely non-functional.
+
+### F21 [P0] `km_application_control.list_running` — mocked
+Always returns `["Finder", "Safari", "Mail", "Calendar"]`. Actual running apps (verified via `System Events`): `iTerm2, Safari, Keyboard Maestro`.
+
+### F22 [P0] `km_window_manager.get_screens` — mocked
+Returns a single screen `1920×1080`. Real display is Retina (likely 2560×1440 or 1440×900 logical). Fake data.
+
+### F23 [P0] `km_window_manager.get_info` (nonexistent app) — `'str' has no attribute 'total_seconds'`
+Python TypeError: timeout-handling code is calling `.total_seconds()` on what is sometimes a string. Distinct from the missing-app case which should have its own error code, not a Python crash.
+
+### F24 [P0] `km_notifications` (`hud` type) — AppleScript syntax error
+`HUD AppleScript failed: ... 46:54: syntax error: A identifier can't go after this identifier.` Generated script is malformed.
+
+### F25 [P0] `km_notifications` (`sound` type) — `'KMClient' object has no attribute 'play_sound'`
+The notification type `sound` is documented and routes to `KMClient.play_sound`, but the method doesn't exist. Either implement it or remove the type from the schema.
+
+### F26 unverified `km_interface_automation.click`
+Returns success with an echo of the inputs but no proof the click actually fired. Not enough information to verdict — investigate whether this also went the way of `list_running` (synthetic response).
+
+## Priorities
+
+**P0 (broken core, must fix or mark unsupported):** F2, F3, F4, F6, F7, F11, F12, F15, F16, F17, F18, F20, F21, F22, F23, F24, F25.
+
+**P1 (envelope / docs / consistency):** F1, F8, F9, F19.
+
+**P2 (cosmetic):** F5, F14, F26.
+
+## Fix plan
+
+Targeted at the most-fixable / most-impactful subset. Some P0 issues (F2/F3 — KM has no scripting verb for macro creation; F6/F7/F11/F12/F21/F22 — synthetic responses replacing real KM calls) require larger architectural decisions and are deferred with explicit `UNSUPPORTED_BY_KM` / `MOCK_NOT_REPLACED` markers rather than fake fixes.
+
+In this PR:
+
+1. **F18** — change `Element` import in `km_add_condition` path.
+2. **F25** — implement or remove sound-type notification path.
+3. **F23** — coerce timeout to `timedelta` once at the boundary.
+4. **F1** — drop the read-back AppleScript in `km_macro_group_manager.create`; rely on KM's own duplicate-name error to surface failure.
+5. **F4** — drop the `set name of macro` step from `km_macro_editor.duplicate`; document that callers should chain `rename` after `duplicate`.
+6. **F15** — rewrite trigger-list AppleScript to fetch each property individually with explicit coercion.
+7. **F17** — at minimum, gate `km_add_action` behind an XML-validity check before writing into the user's macro. Until the XML generator is trustworthy, return `XML_GENERATION_REJECTED` instead of corrupting the macro.
+8. **F19** — make `km_add_condition` use the project-standard error envelope.
+
+Deferred (separate session needed):
+
+- F2 / F3 — fundamental KM scripting limitation. Either pick a workaround strategy (UI scripting via Editor, .kmmacros import, KM file-watcher) and rewrite the create path, or document the tool as unsupported on KM 11.
+- F6 / F7 / F11 / F12 / F21 / F22 — synthetic responses. Each needs its mock fallback located and removed in favour of real AppleScript calls (which exist for some of these — e.g. `getvariable` / `setvariable` against KM Engine).
+- F16 / F20 / F24 — broken generated AppleScripts. Each needs its template re-examined against KM 11's dictionary.
