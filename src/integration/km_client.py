@@ -2184,7 +2184,7 @@ class KMClient:
         script = f'''
         tell application "Keyboard Maestro"
             try
-                set targetMacro to first macro whose name is "{escaped_id}"
+                set targetMacro to first macro whose name is "{escaped_id}" or uid is "{escaped_id}"
                 make new {type_clause} at end of triggers of targetMacro ¬
                     with properties {{{props}}}
                 return "attached"
@@ -2216,7 +2216,7 @@ class KMClient:
         script = f'''
         tell application "Keyboard Maestro"
             try
-                set parentMacro to first macro whose name is "{escaped}"
+                set parentMacro to first macro whose name is "{escaped}" or uid is "{escaped}"
                 set trigCount to count of triggers of parentMacro
                 set output to ""
                 repeat with i from 1 to trigCount
@@ -2251,7 +2251,7 @@ class KMClient:
         script = f'''
         tell application "Keyboard Maestro"
             try
-                delete trigger {trigger_index} of (first macro whose name is "{escaped}")
+                delete trigger {trigger_index} of (first macro whose name is "{escaped}" or uid is "{escaped}")
                 return "deleted"
             on error errMsg
                 return "ERROR: " & errMsg
@@ -2275,7 +2275,7 @@ class KMClient:
         script = f'''
         tell application "Keyboard Maestro"
             try
-                delete every trigger of (first macro whose name is "{escaped}")
+                delete every trigger of (first macro whose name is "{escaped}" or uid is "{escaped}")
                 return "cleared"
             on error errMsg
                 return "ERROR: " & errMsg
@@ -2304,7 +2304,7 @@ class KMClient:
         script = f'''
         tell application "Keyboard Maestro"
             try
-                set enabled of trigger {trigger_index} of (first macro whose name is "{escaped}") to {flag}
+                set enabled of trigger {trigger_index} of (first macro whose name is "{escaped}" or uid is "{escaped}") to {flag}
                 return "ok"
             on error errMsg
                 return "ERROR: " & errMsg
@@ -2331,7 +2331,7 @@ class KMClient:
         script = f'''
         tell application "Keyboard Maestro"
             try
-                return xml of trigger {trigger_index} of (first macro whose name is "{escaped}")
+                return xml of trigger {trigger_index} of (first macro whose name is "{escaped}" or uid is "{escaped}")
             on error errMsg
                 return "ERROR: " & errMsg
             end try
@@ -2355,7 +2355,7 @@ class KMClient:
         tell application "Keyboard Maestro"
             try
                 set output to ""
-                set trigList to triggers of (first macro whose name is "{escaped}")
+                set trigList to triggers of (first macro whose name is "{escaped}" or uid is "{escaped}")
                 repeat with t in trigList
                     set output to output & (description of t) & "␟" & (enabled of t) & "␟" & (xml of t) & "␞"
                 end repeat
@@ -2400,7 +2400,7 @@ class KMClient:
         script = f'''
         tell application "Keyboard Maestro"
             try
-                set targetMacro to first macro whose name is "{escaped_id}"
+                set targetMacro to first macro whose name is "{escaped_id}" or uid is "{escaped_id}"
                 set newTrigger to make new trigger at end of triggers of targetMacro
                 set xml of newTrigger to "{escaped_xml}"
                 return "appended"
@@ -2431,7 +2431,7 @@ class KMClient:
         script = f'''
         tell application "Keyboard Maestro"
             try
-                set xml of trigger {trigger_index} of (first macro whose name is "{escaped_id}") to "{escaped_xml}"
+                set xml of trigger {trigger_index} of (first macro whose name is "{escaped_id}" or uid is "{escaped_id}") to "{escaped_xml}"
                 return "updated"
             on error errMsg
                 return "ERROR: " & errMsg
@@ -2456,7 +2456,7 @@ class KMClient:
         tell application "Keyboard Maestro"
             try
                 set output to ""
-                set actList to actions of (first macro whose name is "{escaped}")
+                set actList to actions of (first macro whose name is "{escaped}" or uid is "{escaped}")
                 repeat with a in actList
                     set output to output & (name of a) & "␟" & (enabled of a) & "\n"
                 end repeat
@@ -2500,7 +2500,7 @@ class KMClient:
         script = f'''
         tell application "Keyboard Maestro"
             try
-                set targetMacro to first macro whose name is "{escaped_id}"
+                set targetMacro to first macro whose name is "{escaped_id}" or uid is "{escaped_id}"
                 set newAction to make new action at end of actions of targetMacro
                 set XML of newAction to "{escaped_xml}"
                 return "appended"
@@ -2529,7 +2529,7 @@ class KMClient:
         script = f'''
         tell application "Keyboard Maestro"
             try
-                delete action {action_index} of (first macro whose name is "{escaped}")
+                delete action {action_index} of (first macro whose name is "{escaped}" or uid is "{escaped}")
                 return "deleted"
             on error errMsg
                 return "ERROR: " & errMsg
@@ -2553,7 +2553,7 @@ class KMClient:
         script = f'''
         tell application "Keyboard Maestro"
             try
-                delete every action of (first macro whose name is "{escaped}")
+                delete every action of (first macro whose name is "{escaped}" or uid is "{escaped}")
                 return "cleared"
             on error errMsg
                 return "ERROR: " & errMsg
