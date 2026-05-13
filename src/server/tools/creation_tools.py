@@ -11,13 +11,10 @@ from typing import Annotated, Any
 from fastmcp import Context
 from pydantic import Field
 
-from ...core.errors import SecurityViolationError, ValidationError
-from ...core.types import GroupId, MacroId
-from ...creation.macro_builder import MacroBuilder, MacroCreationRequest
+from ...core.types import MacroId
 from ...creation.types import MacroTemplate
 from ...integration.kmmacros_import import create_empty_macro
 from ..initialization import get_km_client
-
 
 _KMMACROS_TEMPLATES = {"custom", "hotkey_action"}
 
@@ -150,7 +147,17 @@ async def km_create_macro(
         await ctx.info(f"Starting macro creation: {name}")
 
     if template in _KMMACROS_TEMPLATES:
-        return await _create_via_kmmacros(name, template, group_name, ctx)
+        # The kmmacros path creates an empty macro; we cannot honor template
+        # parameters here. Refuse loudly rather than silently dropping them.
+        if parameters:
+            return _error_envelope(
+                "UNSUPPORTED_TEMPLATE",
+                f"Template {template!r} does not yet apply 'parameters' on import.",
+                "Create the macro with template='custom' (or omit parameters), "
+                "then chain km_add_action / km_trigger_crud / km_create_hotkey_trigger.",
+                template,
+            )
+        return await _create_via_kmmacros(name, template, group_name, enabled, ctx)
 
     try:
         MacroTemplate(template)
@@ -175,6 +182,7 @@ async def _create_via_kmmacros(
     name: str,
     template: str,
     group_name: str | None,
+    enabled: bool,
     ctx: Context | None,
 ) -> dict[str, Any]:
     if not group_name:
@@ -197,14 +205,28 @@ async def _create_via_kmmacros(
             template,
         )
     payload = result.get_right()
+    macro_id = payload["macro_id"]
+    # KM imports new .kmmacros macros disabled by default; honour the caller's
+    # ``enabled`` flag with a follow-up toggle when they asked for True.
+    if enabled:
+        toggle = await get_km_client().set_macro_enabled_async(
+            MacroId(macro_id), enabled=True,
+        )
+        if toggle.is_left():
+            logger.warning(
+                "Macro %s imported but enable toggle failed: %s",
+                macro_id,
+                toggle.get_left().message,
+            )
     return {
         "success": True,
         "data": {
-            "macro_id": payload["macro_id"],
+            "macro_id": macro_id,
             "macro_name": payload["name"],
             "template_used": template,
             "group_id": payload["group_id"],
             "group_name": payload["group_name"],
+            "enabled": enabled,
             "creation_timestamp": datetime.now(UTC).isoformat(),
         },
         "metadata": {
