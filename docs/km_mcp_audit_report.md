@@ -170,3 +170,43 @@ Deferred (separate session needed):
 - F2 / F3 — fundamental KM scripting limitation. Either pick a workaround strategy (UI scripting via Editor, .kmmacros import, KM file-watcher) and rewrite the create path, or document the tool as unsupported on KM 11.
 - F6 / F7 / F11 / F12 / F21 / F22 — synthetic responses. Each needs its mock fallback located and removed in favour of real AppleScript calls (which exist for some of these — e.g. `getvariable` / `setvariable` against KM Engine).
 - F16 / F20 / F24 — broken generated AppleScripts. Each needs its template re-examined against KM 11's dictionary.
+
+## Re-test (2026-05-12, post-commit-30635c8)
+
+Black-box re-smoke of the 8 tool paths touched in commit 30635c8, run live through the MCP server in session `20260512-192024-52732`. Sandbox group `KM MCP Audit` plus new `KM MCP Resmoke 20260512` kept as proof; test duplicate `AuditFixDupCheckResmoke_F4` left in `Clipboard Filters` group.
+
+| ID | Tool path | Verdict | Evidence shape |
+|---|---|---|---|
+| F1 | `km_macro_group_manager.create` | **PASS** | `{success:true, data:{group_id:"9042DD3A-...", name:"KM MCP Resmoke 20260512"}}`. Followup `list` confirms group present. |
+| F4 | `km_macro_editor.duplicate` with `new_name` | **PASS** | `{success:true, data:{new_id:"315F6E08-...", new_name:"AuditFixDupCheckResmoke_F4", source:"AuditFixDupCheck"}}`. Followup list: source intact, exactly one copy with requested name, zero orphans with source name. |
+| F15 | `km_trigger_manager.list` | **PASS** | `{success:true, data:{triggers:[{index:1, description:"The Clipboard Filter"}]}}`. |
+| F15 | `km_trigger_crud.list` | **FAIL** | Reproduces pre-fix coercion error verbatim on multiple macros: `LIST_FAILED: Can't make «class MKen» of item 1 of {«class MKmt» 1 of «class MKma» id "..." of «class MKmg» id "..." of application "Keyboard Maestro"} into type Unicode text.` Fix did not land for this tool path. |
+| F17 | `km_add_action` gate | **PASS** | `Type a String` rejected with `{success:false, error:{code:"XML_GENERATION_REJECTED", message:"... 146-entry registry ... corrupts the macro ...", recovery_suggestion:"Use km_action_builder.append, which currently supports: pause, type_text, paste, set_variable, run_applescript, execute_macro."}}`. No mutation of target macro. |
+| F18 | `km_add_condition` (import error) | **PASS** | Valid call returns `{success:true, condition_id:"...", km_integration:{...}}`. No `defusedxml.ElementTree.Element` AttributeError. (Downstream `km_result:"variable condition is not defined"` is a separate KM-side issue, not the F18 defect.) |
+| F19 | `km_add_condition` error envelope | **FAIL** | Forced-error response still flat strings: `{success:false, error:"INVALID_OPERATOR", message:"Validation failed for field 'operator': must be one of: [...]."}`. Project standard (per `km_add_action` above) is nested `error:{code, message, recovery_suggestion?}`. Envelope normalization did not land. |
+| F22 | `km_window_manager.get_screens` | **PARTIAL** | Returns `{screens:[{name:"Default Display (Quartz unavailable)", size:{width:1280, height:800}, ...}], screen_count:1}`. Prior mock (`1920×1080`) is gone and tool self-labels its degraded state, but Quartz isn't loading in the MCP host process so actual resolution (`2560 x 1664 Retina`, per `system_profiler SPDisplaysDataType`) is never reported. Fix shipped, runtime can't reach it. |
+| F25 | `km_notifications` (sound) | **PASS** | `{success:true, data:{sound_played:true, execution_time:4.51s}}`. No `play_sound` AttributeError. ~4.5s execution time is consistent with actual `afplay Glass` invocation. |
+
+### Summary
+
+- **5 PASS:** F1, F4, F17, F18, F25.
+- **2 PARTIAL:** F15 (only `trigger_manager` fixed; `trigger_crud` unchanged), F22 (mock removed but Quartz fallback active in MCP host).
+- **1 FAIL:** F19 (`km_add_condition` still emits flat-string error envelope).
+
+### Follow-ups for the failing / partial paths
+
+- **F15 trigger_crud.list:** the `enabled` (`MKen`) property of trigger references still cannot be coerced to Unicode text. The fix that landed in `trigger_manager` (which now returns `[{index, description}]`) must be ported into `trigger_crud`, or `trigger_crud.list` should delegate to the same enumeration path.
+- **F19:** `km_add_condition`'s validation layer needs to emit `{success:false, error:{code, message}}` to match the rest of the project. Reference shape: see `km_add_action`'s `XML_GENERATION_REJECTED` envelope.
+- **F22:** the Quartz import path needs to succeed in the MCP host's Python environment. Either bundle `pyobjc-framework-Quartz` into the server's requirements or shell out to `system_profiler SPDisplaysDataType` / `displayplacer list` and parse, so the tool stops shipping a generic 1280×800 fallback to every Retina caller.
+
+### Sandbox state after re-test (kept as proof)
+
+- Group `KM MCP Audit` — still present, still empty (`km_create_macro` / `km_macro_editor.create` remain deferred — F2/F3).
+- Group `KM MCP Resmoke 20260512` — newly created by F1 test, kept.
+- Group `KM MCP Audit Verify` — left from a prior session, kept.
+- Macro `AuditFixDupCheckResmoke_F4` in `Clipboard Filters` — created by the F4 duplicate test, kept (1 trigger, 1 action; not mutated by the F17 probe because the gate refused).
+
+### Caveats
+
+- MCP server runs cached Python. The mixed PASS/PARTIAL/FAIL pattern is consistent with the host having been restarted after commit 30635c8 — most fixes show up, but F15 `trigger_crud` and F19 envelope normalization appear to be commit-level misses rather than caching issues (the in-source fix description in the commit message claims both, but the live behavior shows otherwise).
+- F22's degraded fallback (`Quartz unavailable`) is an environment issue inside the MCP host, not a code defect.
