@@ -110,8 +110,10 @@ Returns success but the variable is not actually written (verified by querying K
 ### F16 [P0] `km_create_hotkey_trigger` — generated AppleScript syntax error
 `syntax error: Expected end of line but found class name. (-2741)` at line 123. The generated script almost certainly has an unescaped identifier conflicting with an AppleScript keyword (e.g. `key`).
 
-### F17 [P0] `km_add_action` — corrupts user macros
-The tool returns `success: true` with an `xml_preview`, but the action that ends up in the macro is `Log "Invalid XML From AppleScript"` — KM's fallback when it parses garbage XML. So the tool generates malformed XML, KM rejects it, KM logs the rejection as a new action inside the user's macro, and the tool reports success. **This is the worst defect in the audit:** silent corruption of caller data.
+### F17 [P0] `km_add_action` — corrupts user macros — **RESOLVED**
+The tool returned `success: true` with an `xml_preview`, but the action that ended up in the macro was `Log "Invalid XML From AppleScript"` — KM's fallback when it parses garbage XML. So the tool generated malformed XML, KM rejected it, KM logged the rejection as a new action inside the user's macro, and the tool reported success. This was the worst defect in the audit: silent corruption of caller data.
+
+**Resolution (session 20260513-162112):** `km_add_action` deleted along with its underlying `ActionRegistry`/`ActionBuilder` (the 146-type catalog backed by a synthetic-XML emitter KM never accepted). `km_action_builder` is now the single insertion surface; it owns plist emitters verified against KM's "Copy as XML" output. `km_list_action_types` rewritten to advertise only the seven action types with verified emitters (`pause`, `type_text`, `paste`, `set_variable`, `run_applescript`, `execute_macro`, `plug_in`) plus every installed third-party plug-in discovered at runtime. Expanding the catalog now requires adding both an emitter branch and a registry entry in the same change — the discovery surface and the insertion surface stay in sync by construction.
 
 ### F18 [P0] `km_add_condition` — Python import error
 `module 'defusedxml.ElementTree' has no attribute 'Element'`. `defusedxml.ElementTree` does not re-export `Element`. Fix: import `Element` from `xml.etree.ElementTree` (it's data construction, not parsing — defusedxml's safety story doesn't apply).
