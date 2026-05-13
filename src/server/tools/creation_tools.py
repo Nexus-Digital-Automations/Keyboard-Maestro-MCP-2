@@ -15,7 +15,35 @@ from ...core.errors import SecurityViolationError, ValidationError
 from ...core.types import GroupId, MacroId
 from ...creation.macro_builder import MacroBuilder, MacroCreationRequest
 from ...creation.types import MacroTemplate
+from ...integration.kmmacros_import import create_empty_macro
 from ..initialization import get_km_client
+
+
+_KMMACROS_TEMPLATES = {"custom", "hotkey_action"}
+
+
+def _error_envelope(
+    code: str,
+    message: str,
+    suggestion: str,
+    template: str,
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    error_block: dict[str, Any] = {
+        "code": code,
+        "message": message,
+        "recovery_suggestion": suggestion,
+    }
+    if extra:
+        error_block.update(extra)
+    return {
+        "success": False,
+        "error": error_block,
+        "metadata": {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "template_type": template,
+        },
+    }
 
 logger = logging.getLogger(__name__)
 
@@ -121,189 +149,70 @@ async def km_create_macro(
     if ctx:
         await ctx.info(f"Starting macro creation: {name}")
 
+    if template in _KMMACROS_TEMPLATES:
+        return await _create_via_kmmacros(name, template, group_name, ctx)
+
     try:
-        # Phase 1: Input validation and sanitization
-        if ctx:
-            await ctx.report_progress(10, 100, "Validating input parameters")
+        MacroTemplate(template)
+    except ValueError:
+        return _error_envelope(
+            "INVALID_TEMPLATE",
+            f"Unsupported template type: {template}",
+            "Use one of: " + ", ".join(t.value for t in MacroTemplate),
+            template,
+        )
 
-        # Convert template string to enum
-        try:
-            template_enum = MacroTemplate(template)
-        except ValueError:
-            return {
-                "success": False,
-                "error": {
-                    "code": "INVALID_TEMPLATE",
-                    "message": f"Unsupported template type: {template}",
-                    "details": f"Available templates: {', '.join([t.value for t in MacroTemplate])}",
-                    "recovery_suggestion": "Use one of the supported template types",
-                },
-                "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat(),
-                    "validation_phase": "template_enum_conversion",
-                },
-            }
+    return _error_envelope(
+        "UNSUPPORTED_TEMPLATE",
+        f"Template {template!r} cannot create a macro on KM 11 yet.",
+        "Use template='custom' (empty macro) and chain km_add_action/km_trigger_crud, "
+        "or use km_macro_editor operation='create'.",
+        template,
+    )
 
-        km_client = get_km_client()
 
-        group_id = None
-        if group_name:
-            if ctx:
-                await ctx.report_progress(20, 100, f"Resolving group: {group_name}")
-
-            groups_result = await km_client.list_groups_async()
-
-            if groups_result.is_left():
-                return {
-                    "success": False,
-                    "error": {
-                        "code": "GROUP_RESOLUTION_FAILED",
-                        "message": "Failed to resolve target group",
-                        "details": str(groups_result.get_left()),
-                        "recovery_suggestion": "Check Keyboard Maestro connection and group name",
-                    },
-                    "metadata": {
-                        "timestamp": datetime.now(UTC).isoformat(),
-                        "validation_phase": "group_resolution",
-                    },
-                }
-
-            groups = groups_result.get_right()
-            matching_groups = [
-                g
-                for g in groups
-                if g.get("groupName", "").lower() == group_name.lower()
-            ]
-
-            if not matching_groups:
-                return {
-                    "success": False,
-                    "error": {
-                        "code": "GROUP_NOT_FOUND",
-                        "message": f"Group '{group_name}' not found",
-                        "details": f"Available groups: {', '.join([g.get('groupName', '') for g in groups])}",
-                        "recovery_suggestion": "Check group name spelling or create the group first",
-                    },
-                    "metadata": {
-                        "timestamp": datetime.now(UTC).isoformat(),
-                        "validation_phase": "group_existence_check",
-                    },
-                }
-
-            group_id = GroupId(matching_groups[0].get("groupID", ""))
-
-        # Phase 2: Create macro creation request
-        if ctx:
-            await ctx.report_progress(40, 100, "Creating macro request")
-
-        try:
-            request = MacroCreationRequest(
-                name=name,
-                template=template_enum,
-                group_id=group_id,
-                enabled=enabled,
-                parameters=parameters,
-            )
-        except (ValidationError, SecurityViolationError) as e:
-            return {
-                "success": False,
-                "error": {
-                    "code": "VALIDATION_ERROR",
-                    "message": str(e),
-                    "details": f"Request validation failed: {e}",
-                    "recovery_suggestion": "Review input parameters and security requirements",
-                },
-                "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat(),
-                    "validation_phase": "request_creation",
-                },
-            }
-
-        # Phase 3: Macro creation
-        if ctx:
-            await ctx.report_progress(60, 100, "Creating macro via builder")
-
-        builder = MacroBuilder(km_client)
-        creation_result = await builder.create_macro(request)
-
-        # Phase 4: Handle creation result
-        if ctx:
-            await ctx.report_progress(90, 100, "Processing creation result")
-
-        if isinstance(creation_result, MacroId):
-            # Success case
-            if ctx:
-                await ctx.report_progress(
-                    100,
-                    100,
-                    f"Macro created successfully: {creation_result}",
-                )
-                await ctx.info(
-                    f"Successfully created macro '{name}' with ID {creation_result}",
-                )
-
-            return {
-                "success": True,
-                "data": {
-                    "macro_id": creation_result,
-                    "macro_name": name,
-                    "template_used": template,
-                    "group_id": group_id,
-                    "enabled": enabled,
-                    "creation_timestamp": datetime.now(UTC).isoformat(),
-                    "parameters_count": len(parameters),
-                },
-                "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat(),
-                    "creation_method": "template_builder",
-                    "template_type": template,
-                    "validation_passed": True,
-                    "performance": {
-                        "validation_time_ms": "<100",
-                        "creation_time_ms": "<2000",
-                    },
-                },
-            }
-        # Error case
-        error = creation_result
-        if ctx:
-            await ctx.error(f"Macro creation failed: {error.message}")
-
-        return {
-            "success": False,
-            "error": {
-                "code": error.error_code,
-                "message": error.message,
-                "category": error.category.value,
-                "recovery_suggestion": error.recovery_suggestion,
-            },
-            "metadata": {
-                "timestamp": datetime.now(UTC).isoformat(),
-                "creation_method": "template_builder",
-                "template_type": template,
-                "validation_passed": False,
-            },
-        }
-
-    except Exception as e:
-        logger.exception(f"Unexpected error creating macro {name}")
-        if ctx:
-            await ctx.error(f"Unexpected error: {e}")
-
-        return {
-            "success": False,
-            "error": {
-                "code": "CREATION_ERROR",
-                "message": "Unexpected error during macro creation",
-                "details": str(e),
-                "recovery_suggestion": "Check Keyboard Maestro status and try again",
-            },
-            "metadata": {
-                "timestamp": datetime.now(UTC).isoformat(),
-                "error_type": "unexpected_exception",
-                "template_type": template,
-            },
-        }
+async def _create_via_kmmacros(
+    name: str,
+    template: str,
+    group_name: str | None,
+    ctx: Context | None,
+) -> dict[str, Any]:
+    if not group_name:
+        return _error_envelope(
+            "VALIDATION_ERROR",
+            "group_name is required for empty-macro creation.",
+            "Pass group_name; list groups with km_macro_group_manager operation='list'.",
+            template,
+        )
+    if ctx:
+        await ctx.info(f"Importing empty macro '{name}' into group '{group_name}'")
+    result = await create_empty_macro(get_km_client(), group_name, name)
+    if result.is_left():
+        err = result.get_left()
+        code = "GROUP_NOT_FOUND" if "not found" in err.message.lower() else "IMPORT_FAILED"
+        return _error_envelope(
+            code,
+            err.message,
+            "Verify the group exists and KM is running; first-time imports may show a permission prompt.",
+            template,
+        )
+    payload = result.get_right()
+    return {
+        "success": True,
+        "data": {
+            "macro_id": payload["macro_id"],
+            "macro_name": payload["name"],
+            "template_used": template,
+            "group_id": payload["group_id"],
+            "group_name": payload["group_name"],
+            "creation_timestamp": datetime.now(UTC).isoformat(),
+        },
+        "metadata": {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "creation_method": "kmmacros_import",
+            "template_type": template,
+        },
+    }
 
 
 async def km_list_templates(ctx: Context = None) -> dict[str, Any]:

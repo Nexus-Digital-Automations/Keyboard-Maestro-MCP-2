@@ -32,6 +32,13 @@ from src.security.input_sanitizer import InputSanitizer
 logger = get_logger(__name__)
 
 
+def _fail(code: str, message: str, suggestion: str) -> dict[str, Any]:
+    return {
+        "success": False,
+        "error": {"code": code, "message": message, "recovery_suggestion": suggestion},
+    }
+
+
 async def km_add_condition(
     macro_identifier: str,  # Target macro (name or UUID)
     condition_type: str,  # text|app|system|variable|logic
@@ -79,19 +86,19 @@ async def km_add_condition(
         # Sanitize string inputs
         macro_id_result = sanitizer.sanitize_macro_identifier(macro_identifier)
         if macro_id_result.is_left():
-            return {
-                "success": False,
-                "error": "INVALID_MACRO_ID",
-                "message": macro_id_result.get_left().message,
-            }
+            return _fail(
+                "INVALID_MACRO_ID",
+                macro_id_result.get_left().message,
+                "Pass an existing macro's name or UUID.",
+            )
 
         operand_result = sanitizer.sanitize_text_content(operand, strict_mode=True)
         if operand_result.is_left():
-            return {
-                "success": False,
-                "error": "INVALID_OPERAND",
-                "message": operand_result.get_left().message,
-            }
+            return _fail(
+                "INVALID_OPERAND",
+                operand_result.get_left().message,
+                "Operand failed text sanitization; remove control chars or shell metacharacters.",
+            )
 
         macro_id = MacroId(macro_id_result.get_right())
         clean_operand = operand_result.get_right()
@@ -99,19 +106,19 @@ async def km_add_condition(
         # Validate condition type and operator
         condition_type_result = _validate_condition_type(condition_type)
         if condition_type_result.is_left():
-            return {
-                "success": False,
-                "error": "INVALID_CONDITION_TYPE",
-                "message": condition_type_result.get_left().message,
-            }
+            return _fail(
+                "INVALID_CONDITION_TYPE",
+                condition_type_result.get_left().message,
+                "Use one of: text, app, system, variable, logic.",
+            )
 
         operator_result = _validate_operator(operator)
         if operator_result.is_left():
-            return {
-                "success": False,
-                "error": "INVALID_OPERATOR",
-                "message": operator_result.get_left().message,
-            }
+            return _fail(
+                "INVALID_OPERATOR",
+                operator_result.get_left().message,
+                "Use one of the supported operators (contains, equals, regex, exists, ...).",
+            )
 
         condition_type_enum = condition_type_result.get_right()
         operator_enum = operator_result.get_right()
@@ -153,22 +160,22 @@ async def km_add_condition(
         # Build and validate condition
         condition_result = builder.build()
         if condition_result.is_left():
-            return {
-                "success": False,
-                "error": "CONDITION_BUILD_FAILED",
-                "message": condition_result.get_left().message,
-            }
+            return _fail(
+                "CONDITION_BUILD_FAILED",
+                condition_result.get_left().message,
+                "Review condition_type, operator, and operand for compatibility.",
+            )
 
         condition_spec = condition_result.get_right()
 
         # Additional security validation
         security_result = _perform_security_validation(condition_spec, clean_operand)
         if security_result.is_left():
-            return {
-                "success": False,
-                "error": "SECURITY_VIOLATION",
-                "message": security_result.get_left().message,
-            }
+            return _fail(
+                "SECURITY_VIOLATION",
+                security_result.get_left().message,
+                "Operand failed security validation; remove dangerous patterns.",
+            )
 
         # Integrate with Keyboard Maestro
         integrator = KMConditionIntegrator()
@@ -223,11 +230,11 @@ async def km_add_condition(
 
     except Exception as e:
         logger.error(f"Error adding condition to macro {macro_identifier}: {e!s}")
-        return {
-            "success": False,
-            "error": "INTERNAL_ERROR",
-            "message": f"Failed to add condition: {e!s}",
-        }
+        return _fail(
+            "INTERNAL_ERROR",
+            f"Failed to add condition: {e!s}",
+            "Inspect server logs; this is an unexpected exception path.",
+        )
 
 
 def _validate_condition_type(

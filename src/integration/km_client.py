@@ -103,11 +103,17 @@ class KMError:
         return cls(code="EXECUTION_ERROR", message=message, details=details)
 
     @classmethod
-    def timeout_error(cls, timeout: Duration) -> KMError:
-        """Create timeout error."""
+    def timeout_error(cls, timeout: Duration | str | float) -> KMError:
+        """Create timeout error. Accepts a Duration or a free-text description."""
+        if isinstance(timeout, Duration):
+            text = f"Operation timed out after {timeout.total_seconds()}s"
+        elif isinstance(timeout, (int, float)):
+            text = f"Operation timed out after {float(timeout)}s"
+        else:
+            text = str(timeout)
         return cls(
             code="TIMEOUT_ERROR",
-            message=f"Operation timed out after {timeout.total_seconds()}s",
+            message=text,
             retry_after=Duration.from_seconds(1.0),
         )
 
