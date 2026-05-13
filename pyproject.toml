@@ -29,6 +29,11 @@ dependencies = [
     "python-dateutil>=2.8.0",
     "pyyaml>=6.0.2",
     "defusedxml>=0.7.1",
+    # Quartz/CoreGraphics bindings — km_window_manager.get_screens uses
+    # CGGetActiveDisplayList for real display bounds. Without this the
+    # tool falls back to a "Default Display (Quartz unavailable)"
+    # 1280x800 stub. Darwin-only — uv/pip on Linux will skip the install.
+    "pyobjc-framework-Quartz>=10.0; sys_platform == 'darwin'",
 ]
 
 [project.optional-dependencies]
