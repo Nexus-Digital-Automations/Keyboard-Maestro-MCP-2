@@ -238,3 +238,115 @@ Live MCP probes immediately after commit `25a6493`:
 - Macro creation probe: `{success:true, data:{macro_id:"<uuid>", macro_name:"PlistImportProbe1", group_id:"E18A1949-...", group_name:"KM MCP Audit", ...}}`, and `PlistImportProbe1` visible inside the `KM MCP Audit` group in the KM Editor.
 
 If the macro creation probe instead returns `IMPORT_FAILED` with text about a permission prompt, accept the first-time prompt in KM and retry — that's a one-time per-path approval, not a code defect.
+
+## Round 3 (2026-05-13)
+
+Full 27-tool live probe followed by surgical fixes. Stub/feature gaps
+(template→XML translation, the 146-entry action-type XML emitter, the
+control-flow XML emitter, condition XML emission) deliberately deferred —
+they need real implementation work, not bug fixes. See "Known stubs" below.
+
+### Probe matrix (live MCP, before fixes)
+
+| Tool | Probe | Result |
+|---|---|---|
+| km_engine_control status | one call | total_macros=0 (live engine has 36) |
+| km_engine_control process_tokens | %CurrentUser%, %ICUDateTime%y% | "TestUser" + full datetime stub |
+| km_engine_control search_replace use_regex | `(\w+)-(\d+)` → `$2:$1` | literal `$2:$1 $2:$1` |
+| km_engine_control reload | one call | OK |
+| km_engine_control calculate | `2+3*4` | OK |
+| km_token_processor / km_token_stats | process then stats | stats stuck at 0 |
+| km_variable_manager (set/get/list/delete global+password) | 5 calls | OK |
+| km_list_macros | filtered/unfiltered | OK |
+| km_macro_group_manager list/create/rename/set_enabled/delete | prior session | OK |
+| km_macro_editor create/rename/duplicate/set_enabled | 4 calls | OK |
+| km_create_macro template=custom (no params) | one call | OK |
+| km_create_macro template=custom/hotkey_action (with params) | 2 calls | UNSUPPORTED_TEMPLATE |
+| km_create_macro template=app_launcher/text_expansion/window_manager/file_processor | 4 calls | UNSUPPORTED_TEMPLATE |
+| km_list_templates | one call | lists 6 templates the implementation can't build |
+| km_execute_macro by name+UUID | 2 calls | OK |
+| km_trigger_crud list/add/get/update/remove/replace_all | 6 calls | mostly OK; update with invalid mask normalised to 0 (KM behaviour, not a tool defect) |
+| km_trigger_manager list/add/remove | 3 calls | OK |
+| km_create_hotkey_trigger | one call | AppleScript syntax error -2741 |
+| km_list_hotkey_triggers | filtered/unfiltered | OK |
+| km_list_action_types | search="type" | reports 146 action types |
+| km_add_action "Type a String" | one call | XML_GENERATION_REJECTED |
+| km_action_builder list/append/clear | 3 calls | OK for supported types (pause/type_text/paste/set_variable/run_applescript/execute_macro) |
+| km_add_condition (text/variable/app) | 3 calls | hardcoded "variable condition is not defined" |
+| km_control_flow if/for/while/switch | 2 calls | UNSUPPORTED_OPERATION across the board |
+| km_application_control list_running/get_state/launch/quit | 4 calls | OK |
+| km_application_control activate | 2 calls | "Precondition violated: Precondition failed" |
+| km_window_manager get_screens | one call | "Default Display (Quartz unavailable)" fallback |
+| km_window_manager get_info | 2 calls | "No windows found" (Accessibility) |
+| km_window_manager arrange | one call | "Postcondition violated: Postcondition failed" |
+| km_input_simulator press_key_code | escape key | OK |
+| km_interface_automation move_mouse | (100,100) | OK |
+| km_notifications notification/hud/sound | 3 calls | notification + hud OK; sound → afplay -66681 |
+| km_notification_status | one call | OK |
+| km_dismiss_notifications | one call | OK |
+
+### Fixes shipped
+
+- `c7538a4` — engine_control status now uses `list_macros_async` so the
+  macro counts match the live engine; `process_tokens` now shells out to
+  `tell application "Keyboard Maestro Engine" to process tokens` instead
+  of returning a `TestUser` mock; `search_replace` translates KM's
+  documented `$1`/`$2` backrefs (and `$$`) to Python's `\g<N>` form so
+  `use_regex=true` works as documented. `src/server/tools/engine_tools.py`.
+- `72c53ef` — `km_token_stats` reads the same TokenProcessor and
+  KMTokenEngine instances that `km_token_processor` writes to, instead of
+  constructing fresh objects on every stats call. Module-level singletons
+  in `src/server/tools/token_tools.py`.
+- `fcfa148` — `km_create_hotkey_trigger` routes through
+  `KMClient.attach_trigger_async`, the same plist-injection path
+  `km_trigger_manager add hotkey` already used. KM 11 rejects
+  `make new hotkey trigger with properties {key:..., ...}` because `key`
+  is a reserved class name. `src/server/tools/hotkey_tools.py`.
+- `049ba2b` — `@require` lambdas on `activate_application`,
+  `select_menu_item`, `move_window`, and `resize_window` rewritten to
+  match the bound `(self, ...)` argument list so they validate the
+  intended argument instead of `self`. `km_application_control activate`,
+  `km_window_manager arrange/move/resize` now run without spurious
+  "Precondition/Postcondition violated" errors. Also logs the Quartz
+  import/runtime failure in `_get_screen_info` instead of silently
+  returning the 1280x800 stub. `src/applications/app_controller.py`,
+  `src/windows/window_manager.py`.
+
+### Known stubs (intentionally not fixed this round)
+
+- `km_create_macro` non-custom templates and `template=custom` with
+  parameters. `src/creation/templates.py` already builds action dicts
+  per template; nothing wires those dicts back through the
+  `.kmmacros` import path. Tool currently returns
+  `UNSUPPORTED_TEMPLATE` honestly. Implementing this needs an XML
+  emitter for each template's action set.
+- `km_add_action` for any action_type not in the
+  `km_action_builder.append` set (pause / type_text / paste /
+  set_variable / run_applescript / execute_macro). The
+  146-entry registry shipped without XML generators; the tool refuses
+  rather than corrupting macros with invalid XML, which is the right
+  behaviour but means the discovery tool advertises more than the
+  CRUD tool can build.
+- `km_add_condition` always returns a hardcoded
+  "The variable condition is not defined" message regardless of
+  `condition_type`. The condition XML emitter needs to be written;
+  the recovery suggestion is currently misleading (says `app` is a
+  valid type, the validator says `application`).
+- `km_control_flow` (`if_then_else`/`for_loop`/`while_loop`/
+  `switch_case`) returns `UNSUPPORTED_OPERATION` for every input — the
+  validation pipeline is in place but no XML emitter writes the
+  resulting control structure to the macro.
+- `km_window_manager get_info` returns "No windows found" when System
+  Events has no Accessibility permission for the host process. This
+  is a runtime permission, not a code defect.
+- `km_notifications notification_type=sound` returned `afplay -66681`
+  in this run — environment-level AudioQueueStart failure, not a tool
+  bug. Other notification types worked.
+
+### Activation note
+
+The MCP host caches Python at startup. None of the round-3 fixes will
+be visible to live tool calls until the keyboard-maestro MCP server is
+restarted (close + re-open the Claude session that loaded `.mcp.json`,
+or restart the wrapping app). Until then, re-running the probe matrix
+will still see the round-3 failure modes.
