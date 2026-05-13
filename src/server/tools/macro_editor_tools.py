@@ -12,6 +12,7 @@ from fastmcp import Context
 from pydantic import Field
 
 from ...core.types import MacroId
+from ...integration.kmmacros_import import create_empty_macro
 from ..initialization import get_km_client
 
 logger = logging.getLogger(__name__)
@@ -52,13 +53,23 @@ async def _do_create(group_id: str | None, new_name: str | None) -> dict[str, An
             "group_id is required for operation='create'.",
             "Pass group_id with the parent group's name or UUID.",
         )
-    payload = {"name": new_name.strip(), "group": group_id.strip()}
-    result = await asyncio.get_event_loop().run_in_executor(
-        None, get_km_client().create_macro, payload,
+    result = await create_empty_macro(
+        get_km_client(), group_id.strip(), new_name.strip(),
     )
     if result.is_left():
         err = result.get_left()
-        return _failure("CREATE_FAILED", err.message, "Check group exists and name is unique.")
+        message = err.message.lower()
+        if "not found" in message:
+            return _failure(
+                "GROUP_NOT_FOUND",
+                err.message,
+                "Check the group name/UUID; list with km_macro_group_manager.",
+            )
+        return _failure(
+            "IMPORT_FAILED",
+            err.message,
+            "KM may have prompted for permission on first import; check the Editor and retry.",
+        )
     return {"success": True, "data": result.get_right()}
 
 
