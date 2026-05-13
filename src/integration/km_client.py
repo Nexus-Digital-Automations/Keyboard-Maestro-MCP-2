@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import subprocess
 import time
 from dataclasses import dataclass, field, replace
@@ -36,6 +37,10 @@ T = TypeVar("T")
 E = TypeVar("E")
 
 logger = logging.getLogger(__name__)
+
+_KM_UUID_RE = re.compile(
+    r"^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$",
+)
 
 
 def _run_osascript_sync(script: str, timeout: float) -> subprocess.CompletedProcess[str]:
@@ -1845,12 +1850,28 @@ class KMClient:
         self,
         macro_id: MacroId,
     ) -> Either[KMError, bool]:
-        """Delete a macro by name or UUID via Keyboard Maestro AppleScript."""
-        escaped = self._escape_applescript_string(str(macro_id))
+        """Delete a macro by name or UUID via Keyboard Maestro AppleScript.
+
+        KM 11 AppleScript treats UUIDs and names as different selectors. A
+        ``whose name is "<uuid>"`` clause silently matches nothing (no
+        AppleScript error), previously producing a false-positive "deleted"
+        result for UUID callers — and the plist-import path returns UUIDs
+        natively. We dispatch on shape and require ``exists`` to be true so
+        a missing target surfaces as NOT_FOUND rather than fake success.
+        """
+        target = str(macro_id).strip()
+        escaped = self._escape_applescript_string(target)
+        if _KM_UUID_RE.match(target):
+            selector = f'macro id "{escaped}"'
+        else:
+            selector = f'first macro whose name is "{escaped}"'
         script = f'''
         tell application "Keyboard Maestro"
             try
-                delete (first macro whose name is "{escaped}")
+                if not (exists {selector}) then
+                    return "ERROR: macro not found"
+                end if
+                delete {selector}
                 return "deleted"
             on error errMsg
                 return "ERROR: " & errMsg
