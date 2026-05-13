@@ -422,38 +422,92 @@ class NotificationManager:
         self,
         spec: NotificationSpec,
     ) -> Either[MacroEngineError, NotificationResult]:
-        """Display sound notification."""
+        """Play a system sound or local audio file via macOS ``afplay``.
+
+        Earlier revisions delegated to ``KMClient.play_sound``, which never
+        existed. Audio playback is purely a macOS concern, so we run
+        ``/usr/bin/afplay`` directly. Inputs are constrained by
+        ``NotificationSpec._is_valid_sound`` (audio extensions only) and by
+        ``_resolve_sound_path`` (system sounds: name lookup; files: must
+        exist on disk). No shell, no string interpolation into a command —
+        arguments are passed as a list.
+        """
+        import asyncio
+        import subprocess
+        from pathlib import Path
+
         notification_id = self._generate_notification_id()
         start_time = time.time()
+        sound_file = spec.sound or "default"
 
-        try:
-            sound_file = spec.sound or "default"
-
-            # Play sound through KM client
-            sound_result = await self.km_client.play_sound(sound_file)
-
-            if sound_result.is_left():
-                return Either.left(sound_result.get_left())
-
-            display_time = time.time() - start_time
-
-            return Either.right(
-                NotificationResult(
-                    success=True,
-                    notification_id=notification_id,
-                    display_time=display_time,
-                    interaction_data={"sound_file": sound_file},
+        path = self._resolve_sound_path(sound_file)
+        if path is None:
+            return Either.left(
+                MacroEngineError(
+                    message=f"Unknown system sound or unreadable file: {sound_file}",
+                    category=ErrorCategory.EXECUTION,
+                    error_code="SOUND_FILE_NOT_FOUND",
                 ),
             )
 
-        except Exception as e:
+        afplay = Path("/usr/bin/afplay")
+        if not afplay.exists():
             return Either.left(
                 MacroEngineError(
-                    message=f"Sound notification failed: {e!s}",
+                    message="afplay not found; cannot play audio.",
+                    category=ErrorCategory.EXECUTION,
+                    error_code="AFPLAY_UNAVAILABLE",
+                ),
+            )
+
+        try:
+            completed = await asyncio.to_thread(
+                subprocess.run,
+                [str(afplay), str(path)],
+                capture_output=True,
+                check=False,
+                shell=False,
+            )
+            if completed.returncode != 0:
+                return Either.left(
+                    MacroEngineError(
+                        message=(
+                            f"afplay exited {completed.returncode}: "
+                            f"{completed.stderr.decode(errors='replace').strip()}"
+                        ),
+                        category=ErrorCategory.EXECUTION,
+                        error_code="SOUND_PLAYBACK_FAILED",
+                    ),
+                )
+        except Exception as exc:
+            return Either.left(
+                MacroEngineError(
+                    message=f"Sound notification failed: {exc!s}",
                     category=ErrorCategory.EXECUTION,
                     error_code="SOUND_NOTIFICATION_ERROR",
                 ),
             )
+
+        return Either.right(
+            NotificationResult(
+                success=True,
+                notification_id=notification_id,
+                display_time=time.time() - start_time,
+                interaction_data={"sound_file": str(path)},
+            ),
+        )
+
+    @staticmethod
+    def _resolve_sound_path(sound: str):  # type: ignore[no-untyped-def]
+        """Resolve a system-sound name or absolute path to a playable file."""
+        from pathlib import Path
+
+        system_sounds_dir = Path("/System/Library/Sounds")
+        if "/" not in sound:
+            candidate = system_sounds_dir / f"{sound.title()}.aiff"
+            return candidate if candidate.exists() else None
+        path = Path(sound).expanduser()
+        return path if path.is_file() else None
 
     def _validate_notification_content(self, content: str) -> bool:
         """Validate notification content for safety and appropriateness.

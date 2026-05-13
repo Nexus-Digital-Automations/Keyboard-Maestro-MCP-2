@@ -47,7 +47,7 @@ async def main() -> int:
     result = await km_build_plugin_action(
         output_dir=str(output_dir),
         name="Wait for Button",
-        identifier="com.nexus-digital-automations.km.wait-for-button",
+        title="Wait for button '%Param%Title%' in %Param%App%",
         author="Keyboard-Maestro-MCP-2 examples",
         script_source=WRAPPER_SCRIPT,
         script_filename="run.sh",
@@ -56,13 +56,12 @@ async def main() -> int:
             {"Label": "Title", "Type": "String", "Default": ""},
             {"Label": "Timeout", "Type": "Calculation", "Default": "10"},
         ],
-        results_type="Variable",
-        timeout_seconds=120,
+        results=["None", "Variable", "Window", "Briefly", "Clipboard"],
         keywords=["button", "wait", "click", "ax", "ui inspector"],
         help_text=(
             "Polls the front window of the named app until exactly one AXButton "
             "matches the title (case-insensitive substring), then clicks it. "
-            "Returns 'OK: ...' or 'ERROR: ...' to the chosen variable."
+            "Returns 'OK: ...' or 'ERROR: ...' to the chosen result target."
         ),
         on_existing="replace",
     )

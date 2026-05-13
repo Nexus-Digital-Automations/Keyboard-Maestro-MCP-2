@@ -134,6 +134,35 @@ async def km_add_action(
             f"Adding action '{action_type}' to macro '{macro_id}' [ID: {correlation_id}]",
         )
 
+    # Hardcoded whitelist: types whose XML generator produces KM-compatible plist
+    # output. Other types in the 146-entry registry build a synthetic XML format
+    # KM accepts at the wrapper level but then converts to a placeholder
+    # "Invalid XML From AppleScript" Log action — silent macro corruption. Until
+    # the generator is fixed per-type, gate uncovered types behind an error.
+    _XML_VERIFIED_ACTION_TYPES = frozenset()
+    if action_type not in _XML_VERIFIED_ACTION_TYPES:
+        return {
+            "success": False,
+            "error": {
+                "code": "XML_GENERATION_REJECTED",
+                "message": (
+                    f"action_type {action_type!r} is in the 146-entry registry but its XML "
+                    "generator does not yet produce KM-compatible plist output. Calling KM with "
+                    "the generated XML corrupts the macro (KM logs 'Invalid XML From "
+                    "AppleScript' in place of the action). Tool refuses to proceed."
+                ),
+                "recovery_suggestion": (
+                    "Use km_action_builder.append, which currently supports: "
+                    "pause, type_text, paste, set_variable, run_applescript, execute_macro."
+                ),
+            },
+            "metadata": {
+                "tool": "km_add_action",
+                "correlation_id": correlation_id,
+                "timestamp": datetime.now(UTC).isoformat(),
+            },
+        }
+
     try:
         # Initialize action registry and builder
         action_registry = ActionRegistry()

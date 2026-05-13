@@ -3,18 +3,26 @@
 Owner: Keyboard-Maestro-MCP-2 server team. Provides ``km_build_plugin_action``,
 which emits a self-contained ``.kmactions`` bundle (the format Keyboard Maestro
 loads from ``~/Library/Application Support/Keyboard Maestro/Keyboard Maestro
-Actions/``). The MCP caller supplies a JSON spec — display name, reverse-DNS
-identifier, script source, parameter fields, result mode — and the tool writes
-``Keyboard Maestro Action.plist`` plus an executable script into a workspace
-directory of the caller's choosing. No system writes; the user installs the
-bundle by copying it into KM's Actions folder themselves.
+Actions/``). The MCP caller supplies a JSON spec — sidebar name, editor title,
+script source, parameter fields, allowed result targets — and the tool writes
+``Keyboard Maestro Action.plist``, an executable script, and (optionally) an
+``Icon.png`` into a workspace directory of the caller's choosing. No system
+writes; the user installs the bundle by copying it into KM's Actions folder
+themselves.
 
-Failure modes: bad identifier syntax (``com.acme.foo`` form required), unknown
-``results_type`` / ``authentication`` enum value, ``parameters[i]`` missing
-``Label``/``Type``, ``PopupMenu`` parameter without ``Menu``, ``output_dir``
-outside the current working directory (path-traversal guard), bundle already
-exists with ``on_existing='error'``. Each is returned as the standard MCP
-envelope ``{success: False, error: {...}}`` — no partial bundles on disk.
+The plist schema matches what shipping third-party plug-ins use (verified
+against eight installed plug-ins): ``Name`` (sidebar label), ``Title`` (canvas
+display string with ``%Param%Label%`` placeholders), ``Script``, ``Parameters``,
+``Results`` (pipe-joined list of allowed result targets), and optional
+``Author``, ``Help``, ``HelpURL``, ``KeyWords``, ``Icon`` (filename). KM ignores
+unknown keys, so older bundles emitted with ``Identifier``/``Authentication``/
+``Timeout`` still loaded but had broken Title/Results/Icon rendering.
+
+Failure modes: unknown result target, ``parameters[i]`` missing ``Label`` /
+``Type``, ``PopupMenu`` parameter without ``Menu``, ``output_dir`` outside the
+current working directory (path-traversal guard), bundle already exists with
+``on_existing='error'``. Each is returned as the standard MCP envelope
+``{success: False, error: {...}}`` — no partial bundles on disk.
 """
 
 from __future__ import annotations
@@ -36,13 +44,28 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-RESULTS_TYPES = frozenset(
-    {"None", "Variable", "Clipboard", "TypedString", "Window", "Briefly"}
+# Result-target tokens emitted in the pipe-delimited ``Results`` plist value.
+# Verified against installed third-party plug-ins; ``TypedString``/``Token``/
+# ``Asynchronously`` are documented KM result modes not represented in the
+# sample set but accepted defensively.
+RESULT_TARGETS = frozenset(
+    {
+        "None",
+        "Variable",
+        "Clipboard",
+        "TypedString",
+        "Pasting",
+        "Typing",
+        "Window",
+        "Briefly",
+        "Token",
+        "Asynchronously",
+    }
 )
-AUTH_LEVELS = frozenset({"None", "Admin"})
 PARAM_TYPES = frozenset(
     {
         "String",
+        "Text",
         "Password",
         "Calculation",
         "PopupMenu",
@@ -53,33 +76,21 @@ PARAM_TYPES = frozenset(
     }
 )
 ON_EXISTING_MODES = frozenset({"error", "replace"})
+ICON_FILENAME = "Icon.png"
 
-# Reverse-DNS: lowercase letters/digits/hyphens, ≥2 dotted segments, each segment
-# starts/ends with [a-z0-9]. Matches Apple's UTI / KM conventions.
-IDENTIFIER_RE = re.compile(
-    r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$"
-)
 FOLDER_FORBIDDEN_RE = re.compile(r'[/\\:?<>|"\x00-\x1f]')
 SCRIPT_FILENAME_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 HTTPS_URL_RE = re.compile(r"^https?://")
-
-
-def _validate_identifier(identifier: str) -> str:
-    """Reverse-DNS, lowercased. Required by KM to dedupe plug-ins across users."""
-    if not isinstance(identifier, str) or not IDENTIFIER_RE.match(identifier):
-        raise ValueError(
-            f"identifier must be reverse-DNS (e.g. 'com.acme.wait-for-button'); "
-            f"got {identifier!r}"
-        )
-    return identifier
 
 
 def _validate_parameter(param: dict[str, Any], index: int) -> dict[str, Any]:
     """Normalise one parameter dict, raising ValueError on any defect.
 
     Returns the cleaned dict ready for plist serialisation. ``Menu`` is joined
-    with newlines (KM's wire format), ``Default`` is coerced to a str so the
-    plist is unambiguous (KM accepts only strings for default values).
+    with ``|`` — verified against shipping plug-ins like ``Choose File(s)``,
+    whose menu plist value is ``'Folder...|Desktop|Home|...'``. ``Default`` is
+    coerced to a str so the plist is unambiguous (KM accepts only strings for
+    default values).
     """
     if not isinstance(param, dict):
         raise ValueError(f"parameters[{index}] must be a dict; got {type(param).__name__}")
@@ -102,7 +113,7 @@ def _validate_parameter(param: dict[str, Any], index: int) -> dict[str, Any]:
                 f"parameters[{index}].Menu must be a non-empty list of non-empty strings "
                 f"when Type='PopupMenu'"
             )
-        cleaned["Menu"] = "\n".join(menu)
+        cleaned["Menu"] = "|".join(menu)
     elif menu is not None:
         raise ValueError(
             f"parameters[{index}].Menu is only valid when Type='PopupMenu'; "
@@ -144,28 +155,32 @@ def _resolve_under_cwd(output_dir: str) -> Path:
 def _build_plist(
     *,
     name: str,
-    identifier: str,
-    author: str,
+    title: str,
     script_filename: str,
     parameters: list[dict[str, Any]],
-    results_type: str,
-    timeout_seconds: int,
-    authentication: str,
+    results: list[str],
+    author: str | None,
     help_text: str | None,
     help_url: str | None,
     keywords: list[str] | None,
-    icon_base64: str | None,
+    has_icon: bool,
 ) -> dict[str, Any]:
+    """Return the dict KM serialises into ``Keyboard Maestro Action.plist``.
+
+    Schema matches shipping third-party plug-ins: ``Name`` is the sidebar label,
+    ``Title`` is the canvas display string with ``%Param%Label%`` placeholders,
+    ``Results`` is a pipe-joined enumeration of allowed result targets, ``Icon``
+    is a filename (the PNG sits alongside in the bundle).
+    """
     plist: dict[str, Any] = {
         "Name": name,
-        "Identifier": identifier,
-        "Author": author,
+        "Title": title,
         "Script": script_filename,
-        "Authentication": authentication,
-        "Timeout": timeout_seconds,
-        "ResultsType": results_type,
+        "Results": "|".join(results),
         "Parameters": parameters,
     }
+    if author:
+        plist["Author"] = author
     if help_text:
         plist["Help"] = help_text
     if help_url:
@@ -176,12 +191,33 @@ def _build_plist(
         if not all(isinstance(k, str) and k for k in keywords):
             raise ValueError("keywords must be a list of non-empty strings")
         plist["KeyWords"] = list(keywords)
-    if icon_base64:
-        try:
-            plist["Icon"] = base64.b64decode(icon_base64, validate=True)
-        except (ValueError, TypeError) as exc:
-            raise ValueError(f"icon_base64 is not valid base64: {exc}") from exc
+    if has_icon:
+        plist["Icon"] = ICON_FILENAME
     return plist
+
+
+def _validate_results(results: list[str]) -> list[str]:
+    """Each entry must be a known KM result target; empty list rejected."""
+    if not isinstance(results, list) or not results:
+        raise ValueError("results must be a non-empty list of result-target strings")
+    for i, entry in enumerate(results):
+        if entry not in RESULT_TARGETS:
+            raise ValueError(
+                f"results[{i}] = {entry!r} is not a known KM result target; "
+                f"expected one of {sorted(RESULT_TARGETS)}"
+            )
+    return list(results)
+
+
+def _decode_icon(icon_base64: str) -> bytes:
+    """Decode a base64 PNG, raising ValueError on bad encoding or wrong magic."""
+    try:
+        png = base64.b64decode(icon_base64, validate=True)
+    except (ValueError, TypeError) as exc:
+        raise ValueError(f"icon_base64 is not valid base64: {exc}") from exc
+    if not png.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise ValueError("icon_base64 must decode to a PNG (magic bytes mismatch)")
+    return png
 
 
 def _error_envelope(code: str, message: str, *, field: str | None = None) -> dict[str, Any]:
@@ -209,15 +245,22 @@ async def km_build_plugin_action(
     ],
     name: Annotated[
         str,
-        Field(description="Display name shown in KM's actions sidebar.", min_length=1, max_length=200),
+        Field(
+            description="Sidebar label under Plug In > Third Party. Also the bundle folder name.",
+            min_length=1,
+            max_length=200,
+        ),
     ],
-    identifier: Annotated[
+    title: Annotated[
         str,
-        Field(description="Reverse-DNS identifier, e.g. 'com.acme.wait-for-button'.", max_length=200),
-    ],
-    author: Annotated[
-        str,
-        Field(description="Author name embedded in the plist.", min_length=1, max_length=200),
+        Field(
+            description=(
+                "Canvas display title. Supports '%Param%Label%' to interpolate parameter "
+                "values, e.g. \"Wait for button '%Param%Title%' in %Param%App%\"."
+            ),
+            min_length=1,
+            max_length=400,
+        ),
     ],
     script_source: Annotated[
         str,
@@ -231,18 +274,20 @@ async def km_build_plugin_action(
         list[dict[str, Any]] | None,
         Field(description="Parameter field specs. Each: {Label, Type, Default?, Menu?}."),
     ] = None,
-    results_type: Annotated[
-        str,
-        Field(description="KM ResultsType: None|Variable|Clipboard|TypedString|Window|Briefly."),
-    ] = "Variable",
-    timeout_seconds: Annotated[
-        int,
-        Field(description="Script timeout in seconds (1..3600).", ge=1, le=3600),
-    ] = 60,
-    authentication: Annotated[
-        str,
-        Field(description="KM Authentication mode: 'None' or 'Admin'."),
-    ] = "None",
+    results: Annotated[
+        list[str] | None,
+        Field(
+            description=(
+                "Allowed result targets, pipe-joined into the plist's Results key. "
+                "Pick from None, Variable, Clipboard, TypedString, Pasting, Typing, "
+                "Window, Briefly, Token, Asynchronously. Defaults to ['Variable']."
+            ),
+        ),
+    ] = None,
+    author: Annotated[
+        str | None,
+        Field(description="Optional author name embedded in the plist.", max_length=200),
+    ] = None,
     help_text: Annotated[
         str | None,
         Field(description="Optional inline help shown in KM's editor."),
@@ -257,7 +302,7 @@ async def km_build_plugin_action(
     ] = None,
     icon_base64: Annotated[
         str | None,
-        Field(description="Optional base64-encoded PNG used as the action icon."),
+        Field(description="Optional base64-encoded PNG written to Icon.png inside the bundle."),
     ] = None,
     on_existing: Annotated[
         str,
@@ -270,25 +315,19 @@ async def km_build_plugin_action(
     Architecture:
         - Pattern: builder that produces a filesystem artifact (DTO in = bundle out).
         - Security: path-traversal guard (resolve + is_relative_to CWD); plistlib
-          handles XML escaping; script written with 0o755 (owner-execute, world-read).
-        - Performance: one plist serialisation + two file writes; O(n) in script bytes.
+          handles XML escaping; script written with 0o755 (owner-execute, world-read);
+          icon PNG validated by magic bytes before write.
+        - Performance: one plist serialisation + two-to-three file writes; O(n) in
+          script and icon bytes.
 
     Failure modes are documented in the module docstring. Returns the standard
     MCP envelope: ``{success, data|error, metadata}``.
     """
     started = time.monotonic()
     if ctx:
-        await ctx.info(f"Building plug-in action '{name}' ({identifier})")
+        await ctx.info(f"Building plug-in action '{name}'")
 
     try:
-        if results_type not in RESULTS_TYPES:
-            raise ValueError(
-                f"results_type must be one of {sorted(RESULTS_TYPES)}; got {results_type!r}"
-            )
-        if authentication not in AUTH_LEVELS:
-            raise ValueError(
-                f"authentication must be one of {sorted(AUTH_LEVELS)}; got {authentication!r}"
-            )
         if on_existing not in ON_EXISTING_MODES:
             raise ValueError(
                 f"on_existing must be one of {sorted(ON_EXISTING_MODES)}; got {on_existing!r}"
@@ -297,27 +336,22 @@ async def km_build_plugin_action(
             raise ValueError(
                 f"script_filename must match [A-Za-z0-9._-]{{1,128}}; got {script_filename!r}"
             )
-        if not isinstance(timeout_seconds, int) or not 1 <= timeout_seconds <= 3600:
-            raise ValueError(
-                f"timeout_seconds must be an int in [1, 3600]; got {timeout_seconds!r}"
-            )
-        identifier = _validate_identifier(identifier)
+        cleaned_results = _validate_results(results or ["Variable"])
         cleaned_params = [
             _validate_parameter(p, i) for i, p in enumerate(parameters or [])
         ]
+        icon_bytes = _decode_icon(icon_base64) if icon_base64 else None
         plist_data = _build_plist(
             name=name,
-            identifier=identifier,
-            author=author,
+            title=title,
             script_filename=script_filename,
             parameters=cleaned_params,
-            results_type=results_type,
-            timeout_seconds=timeout_seconds,
-            authentication=authentication,
+            results=cleaned_results,
+            author=author,
             help_text=help_text,
             help_url=help_url,
             keywords=keywords,
-            icon_base64=icon_base64,
+            has_icon=icon_bytes is not None,
         )
         output_root = _resolve_under_cwd(output_dir)
     except ValueError as exc:
@@ -346,6 +380,10 @@ async def km_build_plugin_action(
         script_path = bundle / script_filename
         script_path.write_text(script_source, encoding="utf-8")
         script_path.chmod(0o755)
+        icon_path: Path | None = None
+        if icon_bytes is not None:
+            icon_path = bundle / ICON_FILENAME
+            icon_path.write_bytes(icon_bytes)
     except OSError as exc:
         logger.exception("Filesystem write failed while building %s", bundle)
         return _error_envelope("BUNDLE_WRITE_FAILED", f"writing {bundle}: {exc}")
@@ -359,9 +397,10 @@ async def km_build_plugin_action(
             "bundle_path": str(bundle),
             "plist_path": str(plist_path),
             "script_path": str(script_path),
+            "icon_path": str(icon_path) if icon_path else None,
             "plist_size_bytes": plist_path.stat().st_size,
             "parameter_count": len(cleaned_params),
-            "identifier": identifier,
+            "results": cleaned_results,
         },
         "metadata": {
             "tool": "km_build_plugin_action",

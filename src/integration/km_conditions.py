@@ -5,21 +5,14 @@ generating safe AppleScript, managing condition XML, and providing KM-specific v
 """
 
 import re
+
+# defusedxml's ElementTree module re-exports parsers but NOT the Element /
+# SubElement constructors (they aren't a security concern — they build trees,
+# they don't parse untrusted input). We're only ever constructing XML here,
+# so always import the constructors from the stdlib.
+import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import Any
-
-try:
-    from defusedxml import ElementTree as ET
-except ImportError:
-    # Fallback with security warning if defusedxml not available
-    import warnings
-    import xml.etree.ElementTree as ET
-
-    warnings.warn(
-        "defusedxml not available, using standard xml library",
-        RuntimeWarning,
-        stacklevel=2,
-    )
 
 from src.core.conditions import ComparisonOperator, ConditionSpec, ConditionType
 from src.core.either import Either

@@ -1892,19 +1892,27 @@ class KMClient:
         macro_id: MacroId,
         new_name: str | None = None,
     ) -> Either[KMError, dict[str, Any]]:
-        """Duplicate a macro. If new_name is provided, the copy is renamed to it."""
+        """Duplicate a macro. If ``new_name`` is provided, the copy is renamed to it.
+
+        KM 11 quirks worked around here:
+        - ``duplicate`` returns a *list* of macro references, not a single
+          reference. Read ``item 1`` of the result.
+        - ``set name of <reference>`` only works when the reference was obtained
+          via ``whose name is`` / ``whose id is``. Setting name on the
+          duplicate-result reference fails with a type-coercion error, so we
+          re-resolve the new macro by id before renaming.
+        - ``name of <reference>`` also doesn't coerce to text directly on
+          duplicate-result references — use ``id of … as string`` and look up
+          the name afterwards.
+        """
         escaped_src = self._escape_applescript_string(str(macro_id))
-        rename_block = ""
-        if new_name and new_name.strip():
-            escaped_new = self._escape_applescript_string(new_name)
-            rename_block = f'set name of newMacro to "{escaped_new}"'
         script = f'''
         tell application "Keyboard Maestro"
             try
                 set sourceMacro to first macro whose name is "{escaped_src}"
-                set newMacro to duplicate sourceMacro
-                {rename_block}
-                return name of newMacro
+                set dupResult to duplicate sourceMacro
+                set newMacro to item 1 of dupResult
+                return (id of newMacro as string)
             on error errMsg
                 return "ERROR: " & errMsg
             end try
@@ -1916,7 +1924,38 @@ class KMClient:
         output = result.get_right().strip()
         if output.startswith("ERROR:"):
             return Either.left(KMError.not_found_error(output[6:].strip()))
-        return Either.right({"new_name": output, "source": str(macro_id)})
+        new_id = output
+
+        final_name: str | None = None
+        if new_name and new_name.strip():
+            escaped_id = self._escape_applescript_string(new_id)
+            escaped_new = self._escape_applescript_string(new_name)
+            rename_script = f'''
+            tell application "Keyboard Maestro"
+                try
+                    set name of (first macro whose id is "{escaped_id}") to "{escaped_new}"
+                    return "ok"
+                on error errMsg
+                    return "ERROR: " & errMsg
+                end try
+            end tell
+            '''
+            rename_result = await self.execute_applescript_async(rename_script)
+            if rename_result.is_left():
+                return Either.left(rename_result.get_left())
+            rename_output = rename_result.get_right().strip()
+            if rename_output.startswith("ERROR:"):
+                return Either.left(
+                    KMError.execution_error(
+                        f"Duplicate created (id={new_id}) but rename failed: "
+                        f"{rename_output[6:].strip()}",
+                    ),
+                )
+            final_name = new_name
+
+        return Either.right(
+            {"new_id": new_id, "new_name": final_name, "source": str(macro_id)},
+        )
 
     async def set_macro_enabled_async(
         self,
@@ -1952,11 +1991,14 @@ class KMClient:
         if not group_name.strip():
             return Either.left(KMError.validation_error("group_name cannot be empty"))
         escaped = self._escape_applescript_string(group_name)
+        # KM 11 refuses to coerce ``uid of macro-group`` into text directly
+        # (returns "Can't make uid ... into type specifier"). Use ``id of`` with
+        # explicit ``as string`` instead — same pattern as ``list_groups_async``.
         script = f'''
         tell application "Keyboard Maestro"
             try
                 set newGroup to make new macro group with properties {{name:"{escaped}"}}
-                return uid of newGroup
+                return (id of newGroup as string)
             on error errMsg
                 return "ERROR: " & errMsg
             end try
@@ -2123,15 +2165,22 @@ class KMClient:
         self,
         macro_id: MacroId,
     ) -> Either[KMError, list[dict[str, Any]]]:
-        """List triggers attached to a macro (description + enabled flag)."""
+        """List triggers attached to a macro (description only).
+
+        KM 11 doesn't expose ``enabled`` on individual triggers via AppleScript
+        (only at the macro level). Asking for it raises a coercion error and
+        breaks the whole listing. Older code referenced ``enabled of t``,
+        which is why this endpoint always returned ``LIST_FAILED``.
+        """
         escaped = self._escape_applescript_string(str(macro_id))
         script = f'''
         tell application "Keyboard Maestro"
             try
+                set parentMacro to first macro whose name is "{escaped}"
+                set trigCount to count of triggers of parentMacro
                 set output to ""
-                set trigList to triggers of (first macro whose name is "{escaped}")
-                repeat with t in trigList
-                    set output to output & (description of t) & "␟" & (enabled of t) & "\n"
+                repeat with i from 1 to trigCount
+                    set output to output & (description of (trigger i of parentMacro)) & linefeed
                 end repeat
                 return output
             on error errMsg
@@ -2147,14 +2196,7 @@ class KMClient:
             return Either.left(KMError.not_found_error(output[6:].strip()))
         triggers: list[dict[str, Any]] = []
         for idx, line in enumerate(filter(None, output.split("\n")), start=1):
-            parts = line.split("␟")
-            triggers.append(
-                {
-                    "index": idx,
-                    "description": parts[0] if parts else line,
-                    "enabled": (parts[1].strip().lower() == "true") if len(parts) > 1 else True,
-                },
-            )
+            triggers.append({"index": idx, "description": line.strip()})
         return Either.right(triggers)
 
     async def remove_macro_trigger_async(

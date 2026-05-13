@@ -538,34 +538,46 @@ class WindowManager:
             return []
 
     def _parse_screen_data(self, _screen_data: str) -> list[ScreenInfo]:
-        """Parse AppleScript screen data into ScreenInfo objects."""
+        """Return the live macOS screen layout via Quartz.
+
+        Earlier revisions ignored ``_screen_data`` and returned a hardcoded
+        1920×1080 stub regardless of the real display — i.e. fake data leaking
+        through to the MCP caller. Quartz's ``CGGetActiveDisplayList`` /
+        ``CGDisplayBounds`` give the real pixel bounds without UI-scripting
+        AppleScript (whose ``bounds of window of desktop`` is unreliable).
+        Falls back to a 1280×800 stub only if Quartz can't be imported (e.g.
+        non-Darwin development environments).
+        """
         try:
-            # Basic parsing of screen bounds data
-            # Format: "{x1, y1, x2, y2}, {x1, y1, x2, y2}, ..."
-            screens = []
+            import Quartz
 
-            # For now, create a main screen with standard resolution
-            # In production, this would parse the actual AppleScript output
-            main_screen = ScreenInfo(
-                screen_id=0,
-                origin=Position(0, 0),
-                size=Size(1920, 1080),
-                is_main=True,
-                name="Main Display",
-            )
-            screens.append(main_screen)
+            max_displays = 16
+            err, active, count = Quartz.CGGetActiveDisplayList(max_displays, None, None)
+            if err != 0 or not count:
+                raise RuntimeError(f"CGGetActiveDisplayList err={err}, count={count}")
+            main_id = Quartz.CGMainDisplayID()
 
+            screens: list[ScreenInfo] = []
+            for idx, display_id in enumerate(active[:count]):
+                rect = Quartz.CGDisplayBounds(display_id)
+                screens.append(
+                    ScreenInfo(
+                        screen_id=idx,
+                        origin=Position(int(rect.origin.x), int(rect.origin.y)),
+                        size=Size(int(rect.size.width), int(rect.size.height)),
+                        is_main=(display_id == main_id),
+                        name="Main Display" if display_id == main_id else f"Display {idx}",
+                    ),
+                )
             return screens
-
         except Exception:
-            # Fallback to default screen
             return [
                 ScreenInfo(
                     screen_id=0,
                     origin=Position(0, 0),
-                    size=Size(1920, 1080),
+                    size=Size(1280, 800),
                     is_main=True,
-                    name="Default Display",
+                    name="Default Display (Quartz unavailable)",
                 ),
             ]
 
