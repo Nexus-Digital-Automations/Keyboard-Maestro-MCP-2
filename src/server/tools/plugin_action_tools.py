@@ -25,8 +25,6 @@ current working directory (path-traversal guard), bundle already exists with
 ``{success: False, error: {...}}`` — no partial bundles on disk.
 """
 
-from __future__ import annotations
-
 import base64
 import logging
 import plistlib
@@ -35,12 +33,10 @@ import shutil
 import time
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Any
+from typing import Annotated, Any
 
+from fastmcp import Context
 from pydantic import Field
-
-if TYPE_CHECKING:
-    from fastmcp import Context
 
 logger = logging.getLogger(__name__)
 

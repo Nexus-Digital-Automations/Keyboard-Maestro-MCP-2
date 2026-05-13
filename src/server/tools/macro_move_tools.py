@@ -6,20 +6,16 @@ macro name and macro UUID (the client AppleScript uses
 user-facing group in KM, NOT a system group, and is permitted.
 """
 
-from __future__ import annotations
-
 import logging
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING, Annotated, Any
+from typing import Annotated, Any
 
+from fastmcp import Context
 from pydantic import Field
 
 from ...core.types import GroupId, MacroId
 from ..initialization import get_km_client
-
-if TYPE_CHECKING:
-    from fastmcp import Context
 
 logger = logging.getLogger(__name__)
 
