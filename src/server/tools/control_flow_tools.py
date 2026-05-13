@@ -228,6 +228,31 @@ async def km_control_flow(
             },
         }
 
+    except NotImplementedError as e:
+        if ctx:
+            await ctx.error(f"Control flow not implemented: {e}")
+        return {
+            "success": False,
+            "error": {
+                "code": "UNSUPPORTED_OPERATION",
+                "message": str(e),
+                "details": (
+                    "km_control_flow currently validates inputs but does not "
+                    "yet write the resulting If-Then-Else / For Each / While / "
+                    "Switch action XML to the target macro."
+                ),
+                "recovery_suggestion": (
+                    "Build the action XML by hand and append it with "
+                    "km_action_builder.append, or wait for the dedicated "
+                    "control-flow XML emitter."
+                ),
+            },
+            "metadata": {
+                "timestamp": datetime.now().isoformat(),
+                "correlation_id": f"unsupported_{macro_identifier}",
+            },
+        }
+
     except Exception as e:
         if ctx:
             await ctx.error(f"Unexpected error: {e}")
@@ -556,17 +581,20 @@ async def _apply_control_flow_to_macro(
     km_integration: dict[str, Any],
     ctx: Context | None,
 ) -> dict[str, Any]:
-    """Apply the control flow structure to the target macro."""
-    if ctx:
-        await ctx.info("Applying control flow to macro")
+    """KM 11 control-flow application is not yet implemented.
 
-    # This would use the KM client to actually modify the macro
-    # For now, return success indication
-    return {
-        "applied": True,
-        "macro_id": macro_identifier,
-        "integration_type": km_integration["km_action_type"],
-    }
+    The earlier body returned ``{"applied": True}`` without writing
+    anything to KM. Real implementation needs to emit one of KM's
+    If-Then-Else / For Each / While / Switch action XMLs (with nested
+    actions) and append it via ``append_macro_action_async``. Until that
+    lands we refuse loudly rather than silently succeeding.
+    """
+    del macro_identifier, ctx
+    raise NotImplementedError(
+        f"km_control_flow: applying {km_integration.get('km_action_type', 'unknown')} "
+        "to macros is not implemented yet. Use km_action_builder with a hand-built "
+        "action XML in the meantime.",
+    )
 
 
 def _get_structure_info(node: ControlFlowNodeType) -> dict[str, Any]:

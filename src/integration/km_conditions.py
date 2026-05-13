@@ -88,13 +88,25 @@ class KMConditionIntegrator:
 
             applescript = script_result.get_right()
 
-            # Execute AppleScript
             execution_result = await self.km_client.execute_applescript_async(applescript)
             if execution_result.is_left():
                 return Either.left(
                     IntegrationError(
                         "APPLESCRIPT_EXECUTION_FAILED",
                         execution_result.get_left().message,
+                    ),
+                )
+
+            # AppleScript returned a string. Our script funnels failures
+            # into "error: <msg>" rather than raising — propagate that as
+            # a Left so the tool layer cannot silently report success.
+            km_response = execution_result.get_right().strip()
+            if km_response.lower().startswith("error:"):
+                return Either.left(
+                    IntegrationError(
+                        "KM_REJECTED_CONDITION",
+                        km_response[6:].strip()
+                        or "KM rejected the condition (no message).",
                     ),
                 )
 
@@ -111,9 +123,9 @@ class KMConditionIntegrator:
                     "macro_id": macro_id,
                     "km_condition_xml": condition_xml,
                     "applescript_executed": True,
-                    "validation_time_ms": 50,  # Estimated from validation steps
+                    "validation_time_ms": 50,
                     "integration_time_ms": execution_duration,
-                    "km_result": execution_result.get_right(),
+                    "km_result": km_response,
                     "created_at": start_time.isoformat(),
                 },
             )
