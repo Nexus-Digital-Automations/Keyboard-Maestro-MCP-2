@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-_VERIFY_TIMEOUT_SECONDS = 10.0
+_VERIFY_TIMEOUT_SECONDS = 5.0
 _VERIFY_POLL_INTERVAL = 0.25
 
 
@@ -119,13 +119,17 @@ async def _wait_for_macro_uid(
     km_client: KMClient,
     macro_uid: str,
 ) -> bool:
-    """Poll list_macros until ``macro_uid`` is visible or we time out."""
+    """Poll list_macros_async until ``macro_uid`` is visible or we time out.
+
+    Uses the async path with ``enabled_only=False``: KM imports macros in the
+    disabled state, and ``KMClient.list_macros`` (sync) routes through an
+    AppleScript command that has no ``list_macros`` handler, so the right path
+    is the async one that calls ``_list_macros_applescript`` directly.
+    """
     target = macro_uid.lower()
     deadline = asyncio.get_event_loop().time() + _VERIFY_TIMEOUT_SECONDS
     while asyncio.get_event_loop().time() < deadline:
-        listing = await asyncio.get_event_loop().run_in_executor(
-            None, km_client.list_macros,
-        )
+        listing = await km_client.list_macros_async(enabled_only=False)
         if listing.is_right():
             for macro in listing.get_right():
                 if str(macro.get("id", "")).lower() == target:
