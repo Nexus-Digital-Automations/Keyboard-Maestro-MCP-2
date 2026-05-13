@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-_VERIFY_TIMEOUT_SECONDS = 3.0
+_VERIFY_TIMEOUT_SECONDS = 10.0
 _VERIFY_POLL_INTERVAL = 0.25
 
 
