@@ -460,7 +460,11 @@ class AppController:
             operation_time = Duration.from_seconds(time.time() - start_time)
             return Either.left(KMError.execution_error(f"Quit failed: {e!s}"))
 
-    @require(lambda app_id: app_id.primary_identifier() != "")
+    # ContractValidator.evaluate_condition binds the decorated method's
+    # positional args by parameter name, so a single-param lambda would
+    # receive `self` instead of `app_id`. Match the (self, app_id)
+    # signature explicitly so the contract checks the right value.
+    @require(lambda _self, app_id: app_id.primary_identifier() != "")
     async def activate_application(
         self,
         app_id: AppIdentifier,
@@ -503,7 +507,7 @@ class AppController:
             operation_time = Duration.from_seconds(time.time() - start_time)
             return Either.left(KMError.execution_error(f"Activation failed: {e!s}"))
 
-    @require(lambda menu_path: len(menu_path.path) > 0)
+    @require(lambda _self, _app_id, menu_path: len(menu_path.path) > 0)
     async def select_menu_item(
         self,
         app_id: AppIdentifier,

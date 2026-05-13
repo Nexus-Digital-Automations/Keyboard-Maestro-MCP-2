@@ -7,6 +7,7 @@ coordinate bounds checking, and robust error handling for macOS window operation
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
@@ -14,6 +15,8 @@ from enum import Enum
 from ..core.contracts import ensure, require
 from ..core.types import Duration
 from ..integration.km_client import Either, KMError
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -220,7 +223,10 @@ class WindowManager:
         self._window_cache: dict[str, tuple[WindowInfo, float]] = {}
         self._window_cache_timeout = 2.0  # seconds
 
-    @require(lambda app_identifier: app_identifier != "")
+    # ContractValidator binds positional args by parameter name, so a
+    # 1-arg lambda would receive `self`. The ensure lambda needs to see
+    # `result`; explicitly take everything so binding lines up.
+    @require(lambda _self, app_identifier, _position, _window_index=0, _screen_target="main": app_identifier != "")
     @ensure(
         lambda result: result.is_right()
         or result.get_left().code
@@ -308,7 +314,7 @@ class WindowManager:
             operation_time = Duration.from_seconds(time.time() - start_time)
             return Either.left(KMError.execution_error(f"Window move failed: {e!s}"))
 
-    @require(lambda size: size.width > 0 and size.height > 0)
+    @require(lambda _self, _app_identifier, size, _window_index=0: size.width > 0 and size.height > 0)
     async def resize_window(
         self,
         app_identifier: str,
@@ -570,7 +576,11 @@ class WindowManager:
                     ),
                 )
             return screens
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "Quartz screen enumeration unavailable; falling back to 1280x800 stub: %s",
+                exc,
+            )
             return [
                 ScreenInfo(
                     screen_id=0,
