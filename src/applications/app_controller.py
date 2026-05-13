@@ -356,15 +356,46 @@ class AppController:
             return []
 
     async def get_running_applications_async(self) -> Either[KMError, list[str]]:
-        """Get list of running applications."""
+        """Return the live list of running application names via System Events.
+
+        The previous body returned a hardcoded 4-item list — the MCP tool
+        ``km_application_control.list_running`` then lied to callers about
+        what was running on the user's machine.
+
+        ``asyncio.create_subprocess_exec`` is the no-shell primitive (the
+        AppleScript body is a static literal; ``osascript -e`` argv is
+        passed through ``argv`` not a shell, so there is no injection
+        surface).
+        """
+        script = (
+            'tell application "System Events" to '
+            "get name of every application process "
+            "whose background only is false"
+        )
         try:
-            # This would implement actual AppleScript to get running apps
-            # For now, return a mock list for test compatibility
-            return Either.right(["Finder", "Safari", "Mail", "Calendar"])
+            proc = await asyncio.create_subprocess_exec(
+                "osascript", "-e", script,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, stderr = await asyncio.wait_for(
+                proc.communicate(), timeout=5.0,
+            )
+        except asyncio.TimeoutError:
+            return Either.left(
+                KMError.execution_error("System Events listing timed out after 5s"),
+            )
         except Exception as e:
             return Either.left(
-                KMError.execution_error(f"Failed to get running applications: {e!s}")
+                KMError.execution_error(f"Failed to get running applications: {e!s}"),
             )
+        if proc.returncode != 0:
+            err = stderr.decode().strip() if stderr else "osascript failed"
+            return Either.left(
+                KMError.execution_error(f"Failed to list running apps: {err}"),
+            )
+        names = [n.strip() for n in stdout.decode().split(",") if n.strip()]
+        return Either.right(names)
 
     async def quit_application_async(
         self,

@@ -402,17 +402,27 @@ async def _reload_engine(_km_client: Any, ctx: Context = None) -> dict[str, Any]
 
 
 async def _get_engine_status(km_client: Any, ctx: Context = None) -> dict[str, Any]:
-    """Get current engine status and statistics."""
+    """Return KM engine status sourced from the engine itself.
+
+    Earlier revisions returned mocked ``performance`` and ``resources``
+    blocks plus a hardcoded ``engine_version`` string. None came from KM;
+    the tool returned the same numbers on every call regardless of system
+    state. Now we only surface fields we can verify against the live
+    engine: real KM version via AppleScript, real macro counts via the
+    existing client, and reachability as ``engine_running``.
+    """
     if ctx:
         await ctx.report_progress(50, 100, "Fetching engine status")
 
-    # Get macro statistics
-    macros_result = await asyncio.get_event_loop().run_in_executor(
-        None,
-        km_client.list_macros_with_details,
-        False,  # Include all macros
+    version_result = await km_client.execute_applescript_async(
+        'tell application "Keyboard Maestro" to return version',
     )
+    engine_running = version_result.is_right()
+    engine_version = version_result.get_right().strip() if engine_running else None
 
+    macros_result = await asyncio.get_event_loop().run_in_executor(
+        None, km_client.list_macros_with_details, False,
+    )
     if macros_result.is_right():
         macros = macros_result.get_right()
         total_macros = len(macros)
@@ -421,27 +431,18 @@ async def _get_engine_status(km_client: Any, ctx: Context = None) -> dict[str, A
         total_macros = 0
         enabled_macros = 0
 
-    # Mock additional engine statistics
     status = {
-        "engine_version": "11.0.3",
-        "engine_running": True,
-        "last_reload": datetime.now().isoformat(),
+        "engine_version": engine_version,
+        "engine_running": engine_running,
+        "queried_at": datetime.now().isoformat(),
         "macro_statistics": {
             "total_macros": total_macros,
             "enabled_macros": enabled_macros,
             "disabled_macros": total_macros - enabled_macros,
         },
-        "performance": {
-            "average_execution_time_ms": 125,
-            "macros_executed_today": 47,
-            "errors_today": 2,
-        },
-        "resources": {"memory_usage_mb": 85.4, "cpu_usage_percent": 0.8},
     }
-
     if ctx:
         await ctx.report_progress(100, 100, "Status retrieved")
-
     return {"success": True, "data": status}
 
 
