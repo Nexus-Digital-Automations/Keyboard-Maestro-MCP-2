@@ -13,6 +13,12 @@ from pydantic import Field
 
 from ...tokens import KMTokenEngine, ProcessingContext, TokenExpression, TokenProcessor
 
+# Shared instances so the counters surfaced by km_token_stats reflect work
+# the running km_token_processor actually did. Constructing fresh objects
+# inside km_token_stats was effectively a stats reset on every call.
+_TOKEN_PROCESSOR = TokenProcessor()
+_KM_TOKEN_ENGINE = KMTokenEngine()
+
 
 async def km_token_processor(
     text: Annotated[
@@ -117,7 +123,7 @@ async def km_token_processor(
 
         if preview_only:
             # Just parse and return token information
-            processor = TokenProcessor()
+            processor = _TOKEN_PROCESSOR
             tokens = processor._parse_tokens(text)
 
             if ctx:
@@ -154,7 +160,7 @@ async def km_token_processor(
                 await ctx.info("Using Keyboard Maestro's token processing engine")
 
             # Use Keyboard Maestro's token processing engine
-            km_token = KMTokenEngine()
+            km_token = _KM_TOKEN_ENGINE
             km_result = await km_token.process_with_km(text, ProcessingContext(context))
 
             if km_result.is_left():
@@ -162,7 +168,7 @@ async def km_token_processor(
                     await ctx.info("KM engine failed, falling back to local processor")
 
                 # Fallback to local processor
-                processor = TokenProcessor()
+                processor = _TOKEN_PROCESSOR
                 process_result = await processor.process_tokens(token_expr)
                 engine_used = "local_fallback"
             else:
@@ -171,7 +177,7 @@ async def km_token_processor(
                 execution_time = time.time() - start_time
 
                 # Parse tokens for metadata
-                processor = TokenProcessor()
+                processor = _TOKEN_PROCESSOR
                 tokens = processor._parse_tokens(text)
 
                 from ...tokens.token_processor import TokenProcessingResult
@@ -195,7 +201,7 @@ async def km_token_processor(
                 await ctx.info("Using local token processor")
 
             # Use local processor
-            processor = TokenProcessor()
+            processor = _TOKEN_PROCESSOR
             process_result = await processor.process_tokens(token_expr)
             engine_used = "local"
 
@@ -288,12 +294,10 @@ async def km_token_stats(ctx: Context = None) -> dict[str, Any]:
         await ctx.info("Retrieving token processing statistics")
 
     try:
-        # Get processor stats
-        processor = TokenProcessor()
-        processor_stats = processor.get_processing_stats()
-
-        # Get KM engine stats
-        km_engine = KMTokenEngine()
+        # Read from the shared singletons defined at module scope so the
+        # counters reflect work the live km_token_processor actually did.
+        processor_stats = _TOKEN_PROCESSOR.get_processing_stats()
+        km_engine = _KM_TOKEN_ENGINE
         km_stats = km_engine.get_processing_stats()
 
         # Test KM engine availability
