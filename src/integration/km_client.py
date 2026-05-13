@@ -1832,6 +1832,19 @@ class KMClient:
         except Exception as e:
             return Either.left(KMError.execution_error(f"Rollback failed: {e!s}"))
 
+    def _macro_selector(self, macro_id: str) -> str:
+        """Return the AppleScript selector for ``macro_id``.
+
+        KM 11 AppleScript distinguishes UUID and name lookups; ``whose name
+        is "<uuid>"`` silently matches nothing rather than erroring. Callers
+        must dispatch on shape — UUIDs go through ``macro id "..."``, names
+        through ``first macro whose name is "..."``.
+        """
+        escaped = self._escape_applescript_string(macro_id)
+        if _KM_UUID_RE.match(macro_id):
+            return f'macro id "{escaped}"'
+        return f'first macro whose name is "{escaped}"'
+
     def _escape_applescript_string(self, value: str) -> str:
         """Escape string for safe use in AppleScript."""
         if not isinstance(value, str):
@@ -1850,21 +1863,12 @@ class KMClient:
         self,
         macro_id: MacroId,
     ) -> Either[KMError, bool]:
-        """Delete a macro by name or UUID via Keyboard Maestro AppleScript.
+        """Delete a macro by name or UUID. Returns NOT_FOUND on miss.
 
-        KM 11 AppleScript treats UUIDs and names as different selectors. A
-        ``whose name is "<uuid>"`` clause silently matches nothing (no
-        AppleScript error), previously producing a false-positive "deleted"
-        result for UUID callers — and the plist-import path returns UUIDs
-        natively. We dispatch on shape and require ``exists`` to be true so
-        a missing target surfaces as NOT_FOUND rather than fake success.
+        ``exists`` precheck protects against the AppleScript-`whose` quirk
+        where a no-match would otherwise complete silently.
         """
-        target = str(macro_id).strip()
-        escaped = self._escape_applescript_string(target)
-        if _KM_UUID_RE.match(target):
-            selector = f'macro id "{escaped}"'
-        else:
-            selector = f'first macro whose name is "{escaped}"'
+        selector = self._macro_selector(str(macro_id).strip())
         script = f'''
         tell application "Keyboard Maestro"
             try
@@ -1891,15 +1895,18 @@ class KMClient:
         macro_id: MacroId,
         new_name: str,
     ) -> Either[KMError, bool]:
-        """Rename a macro. Fails if the target name already exists in the same group."""
+        """Rename a macro by name or UUID. Fails if target name is taken."""
         if not new_name.strip():
             return Either.left(KMError.validation_error("new_name cannot be empty"))
-        escaped_old = self._escape_applescript_string(str(macro_id))
+        selector = self._macro_selector(str(macro_id).strip())
         escaped_new = self._escape_applescript_string(new_name)
         script = f'''
         tell application "Keyboard Maestro"
             try
-                set name of (first macro whose name is "{escaped_old}") to "{escaped_new}"
+                if not (exists {selector}) then
+                    return "ERROR: macro not found"
+                end if
+                set name of ({selector}) to "{escaped_new}"
                 return "renamed"
             on error errMsg
                 return "ERROR: " & errMsg
@@ -1932,11 +1939,14 @@ class KMClient:
           duplicate-result references — use ``id of … as string`` and look up
           the name afterwards.
         """
-        escaped_src = self._escape_applescript_string(str(macro_id))
+        source_selector = self._macro_selector(str(macro_id).strip())
         script = f'''
         tell application "Keyboard Maestro"
             try
-                set sourceMacro to first macro whose name is "{escaped_src}"
+                if not (exists {source_selector}) then
+                    return "ERROR: macro not found"
+                end if
+                set sourceMacro to {source_selector}
                 set dupResult to duplicate sourceMacro
                 set newMacro to item 1 of dupResult
                 return (id of newMacro as string)
@@ -1989,13 +1999,16 @@ class KMClient:
         macro_id: MacroId,
         enabled: bool,
     ) -> Either[KMError, bool]:
-        """Enable or disable a macro."""
-        escaped = self._escape_applescript_string(str(macro_id))
+        """Enable or disable a macro by name or UUID."""
+        selector = self._macro_selector(str(macro_id).strip())
         flag = "true" if enabled else "false"
         script = f'''
         tell application "Keyboard Maestro"
             try
-                set enabled of (first macro whose name is "{escaped}") to {flag}
+                if not (exists {selector}) then
+                    return "ERROR: macro not found"
+                end if
+                set enabled of ({selector}) to {flag}
                 return "ok"
             on error errMsg
                 return "ERROR: " & errMsg
