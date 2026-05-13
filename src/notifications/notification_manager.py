@@ -360,28 +360,32 @@ class NotificationManager:
         self,
         spec: NotificationSpec,
     ) -> Either[MacroEngineError, NotificationResult]:
-        """Display heads-up display overlay."""
+        """Display a HUD-style overlay via macOS ``display notification``.
+
+        KM 11 AppleScript has no ``show hud text`` command (the previous
+        body crashed every call with -2740 "A identifier can't go after
+        this identifier"). macOS's banner-style ``display notification``
+        is the closest non-interactive equivalent that survives a
+        sandbox-free osascript call; the position/duration arguments
+        from the spec are unfortunately ignored (macOS controls banner
+        layout) and we surface that in ``interaction_data``.
+        """
         notification_id = self._generate_notification_id()
         start_time = time.time()
 
         try:
             duration = spec.duration or 3.0
-
-            # KM exposes HUD via the engine; no high-level KMClient wrapper exists,
-            # so build the AppleScript inline.
-            escaped_text = self._escape_applescript_string(
-                f"{spec.title}\n{spec.message}",
-            )
+            escaped_title = self._escape_applescript_string(spec.title)
+            escaped_msg = self._escape_applescript_string(spec.message)
+            # Standalone command, NOT wrapped in tell-block — that's how
+            # macOS's notification API is exposed to AppleScript.
             hud_script = (
-                f'tell application "Keyboard Maestro Engine" '
-                f'to show hud text "{escaped_text}" '
-                f"for {duration} seconds"
+                f'display notification "{escaped_msg}" '
+                f'with title "{escaped_title}"'
             )
             hud_result = await self.km_client.execute_applescript_async(hud_script)
 
             if hud_result.is_left():
-                # KMError uses ``.code``; notification_tools (the outer layer)
-                # reads ``.error_code`` on MacroEngineError, so wrap explicitly.
                 km_err = hud_result.get_left()
                 return Either.left(
                     MacroEngineError(
