@@ -21,6 +21,28 @@ from ..initialization import get_km_client
 logger = logging.getLogger(__name__)
 
 
+_DOLLAR_BACKREF_RE = re.compile(r"\$(\$|\d+|\{\d+\})")
+
+
+def _km_to_python_backrefs(template: str) -> str:
+    """Translate KM/ICU dollar-style backrefs to Python's backslash form.
+
+    KM regex docs (and ICU regex) use ``$1``/``$2`` for capture references
+    and ``$$`` for a literal dollar; Python's ``re.sub`` ignores those and
+    expects ``\\1``/``\\g<1>``. Translate so the documented KM syntax
+    actually works without surprising users with literal ``$1`` output.
+    """
+
+    def _swap(match: re.Match[str]) -> str:
+        ref = match.group(1)
+        if ref == "$":
+            return "$"
+        digits = ref.strip("{}")
+        return f"\\g<{digits}>"
+
+    return _DOLLAR_BACKREF_RE.sub(_swap, template)
+
+
 def _evaluate_expression_with_ast(
     expression: str,
     safe_namespace: dict[str, Any],
@@ -432,8 +454,13 @@ async def _get_engine_status(km_client: Any, ctx: Context = None) -> dict[str, A
     engine_running = version_result.is_right()
     engine_version = version_result.get_right().strip() if engine_running else None
 
-    macros_result = await asyncio.get_event_loop().run_in_executor(
-        None, km_client.list_macros_with_details, False,
+    # Use the same code path as km_list_macros so the counts match. The
+    # legacy list_macros_with_details + _send_command path was returning
+    # zero macros against KM 11 because its KM Engine plugin command isn't
+    # wired up; list_macros_async drives AppleScript with a Web-API fallback.
+    macros_result = await km_client.list_macros_async(
+        group_filters=None,
+        enabled_only=False,
     )
     if macros_result.is_right():
         macros = macros_result.get_right()
@@ -530,51 +557,63 @@ async def _calculate_expression(
         ) from e
 
 
+_TOKEN_PATTERN = re.compile(r"%([A-Za-z][A-Za-z0-9]*)(%[^%]*)*%")
+
+
+def _summarise_tokens(token_string: str) -> list[str]:
+    """Return a human-readable summary of KM tokens detected in the input."""
+    summary: list[str] = []
+    for match in _TOKEN_PATTERN.finditer(token_string):
+        body = match.group(0)
+        inner = match.group(1)
+        if body.startswith("%Variable%"):
+            parts = body[1:-1].split("%")
+            summary.append(f"Variable: {parts[1]}" if len(parts) > 1 else "Variable")
+        elif body.startswith("%ICUDateTime%"):
+            parts = body[1:-1].split("%", 1)
+            summary.append(f"DateTime: {parts[1]}" if len(parts) > 1 else "DateTime")
+        else:
+            summary.append(f"System: {inner}")
+    return summary
+
+
 async def _process_tokens(
-    _km_client: Any,
+    km_client: Any,
     token_string: str,
     ctx: Context = None,
 ) -> dict[str, Any]:
-    """Process text containing Keyboard Maestro tokens."""
+    """Expand KM tokens via the live Keyboard Maestro Engine.
+
+    Failure modes:
+    - KM_ENGINE_FAILED: the engine returned an osascript error
+    - KM_ENGINE_UNREACHABLE: the engine isn't responding to AppleScript
+    """
     if ctx:
         await ctx.report_progress(50, 100, "Processing tokens")
 
-    # AppleScript: tell application "Keyboard Maestro Engine" to process tokens "string"
+    escaped = token_string.replace("\\", "\\\\").replace('"', '\\"')
+    script = (
+        'tell application "Keyboard Maestro Engine" '
+        f'to return process tokens "{escaped}"'
+    )
+    result = await km_client.execute_applescript_async(script)
+    if result.is_left():
+        err = result.get_left()
+        return {
+            "success": False,
+            "error": {
+                "code": "KM_ENGINE_FAILED",
+                "message": "Keyboard Maestro Engine rejected the token string.",
+                "details": getattr(err, "message", str(err)),
+                "recovery_suggestion": (
+                    "Verify token syntax (e.g. %Variable%Name%, %ICUDateTime%y%) "
+                    "and that Keyboard Maestro Engine is running."
+                ),
+            },
+        }
 
-    # Mock token processing
-    processed = token_string
-    tokens_found = []
-
-    # Variable tokens
-    var_pattern = r"%Variable%(\w+)%"
-    for match in re.finditer(var_pattern, token_string):
-        var_name = match.group(1)
-        tokens_found.append(f"Variable: {var_name}")
-        # In real implementation, would fetch actual variable value
-        processed = processed.replace(match.group(0), f"[Value of {var_name}]")
-
-    # Date tokens
-    date_pattern = r"%ICUDateTime%([\w\s\-:,/]+)%"
-    for match in re.finditer(date_pattern, token_string):
-        format_str = match.group(1)
-        tokens_found.append(f"DateTime: {format_str}")
-        processed = processed.replace(
-            match.group(0),
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        )
-
-    # System tokens
-    system_tokens = {
-        "%CurrentUser%": "TestUser",
-        "%FrontWindowName%": "Keyboard Maestro Editor",
-        "%SystemVolume%": "85",
-        "%ScreenCount%": "2",
-    }
-
-    for token, value in system_tokens.items():
-        if token in token_string:
-            tokens_found.append(f"System: {token}")
-            processed = processed.replace(token, value)
+    processed = result.get_right()
+    tokens_found = _summarise_tokens(token_string)
 
     if ctx:
         await ctx.report_progress(100, 100, f"Processed {len(tokens_found)} tokens")
@@ -614,8 +653,12 @@ async def _search_replace(
                 match_count = len(matches)
                 result = text  # No replacement
             else:
-                # Search and replace
-                result = re.sub(search_pattern, replace_pattern, text)
+                # KM/ICU regex docs use $1/$2 backrefs; Python's re module
+                # uses \1/\2. Translate dollar-form refs to backslash-form
+                # so the documented KM syntax works. A literal '$' is
+                # written as '$$' in KM and becomes '$' here.
+                translated_replace = _km_to_python_backrefs(replace_pattern)
+                result = re.sub(search_pattern, translated_replace, text)
                 match_count = len(re.findall(search_pattern, text))
         else:
             # Plain text search/replace
