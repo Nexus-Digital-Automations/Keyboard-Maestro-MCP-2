@@ -9,7 +9,6 @@ gets handed to KM's `make new action`.
 import plistlib
 
 import pytest
-
 from src.server.tools._action_templates import (
     find_macro_action_type,
     load_catalog,

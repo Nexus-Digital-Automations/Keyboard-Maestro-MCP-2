@@ -10,7 +10,6 @@ import plistlib
 from pathlib import Path
 
 import pytest
-
 from src.server.tools.action_tools import _plugin_entry
 from src.server.tools.plugin_action_tools import _scan_installed_plugins
 

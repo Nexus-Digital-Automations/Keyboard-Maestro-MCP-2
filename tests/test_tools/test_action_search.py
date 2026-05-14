@@ -10,7 +10,6 @@ filters.
 from __future__ import annotations
 
 import pytest
-
 from src.server.tools._action_search import build_index, search
 from src.server.tools._action_templates import load_catalog, load_templates
 

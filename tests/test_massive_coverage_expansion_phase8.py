@@ -5,7 +5,7 @@ Per ADDER+ protocol: IMMEDIATE test creation for highest-impact uncovered module
 
 This phase targets massive 0% coverage modules for maximum impact:
 - src/security/policy_enforcer.py - 606 statements (HIGHEST IMPACT)
-- src/security/access_controller.py - 596 statements 
+- src/security/access_controller.py - 596 statements
 - src/core/control_flow.py - 553 statements
 - src/security/security_monitor.py - 504 statements
 - src/server/tools/testing_automation_tools.py - 452 statements
