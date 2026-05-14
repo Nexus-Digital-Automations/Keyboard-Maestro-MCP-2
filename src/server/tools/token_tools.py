@@ -4,6 +4,7 @@ Provides secure token processing capabilities for Keyboard Maestro MCP including
 token parsing, context-aware processing, and comprehensive security validation.
 """
 
+import logging
 import uuid
 from datetime import UTC, datetime
 from typing import Annotated, Any
@@ -12,6 +13,8 @@ from fastmcp import Context
 from pydantic import Field
 
 from ...tokens import KMTokenEngine, ProcessingContext, TokenExpression, TokenProcessor
+
+logger = logging.getLogger(__name__)
 
 # Shared instances so the counters surfaced by km_token_stats reflect work
 # the running km_token_processor actually did. Constructing fresh objects
@@ -295,6 +298,11 @@ async def km_token_stats(ctx: Context = None) -> dict[str, Any]:
     - Security summary
 
     """
+    logger.warning(
+        "km_token_stats duplicates the km_token_processor surface; "
+        "calls still work but this name will fold into "
+        "km_token_processor(operation='stats') in a future release.",
+    )
     if ctx:
         await ctx.info("Retrieving token processing statistics")
 

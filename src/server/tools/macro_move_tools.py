@@ -65,6 +65,11 @@ async def km_move_macro_to_group(
     - ``EXECUTION_ERROR``: AppleScript or KM rejected the move
     - ``KM_CONNECTION_FAILED``: the engine is not reachable
     """
+    logger.warning(
+        "km_move_macro_to_group duplicates the km_macro_editor surface; "
+        "calls still work but this name will fold into "
+        "km_macro_editor(operation='move') in a future release.",
+    )
     # preserve_group_settings is reserved for future per-group activation logic;
     # the underlying client move is already settings-preserving.
     del preserve_group_settings

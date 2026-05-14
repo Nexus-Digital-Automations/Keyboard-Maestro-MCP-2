@@ -102,6 +102,11 @@ async def km_create_hotkey_trigger(
 
     Returns detailed creation results with conflict information and suggestions.
     """
+    logger.warning(
+        "km_create_hotkey_trigger duplicates the trigger surface; "
+        "calls still work but this name will fold into a unified "
+        "km_trigger_lifecycle(kind='hotkey', operation='add') in a future release.",
+    )
     if modifiers is None:
         modifiers = []
     correlation_id = f"hotkey-{hash(f'{macro_id}-{key}-{modifiers}')}"
@@ -345,6 +350,11 @@ async def km_list_hotkey_triggers(
     - Conflict detection results
     - Usage statistics
     """
+    logger.warning(
+        "km_list_hotkey_triggers duplicates the trigger surface; "
+        "calls still work but this name will fold into "
+        "km_trigger_lifecycle(kind='hotkey', operation='list') in a future release.",
+    )
     try:
         if ctx:
             await ctx.info("Retrieving hotkey trigger list...")

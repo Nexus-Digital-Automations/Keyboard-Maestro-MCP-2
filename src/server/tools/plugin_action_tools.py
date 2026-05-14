@@ -31,6 +31,7 @@ current working directory (path-traversal guard), bundle already exists with
 """
 
 import base64
+import functools
 import logging
 import os
 import plistlib
@@ -301,10 +302,18 @@ def _scan_installed_plugins() -> list[dict[str, Any]]:
         if not isinstance(name, str) or not isinstance(title, str):
             continue
         results = spec.get("Results") or ""
+        # KM plug-in plists are inconsistent: docs say "KeyWords" but some
+        # bundles ship "Keywords" — accept both. Help URL and Author are
+        # plist-optional and we just forward whatever's there.
+        keywords_raw = spec.get("KeyWords") or spec.get("Keywords") or []
+        keywords = [str(k) for k in keywords_raw if isinstance(k, str) and k]
         plugins.append({
             "identifier": name,
             "title": title,
             "help": spec.get("Help"),
+            "help_url": spec.get("HelpURL"),
+            "author": spec.get("Author"),
+            "keywords": keywords,
             "parameters": _normalize_plugin_parameters(spec.get("Parameters") or []),
             "result_targets": [s for s in results.split("|") if s],
             "bundle_path": str(bundle),
@@ -312,7 +321,7 @@ def _scan_installed_plugins() -> list[dict[str, Any]]:
     return plugins
 
 
-async def km_build_plugin_action(
+async def km_create_plugin_action(
     output_dir: Annotated[
         str,
         Field(description="Absolute path under CWD where the .kmactions folder will be created."),
@@ -489,3 +498,16 @@ async def km_build_plugin_action(
             ),
         },
     }
+
+
+# @deprecated — old name kept registered for one release so existing clients
+# don't break. functools.wraps copies __signature__ so FastMCP's discovery
+# generates the same parameter schema as km_create_plugin_action.
+@functools.wraps(km_create_plugin_action)
+async def km_build_plugin_action(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    """Deprecated alias for km_create_plugin_action. Use the new name."""
+    logger.warning(
+        "km_build_plugin_action is deprecated; rename calls to km_create_plugin_action.",
+    )
+    return await km_create_plugin_action(*args, **kwargs)
+

@@ -29,6 +29,10 @@ dependencies = [
     "python-dateutil>=2.8.0",
     "pyyaml>=6.0.2",
     "defusedxml>=0.7.1",
+    # Field-weighted fuzzy ranker for km_search_actions. Pure C/Cython, no
+    # ML model — feasible for the ~150-entry KM action catalog. Semantic
+    # embeddings (fastembed) are a Phase 5b add-on, not required at runtime.
+    "rapidfuzz>=3.0",
     # Quartz/CoreGraphics bindings — km_window_manager.get_screens uses
     # CGGetActiveDisplayList for real display bounds. Without this the
     # tool falls back to a "Default Display (Quartz unavailable)"

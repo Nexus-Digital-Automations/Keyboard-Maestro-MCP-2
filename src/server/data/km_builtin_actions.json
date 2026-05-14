@@ -1,0 +1,113 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "description": "Hand-curated catalog of KM built-in action types. Each entry pairs a stable snake_case identifier with the KM MacroActionType (when known), human-readable description, search keywords, and parameter hints. Search and discovery read this; the builder reads km_action_templates.json keyed by MacroActionType. `builder_supported: true` means km_action_builder can emit XML for this type — either via a legacy hand-written emitter in action_builder_tools._build_action_xml (identifier matched first) or via a captured template in km_action_templates.json (MacroActionType matched second). The Phase 3 scrape will inflate this file to ~150 entries."
+  },
+  "actions": [
+    {
+      "identifier": "pause",
+      "MacroActionType": "Pause",
+      "category": "control",
+      "title": "Pause",
+      "description": "Pause macro execution for N seconds.",
+      "keywords": ["pause", "wait", "sleep", "delay", "timer"],
+      "task_hints": ["wait between steps", "delay before next action", "rate-limit a loop"],
+      "parameters": [
+        {"label": "seconds", "type": "Number", "required": false, "description": "Duration to pause."}
+      ],
+      "builder_supported": true,
+      "result_targets": []
+    },
+    {
+      "identifier": "type_text",
+      "MacroActionType": "InsertText",
+      "category": "text",
+      "title": "Type a String",
+      "description": "Simulate keystrokes to type a string into the focused field.",
+      "keywords": ["type", "keystrokes", "text", "input", "insert"],
+      "task_hints": ["type a message into a form", "fill a search box", "send keystrokes to an app"],
+      "parameters": [
+        {"label": "text", "type": "String", "required": true, "description": "Text to type."}
+      ],
+      "builder_supported": true,
+      "result_targets": []
+    },
+    {
+      "identifier": "paste",
+      "MacroActionType": "InsertText",
+      "category": "text",
+      "title": "Paste Text",
+      "description": "Place text on the clipboard and paste via ⌘V; faster than typing for long strings.",
+      "keywords": ["paste", "clipboard", "text", "insert"],
+      "task_hints": ["paste a long string", "insert text quickly", "skip per-key delays"],
+      "parameters": [
+        {"label": "text", "type": "String", "required": true, "description": "Text to paste."}
+      ],
+      "builder_supported": true,
+      "result_targets": []
+    },
+    {
+      "identifier": "set_variable",
+      "MacroActionType": "SetVariableToText",
+      "category": "variable",
+      "title": "Set Variable to Text",
+      "description": "Assign a literal or token-expanded text value to a Keyboard Maestro variable.",
+      "keywords": ["variable", "set", "assign", "store", "value"],
+      "task_hints": ["store a value for later", "remember a result", "initialize state"],
+      "parameters": [
+        {"label": "variable", "type": "String", "required": true, "description": "Variable name."},
+        {"label": "text", "type": "String", "required": false, "description": "Value to assign."}
+      ],
+      "builder_supported": true,
+      "result_targets": []
+    },
+    {
+      "identifier": "run_applescript",
+      "MacroActionType": "ExecuteAppleScript",
+      "category": "system",
+      "title": "Execute AppleScript",
+      "description": "Run inline AppleScript source against the KM Engine.",
+      "keywords": ["applescript", "script", "execute", "run", "automation"],
+      "task_hints": ["call an app's AppleScript dictionary", "automate UI", "scripted system task"],
+      "parameters": [
+        {"label": "source", "type": "String", "required": true, "description": "AppleScript source."}
+      ],
+      "builder_supported": true,
+      "result_targets": []
+    },
+    {
+      "identifier": "execute_macro",
+      "MacroActionType": "ExecuteMacro",
+      "category": "control",
+      "title": "Execute Another Macro",
+      "description": "Trigger another macro by name or UUID, blocking until it returns.",
+      "keywords": ["macro", "execute", "call", "subroutine", "trigger"],
+      "task_hints": ["call a helper macro", "reuse a sub-procedure", "compose multi-macro workflows"],
+      "parameters": [
+        {"label": "target_macro", "type": "String", "required": true, "description": "Macro name or UUID."}
+      ],
+      "builder_supported": true,
+      "result_targets": []
+    },
+    {
+      "identifier": "speak_text",
+      "MacroActionType": "SpeakText",
+      "category": "system",
+      "title": "Speak Text",
+      "description": "Speak text aloud using macOS text-to-speech.",
+      "keywords": ["speak", "say", "voice", "tts", "text-to-speech", "audio", "accessibility"],
+      "task_hints": [
+        "read text out loud",
+        "announce a result",
+        "voice notification"
+      ],
+      "parameters": [
+        {"label": "text", "type": "String", "required": true, "description": "Text to speak."},
+        {"label": "voice", "type": "String", "required": false, "description": "Voice name (empty = system default)."},
+        {"label": "rate", "type": "String", "required": false, "description": "'Default' or words-per-minute integer."}
+      ],
+      "builder_supported": true,
+      "result_targets": []
+    }
+  ]
+}

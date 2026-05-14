@@ -1,0 +1,1436 @@
+{
+  "ActivateApplication": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Activate a Specific Application"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>AllWindows</key>\n\t<true/>\n\t<key>AlreadyActivatedActionType</key>\n\t<string>Normal</string>\n\t<key>Application</key>\n\t<dict>\n\t\t<key>BundleIdentifier</key>\n\t\t<string>com.apple.finder</string>\n\t\t<key>Name</key>\n\t\t<string>Finder</string>\n\t\t<key>NewFile</key>\n\t\t<string>/System/Library/CoreServices/Finder.app</string>\n\t</dict>\n\t<key>MacroActionType</key>\n\t<string>ActivateApplication</string>\n\t<key>ReopenWindows</key>\n\t<false/>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "Alert": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Notifications",
+      "Alert"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>Alert</string>\n\t<key>SoundPath</key>\n\t<string></string>\n\t<key>Text</key>\n\t<string>Would you like to continue execution or stop now?</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>Title</key>\n\t<string>Keyboard Maestro Alert</string>\n</dict>"
+  },
+  "ApplicationsPaletteToggle": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Hide Applications Palette"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>Hide</string>\n\t<key>MacroActionType</key>\n\t<string>ApplicationsPaletteToggle</string>\n</dict>"
+  },
+  "ApplyModifiersToApplication": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Apply Modifiers to a Specific Application"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Application</key>\n\t<dict>\n\t\t<key>BundleIdentifier</key>\n\t\t<string>com.apple.finder</string>\n\t\t<key>Name</key>\n\t\t<string>Finder</string>\n\t\t<key>NewFile</key>\n\t\t<string>/System/Library/CoreServices/Finder.app</string>\n\t</dict>\n\t<key>MacroActionType</key>\n\t<string>ApplyModifiersToApplication</string>\n\t<key>Modifiers</key>\n\t<string>%TriggerValue%</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "ApplyStyle": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Apply Style to Clipboard"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Attributes</key>\n\t<dict/>\n\t<key>First</key>\n\t<string>2</string>\n\t<key>MacroActionType</key>\n\t<string>ApplyStyle</string>\n\t<key>Second</key>\n\t<string>4</string>\n\t<key>StringRangeType</key>\n\t<string>All</string>\n</dict>"
+  },
+  "ApplyTextFactory": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Apply a BBEdit Text Factory"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>ApplyTextFactory</string>\n\t<key>Path</key>\n\t<string></string>\n</dict>"
+  },
+  "Assert": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Assert"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Conditions</key>\n\t<dict>\n\t\t<key>ConditionList</key>\n\t\t<array/>\n\t\t<key>ConditionListMatch</key>\n\t\t<string>All</string>\n\t</dict>\n\t<key>MacroActionType</key>\n\t<string>Assert</string>\n</dict>"
+  },
+  "BringWindowsForward": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Bring Application Windows to Front"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>IsDisclosed</key>\n\t<false/>\n\t<key>MacroActionType</key>\n\t<string>BringWindowsForward</string>\n</dict>"
+  },
+  "Cancel": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Break From Loop"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>BreakFromLoop</string>\n\t<key>MacroActionType</key>\n\t<string>Cancel</string>\n</dict>"
+  },
+  "ClipboardSwitcherMacroAction": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Copy to Named Clipboard"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>Copy</string>\n\t<key>MacroActionType</key>\n\t<string>ClipboardSwitcherMacroAction</string>\n\t<key>Name</key>\n\t<string>A3536E17-3B2C-4B81-BC08-C1088573E72A</string>\n\t<key>RedundandDisplayName</key>\n\t<string>Unnamed Named Clipboard</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "Comment": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Comment"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>Comment</string>\n\t<key>StyledText</key>\n\t<data>\n\tcnRmZAAAAAADAAAAAgAAAAcAAABUWFQucnRmAQAAAC6YAAAAKwAAAAEAAACQAAAAe1xy\n\tdGYxXGFuc2lcYW5zaWNwZzEyNTJcY29jb2FydGYyODY4Clxjb2NvYXRleHRzY2FsaW5n\n\tMFxjb2NvYXBsYXRmb3JtMHtcZm9udHRibH0Ke1xjb2xvcnRibDtccmVkMjU1XGdyZWVu\n\tMjU1XGJsdWUyNTU7fQp7XCpcZXhwYW5kZWRjb2xvcnRibDs7fQp9AQAAACMAAAABAAAA\n\tBwAAAFRYVC5ydGYQAAAAlEUFarYBAAAAAAAAAAAAAA==\n\t</data>\n\t<key>Title</key>\n\t<string>Untitled</string>\n</dict>"
+  },
+  "CompositeImage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Image",
+      "Composite onto Image"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Height</key>\n\t<string>0</string>\n\t<key>Left</key>\n\t<string>100</string>\n\t<key>MacroActionType</key>\n\t<string>CompositeImage</string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>Top</key>\n\t<string>100</string>\n\t<key>UseText</key>\n\t<false/>\n\t<key>Width</key>\n\t<string>0</string>\n</dict>"
+  },
+  "ConcealMacroPalettes": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Conceal Macro Palettes"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>Conceal</string>\n\t<key>MacroActionType</key>\n\t<string>ConcealMacroPalettes</string>\n</dict>"
+  },
+  "CopyClipboard": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Copy Clipboard to Clipboard"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>CopyClipboard</string>\n\t<key>SourceNamedClipboardRedundantDisplayName</key>\n\t<string>Unnamed Named Clipboard</string>\n\t<key>SourceNamedClipboardUID</key>\n\t<string>A3536E17-3B2C-4B81-BC08-C1088573E72A</string>\n\t<key>SourceUseNamedClipboard</key>\n\t<true/>\n</dict>"
+  },
+  "CustomPrompt": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Notifications",
+      "Custom HTML Prompt"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Floating</key>\n\t<true/>\n\t<key>MacroActionType</key>\n\t<string>CustomPrompt</string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>UseText</key>\n\t<true/>\n</dict>"
+  },
+  "CutCopyPaste": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Copy"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>Copy</string>\n\t<key>IsDisclosed</key>\n\t<false/>\n\t<key>MacroActionType</key>\n\t<string>CutCopyPaste</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "DarkMode": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Toggle Keyboard Maestro Dark Mode"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DarkModeAction</key>\n\t<string>KMToggle</string>\n\t<key>MacroActionType</key>\n\t<string>DarkMode</string>\n</dict>"
+  },
+  "DebuggerAction": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Debugger",
+      "Debugger Breakpoint All Macros"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DebuggerAction</key>\n\t<string>BreakpointEvery</string>\n\t<key>IsDisclosed</key>\n\t<false/>\n\t<key>MacroActionType</key>\n\t<string>DebuggerAction</string>\n</dict>"
+  },
+  "DeletePastClipboard": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Delete Current System Clipboard"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>DeletePastClipboard</string>\n\t<key>PastExpression</key>\n\t<string>0</string>\n</dict>"
+  },
+  "DisplayImage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Display Clipboard"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>DisplayImage</string>\n</dict>"
+  },
+  "DisplayProgress": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Notifications",
+      "Display Progress"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>DisplayProgress</string>\n\t<key>Progress</key>\n\t<string>50</string>\n\t<key>Title</key>\n\t<string>Keyboard Maestro Progress</string>\n</dict>"
+  },
+  "DrawImage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Image",
+      "Draw Shape onto Image"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Corner</key>\n\t<string>0</string>\n\t<key>DrawAction</key>\n\t<string>Line</string>\n\t<key>FillAlpha</key>\n\t<integer>0</integer>\n\t<key>FillBlue</key>\n\t<integer>0</integer>\n\t<key>FillGreen</key>\n\t<integer>0</integer>\n\t<key>FillRed</key>\n\t<integer>0</integer>\n\t<key>Height</key>\n\t<string>200</string>\n\t<key>Left</key>\n\t<string>100</string>\n\t<key>MacroActionType</key>\n\t<string>DrawImage</string>\n\t<key>StrokeAlpha</key>\n\t<integer>100</integer>\n\t<key>StrokeBlue</key>\n\t<integer>0</integer>\n\t<key>StrokeGreen</key>\n\t<integer>0</integer>\n\t<key>StrokeRed</key>\n\t<integer>255</integer>\n\t<key>Thickness</key>\n\t<string>5</string>\n\t<key>Top</key>\n\t<string>100</string>\n\t<key>Width</key>\n\t<string>200</string>\n</dict>"
+  },
+  "ExecuteAppleScript": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Execute",
+      "Execute an AppleScript"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DisplayKind</key>\n\t<string>None</string>\n\t<key>HonourFailureSettings</key>\n\t<true/>\n\t<key>IncludeStdErr</key>\n\t<false/>\n\t<key>IncludedVariables</key>\n\t<array>\n\t\t<string>9999</string>\n\t</array>\n\t<key>MacroActionType</key>\n\t<string>ExecuteAppleScript</string>\n\t<key>Path</key>\n\t<string></string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>TrimResults</key>\n\t<true/>\n\t<key>TrimResultsNew</key>\n\t<true/>\n\t<key>UseText</key>\n\t<true/>\n</dict>"
+  },
+  "ExecuteJavaScript": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Execute",
+      "Execute a JavaScript in Front Browser"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DisplayKind</key>\n\t<string>None</string>\n\t<key>HonourFailureSettings</key>\n\t<true/>\n\t<key>IncludeStdErr</key>\n\t<false/>\n\t<key>IncludedVariables</key>\n\t<array>\n\t\t<string>9999</string>\n\t</array>\n\t<key>MacroActionType</key>\n\t<string>ExecuteJavaScript</string>\n\t<key>Path</key>\n\t<string></string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>TrimResults</key>\n\t<true/>\n\t<key>TrimResultsNew</key>\n\t<true/>\n\t<key>UseModernSyntax</key>\n\t<true/>\n\t<key>UseText</key>\n\t<true/>\n\t<key>WebBrowser</key>\n\t<string>Front Browser</string>\n</dict>"
+  },
+  "ExecuteJavaScriptForAutomation": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Execute",
+      "Execute a JavaScript For Automation"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DisplayKind</key>\n\t<string>Window</string>\n\t<key>HonourFailureSettings</key>\n\t<true/>\n\t<key>IncludeStdErr</key>\n\t<false/>\n\t<key>IncludedVariables</key>\n\t<array>\n\t\t<string>9999</string>\n\t</array>\n\t<key>MacroActionType</key>\n\t<string>ExecuteJavaScriptForAutomation</string>\n\t<key>Path</key>\n\t<string></string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>TrimResults</key>\n\t<true/>\n\t<key>TrimResultsNew</key>\n\t<true/>\n\t<key>UseModernSyntax</key>\n\t<true/>\n\t<key>UseText</key>\n\t<true/>\n</dict>"
+  },
+  "ExecuteJavaScriptForCustomPrompt": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Execute",
+      "Execute a JavaScript in Custom Prompt"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DisplayKind</key>\n\t<string>None</string>\n\t<key>MacroActionType</key>\n\t<string>ExecuteJavaScriptForCustomPrompt</string>\n\t<key>Path</key>\n\t<string></string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>UseText</key>\n\t<true/>\n\t<key>WindowID</key>\n\t<string></string>\n</dict>"
+  },
+  "ExecuteMacro": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Execute a Macro"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Asynchronously</key>\n\t<false/>\n\t<key>MacroActionType</key>\n\t<string>ExecuteMacro</string>\n\t<key>MacroUID</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>UseParameter</key>\n\t<false/>\n</dict>"
+  },
+  "ExecuteShellScript": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Execute",
+      "Execute a Shell Script"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DisplayKind</key>\n\t<string>Window</string>\n\t<key>HonourFailureSettings</key>\n\t<true/>\n\t<key>IncludeStdErr</key>\n\t<false/>\n\t<key>IncludedVariables</key>\n\t<array>\n\t\t<string>9999</string>\n\t</array>\n\t<key>MacroActionType</key>\n\t<string>ExecuteShellScript</string>\n\t<key>Path</key>\n\t<string></string>\n\t<key>Source</key>\n\t<string>Nothing</string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>TrimResults</key>\n\t<true/>\n\t<key>TrimResultsNew</key>\n\t<true/>\n\t<key>UseText</key>\n\t<true/>\n</dict>"
+  },
+  "ExecuteShortcut": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Execute",
+      "Edit Shortcut"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DisplayKind</key>\n\t<string>None</string>\n\t<key>ExecuteOrEdit</key>\n\t<string>Edit</string>\n\t<key>IncludeStdErr</key>\n\t<false/>\n\t<key>MacroActionType</key>\n\t<string>ExecuteShortcut</string>\n\t<key>Shortcut</key>\n\t<string></string>\n\t<key>Source</key>\n\t<string>Nothing</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>TrimResults</key>\n\t<true/>\n</dict>"
+  },
+  "ExecuteSubroutine": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Execute a Subroutine"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>ExecuteSubroutine</string>\n\t<key>MacroUID</key>\n\t<string></string>\n\t<key>Parameters</key>\n\t<array/>\n\t<key>ResultVariable</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "ExecuteSwift": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Execute",
+      "Execute a Swift Script"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DisplayKind</key>\n\t<string>Window</string>\n\t<key>HonourFailureSettings</key>\n\t<true/>\n\t<key>IncludeStdErr</key>\n\t<false/>\n\t<key>IncludedVariables</key>\n\t<array>\n\t\t<string>9999</string>\n\t</array>\n\t<key>MacroActionType</key>\n\t<string>ExecuteSwift</string>\n\t<key>Path</key>\n\t<string></string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>TrimResults</key>\n\t<true/>\n\t<key>TrimResultsNew</key>\n\t<true/>\n\t<key>UseText</key>\n\t<true/>\n</dict>"
+  },
+  "File": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "File",
+      "Copy a File"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Destination</key>\n\t<string></string>\n\t<key>MacroActionType</key>\n\t<string>File</string>\n\t<key>Operation</key>\n\t<string>Copy</string>\n\t<key>Source</key>\n\t<string></string>\n</dict>"
+  },
+  "Filter": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Filter"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>Capitalize</string>\n\t<key>MacroActionType</key>\n\t<string>Filter</string>\n\t<key>Source</key>\n\t<string>Clipboard</string>\n</dict>"
+  },
+  "FindImage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Image",
+      "Find Image on Screen"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DisplayMatches</key>\n\t<false/>\n\t<key>Fuzz</key>\n\t<integer>15</integer>\n\t<key>MacroActionType</key>\n\t<string>FindImage</string>\n\t<key>ScreenArea</key>\n\t<dict>\n\t\t<key>ScreenAreaType</key>\n\t\t<string>ScreenAll</string>\n\t</dict>\n\t<key>Selection</key>\n\t<string>Unique</string>\n\t<key>Variable</key>\n\t<string>VarName</string>\n</dict>"
+  },
+  "For": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "For Each"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Actions</key>\n\t<array/>\n\t<key>Collections</key>\n\t<dict>\n\t\t<key>CollectionList</key>\n\t\t<array/>\n\t</dict>\n\t<key>MacroActionType</key>\n\t<string>For</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>Variable</key>\n\t<string>VarName</string>\n</dict>"
+  },
+  "GetFileAttribute": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "File",
+      "Get File Attribute"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Attribute</key>\n\t<string>ModificationDate</string>\n\t<key>MacroActionType</key>\n\t<string>GetFileAttribute</string>\n\t<key>Path</key>\n\t<string></string>\n\t<key>Variable</key>\n\t<string>VarName</string>\n</dict>"
+  },
+  "GetImageSize": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Image",
+      "Get Image Size"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Attribute</key>\n\t<string>PixelSize</string>\n\t<key>MacroActionType</key>\n\t<string>GetImageSize</string>\n\t<key>Variable</key>\n\t<string>VarName</string>\n</dict>"
+  },
+  "GetTouchBarSelection": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Get Touch Bar Selection"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Buttons</key>\n\t<string>One|Two|Three</string>\n\t<key>DisplayKind</key>\n\t<string>Variable</string>\n\t<key>MacroActionType</key>\n\t<string>GetTouchBarSelection</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>Variable</key>\n\t<string>VarName</string>\n</dict>"
+  },
+  "GetURL": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Web",
+      "Get a URL"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DisplayKind</key>\n\t<string>Variable</string>\n\t<key>MacroActionType</key>\n\t<string>GetURL</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>TrimResults</key>\n\t<true/>\n\t<key>URL</key>\n\t<string>https://www.keyboardmaestro.com/</string>\n\t<key>Variable</key>\n\t<string>VarName</string>\n</dict>"
+  },
+  "Group": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Group"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Actions</key>\n\t<array/>\n\t<key>MacroActionType</key>\n\t<string>Group</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "HideAll": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Hide All Applications"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>HonorExcluded</key>\n\t<true/>\n\t<key>MacroActionType</key>\n\t<string>HideAll</string>\n</dict>"
+  },
+  "HideCurrent": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Hide Front Application"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>HonorExcluded</key>\n\t<true/>\n\t<key>IsDisclosed</key>\n\t<false/>\n\t<key>MacroActionType</key>\n\t<string>HideCurrent</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "HideOthers": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Hide Other Applications"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>HonorExcluded</key>\n\t<true/>\n\t<key>MacroActionType</key>\n\t<string>HideOthers</string>\n</dict>"
+  },
+  "HideSpecificApp": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Hide a Specific Application"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Application</key>\n\t<dict>\n\t\t<key>BundleIdentifier</key>\n\t\t<string>com.apple.finder</string>\n\t\t<key>Name</key>\n\t\t<string>Finder</string>\n\t\t<key>NewFile</key>\n\t\t<string>/System/Library/CoreServices/Finder.app</string>\n\t</dict>\n\t<key>MacroActionType</key>\n\t<string>HideSpecificApp</string>\n</dict>"
+  },
+  "HiliteLocation": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Notifications",
+      "Highlight Location"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Animate</key>\n\t<true/>\n\t<key>DisplayTime</key>\n\t<string>5</string>\n\t<key>Height</key>\n\t<string>100</string>\n\t<key>Left</key>\n\t<string>MOUSEX()</string>\n\t<key>MacroActionType</key>\n\t<string>HiliteLocation</string>\n\t<key>Style</key>\n\t<string>Target</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>Top</key>\n\t<string>MOUSEY()</string>\n\t<key>Width</key>\n\t<string>100</string>\n</dict>"
+  },
+  "IfThenElse": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "If Then Else"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Conditions</key>\n\t<dict>\n\t\t<key>ConditionList</key>\n\t\t<array/>\n\t\t<key>ConditionListMatch</key>\n\t\t<string>All</string>\n\t</dict>\n\t<key>ElseActions</key>\n\t<array/>\n\t<key>MacroActionType</key>\n\t<string>IfThenElse</string>\n\t<key>ThenActions</key>\n\t<array/>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "InsertText": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Notifications",
+      "Display Text"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>DisplayBriefly</string>\n\t<key>MacroActionType</key>\n\t<string>InsertText</string>\n\t<key>Text</key>\n\t<string></string>\n</dict>"
+  },
+  "Log": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Notifications",
+      "Log"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>Log</string>\n\t<key>Text</key>\n\t<string>Message</string>\n</dict>"
+  },
+  "MacroGroupToggle": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Activate Macro Group"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DisplayToggle</key>\n\t<true/>\n\t<key>MacroActionType</key>\n\t<string>MacroGroupToggle</string>\n\t<key>MacroGroupUID</key>\n\t<string></string>\n\t<key>ToggleMode</key>\n\t<string>Activate</string>\n</dict>"
+  },
+  "ManipulateWindow": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Interface Control",
+      "Bring a Window to the Front"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>SelectWindow</string>\n\t<key>HeightExpression</key>\n\t<string>300</string>\n\t<key>HorizontalExpression</key>\n\t<string>125</string>\n\t<key>MacroActionType</key>\n\t<string>ManipulateWindow</string>\n\t<key>TargetApplication</key>\n\t<dict/>\n\t<key>Targeting</key>\n\t<string>FrontWindow</string>\n\t<key>TargetingType</key>\n\t<string>Front</string>\n\t<key>VerticalExpression</key>\n\t<string>125</string>\n\t<key>WidthExpression</key>\n\t<string>300</string>\n\t<key>WindowIndexExpression</key>\n\t<string>2</string>\n\t<key>WindowName</key>\n\t<string></string>\n</dict>"
+  },
+  "MarkMacro": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Mark Macro"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroAction</key>\n\t<string>Mark</string>\n\t<key>MacroActionType</key>\n\t<string>MarkMacro</string>\n\t<key>MacroUID</key>\n\t<string></string>\n</dict>"
+  },
+  "MouseMoveAndClick": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Interface Control",
+      "Click at Found Image"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>MoveAndClick</string>\n\t<key>Button</key>\n\t<integer>0</integer>\n\t<key>ClickCount</key>\n\t<integer>1</integer>\n\t<key>DisplayMatches</key>\n\t<false/>\n\t<key>DragHorizontalPosition</key>\n\t<string>0</string>\n\t<key>DragVerticalPosition</key>\n\t<string>0</string>\n\t<key>Fuzz</key>\n\t<integer>15</integer>\n\t<key>HorizontalPositionExpression</key>\n\t<string>0</string>\n\t<key>MacroActionType</key>\n\t<string>MouseMoveAndClick</string>\n\t<key>Modifiers</key>\n\t<integer>0</integer>\n\t<key>MouseDrag</key>\n\t<string>None</string>\n\t<key>Relative</key>\n\t<string>Image</string>\n\t<key>RelativeCorner</key>\n\t<string>Center</string>\n\t<key>RestoreMouseLocation</key>\n\t<false/>\n\t<key>ScreenArea</key>\n\t<dict>\n\t\t<key>ScreenAreaType</key>\n\t\t<string>ScreenAll</string>\n\t</dict>\n\t<key>VerticalPositionExpression</key>\n\t<string>0</string>\n</dict>"
+  },
+  "MuteAudioDevice": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "System Control",
+      "Mute Audio Device"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Device</key>\n\t<string>OUTPUTDEVICE</string>\n\t<key>MacroActionType</key>\n\t<string>MuteAudioDevice</string>\n\t<key>Mute</key>\n\t<string>Mute</string>\n</dict>"
+  },
+  "NewFolder": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "File",
+      "New Folder"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Destination</key>\n\t<string></string>\n\t<key>MacroActionType</key>\n\t<string>NewFolder</string>\n</dict>"
+  },
+  "NewImage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Image",
+      "Create New Image"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Alpha</key>\n\t<integer>100</integer>\n\t<key>Blue</key>\n\t<integer>255</integer>\n\t<key>Green</key>\n\t<integer>152</integer>\n\t<key>Height</key>\n\t<string>100</string>\n\t<key>MacroActionType</key>\n\t<string>NewImage</string>\n\t<key>Red</key>\n\t<integer>0</integer>\n\t<key>Width</key>\n\t<string>100</string>\n</dict>"
+  },
+  "Notification": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Notifications",
+      "Notification"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>Notification</string>\n\t<key>SoundName</key>\n\t<string></string>\n\t<key>Subtitle</key>\n\t<string></string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>Title</key>\n\t<string>%ExecutingMacro%</string>\n</dict>"
+  },
+  "OCRImage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Image",
+      "OCR Image"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DisplayKind</key>\n\t<string>Variable</string>\n\t<key>ImageSource</key>\n\t<string>SystemClipboard</string>\n\t<key>Language</key>\n\t<string>Languages/eng</string>\n\t<key>MacroActionType</key>\n\t<string>OCRImage</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>Variable</key>\n\t<string>VarName</string>\n</dict>"
+  },
+  "Open1File": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "File",
+      "Open a File"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>IsDefaultApplication</key>\n\t<true/>\n\t<key>MacroActionType</key>\n\t<string>Open1File</string>\n\t<key>Path</key>\n\t<string></string>\n</dict>"
+  },
+  "OpenURL": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Web",
+      "Open a URL"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>IsDefaultApplication</key>\n\t<true/>\n\t<key>MacroActionType</key>\n\t<string>OpenURL</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>URL</key>\n\t<string>https://www.keyboardmaestro.com/</string>\n</dict>"
+  },
+  "PasteByName": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Paste by Name"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>AllowMultiple</key>\n\t<true/>\n\t<key>MacroActionType</key>\n\t<string>PasteByName</string>\n\t<key>PromptUID</key>\n\t<string>1D6BC67E-8B5B-45F3-8AAE-26482DC4F4C7</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "Pause": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Pause"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>Pause</string>\n\t<key>Time</key>\n\t<string>1.5</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "PauseUntil": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Pause Until"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Conditions</key>\n\t<dict>\n\t\t<key>ConditionList</key>\n\t\t<array/>\n\t\t<key>ConditionListMatch</key>\n\t\t<string>All</string>\n\t</dict>\n\t<key>MacroActionType</key>\n\t<string>PauseUntil</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "PauseUntilChange": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Pause Until Change"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>ChangeActionType</key>\n\t<string>Clipboard</string>\n\t<key>MacroActionType</key>\n\t<string>PauseUntilChange</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "PlaySound": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Notifications",
+      "Play Sound"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DeviceID</key>\n\t<string>SOUNDEFFECTS</string>\n\t<key>MacroActionType</key>\n\t<string>PlaySound</string>\n\t<key>Path</key>\n\t<string>/System/Library/Sounds/Tink.aiff</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "PressButton": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Interface Control",
+      "Press a Button"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>ButtonName</key>\n\t<string>OK</string>\n\t<key>MacroActionType</key>\n\t<string>PressButton</string>\n</dict>"
+  },
+  "PromptForFile": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "File",
+      "Prompt for File"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>FileType</key>\n\t<string>File</string>\n\t<key>MacroActionType</key>\n\t<string>PromptForFile</string>\n\t<key>Parameter</key>\n\t<string></string>\n\t<key>Variable</key>\n\t<string>VarName</string>\n</dict>"
+  },
+  "PromptForRect": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Variables",
+      "Prompt for Screen Rectangle"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>InputType</key>\n\t<string>Rect</string>\n\t<key>MacroActionType</key>\n\t<string>PromptForRect</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>Variable</key>\n\t<string>VarName</string>\n</dict>"
+  },
+  "PromptForSnippet": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Variables",
+      "Prompt for Snippet"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>DisplayKind</key>\n\t<string>Pasting</string>\n\t<key>MacroActionType</key>\n\t<string>PromptForSnippet</string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>Title</key>\n\t<string>Fill in the Snippet Fields</string>\n</dict>"
+  },
+  "PromptForUserInput": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Notifications",
+      "Prompt for User Input"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Buttons</key>\n\t<array>\n\t\t<dict>\n\t\t\t<key>Button</key>\n\t\t\t<string>OK</string>\n\t\t</dict>\n\t\t<dict>\n\t\t\t<key>Button</key>\n\t\t\t<string>Cancel</string>\n\t\t\t<key>Cancel</key>\n\t\t\t<true/>\n\t\t</dict>\n\t</array>\n\t<key>MacroActionType</key>\n\t<string>PromptForUserInput</string>\n\t<key>Prompt</key>\n\t<string>Please enter the details for these variables.</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>Title</key>\n\t<string>Untitled</string>\n\t<key>Variables</key>\n\t<array/>\n</dict>"
+  },
+  "PromptWithList": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Variables",
+      "Prompt With List"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>PromptWithList</string>\n\t<key>PromptUID</key>\n\t<string>7E7663F6-2197-48AD-8F56-0846AFCC5E60</string>\n\t<key>Source</key>\n\t<string>Clipboard</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "QuickMacro": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Record Quick Macro"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>AddToMacroPalette</key>\n\t<false/>\n\t<key>AddToStatusMenu</key>\n\t<false/>\n\t<key>EnableRepeat</key>\n\t<false/>\n\t<key>KeyCode</key>\n\t<integer>122</integer>\n\t<key>MacroActionType</key>\n\t<string>QuickMacro</string>\n\t<key>Modifiers</key>\n\t<integer>2048</integer>\n\t<key>QuickMacroUID</key>\n\t<string>2BEC0D96-0AC7-4056-BE02-4E6866072CF6</string>\n</dict>"
+  },
+  "QuitAll": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Quit All Applications"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>HonorExcluded</key>\n\t<true/>\n\t<key>MacroActionType</key>\n\t<string>QuitAll</string>\n</dict>"
+  },
+  "QuitOthers": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Quit Other Applications"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>HonorExcluded</key>\n\t<true/>\n\t<key>MacroActionType</key>\n\t<string>QuitOthers</string>\n</dict>"
+  },
+  "QuitSpecificApp": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Quit a Specific Application"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>Quit</string>\n\t<key>Application</key>\n\t<dict/>\n\t<key>MacroActionType</key>\n\t<string>QuitSpecificApp</string>\n\t<key>Target</key>\n\t<string>Front</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "ReadFile": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "File",
+      "Read a File"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Destination</key>\n\t<string>Clipboard</string>\n\t<key>MacroActionType</key>\n\t<string>ReadFile</string>\n\t<key>Source</key>\n\t<string></string>\n</dict>"
+  },
+  "RemoveClipboardFlavors": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Remove Clipboard Flavors"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>RemoveClipboardFlavors</string>\n\t<key>Text</key>\n\t<string></string>\n</dict>"
+  },
+  "Repeat": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Repeat"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Actions</key>\n\t<array/>\n\t<key>CountExpression</key>\n\t<string>1</string>\n\t<key>MacroActionType</key>\n\t<string>Repeat</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "ResizeImage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Image",
+      "Add or Remove Margins"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Height</key>\n\t<string>100</string>\n\t<key>Left</key>\n\t<string>100</string>\n\t<key>MacroActionType</key>\n\t<string>ResizeImage</string>\n\t<key>ResizeAction</key>\n\t<string>AddMargin</string>\n\t<key>Top</key>\n\t<string>100</string>\n\t<key>Width</key>\n\t<string>100</string>\n</dict>"
+  },
+  "Return": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Return Result"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>Return</string>\n\t<key>Text</key>\n\t<string>Result</string>\n</dict>"
+  },
+  "SafariControl": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Front Browser Control",
+      "Click Front Browser Link"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Argument</key>\n\t<string>About</string>\n\t<key>Command</key>\n\t<string>ClickLink</string>\n\t<key>MacroActionType</key>\n\t<string>SafariControl</string>\n\t<key>WebBrowser</key>\n\t<string>Front Browser</string>\n</dict>"
+  },
+  "ScreenCapture": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Image",
+      "Screen Capture"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>AlwaysNominalResolution</key>\n\t<false/>\n\t<key>IncludeShadows</key>\n\t<true/>\n\t<key>MacroActionType</key>\n\t<string>ScreenCapture</string>\n\t<key>ScreenArea</key>\n\t<dict>\n\t\t<key>ScreenAreaType</key>\n\t\t<string>ScreenAll</string>\n\t</dict>\n</dict>"
+  },
+  "ScrollWheelEvent": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Interface Control",
+      "Simulate Scroll Wheel"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>ScrollWheelEvent</string>\n\t<key>ScrollAmountExpression</key>\n\t<string>60</string>\n\t<key>ScrollDirection</key>\n\t<string>Up</string>\n</dict>"
+  },
+  "Search": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Web",
+      "Search the Web"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Default</key>\n\t<string></string>\n\t<key>MacroActionType</key>\n\t<string>Search</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>Title</key>\n\t<string>Search the web with Google</string>\n\t<key>URL</key>\n\t<string>https://www.google.com/search?q=%Search%</string>\n</dict>"
+  },
+  "SearchRegEx": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Search using Regular Expression"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>IgnoreCaseRegEx</string>\n\t<key>Captures</key>\n\t<array>\n\t\t<string></string>\n\t</array>\n\t<key>MacroActionType</key>\n\t<string>SearchRegEx</string>\n\t<key>Search</key>\n\t<string></string>\n\t<key>Source</key>\n\t<string>Clipboard</string>\n</dict>"
+  },
+  "SearchReplace": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Search and Replace"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>IgnoreCaseString</string>\n\t<key>MacroActionType</key>\n\t<string>SearchReplace</string>\n\t<key>Replace</key>\n\t<string></string>\n\t<key>Search</key>\n\t<string></string>\n\t<key>Source</key>\n\t<string>Clipboard</string>\n\t<key>Which</key>\n\t<string>All</string>\n</dict>"
+  },
+  "SelectMenuByName": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Interface Control",
+      "Select Menu by Name"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SelectMenuByName</string>\n\t<key>PromptUID</key>\n\t<string>D6888363-0C8A-4150-B0DC-7E1D0A579D2D</string>\n\t<key>TargetApplication</key>\n\t<dict/>\n\t<key>TargetingType</key>\n\t<string>Front</string>\n</dict>"
+  },
+  "SelectMenuItem": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Interface Control",
+      "Select or Show a Menu Item"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SelectMenuItem</string>\n\t<key>Menu</key>\n\t<array>\n\t\t<string></string>\n\t\t<string></string>\n\t</array>\n\t<key>TargetApplication</key>\n\t<dict/>\n\t<key>TargetingType</key>\n\t<string>Front</string>\n</dict>"
+  },
+  "Semaphore": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Semaphore Lock"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>Semaphore</string>\n\t<key>SemaphoreAction</key>\n\t<string>Lock</string>\n\t<key>SemaphoreName</key>\n\t<string>Semaphore Name</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "SendMIDIMessage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "MIDI",
+      "Send MIDI Control Change"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Channel</key>\n\t<integer>1</integer>\n\t<key>ChannelExpression</key>\n\t<string>1</string>\n\t<key>MIDIMessageType</key>\n\t<string>ControlChange</string>\n\t<key>MacroActionType</key>\n\t<string>SendMIDIMessage</string>\n\t<key>Note</key>\n\t<integer>60</integer>\n\t<key>NoteExpression</key>\n\t<string>60</string>\n\t<key>Value</key>\n\t<integer>63</integer>\n\t<key>ValueExpression</key>\n\t<string>63</string>\n</dict>"
+  },
+  "SendSMS": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "System Control",
+      "Login Window"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Content</key>\n\t<string></string>\n\t<key>MacroActionType</key>\n\t<string>SendSMS</string>\n\t<key>SendiMessage</key>\n\t<true/>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>To</key>\n\t<string></string>\n</dict>"
+  },
+  "SetActionDelay": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Set Action Delay"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetActionDelay</string>\n\t<key>Permanent</key>\n\t<false/>\n\t<key>Preference</key>\n\t<string>SimulateKeystrokeNormalKey</string>\n\t<key>Reset</key>\n\t<false/>\n\t<key>Value</key>\n\t<string>0.02</string>\n</dict>"
+  },
+  "SetAudioDevice": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "System Control",
+      "Set Audio Input Device"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Device</key>\n\t<string></string>\n\t<key>Direction</key>\n\t<string>Input</string>\n\t<key>MacroActionType</key>\n\t<string>SetAudioDevice</string>\n</dict>"
+  },
+  "SetClipboardToFileReference": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Set Clipboard to File Reference"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetClipboardToFileReference</string>\n\t<key>Path</key>\n\t<string></string>\n</dict>"
+  },
+  "SetClipboardToImage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Set Clipboard to Image"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetClipboardToImage</string>\n</dict>"
+  },
+  "SetClipboardToPastClipboard": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Set Clipboard to Past Clipboard"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetClipboardToPastClipboard</string>\n\t<key>PastExpression</key>\n\t<string>1</string>\n</dict>"
+  },
+  "SetClipboardToText": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Set Clipboard to Text"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>JustDisplay</key>\n\t<false/>\n\t<key>MacroActionType</key>\n\t<string>SetClipboardToText</string>\n\t<key>Text</key>\n\t<string></string>\n</dict>"
+  },
+  "SetDesktopImage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Image",
+      "Set Desktop Image"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetDesktopImage</string>\n\t<key>Path</key>\n\t<string></string>\n\t<key>Scaling</key>\n\t<string>FillScreen</string>\n\t<key>ScreenArea</key>\n\t<dict>\n\t\t<key>ScreenAreaType</key>\n\t\t<string>ScreenAll</string>\n\t</dict>\n</dict>"
+  },
+  "SetDictionaryToJSON": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Text",
+      "Set Dictionary to JSON"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Dictionary</key>\n\t<string>DictionaryName</string>\n\t<key>MacroActionType</key>\n\t<string>SetDictionaryToJSON</string>\n\t<key>Text</key>\n\t<string></string>\n</dict>"
+  },
+  "SetDictionaryValue": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Text",
+      "Set Dictionary Value"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Dictionary</key>\n\t<string>DictionaryName</string>\n\t<key>Key</key>\n\t<string>Key</string>\n\t<key>MacroActionType</key>\n\t<string>SetDictionaryValue</string>\n\t<key>Value</key>\n\t<string>Value</string>\n</dict>"
+  },
+  "SetFileAttribute": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "File",
+      "Set File Attribute"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Attribute</key>\n\t<string>ModificationDate</string>\n\t<key>MacroActionType</key>\n\t<string>SetFileAttribute</string>\n\t<key>Path</key>\n\t<string></string>\n\t<key>Text</key>\n\t<string>NOW()</string>\n</dict>"
+  },
+  "SetFileIcon": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "File",
+      "Set File Icon"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetFileIcon</string>\n\t<key>Path</key>\n\t<string></string>\n</dict>"
+  },
+  "SetFindPasteboard": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "System Control",
+      "Set Find Pasteboard"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetFindPasteboard</string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "SetJSONValue": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Text",
+      "Set JSON Value"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetJSONValue</string>\n\t<key>Target</key>\n\t<string>VariableName.field{field}[1]</string>\n\t<key>Text</key>\n\t<string></string>\n</dict>"
+  },
+  "SetKeyboardLayout": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "System Control",
+      "Set Keyboard Layout"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>KeyboardLayoutID</key>\n\t<string>com.apple.keylayout.USExtended</string>\n\t<key>KeyboardLayoutName</key>\n\t<string>ABC \u2013 Extended</string>\n\t<key>MacroActionType</key>\n\t<string>SetKeyboardLayout</string>\n</dict>"
+  },
+  "SetKeychainPasswordToText": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Variables",
+      "Set Keychain Password to Text"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetKeychainPasswordToText</string>\n\t<key>PasswordAccount</key>\n\t<string>%UserLoginID%</string>\n\t<key>PasswordName</key>\n\t<string>Password Name</string>\n\t<key>Text</key>\n\t<string></string>\n</dict>"
+  },
+  "SetMacroEnable": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Set Macro or Group Enable"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>Enable</string>\n\t<key>MacroActionType</key>\n\t<string>SetMacroEnable</string>\n\t<key>MacroUID</key>\n\t<string></string>\n</dict>"
+  },
+  "SetNetworkLocation": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "System Control",
+      "Set Network Location"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetNetworkLocation</string>\n\t<key>NetworkLocation</key>\n\t<string>Automatic</string>\n</dict>"
+  },
+  "SetNextEngineWindow": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Interface Control",
+      "Set Next Engine Window Position"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>MoveWindowTo</string>\n\t<key>HeightExpression</key>\n\t<string>300</string>\n\t<key>HorizontalExpression</key>\n\t<string>125</string>\n\t<key>MacroActionType</key>\n\t<string>SetNextEngineWindow</string>\n\t<key>VerticalExpression</key>\n\t<string>125</string>\n\t<key>WidthExpression</key>\n\t<string>300</string>\n</dict>"
+  },
+  "SetSafariCheckbox": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Front Browser Control",
+      "Set Front Browser Checkbox"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Field</key>\n\t<string>document.forms[0][0]</string>\n\t<key>MacroActionType</key>\n\t<string>SetSafariCheckbox</string>\n\t<key>Value</key>\n\t<string>1</string>\n\t<key>WebBrowser</key>\n\t<string>Front Browser</string>\n</dict>"
+  },
+  "SetSafariFieldToText": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Front Browser Control",
+      "Set Front Browser Field to Text"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Field</key>\n\t<string>document.forms[0][0]</string>\n\t<key>MacroActionType</key>\n\t<string>SetSafariFieldToText</string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>WebBrowser</key>\n\t<string>Front Browser</string>\n</dict>"
+  },
+  "SetSafariRadio": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Front Browser Control",
+      "Set Front Browser Radio Button"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Field</key>\n\t<string>document.forms[0][0]</string>\n\t<key>MacroActionType</key>\n\t<string>SetSafariRadio</string>\n\t<key>Value</key>\n\t<string></string>\n\t<key>WebBrowser</key>\n\t<string>Front Browser</string>\n</dict>"
+  },
+  "SetScreenResolution": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "System Control",
+      "Set Screen Resolution"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetScreenResolution</string>\n\t<key>Resolution</key>\n\t<string></string>\n\t<key>Screen</key>\n\t<string>SCREENINDEX(Main)</string>\n</dict>"
+  },
+  "SetVariableToCalculation": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Variables",
+      "Set Variable to Calculation"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetVariableToCalculation</string>\n\t<key>Text</key>\n\t<string>1</string>\n\t<key>UseFormat</key>\n\t<false/>\n\t<key>Variable</key>\n\t<string>VarName</string>\n</dict>"
+  },
+  "SetVariableToKeychainPassword": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Variables",
+      "Set Variable to Keychain Password"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetVariableToKeychainPassword</string>\n\t<key>PasswordAccount</key>\n\t<string>%UserLoginID%</string>\n\t<key>PasswordName</key>\n\t<string>Password Name</string>\n\t<key>Variable</key>\n\t<string>VarName</string>\n</dict>"
+  },
+  "SetVariableToSafariField": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Front Browser Control",
+      "Set Variable to Front Browser Field"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Field</key>\n\t<string>document.forms[0][0]</string>\n\t<key>MacroActionType</key>\n\t<string>SetVariableToSafariField</string>\n\t<key>Variable</key>\n\t<string>VarName</string>\n\t<key>WebBrowser</key>\n\t<string>Front Browser</string>\n</dict>"
+  },
+  "SetVariableToText": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Text",
+      "Append Variable with Text"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetVariableToText</string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>Variable</key>\n\t<string>VarName</string>\n\t<key>Where</key>\n\t<string>Append</string>\n</dict>"
+  },
+  "SetVariablesToJSON": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Text",
+      "Set Variables to JSON"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SetVariablesToJSON</string>\n\t<key>Prefix</key>\n\t<string>JSON</string>\n\t<key>Text</key>\n\t<string></string>\n</dict>"
+  },
+  "ShowAll": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Show All Applications"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>IsDisclosed</key>\n\t<false/>\n\t<key>MacroActionType</key>\n\t<string>ShowAll</string>\n</dict>"
+  },
+  "ShowPaletteOfMacros": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Show Palette of Macros"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>ShowPaletteOfMacros</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "ShowSpecificApp": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Show a Specific Application"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Application</key>\n\t<dict>\n\t\t<key>BundleIdentifier</key>\n\t\t<string>com.apple.finder</string>\n\t\t<key>Name</key>\n\t\t<string>Finder</string>\n\t\t<key>NewFile</key>\n\t\t<string>/System/Library/CoreServices/Finder.app</string>\n\t</dict>\n\t<key>MacroActionType</key>\n\t<string>ShowSpecificApp</string>\n</dict>"
+  },
+  "SimulateHardwareKey": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Interface Control",
+      "Simulate Hardware Key"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>HardwareKey</key>\n\t<string>PLAY</string>\n\t<key>MacroActionType</key>\n\t<string>SimulateHardwareKey</string>\n</dict>"
+  },
+  "SimulateKeystroke": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Interface Control",
+      "Type a Keystroke"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>KeyCode</key>\n\t<integer>36</integer>\n\t<key>MacroActionType</key>\n\t<string>SimulateKeystroke</string>\n\t<key>Modifiers</key>\n\t<integer>0</integer>\n\t<key>ReleaseAll</key>\n\t<false/>\n\t<key>TargetApplication</key>\n\t<dict/>\n\t<key>TargetingType</key>\n\t<string>Front</string>\n</dict>"
+  },
+  "SimulateModifiers": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Interface Control",
+      "Type Modifiers"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SimulateModifiers</string>\n\t<key>Modifiers</key>\n\t<integer>2048</integer>\n</dict>"
+  },
+  "SpeakText": {
+    "captured_at": "2026-05-14",
+    "km_version": "11.x",
+    "parameter_paths": {
+      "rate": "Rate",
+      "text": "Text",
+      "voice": "Voice"
+    },
+    "xml": "<dict><key>MacroActionType</key><string>SpeakText</string><key>Rate</key><string>Default</string><key>Text</key><string>Action Completed</string><key>TimeOutAbortsMacro</key><true/><key>Voice</key><string></string></dict>"
+  },
+  "SplitPath": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "File",
+      "Split Path"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SplitPath</string>\n\t<key>Path</key>\n\t<string></string>\n</dict>"
+  },
+  "StreamDeckSetImage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Image",
+      "Stream Deck Set Image"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>ButtonID</key>\n\t<string>R1C1</string>\n\t<key>FromType</key>\n\t<string>ThisMacro</string>\n\t<key>MacroActionType</key>\n\t<string>StreamDeckSetImage</string>\n</dict>"
+  },
+  "Substring": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Clipboard",
+      "Substring of Variable or Clipboard"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Delete</key>\n\t<false/>\n\t<key>First</key>\n\t<string>2</string>\n\t<key>MacroActionType</key>\n\t<string>Substring</string>\n\t<key>Second</key>\n\t<string>4</string>\n\t<key>Source</key>\n\t<string>Clipboard</string>\n\t<key>StringRangeType</key>\n\t<string>Range</string>\n</dict>"
+  },
+  "Switch": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Switch/Case"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>CaseEntries</key>\n\t<array>\n\t\t<dict>\n\t\t\t<key>Actions</key>\n\t\t\t<array/>\n\t\t\t<key>ConditionType</key>\n\t\t\t<string>Contains</string>\n\t\t\t<key>TestValue</key>\n\t\t\t<string></string>\n\t\t</dict>\n\t</array>\n\t<key>MacroActionType</key>\n\t<string>Switch</string>\n\t<key>Source</key>\n\t<string>Clipboard</string>\n</dict>"
+  },
+  "SwitchToLastApplication": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Activate Last Application"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>IsDisclosed</key>\n\t<false/>\n\t<key>MacroActionType</key>\n\t<string>SwitchToLastApplication</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "SwitchToNextApplication": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Application Control",
+      "Activate Next Application"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>IsDisclosed</key>\n\t<false/>\n\t<key>MacroActionType</key>\n\t<string>SwitchToNextApplication</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "SystemAction": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Clear Typed String Buffer"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>IsDisclosed</key>\n\t<false/>\n\t<key>MacroActionType</key>\n\t<string>SystemAction</string>\n\t<key>SystemAction</key>\n\t<string>ClearTypedString</string>\n</dict>"
+  },
+  "SystemVolume": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "System Control",
+      "Set System Output Volume"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>SystemVolume</string>\n\t<key>Volume</key>\n\t<integer>50</integer>\n</dict>"
+  },
+  "Throw": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Throw"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>Throw</string>\n\t<key>Text</key>\n\t<string>%ActionResult%</string>\n</dict>"
+  },
+  "TransformImage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Image",
+      "Flip Image"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>TransformImage</string>\n\t<key>Rotation</key>\n\t<string>45</string>\n\t<key>TransformAction</key>\n\t<string>FlipHorizontal</string>\n</dict>"
+  },
+  "TriggerByName": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Keyboard Maestro",
+      "Trigger Macro by Name"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>TriggerByName</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "TriggerMacroByHotKey": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Trigger Macros by Hot Key"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>KeyCode</key>\n\t<integer>36</integer>\n\t<key>MacroActionType</key>\n\t<string>TriggerMacroByHotKey</string>\n\t<key>Modifiers</key>\n\t<integer>0</integer>\n</dict>"
+  },
+  "TrimImage": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Image",
+      "Trim Image"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>TrimImage</string>\n</dict>"
+  },
+  "TryCatch": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Try/Catch"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>CatchActions</key>\n\t<array/>\n\t<key>MacroActionType</key>\n\t<string>TryCatch</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>TryActions</key>\n\t<array/>\n</dict>"
+  },
+  "Until": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "Until"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Actions</key>\n\t<array/>\n\t<key>Conditions</key>\n\t<dict>\n\t\t<key>ConditionList</key>\n\t\t<array/>\n\t\t<key>ConditionListMatch</key>\n\t\t<string>All</string>\n\t</dict>\n\t<key>MacroActionType</key>\n\t<string>Until</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "UseVariable": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Interface Control",
+      "Use Variable"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Action</key>\n\t<string>SetMouse</string>\n\t<key>MacroActionType</key>\n\t<string>UseVariable</string>\n\t<key>Variable</key>\n\t<string>VarName</string>\n</dict>"
+  },
+  "While": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Control Flow",
+      "While"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Actions</key>\n\t<array/>\n\t<key>Conditions</key>\n\t<dict>\n\t\t<key>ConditionList</key>\n\t\t<array/>\n\t\t<key>ConditionListMatch</key>\n\t\t<string>All</string>\n\t</dict>\n\t<key>MacroActionType</key>\n\t<string>While</string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
+  "WriteFile": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "File",
+      "Append Text to a File"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Append</key>\n\t<true/>\n\t<key>Destination</key>\n\t<string></string>\n\t<key>Encoding</key>\n\t<string>UTF8</string>\n\t<key>Format</key>\n\t<string>PlainText</string>\n\t<key>Format2</key>\n\t<string>PlainText</string>\n\t<key>MacroActionType</key>\n\t<string>WriteFile</string>\n\t<key>Source</key>\n\t<string>Text</string>\n\t<key>Text</key>\n\t<string></string>\n</dict>"
+  },
+  "_meta": {
+    "description": "Canonical XML templates for KM built-in action types, captured from Keyboard Maestro's own editor via Edit > Insert Action > By Name. Each entry's `xml` is the action's <dict> body with transient keys (ActionUID, creation dates) stripped. `parameter_paths` maps user-facing parameter names (snake_case) to the plist keys inside the captured template, so the substitution engine doesn't need per-action knowledge of KM's plist schema.",
+    "schema_version": 1
+  },
+  "iTunesControl": {
+    "captured_at": "2026-05-13",
+    "category_path": [
+      "Music Control",
+      "Decrease Music Volume"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>Argument</key>\n\t<string></string>\n\t<key>Command</key>\n\t<string>DecreaseVolume</string>\n\t<key>IsDisclosed</key>\n\t<false/>\n\t<key>MacroActionType</key>\n\t<string>iTunesControl</string>\n</dict>"
+  }
+}

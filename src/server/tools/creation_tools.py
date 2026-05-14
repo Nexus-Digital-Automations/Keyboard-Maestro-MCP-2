@@ -141,6 +141,11 @@ async def km_create_macro(
         ValidationError: Input validation failed
 
     """
+    logger.warning(
+        "km_create_macro duplicates the km_macro_editor surface; "
+        "calls still work but this name will fold into "
+        "km_macro_editor(operation='create') in a future release.",
+    )
     if parameters is None:
         parameters = {}
     if ctx:

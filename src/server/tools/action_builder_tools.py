@@ -23,6 +23,11 @@ from pydantic import Field
 
 from ...core.types import MacroId
 from ..initialization import get_km_client
+from ._action_templates import (
+    find_macro_action_type,
+    render_action_xml,
+    validate_pasted_dict_xml,
+)
 from .plugin_action_tools import _scan_installed_plugins
 
 logger = logging.getLogger(__name__)
@@ -124,7 +129,15 @@ def _build_action_xml(action_type: str, config: dict[str, Any]) -> str | None:
         )
     if action_type == "plug_in":
         return _build_plug_in_xml(config)
-    return None
+    if action_type == "paste_xml":
+        raw = (config or {}).get("xml")
+        if not isinstance(raw, str) or not raw.strip():
+            raise ValueError("paste_xml requires action_config={'xml': '<dict>...</dict>'}")
+        return validate_pasted_dict_xml(raw)
+    macro_action_type = find_macro_action_type(action_type)
+    if macro_action_type is None:
+        return None
+    return render_action_xml(macro_action_type, config or {})
 
 
 # Verified against KM's "Copy as XML" output for an MCP Smoke Plugin action
@@ -220,7 +233,15 @@ async def _do_append(
             "macro_id and action_type are required for operation='append'.",
             "Pass both, plus action_config with type-appropriate fields.",
         )
-    xml = _build_action_xml(action_type, action_config or {})
+    try:
+        xml = _build_action_xml(action_type, action_config or {})
+    except ValueError as exc:
+        logger.warning("action_builder render failed: type=%s err=%s", action_type, exc)
+        return _failure(
+            "VALIDATION_ERROR",
+            f"action_config invalid for action_type '{action_type}': {exc}",
+            "Check parameter names against km_list_action_types output for this type.",
+        )
     if xml is None:
         return _failure(
             "UNSUPPORTED_ACTION_TYPE",
@@ -280,7 +301,8 @@ async def km_action_builder(
             default=None,
             description=(
                 "For 'append': pause, type_text, paste, set_variable, run_applescript, "
-                "execute_macro, plug_in."
+                "execute_macro, plug_in, paste_xml, or any built-in identifier from "
+                "km_list_action_types (e.g. 'speak_text')."
             ),
             max_length=64,
         ),
@@ -295,7 +317,11 @@ async def km_action_builder(
                 "run_applescript: {source: '...'}. execute_macro: {target_macro: 'Name'}. "
                 "plug_in: {plugin_identifier: 'MCP Smoke Plugin', parameters: {Label: value}, "
                 "display_kind: 'Variable', variable: 'OutVar'} — plugin_identifier matches "
-                "an entry from km_list_action_types."
+                "an entry from km_list_action_types. "
+                "paste_xml: {xml: '<dict>...</dict>'} for any action whose <dict> body you "
+                "already have (validated as plist with MacroActionType key). "
+                "Built-in catalog identifiers (e.g. speak_text): keys named in the "
+                "entry's `parameters` list."
             ),
         ),
     ] = None,
