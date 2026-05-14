@@ -1,56 +1,30 @@
 """System-event trigger tool — login, engine-launch, system-wake.
 
-Covers the trigger types that fire on macOS / Keyboard Maestro lifecycle
-events (no hotkey, no time schedule, no file watch). KM doesn't expose a
-literal "login trigger" — instead, an `engine launch trigger` fires when
-the KM Engine starts, which on a default install is at login. The tool
-accepts a friendly ``trigger_kind`` (``login``, ``engine_launch``,
-``system_wake``) and maps to KM's AppleScript trigger class.
+@deprecated KM 11 AppleScript only honours ``make new trigger with
+properties {xml:...}`` for ``HotKey``-type plists. Smoke-tested all three
+``MacroTriggerType`` strings KM's Engine binary exposes (``EngineLaunch``,
+``WakeTrigger``, ``Login``) plus their AppleScript class-name variants —
+each returns ``Connection is invalid`` (errAEEventNotHandled, -609) on
+construction. The previous class-name approach (``make new engine launch
+trigger``) was a separate bug: those classes don't exist in KM's sdef,
+which only declares the single ``trigger`` class.
+
+This tool now short-circuits with ``UNSUPPORTED_OPERATION`` until KM
+exposes a writable surface (a future Editor.sdef revision, or the
+existing kmmacros-import path used by ``km_create_macro``).
 
 Failure modes:
-- VALIDATION_ERROR: missing/invalid macro_id or trigger_kind
-- KM_CONNECTION_FAILED: KM Engine unreachable
-- ATTACH_FAILED: AppleScript reported an error (macro not found, etc.)
+- UNSUPPORTED_OPERATION: every call, until upstream support lands
 """
 
-import asyncio
-import logging
 from typing import Annotated, Any, Literal
 
 from fastmcp import Context
 from pydantic import Field
 
-from ..initialization import get_km_client
+from src.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
-
-# friendly name → KM AppleScript trigger class name
-TRIGGER_CLASS_BY_KIND: dict[str, str] = {
-    "login": "engine launch trigger",
-    "engine_launch": "engine launch trigger",
-    "system_wake": "system wake trigger",
-}
-
-
-def _failure(code: str, message: str, suggestion: str) -> dict[str, Any]:
-    return {
-        "success": False,
-        "error": {"code": code, "message": message, "recovery_suggestion": suggestion},
-    }
-
-
-async def _check_kme_alive() -> dict[str, Any] | None:
-    km = get_km_client()
-    connection = await asyncio.get_event_loop().run_in_executor(
-        None, km.check_connection,
-    )
-    if connection.is_left() or not connection.get_right():
-        return _failure(
-            "KM_CONNECTION_FAILED",
-            "Cannot connect to Keyboard Maestro Engine.",
-            "Start Keyboard Maestro and ensure the Engine is running.",
-        )
-    return None
+logger = get_logger(__name__)
 
 
 async def km_add_system_trigger(
@@ -70,54 +44,39 @@ async def km_add_system_trigger(
     ],
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """Attach a system-event trigger (login, engine-launch, system-wake) to a macro.
+    """Attach a system-event trigger to a macro.
 
-    Returns ``{"success": True, "data": {...}}`` on success or
-    ``{"success": False, "error": {...}}`` with a structured error.
+    Returns ``{"success": False, "error": {"code": "UNSUPPORTED_OPERATION", ...}}``
+    because KM 11 AppleScript rejects non-HotKey trigger creation.
     """
     logger.warning(
-        "km_add_system_trigger duplicates the trigger surface; "
-        "calls still work but this name will fold into "
-        "km_trigger_lifecycle(kind='system', operation='add') in a future release.",
+        "km_add_system_trigger called for macro=%s kind=%s; KM AppleScript "
+        "does not currently support creation of this trigger type.",
+        macro_id,
+        trigger_kind,
     )
     if ctx:
         await ctx.info(
-            f"km_add_system_trigger macro={macro_id!r} kind={trigger_kind}",
-        )
-
-    connection_error = await _check_kme_alive()
-    if connection_error is not None:
-        return connection_error
-
-    km = get_km_client()
-    escaped_id = km._escape_applescript_string(macro_id.strip())  # noqa: SLF001
-    trigger_class = TRIGGER_CLASS_BY_KIND[trigger_kind]
-    script = f'''
-    tell application "Keyboard Maestro"
-        try
-            set targetMacro to first macro whose name is "{escaped_id}"
-            make new {trigger_class} at end of triggers of targetMacro
-            return "attached"
-        on error errMsg
-            return "ERROR: " & errMsg
-        end try
-    end tell
-    '''
-    result = await km.execute_applescript_async(script)
-    if result.is_left():
-        return _failure("ATTACH_FAILED", result.get_left().message, "Check macro exists.")
-    output = result.get_right().strip()
-    if output.startswith("ERROR:"):
-        return _failure(
-            "ATTACH_FAILED", output[6:].strip(),
-            "Verify the macro exists and trigger type is supported by your KM version.",
+            f"km_add_system_trigger rejected: macro={macro_id!r} kind={trigger_kind}",
         )
     return {
-        "success": True,
-        "data": {
+        "success": False,
+        "error": {
+            "code": "UNSUPPORTED_OPERATION",
+            "message": (
+                "KM 11 AppleScript only accepts HotKey-type triggers via "
+                "'make new trigger with properties {xml:...}'. EngineLaunch, "
+                "WakeTrigger, and Login plists are rejected with "
+                "'Connection is invalid' on construction."
+            ),
+            "recovery_suggestion": (
+                "Create the macro via km_create_macro using a .kmmacros import "
+                "that already carries the desired system trigger, or attach the "
+                "trigger by hand in the KM Editor."
+            ),
+        },
+        "metadata": {
             "macro_id": macro_id,
             "trigger_kind": trigger_kind,
-            "trigger_class": trigger_class,
-            "attached": True,
         },
     }

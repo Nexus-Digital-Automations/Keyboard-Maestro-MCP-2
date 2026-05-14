@@ -227,9 +227,22 @@ class TokenProcessor:
         }
 
     def _parse_tokens(self, text: str) -> list[dict[str, Any]]:
-        """Parse tokens from text with type identification and security validation."""
-        # Handle nested % tokens like %Variable%user_name% properly
-        token_pattern = r"%(?:Variable%[^%]+|[^%]+)%"  # noqa: S105 # Regex pattern, not password
+        """Parse tokens from text with type identification and security validation.
+
+        KM tokens fall in two shapes: bare ``%Name%`` (e.g. %CurrentUser%) and
+        two-segment ``%Name%arg%`` (Variable, Calculate, ICUDateTime, …). The
+        old single-segment regex split %Calculate%5*5% into two tokens; the
+        two-segment alternative below claims the arg so %Calculate%5*5%,
+        %Variable%MyVar%, and %ICUDateTime%yyyy% parse as one token each.
+        """
+        token_pattern = (
+            r"%(?:"  # noqa: S105 - regex, not a credential
+            r"(?:Variable|Calculate|ICUDateTime|JSONValue|XMLValue|"
+            r"AddressBook|AskForUserInput|CurrentMouse|Find|"
+            r"FoundImage|MIDI|Past|Path|Time|UUID|Wireless)"
+            r"%[^%]*|[^%]+"
+            r")%"
+        )
         tokens = []
 
         for match in re.finditer(token_pattern, text):
