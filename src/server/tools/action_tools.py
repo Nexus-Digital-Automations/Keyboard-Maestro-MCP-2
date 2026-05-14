@@ -31,6 +31,7 @@ from typing import Annotated, Any
 from fastmcp import Context
 from pydantic import Field
 
+from ._action_search import search as _search_actions
 from .plugin_action_tools import _scan_installed_plugins
 
 logger = logging.getLogger(__name__)
@@ -213,5 +214,109 @@ async def km_list_action_types(
             "timestamp": datetime.now(UTC).isoformat(),
             "correlation_id": correlation_id,
             "registry_version": "2.0.0",
+        },
+    }
+
+
+async def km_search_actions(
+    query: Annotated[
+        str,
+        Field(
+            default="",
+            description=(
+                "Natural-language description of the task you want to perform "
+                "(e.g. 'click a button on screen', 'wait for image', 'speak text'). "
+                "Empty string returns the full catalog ordered by category then identifier."
+            ),
+            max_length=200,
+        ),
+    ] = "",
+    category: Annotated[
+        str | None,
+        Field(
+            default=None,
+            description="Restrict to one category: control / text / variable / system / mouse / plug_in.",
+        ),
+    ] = None,
+    builder_supported: Annotated[
+        bool | None,
+        Field(
+            default=None,
+            description=(
+                "True = only actions km_action_builder can emit XML for. "
+                "False = only actions present for discovery but not yet buildable."
+            ),
+        ),
+    ] = None,
+    result_target: Annotated[
+        str | None,
+        Field(
+            default=None,
+            description="Filter to actions that can write their result to a given target (e.g. 'Variable', 'Clipboard').",
+        ),
+    ] = None,
+    min_score: Annotated[
+        float,
+        Field(
+            default=0.0,
+            description="Drop matches below this normalized [0, 1] score. Default 0.0 disables threshold.",
+            ge=0.0,
+            le=1.0,
+        ),
+    ] = 0.0,
+    limit: Annotated[
+        int,
+        Field(default=10, description="Maximum results to return.", ge=1, le=100),
+    ] = 10,
+    ctx: Context = None,
+) -> dict[str, Any]:
+    """Rank built-in and plug-in action types by relevance to a task query.
+
+    Fuzzy multi-field search across identifier, title, description, keywords,
+    task_hints, parameter labels, category, and result_targets. Empty `query`
+    returns the filtered catalog as a listing. Each result carries a
+    normalized score, the fields that matched, and the canonical
+    MacroActionType (for built-ins) — the latter is what
+    `km_action_builder(action_type=...)` consumes for snake_case identifiers.
+
+    Failure modes: any plug-in folder read failure is logged and the search
+    falls back to the built-in catalog (logged once, never raised).
+    """
+    correlation_id = str(uuid.uuid4())
+    if ctx:
+        await ctx.info(
+            f"km_search_actions q={query!r} cat={category} bs={builder_supported} "
+            f"rt={result_target} min={min_score} limit={limit} [ID: {correlation_id}]"
+        )
+    results = await asyncio.to_thread(
+        _search_actions,
+        query,
+        category=category,
+        builder_supported=builder_supported,
+        result_target=result_target,
+        min_score=min_score,
+        limit=limit,
+    )
+    return {
+        "success": True,
+        "data": {
+            "actions": results,
+            "summary": {
+                "query": query,
+                "returned": len(results),
+                "filters": {
+                    "category": category,
+                    "builder_supported": builder_supported,
+                    "result_target": result_target,
+                    "min_score": min_score,
+                },
+                "limit": limit,
+                "semantic": False,
+            },
+        },
+        "metadata": {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "correlation_id": correlation_id,
+            "ranker": "rapidfuzz-WRatio-field-weighted",
         },
     }
