@@ -75,6 +75,11 @@ async def km_add_system_trigger(
     Returns ``{"success": True, "data": {...}}`` on success or
     ``{"success": False, "error": {...}}`` with a structured error.
     """
+    logger.warning(
+        "km_add_system_trigger duplicates the trigger surface; "
+        "calls still work but this name will fold into "
+        "km_trigger_lifecycle(kind='system', operation='add') in a future release.",
+    )
     if ctx:
         await ctx.info(
             f"km_add_system_trigger macro={macro_id!r} kind={trigger_kind}",

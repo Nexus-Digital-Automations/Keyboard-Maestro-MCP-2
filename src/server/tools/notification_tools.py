@@ -411,6 +411,11 @@ async def km_notification_status(
         Dictionary containing notification status information
 
     """
+    logger.warning(
+        "km_notification_status duplicates the km_notifications surface; "
+        "calls still work but this name will fold into km_notifications(operation='status') "
+        "in a future release.",
+    )
     correlation_id = str(uuid.uuid4())
     start_time = datetime.now()
 
@@ -519,6 +524,10 @@ async def km_dismiss_notifications(
         Dictionary containing dismissal results
 
     """
+    logger.warning(
+        "km_dismiss_notifications is being consolidated into km_notifications; "
+        "this name will be removed in a future release.",
+    )
     correlation_id = str(uuid.uuid4())
     start_time = datetime.now()
 

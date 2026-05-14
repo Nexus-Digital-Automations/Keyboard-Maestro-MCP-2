@@ -165,6 +165,12 @@ async def km_trigger_manager(
       AppleScript reported an error (macro not found, invalid config,
       unsupported trigger type, index out of range)
     """
+    logger.warning(
+        "km_trigger_manager duplicates the trigger surface (also covered by "
+        "km_trigger_crud + km_create_hotkey_trigger + km_add_system_trigger); "
+        "calls still work but this name will fold into a unified "
+        "km_trigger_lifecycle in a future release.",
+    )
     if ctx:
         await ctx.info(f"km_trigger_manager op={operation} macro={macro_id!r}")
 
