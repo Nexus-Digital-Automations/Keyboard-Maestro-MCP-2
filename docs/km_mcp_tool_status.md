@@ -70,6 +70,82 @@ out-of-the-box" = passed the 2026-05-14 smoke without code changes.
 - `km_window_manager` against Finder — move/resize/arrange AppleScript succeeds but Finder reuses window indices in surprising ways; `get_info` may poll the menubar instead of the moved window. Target-app issue, not a tool bug.
 - `km_create_plugin_action` `output_dir` — must be under the MCP server CWD; relative paths outside the server root are blocked by the path-traversal guard.
 
+## Next: post-restart smoke checklist (rounds 6 + 7)
+
+The live MCP server runs from `~/Desktop/Claude Coding Projects/Keyboard-Maestro-MCP-2` and caches Python at startup. The session-branch fixes need a **merge into main + Claude Code restart** before they're live. After restart, run the checks below in order. Each line cites the commit that introduced the change and the exact tool call to issue.
+
+Sandbox: create or reuse macro group `KM MCP R6 Sandbox` and a scratch macro inside it (any UUID). Delete sandbox macros after each section.
+
+### A. Round-6 control flow (commit `c159039`)
+
+1. **for_loop** — one call per collection type the caller cares about. Minimum: `Range`, `LinesIn`, `Files`, `Variables`. Each call:
+   ```
+   km_control_flow(macro_identifier=<scratch>, control_type="for_loop",
+     iterator="i", collection_dict={"type": "Range", "start": "1", "end": "5"},
+     loop_actions=[{"type": "pause", "seconds": 0.1}])
+   ```
+   Expected: `success=true`, `data.macro_action_type="For"`, `data.collection_type` matches input. Read back via `km_action_builder list` — the action should display as "For Each i in Range 1 to 5".
+2. **while_loop / until_loop** — one call each:
+   ```
+   km_control_flow(macro_identifier=<scratch>, control_type="while_loop",
+     condition="MyVar", operator="equals", operand="yes",
+     loop_actions=[{"type": "pause", "seconds": 0.1}])
+   ```
+   Expected: KM displays "While the following are true: MyVar is yes". Same shape for `until_loop` with `data.macro_action_type="Until"`.
+3. **try_catch**:
+   ```
+   km_control_flow(macro_identifier=<scratch>, control_type="try_catch",
+     try_actions=[{"type": "pause", "seconds": 0.1}],
+     catch_actions=[{"type": "set_variable", "variable": "Caught", "text": "yes"}])
+   ```
+   To verify the trap fires, replace the try action with one that errors (e.g. `{"type": "execute_macro", "target_macro": "DoesNotExist"}`), `km_execute_macro` the wrapper, then `km_variable_manager get Caught` — should be `"yes"`.
+4. **Variable / Text condition value preservation** (the bug that affected every shipped if/then/else and add_condition):
+   ```
+   km_add_condition(macro_identifier=<scratch>, condition_type="variable",
+     operator="equals", operand="MyVar=ABCXYZ123")
+   ```
+   Read back the appended IfThenElse action via `km_action_builder list` — the condition should display "MyVar is ABCXYZ123" (NOT "MyVar is value", which was the pre-fix symptom). If you see "value" the round-6 fix didn't activate.
+5. **set_enabled rejection message** — `km_trigger_manager set_enabled` should return error mentioning "KM 11 stores no per-trigger enabled bit" and pointing to `km_macro_editor set_enabled`.
+6. **refresh_templates name coerce** — `km_refresh_action_templates(macro_id=<a name, not a UUID>, confirm=true, limit=1)` should succeed and report `data.resolved_macro_id`.
+7. **arrange post-bounds flag** — `km_window_manager(operation="arrange", window_identifier="Finder", arrangement="left_half")` response includes `window_info_source` field with value `"post_operation"` or `"pre_operation"`.
+
+### B. Round-7 switch + templates (commit `fd59947`)
+
+8. **switch_case (Variable source + Otherwise)**:
+   ```
+   km_control_flow(macro_identifier=<scratch>, control_type="switch_case",
+     source="Variable", condition="MyVar",
+     cases=[
+       {"condition_type": "Is", "test_value": "v1", "actions": [{"type": "pause", "seconds": 0.1}]},
+       {"condition_type": "Contains", "test_value": "v2", "actions": [{"type": "pause", "seconds": 0.1}]},
+     ],
+     default_actions=[{"type": "set_variable", "variable": "FellThrough", "text": "yes"}])
+   ```
+   Expected: `data.case_count=3`, `data.has_otherwise=true`. KM displays "Switch on Variable MyVar" with three cases.
+9. **switch_case other sources** — repeat call 8 with `source="Clipboard"` (drop `condition`), `source="Calculation"` with `condition="1+1"`, `source="Text"` with `condition="%CurrentUser%"`. All four should succeed.
+10. **switch_case unsupported source** — `source="JSON"` should return `VALIDATION_ERROR` listing the 5 supported values; KM should NOT silently coerce. (If our pre-validation lets it through, KM will normalize to `Clipboard` — which is the bug we're guarding against.)
+11. **Templates with parameters — all 5 atomic creates**:
+    ```
+    km_create_macro(name="T_AppLauncher", template="app_launcher",
+      group_name="KM MCP R6 Sandbox",
+      parameters={"app_name": "Finder", "bundle_id": "com.apple.finder"})
+    ```
+    Repeat for each template: `text_expansion` (`expansion_text`), `file_processor` (`script`), `window_manager` (`operation`, `x`, `y`, `width`, `height`), `hotkey_action` (`action`, `text`, `hotkey`, `modifiers`). Each should return `success=true` and the resulting macro should have exactly the expected action count via `km_action_builder list`. `hotkey_action` additionally needs `data.hotkey_attached=true` and the trigger should appear in `km_list_hotkey_triggers`.
+12. **Template with unsupported inner action** — `km_create_macro(template="hotkey_action", parameters={"action": "wave_hands", ...})` should return `UNSUPPORTED_TEMPLATE_ACTION` naming the offender.
+13. **f23cd30 alert-duration fix** (folded into the round-6 restart cycle) — `km_notifications(notification_type="alert", title="t", message="m", duration=5)` should return `success=true` without crashing.
+
+### C. Regression sweep (anything we touched but didn't intend to change)
+
+14. Re-run any tool that previously appeared in "Worked out-of-the-box" — focus on `km_engine_control` ops, `km_variable_manager` (all 4 ops), `km_macro_editor` (all 5 ops), `km_action_builder` (all 4 ops). Each should still pass — if anything regresses, the round-6/7 changes leaked into a shared code path.
+
+### Sandbox cleanup
+
+After each section, `km_macro_editor delete` for any sandbox macros. Leave the `KM MCP R6 Sandbox` group itself in place for future runs.
+
+### Reporting
+
+Use the format from prior rounds (round 4 in `docs/km_mcp_audit_report.md`): one line per check with PASS / PARTIAL / FAIL + a one-sentence note for anything not PASS. Append a "round 8" section to the audit report with the matrix.
+
 ## How to reproduce
 
 The full smoke harness is in:
