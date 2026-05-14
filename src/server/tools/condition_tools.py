@@ -1,8 +1,21 @@
-"""Condition tools for adding conditional logic to Keyboard Maestro macros.
+"""Append an IfThenElse action to a macro from a flat condition spec.
 
-This module implements the km_add_condition MCP tool that enables intelligent automation
-through comprehensive conditional logic, supporting text, application, system, and variable
-conditions with advanced security validation and functional programming patterns.
+@stable km_add_condition wraps the shared IfThenElse XML emitter
+(src/integration/km_if_then_else_xml.py) so callers can attach a single
+conditional branch without hand-building plist. For multi-condition
+matching, nested control flow, or arbitrary inner actions, prefer
+km_control_flow (if_then_else mode) or km_action_builder paste_xml.
+
+Decision record: the previous implementation emitted a top-level
+``<condition>`` element on the macro that KM never accepted ("variable
+condition is not defined" error). KM has no per-macro condition; the
+only writable surface is the IfThenElse action's ConditionList. This
+rewrite generates that action XML instead.
+
+Failure modes:
+- VALIDATION_ERROR: missing macro_id / operand, or unmappable
+  condition_type/operator.
+- APPEND_FAILED: KM rejected the action (missing macro, engine down).
 """
 
 from typing import Any
@@ -13,75 +26,120 @@ except ImportError:
     Server = None
 
 from src.core.logging import get_logger
+from src.core.types import MacroId
+from src.integration.km_if_then_else_xml import (
+    UnsupportedConditionType,
+    UnsupportedOperator,
+    build_condition_dict,
+    build_execute_macro_action,
+    build_if_then_else_xml,
+)
+from src.server.initialization import get_km_client
 
 logger = get_logger(__name__)
 
 
-async def km_add_condition(
-    macro_identifier: str,  # Target macro (name or UUID)
-    condition_type: str,  # text|application|system|variable|logic
-    operator: str,  # contains|equals|greater|less|regex|exists
-    operand: str,  # Comparison value with validation
-    case_sensitive: bool = True,  # Text comparison sensitivity
-    negate: bool = False,  # Invert condition result
-    action_on_true: str | None = None,  # Action for true condition
-    action_on_false: str | None = None,  # Action for false condition
-    timeout_seconds: int = 10,  # Condition evaluation timeout
-    ctx: Any = None,
-) -> dict[str, Any]:
-    """Add conditional logic to a Keyboard Maestro macro for intelligent automation.
-
-    @deprecated KM AppleScript has no top-level `make new condition` on a macro;
-    conditions only exist inside If Then Else / While / Pause Until action XML.
-    The previous implementation generated a `<condition>` element and was always
-    rejected by KM with "The variable condition is not defined". This tool now
-    short-circuits with UNSUPPORTED_OPERATION mirroring km_control_flow.
-
-    Args:
-        macro_identifier: Target macro name or UUID
-        condition_type: Type of condition (text, application, system, variable, logic)
-        operator: Comparison operator (contains, equals, greater, less, regex, exists)
-        operand: Value to compare against
-        case_sensitive: Whether text comparisons are case sensitive
-        negate: Whether to invert the condition result
-        action_on_true: Optional action to execute when condition is true
-        action_on_false: Optional action to execute when condition is false
-        timeout_seconds: Maximum time to evaluate condition
-
-    Returns:
-        Dict containing condition ID, validation status, and integration details
-
-    Raises:
-        ValidationError: If condition parameters are invalid
-        SecurityError: If condition contains security risks
-        PermissionDeniedError: If insufficient permissions for condition type
-
-    """
-    logger.warning(
-        "km_add_condition called for macro=%s type=%s op=%s; "
-        "feature is not yet implemented (see deprecated docstring).",
-        macro_identifier,
-        condition_type,
-        operator,
-    )
+def _failure(code: str, message: str, suggestion: str) -> dict[str, Any]:
     return {
         "success": False,
-        "error": {
-            "code": "UNSUPPORTED_OPERATION",
-            "message": (
-                "km_add_condition is not yet implemented. KM has no top-level "
-                "'condition' element on a macro; conditions live inside If Then Else, "
-                "While, and Pause Until actions."
-            ),
-            "recovery_suggestion": (
-                "Build the surrounding If Then Else action XML by hand and append it "
-                "with km_action_builder(operation='append', action_type='paste_xml')."
-            ),
-        },
-        "metadata": {
-            "macro_identifier": macro_identifier,
+        "error": {"code": code, "message": message, "recovery_suggestion": suggestion},
+    }
+
+
+async def km_add_condition(
+    macro_identifier: str,
+    condition_type: str,
+    operator: str,
+    operand: str,
+    case_sensitive: bool = True,
+    negate: bool = False,
+    action_on_true: str | None = None,
+    action_on_false: str | None = None,
+    timeout_seconds: int = 10,
+    ctx: Any = None,
+) -> dict[str, Any]:
+    """Append a single-condition IfThenElse action to ``macro_identifier``.
+
+    Args:
+        macro_identifier: Target macro name or UUID.
+        condition_type: One of ``variable``, ``text``, ``application``,
+            ``calculation``. The legacy values ``system`` and ``logic`` are
+            rejected (no direct KM mapping).
+        operator: ``equals``, ``contains``, ``greater``, ``less``,
+            ``regex``, ``exists`` etc. — mapped per condition_type.
+        operand: For ``variable`` / ``text``: ``"VarName=compare"`` (or
+            just ``"VarName"`` for exists/empty checks). For
+            ``application``: bundle id or app name. For ``calculation``:
+            the KM expression.
+        case_sensitive: Honored for text conditions only.
+        negate: Invert the condition.
+        action_on_true: Optional macro name/UID; emitted as one
+            ExecuteMacro inner action inside ThenActions.
+        action_on_false: Same, for ElseActions.
+        timeout_seconds: Carried into ``TimeOutAbortsMacro`` (kept true
+            by default; the seconds value is informational here because
+            KM stores it on the surrounding action).
+        ctx: MCP context (unused).
+
+    Returns:
+        ``{"success": True, "data": {"macro_id", "macro_action_type"}}``
+        on success; failure envelope otherwise.
+    """
+    del ctx, timeout_seconds
+    if not macro_identifier or not macro_identifier.strip():
+        return _failure(
+            "VALIDATION_ERROR",
+            "macro_identifier is required.",
+            "Pass the macro UUID or unique name.",
+        )
+
+    try:
+        condition_xml = build_condition_dict(
+            condition_type,
+            operator,
+            operand,
+            case_sensitive=case_sensitive,
+            negate=negate,
+        )
+    except (UnsupportedConditionType, UnsupportedOperator) as exc:
+        logger.warning(
+            "km_add_condition rejected unsupported spec: type=%s op=%s err=%s",
+            condition_type,
+            operator,
+            exc,
+        )
+        return _failure(
+            "UNSUPPORTED_OPERATION" if isinstance(exc, UnsupportedConditionType)
+            else "VALIDATION_ERROR",
+            str(exc),
+            "See km_add_condition docstring for supported condition_type / operator combos.",
+        )
+
+    then_xml = build_execute_macro_action(action_on_true) if action_on_true else ""
+    else_xml = build_execute_macro_action(action_on_false) if action_on_false else ""
+    action_xml = build_if_then_else_xml(condition_xml, then_xml, else_xml)
+
+    result = await get_km_client().append_macro_action_async(
+        MacroId(macro_identifier.strip()),
+        action_xml,
+    )
+    if result.is_left():
+        err = result.get_left()
+        logger.warning("km_add_condition append failed: macro=%s err=%s", macro_identifier, err.message)
+        return _failure(
+            "APPEND_FAILED",
+            err.message,
+            "Verify the macro exists and KM engine is running.",
+        )
+    return {
+        "success": True,
+        "data": {
+            "macro_id": macro_identifier,
+            "macro_action_type": "IfThenElse",
             "condition_type": condition_type,
             "operator": operator,
+            "then_inner_actions": 1 if action_on_true else 0,
+            "else_inner_actions": 1 if action_on_false else 0,
         },
     }
 
