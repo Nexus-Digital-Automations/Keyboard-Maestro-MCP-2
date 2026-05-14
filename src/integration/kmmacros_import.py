@@ -190,13 +190,14 @@ async def create_empty_macro(
         group_name, group_uid, new_name, macro_uid, actions_xml,
     )
 
-    tmp = tempfile.NamedTemporaryFile(
+    # delete=False because KM imports the file by path; we unlink in finally.
+    with tempfile.NamedTemporaryFile(
         suffix=".kmmacros", delete=False, prefix="km_mcp_create_",
-    )
-    try:
+    ) as tmp:
         tmp.write(plist_bytes)
-        tmp.close()
-        import_result = await _ask_km_to_import(km_client, tmp.name)
+        tmp_path = tmp.name
+    try:
+        import_result = await _ask_km_to_import(km_client, tmp_path)
         if import_result.is_left():
             logger.error("kmmacros import failed for %s in %s", new_name, group_name)
             return Either.left(import_result.get_left())
@@ -220,6 +221,6 @@ async def create_empty_macro(
         )
     finally:
         try:
-            os.unlink(tmp.name)
+            os.unlink(tmp_path)
         except OSError:
-            logger.warning("Failed to unlink temp .kmmacros file %s", tmp.name)
+            logger.warning("Failed to unlink temp .kmmacros file %s", tmp_path)
