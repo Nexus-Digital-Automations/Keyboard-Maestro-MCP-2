@@ -109,3 +109,4 @@ uv.lock
 .pre-commit-config.yaml.lock
 # Claude Code local session data
 .claude/
+.claude-session.pid
