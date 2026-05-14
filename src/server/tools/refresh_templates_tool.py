@@ -21,10 +21,12 @@ import logging
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Annotated, Any
+from typing import TYPE_CHECKING, Annotated, Any
 
-from fastmcp import Context
 from pydantic import Field
+
+if TYPE_CHECKING:
+    from fastmcp import Context
 
 from ._action_templates import load_templates
 from .core_tools import _UUID_RE, _resolve_macro_uuid
