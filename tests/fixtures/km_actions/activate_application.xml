@@ -1,0 +1,21 @@
+<dict>
+	<key>AllWindows</key>
+	<true/>
+	<key>AlreadyActivatedActionType</key>
+	<string>Normal</string>
+	<key>Application</key>
+	<dict>
+		<key>BundleIdentifier</key>
+		<string>com.apple.finder</string>
+		<key>Name</key>
+		<string>Finder</string>
+		<key>NewFile</key>
+		<string>/System/Library/CoreServices/Finder.app</string>
+	</dict>
+	<key>MacroActionType</key>
+	<string>ActivateApplication</string>
+	<key>ReopenWindows</key>
+	<false/>
+	<key>TimeOutAbortsMacro</key>
+	<true/>
+</dict>

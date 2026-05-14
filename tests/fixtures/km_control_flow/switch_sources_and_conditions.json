@@ -1,0 +1,11 @@
+{
+  "_": "KM 11 Switch action surface. Captured 2026-05-14 by inject-and-readback probe. KM rejects (silently normalizes to 'Clipboard' / 'Contains') anything outside these sets.",
+  "sources": {
+    "Variable": {"Variable": "<var-name>"},
+    "Clipboard": {},
+    "NamedClipboard": {"NamedClipboardName": "<KM clipboard UID>", "RedundandDisplayName": "<display name>"},
+    "Calculation": {"Calculation": "<expression>"},
+    "Text": {"Text": "<source text with token expansion>"}
+  },
+  "case_condition_types": ["Is", "IsNot", "Contains", "DoesNotContain", "Otherwise"]
+}

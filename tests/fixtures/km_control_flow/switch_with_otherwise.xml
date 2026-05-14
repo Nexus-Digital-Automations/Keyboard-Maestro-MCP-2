@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ActionUID</key>
+	<integer>3300</integer>
+	<key>CaseEntries</key>
+	<array>
+		<dict>
+			<key>Actions</key>
+			<array/>
+			<key>ConditionType</key>
+			<string>Is</string>
+			<key>TestValue</key>
+			<string>v1</string>
+		</dict>
+		<dict>
+			<key>Actions</key>
+			<array/>
+			<key>ConditionType</key>
+			<string>IsNot</string>
+			<key>TestValue</key>
+			<string>v2</string>
+		</dict>
+		<dict>
+			<key>Actions</key>
+			<array/>
+			<key>ConditionType</key>
+			<string>Contains</string>
+			<key>TestValue</key>
+			<string>v3</string>
+		</dict>
+		<dict>
+			<key>Actions</key>
+			<array/>
+			<key>ConditionType</key>
+			<string>DoesNotContain</string>
+			<key>TestValue</key>
+			<string>v4</string>
+		</dict>
+		<dict>
+			<key>Actions</key>
+			<array/>
+			<key>ConditionType</key>
+			<string>Otherwise</string>
+			<key>TestValue</key>
+			<string></string>
+		</dict>
+	</array>
+	<key>MacroActionType</key>
+	<string>Switch</string>
+	<key>Source</key>
+	<string>Variable</string>
+	<key>Variable</key>
+	<string>MyVar</string>
+</dict>
+</plist>
+
+

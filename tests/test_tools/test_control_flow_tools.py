@@ -151,32 +151,29 @@ class TestKMControlFlowTool:
 
     @pytest.mark.asyncio
     async def test_switch_case_success(self, mock_context: Any) -> None:
-        """Test successful switch/case creation."""
-        with patch(
-            "src.server.tools.control_flow_tools._apply_control_flow_to_macro",
-        ) as mock_apply:
-            mock_apply.return_value = {"applied": True, "macro_id": "test_macro"}
-
-            cases = [
-                {"value": "Safari", "actions": [{"type": "screenshot"}]},
-                {"value": "Chrome", "actions": [{"type": "export_bookmarks"}]},
-            ]
-
-            result = await km_control_flow(
+        """switch_case emits a Switch action with cases + Otherwise sentinel."""
+        result = await _run_with_mocked_append(
+            km_control_flow(
                 macro_identifier="test_macro",
                 control_type="switch_case",
-                condition="frontmost_application",
-                cases=cases,
-                default_actions=[
-                    {"type": "show_notification", "text": "Unsupported app"},
+                source="Variable",
+                condition="MyVar",
+                cases=[
+                    {"condition_type": "Is", "test_value": "v1",
+                     "actions": [{"type": "pause", "seconds": 0.1}]},
+                    {"condition_type": "Contains", "test_value": "v2",
+                     "actions": [{"type": "pause", "seconds": 0.1}]},
                 ],
+                default_actions=[{"type": "set_variable", "variable": "FellThrough", "text": "yes"}],
                 ctx=mock_context,
-            )
-
+            ),
+        )
         assert result["success"] is True
         assert result["data"]["control_type"] == "switch_case"
-        assert result["data"]["structure_info"]["case_count"] == 2
-        assert result["data"]["structure_info"]["has_default"] is True
+        assert result["data"]["macro_action_type"] == "Switch"
+        assert result["data"]["source"] == "Variable"
+        assert result["data"]["case_count"] == 3  # 2 explicit + 1 Otherwise
+        assert result["data"]["has_otherwise"] is True
 
     @pytest.mark.asyncio
     async def test_validation_error(self, mock_context: Any) -> None:

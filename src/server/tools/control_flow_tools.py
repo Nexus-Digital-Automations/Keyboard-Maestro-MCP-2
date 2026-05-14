@@ -21,7 +21,6 @@ from ...core.control_flow import (
     ControlFlowValidator,
     ForLoopNode,
     IfThenElseNode,
-    SecurityLimits,
     SwitchCaseNode,
     TryCatchNode,
     WhileLoopNode,
@@ -43,6 +42,13 @@ from ...integration.km_if_then_else_xml import (
     build_condition_dict,
     build_if_then_else_xml,
 )
+from ...integration.km_switch_case_xml import (
+    SUPPORTED_CASE_CONDITIONS,
+    SUPPORTED_SOURCES,
+    UnsupportedCaseCondition,
+    build_switch_case_xml,
+    render_cases,
+)
 from ...integration.km_try_catch_xml import build_try_catch_xml
 from ...integration.km_while_loop_xml import (
     build_until_loop_xml,
@@ -61,6 +67,7 @@ async def km_control_flow(  # noqa: PLR0913 - public MCP tool surface
     iterator: str | None = None,
     collection: str | None = None,
     collection_dict: dict[str, Any] | None = None,
+    source: str = "Variable",
     cases: list[dict[str, Any]] | None = None,
     actions_true: list[dict[str, Any]] | None = None,
     actions_false: list[dict[str, Any]] | None = None,
@@ -229,145 +236,24 @@ async def km_control_flow(  # noqa: PLR0913 - public MCP tool surface
             start_time=start_time,
             ctx=ctx,
         )
-
-    try:
-
-        # Create security validator with limits
-        security_limits = SecurityLimits(
-            max_iterations=min(max_iterations, 10000),
-            max_timeout_seconds=min(timeout_seconds, 300),
-            max_nesting_depth=10 if allow_nested else 1,
+    if control_type == "switch_case":
+        return await _emit_switch_case(
+            macro_identifier=macro_identifier,
+            source=source,
+            source_value=condition or "",
+            cases=cases,
+            default_actions=default_actions,
+            start_time=start_time,
+            ctx=ctx,
         )
-        validator = ControlFlowValidator(security_limits)
-
-        # Build control flow structure based on type
-        control_flow_node = await _build_control_flow_structure(
-            control_type,
-            condition,
-            operator,
-            operand,
-            iterator,
-            collection,
-            cases,
-            actions_true,
-            actions_false,
-            loop_actions,
-            default_actions,
-            max_iterations,
-            case_sensitive,
-            negate,
-            validator,
-            ctx,
-        )
-
-        # Generate safe AppleScript/XML for Keyboard Maestro
-        km_integration = await _generate_km_control_flow(
-            control_flow_node,
-            macro_identifier,
-            ctx,
-        )
-
-        # Apply to target macro
-        await _apply_control_flow_to_macro(macro_identifier, km_integration, ctx)
-
-        execution_time = (datetime.now() - start_time).total_seconds()
-
-        if ctx:
-            await ctx.info(f"Control flow added successfully in {execution_time:.3f}s")
-
-        return {
-            "success": True,
-            "data": {
-                "control_flow_id": control_flow_node.node_id,
-                "control_type": control_type,
-                "macro_id": macro_identifier,
-                "execution_time": execution_time,
-                "structure_info": _get_structure_info(control_flow_node),
-                "security_validation": "passed",
-                "km_integration": km_integration,
-            },
-            "metadata": {
-                "timestamp": datetime.now().isoformat(),
-                "server_version": "1.0.0",
-                "correlation_id": f"cf_{control_flow_node.node_id}",
-            },
-        }
-
-    except ValidationError as e:
-        if ctx:
-            await ctx.error(f"Validation error: {e}")
-        return {
-            "success": False,
-            "error": {
-                "code": "VALIDATION_ERROR",
-                "message": str(e),
-                "details": "Control flow parameters failed validation",
-                "recovery_suggestion": "Check parameter format and security requirements",
-            },
-            "metadata": {
-                "timestamp": datetime.now().isoformat(),
-                "correlation_id": f"error_{macro_identifier}",
-            },
-        }
-
-    except SecurityError as e:
-        if ctx:
-            await ctx.error(f"Security error: {e}")
-        return {
-            "success": False,
-            "error": {
-                "code": "SECURITY_ERROR",
-                "message": str(e),
-                "details": "Control flow failed security validation",
-                "recovery_suggestion": "Remove dangerous patterns and reduce complexity",
-            },
-            "metadata": {
-                "timestamp": datetime.now().isoformat(),
-                "correlation_id": f"security_error_{macro_identifier}",
-            },
-        }
-
-    except NotImplementedError as e:
-        if ctx:
-            await ctx.error(f"Control flow not implemented: {e}")
-        return {
-            "success": False,
-            "error": {
-                "code": "UNSUPPORTED_OPERATION",
-                "message": str(e),
-                "details": (
-                    "km_control_flow currently validates inputs but does not "
-                    "yet write the resulting If-Then-Else / For Each / While / "
-                    "Switch action XML to the target macro."
-                ),
-                "recovery_suggestion": (
-                    "Build the action XML by hand and append it with "
-                    "km_action_builder.append, or wait for the dedicated "
-                    "control-flow XML emitter."
-                ),
-            },
-            "metadata": {
-                "timestamp": datetime.now().isoformat(),
-                "correlation_id": f"unsupported_{macro_identifier}",
-            },
-        }
-
-    except Exception as e:
-        if ctx:
-            await ctx.error(f"Unexpected error: {e}")
-        return {
-            "success": False,
-            "error": {
-                "code": "EXECUTION_ERROR",
-                "message": "Failed to add control flow to macro",
-                "details": str(e),
-                "recovery_suggestion": "Check macro existence and Keyboard Maestro status",
-            },
-            "metadata": {
-                "timestamp": datetime.now().isoformat(),
-                "correlation_id": f"exec_error_{macro_identifier}",
-            },
-        }
+    # Validator already rejects unknown control_type, so this is unreachable.
+    # Kept as a defensive fallthrough only.
+    return _validation_failure(
+        f"control_type {control_type!r} reached dispatcher without an emitter "
+        "branch. This is a bug — file an issue.",
+        "Use one of: if_then_else, for_loop, while_loop, until_loop, switch_case, try_catch.",
+        macro_identifier,
+    )
 
 
 async def _validate_control_flow_inputs(  # noqa: PLR0913 - shared validator
@@ -634,74 +520,6 @@ async def _build_control_flow_structure(
         if ctx:
             await ctx.error(f"Failed to build control flow structure: {e}")
         raise
-
-
-async def _generate_km_control_flow(
-    node: ControlFlowNodeType,
-    _macro_identifier: str,
-    ctx: Context | None,
-) -> dict[str, Any]:
-    """Generate Keyboard Maestro compatible control flow structures."""
-    if ctx:
-        await ctx.info("Generating Keyboard Maestro integration")
-
-    # This would generate appropriate XML/AppleScript for Keyboard Maestro
-    # For now, return a structured representation
-    integration = {
-        "km_action_type": _get_km_action_type(node),
-        "km_xml": _generate_km_xml(node),
-        "validation_info": {
-            "node_type": type(node).__name__,
-            "node_id": node.node_id,
-            "depth": node.depth,
-            "created_at": node.created_at.isoformat(),
-        },
-    }
-
-    return integration
-
-
-def _get_km_action_type(node: ControlFlowNodeType) -> str:
-    """Get the corresponding Keyboard Maestro action type."""
-    if isinstance(node, IfThenElseNode):
-        return "If Then Else"
-    if isinstance(node, ForLoopNode):
-        return "For Each"
-    if isinstance(node, WhileLoopNode):
-        return "While"
-    if isinstance(node, SwitchCaseNode):
-        return "Switch"
-    if isinstance(node, TryCatchNode):
-        return "Try Catch"
-    return "Unknown"
-
-
-def _generate_km_xml(node: ControlFlowNodeType) -> str:
-    """Generate XML representation for Keyboard Maestro."""
-    # This would generate the actual XML that Keyboard Maestro expects
-    # For now, return a placeholder structure
-    return f"<ControlFlow type='{type(node).__name__}' id='{node.node_id}'/>"
-
-
-async def _apply_control_flow_to_macro(
-    macro_identifier: str,
-    km_integration: dict[str, Any],
-    ctx: Context | None,
-) -> dict[str, Any]:
-    """KM 11 control-flow application is not yet implemented.
-
-    The earlier body returned ``{"applied": True}`` without writing
-    anything to KM. Real implementation needs to emit one of KM's
-    If-Then-Else / For Each / While / Switch action XMLs (with nested
-    actions) and append it via ``append_macro_action_async``. Until that
-    lands we refuse loudly rather than silently succeeding.
-    """
-    del macro_identifier, ctx
-    raise NotImplementedError(
-        f"km_control_flow: applying {km_integration.get('km_action_type', 'unknown')} "
-        "to macros is not implemented yet. Use km_action_builder with a hand-built "
-        "action XML in the meantime.",
-    )
 
 
 def _get_structure_info(node: ControlFlowNodeType) -> dict[str, Any]:
@@ -1138,6 +956,70 @@ async def _emit_try_catch(
         extra={
             "try_action_count": len(try_actions or []),
             "catch_action_count": len(catch_actions or []),
+        },
+        start_time=start_time,
+    )
+
+
+async def _emit_switch_case(  # noqa: PLR0913 - thin wrapper over user args
+    macro_identifier: str,
+    source: str,
+    source_value: str,
+    cases: list[dict[str, Any]] | None,
+    default_actions: list[dict[str, Any]] | None,
+    start_time: datetime,
+    ctx: Context | None,
+) -> dict[str, Any]:
+    """Build a Switch action with one Source + N CaseEntries (incl. optional Otherwise)."""
+    if not cases and not default_actions:
+        types_csv = ", ".join(SUPPORTED_CASE_CONDITIONS)
+        return _validation_failure(
+            "switch_case requires at least one case or default_actions. "
+            f"Each case = {{condition_type, test_value, actions}}; "
+            f"condition_type in {types_csv}.",
+            "Example: cases=[{'condition_type': 'Is', 'test_value': 'foo', 'actions': [...]}].",
+            macro_identifier,
+        )
+    if source not in SUPPORTED_SOURCES:
+        types_csv = ", ".join(sorted(SUPPORTED_SOURCES))
+        return _validation_failure(
+            f"source {source!r} not supported. Supported: {types_csv}.",
+            "Pass source='Variable' (default) and condition='MyVar', or source='Calculation' with condition='1+1'.",
+            macro_identifier,
+        )
+
+    all_cases = list(cases or [])
+    if default_actions:
+        # KM stores 'default' as a sentinel CaseEntry — no separate plist key.
+        all_cases.append(
+            {"condition_type": "Otherwise", "test_value": "", "actions": default_actions},
+        )
+
+    try:
+        case_entries_xml = render_cases(all_cases, _render_inner_actions)
+    except (UnsupportedCaseCondition, ValueError) as exc:
+        if ctx:
+            await ctx.error(f"switch_case render failed: {exc}")
+        return _validation_failure(
+            str(exc),
+            "Check each case's condition_type and inner action_type.",
+            macro_identifier,
+        )
+
+    action_xml = build_switch_case_xml(
+        source, case_entries_xml, source_value=source_value,
+    )
+    failure = await _append_action_xml(macro_identifier, action_xml, ctx)
+    if failure is not None:
+        return failure
+    return _success(
+        control_type="switch_case",
+        macro_action_type="Switch",
+        macro_identifier=macro_identifier,
+        extra={
+            "source": source,
+            "case_count": len(all_cases),
+            "has_otherwise": any(c.get("condition_type") == "Otherwise" for c in all_cases),
         },
         start_time=start_time,
     )

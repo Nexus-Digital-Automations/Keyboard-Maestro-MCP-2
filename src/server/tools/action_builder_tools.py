@@ -127,6 +127,12 @@ def _build_action_xml(action_type: str, config: dict[str, Any]) -> str | None:
             f"<key>Macro</key><string>{_xml_escape(str(target))}</string>"
             "</dict>"
         )
+    if action_type == "activate_application":
+        return _build_activate_application_xml(config)
+    if action_type == "manipulate_window":
+        return _build_manipulate_window_xml(config)
+    if action_type == "execute_shell_script":
+        return _build_execute_shell_script_xml(config)
     if action_type == "plug_in":
         return _build_plug_in_xml(config)
     if action_type == "paste_xml":
@@ -169,6 +175,104 @@ def _resolve_plug_in_folder_name(identifier: str) -> str | None:
         if target in (spec["identifier"], folder):
             return folder
     return None
+
+
+def _build_activate_application_xml(config: dict[str, Any]) -> str | None:
+    """Emit an ``ActivateApplication`` action plist.
+
+    Config: ``app_name`` and ``bundle_id`` (at least one required), optional
+    ``app_path`` (NewFile in plist), ``all_windows`` (default true),
+    ``reopen_windows`` (default false), ``already_activated`` (Normal /
+    Hide / SwitchToLast — KM defaults Normal).
+    """
+    app_name = str(config.get("app_name", ""))
+    bundle_id = str(config.get("bundle_id", ""))
+    if not app_name and not bundle_id:
+        return None
+    path = str(config.get("app_path", ""))
+    all_windows = config.get("all_windows", True)
+    reopen = config.get("reopen_windows", False)
+    already = str(config.get("already_activated", "Normal"))
+    path_key = (
+        f"<key>NewFile</key><string>{_xml_escape(path)}</string>" if path else ""
+    )
+    return (
+        "<dict>"
+        f"<key>AllWindows</key><{'true' if all_windows else 'false'}/>"
+        f"<key>AlreadyActivatedActionType</key><string>{_xml_escape(already)}</string>"
+        "<key>Application</key>"
+        "<dict>"
+        f"<key>BundleIdentifier</key><string>{_xml_escape(bundle_id)}</string>"
+        f"<key>Name</key><string>{_xml_escape(app_name)}</string>"
+        f"{path_key}"
+        "</dict>"
+        "<key>MacroActionType</key><string>ActivateApplication</string>"
+        f"<key>ReopenWindows</key><{'true' if reopen else 'false'}/>"
+        "<key>TimeOutAbortsMacro</key><true/>"
+        "</dict>"
+    )
+
+
+def _build_manipulate_window_xml(config: dict[str, Any]) -> str | None:
+    """Emit a ``ManipulateWindow`` action plist.
+
+    Config: ``action`` (Move / Resize / SelectWindow / Close / Minimize / Zoom
+    — KM has many; pass through), ``targeting`` (FrontWindow / NamedWindow
+    / SpecificWindow), ``x`` / ``y`` / ``width`` / ``height`` (calculation
+    expressions, strings), ``window_index`` (calculation expression for
+    SpecificWindow), ``window_name`` (for NamedWindow).
+    """
+    action = str(config.get("action", "MoveAndResize"))
+    targeting = str(config.get("targeting", "FrontWindow"))
+    targeting_type = "Front" if targeting == "FrontWindow" else "Specific"
+    return (
+        "<dict>"
+        f"<key>Action</key><string>{_xml_escape(action)}</string>"
+        f"<key>HeightExpression</key><string>{_xml_escape(str(config.get('height', '300')))}</string>"
+        f"<key>HorizontalExpression</key><string>{_xml_escape(str(config.get('x', '125')))}</string>"
+        "<key>MacroActionType</key><string>ManipulateWindow</string>"
+        "<key>TargetApplication</key><dict/>"
+        f"<key>Targeting</key><string>{_xml_escape(targeting)}</string>"
+        f"<key>TargetingType</key><string>{_xml_escape(targeting_type)}</string>"
+        f"<key>VerticalExpression</key><string>{_xml_escape(str(config.get('y', '125')))}</string>"
+        f"<key>WidthExpression</key><string>{_xml_escape(str(config.get('width', '300')))}</string>"
+        f"<key>WindowIndexExpression</key><string>{_xml_escape(str(config.get('window_index', '1')))}</string>"
+        f"<key>WindowName</key><string>{_xml_escape(str(config.get('window_name', '')))}</string>"
+        "</dict>"
+    )
+
+
+def _build_execute_shell_script_xml(config: dict[str, Any]) -> str | None:
+    """Emit an ``ExecuteShellScript`` action plist.
+
+    Config: ``source`` (the shell script text — required), ``display`` (Window
+    / Briefly / TypeResults / PasteResults / SaveResultsToVariable / Nothing
+    — default Nothing), optional ``destination_variable`` for
+    SaveResultsToVariable.
+    """
+    source = str(config.get("source", ""))
+    if not source:
+        return None
+    display = str(config.get("display", "Nothing"))
+    dest_var = str(config.get("destination_variable", ""))
+    dest_key = (
+        f"<key>Variable</key><string>{_xml_escape(dest_var)}</string>" if dest_var else ""
+    )
+    return (
+        "<dict>"
+        f"<key>DisplayKind</key><string>{_xml_escape(display)}</string>"
+        "<key>HonourFailureSettings</key><true/>"
+        "<key>IncludeStdErr</key><false/>"
+        "<key>MacroActionType</key><string>ExecuteShellScript</string>"
+        "<key>Path</key><string></string>"
+        f"<key>Text</key><string>{_xml_escape(source)}</string>"
+        "<key>TimeOutAbortsMacro</key><true/>"
+        "<key>TrimResults</key><true/>"
+        "<key>TrimResultsNew</key><true/>"
+        "<key>UseText</key><true/>"
+        f"{dest_key}"
+        "</dict>"
+    )
 
 
 def _build_plug_in_xml(config: dict[str, Any]) -> str | None:

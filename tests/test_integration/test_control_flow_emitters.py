@@ -17,6 +17,12 @@ from src.integration.km_for_loop_xml import (
     build_for_loop_xml,
 )
 from src.integration.km_if_then_else_xml import build_condition_dict
+from src.integration.km_switch_case_xml import (
+    SUPPORTED_CASE_CONDITIONS,
+    SUPPORTED_SOURCES,
+    build_case_entry,
+    build_switch_case_xml,
+)
 from src.integration.km_try_catch_xml import build_try_catch_xml
 from src.integration.km_while_loop_xml import (
     build_until_loop_xml,
@@ -80,3 +86,50 @@ def test_try_catch_xml_has_required_keys() -> None:
     assert "<key>MacroActionType</key><string>TryCatch</string>" in xml
     assert "<key>TryActions</key><array></array>" in xml
     assert "<key>CatchActions</key><array></array>" in xml
+
+
+def test_switch_case_xml_has_required_keys() -> None:
+    entry = build_case_entry("Is", "v1", "")
+    xml = build_switch_case_xml("Variable", entry, source_value="MyVar")
+    assert "<key>MacroActionType</key><string>Switch</string>" in xml
+    assert "<key>Source</key><string>Variable</string>" in xml
+    assert "<key>Variable</key><string>MyVar</string>" in xml
+    assert "<key>CaseEntries</key>" in xml
+    assert "<string>Is</string>" in xml
+    assert "<string>v1</string>" in xml
+
+
+def test_switch_case_supports_all_5_KM_sources() -> None:
+    # KM 11 Switch accepts exactly 5 Source values (verified by
+    # inject-and-readback probe; KM normalizes anything else to 'Clipboard').
+    assert len(SUPPORTED_SOURCES) == 5
+    for src in SUPPORTED_SOURCES:
+        xml = build_switch_case_xml(src, "", source_value="x")
+        assert f"<string>{src}</string>" in xml
+
+
+def test_switch_case_supports_all_5_case_condition_types() -> None:
+    # KM 11 Switch CaseEntry accepts exactly 5 ConditionType values
+    # (Is, IsNot, Contains, DoesNotContain, Otherwise).
+    assert len(SUPPORTED_CASE_CONDITIONS) == 5
+    for cond in SUPPORTED_CASE_CONDITIONS:
+        snippet = build_case_entry(cond, "v", "")
+        assert f"<string>{cond}</string>" in snippet
+
+
+def test_switch_case_default_is_otherwise_sentinel_entry() -> None:
+    # KM has no separate OtherwiseActions key — the default case is a
+    # CaseEntry with ConditionType=Otherwise.
+    entry = build_case_entry("Otherwise", "", "")
+    assert "<key>ConditionType</key><string>Otherwise</string>" in entry
+
+
+def test_switch_case_named_clipboard_uses_typo_RedundandDisplayName() -> None:
+    # KM's plist key really is "RedundandDisplayName" (typo preserved).
+    xml = build_switch_case_xml(
+        "NamedClipboard", "",
+        named_clipboard_name="abc-123",
+        named_clipboard_display="My Clip",
+    )
+    assert "<key>NamedClipboardName</key><string>abc-123</string>" in xml
+    assert "<key>RedundandDisplayName</key><string>My Clip</string>" in xml

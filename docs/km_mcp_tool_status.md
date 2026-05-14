@@ -38,6 +38,12 @@ out-of-the-box" = passed the 2026-05-14 smoke without code changes.
 
 ## Fixed in this session
 
+### round 7 — switch_case + template parameters (2026-05-14, session 20260514-145029-69306)
+
+- **`km_control_flow switch_case` — implemented.** New emitter `src/integration/km_switch_case_xml.py`. KM 11 Switch surface captured by inject-and-readback probe: 5 Source values (Variable / Clipboard / NamedClipboard / Calculation / Text) and 5 per-case ConditionType values (Is / IsNot / Contains / DoesNotContain / Otherwise). KM intentionally narrow — silently normalizes anything else to Clipboard / Contains. Default case is a sentinel CaseEntry with ConditionType=Otherwise (no separate plist key). Public surface adds `source: str` parameter (defaults "Variable"); existing `condition` carries the source value (variable name / calculation / text source); existing `cases` and `default_actions` honored. Live-verified against KM 11 for all 4 active source types.
+- **`km_create_macro` template parameters — implemented atomically.** All 5 templates (`app_launcher`, `text_expansion`, `file_processor`, `window_manager`, `hotkey_action`) now bake their action sequence into the `.kmmacros` plist before import. Single KM round-trip per create — no N+1 appends. Three new action emitters added to `_build_action_xml`: `activate_application`, `manipulate_window`, `execute_shell_script` (each verified against KM-canonical templates already in `km_action_templates.json`). Hotkey trigger attaches via `km_create_hotkey_trigger` after import for `hotkey_action`. Live-verified all 5 templates create real macros with correct action+trigger counts.
+- **Dead code removed.** `_apply_control_flow_to_macro`, `_generate_km_control_flow`, `_get_km_action_type`, `_generate_km_xml`, and the entire `src/integration/km_control_flow.py` module deleted (verified zero callers via `references_to`). All 5 emitter modes route directly via dedicated emitters now.
+
 ### round 6 — control-flow emitters + condition-key bug + UX wins (2026-05-14, session 20260514-145029-69306)
 
 - **`km_control_flow` for_loop / while_loop / until_loop / try_catch — implemented.** Four new emitter modules (`src/integration/km_for_loop_xml.py`, `km_while_loop_xml.py`, `km_try_catch_xml.py`) plus four `_emit_*` dispatchers in `control_flow_tools.py`. KM-canonical XML captured against KM 11 by importing `.kmmacros` skeletons and reading back the normalized output (fixtures in `tests/fixtures/km_control_flow/`). for_loop supports all 13 KM editor collection types (Applications, Dictionaries, DictionaryKeys, Files, FinderSelection, FoundImages, JSON, LinesIn, PastClipboards, Range, SubstringsIn, Variables, Volumes) via a structured `collection_dict={'type': ..., ...}` parameter.
@@ -60,10 +66,8 @@ out-of-the-box" = passed the 2026-05-14 smoke without code changes.
 
 ## Documented limitations (partial coverage by design)
 
-- `km_control_flow switch_case` — still returns `UNSUPPORTED_OPERATION`. Deferred to PR2 (needs CaseEntry capture + emitter). Workaround: build the surrounding action XML and append via `km_action_builder(operation='append', action_type='paste_xml')`.
 - `km_trigger_manager set_enabled` — KM 11 trigger plists store no per-trigger enabled bit (verified 2026-05-14 by inject-and-read-back probe). Use `km_macro_editor set_enabled` for the parent macro's enabled state.
 - `km_window_manager` against Finder — move/resize/arrange AppleScript succeeds but Finder reuses window indices in surprising ways; `get_info` may poll the menubar instead of the moved window. Target-app issue, not a tool bug.
-- `km_create_macro template="hotkey_action"` with `parameters` — returns `UNSUPPORTED_TEMPLATE`. Deferred to PR2 (needs atomic .kmmacros plist build + new action emitters for activate_application / manipulate_window / execute_shell_script). Use `template="custom"` and attach the hotkey via `km_create_hotkey_trigger` after creation.
 - `km_create_plugin_action` `output_dir` — must be under the MCP server CWD; relative paths outside the server root are blocked by the path-traversal guard.
 
 ## How to reproduce
