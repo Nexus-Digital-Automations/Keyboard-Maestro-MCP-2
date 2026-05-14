@@ -300,6 +300,15 @@ class NotificationManager:
         start_time = time.time()
 
         try:
+            # `display alert` blocks until the user clicks, so if a duration was
+            # supplied translate it into AppleScript's `giving up after N` clause.
+            # AppleScript wants an integer second count; round up to keep small
+            # values usable, and skip the clause entirely when duration is None.
+            giving_up_clause = ""
+            if spec.duration is not None:
+                giving_up_seconds = max(1, int(round(spec.duration)))
+                giving_up_clause = f" ¬\n                giving up after {giving_up_seconds}"
+
             # Build AppleScript for alert dialog
             if spec.buttons:
                 buttons_str = "{" + ", ".join(f'"{btn}"' for btn in spec.buttons) + "}"
@@ -307,12 +316,12 @@ class NotificationManager:
                 display alert "{self._escape_applescript_string(spec.title)}" ¬
                 message "{self._escape_applescript_string(spec.message)}" ¬
                 buttons {buttons_str} ¬
-                default button 1
+                default button 1{giving_up_clause}
                 """
             else:
                 script = f"""
                 display alert "{self._escape_applescript_string(spec.title)}" ¬
-                message "{self._escape_applescript_string(spec.message)}"
+                message "{self._escape_applescript_string(spec.message)}"{giving_up_clause}
                 """
 
             # Execute through KM client
