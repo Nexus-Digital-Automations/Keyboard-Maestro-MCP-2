@@ -3,10 +3,10 @@
 Provides sophisticated control flow constructs (if/then/else, loops, switch/case)
 for creating intelligent, adaptive automation workflows.
 
-@stable if_then_else mode emits real KM IfThenElse action plist via the
-shared emitter and appends it to the target macro. Other modes
-(for_loop, while_loop, switch_case, try_catch) still validate inputs
-but raise NotImplementedError for the apply step.
+@stable Modes if_then_else, for_loop, while_loop, until_loop, and try_catch
+emit real KM action plist via dedicated emitters and append directly. The
+switch_case mode still uses the legacy AST path (AppendFails with
+NotImplementedError) until PR2 implements its emitter.
 """
 
 from datetime import datetime
@@ -31,17 +31,28 @@ from ...core.control_flow import (
 )
 from ...core.errors import SecurityError, ValidationError
 from ...core.types import MacroId
+from ...integration.km_for_loop_xml import (
+    SUPPORTED_COLLECTION_TYPES,
+    UnsupportedCollectionType,
+    build_collection_dict,
+    build_for_loop_xml,
+)
 from ...integration.km_if_then_else_xml import (
     UnsupportedConditionType,
     UnsupportedOperator,
     build_condition_dict,
     build_if_then_else_xml,
 )
+from ...integration.km_try_catch_xml import build_try_catch_xml
+from ...integration.km_while_loop_xml import (
+    build_until_loop_xml,
+    build_while_loop_xml,
+)
 from ..initialization import get_km_client
 from .action_builder_tools import _build_action_xml
 
 
-async def km_control_flow(
+async def km_control_flow(  # noqa: PLR0913 - public MCP tool surface
     macro_identifier: str,
     control_type: str,
     condition: str | None = None,
@@ -49,10 +60,13 @@ async def km_control_flow(
     operand: str | None = None,
     iterator: str | None = None,
     collection: str | None = None,
+    collection_dict: dict[str, Any] | None = None,
     cases: list[dict[str, Any]] | None = None,
     actions_true: list[dict[str, Any]] | None = None,
     actions_false: list[dict[str, Any]] | None = None,
     loop_actions: list[dict[str, Any]] | None = None,
+    try_actions: list[dict[str, Any]] | None = None,
+    catch_actions: list[dict[str, Any]] | None = None,
     default_actions: list[dict[str, Any]] | None = None,
     max_iterations: int = 1000,
     timeout_seconds: int = 30,
@@ -132,6 +146,46 @@ async def km_control_flow(
             f"Adding {control_type} control flow to macro: {macro_identifier}",
         )
 
+    # Shared validation runs before emitter dispatch — bounds, dangerous
+    # patterns, and macro-id sanity must apply uniformly across all modes.
+    try:
+        await _validate_control_flow_inputs(
+            macro_identifier,
+            control_type,
+            condition,
+            operator,
+            operand,
+            iterator,
+            collection,
+            max_iterations,
+            timeout_seconds,
+            ctx,
+            collection_dict=collection_dict,
+        )
+    except ValidationError as exc:
+        if ctx:
+            await ctx.error(f"Validation error: {exc}")
+        return _validation_failure(
+            str(exc),
+            "Check parameter format and security requirements.",
+            macro_identifier,
+        )
+    except SecurityError as exc:
+        if ctx:
+            await ctx.error(f"Security error: {exc}")
+        return {
+            "success": False,
+            "error": {
+                "code": "SECURITY_ERROR",
+                "message": str(exc),
+                "recovery_suggestion": "Remove dangerous patterns and reduce complexity.",
+            },
+            "metadata": {
+                "timestamp": datetime.now().isoformat(),
+                "correlation_id": f"security_error_{macro_identifier}",
+            },
+        }
+
     if control_type == "if_then_else":
         return await _emit_if_then_else(
             macro_identifier=macro_identifier,
@@ -145,21 +199,38 @@ async def km_control_flow(
             start_time=start_time,
             ctx=ctx,
         )
+    if control_type == "for_loop":
+        return await _emit_for_loop(
+            macro_identifier=macro_identifier,
+            iterator=iterator,
+            collection_dict=collection_dict,
+            loop_actions=loop_actions,
+            start_time=start_time,
+            ctx=ctx,
+        )
+    if control_type in {"while_loop", "until_loop"}:
+        return await _emit_while_or_until(
+            macro_identifier=macro_identifier,
+            control_type=control_type,
+            condition=condition,
+            operator=operator,
+            operand=operand,
+            loop_actions=loop_actions,
+            case_sensitive=case_sensitive,
+            negate=negate,
+            start_time=start_time,
+            ctx=ctx,
+        )
+    if control_type == "try_catch":
+        return await _emit_try_catch(
+            macro_identifier=macro_identifier,
+            try_actions=try_actions,
+            catch_actions=catch_actions,
+            start_time=start_time,
+            ctx=ctx,
+        )
 
     try:
-        # Validate inputs
-        await _validate_control_flow_inputs(
-            macro_identifier,
-            control_type,
-            condition,
-            operator,
-            operand,
-            iterator,
-            collection,
-            max_iterations,
-            timeout_seconds,
-            ctx,
-        )
 
         # Create security validator with limits
         security_limits = SecurityLimits(
@@ -299,7 +370,7 @@ async def km_control_flow(
         }
 
 
-async def _validate_control_flow_inputs(
+async def _validate_control_flow_inputs(  # noqa: PLR0913 - shared validator
     macro_identifier: str,
     control_type: str,
     condition: str | None,
@@ -310,6 +381,8 @@ async def _validate_control_flow_inputs(
     max_iterations: int,
     timeout_seconds: int,
     ctx: Context | None,
+    *,
+    collection_dict: dict[str, Any] | None = None,
 ) -> None:
     """Validate all control flow inputs for security and correctness."""
     # Validate macro identifier
@@ -324,7 +397,10 @@ async def _validate_control_flow_inputs(
         )
 
     # Validate control type
-    valid_types = {"if_then_else", "for_loop", "while_loop", "switch_case", "try_catch"}
+    valid_types = {
+        "if_then_else", "for_loop", "while_loop", "until_loop",
+        "switch_case", "try_catch",
+    }
     if control_type not in valid_types:
         raise ValidationError(
             "control_type",
@@ -353,7 +429,7 @@ async def _validate_control_flow_inputs(
         )
 
     # Validate condition for conditional types
-    if control_type in {"if_then_else", "while_loop"}:
+    if control_type in {"if_then_else", "while_loop", "until_loop"}:
         if not condition:
             raise ValidationError(
                 "condition",
@@ -403,16 +479,19 @@ async def _validate_control_flow_inputs(
                 iterator,
                 "For loop requires an iterator variable",
             )
-        if not collection:
+        if not collection_dict and not collection:
+            types_csv = ", ".join(SUPPORTED_COLLECTION_TYPES)
             raise ValidationError(
-                "collection",
-                collection,
-                "For loop requires a collection expression",
+                "collection_dict",
+                collection_dict,
+                "For loop requires collection_dict with key 'type' "
+                f"(supported types: {types_csv}). The legacy 'collection' "
+                "string param is no longer used.",
             )
 
         if len(iterator) > 50:
             raise ValidationError("iterator", iterator, "must be 50 characters or less")
-        if len(collection) > 500:
+        if collection and len(collection) > 500:
             raise ValidationError(
                 "collection",
                 collection,
@@ -848,3 +927,217 @@ def _validation_failure(message: str, suggestion: str, macro_id: str) -> dict[st
             "correlation_id": f"validation_{macro_id}",
         },
     }
+
+
+async def _append_action_xml(
+    macro_identifier: str,
+    action_xml: str,
+    ctx: Context | None,
+) -> dict[str, Any] | None:
+    """Append a control-flow action plist; return failure envelope or None on success."""
+    result = await get_km_client().append_macro_action_async(
+        MacroId(macro_identifier.strip()),
+        action_xml,
+    )
+    if result.is_right():
+        return None
+    err = result.get_left()
+    if ctx:
+        await ctx.error(f"KM rejected control-flow action: {err.message}")
+    return {
+        "success": False,
+        "error": {
+            "code": "APPEND_FAILED",
+            "message": err.message,
+            "recovery_suggestion": "Verify macro exists and KM engine is running.",
+        },
+        "metadata": {
+            "timestamp": datetime.now().isoformat(),
+            "correlation_id": f"append_error_{macro_identifier}",
+        },
+    }
+
+
+def _success(
+    *,
+    control_type: str,
+    macro_action_type: str,
+    macro_identifier: str,
+    extra: dict[str, Any],
+    start_time: datetime,
+) -> dict[str, Any]:
+    exec_time = (datetime.now() - start_time).total_seconds()
+    return {
+        "success": True,
+        "data": {
+            "control_type": control_type,
+            "macro_id": macro_identifier,
+            "macro_action_type": macro_action_type,
+            "execution_time": exec_time,
+            **extra,
+        },
+        "metadata": {
+            "timestamp": datetime.now().isoformat(),
+            "server_version": "1.0.0",
+            "correlation_id": f"cf_{control_type}_{macro_identifier}",
+        },
+    }
+
+
+async def _emit_for_loop(
+    macro_identifier: str,
+    iterator: str | None,
+    collection_dict: dict[str, Any] | None,
+    loop_actions: list[dict[str, Any]] | None,
+    start_time: datetime,
+    ctx: Context | None,
+) -> dict[str, Any]:
+    """Build a For action with one CollectionList entry + inner actions."""
+    if not iterator or not iterator.strip():
+        return _validation_failure(
+            "iterator (loop variable name) is required for for_loop.",
+            "Pass iterator='item' or any valid KM variable name.",
+            macro_identifier,
+        )
+    if not collection_dict or "type" not in collection_dict:
+        types_csv = ", ".join(SUPPORTED_COLLECTION_TYPES)
+        return _validation_failure(
+            "collection_dict with key 'type' is required for for_loop. "
+            f"Supported types: {types_csv}.",
+            "Example: collection_dict={'type': 'Range', 'start': '1', 'end': '10'}.",
+            macro_identifier,
+        )
+    coll_type = str(collection_dict["type"])
+    coll_kwargs = {k: v for k, v in collection_dict.items() if k != "type"}
+
+    try:
+        collection_xml = build_collection_dict(coll_type, **coll_kwargs)
+        actions_xml = _render_inner_actions(loop_actions)
+    except (UnsupportedCollectionType, ValueError) as exc:
+        if ctx:
+            await ctx.error(f"for_loop render failed: {exc}")
+        return _validation_failure(
+            str(exc),
+            "Check collection_dict.type and inner action_type values.",
+            macro_identifier,
+        )
+
+    action_xml = build_for_loop_xml(iterator.strip(), collection_xml, actions_xml)
+    failure = await _append_action_xml(macro_identifier, action_xml, ctx)
+    if failure is not None:
+        return failure
+    return _success(
+        control_type="for_loop",
+        macro_action_type="For",
+        macro_identifier=macro_identifier,
+        extra={
+            "iterator": iterator.strip(),
+            "collection_type": coll_type,
+            "loop_action_count": len(loop_actions or []),
+        },
+        start_time=start_time,
+    )
+
+
+async def _emit_while_or_until(  # noqa: PLR0913 - thin wrapper over user args
+    macro_identifier: str,
+    control_type: str,
+    condition: str | None,
+    operator: str,
+    operand: str | None,
+    loop_actions: list[dict[str, Any]] | None,
+    case_sensitive: bool,
+    negate: bool,
+    start_time: datetime,
+    ctx: Context | None,
+) -> dict[str, Any]:
+    """Build a While or Until action — same shape, different MacroActionType."""
+    if not condition:
+        return _validation_failure(
+            f"condition is required for {control_type}.",
+            "Pass condition='VarName' or 'app:com.x.y' / 'text:...' / 'calc:...'.",
+            macro_identifier,
+        )
+    cond_kind = _condition_kind_from_expression(condition)
+    expr = _strip_condition_prefix(condition)
+    composed_operand = (
+        f"{expr}={operand}" if operand is not None and cond_kind in {"variable", "text"}
+        else (operand or expr)
+    )
+    try:
+        condition_xml = build_condition_dict(
+            cond_kind, operator, composed_operand,
+            case_sensitive=case_sensitive, negate=negate,
+        )
+        actions_xml = _render_inner_actions(loop_actions)
+    except (UnsupportedConditionType, UnsupportedOperator, ValueError) as exc:
+        if ctx:
+            await ctx.error(f"{control_type} render failed: {exc}")
+        return _validation_failure(
+            str(exc),
+            "Check operator/condition_type/inner action_type.",
+            macro_identifier,
+        )
+
+    if control_type == "until_loop":
+        action_xml = build_until_loop_xml(condition_xml, actions_xml)
+        macro_action_type = "Until"
+    else:
+        action_xml = build_while_loop_xml(condition_xml, actions_xml)
+        macro_action_type = "While"
+
+    failure = await _append_action_xml(macro_identifier, action_xml, ctx)
+    if failure is not None:
+        return failure
+    return _success(
+        control_type=control_type,
+        macro_action_type=macro_action_type,
+        macro_identifier=macro_identifier,
+        extra={
+            "condition_kind": cond_kind,
+            "loop_action_count": len(loop_actions or []),
+        },
+        start_time=start_time,
+    )
+
+
+async def _emit_try_catch(
+    macro_identifier: str,
+    try_actions: list[dict[str, Any]] | None,
+    catch_actions: list[dict[str, Any]] | None,
+    start_time: datetime,
+    ctx: Context | None,
+) -> dict[str, Any]:
+    """Build a TryCatch action wrapping try and catch action lists."""
+    if not try_actions:
+        return _validation_failure(
+            "try_actions is required for try_catch (catch_actions may be empty).",
+            "Pass try_actions=[{'type': 'pause', 'seconds': 1}, ...].",
+            macro_identifier,
+        )
+    try:
+        try_xml = _render_inner_actions(try_actions)
+        catch_xml = _render_inner_actions(catch_actions)
+    except ValueError as exc:
+        if ctx:
+            await ctx.error(f"try_catch render failed: {exc}")
+        return _validation_failure(
+            str(exc),
+            "Check inner action_type values.",
+            macro_identifier,
+        )
+
+    action_xml = build_try_catch_xml(try_xml, catch_xml)
+    failure = await _append_action_xml(macro_identifier, action_xml, ctx)
+    if failure is not None:
+        return failure
+    return _success(
+        control_type="try_catch",
+        macro_action_type="TryCatch",
+        macro_identifier=macro_identifier,
+        extra={
+            "try_action_count": len(try_actions or []),
+            "catch_action_count": len(catch_actions or []),
+        },
+        start_time=start_time,
+    )

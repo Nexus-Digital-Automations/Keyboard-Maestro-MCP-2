@@ -27,6 +27,7 @@ from fastmcp import Context
 from pydantic import Field
 
 from ._action_templates import load_templates
+from .core_tools import _UUID_RE, _resolve_macro_uuid
 
 logger = logging.getLogger(__name__)
 
@@ -38,12 +39,14 @@ async def km_refresh_action_templates(
         str,
         Field(
             description=(
-                "Scratch macro UUID the scrape will append and delete actions in. "
-                "The macro is cleared at start and end. It must exist; create it "
-                "first with km_create_macro if needed."
+                "Scratch macro identifier (UUID or unique name) the scrape will "
+                "append and delete actions in. The macro is cleared at start and "
+                "end. It must exist; create it first with km_create_macro if "
+                "needed. Names are resolved to UUIDs before scraping; the "
+                "resolved UUID is returned in `resolved_macro_id`."
             ),
             min_length=1,
-            max_length=64,
+            max_length=255,
         ),
     ],
     confirm: Annotated[
@@ -79,8 +82,8 @@ async def km_refresh_action_templates(
 
     Failure modes:
     - VALIDATION_ERROR: confirm=false (default) or empty macro_id
+    - SCRATCH_MACRO_NOT_FOUND: macro_id is a name with no matching macro
     - SCRAPE_FAILED: AppleScript or osascript subprocess returned non-zero
-    - SCRATCH_MACRO_NOT_FOUND: macro_id does not resolve in KM
     """
     correlation_id = str(uuid.uuid4())
     if ctx:
@@ -102,10 +105,29 @@ async def km_refresh_action_templates(
             },
         }
 
+    resolved_id = macro_id.strip()
+    if not _UUID_RE.match(resolved_id):
+        # KM's editor scrape dispatches by UUID; names hit "no macros with a
+        # matching name" if the macro's group context is fresh. Coerce once.
+        coerced = await _resolve_macro_uuid(resolved_id)
+        if coerced is None:
+            return {
+                "success": False,
+                "error": {
+                    "code": "SCRATCH_MACRO_NOT_FOUND",
+                    "message": f"No macro found matching name {macro_id!r}.",
+                    "recovery_suggestion": (
+                        "Pass the macro UUID directly, or create the scratch "
+                        "macro first with km_create_macro."
+                    ),
+                },
+            }
+        resolved_id = coerced
+
     before = set(load_templates().keys())
     try:
         diff = await asyncio.to_thread(
-            _run_scrape, macro_id, tuple(categories) if categories else None, limit,
+            _run_scrape, resolved_id, tuple(categories) if categories else None, limit,
         )
     except Exception as exc:
         logger.exception("km_refresh_action_templates failed [ID: %s]", correlation_id)
@@ -130,6 +152,7 @@ async def km_refresh_action_templates(
             "unchanged": sorted(after & before),
             "removed": sorted(before - after),
             "total_after": len(after),
+            "resolved_macro_id": resolved_id,
         },
         "metadata": {
             "timestamp": datetime.now(UTC).isoformat(),

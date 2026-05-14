@@ -38,6 +38,14 @@ out-of-the-box" = passed the 2026-05-14 smoke without code changes.
 
 ## Fixed in this session
 
+### round 6 — control-flow emitters + condition-key bug + UX wins (2026-05-14, session 20260514-145029-69306)
+
+- **`km_control_flow` for_loop / while_loop / until_loop / try_catch — implemented.** Four new emitter modules (`src/integration/km_for_loop_xml.py`, `km_while_loop_xml.py`, `km_try_catch_xml.py`) plus four `_emit_*` dispatchers in `control_flow_tools.py`. KM-canonical XML captured against KM 11 by importing `.kmmacros` skeletons and reading back the normalized output (fixtures in `tests/fixtures/km_control_flow/`). for_loop supports all 13 KM editor collection types (Applications, Dictionaries, DictionaryKeys, Files, FinderSelection, FoundImages, JSON, LinesIn, PastClipboards, Range, SubstringsIn, Variables, Volumes) via a structured `collection_dict={'type': ..., ...}` parameter.
+- **Variable + Text condition emitter bug — fixed.** `km_if_then_else_xml._variable_condition` was emitting `<key>ConditionResult</key>` for the comparison value; KM 11 expects `<key>VariableValue</key>` and silently drops the wrong key on import (then synthesises a placeholder). Same defect in `_text_condition` (`ConditionType=TextContents` should be `Text`; `TextContentsConditionType` should be `TextConditionType`; `ConditionResult` should be `TextValue`). Verified by KM-author-then-read-back probe. Affected every shipped if/then/else and add_condition call: the condition would compare against the wrong RHS at runtime.
+- **`km_trigger_manager set_enabled` — verdict shipped.** Live probe (session 20260514-145029-69306) injected `<key>Disabled</key><true/>` into a HotKey trigger via `set xml of trigger` and read back: KM stripped the key. Triggers inherit the parent macro's enabled state; KM 11 stores no per-trigger enable bit. Error message rewritten to cite the probe and point to `km_macro_editor set_enabled` for macro-level toggle.
+- **`km_refresh_action_templates` — accepts macro names.** Previously required a UUID; passing a name silently failed. Now resolves names via `_resolve_macro_uuid` and includes `resolved_macro_id` in the response.
+- **`km_window_manager arrange` — surfaces stale bounds.** When the post-arrange `get_window_info` re-query fails, response now includes `window_info_source: "pre_operation"` so callers know the bounds reflect pre-arrange state.
+
 ### `b83bba4` — surface-level smoke fixes
 
 - `km_move_macro_to_group` — `create_group_if_missing=True` was ignored. Auto-create now runs **before** validation in `move_macro_to_group_async`.
@@ -52,12 +60,11 @@ out-of-the-box" = passed the 2026-05-14 smoke without code changes.
 
 ## Documented limitations (partial coverage by design)
 
-- `km_control_flow` — `for_loop`, `while_loop`, `switch_case`, `try_catch` still return `UNSUPPORTED_OPERATION`. Workaround: build the surrounding action XML and append via `km_action_builder(operation='append', action_type='paste_xml')`.
-- `km_trigger_manager set_enabled` — per-trigger enable/disable is not exposed by KM 11 AppleScript; macro-level enable/disable is available via `km_macro_editor`.
+- `km_control_flow switch_case` — still returns `UNSUPPORTED_OPERATION`. Deferred to PR2 (needs CaseEntry capture + emitter). Workaround: build the surrounding action XML and append via `km_action_builder(operation='append', action_type='paste_xml')`.
+- `km_trigger_manager set_enabled` — KM 11 trigger plists store no per-trigger enabled bit (verified 2026-05-14 by inject-and-read-back probe). Use `km_macro_editor set_enabled` for the parent macro's enabled state.
 - `km_window_manager` against Finder — move/resize/arrange AppleScript succeeds but Finder reuses window indices in surprising ways; `get_info` may poll the menubar instead of the moved window. Target-app issue, not a tool bug.
-- `km_create_macro template="hotkey_action"` with `parameters` — returns `UNSUPPORTED_TEMPLATE`. Use `template="custom"` and attach the hotkey via `km_create_hotkey_trigger` after creation.
+- `km_create_macro template="hotkey_action"` with `parameters` — returns `UNSUPPORTED_TEMPLATE`. Deferred to PR2 (needs atomic .kmmacros plist build + new action emitters for activate_application / manipulate_window / execute_shell_script). Use `template="custom"` and attach the hotkey via `km_create_hotkey_trigger` after creation.
 - `km_create_plugin_action` `output_dir` — must be under the MCP server CWD; relative paths outside the server root are blocked by the path-traversal guard.
-- `km_refresh_action_templates` — `index` must be a UUID, not a name.
 
 ## How to reproduce
 

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ActionUID</key>
+	<integer>3208</integer>
+	<key>CaseEntries</key>
+	<array>
+		<dict>
+			<key>Actions</key>
+			<array/>
+			<key>ConditionType</key>
+			<string>Contains</string>
+			<key>TestValue</key>
+			<string></string>
+		</dict>
+	</array>
+	<key>MacroActionType</key>
+	<string>Switch</string>
+	<key>Source</key>
+	<string>Clipboard</string>
+</dict>
+</plist>
+
