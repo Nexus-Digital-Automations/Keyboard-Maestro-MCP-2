@@ -505,3 +505,64 @@ Logic authoring: `km_add_condition`, `km_control_flow`.
 Trigger authoring: `km_trigger_crud`, `km_trigger_manager`, `km_create_hotkey_trigger`, `km_list_hotkey_triggers`, `km_add_system_trigger`.
 Engine: `km_engine_control`, `km_token_processor`, `km_token_stats`.
 KM action wrappers (kept because they map to native KM actions): `km_window_manager`, `km_application_control`, `km_notifications`, `km_notification_status`, `km_dismiss_notifications`.
+
+## Round 8 (2026-05-14, session 20260514-173332-4277) — post-restart smoke for rounds 6+7
+
+Executed the checklist from `docs/km_mcp_tool_status.md` § "Next: post-restart smoke checklist". KM Engine 11.0.4, 43 macros. Sandbox group `KM MCP R6 Sandbox` reused.
+
+### Section A — round-6 control flow (commit `c159039`)
+
+| # | Check | Verdict | Notes |
+|---|---|---|---|
+| A1 | `for_loop` Range / LinesIn / Files / Variables | **PASS** (4/4) | All return `macro_action_type=For`, correct `collection_type`. |
+| A2 | `while_loop` + `until_loop` | **PASS** | Returned `While` / `Until`; `condition_kind=variable`. |
+| A3 | `try_catch` shape | **PASS** | `TryActions` + `CatchActions` arrays emitted correctly per XML readback. |
+| A3-bonus | runtime catch fires on intentional error | **FAIL** (sub-defect) | `Caught` var never set. Root cause is in the inner `run_applescript` emitter, not try_catch — see new defect D1 below. |
+| A4 | Variable-condition value preservation (the round-6 key fix) | **PASS** | XML readback shows `<key>VariableValue</key><string>ABCXYZ123</string>` — the fix is live. |
+| A5 | `km_trigger_manager set_enabled` rejection message | **PASS** | Returns "KM 11 stores no per-trigger enabled bit … Toggle the parent macro instead via km_macro_editor set_enabled". |
+| A6 | `km_refresh_action_templates` name coerce | **SKIPPED** | User-rejected — takes over KM editor mid-session. Re-run separately. |
+| A7 | `km_window_manager arrange` `window_info_source` flag | **SKIPPED** | User-rejected — moves an on-screen window mid-session. Re-run separately. |
+
+### Section B — round-7 switch + templates (commit `fd59947`)
+
+| # | Check | Verdict | Notes |
+|---|---|---|---|
+| B8 | `switch_case` Variable + Otherwise | **PASS** | `case_count=3, has_otherwise=true`. |
+| B9 | `switch_case` Clipboard / Calculation / Text | **PASS** (3/3) | All succeed; source field echoed. |
+| B10 | `switch_case` unsupported `JSON` source | **PASS** | Returns `VALIDATION_ERROR` listing the 5 supported values (Calculation, Clipboard, NamedClipboard, Text, Variable). KM does not silently coerce. |
+| B11 | Template `app_launcher` | **PASS** | 1 action "Activate Finder". |
+| B11 | Template `text_expansion` | **PASS** | 1 action "Insert Text by Typing". |
+| B11 | Template `file_processor` | **PASS** | 1 action "Execute Shell Script". |
+| B11 | Template `window_manager` | **FAIL** (D2) | `success=true` returned but the resulting macro has **0 actions** — the `manipulate_window` emitter doesn't fire from the template path. |
+| B11 | Template `hotkey_action` | **PARTIAL** (D3) | 1 inner action emitted correctly, but `data.hotkey_attached=false` and the trigger does NOT appear in `km_list_hotkey_triggers`. The post-import hotkey attach step is silently failing. |
+| B12 | Template unsupported inner action (`wave_hands`) | **PASS** | Returns `UNSUPPORTED_TEMPLATE_ACTION` naming the offender and listing supported actions. |
+| B13 | `km_notifications` alert duration | **PASS** | `notification_type=alert, duration=5` returns `success=true`, no crash; alert dismissible (the round f23cd30 fix is in source — `giving up after N` would auto-dismiss if no user click). |
+
+### Section C — regression sweep
+
+| Tool group | Verdict | Notes |
+|---|---|---|
+| `km_engine_control` calculate / process_tokens / search_replace / reload / status | **PASS** (5/5) | `7*6=42`; `%Calculate%5*5%→25`; "foo bar foo"/"foo"/"baz" → 2 matches, "baz bar baz"; reload OK; status returns engine 11.0.4. |
+| `km_variable_manager` get / set / list / delete × {global, password} | **PASS** | Set + readback + list + delete all clean; password scope flagged `is_password=true`. |
+| `km_macro_editor` create / rename / duplicate / set_enabled / delete | **PASS** (5/5) | Used during sandbox setup + cleanup. |
+| `km_action_builder` append / list / clear | **PARTIAL** | `append` for `pause`, `type_text`, `paste`, `set_variable` all emit correct XML. **`run_applescript`** emits with `UseText=false` (defect D1). **`execute_macro`** emits XML that KM rejects and silently substitutes with `Log "Invalid XML From AppleScript"` (defect D4). `list` + `clear` clean. `delete` not exercised this round. |
+
+### New defects surfaced (not regressions of round 6/7 — pre-existing)
+
+- **D1. `km_action_builder.append action_type=run_applescript` emits `UseText=false`.** KM ignores the inline `Text` and falls back to (empty) `Path`, so the script never executes. Display name shows "Execute 'Unknown' AppleScript". Same defect inside `km_control_flow try_catch` when nested. Fix: set `UseText=true` when `Text` is provided, and clear `IncludedVariables` (currently spuriously contains `['9999']`).
+- **D2. `km_create_macro template=window_manager` produces a macro with 0 actions.** Tool returns `success=true` but `km_action_builder list` shows no actions. The `manipulate_window` action emitter is either not being routed or its XML is silently dropped during template import.
+- **D3. `km_create_macro template=hotkey_action` doesn't attach the hotkey trigger.** Response field `hotkey_attached=false`; `km_list_hotkey_triggers(macro_id=...)` returns 0. The inner action emits fine, only the post-import `km_create_hotkey_trigger` step fails silently.
+- **D4. `km_action_builder.append action_type=execute_macro` emits XML KM rejects.** KM silently swaps it for `Log "Invalid XML From AppleScript"`. Note: `km_control_flow` paths that build `ExecuteMacro` as inner actions (e.g. action_on_true) appear fine — this is specific to the standalone `execute_macro` action in `_build_action_xml`'s append path.
+
+### Verdict
+
+Of 14 checklist items: **9 PASS, 1 PARTIAL (hotkey template), 2 FAIL (run_applescript/execute_macro append + window_manager template + try_catch runtime bonus tied to D1), 2 SKIPPED (A6, A7 user-rejected)**.
+
+The headline round-6 fix (variable-condition value preservation via `VariableValue` key) is **confirmed live in KM**. The headline round-7 fix (`switch_case` with all 5 sources + Otherwise) is **confirmed live**.
+
+Three template-related and emitter-related defects (D1–D4) surfaced that were not part of rounds 6/7 scope and appear to be longer-standing. Recommend a follow-up round to fix them before claiming `km_action_builder.append` and `km_create_macro` templates are clean.
+
+### Sandbox state after run
+
+Clean. Deleted at end: 10 R8_* scratch macros (`R8_ControlFlow`, `R8_TryTrap`, `R8_Condition`, `R8_Switch`, all 5 `R8_T_*` templates, and one duplicate). Variables `R8_GlobalVar` (global) and `R8_PwdVar` (password) deleted. Group `KM MCP R6 Sandbox` left in place per checklist.
+
