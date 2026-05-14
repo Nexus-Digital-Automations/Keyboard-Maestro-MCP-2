@@ -15,13 +15,14 @@ scrape (Phase 3) inflates the catalog past ~100 entries.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import Any
 
 from rapidfuzz import fuzz
 
-from ._action_templates import load_catalog
+from ._action_templates import load_catalog, load_templates
 from .plugin_action_tools import _scan_installed_plugins
 
 logger = logging.getLogger(__name__)
@@ -62,12 +63,25 @@ class IndexEntry:
 
 @lru_cache(maxsize=1)
 def build_index() -> tuple[IndexEntry, ...]:
-    """Build the unified search index from built-in catalog + installed plug-ins."""
+    """Build the unified search index from built-in catalog + installed plug-ins.
+
+    Captured templates not yet represented by a curated catalog entry get
+    auto-surfaced via _from_template so they're discoverable immediately
+    after the scrape runs, even before keywords/task_hints are hand-tuned.
+    """
     entries: list[IndexEntry] = []
+    catalog_macro_types: set[str] = set()
     for spec in load_catalog():
-        entries.append(_from_builtin(spec))
+        entry = _from_builtin(spec)
+        entries.append(entry)
+        if entry.macro_action_type:
+            catalog_macro_types.add(entry.macro_action_type)
     for spec in _scan_installed_plugins():
         entries.append(_from_plugin(spec))
+    for mat, template in load_templates().items():
+        if mat in catalog_macro_types:
+            continue
+        entries.append(_from_template(mat, template))
     logger.info("action_search index built entries=%d", len(entries))
     return tuple(entries)
 
@@ -115,6 +129,36 @@ def _from_builtin(spec: dict[str, Any]) -> IndexEntry:
         result_targets=tuple(spec.get("result_targets", [])),
         builder_supported=spec.get("builder_supported", False),
         raw=spec,
+    )
+
+
+def _pascal_to_snake(pascal: str) -> str:
+    s1 = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", pascal)
+    return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
+
+
+def _from_template(macro_action_type: str, template: dict[str, Any]) -> IndexEntry:
+    category_path = template.get("category_path") or []
+    category = category_path[0].lower().replace(" ", "_") if category_path else "captured"
+    label = category_path[1] if len(category_path) > 1 else macro_action_type
+    return IndexEntry(
+        identifier=_pascal_to_snake(macro_action_type),
+        macro_action_type=macro_action_type,
+        title=label,
+        description=label,
+        category=category,
+        keywords=(),
+        task_hints=(),
+        parameters=(),
+        result_targets=(),
+        builder_supported=True,
+        raw={
+            "identifier": _pascal_to_snake(macro_action_type),
+            "MacroActionType": macro_action_type,
+            "title": label,
+            "category": category,
+            "captured_only": True,
+        },
     )
 
 
