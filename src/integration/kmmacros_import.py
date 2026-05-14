@@ -51,20 +51,29 @@ def build_kmmacros_plist(
     group_uid: str,
     macro_name: str,
     macro_uid: str,
+    actions_xml: str = "",
 ) -> bytes:
-    """Build the minimal XML .kmmacros plist for one empty macro.
+    """Build the minimal XML .kmmacros plist for one macro.
 
     KM matches the import target by ``UID`` of the group dict; ``Name`` is
     only used when KM creates a brand-new group, so we always set both to
     keep imports idempotent against the live group.
+
+    ``actions_xml`` is a pre-rendered concatenation of action ``<dict>``
+    strings (from ``_build_action_xml``). Each is parsed through plistlib
+    to a dict and embedded in the macro's ``Actions`` array. Roundtripping
+    through plistlib normalizes whitespace and key ordering, but the
+    emitter outputs are already KM-canonical (verified by KM-author probe)
+    so the parsed dicts re-serialize to equivalent plist.
     """
+    actions = _parse_action_dicts(actions_xml)
     document = [
         {
             "Activate": "Normal",
             "KeyCount": 0,
             "Macros": [
                 {
-                    "Actions": [],
+                    "Actions": actions,
                     "CreationDate": 0,
                     "ModificationDate": 0,
                     "Name": macro_name,
@@ -77,6 +86,24 @@ def build_kmmacros_plist(
         },
     ]
     return plistlib.dumps(document, fmt=plistlib.FMT_XML)
+
+
+def _parse_action_dicts(actions_xml: str) -> list[dict[str, Any]]:
+    """Parse a concatenation of ``<dict>...</dict>`` strings into plist dicts.
+
+    Wraps the concatenation in a plist ``<array>`` envelope so plistlib can
+    parse it as a single document. Returns ``[]`` for empty input.
+    """
+    stripped = actions_xml.strip()
+    if not stripped:
+        return []
+    envelope = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
+        '"http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+        f'<plist version="1.0"><array>{stripped}</array></plist>'
+    )
+    return plistlib.loads(envelope.encode("utf-8"))
 
 
 async def _resolve_group(
@@ -142,8 +169,14 @@ async def create_empty_macro(
     km_client: KMClient,
     group_id: str,
     new_name: str,
+    actions_xml: str = "",
 ) -> Either[KMError, dict[str, Any]]:
-    """Import an empty macro called ``new_name`` into the group ``group_id``.
+    """Import a macro called ``new_name`` into the group ``group_id``.
+
+    ``actions_xml`` (optional): pre-rendered concatenation of action
+    ``<dict>`` strings to embed in the macro at creation time. Empty by
+    default — kept for backward compatibility with callers that wanted
+    just an empty macro to fill via subsequent ``km_action_builder.append``.
 
     Returns ``{"macro_id", "name", "group_id", "group_name"}`` on success.
     """
@@ -153,7 +186,9 @@ async def create_empty_macro(
     group_name, group_uid = resolved.get_right()
 
     macro_uid = _new_macro_uid()
-    plist_bytes = build_kmmacros_plist(group_name, group_uid, new_name, macro_uid)
+    plist_bytes = build_kmmacros_plist(
+        group_name, group_uid, new_name, macro_uid, actions_xml,
+    )
 
     tmp = tempfile.NamedTemporaryFile(
         suffix=".kmmacros", delete=False, prefix="km_mcp_create_",

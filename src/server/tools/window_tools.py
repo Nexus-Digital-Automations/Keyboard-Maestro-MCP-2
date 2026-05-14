@@ -376,16 +376,19 @@ async def _handle_arrange_operation(
             # Re-query window info; the operation_result carries the
             # pre-arrange snapshot from before AX applied the new bounds.
             post_window_info = operation_result.window_info
+            window_info_source = "pre_operation"
             post_result = await _window_manager.get_window_info(
                 app_id.primary_identifier(),
                 window_index,
             )
             if post_result.is_right():
                 post_window_info = post_result.get_right()
+                window_info_source = "post_operation"
             return {
                 "success": True,
                 "operation": f"arrange_{arrangement_str}",
                 "window": _format_window_info(post_window_info),
+                "window_info_source": window_info_source,
                 "execution_time_ms": int(
                     operation_result.operation_time.total_seconds() * 1000,
                 ),

@@ -2376,15 +2376,25 @@ class KMClient:
         trigger_index: int,
         enabled: bool,
     ) -> Either[KMError, bool]:
-        """KM 11 does not expose ``enabled`` on individual triggers via
-        AppleScript — they inherit the macro's enabled state. Reject the
-        request explicitly rather than silently coercion-erroring.
+        """KM 11 trigger plists do not store a per-trigger enabled bit.
+
+        Verified 2026-05-14 (session 20260514-145029-69306): injecting
+        ``<key>Disabled</key><true/>`` into a HotKey trigger via
+        ``set xml of trigger`` succeeds, but KM strips the key on
+        round-trip — read-back returns the original 4-key dict
+        (FireType, KeyCode, MacroTriggerType, Modifiers). Triggers
+        inherit the macro's enabled state; toggle that instead via
+        ``set_macro_enabled_async`` (exposed as
+        ``km_macro_editor set_enabled``).
         """
         del macro_id, trigger_index, enabled
         return Either.left(
             KMError.validation_error(
-                "Per-trigger enable/disable is not exposed by KM 11 "
-                "AppleScript. Use set_macro_enabled_async instead.",
+                "KM 11 stores no per-trigger enabled bit (verified by "
+                "round-trip probe — KM strips an injected Disabled key). "
+                "Toggle the parent macro instead via "
+                "km_macro_editor set_enabled. See "
+                "docs/km_mcp_audit_report.md round 6 for the probe.",
             ),
         )
 

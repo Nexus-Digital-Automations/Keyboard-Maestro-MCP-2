@@ -2,6 +2,11 @@
 
 Provides comprehensive macro creation capabilities through MCP interface
 with template support, security validation, and error handling.
+
+Template-with-parameters wire-up: each template's parameters are translated
+into a list of action_builder dicts, rendered to a single concatenated
+action XML blob, and embedded atomically into the .kmmacros plist before
+import. Single KM round-trip per macro creation; no N+1 appends.
 """
 
 import logging
@@ -15,8 +20,21 @@ from ...core.types import MacroId
 from ...creation.types import MacroTemplate
 from ...integration.kmmacros_import import create_empty_macro
 from ..initialization import get_km_client
+from .action_builder_tools import _build_action_xml
+from .hotkey_tools import km_create_hotkey_trigger
 
-_KMMACROS_TEMPLATES = {"custom", "hotkey_action"}
+_KMMACROS_TEMPLATES = {
+    "custom",
+    "hotkey_action",
+    "app_launcher",
+    "text_expansion",
+    "file_processor",
+    "window_manager",
+}
+
+
+class _UnsupportedTemplateAction(ValueError):
+    """Raised when a template requests an action_type _build_action_xml lacks."""
 
 
 def _error_envelope(
@@ -152,17 +170,9 @@ async def km_create_macro(
         await ctx.info(f"Starting macro creation: {name}")
 
     if template in _KMMACROS_TEMPLATES:
-        # The kmmacros path creates an empty macro; we cannot honor template
-        # parameters here. Refuse loudly rather than silently dropping them.
-        if parameters:
-            return _error_envelope(
-                "UNSUPPORTED_TEMPLATE",
-                f"Template {template!r} does not yet apply 'parameters' on import.",
-                "Create the macro with template='custom' (or omit parameters), "
-                "then chain km_action_builder / km_trigger_crud / km_create_hotkey_trigger.",
-                template,
-            )
-        return await _create_via_kmmacros(name, template, group_name, enabled, ctx)
+        return await _create_via_kmmacros(
+            name, template, group_name, enabled, parameters, ctx,
+        )
 
     try:
         MacroTemplate(template)
@@ -183,23 +193,44 @@ async def km_create_macro(
     )
 
 
-async def _create_via_kmmacros(
+async def _create_via_kmmacros(  # noqa: PLR0913 - thin orchestration wrapper
     name: str,
     template: str,
     group_name: str | None,
     enabled: bool,
+    parameters: dict[str, Any],
     ctx: Context | None,
 ) -> dict[str, Any]:
     if not group_name:
         return _error_envelope(
             "VALIDATION_ERROR",
-            "group_name is required for empty-macro creation.",
+            "group_name is required for kmmacros template creation.",
             "Pass group_name; list groups with km_macro_group_manager operation='list'.",
             template,
         )
+
+    try:
+        actions_xml, hotkey_spec = _render_template_actions(template, parameters)
+    except _UnsupportedTemplateAction as exc:
+        return _error_envelope(
+            "UNSUPPORTED_TEMPLATE_ACTION",
+            str(exc),
+            "Use template='custom' and chain km_action_builder for unsupported action types.",
+            template,
+        )
+    except ValueError as exc:
+        return _error_envelope(
+            "VALIDATION_ERROR",
+            str(exc),
+            "Check the parameters dict against the template's required fields.",
+            template,
+        )
+
     if ctx:
-        await ctx.info(f"Importing empty macro '{name}' into group '{group_name}'")
-    result = await create_empty_macro(get_km_client(), group_name, name)
+        await ctx.info(f"Importing {template} macro '{name}' into '{group_name}'")
+    result = await create_empty_macro(
+        get_km_client(), group_name, name, actions_xml=actions_xml,
+    )
     if result.is_left():
         err = result.get_left()
         code = "GROUP_NOT_FOUND" if "not found" in err.message.lower() else "IMPORT_FAILED"
@@ -223,6 +254,11 @@ async def _create_via_kmmacros(
                 macro_id,
                 toggle.get_left().message,
             )
+
+    hotkey_attached = False
+    if hotkey_spec:
+        hotkey_attached = await _attach_hotkey(macro_id, hotkey_spec, ctx)
+
     return {
         "success": True,
         "data": {
@@ -232,6 +268,7 @@ async def _create_via_kmmacros(
             "group_id": payload["group_id"],
             "group_name": payload["group_name"],
             "enabled": enabled,
+            "hotkey_attached": hotkey_attached,
             "creation_timestamp": datetime.now(UTC).isoformat(),
         },
         "metadata": {
@@ -240,6 +277,171 @@ async def _create_via_kmmacros(
             "template_type": template,
         },
     }
+
+
+def _render_template_actions(
+    template: str,
+    parameters: dict[str, Any],
+) -> tuple[str, dict[str, Any] | None]:
+    """Translate template parameters to action XML + optional hotkey spec.
+
+    Returns ``(actions_xml, hotkey_spec_or_None)``. The first is a
+    concatenation of action ``<dict>`` strings ready for embedding in a
+    .kmmacros plist. The second is non-None only for ``hotkey_action``
+    when the caller supplied hotkey parameters.
+
+    Raises ``_UnsupportedTemplateAction`` if a translator requests an
+    action_type that ``_build_action_xml`` does not yet support.
+    """
+    if template == "custom":
+        return "", None
+    translator = _TEMPLATE_TRANSLATORS.get(template)
+    if translator is None:
+        raise ValueError(f"No translator registered for template {template!r}")
+    action_dicts, hotkey_spec = translator(parameters)
+    return _action_dicts_to_xml(action_dicts, template), hotkey_spec
+
+
+def _action_dicts_to_xml(action_dicts: list[dict[str, Any]], template: str) -> str:
+    pieces: list[str] = []
+    for action in action_dicts:
+        action_type = action.get("type")
+        config = {k: v for k, v in action.items() if k != "type"}
+        xml = _build_action_xml(str(action_type), config)
+        if xml is None:
+            raise _UnsupportedTemplateAction(
+                f"Template {template!r} requested action_type {action_type!r} "
+                "which is not in the action_builder emitter set.",
+            )
+        pieces.append(xml)
+    return "".join(pieces)
+
+
+def _translate_app_launcher(
+    parameters: dict[str, Any],
+) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    app_name = parameters.get("app_name", "")
+    bundle_id = parameters.get("bundle_id", "")
+    if not app_name and not bundle_id:
+        raise ValueError("app_launcher needs 'app_name' or 'bundle_id'")
+    return [
+        {
+            "type": "activate_application",
+            "app_name": app_name or "",
+            "bundle_id": bundle_id or "",
+            "all_windows": parameters.get("all_windows", True),
+            "reopen_windows": parameters.get("reopen_windows", False),
+        },
+    ], None
+
+
+def _translate_text_expansion(
+    parameters: dict[str, Any],
+) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    text = parameters.get("expansion_text") or parameters.get("text")
+    if not text:
+        raise ValueError("text_expansion needs 'expansion_text' (or 'text')")
+    return [{"type": "type_text", "text": text}], None
+
+
+def _translate_file_processor(
+    parameters: dict[str, Any],
+) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    script = parameters.get("script") or parameters.get("source")
+    if not script:
+        raise ValueError(
+            "file_processor needs 'script' — the shell script to run "
+            "against the file. Use %TriggerValue% to reference the file path.",
+        )
+    return [
+        {"type": "execute_shell_script", "source": script,
+         "display": parameters.get("display", "Nothing")},
+    ], None
+
+
+def _translate_window_manager(
+    parameters: dict[str, Any],
+) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    operation = parameters.get("operation", "MoveAndResize")
+    return [
+        {
+            "type": "manipulate_window",
+            "action": operation,
+            "x": str(parameters.get("x", "0")),
+            "y": str(parameters.get("y", "0")),
+            "width": str(parameters.get("width", "800")),
+            "height": str(parameters.get("height", "600")),
+            "targeting": parameters.get("targeting", "FrontWindow"),
+        },
+    ], None
+
+
+def _translate_hotkey_action(
+    parameters: dict[str, Any],
+) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    """hotkey_action's parameters describe BOTH the inner action AND the trigger.
+
+    Inner action set: ``open_app`` (→ activate_application), ``type_text``
+    (→ type_text), ``run_script`` (→ execute_shell_script). Hotkey trigger
+    is attached after macro creation via km_create_hotkey_trigger.
+    """
+    inner = parameters.get("action", "type_text")
+    if inner == "open_app":
+        actions = [{"type": "activate_application",
+                    "app_name": parameters.get("app_name", ""),
+                    "bundle_id": parameters.get("bundle_id", "")}]
+    elif inner == "type_text":
+        text = parameters.get("text", "")
+        if not text:
+            raise ValueError("hotkey_action action='type_text' needs 'text'")
+        actions = [{"type": "type_text", "text": text}]
+    elif inner == "run_script":
+        script = parameters.get("script", "")
+        if not script:
+            raise ValueError("hotkey_action action='run_script' needs 'script'")
+        actions = [{"type": "execute_shell_script", "source": script}]
+    else:
+        raise _UnsupportedTemplateAction(
+            f"hotkey_action inner action {inner!r} not supported. "
+            "Use 'open_app' / 'type_text' / 'run_script'.",
+        )
+    hotkey_spec = None
+    if parameters.get("hotkey"):
+        hotkey_spec = {
+            "key": parameters["hotkey"],
+            "modifiers": parameters.get("modifiers", []),
+        }
+    return actions, hotkey_spec
+
+
+_TEMPLATE_TRANSLATORS = {
+    "app_launcher": _translate_app_launcher,
+    "text_expansion": _translate_text_expansion,
+    "file_processor": _translate_file_processor,
+    "window_manager": _translate_window_manager,
+    "hotkey_action": _translate_hotkey_action,
+}
+
+
+async def _attach_hotkey(
+    macro_id: str,
+    hotkey_spec: dict[str, Any],
+    ctx: Context | None,
+) -> bool:
+    """Attach a HotKey trigger to a freshly-created macro via km_create_hotkey_trigger."""
+    key = hotkey_spec.get("key", "")
+    modifiers = hotkey_spec.get("modifiers", [])
+    try:
+        result = await km_create_hotkey_trigger(
+            macro_id=macro_id,
+            key=key,
+            modifiers=modifiers,
+            ctx=ctx,
+        )
+    except Exception as exc:
+        logger.warning("Hotkey attach raised %s for macro %s", exc, macro_id)
+        return False
+    return bool(result.get("success"))
 
 
 async def km_list_templates(ctx: Context = None) -> dict[str, Any]:

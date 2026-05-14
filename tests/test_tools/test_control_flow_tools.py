@@ -30,6 +30,23 @@ from src.server.tools.control_flow_tools import (
 )
 
 
+async def _run_with_mocked_append(coro: Any) -> dict[str, Any]:
+    """Run a km_control_flow call with append_macro_action_async stubbed to success.
+
+    The new emitter modes (if/for/while/until/try) all reach KM via
+    ``KMClient.append_macro_action_async``. Patching it returns a right-Either
+    so tests cover the dispatcher + emitter without a live KM Engine.
+    """
+    from src.core.either import Either
+
+    fake_append = AsyncMock(return_value=Either.right(True))
+    with patch(
+        "src.server.tools.control_flow_tools.get_km_client",
+    ) as get_client:
+        get_client.return_value.append_macro_action_async = fake_append
+        return await coro
+
+
 class TestKMControlFlowTool:
     """Test the main km_control_flow MCP tool."""
 
@@ -43,109 +60,120 @@ class TestKMControlFlowTool:
 
     @pytest.mark.asyncio
     async def test_if_then_else_success(self, mock_context: Any) -> None:
-        """Test successful if/then/else creation."""
-        with patch(
-            "src.server.tools.control_flow_tools._apply_control_flow_to_macro",
-        ) as mock_apply:
-            mock_apply.return_value = {"applied": True, "macro_id": "test_macro"}
-
-            result = await km_control_flow(
+        """if_then_else dispatches to the emitter and appends one action."""
+        result = await _run_with_mocked_append(
+            km_control_flow(
                 macro_identifier="test_macro",
                 control_type="if_then_else",
-                condition="clipboard_content",
+                condition="MyVar",
                 operator="contains",
                 operand="password",
-                actions_true=[{"type": "show_notification", "title": "Security Alert"}],
-                actions_false=[{"type": "continue_processing"}],
+                actions_true=[{"type": "pause", "seconds": 0.1}],
+                actions_false=[{"type": "pause", "seconds": 0.2}],
                 ctx=mock_context,
-            )
-
+            ),
+        )
         assert result["success"] is True
         assert result["data"]["control_type"] == "if_then_else"
-        assert result["data"]["macro_id"] == "test_macro"
-        assert "control_flow_id" in result["data"]
-        assert result["data"]["security_validation"] == "passed"
-
-        # Verify context calls
+        assert result["data"]["macro_action_type"] == "IfThenElse"
         mock_context.info.assert_called()
 
     @pytest.mark.asyncio
     async def test_for_loop_success(self, mock_context: Any) -> None:
-        """Test successful for loop creation."""
-        with patch(
-            "src.server.tools.control_flow_tools._apply_control_flow_to_macro",
-        ) as mock_apply:
-            mock_apply.return_value = {"applied": True, "macro_id": "test_macro"}
-
-            result = await km_control_flow(
+        """for_loop builds a For action with a CollectionList entry."""
+        result = await _run_with_mocked_append(
+            km_control_flow(
                 macro_identifier="test_macro",
                 control_type="for_loop",
-                iterator="file",
-                collection="selected_files_in_finder",
-                loop_actions=[
-                    {"type": "open_file", "file": "%Variable%file%"},
-                    {"type": "process_document"},
-                ],
-                max_iterations=50,
+                iterator="i",
+                collection_dict={"type": "Range", "start": "1", "end": "5"},
+                loop_actions=[{"type": "pause", "seconds": 0.1}],
                 ctx=mock_context,
-            )
-
+            ),
+        )
         assert result["success"] is True
         assert result["data"]["control_type"] == "for_loop"
-        assert result["data"]["structure_info"]["iterator_variable"] == "file"
-        assert result["data"]["structure_info"]["max_iterations"] == 50
+        assert result["data"]["macro_action_type"] == "For"
+        assert result["data"]["collection_type"] == "Range"
+        assert result["data"]["loop_action_count"] == 1
 
     @pytest.mark.asyncio
     async def test_while_loop_success(self, mock_context: Any) -> None:
-        """Test successful while loop creation."""
-        with patch(
-            "src.server.tools.control_flow_tools._apply_control_flow_to_macro",
-        ) as mock_apply:
-            mock_apply.return_value = {"applied": True, "macro_id": "test_macro"}
-
-            result = await km_control_flow(
+        """while_loop emits a While action with a Conditions block."""
+        result = await _run_with_mocked_append(
+            km_control_flow(
                 macro_identifier="test_macro",
                 control_type="while_loop",
                 condition="counter",
                 operator="less_than",
                 operand="10",
-                loop_actions=[{"type": "increment_counter"}],
-                max_iterations=20,
+                loop_actions=[{"type": "pause", "seconds": 0.1}],
                 ctx=mock_context,
-            )
-
+            ),
+        )
         assert result["success"] is True
         assert result["data"]["control_type"] == "while_loop"
-        assert result["data"]["structure_info"]["max_iterations"] == 20
+        assert result["data"]["macro_action_type"] == "While"
+
+    @pytest.mark.asyncio
+    async def test_until_loop_success(self, mock_context: Any) -> None:
+        """until_loop emits an Until action — same shape as while, different MacroActionType."""
+        result = await _run_with_mocked_append(
+            km_control_flow(
+                macro_identifier="test_macro",
+                control_type="until_loop",
+                condition="counter",
+                operator="equals",
+                operand="done",
+                loop_actions=[{"type": "pause", "seconds": 0.1}],
+                ctx=mock_context,
+            ),
+        )
+        assert result["success"] is True
+        assert result["data"]["macro_action_type"] == "Until"
+
+    @pytest.mark.asyncio
+    async def test_try_catch_success(self, mock_context: Any) -> None:
+        """try_catch wraps try and catch action lists into a TryCatch plist."""
+        result = await _run_with_mocked_append(
+            km_control_flow(
+                macro_identifier="test_macro",
+                control_type="try_catch",
+                try_actions=[{"type": "pause", "seconds": 0.1}],
+                catch_actions=[{"type": "set_variable", "variable": "Caught", "text": "yes"}],
+                ctx=mock_context,
+            ),
+        )
+        assert result["success"] is True
+        assert result["data"]["macro_action_type"] == "TryCatch"
+        assert result["data"]["try_action_count"] == 1
+        assert result["data"]["catch_action_count"] == 1
 
     @pytest.mark.asyncio
     async def test_switch_case_success(self, mock_context: Any) -> None:
-        """Test successful switch/case creation."""
-        with patch(
-            "src.server.tools.control_flow_tools._apply_control_flow_to_macro",
-        ) as mock_apply:
-            mock_apply.return_value = {"applied": True, "macro_id": "test_macro"}
-
-            cases = [
-                {"value": "Safari", "actions": [{"type": "screenshot"}]},
-                {"value": "Chrome", "actions": [{"type": "export_bookmarks"}]},
-            ]
-
-            result = await km_control_flow(
+        """switch_case emits a Switch action with cases + Otherwise sentinel."""
+        result = await _run_with_mocked_append(
+            km_control_flow(
                 macro_identifier="test_macro",
                 control_type="switch_case",
-                condition="frontmost_application",
-                cases=cases,
-                default_actions=[
-                    {"type": "show_notification", "text": "Unsupported app"},
+                source="Variable",
+                condition="MyVar",
+                cases=[
+                    {"condition_type": "Is", "test_value": "v1",
+                     "actions": [{"type": "pause", "seconds": 0.1}]},
+                    {"condition_type": "Contains", "test_value": "v2",
+                     "actions": [{"type": "pause", "seconds": 0.1}]},
                 ],
+                default_actions=[{"type": "set_variable", "variable": "FellThrough", "text": "yes"}],
                 ctx=mock_context,
-            )
-
+            ),
+        )
         assert result["success"] is True
         assert result["data"]["control_type"] == "switch_case"
-        assert result["data"]["structure_info"]["case_count"] == 2
-        assert result["data"]["structure_info"]["has_default"] is True
+        assert result["data"]["macro_action_type"] == "Switch"
+        assert result["data"]["source"] == "Variable"
+        assert result["data"]["case_count"] == 3  # 2 explicit + 1 Otherwise
+        assert result["data"]["has_otherwise"] is True
 
     @pytest.mark.asyncio
     async def test_validation_error(self, mock_context: Any) -> None:
@@ -374,7 +402,7 @@ class TestInputValidation:
                 ctx=None,
             )
 
-        with pytest.raises(ValidationError, match="For loop requires a collection"):
+        with pytest.raises(ValidationError, match="For loop requires collection_dict"):
             await _validate_control_flow_inputs(
                 macro_identifier="test_macro",
                 control_type="for_loop",

@@ -28,8 +28,13 @@ _VARIABLE_OPERATOR_MAP = {
     "contains": "Contains",
     "not_contains": "DoesNotContain",
     "greater": "NumericallyGreaterThan",
+    "greater_than": "NumericallyGreaterThan",
+    "greater_equal": "NumericallyGreaterThan",  # KM has no >= for variables
     "less": "NumericallyLessThan",
+    "less_than": "NumericallyLessThan",
+    "less_equal": "NumericallyLessThan",  # KM has no <= for variables
     "regex": "MatchesRegex",
+    "matches_regex": "MatchesRegex",
     "exists": "IsNotEmpty",
     "is_empty": "IsEmpty",
     "is_not_empty": "IsNotEmpty",
@@ -41,6 +46,7 @@ _TEXT_OPERATOR_MAP = {
     "contains": "Contains",
     "not_contains": "DoesNotContain",
     "regex": "MatchesRegex",
+    "matches_regex": "MatchesRegex",
 }
 
 _APPLICATION_OPERATOR_MAP = {
@@ -142,8 +148,13 @@ def _variable_condition(operator: str, operand: str, *, negate: bool) -> str:
     ]
     if op in {"Is", "IsNot", "Contains", "DoesNotContain", "MatchesRegex",
               "NumericallyGreaterThan", "NumericallyLessThan"}:
+        # KM 11 stores the comparison value under VariableValue. The
+        # legacy ConditionResult key is silently dropped on import (KM
+        # then synthesises a placeholder "value" string), which made
+        # every shipped variable-condition compare against the wrong RHS.
+        # Verified 2026-05-14 by KM-author / read-back probe.
         parts.append(
-            f"<key>ConditionResult</key><string>{escape(operand_after_first(operand))}</string>",
+            f"<key>VariableValue</key><string>{escape(operand_after_first(operand))}</string>",
         )
     return "<dict>" + "".join(parts) + "</dict>"
 
@@ -165,12 +176,15 @@ def _text_condition(
         op = _negate_operator(op)
     var_name, compare = _split_text_operand(operand)
     case_key = "" if case_sensitive else "<key>CaseSensitive</key><false/>"
+    # KM 11 keys: ConditionType=Text (not TextContents), TextConditionType
+    # (not TextContentsConditionType), TextValue (not ConditionResult).
+    # Verified 2026-05-14 by KM-author / read-back probe.
     return (
         "<dict>"
-        "<key>ConditionType</key><string>TextContents</string>"
-        f"<key>TextContentsConditionType</key><string>{escape(op)}</string>"
+        "<key>ConditionType</key><string>Text</string>"
+        f"<key>TextConditionType</key><string>{escape(op)}</string>"
         f"<key>Text</key><string>{escape(var_name)}</string>"
-        f"<key>ConditionResult</key><string>{escape(compare)}</string>"
+        f"<key>TextValue</key><string>{escape(compare)}</string>"
         f"{case_key}"
         "</dict>"
     )

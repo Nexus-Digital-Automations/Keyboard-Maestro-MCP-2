@@ -1,0 +1,16 @@
+{
+  "_": "Collection-type entries KM 11 accepts inside For/Collections/CollectionList. Captured 2026-05-14 by injecting bare {CollectionType: <name>} via .kmmacros import + read-back. KM normalizes each, filling in defaults for missing keys.",
+  "Applications": {},
+  "Dictionaries": {},
+  "DictionaryKeys": {"Dictionary": "DictionaryName"},
+  "Files": {"Path": "", "IncludeInvisibles": false, "Recursive": false, "SortOrder": "Alphabetical"},
+  "FinderSelection": {},
+  "FoundImages": {"DisplayMatches": false, "Fuzz": 15, "ScreenArea": {"ScreenAreaType": "ScreenAll"}},
+  "JSON": {"ResultType": "Key", "Text": ""},
+  "LinesIn": {"IncludeBlankLines": false, "Source": "Clipboard"},
+  "PastClipboards": {},
+  "Range": {"StartExpression": "1", "EndExpression": "10", "Upwards": true},
+  "SubstringsIn": {"ResultType": "String", "Search": "", "SearchKind": "Match", "Source": "Clipboard"},
+  "Variables": {},
+  "Volumes": {"AsPath": false}
+}

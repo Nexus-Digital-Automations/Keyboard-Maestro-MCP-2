@@ -1,0 +1,24 @@
+<dict>
+	<key>Action</key>
+	<string>SelectWindow</string>
+	<key>HeightExpression</key>
+	<string>300</string>
+	<key>HorizontalExpression</key>
+	<string>125</string>
+	<key>MacroActionType</key>
+	<string>ManipulateWindow</string>
+	<key>TargetApplication</key>
+	<dict/>
+	<key>Targeting</key>
+	<string>FrontWindow</string>
+	<key>TargetingType</key>
+	<string>Front</string>
+	<key>VerticalExpression</key>
+	<string>125</string>
+	<key>WidthExpression</key>
+	<string>300</string>
+	<key>WindowIndexExpression</key>
+	<string>2</string>
+	<key>WindowName</key>
+	<string></string>
+</dict>

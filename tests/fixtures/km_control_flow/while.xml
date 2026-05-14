@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ActionUID</key>
+	<integer>3205</integer>
+	<key>Actions</key>
+	<array/>
+	<key>Conditions</key>
+	<dict>
+		<key>ConditionList</key>
+		<array/>
+		<key>ConditionListMatch</key>
+		<string>All</string>
+	</dict>
+	<key>MacroActionType</key>
+	<string>While</string>
+	<key>TimeOutAbortsMacro</key>
+	<true/>
+</dict>
+</plist>
+
