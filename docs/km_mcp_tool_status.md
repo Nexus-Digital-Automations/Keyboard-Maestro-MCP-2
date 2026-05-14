@@ -7,8 +7,14 @@ out-of-the-box" = passed the 2026-05-14 smoke without code changes.
 `UNSUPPORTED_OPERATION` with a recovery suggestion.
 
 > ⚠️ MCP server runs from `~/Desktop/Claude Coding Projects/Keyboard-Maestro-MCP-2`
-> (main branch). Fixes in `session/20260514-125257-36011` need a merge +
-> Claude Code restart before they're live.
+> (main branch). The `session/20260514-125257-36011` merge is live in main as
+> of `460edc5`; a Claude Code restart is required after pulling for the long-
+> running MCP process to reload Python modules.
+>
+> ✅ **2026-05-14 re-verification (session `20260514-144807-63106`):** all six
+> "Fixed in this session" tools below confirmed working against the running
+> MCP server. One additional bug found and fixed — see `f23cd30` under
+> "Fixed in this session" → `km_notifications` alert duration.
 
 ## Worked out-of-the-box (24)
 
@@ -37,6 +43,15 @@ out-of-the-box" = passed the 2026-05-14 smoke without code changes.
 - `km_notifications` notification/hud/sound subtypes
 
 ## Fixed in this session
+
+### `f23cd30` — alert duration honored (session 20260514-144807-63106)
+
+- `km_notifications` alert — `duration` was silently dropped, so callers blocked
+  for the full 30-second AppleScript timeout waiting for a user click. The
+  AppleScript template now appends `giving up after N` (integer-rounded
+  seconds) when `spec.duration` is set, so alerts auto-dismiss as documented.
+  Live in source; takes effect after the next Claude Code restart reloads the
+  MCP process.
 
 ### `b83bba4` — surface-level smoke fixes
 
