@@ -75,9 +75,12 @@ CATEGORIES_DEFAULT = (
 _PLACEHOLDER_TEXT = "Invalid XML From AppleScript"
 
 
+_OSASCRIPT_BIN = "/usr/bin/osascript"
+
+
 def _osascript(script: str) -> str:
     result = subprocess.run(
-        ["osascript", "-e", script],
+        [_OSASCRIPT_BIN, "-e", script],
         capture_output=True,
         text=True,
         check=False,
