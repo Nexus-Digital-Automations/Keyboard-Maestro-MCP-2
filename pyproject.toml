@@ -178,6 +178,11 @@ module = [
     "fastmcp.*",
     "hypothesis.*",
     "factory_boy.*",
+    "AppKit.*",
+    "ApplicationServices.*",
+    "Quartz.*",
+    "watchdog.*",
+    "rapidfuzz.*",
 ]
 ignore_missing_imports = true
 
