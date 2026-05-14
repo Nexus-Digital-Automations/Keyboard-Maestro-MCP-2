@@ -2,6 +2,11 @@
 
 Provides sophisticated control flow constructs (if/then/else, loops, switch/case)
 for creating intelligent, adaptive automation workflows.
+
+@stable if_then_else mode emits real KM IfThenElse action plist via the
+shared emitter and appends it to the target macro. Other modes
+(for_loop, while_loop, switch_case, try_catch) still validate inputs
+but raise NotImplementedError for the apply step.
 """
 
 from datetime import datetime
@@ -25,6 +30,15 @@ from ...core.control_flow import (
     create_while_loop,
 )
 from ...core.errors import SecurityError, ValidationError
+from ...core.types import MacroId
+from ...integration.km_if_then_else_xml import (
+    UnsupportedConditionType,
+    UnsupportedOperator,
+    build_condition_dict,
+    build_if_then_else_xml,
+)
+from ..initialization import get_km_client
+from .action_builder_tools import _build_action_xml
 
 
 async def km_control_flow(
@@ -116,6 +130,20 @@ async def km_control_flow(
     if ctx:
         await ctx.info(
             f"Adding {control_type} control flow to macro: {macro_identifier}",
+        )
+
+    if control_type == "if_then_else":
+        return await _emit_if_then_else(
+            macro_identifier=macro_identifier,
+            condition=condition,
+            operator=operator,
+            operand=operand,
+            actions_true=actions_true,
+            actions_false=actions_false,
+            case_sensitive=case_sensitive,
+            negate=negate,
+            start_time=start_time,
+            ctx=ctx,
         )
 
     try:
@@ -657,3 +685,166 @@ def _get_structure_info(node: ControlFlowNodeType) -> dict[str, Any]:
         )
 
     return info
+
+
+# --- if_then_else fast-path -------------------------------------------------
+#
+# Bypasses the ControlFlowNode AST entirely: control_flow's IfThenElse mode
+# only needs a single condition + two flat action lists, which the shared
+# emitter in src/integration/km_if_then_else_xml.py handles directly.
+# Looping/switch modes still go through the AST + validator path until
+# they get the same treatment.
+
+_CONTROL_FLOW_TO_CONDITION_TYPE = {
+    "variable": "variable",
+    "text": "text",
+    "application": "application",
+    "calculation": "calculation",
+}
+
+
+def _condition_kind_from_expression(expr: str) -> str:
+    """Infer the condition_type from a free-form expression.
+
+    Defaults to ``variable``: the original km_control_flow API treats
+    ``condition`` as a variable name. Callers can override by prefixing
+    the expression with ``"app:"``, ``"text:"``, or ``"calc:"``.
+    """
+    lowered = expr.strip().lower()
+    for prefix in ("app:", "text:", "calc:"):
+        if lowered.startswith(prefix):
+            return {"app:": "application", "text:": "text", "calc:": "calculation"}[prefix]
+    return "variable"
+
+
+def _strip_condition_prefix(expr: str) -> str:
+    stripped = expr.strip()
+    for prefix in ("app:", "text:", "calc:"):
+        if stripped.lower().startswith(prefix):
+            return stripped[len(prefix):].strip()
+    return stripped
+
+
+def _render_inner_actions(actions: list[dict[str, Any]] | None) -> str:
+    """Translate a list of {type, ...config} dicts into concatenated KM action <dict>s.
+
+    Raises ValueError if any action_type cannot be rendered (mirrors the
+    behaviour of km_action_builder.append).
+    """
+    if not actions:
+        return ""
+    pieces: list[str] = []
+    for action in actions:
+        action_type = action.get("type")
+        if not action_type:
+            raise ValueError("inner action dict missing required 'type' key")
+        config = {k: v for k, v in action.items() if k != "type"}
+        xml = _build_action_xml(str(action_type), config)
+        if xml is None:
+            raise ValueError(
+                f"inner action_type {action_type!r} not supported by action_builder",
+            )
+        pieces.append(xml)
+    return "".join(pieces)
+
+
+async def _emit_if_then_else(  # noqa: PLR0913 - thin wrapper around 8 user args
+    macro_identifier: str,
+    condition: str | None,
+    operator: str,
+    operand: str | None,
+    actions_true: list[dict[str, Any]] | None,
+    actions_false: list[dict[str, Any]] | None,
+    case_sensitive: bool,
+    negate: bool,
+    start_time: datetime,
+    ctx: Context | None,
+) -> dict[str, Any]:
+    """Build an IfThenElse plist + append it to ``macro_identifier``."""
+    if not condition:
+        return _validation_failure(
+            "condition is required for if_then_else",
+            "Pass condition='VarName' (variable) or 'app:com.apple.finder' "
+            "(application) or 'text:%Variable%X%' (text) or 'calc:1+1' (calculation).",
+            macro_identifier,
+        )
+
+    cond_kind = _condition_kind_from_expression(condition)
+    expr = _strip_condition_prefix(condition)
+    composed_operand = (
+        f"{expr}={operand}" if operand is not None and cond_kind in {"variable", "text"}
+        else (operand or expr)
+    )
+
+    try:
+        condition_xml = build_condition_dict(
+            cond_kind,
+            operator,
+            composed_operand,
+            case_sensitive=case_sensitive,
+            negate=negate,
+        )
+        then_xml = _render_inner_actions(actions_true)
+        else_xml = _render_inner_actions(actions_false)
+    except (UnsupportedConditionType, UnsupportedOperator, ValueError) as exc:
+        if ctx:
+            await ctx.error(f"if_then_else render failed: {exc}")
+        return _validation_failure(str(exc), "Check operator/condition_type/inner action_type.", macro_identifier)
+
+    action_xml = build_if_then_else_xml(condition_xml, then_xml, else_xml)
+    result = await get_km_client().append_macro_action_async(
+        MacroId(macro_identifier.strip()),
+        action_xml,
+    )
+    if result.is_left():
+        err = result.get_left()
+        if ctx:
+            await ctx.error(f"KM rejected IfThenElse action: {err.message}")
+        return {
+            "success": False,
+            "error": {
+                "code": "APPEND_FAILED",
+                "message": err.message,
+                "recovery_suggestion": "Verify macro exists and KM engine is running.",
+            },
+            "metadata": {
+                "timestamp": datetime.now().isoformat(),
+                "correlation_id": f"append_error_{macro_identifier}",
+            },
+        }
+
+    exec_time = (datetime.now() - start_time).total_seconds()
+    if ctx:
+        await ctx.info(f"IfThenElse appended in {exec_time:.3f}s")
+    return {
+        "success": True,
+        "data": {
+            "control_type": "if_then_else",
+            "macro_id": macro_identifier,
+            "macro_action_type": "IfThenElse",
+            "condition_kind": cond_kind,
+            "then_action_count": len(actions_true or []),
+            "else_action_count": len(actions_false or []),
+            "execution_time": exec_time,
+        },
+        "metadata": {
+            "timestamp": datetime.now().isoformat(),
+            "server_version": "1.0.0",
+            "correlation_id": f"cf_if_{macro_identifier}",
+        },
+    }
+
+
+def _validation_failure(message: str, suggestion: str, macro_id: str) -> dict[str, Any]:
+    return {
+        "success": False,
+        "error": {
+            "code": "VALIDATION_ERROR",
+            "message": message,
+            "recovery_suggestion": suggestion,
+        },
+        "metadata": {
+            "timestamp": datetime.now().isoformat(),
+            "correlation_id": f"validation_{macro_id}",
+        },
+    }

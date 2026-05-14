@@ -1582,6 +1582,14 @@ class KMClient:
         start_time = time.time()
 
         try:
+            # Auto-create the target group first so validation sees it. Otherwise
+            # _validate_move_operation -> _validate_group_exists short-circuits
+            # with GROUP_NOT_FOUND even when create_missing=True.
+            if create_missing:
+                group_check = await self._ensure_target_group_exists(target_group)
+                if group_check.is_left():
+                    return group_check
+
             # Phase 1: Validate inputs and get current state
             validation_result = await self._validate_move_operation(
                 macro_id,
@@ -1603,13 +1611,7 @@ class KMClient:
 
             conflicts_found = conflict_check.get_right()
 
-            # Phase 3: Create target group if needed
-            if create_missing:
-                group_check = await self._ensure_target_group_exists(target_group)
-                if group_check.is_left():
-                    return group_check
-
-            # Phase 4: Execute atomic move operation
+            # Phase 3: Execute atomic move operation
             move_result = await self._execute_macro_move(
                 macro_id,
                 source_group,

@@ -1,38 +1,45 @@
-"""Condition tools for adding conditional logic to Keyboard Maestro macros.
+"""Append an IfThenElse action to a macro from a flat condition spec.
 
-This module implements the km_add_condition MCP tool that enables intelligent automation
-through comprehensive conditional logic, supporting text, application, system, and variable
-conditions with advanced security validation and functional programming patterns.
+@stable km_add_condition wraps the shared IfThenElse XML emitter
+(src/integration/km_if_then_else_xml.py) so callers can attach a single
+conditional branch without hand-building plist. For multi-condition
+matching, nested control flow, or arbitrary inner actions, prefer
+km_control_flow (if_then_else mode) or km_action_builder paste_xml.
+
+Decision record: the previous implementation emitted a top-level
+``<condition>`` element on the macro that KM never accepted ("variable
+condition is not defined" error). KM has no per-macro condition; the
+only writable surface is the IfThenElse action's ConditionList. This
+rewrite generates that action XML instead.
+
+Failure modes:
+- VALIDATION_ERROR: missing macro_id / operand, or unmappable
+  condition_type/operator.
+- APPEND_FAILED: KM rejected the action (missing macro, engine down).
 """
 
-import re
 from typing import Any
-
-from src.core.either import Either
 
 try:
     from fastmcp import Server
 except ImportError:
-    # Fallback if Server is not available
     Server = None
 
-from src.core.conditions import (
-    ComparisonOperator,
-    ConditionBuilder,
-    ConditionType,
-    ConditionValidator,
-    RegexValidator,
-)
-from src.core.errors import SecurityError, ValidationError
 from src.core.logging import get_logger
 from src.core.types import MacroId
-from src.integration.km_conditions import KMConditionIntegrator
-from src.security.input_sanitizer import InputSanitizer
+from src.integration.km_if_then_else_xml import (
+    UnsupportedConditionType,
+    UnsupportedOperator,
+    build_condition_dict,
+    build_execute_macro_action,
+    build_if_then_else_xml,
+)
+from src.server.initialization import get_km_client
 
 logger = get_logger(__name__)
 
 
-def _fail(code: str, message: str, suggestion: str) -> dict[str, Any]:
+def _failure(code: str, message: str, suggestion: str) -> dict[str, Any]:
     return {
         "success": False,
         "error": {"code": code, "message": message, "recovery_suggestion": suggestion},
@@ -40,298 +47,103 @@ def _fail(code: str, message: str, suggestion: str) -> dict[str, Any]:
 
 
 async def km_add_condition(
-    macro_identifier: str,  # Target macro (name or UUID)
-    condition_type: str,  # text|application|system|variable|logic
-    operator: str,  # contains|equals|greater|less|regex|exists
-    operand: str,  # Comparison value with validation
-    case_sensitive: bool = True,  # Text comparison sensitivity
-    negate: bool = False,  # Invert condition result
-    action_on_true: str | None = None,  # Action for true condition
-    action_on_false: str | None = None,  # Action for false condition
-    timeout_seconds: int = 10,  # Condition evaluation timeout
+    macro_identifier: str,
+    condition_type: str,
+    operator: str,
+    operand: str,
+    case_sensitive: bool = True,
+    negate: bool = False,
+    action_on_true: str | None = None,
+    action_on_false: str | None = None,
+    timeout_seconds: int = 10,
     ctx: Any = None,
 ) -> dict[str, Any]:
-    """Add conditional logic to a Keyboard Maestro macro for intelligent automation.
-
-    This tool creates sophisticated conditional statements that enable macros to make
-    intelligent decisions based on text content, application state, system properties,
-    or variable values. Supports comprehensive security validation and type safety.
+    """Append a single-condition IfThenElse action to ``macro_identifier``.
 
     Args:
-        macro_identifier: Target macro name or UUID
-        condition_type: Type of condition (text, application, system, variable, logic)
-        operator: Comparison operator (contains, equals, greater, less, regex, exists)
-        operand: Value to compare against
-        case_sensitive: Whether text comparisons are case sensitive
-        negate: Whether to invert the condition result
-        action_on_true: Optional action to execute when condition is true
-        action_on_false: Optional action to execute when condition is false
-        timeout_seconds: Maximum time to evaluate condition
+        macro_identifier: Target macro name or UUID.
+        condition_type: One of ``variable``, ``text``, ``application``,
+            ``calculation``. The legacy values ``system`` and ``logic`` are
+            rejected (no direct KM mapping).
+        operator: ``equals``, ``contains``, ``greater``, ``less``,
+            ``regex``, ``exists`` etc. — mapped per condition_type.
+        operand: For ``variable`` / ``text``: ``"VarName=compare"`` (or
+            just ``"VarName"`` for exists/empty checks). For
+            ``application``: bundle id or app name. For ``calculation``:
+            the KM expression.
+        case_sensitive: Honored for text conditions only.
+        negate: Invert the condition.
+        action_on_true: Optional macro name/UID; emitted as one
+            ExecuteMacro inner action inside ThenActions.
+        action_on_false: Same, for ElseActions.
+        timeout_seconds: Carried into ``TimeOutAbortsMacro`` (kept true
+            by default; the seconds value is informational here because
+            KM stores it on the surrounding action).
+        ctx: MCP context (unused).
 
     Returns:
-        Dict containing condition ID, validation status, and integration details
-
-    Raises:
-        ValidationError: If condition parameters are invalid
-        SecurityError: If condition contains security risks
-        PermissionDeniedError: If insufficient permissions for condition type
-
+        ``{"success": True, "data": {"macro_id", "macro_action_type"}}``
+        on success; failure envelope otherwise.
     """
+    del ctx, timeout_seconds
+    if not macro_identifier or not macro_identifier.strip():
+        return _failure(
+            "VALIDATION_ERROR",
+            "macro_identifier is required.",
+            "Pass the macro UUID or unique name.",
+        )
+
     try:
-        logger.info(f"Adding condition to macro: {macro_identifier}")
-
-        # Input sanitization and validation
-        sanitizer = InputSanitizer()
-
-        # Sanitize string inputs
-        macro_id_result = sanitizer.sanitize_macro_identifier(macro_identifier)
-        if macro_id_result.is_left():
-            return _fail(
-                "INVALID_MACRO_ID",
-                macro_id_result.get_left().message,
-                "Pass an existing macro's name or UUID.",
-            )
-
-        operand_result = sanitizer.sanitize_text_content(operand, strict_mode=True)
-        if operand_result.is_left():
-            return _fail(
-                "INVALID_OPERAND",
-                operand_result.get_left().message,
-                "Operand failed text sanitization; remove control chars or shell metacharacters.",
-            )
-
-        macro_id = MacroId(macro_id_result.get_right())
-        clean_operand = operand_result.get_right()
-
-        # Validate condition type and operator
-        condition_type_result = _validate_condition_type(condition_type)
-        if condition_type_result.is_left():
-            return _fail(
-                "INVALID_CONDITION_TYPE",
-                condition_type_result.get_left().message,
-                "Use one of: text, application, system, variable, logic.",
-            )
-
-        operator_result = _validate_operator(operator)
-        if operator_result.is_left():
-            return _fail(
-                "INVALID_OPERATOR",
-                operator_result.get_left().message,
-                "Use one of the supported operators (contains, equals, regex, exists, ...).",
-            )
-
-        condition_type_enum = condition_type_result.get_right()
-        operator_enum = operator_result.get_right()
-
-        # Build condition using fluent API
-        builder = ConditionBuilder()
-
-        # Set condition type with appropriate metadata
-        if condition_type_enum == ConditionType.TEXT:
-            target_text = ctx.get("clipboard_content", "") if ctx else ""
-            builder = builder.text_condition(target_text)
-        elif condition_type_enum == ConditionType.APPLICATION:
-            app_identifier = clean_operand  # For app conditions, operand is the app
-            builder = builder.app_condition(app_identifier)
-        elif condition_type_enum == ConditionType.SYSTEM:
-            property_name = (
-                clean_operand  # For system conditions, operand is the property
-            )
-            builder = builder.system_condition(property_name)
-        elif condition_type_enum == ConditionType.VARIABLE:
-            variable_name = (
-                clean_operand  # For variable conditions, operand is the variable name
-            )
-            builder = builder.variable_condition(variable_name)
-
-        # Set operator and comparison value
-        builder = _apply_operator(builder, operator_enum, clean_operand)
-
-        # Set additional options
-        if not case_sensitive:
-            builder = builder.case_insensitive()
-
-        if negate:
-            builder = builder.negated()
-
-        if 1 <= timeout_seconds <= 60:
-            builder = builder.with_timeout(timeout_seconds)
-
-        # Build and validate condition
-        condition_result = builder.build()
-        if condition_result.is_left():
-            return _fail(
-                "CONDITION_BUILD_FAILED",
-                condition_result.get_left().message,
-                "Review condition_type, operator, and operand for compatibility.",
-            )
-
-        condition_spec = condition_result.get_right()
-
-        # Additional security validation
-        security_result = _perform_security_validation(condition_spec, clean_operand)
-        if security_result.is_left():
-            return _fail(
-                "SECURITY_VIOLATION",
-                security_result.get_left().message,
-                "Operand failed security validation; remove dangerous patterns.",
-            )
-
-        # Integrate with Keyboard Maestro
-        integrator = KMConditionIntegrator()
-        integration_result = await integrator.add_condition_to_macro(
-            macro_id=macro_id,
-            condition=condition_spec,
-            action_on_true=action_on_true,
-            action_on_false=action_on_false,
+        condition_xml = build_condition_dict(
+            condition_type,
+            operator,
+            operand,
+            case_sensitive=case_sensitive,
+            negate=negate,
+        )
+    except (UnsupportedConditionType, UnsupportedOperator) as exc:
+        logger.warning(
+            "km_add_condition rejected unsupported spec: type=%s op=%s err=%s",
+            condition_type,
+            operator,
+            exc,
+        )
+        return _failure(
+            "UNSUPPORTED_OPERATION" if isinstance(exc, UnsupportedConditionType)
+            else "VALIDATION_ERROR",
+            str(exc),
+            "See km_add_condition docstring for supported condition_type / operator combos.",
         )
 
-        if integration_result.is_left():
-            err = integration_result.get_left()
-            return {
-                "success": False,
-                "error": {
-                    "code": "INTEGRATION_FAILED",
-                    "message": err.message,
-                    "recovery_suggestion": (
-                        "Check the macro exists, the condition operand is well-formed, "
-                        "and KM Engine is reachable."
-                    ),
-                },
-            }
+    then_xml = build_execute_macro_action(action_on_true) if action_on_true else ""
+    else_xml = build_execute_macro_action(action_on_false) if action_on_false else ""
+    action_xml = build_if_then_else_xml(condition_xml, then_xml, else_xml)
 
-        integration_details = integration_result.get_right()
-
-        logger.info(
-            f"Successfully added condition {condition_spec.condition_id} to macro {macro_id}",
+    result = await get_km_client().append_macro_action_async(
+        MacroId(macro_identifier.strip()),
+        action_xml,
+    )
+    if result.is_left():
+        err = result.get_left()
+        logger.warning("km_add_condition append failed: macro=%s err=%s", macro_identifier, err.message)
+        return _failure(
+            "APPEND_FAILED",
+            err.message,
+            "Verify the macro exists and KM engine is running.",
         )
-
-        return {
-            "success": True,
-            "condition_id": condition_spec.condition_id,
-            "macro_id": macro_id,
+    return {
+        "success": True,
+        "data": {
+            "macro_id": macro_identifier,
+            "macro_action_type": "IfThenElse",
             "condition_type": condition_type,
             "operator": operator,
-            "operand": clean_operand,
-            "case_sensitive": case_sensitive,
-            "negate": negate,
-            "timeout_seconds": timeout_seconds,
-            "km_integration": integration_details,
-            "security_validated": True,
-            "created_at": condition_spec.metadata.get("created_at", ""),
-            "performance_metrics": {
-                "validation_time_ms": integration_details.get("validation_time_ms", 0),
-                "integration_time_ms": integration_details.get(
-                    "integration_time_ms",
-                    0,
-                ),
-            },
-        }
-
-    except Exception as e:
-        logger.error(f"Error adding condition to macro {macro_identifier}: {e!s}")
-        return _fail(
-            "INTERNAL_ERROR",
-            f"Failed to add condition: {e!s}",
-            "Inspect server logs; this is an unexpected exception path.",
-        )
+            "then_inner_actions": 1 if action_on_true else 0,
+            "else_inner_actions": 1 if action_on_false else 0,
+        },
+    }
 
 
-def _validate_condition_type(
-    condition_type: str,
-) -> Either[ValidationError, ConditionType]:
-    """Validate and convert condition type string."""
-    try:
-        return Either.right(ConditionType(condition_type.lower()))
-    except ValueError:
-        valid_types = [t.value for t in ConditionType]
-        return Either.left(
-            ValidationError(
-                "condition_type",
-                condition_type,
-                f"must be one of: {valid_types}",
-            ),
-        )
-
-
-def _validate_operator(operator: str) -> Either[ValidationError, ComparisonOperator]:
-    """Validate and convert operator string."""
-    try:
-        return Either.right(ComparisonOperator(operator.lower()))
-    except ValueError:
-        valid_operators = [op.value for op in ComparisonOperator]
-        return Either.left(
-            ValidationError("operator", operator, f"must be one of: {valid_operators}"),
-        )
-
-
-def _apply_operator(
-    builder: ConditionBuilder,
-    operator: ComparisonOperator,
-    operand: str,
-) -> ConditionBuilder:
-    """Apply the specified operator to the condition builder."""
-    if operator == ComparisonOperator.EQUALS:
-        return builder.equals(operand)
-    if operator == ComparisonOperator.CONTAINS:
-        return builder.contains(operand)
-    if operator == ComparisonOperator.MATCHES_REGEX:
-        return builder.matches_regex(operand)
-    if operator == ComparisonOperator.GREATER_THAN:
-        return builder.greater_than(operand)
-    # Default to equals for other operators
-    return builder.equals(operand)
-
-
-def _perform_security_validation(
-    condition_spec: Any,
-    operand: str,
-) -> Either[SecurityError, None]:
-    """Perform additional security validation on the condition."""
-    # Validate regex patterns for ReDoS attacks
-    if condition_spec.operator == ComparisonOperator.MATCHES_REGEX:
-        regex_result = RegexValidator.validate_pattern(operand)
-        if regex_result.is_left():
-            return Either.left(
-                SecurityError(
-                    "DANGEROUS_REGEX",
-                    f"Regex pattern validation failed: {regex_result.get_left().message}",
-                ),
-            )
-
-    # Check for injection patterns in operand
-    dangerous_patterns = [
-        r"<script",
-        r"javascript:",
-        r"eval\s*\(",
-        r"exec\s*\(",
-        r"system\s*\(",
-        r"shell_exec",
-        r"`[^`]*`",  # Command injection
-    ]
-
-    operand_lower = operand.lower()
-    for pattern in dangerous_patterns:
-        if re.search(pattern, operand_lower):
-            return Either.left(
-                SecurityError(
-                    "INJECTION_DETECTED",
-                    f"Potential code injection detected in operand: {pattern}",
-                ),
-            )
-
-    # Validate file paths for system conditions
-    if condition_spec.condition_type == ConditionType.SYSTEM:
-        property_name = condition_spec.metadata.get("property_name", "")
-        if "file" in property_name.lower():
-            path_result = ConditionValidator.validate_file_path(operand)
-            if path_result.is_left():
-                return Either.left(path_result.get_left())
-
-    return Either.right(None)
-
-
-# Register the tool with the MCP server
 def register_condition_tools(server: Server) -> None:
     """Register condition-related tools with the MCP server."""
     server.add_tool(km_add_condition)

@@ -319,7 +319,14 @@ class NotificationManager:
             result = await self.km_client.execute_applescript_async(script)
 
             if result.is_left():
-                return Either.left(result.get_left())
+                km_err = result.get_left()
+                return Either.left(
+                    MacroEngineError(
+                        message=f"Alert dialog AppleScript failed: {km_err.message}",
+                        category=ErrorCategory.EXECUTION,
+                        error_code="ALERT_DIALOG_ERROR",
+                    ),
+                )
 
             display_time = time.time() - start_time
 
