@@ -23,7 +23,11 @@ from pydantic import Field
 
 from ...core.types import MacroId
 from ..initialization import get_km_client
-from ._action_templates import find_macro_action_type, render_action_xml
+from ._action_templates import (
+    find_macro_action_type,
+    render_action_xml,
+    validate_pasted_dict_xml,
+)
 from .plugin_action_tools import _scan_installed_plugins
 
 logger = logging.getLogger(__name__)
@@ -125,6 +129,11 @@ def _build_action_xml(action_type: str, config: dict[str, Any]) -> str | None:
         )
     if action_type == "plug_in":
         return _build_plug_in_xml(config)
+    if action_type == "paste_xml":
+        raw = (config or {}).get("xml")
+        if not isinstance(raw, str) or not raw.strip():
+            raise ValueError("paste_xml requires action_config={'xml': '<dict>...</dict>'}")
+        return validate_pasted_dict_xml(raw)
     macro_action_type = find_macro_action_type(action_type)
     if macro_action_type is None:
         return None
@@ -292,7 +301,8 @@ async def km_action_builder(
             default=None,
             description=(
                 "For 'append': pause, type_text, paste, set_variable, run_applescript, "
-                "execute_macro, plug_in."
+                "execute_macro, plug_in, paste_xml, or any built-in identifier from "
+                "km_list_action_types (e.g. 'speak_text')."
             ),
             max_length=64,
         ),
@@ -307,7 +317,11 @@ async def km_action_builder(
                 "run_applescript: {source: '...'}. execute_macro: {target_macro: 'Name'}. "
                 "plug_in: {plugin_identifier: 'MCP Smoke Plugin', parameters: {Label: value}, "
                 "display_kind: 'Variable', variable: 'OutVar'} — plugin_identifier matches "
-                "an entry from km_list_action_types."
+                "an entry from km_list_action_types. "
+                "paste_xml: {xml: '<dict>...</dict>'} for any action whose <dict> body you "
+                "already have (validated as plist with MacroActionType key). "
+                "Built-in catalog identifiers (e.g. speak_text): keys named in the "
+                "entry's `parameters` list."
             ),
         ),
     ] = None,

@@ -17,6 +17,7 @@ import plistlib
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
+from xml.parsers.expat import ExpatError
 
 _DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 _TEMPLATES_PATH = _DATA_DIR / "km_action_templates.json"
@@ -82,9 +83,24 @@ def render_action_xml(macro_action_type: str, params: dict[str, Any]) -> str | N
     return _serialize_dict_body(plist)
 
 
+def validate_pasted_dict_xml(xml_text: str) -> str:
+    """Validate a user-supplied action <dict> XML for the paste_xml escape hatch.
+
+    Returns the input string unchanged on success. Raises ValueError if the
+    XML is not a plist <dict>, lacks a MacroActionType key, or fails to parse.
+    """
+    plist = _parse_dict_body(xml_text)
+    if "MacroActionType" not in plist:
+        raise ValueError("action <dict> must contain a MacroActionType key")
+    return xml_text
+
+
 def _parse_dict_body(dict_xml: str) -> dict[str, Any]:
     body = _PLIST_HEAD + dict_xml.encode("utf-8") + _PLIST_TAIL
-    parsed = plistlib.loads(body)
+    try:
+        parsed = plistlib.loads(body)
+    except (plistlib.InvalidFileException, ExpatError) as exc:
+        raise ValueError(f"malformed action XML: {exc}") from exc
     if not isinstance(parsed, dict):
         raise ValueError("template XML must be a plist <dict>")
     return parsed
