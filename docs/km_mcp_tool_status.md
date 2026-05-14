@@ -15,6 +15,17 @@ out-of-the-box" = passed the 2026-05-14 smoke without code changes.
 > "Fixed in this session" tools below confirmed working against the running
 > MCP server. One additional bug found and fixed — see `f23cd30` under
 > "Fixed in this session" → `km_notifications` alert duration.
+>
+> 🆕 **2026-05-14 — `km_set_macro_triggers` tool added.** New canonical
+> primitive for wholesale trigger-list replacement, plus refactor of
+> `km_add_system_trigger` to share the same export-edit-reimport pipeline
+> (now hosted in `src/integration/km_macro_rebuild.py`). Probe verdict:
+> `set xml of macro` is rejected by KM 11 (error -10006, read-only
+> property), so UID rotation on rebuild is unavoidable. Per-trigger
+> `set_enabled` wire-up over the new primitive is **deferred** — design is
+> recorded in `~/.claude/plans/okay-come-up-with-frolicking-hinton.md`
+> (Phase 2). Restart required after pulling so the MCP process loads the
+> new module.
 
 ## Worked out-of-the-box (24)
 
