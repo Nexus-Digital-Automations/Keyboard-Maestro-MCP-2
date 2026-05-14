@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "description": "Canonical XML templates for KM built-in action types, captured from Keyboard Maestro's own editor via Edit > Insert Action > By Name. Each entry's `xml` is the action's <dict> body with transient keys (ActionUID, creation dates) stripped. `parameter_paths` maps user-facing parameter names (snake_case) to the plist keys inside the captured template, so the substitution engine doesn't need per-action knowledge of KM's plist schema."
+  },
+  "SpeakText": {
+    "captured_at": "2026-05-14",
+    "km_version": "11.x",
+    "xml": "<dict><key>MacroActionType</key><string>SpeakText</string><key>Rate</key><string>Default</string><key>Text</key><string>Action Completed</string><key>TimeOutAbortsMacro</key><true/><key>Voice</key><string></string></dict>",
+    "parameter_paths": {
+      "text": "Text",
+      "voice": "Voice",
+      "rate": "Rate"
+    }
+  }
+}

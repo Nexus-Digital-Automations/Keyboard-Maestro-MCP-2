@@ -23,6 +23,7 @@ from pydantic import Field
 
 from ...core.types import MacroId
 from ..initialization import get_km_client
+from ._action_templates import find_macro_action_type, render_action_xml
 from .plugin_action_tools import _scan_installed_plugins
 
 logger = logging.getLogger(__name__)
@@ -124,7 +125,10 @@ def _build_action_xml(action_type: str, config: dict[str, Any]) -> str | None:
         )
     if action_type == "plug_in":
         return _build_plug_in_xml(config)
-    return None
+    macro_action_type = find_macro_action_type(action_type)
+    if macro_action_type is None:
+        return None
+    return render_action_xml(macro_action_type, config or {})
 
 
 # Verified against KM's "Copy as XML" output for an MCP Smoke Plugin action
@@ -220,7 +224,15 @@ async def _do_append(
             "macro_id and action_type are required for operation='append'.",
             "Pass both, plus action_config with type-appropriate fields.",
         )
-    xml = _build_action_xml(action_type, action_config or {})
+    try:
+        xml = _build_action_xml(action_type, action_config or {})
+    except ValueError as exc:
+        logger.warning("action_builder render failed: type=%s err=%s", action_type, exc)
+        return _failure(
+            "VALIDATION_ERROR",
+            f"action_config invalid for action_type '{action_type}': {exc}",
+            "Check parameter names against km_list_action_types output for this type.",
+        )
     if xml is None:
         return _failure(
             "UNSUPPORTED_ACTION_TYPE",

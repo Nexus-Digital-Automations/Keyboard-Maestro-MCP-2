@@ -1,0 +1,28 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "description": "Hand-curated catalog of KM built-in action types. Each entry pairs a stable snake_case identifier with the KM MacroActionType, human-readable description, search keywords, and parameter hints. Search and discovery read this; the builder reads km_action_templates.json keyed by MacroActionType. `builder_supported: true` means a captured template exists; false means the type appears in search results but km_action_builder will reject with UNSUPPORTED_ACTION_TYPE."
+  },
+  "actions": [
+    {
+      "identifier": "speak_text",
+      "MacroActionType": "SpeakText",
+      "category": "system",
+      "title": "Speak Text",
+      "description": "Speak text aloud using macOS text-to-speech.",
+      "keywords": ["speak", "say", "voice", "tts", "text-to-speech", "audio", "accessibility"],
+      "task_hints": [
+        "read text out loud",
+        "announce a result",
+        "voice notification"
+      ],
+      "parameters": [
+        {"label": "text", "type": "String", "required": true, "description": "Text to speak."},
+        {"label": "voice", "type": "String", "required": false, "description": "Voice name (empty = system default)."},
+        {"label": "rate", "type": "String", "required": false, "description": "'Default' or words-per-minute integer."}
+      ],
+      "builder_supported": true,
+      "result_targets": []
+    }
+  ]
+}
