@@ -29,8 +29,10 @@ _CANONICAL_TOOLS: frozenset[str] = frozenset({
     "km_list_macros",
     "km_list_templates",
     "km_execute_macro",
-    # Triggers (km_trigger_crud is the XML-native advanced path)
+    # Triggers (km_trigger_crud is the XML-native advanced path;
+    # km_set_macro_triggers is the wholesale-rebuild primitive)
     "km_trigger_crud",
+    "km_set_macro_triggers",
     # Variables / tokens / engine
     "km_variable_manager",
     "km_token_processor",

@@ -20,6 +20,7 @@ from .hotkey_tools import km_create_hotkey_trigger, km_list_hotkey_triggers
 from .macro_editor_tools import km_macro_editor
 from .macro_group_tools import km_macro_group_manager
 from .macro_move_tools import km_move_macro_to_group
+from .macro_rebuild_tools import km_set_macro_triggers
 from .notification_tools import (
     km_dismiss_notifications,
     km_notification_status,
@@ -53,6 +54,7 @@ __all__ = [
     "km_move_macro_to_group",
     "km_notification_status",
     "km_notifications",
+    "km_set_macro_triggers",
     "km_token_processor",
     "km_token_stats",
     "km_trigger_crud",
