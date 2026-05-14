@@ -301,10 +301,18 @@ def _scan_installed_plugins() -> list[dict[str, Any]]:
         if not isinstance(name, str) or not isinstance(title, str):
             continue
         results = spec.get("Results") or ""
+        # KM plug-in plists are inconsistent: docs say "KeyWords" but some
+        # bundles ship "Keywords" — accept both. Help URL and Author are
+        # plist-optional and we just forward whatever's there.
+        keywords_raw = spec.get("KeyWords") or spec.get("Keywords") or []
+        keywords = [str(k) for k in keywords_raw if isinstance(k, str) and k]
         plugins.append({
             "identifier": name,
             "title": title,
             "help": spec.get("Help"),
+            "help_url": spec.get("HelpURL"),
+            "author": spec.get("Author"),
+            "keywords": keywords,
             "parameters": _normalize_plugin_parameters(spec.get("Parameters") or []),
             "result_targets": [s for s in results.split("|") if s],
             "bundle_path": str(bundle),

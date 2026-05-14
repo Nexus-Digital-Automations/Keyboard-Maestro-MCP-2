@@ -93,6 +93,7 @@ def _plugin_entry(spec: dict[str, Any]) -> dict[str, Any]:
         "identifier": spec["identifier"],
         "category": "plug_in",
         "description": spec.get("help") or spec["title"],
+        "keywords": spec.get("keywords", []),
         "required_parameters": [p["label"] for p in spec["parameters"]],
         "optional_parameters": [],
         "parameter_count": len(spec["parameters"]),
@@ -101,6 +102,8 @@ def _plugin_entry(spec: dict[str, Any]) -> dict[str, Any]:
             "result_targets": spec["result_targets"],
             "parameter_types": [p["type"] for p in spec["parameters"]],
             "bundle_path": spec["bundle_path"],
+            "author": spec.get("author"),
+            "help_url": spec.get("help_url"),
         },
     }
 
