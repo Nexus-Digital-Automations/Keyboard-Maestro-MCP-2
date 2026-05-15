@@ -7,6 +7,7 @@ trigger, both of which return ``success=True`` and mislead callers.
 
 import plistlib
 
+import pytest
 from src.integration.kmmacros_import import build_kmmacros_plist
 from src.server.tools.creation_tools import _render_template_actions
 
@@ -84,3 +85,30 @@ def test_window_manager_template_emits_manipulate_window_action() -> None:
     assert action["VerticalExpression"] == "100"
     assert action["WidthExpression"] == "800"
     assert action["HeightExpression"] == "600"
+
+
+@pytest.mark.parametrize(
+    ("operation_input", "expected_action"),
+    [
+        ("move", "MoveAndResize"),
+        ("resize", "Resize"),
+        ("arrange", "MoveAndResize"),
+        ("MoveAndResize", "MoveAndResize"),
+        ("Resize", "Resize"),
+        ("Minimize", "Minimize"),  # passthrough for advanced KM enum values
+    ],
+)
+def test_window_manager_operation_normalizes_to_km_pascal_case(
+    operation_input: str, expected_action: str,
+) -> None:
+    """D2: callers follow the doc's lowercase aliases (move/resize/arrange)
+    but KM's Action enum is PascalCase. Lowercase aliases must map to
+    canonical names; unknown values pass through so advanced callers can
+    reach Minimize/Zoom/etc.
+    """
+    actions_xml, _triggers_xml = _render_template_actions(
+        "window_manager",
+        {"operation": operation_input},
+    )
+    macro = _macro_dict_from_plist(actions_xml, "")
+    assert macro["Actions"][0]["Action"] == expected_action

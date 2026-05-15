@@ -382,10 +382,23 @@ def _translate_file_processor(
     ], None
 
 
+# KM's ManipulateWindow Action key is a PascalCase enum; the template
+# docstring advertises lowercase aliases. KM silently drops the action
+# on import when the value is anything other than its canonical names,
+# so map documented aliases here. Anything not in the map is passed
+# through verbatim, letting advanced callers reach Minimize/Zoom/etc.
+_WINDOW_OP_ALIASES: dict[str, str] = {
+    "move": "MoveAndResize",
+    "resize": "Resize",
+    "arrange": "MoveAndResize",
+}
+
+
 def _translate_window_manager(
     parameters: dict[str, Any],
 ) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
-    operation = parameters.get("operation", "MoveAndResize")
+    requested = str(parameters.get("operation", "MoveAndResize"))
+    operation = _WINDOW_OP_ALIASES.get(requested.lower(), requested)
     return [
         {
             "type": "manipulate_window",

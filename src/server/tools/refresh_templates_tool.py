@@ -21,12 +21,12 @@ import logging
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Any
+from typing import Annotated, Any
 
+from fastmcp import (
+    Context,  # noqa: TC002 — tool discovery resolves annotations at runtime
+)
 from pydantic import Field
-
-if TYPE_CHECKING:
-    from fastmcp import Context
 
 from ._action_templates import load_templates
 from .core_tools import _UUID_RE, _resolve_macro_uuid

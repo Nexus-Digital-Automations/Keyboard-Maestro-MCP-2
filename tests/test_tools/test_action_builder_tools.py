@@ -178,26 +178,61 @@ async def test_append_passes_xml_to_client(patched_client: Mock) -> None:
 
 
 @pytest.mark.asyncio
-async def test_append_execute_macro_resolves_target_to_uid(patched_client: Mock) -> None:
-    """D4: appending execute_macro must look up the target via list_macros
-    so the emitted XML carries MacroUID. A name that doesn't resolve must
-    return EXECUTE_MACRO_TARGET_NOT_FOUND, not silently emit half-formed XML.
+async def test_append_execute_macro_uses_rebuild_pipeline(patched_client: Mock) -> None:
+    """D4: KM's make-new-action verb rejects ExecuteMacro XML, so the append
+    must route through export-edit-reimport. The resolved (name, uid) target
+    appears in the new plist's Actions, and the response surfaces the
+    rotated UID.
     """
+    from src.integration.km_macro_rebuild import MacroSnapshot, RebuildResult
+
     target_uid = "11111111-2222-3333-4444-555555555555"
     patched_client.list_macros_async = AsyncMock(
         return_value=Either.right([{"id": target_uid, "name": "Echo Target"}]),
     )
-    result = await km_action_builder(
-        operation="append",
-        macro_id="M",
-        action_type="execute_macro",
-        action_config={"target_macro": "Echo Target"},
+    snapshot = MacroSnapshot(
+        plist={"UID": "OLD-UID", "Name": "M", "Actions": [], "Triggers": []},
+        group_name="G",
+        group_uid="G-UID",
+        original_uid="OLD-UID",
     )
+    rebuilt = RebuildResult(old_uid="OLD-UID", new_uid="NEW-UID", group_name="G")
+    captured_plist: dict[str, Any] = {}
+
+    async def fake_fetch(_km: Any, _macro_id: str) -> Any:
+        return Either.right(snapshot)
+
+    async def fake_rebuild(_km: Any, _snap: Any, new_plist: dict[str, Any]) -> Any:
+        captured_plist.update(new_plist)
+        return Either.right(rebuilt)
+
+    with (
+        patch(
+            "src.server.tools.action_builder_tools.fetch_macro_snapshot",
+            side_effect=fake_fetch,
+        ),
+        patch(
+            "src.server.tools.action_builder_tools.rebuild_macro_via_reimport",
+            side_effect=fake_rebuild,
+        ),
+    ):
+        result = await km_action_builder(
+            operation="append",
+            macro_id="M",
+            action_type="execute_macro",
+            action_config={"target_macro": "Echo Target"},
+        )
     assert result["success"] is True
-    xml = patched_client.append_macro_action_async.await_args.args[1]
-    assert f"<string>{target_uid}</string>" in xml
-    assert "<string>Echo Target</string>" in xml
-    assert "<key>Macro</key><dict>" in xml
+    assert result["data"]["old_macro_id"] == "OLD-UID"
+    assert result["data"]["new_macro_id"] == "NEW-UID"
+    assert result["data"]["uuid_changed"] is True
+    appended_actions = captured_plist["Actions"]
+    assert len(appended_actions) == 1
+    action = appended_actions[0]
+    assert action["MacroActionType"] == "ExecuteMacro"
+    assert action["Macro"]["MacroName"] == "Echo Target"
+    assert action["Macro"]["MacroUID"] == target_uid
+    patched_client.append_macro_action_async.assert_not_awaited()
 
 
 @pytest.mark.asyncio

@@ -15,6 +15,7 @@ appending in order.
 
 import asyncio
 import logging
+import plistlib
 from pathlib import Path
 from typing import Annotated, Any, Literal
 
@@ -22,6 +23,10 @@ from fastmcp import Context
 from pydantic import Field
 
 from ...core.types import MacroId
+from ...integration.km_macro_rebuild import (
+    fetch_macro_snapshot,
+    rebuild_macro_via_reimport,
+)
 from ..initialization import get_km_client
 from ._action_templates import (
     find_macro_action_type,
@@ -373,6 +378,86 @@ async def _do_list(macro_id: str | None) -> dict[str, Any]:
     return {"success": True, "data": {"macro_id": macro_id, "actions": result.get_right()}}
 
 
+async def _append_execute_macro_via_rebuild(
+    macro_id: str,
+    target_macro: Any,
+) -> dict[str, Any]:
+    """Append an ExecuteMacro action via export-edit-reimport.
+
+    KM 11's ``make new action`` AppleScript verb rejects every ExecuteMacro
+    plist shape (verified by R9 probe — KM substitutes a
+    ``Log "Invalid XML From AppleScript"`` placeholder). The
+    export-edit-reimport pipeline is the only working path; it rotates the
+    macro's UID as a side-effect, surfaced in the response.
+
+    Failure modes:
+    - ``EXECUTE_MACRO_TARGET_NOT_FOUND``: target_macro doesn't resolve.
+    - ``EXPORT_FAILED`` / ``IMPORT_FAILED``: rebuild pipeline rejected.
+    - ``APPEND_FAILED``: emitter returned no XML.
+    """
+    resolved = await _resolve_execute_macro_target(target_macro)
+    if resolved is None:
+        return _failure(
+            "EXECUTE_MACRO_TARGET_NOT_FOUND",
+            f"target_macro {target_macro!r} did not resolve to a known macro. "
+            "KM's ExecuteMacro action requires a real MacroUID.",
+            "Pass an existing macro name or UUID; list with km_list_macros.",
+        )
+    target_name, target_uid = resolved
+    xml = _build_action_xml(
+        "execute_macro",
+        {"target_macro_name": target_name, "target_macro_uid": target_uid},
+    )
+    if xml is None:
+        return _failure(
+            "APPEND_FAILED",
+            "execute_macro emitter returned no XML despite resolved target.",
+            "File a bug — emitter and resolver disagree.",
+        )
+    action_dict = plistlib.loads(
+        f'<?xml version="1.0" encoding="UTF-8"?>'
+        f'<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
+        f'"http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+        f'<plist version="1.0">{xml}</plist>'.encode(),
+    )
+    km = get_km_client()
+    snap_result = await fetch_macro_snapshot(km, macro_id)
+    if snap_result.is_left():
+        err = snap_result.get_left()
+        code = "EXECUTE_MACRO_MACRO_NOT_FOUND" if err.code == "NOT_FOUND_ERROR" else "EXPORT_FAILED"
+        logger.warning("execute_macro append: fetch failed macro=%s err=%s", macro_id, err.message)
+        return _failure(code, err.message, "Verify the macro UID/name via km_list_macros.")
+    snapshot = snap_result.get_right()
+    new_plist = dict(snapshot.plist)
+    new_plist["Actions"] = [*new_plist.get("Actions", []), action_dict]
+    rebuild_result = await rebuild_macro_via_reimport(km, snapshot, new_plist)
+    if rebuild_result.is_left():
+        err = rebuild_result.get_left()
+        logger.warning("execute_macro append: rebuild failed macro=%s err=%s", macro_id, err.message)
+        return _failure(
+            "IMPORT_FAILED",
+            err.message,
+            "Inspect KM Editor for import dialogs or naming conflicts.",
+        )
+    rebuilt = rebuild_result.get_right()
+    return {
+        "success": True,
+        "data": {
+            "old_macro_id": rebuilt.old_uid,
+            "new_macro_id": rebuilt.new_uid,
+            "group_name": rebuilt.group_name,
+            "action_type": "execute_macro",
+            "appended": True,
+            "uuid_changed": True,
+        },
+        "warning": (
+            "The macro's UUID changed. Any ExecuteMacro action in other "
+            "macros that referenced the old UID must be rewritten to use "
+            "the new UID."
+        ),
+    }
+
+
 async def _do_append(
     macro_id: str | None,
     action_type: str | None,
@@ -386,15 +471,9 @@ async def _do_append(
         )
     config = dict(action_config or {})
     if action_type == "execute_macro":
-        resolved = await _resolve_execute_macro_target(config.get("target_macro"))
-        if resolved is None:
-            return _failure(
-                "EXECUTE_MACRO_TARGET_NOT_FOUND",
-                f"target_macro {config.get('target_macro')!r} did not resolve to a "
-                "known macro. KM's ExecuteMacro action requires a real MacroUID.",
-                "Pass an existing macro name or UUID; list with km_list_macros.",
-            )
-        config["target_macro_name"], config["target_macro_uid"] = resolved
+        return await _append_execute_macro_via_rebuild(
+            macro_id.strip(), config.get("target_macro"),
+        )
     try:
         xml = _build_action_xml(action_type, config)
     except ValueError as exc:
