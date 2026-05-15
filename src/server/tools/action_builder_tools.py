@@ -115,12 +115,21 @@ def _build_action_xml(action_type: str, config: dict[str, Any]) -> str | None:
         )
     if action_type == "run_applescript":
         source = _xml_escape(str(config.get("source", "")))
-        # UseText=true is required: KM defaults to UseText=false (the file-path
-        # mode) and renders the action as "Execute 'Unknown' AppleScript" when
-        # the key is absent, ignoring the inline `Text` body entirely.
+        # KM auto-fills two keys when omitted that we override explicitly:
+        #   StopOnFailure=false       silently swallows AppleScript errors, so
+        #                             a surrounding TryCatch never fires.
+        #                             Emit StopOnFailure=true to propagate
+        #                             (closes audit defect D1).
+        #   IncludedVariables=["9999"]  KM's sentinel for "all instance vars".
+        #                             Emit an empty array so the action is
+        #                             self-contained / matches a hand-authored
+        #                             no-inclusion action.
+        # UseText=true keeps KM from rendering "Execute 'Unknown' AppleScript".
         return (
             "<dict>"
+            "<key>IncludedVariables</key><array/>"
             "<key>MacroActionType</key><string>ExecuteAppleScript</string>"
+            "<key>StopOnFailure</key><true/>"
             f"<key>Text</key><string>{source}</string>"
             "<key>TextSource</key><string>Text</string>"
             "<key>UseText</key><true/>"

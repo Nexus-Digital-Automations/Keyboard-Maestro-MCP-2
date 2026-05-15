@@ -156,8 +156,8 @@ Sandbox: create or reuse macro group `KM MCP R6 Sandbox` and a scratch macro ins
       group_name="KM MCP R6 Sandbox",
       parameters={"app_name": "Finder", "bundle_id": "com.apple.finder"})
     ```
-    Repeat for each template: `text_expansion` (`expansion_text`), `file_processor` (`script`), `window_manager` (`operation`, `x`, `y`, `width`, `height`), `hotkey_action` (`action`, `text`, `hotkey`, `modifiers`). Each should return `success=true` and the resulting macro should have exactly the expected action count via `km_action_builder list`. `hotkey_action` additionally needs `data.hotkey_attached=true` and the trigger should appear in `km_list_hotkey_triggers`.
-12. **Template with unsupported inner action** — `km_create_macro(template="hotkey_action", parameters={"action": "wave_hands", ...})` should return `UNSUPPORTED_TEMPLATE_ACTION` naming the offender.
+    Repeat for each template: `text_expansion` (`expansion_text`), `file_processor` (`script`), `window_manager` (`operation`, `x`, `y`, `width`, `height`), `hotkey_action` (`action` — one of `open_app` / `type_text` / `run_script`; plus `text`, `hotkey` from `a-z`/`0-9`/`f1-f12`/named special key, `modifiers`). Each should return `success=true` and the resulting macro should have exactly the expected action count via `km_action_builder list`. `hotkey_action` additionally needs `data.hotkey_attached=true` and the trigger should appear in `km_list_hotkey_triggers`.
+12. **Template with unsupported inner action** — `km_create_macro(template="hotkey_action", parameters={"action": "wave_hands", ...})` should return `UNSUPPORTED_TEMPLATE_ACTION` naming the offender and listing the three supported inner actions.
 13. **f23cd30 alert-duration fix** (folded into the round-6 restart cycle) — `km_notifications(notification_type="alert", title="t", message="m", duration=5)` should return `success=true` without crashing.
 
 ### C. Regression sweep (anything we touched but didn't intend to change)
