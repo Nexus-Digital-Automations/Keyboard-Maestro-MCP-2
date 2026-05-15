@@ -24,14 +24,14 @@ from src.integration.km_client import (
 class TestConnectionMethod:
     """Test ConnectionMethod enum functionality."""
 
-    def test_connection_method_values(self):
+    def test_connection_method_values(self) -> None:
         """Test ConnectionMethod enum values."""
         assert ConnectionMethod.APPLESCRIPT.value == "applescript"
         assert ConnectionMethod.URL_SCHEME.value == "url_scheme"
         assert ConnectionMethod.WEB_API.value == "web_api"
         assert ConnectionMethod.REMOTE_TRIGGER.value == "remote_trigger"
 
-    def test_connection_method_string_conversion(self):
+    def test_connection_method_string_conversion(self) -> None:
         """Test ConnectionMethod string conversion."""
         assert str(ConnectionMethod.APPLESCRIPT) == "applescript"
         assert str(ConnectionMethod.URL_SCHEME) == "url_scheme"
@@ -42,7 +42,7 @@ class TestConnectionMethod:
 class TestKMError:
     """Test KMError class functionality."""
 
-    def test_km_error_initialization(self):
+    def test_km_error_initialization(self) -> None:
         """Test KMError initialization."""
         code = "TEST_ERROR"
         message = "Test error message"
@@ -58,7 +58,7 @@ class TestKMError:
         assert error.details == details
         assert error.retry_after == retry_after
 
-    def test_km_error_connection_error(self):
+    def test_km_error_connection_error(self) -> None:
         """Test KMError connection error factory method."""
         message = "Connection failed"
         error = KMError.connection_error(message)
@@ -68,7 +68,7 @@ class TestKMError:
         assert error.details is None
         assert error.retry_after is None
 
-    def test_km_error_execution_error(self):
+    def test_km_error_execution_error(self) -> None:
         """Test KMError execution error factory method."""
         message = "Execution failed"
         details = {"macro_id": "test-macro"}
@@ -78,7 +78,7 @@ class TestKMError:
         assert error.message == message
         assert error.details == details
 
-    def test_km_error_timeout_error(self):
+    def test_km_error_timeout_error(self) -> None:
         """Test KMError timeout error factory method."""
         timeout = Duration.from_seconds(30)
         error = KMError.timeout_error(timeout)
@@ -87,7 +87,7 @@ class TestKMError:
         assert "timeout" in error.message.lower()
         assert error.retry_after == Duration.from_seconds(1.0)
 
-    def test_km_error_validation_error(self):
+    def test_km_error_validation_error(self) -> None:
         """Test KMError validation error factory method."""
         message = "Invalid parameter"
         error = KMError.validation_error(message)
@@ -95,7 +95,7 @@ class TestKMError:
         assert error.code == "VALIDATION_ERROR"
         assert error.message == message
 
-    def test_km_error_not_found_error(self):
+    def test_km_error_not_found_error(self) -> None:
         """Test KMError not found error factory method."""
         message = "Macro not found"
         error = KMError.not_found_error(message)
@@ -103,7 +103,7 @@ class TestKMError:
         assert error.code == "NOT_FOUND_ERROR"
         assert error.message == message
 
-    def test_km_error_security_error(self):
+    def test_km_error_security_error(self) -> None:
         """Test KMError security error factory method."""
         message = "Permission denied"
         error = KMError.security_error(message)
@@ -115,7 +115,7 @@ class TestKMError:
 class TestTriggerDefinition:
     """Test TriggerDefinition class functionality."""
 
-    def test_trigger_definition_initialization(self):
+    def test_trigger_definition_initialization(self) -> None:
         """Test TriggerDefinition initialization."""
         trigger_id = TriggerId("test-trigger")
         trigger_def = TriggerDefinition(
@@ -126,7 +126,7 @@ class TestTriggerDefinition:
         assert trigger_def.name == "Test Trigger"
         assert trigger_def.enabled is True
 
-    def test_trigger_definition_with_parameters(self):
+    def test_trigger_definition_with_parameters(self) -> None:
         """Test TriggerDefinition with parameters."""
         trigger_id = TriggerId("hotkey-trigger")
         parameters = {"key": "cmd+shift+a"}
@@ -147,14 +147,14 @@ class TestTriggerDefinition:
 class TestConnectionConfig:
     """Test ConnectionConfig class functionality."""
 
-    def test_connection_config_initialization(self):
+    def test_connection_config_initialization(self) -> None:
         """Test ConnectionConfig initialization with defaults."""
         config = ConnectionConfig()
 
         assert config.method == ConnectionMethod.APPLESCRIPT
         assert config.timeout == Duration.from_seconds(30)
 
-    def test_connection_config_custom_values(self):
+    def test_connection_config_custom_values(self) -> None:
         """Test ConnectionConfig with custom values."""
         method = ConnectionMethod.WEB_API
         timeout = Duration.from_seconds(60)
@@ -164,7 +164,7 @@ class TestConnectionConfig:
         assert config.method == method
         assert config.timeout == timeout
 
-    def test_connection_config_immutability(self):
+    def test_connection_config_immutability(self) -> None:
         """Test ConnectionConfig immutability."""
         config = ConnectionConfig()
 
@@ -172,7 +172,7 @@ class TestConnectionConfig:
         with pytest.raises(AttributeError):
             config.method = ConnectionMethod.URL_SCHEME
 
-    def test_connection_config_with_all_methods(self):
+    def test_connection_config_with_all_methods(self) -> None:
         """Test ConnectionConfig with all connection methods."""
         methods = [
             ConnectionMethod.APPLESCRIPT,
@@ -189,7 +189,7 @@ class TestConnectionConfig:
 class TestKMClient:
     """Test KMClient class functionality."""
 
-    def test_km_client_initialization(self):
+    def test_km_client_initialization(self) -> None:
         """Test KMClient initialization."""
         config = ConnectionConfig()
         client = KMClient(config)
@@ -198,7 +198,7 @@ class TestKMClient:
         assert hasattr(client, "execute_macro")
         assert hasattr(client, "list_macros")
 
-    def test_km_client_with_custom_config(self):
+    def test_km_client_with_custom_config(self) -> None:
         """Test KMClient with custom configuration."""
         config = ConnectionConfig(
             method=ConnectionMethod.WEB_API, timeout=Duration.from_seconds(45)
@@ -209,7 +209,7 @@ class TestKMClient:
         assert client.config.timeout == Duration.from_seconds(45)
 
     @pytest.mark.asyncio
-    async def test_km_client_execute_macro_basic(self):
+    async def test_km_client_execute_macro_basic(self) -> None:
         """Test KMClient execute_macro basic functionality."""
         client = KMClient(ConnectionConfig())
         macro_id = MacroId("test-macro")
@@ -232,7 +232,7 @@ class TestKMClient:
             mock_execute.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_km_client_execute_macro_with_parameters(self):
+    async def test_km_client_execute_macro_with_parameters(self) -> None:
         """Test KMClient execute_macro with parameters."""
         client = KMClient(ConnectionConfig())
         macro_id = MacroId("test-macro")
@@ -249,7 +249,7 @@ class TestKMClient:
             mock_execute.assert_called_once_with(macro_id, parameters, None)
 
     @pytest.mark.asyncio
-    async def test_km_client_execute_macro_with_timeout(self):
+    async def test_km_client_execute_macro_with_timeout(self) -> None:
         """Test KMClient execute_macro with timeout."""
         client = KMClient(ConnectionConfig())
         macro_id = MacroId("test-macro")
@@ -264,7 +264,7 @@ class TestKMClient:
             mock_execute.assert_called_once_with(macro_id, None, timeout)
 
     @pytest.mark.asyncio
-    async def test_km_client_execute_macro_error(self):
+    async def test_km_client_execute_macro_error(self) -> None:
         """Test KMClient execute_macro error handling."""
         client = KMClient(ConnectionConfig())
         macro_id = MacroId("non-existent-macro")
@@ -280,7 +280,7 @@ class TestKMClient:
             assert error.code == "NOT_FOUND_ERROR"
 
     @pytest.mark.asyncio
-    async def test_km_client_list_macros_basic(self):
+    async def test_km_client_list_macros_basic(self) -> None:
         """Test KMClient list_macros basic functionality."""
         client = KMClient(ConnectionConfig())
 
@@ -300,7 +300,7 @@ class TestKMClient:
             assert macros[0]["name"] == "Test Macro 1"
 
     @pytest.mark.asyncio
-    async def test_km_client_list_macros_with_group_filter(self):
+    async def test_km_client_list_macros_with_group_filter(self) -> None:
         """Test KMClient list_macros with group filter."""
         client = KMClient(ConnectionConfig())
         group_filter = ["Group1", "Group2"]
@@ -314,7 +314,7 @@ class TestKMClient:
             mock_list.assert_called_once_with(group_filter, True)
 
     @pytest.mark.asyncio
-    async def test_km_client_list_macros_enabled_only(self):
+    async def test_km_client_list_macros_enabled_only(self) -> None:
         """Test KMClient list_macros with enabled_only filter."""
         client = KMClient(ConnectionConfig())
 
@@ -327,7 +327,7 @@ class TestKMClient:
             mock_list.assert_called_once_with(None, False)
 
     @pytest.mark.asyncio
-    async def test_km_client_get_macro_info(self):
+    async def test_km_client_get_macro_info(self) -> None:
         """Test KMClient get_macro_info functionality."""
         client = KMClient(ConnectionConfig())
         macro_id = MacroId("test-macro")
@@ -351,7 +351,7 @@ class TestKMClient:
             assert info["name"] == "Test Macro"
 
     @pytest.mark.asyncio
-    async def test_km_client_connection_method_fallback(self):
+    async def test_km_client_connection_method_fallback(self) -> None:
         """Test KMClient connection method fallback."""
         # Test AppleScript fallback to Web API
         config = ConnectionConfig(method=ConnectionMethod.APPLESCRIPT)
@@ -372,7 +372,7 @@ class TestKMClient:
                 mock_web.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_km_client_web_api_method(self):
+    async def test_km_client_web_api_method(self) -> None:
         """Test KMClient Web API connection method."""
         config = ConnectionConfig(method=ConnectionMethod.WEB_API)
         client = KMClient(config)
@@ -387,7 +387,7 @@ class TestKMClient:
             mock_web.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_km_client_url_scheme_method(self):
+    async def test_km_client_url_scheme_method(self) -> None:
         """Test KMClient URL scheme connection method."""
         config = ConnectionConfig(method=ConnectionMethod.URL_SCHEME)
         client = KMClient(config)
@@ -402,7 +402,7 @@ class TestKMClient:
             mock_url.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_km_client_remote_trigger_method(self):
+    async def test_km_client_remote_trigger_method(self) -> None:
         """Test KMClient remote trigger connection method."""
         config = ConnectionConfig(method=ConnectionMethod.REMOTE_TRIGGER)
         client = KMClient(config)
@@ -416,7 +416,7 @@ class TestKMClient:
             assert result.is_right()
             mock_remote.assert_called_once()
 
-    def test_km_client_validate_macro_id(self):
+    def test_km_client_validate_macro_id(self) -> None:
         """Test KMClient macro ID validation."""
         client = KMClient(ConnectionConfig())
 
@@ -430,7 +430,7 @@ class TestKMClient:
         for macro_id in invalid_ids:
             assert client._validate_macro_id(MacroId(macro_id)) is False
 
-    def test_km_client_sanitize_parameters(self):
+    def test_km_client_sanitize_parameters(self) -> None:
         """Test KMClient parameter sanitization."""
         client = KMClient(ConnectionConfig())
 
@@ -450,7 +450,7 @@ class TestKMClient:
         assert all(isinstance(v, str) for v in sanitized.values())
 
     @pytest.mark.asyncio
-    async def test_km_client_timeout_handling(self):
+    async def test_km_client_timeout_handling(self) -> None:
         """Test KMClient timeout handling."""
         config = ConnectionConfig(timeout=Duration.from_seconds(1))
         client = KMClient(config)
@@ -469,7 +469,7 @@ class TestKMClient:
                 await asyncio.wait_for(client.execute_macro(macro_id), timeout=1.5)
 
     @pytest.mark.asyncio
-    async def test_km_client_retry_mechanism(self):
+    async def test_km_client_retry_mechanism(self) -> None:
         """Test KMClient retry mechanism."""
         client = KMClient(ConnectionConfig())
         macro_id = MacroId("unreliable-macro")
@@ -493,7 +493,7 @@ class TestKMClient:
             assert result.is_right()
             assert call_count == 3
 
-    def test_km_client_build_applescript_command(self):
+    def test_km_client_build_applescript_command(self) -> None:
         """Test KMClient AppleScript command building."""
         client = KMClient(ConnectionConfig())
         macro_id = MacroId("test-macro")
@@ -505,7 +505,7 @@ class TestKMClient:
         assert "value1" in command
         assert "tell application" in command.lower()
 
-    def test_km_client_build_web_api_url(self):
+    def test_km_client_build_web_api_url(self) -> None:
         """Test KMClient Web API URL building."""
         client = KMClient(ConnectionConfig())
         macro_id = MacroId("test-macro")
@@ -517,7 +517,7 @@ class TestKMClient:
         assert "test-macro" in url
         assert "param1=value1" in url
 
-    def test_km_client_build_url_scheme(self):
+    def test_km_client_build_url_scheme(self) -> None:
         """Test KMClient URL scheme building."""
         client = KMClient(ConnectionConfig())
         macro_id = MacroId("test-macro")
@@ -530,7 +530,7 @@ class TestKMClient:
         assert "param1=value1" in url
 
     @pytest.mark.asyncio
-    async def test_km_client_health_check(self):
+    async def test_km_client_health_check(self) -> None:
         """Test KMClient health check functionality."""
         client = KMClient(ConnectionConfig())
 
@@ -543,7 +543,7 @@ class TestKMClient:
             mock_check.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_km_client_get_version_info(self):
+    async def test_km_client_get_version_info(self) -> None:
         """Test KMClient version info retrieval."""
         client = KMClient(ConnectionConfig())
 
@@ -561,7 +561,7 @@ class TestKMClient:
             assert version_info["version"] == "10.2"
 
     @pytest.mark.asyncio
-    async def test_km_client_list_groups(self):
+    async def test_km_client_list_groups(self) -> None:
         """Test KMClient list groups functionality."""
         client = KMClient(ConnectionConfig())
 
@@ -584,7 +584,7 @@ class TestKMClient:
 class TestKMClientUtilities:
     """Test KMClient utility functions."""
 
-    def test_create_client_with_fallback_function(self):
+    def test_create_client_with_fallback_function(self) -> None:
         """Test create_client_with_fallback utility function."""
         config = ConnectionConfig(method=ConnectionMethod.WEB_API)
         client = create_client_with_fallback(config)
@@ -592,14 +592,14 @@ class TestKMClientUtilities:
         assert isinstance(client, KMClient)
         assert client.config == config
 
-    def test_create_client_with_fallback_defaults(self):
+    def test_create_client_with_fallback_defaults(self) -> None:
         """Test create_client_with_fallback with default configuration."""
         client = create_client_with_fallback()
 
         assert isinstance(client, KMClient)
         assert client.config.method == ConnectionMethod.APPLESCRIPT
 
-    def test_retry_with_backoff_function(self):
+    def test_retry_with_backoff_function(self) -> None:
         """Test retry_with_backoff utility function."""
         call_count = 0
 
@@ -617,7 +617,7 @@ class TestKMClientUtilities:
         assert call_count == 3
 
     @pytest.mark.asyncio
-    async def test_retry_with_backoff_async(self):
+    async def test_retry_with_backoff_async(self) -> None:
         """Test retry_with_backoff with async function."""
         attempt_count = 0
 
@@ -638,7 +638,7 @@ class TestKMClientAdvancedFeatures:
     """Test KMClient advanced features."""
 
     @pytest.mark.asyncio
-    async def test_km_client_batch_execution(self):
+    async def test_km_client_batch_execution(self) -> None:
         """Test KMClient batch macro execution."""
         client = KMClient(ConnectionConfig())
         macro_ids = [MacroId("macro1"), MacroId("macro2"), MacroId("macro3")]
@@ -653,7 +653,7 @@ class TestKMClientAdvancedFeatures:
             assert mock_execute.call_count == 3
 
     @pytest.mark.asyncio
-    async def test_km_client_async_execution(self):
+    async def test_km_client_async_execution(self) -> None:
         """Test KMClient asynchronous macro execution."""
         client = KMClient(ConnectionConfig())
         macro_id = MacroId("async-macro")
@@ -669,7 +669,7 @@ class TestKMClientAdvancedFeatures:
             assert token_info["token"] == execution_token
 
     @pytest.mark.asyncio
-    async def test_km_client_execution_status_check(self):
+    async def test_km_client_execution_status_check(self) -> None:
         """Test KMClient execution status checking."""
         client = KMClient(ConnectionConfig())
         execution_token = "test_token_456"  # noqa: S105
@@ -686,7 +686,7 @@ class TestKMClientAdvancedFeatures:
             assert status["status"] == "completed"
 
     @pytest.mark.asyncio
-    async def test_km_client_cancel_execution(self):
+    async def test_km_client_cancel_execution(self) -> None:
         """Test KMClient execution cancellation."""
         client = KMClient(ConnectionConfig())
         execution_token = "test_token_789"  # noqa: S105
@@ -700,7 +700,7 @@ class TestKMClientAdvancedFeatures:
             cancel_info = result.get_right()
             assert cancel_info["cancelled"] is True
 
-    def test_km_client_configuration_validation(self):
+    def test_km_client_configuration_validation(self) -> None:
         """Test KMClient configuration validation."""
         # Valid configuration
         valid_config = ConnectionConfig(
@@ -714,7 +714,7 @@ class TestKMClientAdvancedFeatures:
             ConnectionConfig(timeout=Duration.from_seconds(-1))
 
     @pytest.mark.asyncio
-    async def test_km_client_error_recovery(self):
+    async def test_km_client_error_recovery(self) -> None:
         """Test KMClient error recovery mechanisms."""
         client = KMClient(ConnectionConfig())
         macro_id = MacroId("recovery-test")
@@ -735,7 +735,7 @@ class TestKMClientAdvancedFeatures:
                 data = result.get_right()
                 assert data["success"] is True
 
-    def test_km_client_logging_integration(self):
+    def test_km_client_logging_integration(self) -> None:
         """Test KMClient logging integration."""
         import logging
 
@@ -748,7 +748,7 @@ class TestKMClientAdvancedFeatures:
         assert isinstance(client.logger, logging.Logger)
 
     @pytest.mark.asyncio
-    async def test_km_client_metrics_collection(self):
+    async def test_km_client_metrics_collection(self) -> None:
         """Test KMClient metrics collection."""
         client = KMClient(ConnectionConfig())
 

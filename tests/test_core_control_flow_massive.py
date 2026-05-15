@@ -10,6 +10,7 @@ condition expressions, action blocks, loop configurations, and all control flow 
 
 
 import pytest
+from src.core.errors import ContractViolationError
 from src.core.control_flow import (
     ActionBlock,
     ActionBlockId,
@@ -31,25 +32,25 @@ from src.core.control_flow import (
 class TestBrandedTypes:
     """Test branded types for control flow."""
 
-    def test_control_flow_id_creation(self):
+    def test_control_flow_id_creation(self) -> None:
         """Test ControlFlowId branded type creation."""
         flow_id = ControlFlowId("flow_001")
         assert flow_id == "flow_001"
         assert isinstance(flow_id, str)
 
-    def test_condition_id_creation(self):
+    def test_condition_id_creation(self) -> None:
         """Test ConditionId branded type creation."""
         condition_id = ConditionId("condition_001")
         assert condition_id == "condition_001"
         assert isinstance(condition_id, str)
 
-    def test_action_block_id_creation(self):
+    def test_action_block_id_creation(self) -> None:
         """Test ActionBlockId branded type creation."""
         block_id = ActionBlockId("block_001")
         assert block_id == "block_001"
         assert isinstance(block_id, str)
 
-    def test_iterator_variable_creation(self):
+    def test_iterator_variable_creation(self) -> None:
         """Test IteratorVariable branded type creation."""
         iterator = IteratorVariable("item")
         assert iterator == "item"
@@ -59,7 +60,7 @@ class TestBrandedTypes:
 class TestControlFlowEnums:
     """Test control flow enumeration values."""
 
-    def test_control_flow_type_values(self):
+    def test_control_flow_type_values(self) -> None:
         """Test ControlFlowType enum values."""
         assert ControlFlowType.IF_THEN_ELSE.value == "if_then_else"
         assert ControlFlowType.FOR_LOOP.value == "for_loop"
@@ -68,7 +69,7 @@ class TestControlFlowEnums:
         assert ControlFlowType.TRY_CATCH.value == "try_catch"
         assert ControlFlowType.PARALLEL.value == "parallel"
 
-    def test_comparison_operator_values(self):
+    def test_comparison_operator_values(self) -> None:
         """Test ComparisonOperator enum values."""
         assert ComparisonOperator.EQUALS.value == "equals"
         assert ComparisonOperator.NOT_EQUALS.value == "not_equals"
@@ -81,13 +82,13 @@ class TestControlFlowEnums:
         assert ComparisonOperator.MATCHES_REGEX.value == "matches_regex"
         assert ComparisonOperator.EXISTS.value == "exists"
 
-    def test_logical_operator_values(self):
+    def test_logical_operator_values(self) -> None:
         """Test LogicalOperator enum values."""
         assert LogicalOperator.AND.value == "and"
         assert LogicalOperator.OR.value == "or"
         assert LogicalOperator.NOT.value == "not"
 
-    def test_loop_control_type_values(self):
+    def test_loop_control_type_values(self) -> None:
         """Test LoopControlType enum values."""
         assert LoopControlType.BREAK.value == "break"
         assert LoopControlType.CONTINUE.value == "continue"
@@ -97,7 +98,7 @@ class TestControlFlowEnums:
 class TestSecurityLimits:
     """Comprehensive tests for SecurityLimits class."""
 
-    def test_security_limits_default_values(self):
+    def test_security_limits_default_values(self) -> None:
         """Test SecurityLimits creation with default values."""
         limits = SecurityLimits()
 
@@ -107,7 +108,7 @@ class TestSecurityLimits:
         assert limits.max_action_count == 100
         assert limits.max_condition_length == 500
 
-    def test_security_limits_custom_values(self):
+    def test_security_limits_custom_values(self) -> None:
         """Test SecurityLimits creation with custom values."""
         limits = SecurityLimits(
             max_iterations=500,
@@ -123,47 +124,47 @@ class TestSecurityLimits:
         assert limits.max_action_count == 50
         assert limits.max_condition_length == 200
 
-    def test_security_limits_validation_max_iterations_zero(self):
+    def test_security_limits_validation_max_iterations_zero(self) -> None:
         """Test SecurityLimits validation - zero max_iterations."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             SecurityLimits(max_iterations=0)
 
-    def test_security_limits_validation_max_iterations_too_high(self):
+    def test_security_limits_validation_max_iterations_too_high(self) -> None:
         """Test SecurityLimits validation - max_iterations too high."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             SecurityLimits(max_iterations=20000)
 
-    def test_security_limits_validation_max_nesting_depth_zero(self):
+    def test_security_limits_validation_max_nesting_depth_zero(self) -> None:
         """Test SecurityLimits validation - zero max_nesting_depth."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             SecurityLimits(max_nesting_depth=0)
 
-    def test_security_limits_validation_max_nesting_depth_too_high(self):
+    def test_security_limits_validation_max_nesting_depth_too_high(self) -> None:
         """Test SecurityLimits validation - max_nesting_depth too high."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             SecurityLimits(max_nesting_depth=25)
 
-    def test_security_limits_validation_max_timeout_zero(self):
+    def test_security_limits_validation_max_timeout_zero(self) -> None:
         """Test SecurityLimits validation - zero max_timeout_seconds."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             SecurityLimits(max_timeout_seconds=0)
 
-    def test_security_limits_validation_max_timeout_too_high(self):
+    def test_security_limits_validation_max_timeout_too_high(self) -> None:
         """Test SecurityLimits validation - max_timeout_seconds too high."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             SecurityLimits(max_timeout_seconds=700)
 
-    def test_security_limits_validation_max_action_count_zero(self):
+    def test_security_limits_validation_max_action_count_zero(self) -> None:
         """Test SecurityLimits validation - zero max_action_count."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             SecurityLimits(max_action_count=0)
 
-    def test_security_limits_validation_max_action_count_too_high(self):
+    def test_security_limits_validation_max_action_count_too_high(self) -> None:
         """Test SecurityLimits validation - max_action_count too high."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             SecurityLimits(max_action_count=1500)
 
-    def test_security_limits_edge_case_valid_values(self):
+    def test_security_limits_edge_case_valid_values(self) -> None:
         """Test SecurityLimits with edge case valid values."""
         limits = SecurityLimits(
             max_iterations=1,
@@ -179,7 +180,7 @@ class TestSecurityLimits:
         assert limits.max_action_count == 1
         assert limits.max_condition_length == 1
 
-    def test_security_limits_edge_case_maximum_valid_values(self):
+    def test_security_limits_edge_case_maximum_valid_values(self) -> None:
         """Test SecurityLimits with maximum valid values."""
         limits = SecurityLimits(
             max_iterations=10000,
@@ -199,7 +200,7 @@ class TestSecurityLimits:
 class TestConditionExpression:
     """Comprehensive tests for ConditionExpression class."""
 
-    def test_condition_expression_creation_basic(self):
+    def test_condition_expression_creation_basic(self) -> None:
         """Test basic ConditionExpression creation."""
         condition = ConditionExpression(
             expression="variable_name",
@@ -214,7 +215,7 @@ class TestConditionExpression:
         assert condition.negate is False
         assert condition.timeout_seconds == 10
 
-    def test_condition_expression_creation_with_options(self):
+    def test_condition_expression_creation_with_options(self) -> None:
         """Test ConditionExpression creation with all options."""
         condition = ConditionExpression(
             expression="user_input",
@@ -232,49 +233,49 @@ class TestConditionExpression:
         assert condition.negate is True
         assert condition.timeout_seconds == 30
 
-    def test_condition_expression_validation_empty_expression(self):
+    def test_condition_expression_validation_empty_expression(self) -> None:
         """Test ConditionExpression validation - empty expression."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             ConditionExpression(
                 expression="",
                 operator=ComparisonOperator.EQUALS,
                 operand="value",
             )
 
-    def test_condition_expression_validation_whitespace_expression(self):
+    def test_condition_expression_validation_whitespace_expression(self) -> None:
         """Test ConditionExpression validation - whitespace-only expression."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             ConditionExpression(
                 expression="   ",
                 operator=ComparisonOperator.EQUALS,
                 operand="value",
             )
 
-    def test_condition_expression_validation_expression_too_long(self):
+    def test_condition_expression_validation_expression_too_long(self) -> None:
         """Test ConditionExpression validation - expression too long."""
         long_expression = "x" * 501  # Exceeds 500 character limit
 
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             ConditionExpression(
                 expression=long_expression,
                 operator=ComparisonOperator.EQUALS,
                 operand="value",
             )
 
-    def test_condition_expression_validation_operand_too_long(self):
+    def test_condition_expression_validation_operand_too_long(self) -> None:
         """Test ConditionExpression validation - operand too long."""
         long_operand = "x" * 1001  # Exceeds 1000 character limit
 
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             ConditionExpression(
                 expression="valid_expression",
                 operator=ComparisonOperator.EQUALS,
                 operand=long_operand,
             )
 
-    def test_condition_expression_validation_timeout_zero(self):
+    def test_condition_expression_validation_timeout_zero(self) -> None:
         """Test ConditionExpression validation - zero timeout."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             ConditionExpression(
                 expression="valid_expression",
                 operator=ComparisonOperator.EQUALS,
@@ -282,9 +283,9 @@ class TestConditionExpression:
                 timeout_seconds=0,
             )
 
-    def test_condition_expression_validation_timeout_too_high(self):
+    def test_condition_expression_validation_timeout_too_high(self) -> None:
         """Test ConditionExpression validation - timeout too high."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             ConditionExpression(
                 expression="valid_expression",
                 operator=ComparisonOperator.EQUALS,
@@ -292,7 +293,7 @@ class TestConditionExpression:
                 timeout_seconds=70,
             )
 
-    def test_condition_expression_create_safe_basic(self):
+    def test_condition_expression_create_safe_basic(self) -> None:
         """Test ConditionExpression.create_safe basic functionality."""
         condition = ConditionExpression.create_safe(
             expression="test_variable",
@@ -304,7 +305,7 @@ class TestConditionExpression:
         assert condition.operator == ComparisonOperator.NOT_EQUALS
         assert condition.operand == "forbidden_value"
 
-    def test_condition_expression_create_safe_with_whitespace(self):
+    def test_condition_expression_create_safe_with_whitespace(self) -> None:
         """Test ConditionExpression.create_safe strips whitespace."""
         condition = ConditionExpression.create_safe(
             expression="  spaced_variable  ",
@@ -316,7 +317,7 @@ class TestConditionExpression:
         assert condition.operator == ComparisonOperator.GREATER_THAN
         assert condition.operand == "100"
 
-    def test_condition_expression_create_safe_truncates_long_expression(self):
+    def test_condition_expression_create_safe_truncates_long_expression(self) -> None:
         """Test ConditionExpression.create_safe truncates long expressions."""
         long_expression = "x" * 600  # Longer than 500 character limit
 
@@ -329,7 +330,7 @@ class TestConditionExpression:
         assert len(condition.expression) == 500
         assert condition.expression == "x" * 500
 
-    def test_condition_expression_create_safe_truncates_long_operand(self):
+    def test_condition_expression_create_safe_truncates_long_operand(self) -> None:
         """Test ConditionExpression.create_safe truncates long operands."""
         long_operand = "y" * 1200  # Longer than 1000 character limit
 
@@ -342,7 +343,7 @@ class TestConditionExpression:
         assert len(condition.operand) == 1000
         assert condition.operand == "y" * 1000
 
-    def test_condition_expression_create_safe_with_kwargs(self):
+    def test_condition_expression_create_safe_with_kwargs(self) -> None:
         """Test ConditionExpression.create_safe with additional kwargs."""
         condition = ConditionExpression.create_safe(
             expression="test_var",
@@ -360,7 +361,7 @@ class TestConditionExpression:
         assert condition.negate is True
         assert condition.timeout_seconds == 25
 
-    def test_condition_expression_edge_cases(self):
+    def test_condition_expression_edge_cases(self) -> None:
         """Test ConditionExpression edge cases."""
         # Test with all comparison operators
         operators = [
@@ -384,7 +385,7 @@ class TestConditionExpression:
             )
             assert condition.operator == operator
 
-    def test_condition_expression_frozen_dataclass(self):
+    def test_condition_expression_frozen_dataclass(self) -> None:
         """Test that ConditionExpression is frozen (immutable)."""
         condition = ConditionExpression(
             expression="immutable_test",
@@ -400,7 +401,7 @@ class TestConditionExpression:
 class TestActionBlock:
     """Comprehensive tests for ActionBlock class."""
 
-    def test_action_block_creation_basic(self):
+    def test_action_block_creation_basic(self) -> None:
         """Test basic ActionBlock creation."""
         actions = [
             {"type": "click", "target": "button1"},
@@ -417,7 +418,7 @@ class TestActionBlock:
         assert block.timeout_seconds == 30
         assert isinstance(block.block_id, str)
 
-    def test_action_block_creation_with_options(self):
+    def test_action_block_creation_with_options(self) -> None:
         """Test ActionBlock creation with all options."""
         actions = [{"type": "wait", "duration": 2}]
 
@@ -433,35 +434,35 @@ class TestActionBlock:
         assert block.error_handling == "continue"
         assert block.timeout_seconds == 60
 
-    def test_action_block_validation_empty_actions(self):
+    def test_action_block_validation_empty_actions(self) -> None:
         """Test ActionBlock validation - empty actions list."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             ActionBlock(actions=[])
 
-    def test_action_block_validation_too_many_actions(self):
+    def test_action_block_validation_too_many_actions(self) -> None:
         """Test ActionBlock validation - too many actions."""
         too_many_actions = [{"type": "noop"} for _ in range(101)]  # Exceeds 100 limit
 
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             ActionBlock(actions=too_many_actions)
 
-    def test_action_block_validation_timeout_zero(self):
+    def test_action_block_validation_timeout_zero(self) -> None:
         """Test ActionBlock validation - zero timeout."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             ActionBlock(
                 actions=[{"type": "test"}],
                 timeout_seconds=0,
             )
 
-    def test_action_block_validation_timeout_too_high(self):
+    def test_action_block_validation_timeout_too_high(self) -> None:
         """Test ActionBlock validation - timeout too high."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             ActionBlock(
                 actions=[{"type": "test"}],
                 timeout_seconds=400,
             )
 
-    def test_action_block_empty_factory(self):
+    def test_action_block_empty_factory(self) -> None:
         """Test ActionBlock.empty factory method."""
         empty_block = ActionBlock.empty()
 
@@ -469,7 +470,7 @@ class TestActionBlock:
         assert empty_block.actions[0]["type"] == "noop"
         assert empty_block.actions[0]["description"] == "Empty action block"
 
-    def test_action_block_from_actions_factory_basic(self):
+    def test_action_block_from_actions_factory_basic(self) -> None:
         """Test ActionBlock.from_actions factory method."""
         actions = [
             {"type": "scroll", "direction": "down"},
@@ -482,7 +483,7 @@ class TestActionBlock:
         assert block.actions[0]["type"] == "scroll"
         assert block.actions[1]["target"] == "submit"
 
-    def test_action_block_from_actions_factory_with_kwargs(self):
+    def test_action_block_from_actions_factory_with_kwargs(self) -> None:
         """Test ActionBlock.from_actions factory method with kwargs."""
         actions = [{"type": "type", "text": "test input"}]
 
@@ -498,7 +499,7 @@ class TestActionBlock:
         assert block.error_handling == "abort"
         assert block.timeout_seconds == 45
 
-    def test_action_block_from_actions_factory_empty_input(self):
+    def test_action_block_from_actions_factory_empty_input(self) -> None:
         """Test ActionBlock.from_actions factory method with empty input."""
         block = ActionBlock.from_actions([])
 
@@ -506,7 +507,7 @@ class TestActionBlock:
         assert len(block.actions) == 1
         assert block.actions[0]["type"] == "noop"
 
-    def test_action_block_from_actions_factory_validates_actions(self):
+    def test_action_block_from_actions_factory_validates_actions(self) -> None:
         """Test ActionBlock.from_actions validates action structure."""
         mixed_actions = [
             {"type": "valid_action"},  # Valid - has type
@@ -522,7 +523,7 @@ class TestActionBlock:
         assert block.actions[0]["type"] == "valid_action"
         assert block.actions[1]["type"] == "another_valid"
 
-    def test_action_block_from_actions_factory_limits_actions(self):
+    def test_action_block_from_actions_factory_limits_actions(self) -> None:
         """Test ActionBlock.from_actions limits actions to 100."""
         many_actions = [{"type": f"action_{i}"} for i in range(150)]
 
@@ -533,7 +534,7 @@ class TestActionBlock:
         assert block.actions[0]["type"] == "action_0"
         assert block.actions[99]["type"] == "action_99"
 
-    def test_action_block_uuid_generation(self):
+    def test_action_block_uuid_generation(self) -> None:
         """Test that ActionBlock generates unique UUIDs for block_id."""
         block1 = ActionBlock(actions=[{"type": "test1"}])
         block2 = ActionBlock(actions=[{"type": "test2"}])
@@ -542,7 +543,7 @@ class TestActionBlock:
         assert len(block1.block_id) > 0
         assert len(block2.block_id) > 0
 
-    def test_action_block_frozen_dataclass(self):
+    def test_action_block_frozen_dataclass(self) -> None:
         """Test that ActionBlock is frozen (immutable)."""
         block = ActionBlock(actions=[{"type": "test"}])
 
@@ -554,7 +555,7 @@ class TestActionBlock:
 class TestLoopConfiguration:
     """Comprehensive tests for LoopConfiguration class."""
 
-    def test_loop_configuration_creation_basic(self):
+    def test_loop_configuration_creation_basic(self) -> None:
         """Test basic LoopConfiguration creation."""
         config = LoopConfiguration(
             iterator_variable=IteratorVariable("item"),
@@ -567,7 +568,7 @@ class TestLoopConfiguration:
         assert config.timeout_seconds == 60
         assert config.break_on_error is True
 
-    def test_loop_configuration_creation_with_options(self):
+    def test_loop_configuration_creation_with_options(self) -> None:
         """Test LoopConfiguration creation with all options."""
         config = LoopConfiguration(
             iterator_variable=IteratorVariable("element"),
@@ -583,75 +584,75 @@ class TestLoopConfiguration:
         assert config.timeout_seconds == 120
         assert config.break_on_error is False
 
-    def test_loop_configuration_validation_empty_iterator_variable(self):
+    def test_loop_configuration_validation_empty_iterator_variable(self) -> None:
         """Test LoopConfiguration validation - empty iterator variable."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             LoopConfiguration(
                 iterator_variable=IteratorVariable(""),
                 collection_expression="valid_collection",
             )
 
-    def test_loop_configuration_validation_whitespace_iterator_variable(self):
+    def test_loop_configuration_validation_whitespace_iterator_variable(self) -> None:
         """Test LoopConfiguration validation - whitespace-only iterator variable."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             LoopConfiguration(
                 iterator_variable=IteratorVariable("   "),
                 collection_expression="valid_collection",
             )
 
-    def test_loop_configuration_validation_empty_collection_expression(self):
+    def test_loop_configuration_validation_empty_collection_expression(self) -> None:
         """Test LoopConfiguration validation - empty collection expression."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             LoopConfiguration(
                 iterator_variable=IteratorVariable("valid_var"),
                 collection_expression="",
             )
 
-    def test_loop_configuration_validation_whitespace_collection_expression(self):
+    def test_loop_configuration_validation_whitespace_collection_expression(self) -> None:
         """Test LoopConfiguration validation - whitespace-only collection expression."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             LoopConfiguration(
                 iterator_variable=IteratorVariable("valid_var"),
                 collection_expression="   ",
             )
 
-    def test_loop_configuration_validation_max_iterations_zero(self):
+    def test_loop_configuration_validation_max_iterations_zero(self) -> None:
         """Test LoopConfiguration validation - zero max_iterations."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             LoopConfiguration(
                 iterator_variable=IteratorVariable("item"),
                 collection_expression="collection",
                 max_iterations=0,
             )
 
-    def test_loop_configuration_validation_max_iterations_too_high(self):
+    def test_loop_configuration_validation_max_iterations_too_high(self) -> None:
         """Test LoopConfiguration validation - max_iterations too high."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             LoopConfiguration(
                 iterator_variable=IteratorVariable("item"),
                 collection_expression="collection",
                 max_iterations=20000,
             )
 
-    def test_loop_configuration_validation_timeout_zero(self):
+    def test_loop_configuration_validation_timeout_zero(self) -> None:
         """Test LoopConfiguration validation - zero timeout."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             LoopConfiguration(
                 iterator_variable=IteratorVariable("item"),
                 collection_expression="collection",
                 timeout_seconds=0,
             )
 
-    def test_loop_configuration_validation_timeout_too_high(self):
+    def test_loop_configuration_validation_timeout_too_high(self) -> None:
         """Test LoopConfiguration validation - timeout too high."""
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             LoopConfiguration(
                 iterator_variable=IteratorVariable("item"),
                 collection_expression="collection",
                 timeout_seconds=400,
             )
 
-    def test_loop_configuration_edge_case_valid_values(self):
+    def test_loop_configuration_edge_case_valid_values(self) -> None:
         """Test LoopConfiguration with edge case valid values."""
         config = LoopConfiguration(
             iterator_variable=IteratorVariable("i"),
@@ -665,7 +666,7 @@ class TestLoopConfiguration:
         assert config.max_iterations == 1
         assert config.timeout_seconds == 1
 
-    def test_loop_configuration_edge_case_maximum_valid_values(self):
+    def test_loop_configuration_edge_case_maximum_valid_values(self) -> None:
         """Test LoopConfiguration with maximum valid values."""
         config = LoopConfiguration(
             iterator_variable=IteratorVariable("very_long_iterator_variable_name"),
@@ -679,7 +680,7 @@ class TestLoopConfiguration:
         assert config.max_iterations == 10000
         assert config.timeout_seconds == 300
 
-    def test_loop_configuration_frozen_dataclass(self):
+    def test_loop_configuration_frozen_dataclass(self) -> None:
         """Test that LoopConfiguration is frozen (immutable)."""
         config = LoopConfiguration(
             iterator_variable=IteratorVariable("item"),
@@ -694,7 +695,7 @@ class TestLoopConfiguration:
 class TestSwitchCase:
     """Comprehensive tests for SwitchCase class."""
 
-    def test_switch_case_creation_basic(self):
+    def test_switch_case_creation_basic(self) -> None:
         """Test basic SwitchCase creation."""
         actions = ActionBlock(actions=[{"type": "action1"}])
 
@@ -708,7 +709,7 @@ class TestSwitchCase:
         assert case.is_default is False
         assert len(case.case_id) > 0  # UUID generated
 
-    def test_switch_case_creation_with_options(self):
+    def test_switch_case_creation_with_options(self) -> None:
         """Test SwitchCase creation with custom case_id."""
         actions = ActionBlock(actions=[{"type": "action2"}])
         custom_id = "custom_case_001"
@@ -725,7 +726,7 @@ class TestSwitchCase:
         assert case.case_id == custom_id
         assert case.is_default is False
 
-    def test_switch_case_creation_default_case(self):
+    def test_switch_case_creation_default_case(self) -> None:
         """Test SwitchCase creation as default case."""
         actions = ActionBlock(actions=[{"type": "default_action"}])
 
@@ -739,29 +740,29 @@ class TestSwitchCase:
         assert case.actions == actions
         assert case.is_default is True
 
-    def test_switch_case_validation_empty_case_value_non_default(self):
+    def test_switch_case_validation_empty_case_value_non_default(self) -> None:
         """Test SwitchCase validation - empty case_value for non-default case."""
         actions = ActionBlock(actions=[{"type": "test"}])
 
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             SwitchCase(
                 case_value="",
                 actions=actions,
                 is_default=False,  # Not default, so empty case_value invalid
             )
 
-    def test_switch_case_validation_whitespace_case_value_non_default(self):
+    def test_switch_case_validation_whitespace_case_value_non_default(self) -> None:
         """Test SwitchCase validation - whitespace-only case_value for non-default case."""
         actions = ActionBlock(actions=[{"type": "test"}])
 
-        with pytest.raises((ValueError, AssertionError)):  # Contract violation
+        with pytest.raises((ValueError, AssertionError, ContractViolationError)):  # Contract violation
             SwitchCase(
                 case_value="   ",
                 actions=actions,
                 is_default=False,
             )
 
-    def test_switch_case_uuid_generation(self):
+    def test_switch_case_uuid_generation(self) -> None:
         """Test that SwitchCase generates unique UUIDs for case_id."""
         actions = ActionBlock(actions=[{"type": "test"}])
 
@@ -772,7 +773,7 @@ class TestSwitchCase:
         assert len(case1.case_id) > 0
         assert len(case2.case_id) > 0
 
-    def test_switch_case_frozen_dataclass(self):
+    def test_switch_case_frozen_dataclass(self) -> None:
         """Test that SwitchCase is frozen (immutable)."""
         actions = ActionBlock(actions=[{"type": "test"}])
         case = SwitchCase(case_value="value", actions=actions)
@@ -785,7 +786,7 @@ class TestSwitchCase:
 class TestControlFlowNode:
     """Test ControlFlowNode base class functionality."""
 
-    def test_control_flow_node_importable(self):
+    def test_control_flow_node_importable(self) -> None:
         """Test that ControlFlowNode can be imported."""
         # Since we can see the class definition starts at line 198,
         # let's test that it's importable and has expected structure
@@ -798,7 +799,7 @@ class TestControlFlowNode:
 class TestControlFlowIntegrationScenarios:
     """Test integration scenarios combining multiple control flow components."""
 
-    def test_if_then_else_scenario(self):
+    def test_if_then_else_scenario(self) -> None:
         """Test if-then-else control flow scenario."""
         # Create condition
         condition = ConditionExpression(
@@ -827,7 +828,7 @@ class TestControlFlowIntegrationScenarios:
         assert then_actions.actions[0]["type"] == "grant_access"
         assert else_actions.actions[0]["type"] == "deny_access"
 
-    def test_for_loop_scenario(self):
+    def test_for_loop_scenario(self) -> None:
         """Test for-loop control flow scenario."""
         # Create loop configuration
         loop_config = LoopConfiguration(
@@ -851,7 +852,7 @@ class TestControlFlowIntegrationScenarios:
         assert len(loop_body.actions) == 3
         assert loop_body.actions[1]["operation"] == "compress"
 
-    def test_switch_case_scenario(self):
+    def test_switch_case_scenario(self) -> None:
         """Test switch-case control flow scenario."""
         # Create multiple switch cases
         case1 = SwitchCase(
@@ -885,7 +886,7 @@ class TestControlFlowIntegrationScenarios:
         assert len(case1.actions.actions) == 2
         assert case1.actions.actions[0]["type"] == "save_document"
 
-    def test_nested_control_flow_scenario(self):
+    def test_nested_control_flow_scenario(self) -> None:
         """Test nested control flow scenario."""
         # Outer loop configuration
         outer_loop = LoopConfiguration(
@@ -917,7 +918,7 @@ class TestControlFlowIntegrationScenarios:
         assert large_folder_actions.actions[0]["type"] == "compress_folder"
         assert small_folder_actions.actions[0]["type"] == "process_folder"
 
-    def test_parallel_execution_scenario(self):
+    def test_parallel_execution_scenario(self) -> None:
         """Test parallel execution control flow scenario."""
         # Create parallel action blocks
         parallel_block1 = ActionBlock(
@@ -944,7 +945,7 @@ class TestControlFlowIntegrationScenarios:
         assert parallel_block1.timeout_seconds == 60
         assert parallel_block2.timeout_seconds == 60
 
-    def test_error_handling_scenario(self):
+    def test_error_handling_scenario(self) -> None:
         """Test error handling control flow scenario."""
         # Try block with potential failure
         try_actions = ActionBlock(
@@ -976,7 +977,7 @@ class TestControlFlowIntegrationScenarios:
 class TestControlFlowPerformanceScenarios:
     """Test performance-related control flow scenarios."""
 
-    def test_high_iteration_loop_limits(self):
+    def test_high_iteration_loop_limits(self) -> None:
         """Test high iteration loop with security limits."""
         # Create loop with maximum allowed iterations
         high_iteration_config = LoopConfiguration(
@@ -989,7 +990,7 @@ class TestControlFlowPerformanceScenarios:
         assert high_iteration_config.max_iterations == 10000
         assert high_iteration_config.timeout_seconds == 300
 
-    def test_complex_condition_evaluation(self):
+    def test_complex_condition_evaluation(self) -> None:
         """Test complex condition with maximum allowed length."""
         # Create condition with complex expression (near limit)
         complex_expression = "user.department == 'engineering' && user.level >= 'senior' && project.status == 'active'"
@@ -1004,7 +1005,7 @@ class TestControlFlowPerformanceScenarios:
         assert len(complex_condition.expression) < 500  # Within limit
         assert complex_condition.timeout_seconds == 60
 
-    def test_maximum_action_block_size(self):
+    def test_maximum_action_block_size(self) -> None:
         """Test action block with maximum allowed actions."""
         # Create action block with maximum allowed actions
         max_actions = [{"type": f"action_{i}", "step": i} for i in range(100)]
@@ -1017,7 +1018,7 @@ class TestControlFlowPerformanceScenarios:
         assert len(max_block.actions) == 100
         assert max_block.timeout_seconds == 300
 
-    def test_security_limits_enforcement(self):
+    def test_security_limits_enforcement(self) -> None:
         """Test that security limits are properly enforced."""
         limits = SecurityLimits(
             max_iterations=5000,
@@ -1038,7 +1039,7 @@ class TestControlFlowPerformanceScenarios:
 class TestControlFlowEdgeCases:
     """Test edge cases and boundary conditions."""
 
-    def test_condition_expression_edge_case_operators(self):
+    def test_condition_expression_edge_case_operators(self) -> None:
         """Test condition expressions with all operator types."""
         operators_and_operands = [
             (ComparisonOperator.EQUALS, "exact_match"),
@@ -1062,7 +1063,7 @@ class TestControlFlowEdgeCases:
             assert condition.operator == operator
             assert condition.operand == operand
 
-    def test_action_block_single_action_edge_case(self):
+    def test_action_block_single_action_edge_case(self) -> None:
         """Test action block with single action (minimum valid)."""
         single_action = [{"type": "single_action", "parameter": "value"}]
 
@@ -1071,7 +1072,7 @@ class TestControlFlowEdgeCases:
         assert len(block.actions) == 1
         assert block.actions[0]["type"] == "single_action"
 
-    def test_switch_case_empty_default_case(self):
+    def test_switch_case_empty_default_case(self) -> None:
         """Test switch case with empty default case."""
         empty_default_actions = ActionBlock(actions=[{"type": "noop"}])
 
@@ -1084,7 +1085,7 @@ class TestControlFlowEdgeCases:
         assert default_case.case_value == ""
         assert default_case.is_default is True
 
-    def test_loop_configuration_single_character_variables(self):
+    def test_loop_configuration_single_character_variables(self) -> None:
         """Test loop configuration with single character variables."""
         config = LoopConfiguration(
             iterator_variable=IteratorVariable("i"),
@@ -1096,7 +1097,7 @@ class TestControlFlowEdgeCases:
         assert config.iterator_variable == "i"
         assert config.collection_expression == "x"
 
-    def test_deeply_nested_action_blocks(self):
+    def test_deeply_nested_action_blocks(self) -> None:
         """Test creation of action blocks that could be deeply nested."""
         # Create action blocks that reference each other in a nested structure
         inner_block = ActionBlock(actions=[{"type": "inner_action"}])

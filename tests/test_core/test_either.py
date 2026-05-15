@@ -306,7 +306,7 @@ class TestEitherAdditional:
     def test_try_operation_failure(self) -> None:
         """Test try_operation with failing operation."""
 
-        def operation():
+        def operation() -> None:
             raise ValueError("Test error")
 
         def error_handler(e: Exception) -> str:

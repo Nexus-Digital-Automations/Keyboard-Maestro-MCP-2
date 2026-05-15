@@ -121,7 +121,7 @@ class TestInvariantDecorator:
 
         @invariant(lambda self: self.balance >= 0, "balance cannot be negative")
         class Account:
-            def __init__(self, balance: Any):
+            def __init__(self, balance: Any) -> None:
                 self.balance = balance
 
             def deposit(self, amount: Any) -> None:
@@ -145,7 +145,7 @@ class TestInvariantDecorator:
 
         @invariant(lambda self: self.balance >= 0, "balance cannot be negative")
         class Account:
-            def __init__(self, balance: Any):
+            def __init__(self, balance: Any) -> None:
                 self.balance = balance
 
         with pytest.raises(ContractViolationError):
@@ -156,7 +156,7 @@ class TestInvariantDecorator:
 
         @invariant(lambda self: self.balance >= 0, "balance cannot be negative")
         class Account:
-            def __init__(self, balance: Any):
+            def __init__(self, balance: Any) -> None:
                 self.balance = balance
 
             def bad_withdraw(self, amount: Any) -> None:
@@ -277,7 +277,7 @@ class TestContractInfo:
 
         @invariant(lambda self: self.value >= 0, "value must be non-negative")
         class TestClass:
-            def __init__(self, value: Any):
+            def __init__(self, value: Any) -> None:
                 self.value = value
 
         info = get_contract_info(TestClass)

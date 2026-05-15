@@ -49,7 +49,7 @@ class MockKeyboardMaestroClient:
         success_rate: float = 0.95,
         response_delay: float = 0.1,
         simulate_failures: bool = True,
-    ):
+    ) -> None:
         self.success_rate = success_rate
         self.response_delay = response_delay
         self.simulate_failures = simulate_failures
@@ -212,7 +212,7 @@ class MockExecutionContext:
         permissions: frozenset[Permission] | None = None,
         timeout: Duration | None = None,
         variables: dict[str, str] | None = None,
-    ):
+    ) -> None:
         self.permissions = permissions or frozenset([Permission.TEXT_INPUT])
         self.timeout = timeout or Duration.from_seconds(30)
         self.variables = variables or {}
@@ -246,7 +246,7 @@ class MockCommand:
         execution_time: float = 0.1,
         should_succeed: bool = True,
         required_permissions: list[Permission] | None = None,
-    ):
+    ) -> None:
         self.command_id = CommandId(command_id)
         self.execution_time = execution_time
         self.should_succeed = should_succeed
@@ -290,7 +290,7 @@ class MockCommand:
 class MockMacroEngine:
     """Mock macro engine for testing integration scenarios."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.executions: dict[ExecutionToken, ExecutionResult] = {}
         self.execution_count = 0
         self.active_executions: dict[ExecutionToken, ExecutionStatus] = {}
@@ -356,7 +356,7 @@ class MockMacroEngine:
 class MockFileSystem:
     """Mock file system for testing file operations."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.files: dict[str, str] = {}
         self.directories: set[str] = {"/", "/test", "/mock_data"}
         self.permissions: dict[str, str] = {}  # path -> permission level

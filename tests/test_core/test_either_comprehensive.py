@@ -334,7 +334,7 @@ class TestEitherTryOperations:
     def test_try_operation_failure(self) -> None:
         """Test try_operation with failing operation."""
 
-        def failing_operation():
+        def failing_operation() -> None:
             raise ValueError("operation failed")
 
         def error_handler(e):
@@ -359,7 +359,7 @@ class TestEitherTryOperations:
     def test_try_either_failure(self) -> None:
         """Test try_either with failing operation."""
 
-        def failing_operation():
+        def failing_operation() -> None:
             raise ValueError("operation failed")
 
         result = Either.try_either(failing_operation)
@@ -695,7 +695,7 @@ class TestComplexScenarios:
         """Test Either for safe resource management."""
 
         class MockResource:
-            def __init__(self, name: str, should_fail: bool = False):
+            def __init__(self, name: str, should_fail: bool = False) -> None:
                 self.name = name
                 self.should_fail = should_fail
                 self.is_open = False
@@ -711,7 +711,7 @@ class TestComplexScenarios:
                     raise RuntimeError("Resource not open")
                 return f"Processed {self.name}"
 
-            def close(self):
+            def close(self) -> None:
                 self.is_open = False
 
         def safe_resource_operation(

@@ -300,7 +300,7 @@ class TestMacroEngineAdvancedCoverage:
             ])
         )
 
-    def test_engine_advanced_execution_patterns(self, macro_engine, sample_context_advanced):
+    def test_engine_advanced_execution_patterns(self, macro_engine, sample_context_advanced) -> None:
         """Test advanced execution patterns for higher coverage."""
         # Test execution with various parameter combinations
         execution_scenarios = [
@@ -354,7 +354,7 @@ class TestMacroEngineAdvancedCoverage:
                         except (TypeError, AttributeError, ValidationError, PermissionError):
                             pass
 
-    def test_engine_resource_management(self, macro_engine):
+    def test_engine_resource_management(self, macro_engine) -> None:
         """Test advanced resource management functionality."""
         resource_scenarios = [
             # Memory management
@@ -411,7 +411,7 @@ class TestMacroEngineAdvancedCoverage:
                 except (TypeError, AttributeError):
                     pass
 
-    def test_engine_security_validation(self, macro_engine, sample_context_advanced):
+    def test_engine_security_validation(self, macro_engine, sample_context_advanced) -> None:
         """Test security validation and enforcement."""
         security_scenarios = [
             # Permission validation
@@ -464,7 +464,7 @@ class TestMacroEngineAdvancedCoverage:
                     except (TypeError, AttributeError):
                         pass
 
-    def test_engine_error_handling_comprehensive(self, macro_engine, sample_context_advanced):
+    def test_engine_error_handling_comprehensive(self, macro_engine, sample_context_advanced) -> None:
         """Test comprehensive error handling scenarios."""
         error_scenarios = [
             # Timeout errors
@@ -757,7 +757,7 @@ class TestMacroParserAdvancedCoverage:
 
         return dependencies
 
-    def test_parser_advanced_parsing_scenarios(self, macro_parser_advanced):
+    def test_parser_advanced_parsing_scenarios(self, macro_parser_advanced) -> None:
         """Test advanced parsing scenarios for higher coverage."""
         parsing_scenarios = [
             # Empty and whitespace inputs
@@ -813,7 +813,7 @@ class TestMacroParserAdvancedCoverage:
                 except (TypeError, AttributeError, ParseError):
                     pass
 
-    def test_parser_command_parsing_variations(self, macro_parser_advanced):
+    def test_parser_command_parsing_variations(self, macro_parser_advanced) -> None:
         """Test individual command parsing variations."""
         command_scenarios = [
             # Basic commands
@@ -843,7 +843,7 @@ class TestMacroParserAdvancedCoverage:
                     if "expected_error" in scenario:
                         assert scenario["expected_error"] in str(e)
 
-    def test_parser_expression_handling(self, macro_parser_advanced):
+    def test_parser_expression_handling(self, macro_parser_advanced) -> None:
         """Test expression parsing and handling."""
         expression_scenarios = [
             # Variable expressions
@@ -880,7 +880,7 @@ class TestMacroParserAdvancedCoverage:
                     if "expected_error" in scenario:
                         assert scenario["expected_error"] in str(e)
 
-    def test_parser_optimization_and_analysis(self, macro_parser_advanced):
+    def test_parser_optimization_and_analysis(self, macro_parser_advanced) -> None:
         """Test parse tree optimization and analysis features."""
         # Test parse tree optimization
         if hasattr(macro_parser_advanced, "optimize_parse_tree"):
@@ -1164,7 +1164,7 @@ class TestKMClientAdvancedCoverage:
             "next_retry_in": 2.0,
         }
 
-    def test_km_client_connection_management(self, km_client_advanced):
+    def test_km_client_connection_management(self, km_client_advanced) -> None:
         """Test comprehensive connection management scenarios."""
         connection_scenarios = [
             # Successful connections
@@ -1196,7 +1196,7 @@ class TestKMClientAdvancedCoverage:
                     if "expected_error" in scenario:
                         assert scenario["expected_error"] in str(e)
 
-    def test_km_client_authentication_methods(self, km_client_advanced):
+    def test_km_client_authentication_methods(self, km_client_advanced) -> None:
         """Test various authentication methods."""
         auth_scenarios = [
             # API key authentication
@@ -1255,7 +1255,7 @@ class TestKMClientAdvancedCoverage:
                     if "expected_error" in scenario:
                         assert scenario["expected_error"] in str(e)
 
-    def test_km_client_macro_operations(self, km_client_advanced):
+    def test_km_client_macro_operations(self, km_client_advanced) -> None:
         """Test comprehensive macro operations."""
         macro_scenarios = [
             # Successful macro execution
@@ -1366,7 +1366,7 @@ class TestKMClientAdvancedCoverage:
                 except (TypeError, AttributeError):
                     pass
 
-    def test_km_client_variable_management(self, km_client_advanced):
+    def test_km_client_variable_management(self, km_client_advanced) -> None:
         """Test variable management functionality."""
         variable_scenarios = [
             # Setting variables
@@ -1457,7 +1457,7 @@ class TestKMClientAdvancedCoverage:
                     if "expected_error" in scenario:
                         assert scenario["expected_error"] in str(e)
 
-    def test_km_client_error_handling_and_recovery(self, km_client_advanced):
+    def test_km_client_error_handling_and_recovery(self, km_client_advanced) -> None:
         """Test error handling and recovery mechanisms."""
         error_scenarios = [
             # Connection errors
@@ -1500,7 +1500,7 @@ class TestKMClientAdvancedCoverage:
 class TestIntegrationCoverageExpansionSuccess:
     """Integration tests to verify Phase 3 continuation coverage expansion success."""
 
-    def test_coverage_expansion_comprehensive_integration(self):
+    def test_coverage_expansion_comprehensive_integration(self) -> None:
         """Test that all Phase 3 continuation components integrate properly."""
         # Verify all major test classes are working together
         component_classes = [
@@ -1516,7 +1516,7 @@ class TestIntegrationCoverageExpansionSuccess:
             test_methods = [method for method in dir(component_class) if method.startswith('test_')]
             assert len(test_methods) >= 3, f"{component_class.__name__} should have multiple test methods"
 
-    def test_error_handling_comprehensive_coverage(self):
+    def test_error_handling_comprehensive_coverage(self) -> None:
         """Test comprehensive error handling across all components."""
         error_types = [
             ValidationError,
@@ -1542,7 +1542,7 @@ class TestIntegrationCoverageExpansionSuccess:
                 # Some error types may have different constructors
                 pass
 
-    def test_mock_behavior_consistency(self):
+    def test_mock_behavior_consistency(self) -> None:
         """Test that mock behaviors are consistent and comprehensive."""
         # Test advanced mock implementations provide realistic responses
         mock_scenarios = [
@@ -1574,7 +1574,7 @@ class TestIntegrationCoverageExpansionSuccess:
             assert scenario["component"].startswith(("Macro", "KM"))
             assert scenario["method"].startswith("_mock_")
 
-    def test_phase3_continuation_success_metrics(self):
+    def test_phase3_continuation_success_metrics(self) -> None:
         """Test that Phase 3 continuation meets success criteria."""
         success_criteria = {
             "advanced_error_handling": True,
