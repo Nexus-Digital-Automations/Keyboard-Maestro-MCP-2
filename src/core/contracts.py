@@ -423,7 +423,7 @@ def is_valid_string(
 ) -> bool:
     """Helper condition to validate string length."""
     if not isinstance(value, str):
-        return False
+        return False  # type: ignore[unreachable]  # contract helpers run against untyped runtime values
     if len(value) < min_length:
         return False
     return not (max_length is not None and len(value) > max_length)

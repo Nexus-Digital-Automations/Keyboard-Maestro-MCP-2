@@ -327,7 +327,7 @@ class ControlFlowValidator:
             return node.loop_config.max_iterations <= self.limits.max_iterations
         if isinstance(node, WhileLoopNode):
             return node.max_iterations <= self.limits.max_iterations
-        return False
+        return False  # type: ignore[unreachable]  # fallback for future ControlFlowNodeType variants
 
     def validate_action_count(self, node: ControlFlowNodeType) -> bool:
         """Validate total action count in control flow."""

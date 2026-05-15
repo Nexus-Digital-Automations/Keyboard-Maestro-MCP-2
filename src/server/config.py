@@ -37,9 +37,9 @@ class ToolConfig:
 
     def __post_init__(self) -> None:
         if self.enabled_tools is None:
-            self.enabled_tools = []
+            self.enabled_tools = []  # type: ignore[unreachable]  # runtime guard for callers passing None
         if self.disabled_tools is None:
-            self.disabled_tools = []
+            self.disabled_tools = []  # type: ignore[unreachable]  # runtime guard for callers passing None
 
 
 def setup_logging(config: ServerConfig) -> logging.Logger:

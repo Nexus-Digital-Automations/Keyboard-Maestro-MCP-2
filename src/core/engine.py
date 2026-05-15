@@ -704,7 +704,7 @@ def create_test_macro(name: str, command_types: list[CommandType]) -> MacroDefin
         elif cmd_type == CommandType.LOOP:
             params = CommandParameters({"count": 3, "commands": []})
         else:
-            params = CommandParameters({})
+            params = CommandParameters({})  # type: ignore[unreachable]  # fallback for future CommandType variants
 
         command = PlaceholderCommand(
             command_id=CommandId(f"test_cmd_{i}"),

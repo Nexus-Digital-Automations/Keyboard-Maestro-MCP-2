@@ -33,7 +33,7 @@ class ValidationResult:
 
     def __post_init__(self) -> None:
         if self.detected_threats is None:
-            self.detected_threats = []
+            self.detected_threats = []  # type: ignore[unreachable]  # runtime guard for callers passing None
 
 
 class InputValidator:

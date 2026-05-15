@@ -122,7 +122,7 @@ class MenuNavigator:
         for i, item in enumerate(menu_path):
             # Basic validation
             if not isinstance(item, str):
-                return Either.left(
+                return Either.left(  # type: ignore[unreachable]  # runtime guard against untyped callers
                     KMError.validation_error(
                         f"Menu item {i} must be string: {type(item)}",
                     ),
@@ -216,7 +216,7 @@ class MenuNavigator:
     def _escape_applescript_string(self, value: str) -> str:
         """Escape string for safe use in AppleScript."""
         if not isinstance(value, str):
-            value = str(value)
+            value = str(value)  # type: ignore[unreachable]  # defensive coercion against untyped callers
 
         # Replace dangerous characters
         value = value.replace("\\", "\\\\")  # Escape backslashes

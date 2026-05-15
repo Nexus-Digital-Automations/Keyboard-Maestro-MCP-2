@@ -470,7 +470,7 @@ def _sanitize_value(value: str, level: SecurityLevel) -> str:
         sanitized = re.sub(r"[^a-zA-Z0-9\s\-_.,!?]", "", value)
         return sanitized[:200]
 
-    return value
+    return value  # type: ignore[unreachable]  # fallback when SecurityLevel grows new variants
 
 
 def sanitize_trigger_data(
@@ -611,7 +611,7 @@ def validate_km_input_safe(raw_input: dict) -> TypeGuard[ValidatedKMInput]:
 def validate_trigger_input(trigger_config: dict[str, Any]) -> bool:
     """Validate trigger configuration input for security."""
     if not isinstance(trigger_config, dict):
-        return False
+        return False  # type: ignore[unreachable]  # runtime guard against untyped callers
 
     # Use existing validation infrastructure
     validation_result = validate_km_input(trigger_config, SecurityLevel.STANDARD)

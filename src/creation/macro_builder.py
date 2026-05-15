@@ -396,7 +396,7 @@ class MacroBuilder:
     def _escape_applescript_string(self, value: str) -> str:
         """Escape string for safe AppleScript inclusion."""
         if not isinstance(value, str):
-            value = str(value)
+            value = str(value)  # type: ignore[unreachable]  # defensive coercion against untyped callers
 
         # Security: Escape quotes and special characters
         escaped = value.replace("\\", "\\\\")  # Escape backslashes first
@@ -450,7 +450,7 @@ class MacroBuilder:
     def _escape_xml(self, value: str) -> str:
         """Escape XML special characters for security."""
         if not isinstance(value, str):
-            value = str(value)
+            value = str(value)  # type: ignore[unreachable]  # defensive coercion against untyped callers
 
         # Security: XML entity escaping
         value = value.replace("&", "&amp;")

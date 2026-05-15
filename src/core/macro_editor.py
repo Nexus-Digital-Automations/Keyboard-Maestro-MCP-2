@@ -246,7 +246,7 @@ class MacroEditorValidator:
     ) -> Either[SecurityViolationError, dict]:
         """Prevent malicious action modifications."""
         if not isinstance(action_config, dict):
-            return Either.left(
+            return Either.left(  # type: ignore[unreachable]  # runtime guard against untyped callers
                 SecurityViolationError(
                     "invalid_action_config",
                     "Action configuration must be a dictionary",
@@ -296,7 +296,7 @@ class MacroEditorValidator:
     ) -> Either[SecurityViolationError, None]:
         """Prevent abuse of debugging capabilities."""
         if not isinstance(debug_config, dict):
-            return Either.left(
+            return Either.left(  # type: ignore[unreachable]  # runtime guard against untyped callers
                 SecurityViolationError(
                     "invalid_debug_config",
                     "Debug configuration must be a dictionary",
@@ -346,7 +346,7 @@ class MacroEditorValidator:
 def calculate_macro_complexity(macro_data: dict[str, Any]) -> int:
     """Calculate complexity score for a macro (0-100)."""
     if not isinstance(macro_data, dict):
-        return 0
+        return 0  # type: ignore[unreachable]  # runtime guard against untyped callers
 
     base_score = 0
 
@@ -376,7 +376,7 @@ def calculate_macro_complexity(macro_data: dict[str, Any]) -> int:
 def calculate_macro_health(macro_data: dict[str, Any]) -> int:
     """Calculate health score for a macro (0-100)."""
     if not isinstance(macro_data, dict):
-        return 0
+        return 0  # type: ignore[unreachable]  # runtime guard against untyped callers
 
     health_score = 100
 

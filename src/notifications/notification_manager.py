@@ -217,7 +217,7 @@ class NotificationManager:
                 return await self._display_hud(spec)
             if spec.notification_type == NotificationType.SOUND:
                 return await self._display_sound_notification(spec)
-            return Either.left(
+            return Either.left(  # type: ignore[unreachable]  # fallback for future NotificationType variants
                 MacroEngineError(
                     message=f"Unsupported notification type: {spec.notification_type}",
                     category=ErrorCategory.VALIDATION,

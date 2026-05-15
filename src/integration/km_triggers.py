@@ -293,7 +293,7 @@ class KMTriggerIntegrator:
     def _escape_xml_value(self, text: str) -> str:
         """Escape XML attribute values."""
         if not isinstance(text, str):
-            text = str(text)
+            text = str(text)  # type: ignore[unreachable]  # defensive coercion against untyped callers
 
         # Escape XML special characters
         text = text.replace("&", "&amp;")

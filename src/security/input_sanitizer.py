@@ -119,7 +119,7 @@ class InputSanitizer:
 
         """
         if text is None:
-            return Either.right("")
+            return Either.right("")  # type: ignore[unreachable]  # runtime guard for None inputs
 
         # Length validation
         max_length = 1000 if strict_mode else 10000

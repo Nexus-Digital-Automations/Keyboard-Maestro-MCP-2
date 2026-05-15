@@ -401,7 +401,7 @@ class SmartMacroFilter:
                 macros,
                 key=lambda m: (m.primary_function.value, m.name.lower()),
             )
-        return macros
+        return macros  # type: ignore[unreachable]  # fallback for future SortCriteria variants
 
     def _calculate_similarity(
         self,

@@ -154,7 +154,7 @@ def validate_tool_signature(metadata: ToolMetadata) -> bool:
         # Validate parameters have proper type annotations
         for param in metadata.parameters:
             if param.annotation is None:
-                logger.warning(
+                logger.warning(  # type: ignore[unreachable]  # defensive: handle param metadata without annotation
                     f"Parameter {param.name} in {metadata.name} lacks type annotation",
                 )
                 return False

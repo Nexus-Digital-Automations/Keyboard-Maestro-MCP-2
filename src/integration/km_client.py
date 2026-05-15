@@ -1189,7 +1189,7 @@ class KMClient:
             return Either.left(KMError.validation_error("Macro ID is required"))
 
         if not isinstance(trigger_def.configuration, dict):
-            return Either.left(
+            return Either.left(  # type: ignore[unreachable]  # runtime guard against untyped callers
                 KMError.validation_error("Trigger configuration must be a dictionary"),
             )
 
@@ -1254,7 +1254,7 @@ class KMClient:
         def escape_applescript_string(value: str) -> str:
             """Escape string for safe use in AppleScript."""
             if not isinstance(value, str):
-                value = str(value)
+                value = str(value)  # type: ignore[unreachable]  # defensive coercion against untyped callers
 
             # Replace dangerous characters
             value = value.replace("\\", "\\\\")  # Escape backslashes
@@ -1977,7 +1977,7 @@ class KMClient:
     def _escape_applescript_string(self, value: str) -> str:
         """Escape string for safe use in AppleScript."""
         if not isinstance(value, str):
-            value = str(value)
+            value = str(value)  # type: ignore[unreachable]  # defensive coercion against untyped callers
 
         # Replace dangerous characters
         value = value.replace("\\", "\\\\")
