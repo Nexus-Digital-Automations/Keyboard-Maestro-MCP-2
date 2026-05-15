@@ -115,7 +115,7 @@ class KMMacroEditor:
             # Parse actions and triggers
             actions = self._parse_xml_elements(actions_xml)
             triggers = self._parse_xml_elements(triggers_xml)
-            conditions = []  # In real implementation, parse conditions from actions
+            conditions: list[dict[str, Any]] = []  # In real implementation, parse conditions from actions
 
             # Calculate metrics
             macro_data = {

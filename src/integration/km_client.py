@@ -781,7 +781,7 @@ class KMClient:
             pairs.append(current_pair.strip())
 
         # Now parse the key:value pairs into records
-        current_record = {}
+        current_record: dict[str, Any] = {}
         for pair in pairs:
             if ":" in pair:
                 # Split only on the first colon to handle values with colons

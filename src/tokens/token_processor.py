@@ -309,7 +309,7 @@ class TokenProcessor:
         context: ProcessingContext,
     ) -> Either[KMError, tuple[str, list[str]]]:
         """Process a single token with context-specific handling."""
-        warnings = []
+        warnings: list[str] = []
         token_type = token_info["type"]
         content = token_info["content"]
 

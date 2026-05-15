@@ -268,7 +268,7 @@ class SmartMacroFilter:
             )
 
         # Complexity distribution
-        complexity_counts = defaultdict(int)
+        complexity_counts: defaultdict[ComplexityLevel, int] = defaultdict(int)
         for macro in macros:
             complexity_counts[macro.complexity] += 1
 
@@ -278,7 +278,7 @@ class SmartMacroFilter:
             )
 
         # Function distribution
-        function_counts = defaultdict(int)
+        function_counts: defaultdict[ActionCategory, int] = defaultdict(int)
         for macro in macros:
             function_counts[macro.primary_function] += 1
 
@@ -521,7 +521,7 @@ class SmartMacroFilter:
 
     def _get_popular_categories(self, macros: list[EnhancedMacroMetadata]) -> list[str]:
         """Get most popular action categories in the macro library."""
-        category_counts = defaultdict(int)
+        category_counts: defaultdict[str, int] = defaultdict(int)
         for macro in macros:
             category_counts[macro.primary_function.value] += 1
 
@@ -533,7 +533,7 @@ class SmartMacroFilter:
 
     def _get_popular_groups(self, macros: list[EnhancedMacroMetadata]) -> list[str]:
         """Get most popular groups in the macro library."""
-        group_counts = defaultdict(int)
+        group_counts: defaultdict[str, int] = defaultdict(int)
         for macro in macros:
             if macro.group:
                 group_counts[macro.group] += 1

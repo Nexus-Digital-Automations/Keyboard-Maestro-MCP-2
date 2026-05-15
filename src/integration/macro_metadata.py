@@ -335,7 +335,7 @@ class MacroMetadataExtractor:
             return ActionCategory.OTHER
 
         # Count actions by category
-        category_counts = {}
+        category_counts: dict[ActionCategory, int] = {}
         for action in actions:
             category_counts[action.category] = (
                 category_counts.get(action.category, 0) + 1

@@ -82,7 +82,7 @@ def create_mcp_server() -> FastMCP:
         "intentionally does not duplicate that surface.",
     ]
 
-    mcp = FastMCP(name="KeyboardMaestroMCP", instructions="\n".join(capabilities))
+    mcp: FastMCP = FastMCP(name="KeyboardMaestroMCP", instructions="\n".join(capabilities))
 
     return mcp
 

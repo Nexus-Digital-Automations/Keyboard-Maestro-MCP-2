@@ -1154,7 +1154,7 @@ class ControlFlowEngine:
 
     def __init__(self) -> None:
         self.security_limits = SecurityLimits()
-        self.evaluation_context = {}
+        self.evaluation_context: dict[str, Any] = {}
 
     def evaluate_condition(self, condition: dict[str, Any]) -> bool:
         """Evaluate a condition for control flow decisions."""

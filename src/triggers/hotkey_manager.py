@@ -488,7 +488,7 @@ class HotkeyManager:
         max_suggestions: int = 3,
     ) -> list[HotkeySpec]:
         """Suggest alternative hotkey combinations."""
-        suggestions = []
+        suggestions: list[HotkeySpec] = []
 
         # Try different modifier combinations
         alt_suggestions = [

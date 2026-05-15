@@ -45,7 +45,7 @@ def parse_group_applescript_records(applescript_output: str) -> list[dict[str, A
         pairs.append(current_pair.strip())
 
     # Now parse the key:value pairs into records
-    current_record = {}
+    current_record: dict[str, Any] = {}
     for pair in pairs:
         if ":" in pair:
             # Split only on the first colon to handle values with colons
@@ -83,7 +83,7 @@ def parse_group_applescript_records(applescript_output: str) -> list[dict[str, A
 
 def parse_variable_records(applescript_output: str | list[str]) -> list[dict[str, Any]]:
     """Parse AppleScript variable records into Python dictionaries."""
-    records = []
+    records: list[dict[str, Any]] = []
 
     # Handle both string and list inputs
     if isinstance(applescript_output, list):
@@ -126,7 +126,7 @@ def parse_variable_records(applescript_output: str | list[str]) -> list[dict[str
         pairs.append(current_pair.strip())
 
     # Now parse the key:value pairs into records
-    current_record = {}
+    current_record: dict[str, Any] = {}
     for pair in pairs:
         if ":" in pair:
             # Split only on the first colon to handle values with colons
