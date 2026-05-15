@@ -103,7 +103,7 @@ def _parse_action_dicts(actions_xml: str) -> list[dict[str, Any]]:
         '"http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
         f'<plist version="1.0"><array>{stripped}</array></plist>'
     )
-    return cast(list[dict[str, Any]], plistlib.loads(envelope.encode("utf-8")))
+    return cast("list[dict[str, Any]]", plistlib.loads(envelope.encode("utf-8")))
 
 
 async def _resolve_group(

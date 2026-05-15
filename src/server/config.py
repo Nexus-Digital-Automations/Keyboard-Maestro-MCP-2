@@ -101,7 +101,7 @@ def load_config_from_file(config_path: str) -> dict[str, Any]:
 
     try:
         with open(config_path) as f:
-            return cast(dict[str, Any], json.load(f))
+            return cast("dict[str, Any]", json.load(f))
     except FileNotFoundError:
         return {}
     except json.JSONDecodeError:

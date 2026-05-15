@@ -7,12 +7,13 @@ server, eliminating the need for manual tool registration boilerplate.
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, cast
 
 from .tool_registry import ToolMetadata, get_tool_registry
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from fastmcp import Context, FastMCP
 
 
@@ -62,7 +63,7 @@ class DynamicToolRegistrar:
         """
         try:
             module = __import__(metadata.module_name, fromlist=[metadata.name])
-            return cast(Callable[..., Any], getattr(module, metadata.name))
+            return cast("Callable[..., Any]", getattr(module, metadata.name))
         except (ImportError, AttributeError) as import_error:
             error_message = str(import_error)
             logger.error(
