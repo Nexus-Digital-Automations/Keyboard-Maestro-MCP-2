@@ -37,7 +37,7 @@ from src.integration.triggers import TriggerRegistrationManager
 class TestKMClient:
     """Comprehensive tests for KM client - targeting 2,102 lines of 15% coverage."""
 
-    def test_km_client_initialization(self):
+    def test_km_client_initialization(self) -> None:
         """Test KMClient initialization and configuration."""
         km_client = KMClient()
 
@@ -45,7 +45,7 @@ class TestKMClient:
         assert hasattr(km_client, "__class__")
         assert km_client.__class__.__name__ == "KMClient"
 
-    def test_km_client_connection_concepts(self):
+    def test_km_client_connection_concepts(self) -> None:
         """Test KM client connection concepts."""
         KMClient()
 
@@ -76,7 +76,7 @@ class TestKMClient:
         assert connection_config["port"] == 8080
         assert connection_config["timeout"] == 30
 
-    def test_km_client_macro_operations_concepts(self):
+    def test_km_client_macro_operations_concepts(self) -> None:
         """Test KM client macro operations concepts."""
         KMClient()
 
@@ -116,7 +116,7 @@ class TestKMClient:
                 "delete_macro",
             ]
 
-    def test_km_client_variable_management_concepts(self):
+    def test_km_client_variable_management_concepts(self) -> None:
         """Test KM client variable management concepts."""
         KMClient()
 
@@ -142,7 +142,7 @@ class TestKMClient:
         assert len(variable_operations["variable_scopes"]) == 4
         assert variable_operations["global_variables"]["execution_count"] == 42
 
-    def test_km_client_clipboard_integration_concepts(self):
+    def test_km_client_clipboard_integration_concepts(self) -> None:
         """Test KM client clipboard integration concepts."""
         KMClient()
 
@@ -175,7 +175,7 @@ class TestKMClient:
         assert len(clipboard_config["named_clipboards"]) == 3
 
     @given(st.text(min_size=1, max_size=100))
-    def test_km_client_macro_name_validation_properties(self, macro_name):
+    def test_km_client_macro_name_validation_properties(self, macro_name) -> None:
         """Property-based test for macro name validation."""
         assume(len(macro_name.strip()) > 0)
         KMClient()
@@ -191,7 +191,7 @@ class TestKMClient:
 class TestMacroSyncManager:
     """Comprehensive tests for macro sync manager - targeting 310 lines of 26% coverage."""
 
-    def test_macro_sync_manager_initialization(self):
+    def test_macro_sync_manager_initialization(self) -> None:
         """Test MacroSyncManager initialization and configuration."""
         # Mock required dependencies
         if MagicMock is None:
@@ -207,7 +207,7 @@ class TestMacroSyncManager:
         assert hasattr(sync_manager, "__class__")
         assert sync_manager.__class__.__name__ == "MacroSyncManager"
 
-    def test_sync_configuration_concepts(self):
+    def test_sync_configuration_concepts(self) -> None:
         """Test sync configuration concepts."""
         # Mock required dependencies
         if MagicMock is None:
@@ -251,7 +251,7 @@ class TestMacroSyncManager:
         assert len(sync_config["data_sources"]) == 2
         assert sync_config["sync_strategy"] == "bidirectional"
 
-    def test_sync_monitoring_concepts(self):
+    def test_sync_monitoring_concepts(self) -> None:
         """Test sync monitoring concepts."""
         # Mock required dependencies
         if MagicMock is None:
@@ -291,7 +291,7 @@ class TestMacroSyncManager:
         assert monitoring_config["sync_status"]["items_synced"] == 23
         assert monitoring_config["metrics"]["sync_success_rate"] == 0.98
 
-    def test_conflict_resolution_concepts(self):
+    def test_conflict_resolution_concepts(self) -> None:
         """Test conflict resolution concepts."""
         # Mock required dependencies
         if MagicMock is None:
@@ -331,7 +331,7 @@ class TestMacroSyncManager:
         assert conflict_config["conflict_detection"]["timestamp_comparison"] is True
 
     @given(st.text(min_size=1, max_size=100))
-    def test_sync_source_name_validation_properties(self, source_name):
+    def test_sync_source_name_validation_properties(self, source_name) -> None:
         """Property-based test for sync source name validation."""
         assume(len(source_name.strip()) > 0)
         # Mock required dependencies
@@ -354,7 +354,7 @@ class TestMacroSyncManager:
 class TestTriggerRegistrationManager:
     """Comprehensive tests for trigger registration manager - targeting 308 lines of 41% coverage."""
 
-    def test_trigger_registration_manager_initialization(self):
+    def test_trigger_registration_manager_initialization(self) -> None:
         """Test TriggerRegistrationManager initialization and configuration."""
         # Mock required dependencies
         if MagicMock is None:
@@ -366,7 +366,7 @@ class TestTriggerRegistrationManager:
         assert hasattr(trigger_manager, "__class__")
         assert trigger_manager.__class__.__name__ == "TriggerRegistrationManager"
 
-    def test_trigger_types_concepts(self):
+    def test_trigger_types_concepts(self) -> None:
         """Test trigger types concepts."""
         # Mock required dependencies
         if MagicMock is None:
@@ -406,7 +406,7 @@ class TestTriggerRegistrationManager:
         assert len(trigger_types["hotkey_triggers"]) == 3
         assert trigger_types["condition_triggers"]["cpu_usage_high"]["threshold"] == 0.8
 
-    def test_trigger_execution_concepts(self):
+    def test_trigger_execution_concepts(self) -> None:
         """Test trigger execution concepts."""
         # Mock required dependencies
         if MagicMock is None:
@@ -443,7 +443,7 @@ class TestTriggerRegistrationManager:
         assert len(execution_config["execution_modes"]) == 4
         assert execution_config["error_handling"]["retry_count"] == 3
 
-    def test_trigger_conditions_concepts(self):
+    def test_trigger_conditions_concepts(self) -> None:
         """Test trigger conditions concepts."""
         # Mock required dependencies
         if MagicMock is None:
@@ -489,7 +489,7 @@ class TestTriggerRegistrationManager:
             lambda x: all(c.isalnum() or c == "_" for c in x)
         )
     )
-    def test_trigger_name_validation_properties(self, trigger_name):
+    def test_trigger_name_validation_properties(self, trigger_name) -> None:
         """Property-based test for trigger name validation."""
         assume(len(trigger_name.strip()) > 0)
         # Mock required dependencies
@@ -511,7 +511,7 @@ class TestTriggerRegistrationManager:
 class TestSecurityLevel:
     """Comprehensive tests for security level - targeting 228 lines of 34% coverage."""
 
-    def test_security_level_enumeration(self):
+    def test_security_level_enumeration(self) -> None:
         """Test SecurityLevel enumeration and configuration."""
         # Test SecurityLevel enum values
         expected_levels = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
@@ -522,7 +522,7 @@ class TestSecurityLevel:
                 assert level_value is not None
                 assert isinstance(level_value, SecurityLevel)
 
-    def test_security_policies_concepts(self):
+    def test_security_policies_concepts(self) -> None:
         """Test security policies concepts."""
         # Test security policies configuration concepts without requiring SecurityManager
 
@@ -560,7 +560,7 @@ class TestSecurityLevel:
         assert security_policies["access_control"]["authentication_required"] is True
         assert security_policies["data_protection"]["encryption_at_rest"] == "aes256"
 
-    def test_threat_detection_concepts(self):
+    def test_threat_detection_concepts(self) -> None:
         """Test threat detection concepts."""
         # Test threat detection configuration concepts without requiring SecurityManager
 
@@ -593,7 +593,7 @@ class TestSecurityLevel:
         assert len(threat_detection["detection_methods"]) == 4
         assert threat_detection["monitoring_scope"]["network_traffic"] is True
 
-    def test_security_compliance_concepts(self):
+    def test_security_compliance_concepts(self) -> None:
         """Test security compliance concepts."""
         # Test security compliance configuration concepts without requiring SecurityManager
 
@@ -636,7 +636,7 @@ class TestSecurityLevel:
         )
 
     @given(st.text(min_size=8, max_size=50))
-    def test_security_password_validation_properties(self, password):
+    def test_security_password_validation_properties(self, password) -> None:
         """Property-based test for password validation."""
         assume(len(password.strip()) >= 8)
         # Test basic password validation concepts without requiring SecurityManager
@@ -653,7 +653,7 @@ class TestSecurityLevel:
 class TestIntegrationSystemCoordination:
     """Integration tests for integration system coordination and workflows."""
 
-    def test_km_client_sync_manager_integration_concepts(self):
+    def test_km_client_sync_manager_integration_concepts(self) -> None:
         """Test KM client and sync manager integration concepts."""
         km_client = KMClient()
         # Mock required dependencies
@@ -684,7 +684,7 @@ class TestIntegrationSystemCoordination:
         assert len(integration_workflow["sync_targets"]) == 2
         assert integration_workflow["data_flow"] == "km_client_to_sync_manager"
 
-    def test_trigger_manager_security_integration_concepts(self):
+    def test_trigger_manager_security_integration_concepts(self) -> None:
         """Test trigger manager and security integration concepts."""
         # Mock required dependencies
         if MagicMock is None:
@@ -724,7 +724,7 @@ class TestIntegrationSystemCoordination:
         )
         assert len(security_integration["access_control"]["trigger_creation"]) == 2
 
-    def test_comprehensive_integration_workflow_concepts(self):
+    def test_comprehensive_integration_workflow_concepts(self) -> None:
         """Test comprehensive integration workflow concepts."""
         # Test comprehensive workflow configuration concepts
         workflow_config = {

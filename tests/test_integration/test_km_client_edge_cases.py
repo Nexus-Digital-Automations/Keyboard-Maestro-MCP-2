@@ -25,7 +25,7 @@ from src.integration.km_client import (
 class TestKMClientEdgeCases:
     """Test edge cases and error paths in KMClient."""
 
-    def test_km_error_factories(self):
+    def test_km_error_factories(self) -> None:
         """Test all KMError factory methods."""
         # Test connection_error
         error = KMError.connection_error("Connection failed")
@@ -63,7 +63,7 @@ class TestKMClientEdgeCases:
         assert error.code == "SECURITY_ERROR"
         assert error.message == "Access denied"
 
-    def test_connection_config_methods(self):
+    def test_connection_config_methods(self) -> None:
         """Test ConnectionConfig immutable update methods."""
         config = ConnectionConfig()
 
@@ -83,7 +83,7 @@ class TestKMClientEdgeCases:
         assert new_config.web_api_port == 4490  # Other fields unchanged
         assert new_config.max_retries == 3  # Other fields unchanged
 
-    def test_trigger_definition_edge_cases(self):
+    def test_trigger_definition_edge_cases(self) -> None:
         """Test TriggerDefinition edge cases."""
         # Test with minimal configuration
         config = {
@@ -114,7 +114,7 @@ class TestKMClientEdgeCases:
         trigger2_dict = trigger2.to_dict()
         assert trigger2_dict["enabled"] is False
 
-    def test_trigger_definition_dataclass(self):
+    def test_trigger_definition_dataclass(self) -> None:
         """Test TriggerDefinition dataclass functionality."""
         # Test creation with all fields
         trigger = TriggerDefinition(
@@ -140,7 +140,7 @@ class TestKMClientEdgeCases:
         assert trigger_dict["enabled"] is True
 
     @patch("src.commands.secure_subprocess.get_secure_subprocess_manager")
-    def test_check_connection_with_applescript_true(self, mock_get_manager: Mock):
+    def test_check_connection_with_applescript_true(self, mock_get_manager: Mock) -> None:
         """Test check_connection when AppleScript returns 'true'."""
         client = KMClient()
 
@@ -160,7 +160,7 @@ class TestKMClientEdgeCases:
         assert result.get_right() is True
 
     @patch("src.commands.secure_subprocess.get_secure_subprocess_manager")
-    def test_check_connection_with_applescript_false(self, mock_get_manager: Mock):
+    def test_check_connection_with_applescript_false(self, mock_get_manager: Mock) -> None:
         """Test check_connection when AppleScript returns 'false'."""
         client = KMClient()
 
@@ -181,7 +181,7 @@ class TestKMClientEdgeCases:
         assert result.get_right() is False
 
     @patch("src.commands.secure_subprocess.get_secure_subprocess_manager")
-    def test_check_connection_with_exception(self, mock_get_manager: Mock):
+    def test_check_connection_with_exception(self, mock_get_manager: Mock) -> None:
         """Test check_connection when exception occurs."""
         client = KMClient()
 
@@ -194,7 +194,7 @@ class TestKMClientEdgeCases:
         assert result.get_right() is False
 
     @patch("src.commands.secure_subprocess.get_secure_subprocess_manager")
-    def test_execute_macro_with_error_output(self, mock_get_manager: Mock):
+    def test_execute_macro_with_error_output(self, mock_get_manager: Mock) -> None:
         """Test execute_macro when AppleScript returns error."""
         client = KMClient()
 
@@ -214,7 +214,7 @@ class TestKMClientEdgeCases:
         assert "Macro not found" in result.get_left().message
 
     @patch("src.commands.secure_subprocess.get_secure_subprocess_manager")
-    def test_execute_macro_with_timeout(self, mock_get_manager: Mock):
+    def test_execute_macro_with_timeout(self, mock_get_manager: Mock) -> None:
         """Test execute_macro when subprocess times out."""
         import subprocess
 
@@ -231,7 +231,7 @@ class TestKMClientEdgeCases:
         assert result.is_left()
         assert result.get_left().code == "TIMEOUT_ERROR"
 
-    def test_send_via_url_scheme(self):
+    def test_send_via_url_scheme(self) -> None:
         """Test URL scheme sending method."""
         config = ConnectionConfig(method=ConnectionMethod.URL_SCHEME)
         client = KMClient(config)
@@ -244,7 +244,7 @@ class TestKMClientEdgeCases:
         assert "kmtrigger://macro=test-macro" in result.get_right()["url"]
 
     @patch("httpx.Client")
-    def test_send_via_web_api_success(self, mock_httpx_client_class: Mock):
+    def test_send_via_web_api_success(self, mock_httpx_client_class: Mock) -> None:
         """Test Web API sending method with success."""
         config = ConnectionConfig(method=ConnectionMethod.WEB_API)
         client = KMClient(config)
@@ -265,7 +265,7 @@ class TestKMClientEdgeCases:
         assert "Macro executed successfully" in result.get_right()["response"]
 
     @patch("httpx.Client")
-    def test_send_via_web_api_failure(self, mock_httpx_client_class: Mock):
+    def test_send_via_web_api_failure(self, mock_httpx_client_class: Mock) -> None:
         """Test Web API sending method with HTTP error."""
         config = ConnectionConfig(method=ConnectionMethod.WEB_API)
         client = KMClient(config)
@@ -280,7 +280,7 @@ class TestKMClientEdgeCases:
         assert result.is_left()
         assert result.get_left().code == "EXECUTION_ERROR"
 
-    def test_register_unregister_trigger_applescript(self):
+    def test_register_unregister_trigger_applescript(self) -> None:
         """Test trigger registration/unregistration with AppleScript."""
         client = KMClient()
 
@@ -311,7 +311,7 @@ class TestKMClientEdgeCases:
             assert result.is_right()
             assert result.get_right() is True
 
-    def test_list_macros_variations(self):
+    def test_list_macros_variations(self) -> None:
         """Test list_macros with different parameters."""
         client = KMClient()
 
@@ -338,7 +338,7 @@ class TestKMClientEdgeCases:
             assert result.is_right()
             assert isinstance(result.get_right(), list)
 
-    def test_get_macro_list_alias(self):
+    def test_get_macro_list_alias(self) -> None:
         """Test get_macro_list alias method."""
         client = KMClient()
 
@@ -353,7 +353,7 @@ class TestKMClientEdgeCases:
             assert result.is_right()
             assert isinstance(result.get_right(), list)
 
-    def test_create_macro_validation(self):
+    def test_create_macro_validation(self) -> None:
         """Test create_macro validation."""
         client = KMClient()
 
@@ -372,7 +372,7 @@ class TestKMClientEdgeCases:
             assert result.get_right()["success"] is True
             assert result.get_right()["macro_id"] == "new-macro-123"
 
-    def test_list_macros_with_details(self):
+    def test_list_macros_with_details(self) -> None:
         """Test list_macros_with_details method."""
         client = KMClient()
 
@@ -399,7 +399,7 @@ class TestKMClientEdgeCases:
                 assert "details" in macros[0]
                 assert macros[0]["details"] is True
 
-    def test_get_macro_status(self):
+    def test_get_macro_status(self) -> None:
         """Test get_macro_status method."""
         client = KMClient()
 
@@ -415,7 +415,7 @@ class TestKMClientEdgeCases:
             assert isinstance(status, dict)
             assert "status" in status
 
-    def test_trigger_management_methods(self):
+    def test_trigger_management_methods(self) -> None:
         """Test trigger activation/deactivation methods."""
         client = KMClient()
 
@@ -450,7 +450,7 @@ class TestKMClientEdgeCases:
             assert isinstance(result.get_right(), dict)
 
     @pytest.mark.asyncio
-    async def test_async_trigger_methods(self):
+    async def test_async_trigger_methods(self) -> None:
         """Test async trigger management methods."""
         client = KMClient()
 
@@ -506,7 +506,7 @@ class TestKMClientEdgeCases:
             result = await client.list_macros_async()
             assert result.is_right()
 
-    def test_parse_applescript_records(self):
+    def test_parse_applescript_records(self) -> None:
         """Test _parse_applescript_records method."""
         client = KMClient()
 
@@ -536,7 +536,7 @@ class TestKMClientEdgeCases:
         macro_id=st.text(min_size=1, max_size=100).filter(lambda x: x.strip()),
         trigger_value=st.text(max_size=100),
     )
-    def test_execute_macro_property_based(self, macro_id: str, trigger_value: str):
+    def test_execute_macro_property_based(self, macro_id: str, trigger_value: str) -> None:
         """Property-based test for execute_macro."""
         client = KMClient()
 
@@ -556,7 +556,7 @@ class TestKMClientEdgeCases:
             assert hasattr(result, "is_right")
             assert result.is_right()  # Since we mocked success
 
-    def test_safe_send_unsupported_method(self):
+    def test_safe_send_unsupported_method(self) -> None:
         """Test _safe_send with unsupported connection method."""
         # Create a mock unsupported method
         config = ConnectionConfig()
@@ -567,7 +567,7 @@ class TestKMClientEdgeCases:
         assert result.is_left()
         assert "Unsupported method" in result.get_left().message
 
-    def test_safe_send_exception_handling(self):
+    def test_safe_send_exception_handling(self) -> None:
         """Test _safe_send general exception handling."""
         config = ConnectionConfig()
 
@@ -584,7 +584,7 @@ class TestKMClientEdgeCases:
             assert "Test error" in result.get_left().message
 
     @patch("src.commands.secure_subprocess.get_secure_subprocess_manager")
-    def test_applescript_command_variations(self, mock_get_manager: Mock):
+    def test_applescript_command_variations(self, mock_get_manager: Mock) -> None:
         """Test different AppleScript command implementations."""
         client = KMClient()
 
@@ -616,7 +616,7 @@ class TestKMClientEdgeCases:
         assert result.is_right()
         assert result.get_right()["trigger_id"] == "test-trigger"
 
-    def test_validate_trigger_definition(self):
+    def test_validate_trigger_definition(self) -> None:
         """Test _validate_trigger_definition method."""
         client = KMClient()
 
@@ -646,7 +646,7 @@ class TestKMClientEdgeCases:
         assert result.is_left()
         assert "key" in result.get_left().message
 
-    def test_sanitize_trigger_data(self):
+    def test_sanitize_trigger_data(self) -> None:
         """Test _sanitize_trigger_data method."""
         client = KMClient()
 
@@ -667,7 +667,7 @@ class TestKMClientEdgeCases:
         sanitized = result.get_right()
         assert '"' not in sanitized.get("key", "") or "\\\\" in sanitized.get("key", "")
 
-    def test_edge_case_empty_responses(self):
+    def test_edge_case_empty_responses(self) -> None:
         """Test handling of empty or malformed responses."""
         client = KMClient()
 
@@ -684,7 +684,7 @@ class TestKMClientEdgeCases:
         )  # No macroId to start record
 
     @patch("asyncio.create_task")
-    def test_background_task_creation(self, mock_create_task: Mock):
+    def test_background_task_creation(self, mock_create_task: Mock) -> None:
         """Test background task creation in async methods."""
         import asyncio
 
@@ -714,7 +714,7 @@ class TestKMClientEdgeCases:
 class TestKMClientErrorRecovery:
     """Test error recovery and retry logic."""
 
-    def test_connection_config_immutability(self):
+    def test_connection_config_immutability(self) -> None:
         """Ensure ConnectionConfig is truly immutable."""
         config = ConnectionConfig()
 
@@ -733,7 +733,7 @@ class TestKMClientErrorRecovery:
         assert config.web_api_port == 4490
         assert config.max_retries == 3
 
-    def test_complex_applescript_escaping(self):
+    def test_complex_applescript_escaping(self) -> None:
         """Test AppleScript escaping with complex strings."""
         client = KMClient()
 
@@ -753,7 +753,7 @@ class TestKMClientErrorRecovery:
             result = client.execute_macro(MacroId(input_str))
             assert hasattr(result, "is_left")  # Should return Either
 
-    def test_connection_method_coverage(self):
+    def test_connection_method_coverage(self) -> None:
         """Ensure all connection methods are covered."""
         # Test each connection method
         for method in ConnectionMethod:

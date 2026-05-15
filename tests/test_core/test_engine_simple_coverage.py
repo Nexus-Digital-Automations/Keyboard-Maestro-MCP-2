@@ -31,7 +31,7 @@ from src.core.types import (
 class TestPlaceholderCommandCoverage:
     """Tests for PlaceholderCommand to improve coverage."""
 
-    def test_placeholder_command_exception_in_execute(self):
+    def test_placeholder_command_exception_in_execute(self) -> None:
         """Test PlaceholderCommand exception handling in execute method - covers lines 87-89."""
         command = PlaceholderCommand(
             command_id=CommandId("test-cmd"),
@@ -51,7 +51,7 @@ class TestPlaceholderCommandCoverage:
             assert "Mock error" in result.error_message
             assert result.execution_time is not None
 
-    def test_placeholder_command_validate_exception(self):
+    def test_placeholder_command_validate_exception(self) -> None:
         """Test PlaceholderCommand validation exception handling - covers lines 105-106."""
         command = PlaceholderCommand(
             command_id=CommandId("test-cmd"),
@@ -69,7 +69,7 @@ class TestPlaceholderCommandCoverage:
             # Should return False when validation raises exception
             assert result is False
 
-    def test_placeholder_command_get_dependencies(self):
+    def test_placeholder_command_get_dependencies(self) -> None:
         """Test PlaceholderCommand get_dependencies method - covers line 110."""
         command = PlaceholderCommand(
             command_id=CommandId("test-cmd"),
@@ -84,7 +84,7 @@ class TestPlaceholderCommandCoverage:
 class TestMacroEngineErrorHandling:
     """Tests for MacroEngine error handling paths."""
 
-    def test_macro_engine_invalid_macro_handling(self):
+    def test_macro_engine_invalid_macro_handling(self) -> None:
         """Test MacroEngine handling of invalid macro - covers lines 185-194."""
         engine = MacroEngine()
 
@@ -103,7 +103,7 @@ class TestMacroEngineErrorHandling:
         assert result.status == ExecutionStatus.FAILED
         assert "ValidationError" in result.error_details
 
-    def test_macro_engine_command_failure_error_details(self):
+    def test_macro_engine_command_failure_error_details(self) -> None:
         """Test MacroEngine error details generation for failed commands - covers lines 215-222."""
         engine = MacroEngine()
 
@@ -135,7 +135,7 @@ class TestMacroEngineErrorHandling:
             assert result.status == ExecutionStatus.FAILED
             assert "command(s) failed" in result.error_details
 
-    def test_macro_engine_general_exception_handling(self):
+    def test_macro_engine_general_exception_handling(self) -> None:
         """Test MacroEngine general exception handling - covers lines 239-264."""
         engine = MacroEngine()
 
@@ -169,7 +169,7 @@ class TestMacroEngineErrorHandling:
 class TestEngineUtilityMethods:
     """Tests for MacroEngine utility methods."""
 
-    def test_engine_cancel_execution_success(self):
+    def test_engine_cancel_execution_success(self) -> None:
         """Test successful execution cancellation - covers lines 507-514."""
         engine = MacroEngine()
         token = ExecutionToken("test-token")
@@ -188,7 +188,7 @@ class TestEngineUtilityMethods:
                     )
                     mock_cleanup.assert_called_once_with(token)
 
-    def test_engine_cancel_execution_already_finished(self):
+    def test_engine_cancel_execution_already_finished(self) -> None:
         """Test cancellation of already finished execution - covers remainder of cancel_execution."""
         engine = MacroEngine()
         token = ExecutionToken("finished-token")
@@ -201,7 +201,7 @@ class TestEngineUtilityMethods:
 
             assert result is False
 
-    def test_engine_get_active_executions(self):
+    def test_engine_get_active_executions(self) -> None:
         """Test getting active executions - covers line 518."""
         engine = MacroEngine()
 
@@ -214,7 +214,7 @@ class TestEngineUtilityMethods:
 
             assert active == ["token1", "token2"]
 
-    def test_engine_cleanup_expired_executions(self):
+    def test_engine_cleanup_expired_executions(self) -> None:
         """Test cleanup of expired executions - covers lines 588-590."""
         engine = MacroEngine()
 
@@ -229,7 +229,7 @@ class TestEngineUtilityMethods:
 class TestEngineMetrics:
     """Tests for EngineMetrics class."""
 
-    def test_engine_metrics_initialization(self):
+    def test_engine_metrics_initialization(self) -> None:
         """Test EngineMetrics initialization - covers lines 596-602."""
         metrics = EngineMetrics()
 
@@ -239,7 +239,7 @@ class TestEngineMetrics:
         assert metrics.total_execution_time == 0.0
         assert metrics.average_execution_time == 0.0
 
-    def test_engine_metrics_record_success(self):
+    def test_engine_metrics_record_success(self) -> None:
         """Test recording successful execution - covers lines 604-619."""
         metrics = EngineMetrics()
         duration = Duration.from_seconds(2.5)
@@ -252,7 +252,7 @@ class TestEngineMetrics:
         assert metrics.total_execution_time == 2.5
         assert metrics.average_execution_time == 2.5
 
-    def test_engine_metrics_record_failure(self):
+    def test_engine_metrics_record_failure(self) -> None:
         """Test recording failed execution - covers lines 604-619."""
         metrics = EngineMetrics()
         duration = Duration.from_seconds(1.5)
@@ -265,7 +265,7 @@ class TestEngineMetrics:
         assert metrics.total_execution_time == 1.5
         assert metrics.average_execution_time == 1.5
 
-    def test_engine_metrics_get_metrics(self):
+    def test_engine_metrics_get_metrics(self) -> None:
         """Test getting metrics dictionary - covers lines 621-635."""
         metrics = EngineMetrics()
 
@@ -282,7 +282,7 @@ class TestEngineMetrics:
         assert result["average_execution_time"] == 3.0
         assert result["total_execution_time"] == 6.0
 
-    def test_engine_metrics_reset(self):
+    def test_engine_metrics_reset(self) -> None:
         """Test resetting metrics - covers lines 637-644."""
         metrics = EngineMetrics()
 
@@ -302,7 +302,7 @@ class TestEngineMetrics:
 class TestEngineGlobalFunctions:
     """Tests for global engine functions."""
 
-    def test_get_default_engine(self):
+    def test_get_default_engine(self) -> None:
         """Test get_default_engine function - covers lines 652-654."""
         engine = get_default_engine()
 
@@ -312,7 +312,7 @@ class TestEngineGlobalFunctions:
         engine2 = get_default_engine()
         assert engine is engine2
 
-    def test_get_engine_metrics(self):
+    def test_get_engine_metrics(self) -> None:
         """Test get_engine_metrics function - covers lines 657-659."""
         metrics = get_engine_metrics()
 
@@ -322,7 +322,7 @@ class TestEngineGlobalFunctions:
         metrics2 = get_engine_metrics()
         assert metrics is metrics2
 
-    def test_create_test_macro_basic(self):
+    def test_create_test_macro_basic(self) -> None:
         """Test create_test_macro function with basic types - covers lines 662-716."""
         macro = create_test_macro(
             "Test Macro", [CommandType.TEXT_INPUT, CommandType.PAUSE]
@@ -345,7 +345,7 @@ class TestEngineGlobalFunctions:
         assert pause_cmd.command_type == CommandType.PAUSE
         assert pause_cmd.parameters.get("duration") == 1.0
 
-    def test_create_test_macro_comprehensive_types(self):
+    def test_create_test_macro_comprehensive_types(self) -> None:
         """Test create_test_macro with various command types - covers more of lines 662-716."""
         command_types = [
             CommandType.PLAY_SOUND,

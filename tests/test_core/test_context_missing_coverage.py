@@ -23,14 +23,14 @@ from src.core.types import (
 class TestExecutionContextManager:
     """Test ExecutionContextManager comprehensive coverage."""
 
-    def test_context_manager_initialization(self):
+    def test_context_manager_initialization(self) -> None:
         """Test ExecutionContextManager initialization."""
         manager = ExecutionContextManager()
         assert manager._active_contexts == {}
         assert manager._context_status == {}
         assert manager._context_start_times == {}
 
-    def test_register_context(self):
+    def test_register_context(self) -> None:
         """Test context registration."""
         manager = ExecutionContextManager()
         context = ExecutionContext.create_test_context()
@@ -42,7 +42,7 @@ class TestExecutionContextManager:
         assert manager._active_contexts[token] == context
         assert manager.get_status(token) == ExecutionStatus.PENDING
 
-    def test_register_context_with_variables(self):
+    def test_register_context_with_variables(self) -> None:
         """Test context registration with variables."""
         manager = ExecutionContextManager()
         context = ExecutionContext.create_test_context()
@@ -56,7 +56,7 @@ class TestExecutionContextManager:
             == "test_value"
         )
 
-    def test_update_status(self):
+    def test_update_status(self) -> None:
         """Test status updates."""
         manager = ExecutionContextManager()
         context = ExecutionContext.create_test_context()
@@ -70,21 +70,21 @@ class TestExecutionContextManager:
         manager.update_status(token, ExecutionStatus.COMPLETED)
         assert manager.get_status(token) == ExecutionStatus.COMPLETED
 
-    def test_update_status_nonexistent_token(self):
+    def test_update_status_nonexistent_token(self) -> None:
         """Test updating status for nonexistent token."""
         manager = ExecutionContextManager()
 
         # Should not raise error for nonexistent token
         manager.update_status(ExecutionToken("nonexistent"), ExecutionStatus.RUNNING)
 
-    def test_get_status_nonexistent_token(self):
+    def test_get_status_nonexistent_token(self) -> None:
         """Test getting status for nonexistent token."""
         manager = ExecutionContextManager()
 
         status = manager.get_status(ExecutionToken("nonexistent"))
         assert status is None
 
-    def test_cleanup_context(self):
+    def test_cleanup_context(self) -> None:
         """Test context cleanup."""
         manager = ExecutionContextManager()
         context = ExecutionContext.create_test_context()
@@ -100,14 +100,14 @@ class TestExecutionContextManager:
         assert token not in manager._active_contexts
         assert token not in manager._context_status
 
-    def test_cleanup_nonexistent_context(self):
+    def test_cleanup_nonexistent_context(self) -> None:
         """Test cleanup of nonexistent context."""
         manager = ExecutionContextManager()
 
         # Should not raise error for nonexistent token
         manager.cleanup_context(ExecutionToken("nonexistent"))
 
-    def test_get_active_contexts(self):
+    def test_get_active_contexts(self) -> None:
         """Test getting active contexts."""
         manager = ExecutionContextManager()
 
@@ -127,7 +127,7 @@ class TestExecutionContextManager:
         assert token1 in active
         assert token2 in active
 
-    def test_cleanup_expired_contexts(self):
+    def test_cleanup_expired_contexts(self) -> None:
         """Test cleanup of expired contexts."""
         manager = ExecutionContextManager()
         context = ExecutionContext.create_test_context()
@@ -141,7 +141,7 @@ class TestExecutionContextManager:
         cleaned = manager.cleanup_expired_contexts(max_age_seconds=0)
         assert cleaned == 1
 
-    def test_get_context(self):
+    def test_get_context(self) -> None:
         """Test getting execution context."""
         manager = ExecutionContextManager()
         context = ExecutionContext.create_test_context()
@@ -158,14 +158,14 @@ class TestExecutionContextManager:
 class TestVariableManager:
     """Test VariableManager comprehensive coverage."""
 
-    def test_variable_manager_initialization(self):
+    def test_variable_manager_initialization(self) -> None:
         """Test VariableManager initialization."""
         manager = VariableManager()
         assert manager._global_variables == {}
         assert manager._context_variables == {}
         assert manager._protected_variables == set()
 
-    def test_set_and_get_global_variable(self):
+    def test_set_and_get_global_variable(self) -> None:
         """Test global variable setting and getting."""
         manager = VariableManager()
 
@@ -176,14 +176,14 @@ class TestVariableManager:
         value = manager.get_global_variable(VariableName("test_var"))
         assert value == "test_value"
 
-    def test_get_nonexistent_global_variable(self):
+    def test_get_nonexistent_global_variable(self) -> None:
         """Test getting nonexistent global variable."""
         manager = VariableManager()
 
         value = manager.get_global_variable(VariableName("nonexistent"))
         assert value is None
 
-    def test_protect_variable(self):
+    def test_protect_variable(self) -> None:
         """Test variable protection."""
         manager = VariableManager()
         var_name = VariableName("protected_var")
@@ -200,7 +200,7 @@ class TestVariableManager:
         with pytest.raises(SecurityViolationError):
             manager.set_global_variable(var_name, "new_value")
 
-    def test_set_context_variable(self):
+    def test_set_context_variable(self) -> None:
         """Test setting context-specific variables."""
         manager = VariableManager()
         token = ExecutionToken("test-token")
@@ -211,7 +211,7 @@ class TestVariableManager:
         assert token in manager._context_variables
         assert manager._context_variables[token][VariableName("ctx_var")] == "ctx_value"
 
-    def test_get_context_variable(self):
+    def test_get_context_variable(self) -> None:
         """Test getting context-specific variables."""
         manager = VariableManager()
         token = ExecutionToken("test-token")
@@ -223,7 +223,7 @@ class TestVariableManager:
         value = manager.get_context_variable(token, VariableName("ctx_var"))
         assert value == "ctx_value"
 
-    def test_get_nonexistent_context_variable(self):
+    def test_get_nonexistent_context_variable(self) -> None:
         """Test getting nonexistent context variable."""
         manager = VariableManager()
         token = ExecutionToken("test-token")
@@ -231,7 +231,7 @@ class TestVariableManager:
         value = manager.get_context_variable(token, VariableName("nonexistent"))
         assert value is None
 
-    def test_cleanup_context_variables(self):
+    def test_cleanup_context_variables(self) -> None:
         """Test cleanup of context variables."""
         manager = VariableManager()
         token = ExecutionToken("test-token")
@@ -249,7 +249,7 @@ class TestVariableManager:
         # Verify variables removed
         assert token not in manager._context_variables
 
-    def test_cleanup_nonexistent_context_variables(self):
+    def test_cleanup_nonexistent_context_variables(self) -> None:
         """Test cleanup of nonexistent context variables."""
         manager = VariableManager()
         token = ExecutionToken("nonexistent")
@@ -261,7 +261,7 @@ class TestVariableManager:
 class TestGlobalInstances:
     """Test global instance functions."""
 
-    def test_get_context_manager(self):
+    def test_get_context_manager(self) -> None:
         """Test get_context_manager function."""
         manager1 = get_context_manager()
         manager2 = get_context_manager()
@@ -270,7 +270,7 @@ class TestGlobalInstances:
         assert manager1 is manager2
         assert isinstance(manager1, ExecutionContextManager)
 
-    def test_get_variable_manager(self):
+    def test_get_variable_manager(self) -> None:
         """Test get_variable_manager function."""
         manager1 = get_variable_manager()
         manager2 = get_variable_manager()
@@ -283,7 +283,7 @@ class TestGlobalInstances:
 class TestSecurityContext:
     """Test security_context function and context manager."""
 
-    def test_security_context_success(self):
+    def test_security_context_success(self) -> None:
         """Test security context with sufficient permissions."""
         context = ExecutionContext.create_test_context(
             permissions=frozenset([Permission.TEXT_INPUT, Permission.SYSTEM_CONTROL])
@@ -294,7 +294,7 @@ class TestSecurityContext:
         with security_context(context, required_permissions):
             pass
 
-    def test_security_context_missing_permissions(self):
+    def test_security_context_missing_permissions(self) -> None:
         """Test security context with missing permissions."""
         context = ExecutionContext.create_test_context(
             permissions=frozenset([Permission.TEXT_INPUT])
@@ -308,7 +308,7 @@ class TestSecurityContext:
             with security_context(context, required_permissions):
                 pass
 
-    def test_security_context_partial_permissions(self):
+    def test_security_context_partial_permissions(self) -> None:
         """Test security context with partial permissions."""
         context = ExecutionContext.create_test_context(
             permissions=frozenset([Permission.TEXT_INPUT])
@@ -324,7 +324,7 @@ class TestSecurityContext:
             with security_context(context, required_permissions):
                 pass
 
-    def test_security_context_empty_required_permissions(self):
+    def test_security_context_empty_required_permissions(self) -> None:
         """Test security context with no required permissions."""
         context = ExecutionContext.create_test_context()
         required_permissions = frozenset()
@@ -333,7 +333,7 @@ class TestSecurityContext:
         with security_context(context, required_permissions):
             pass
 
-    def test_security_context_exception_propagation(self):
+    def test_security_context_exception_propagation(self) -> None:
         """Test that exceptions inside security context are propagated."""
         context = ExecutionContext.create_test_context(
             permissions=frozenset([Permission.TEXT_INPUT])
@@ -352,7 +352,7 @@ class TestSecurityContext:
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
-    def test_context_manager_with_invalid_token_format(self):
+    def test_context_manager_with_invalid_token_format(self) -> None:
         """Test context manager with various token formats."""
         manager = ExecutionContextManager()
 
@@ -365,7 +365,7 @@ class TestEdgeCases:
         status = manager.get_status(ExecutionToken(long_token))
         assert status is None
 
-    def test_variable_manager_with_special_characters(self):
+    def test_variable_manager_with_special_characters(self) -> None:
         """Test variable manager with special character variable names."""
         manager = VariableManager()
 
@@ -376,7 +376,7 @@ class TestEdgeCases:
         value = manager.get_global_variable(special_name)
         assert value == "special_value"
 
-    def test_context_manager_concurrent_operations(self):
+    def test_context_manager_concurrent_operations(self) -> None:
         """Test context manager with simulated concurrent operations."""
         manager = ExecutionContextManager()
 
@@ -400,7 +400,7 @@ class TestEdgeCases:
         active = manager.get_active_contexts()
         assert len(active) == 10
 
-    def test_variable_manager_large_values(self):
+    def test_variable_manager_large_values(self) -> None:
         """Test variable manager with large values."""
         manager = VariableManager()
 

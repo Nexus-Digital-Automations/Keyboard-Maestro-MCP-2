@@ -78,15 +78,25 @@ def mock_context() -> Mock:
 
 @pytest.fixture
 def mock_km_client() -> Mock:
-    """Create mock KM client with standard interface."""
+    """Create mock KM client with standard interface.
+
+    Status uses awaited ``execute_applescript_async`` for the version probe
+    and ``list_macros_async`` for the macro count. Both back onto an
+    ``Either``-like result; tests assert on the dict the production tool
+    builds out of those results.
+    """
     client = Mock()
-    # Mock connection check - CRITICAL for all tests
+
     mock_connection_result = Mock()
     mock_connection_result.is_left.return_value = False
     mock_connection_result.get_right.return_value = True
     client.check_connection.return_value = mock_connection_result
 
-    # Mock list_macros_with_details for status operation
+    mock_version_result = Mock()
+    mock_version_result.is_right.return_value = True
+    mock_version_result.get_right.return_value = "11.0.4"
+    client.execute_applescript_async = AsyncMock(return_value=mock_version_result)
+
     mock_macros_result = Mock()
     mock_macros_result.is_right.return_value = True
     mock_macros_result.get_right.return_value = [
@@ -95,6 +105,7 @@ def mock_km_client() -> Mock:
         {"name": "Test Macro 3", "enabled": False},
         {"name": "Test Macro 4", "enabled": True},
     ]
+    client.list_macros_async = AsyncMock(return_value=mock_macros_result)
     client.list_macros_with_details.return_value = mock_macros_result
 
     return client

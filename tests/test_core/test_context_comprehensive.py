@@ -276,7 +276,7 @@ class TestExecutionContextManager:
         results = []
         errors = []
 
-        def register_contexts():
+        def register_contexts() -> None:
             try:
                 for _ in range(10):
                     context = ExecutionContext.create_test_context()
@@ -670,7 +670,7 @@ class TestErrorHandling:
         """Test variable manager handles concurrent access."""
         errors = []
 
-        def worker():
+        def worker() -> None:
             try:
                 for i in range(10):
                     name = VariableName(f"var_{i}")

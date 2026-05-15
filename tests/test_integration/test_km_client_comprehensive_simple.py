@@ -27,7 +27,7 @@ class TestKMClientCore:
         """Create KMClient instance."""
         return KMClient()
 
-    def test_initialization(self):
+    def test_initialization(self) -> None:
         """Test client initialization."""
         # Default config
         client = KMClient()
@@ -45,7 +45,7 @@ class TestKMClientCore:
         assert client.config.timeout.total_seconds() == 60.0
         assert client.config.web_api_port == 8080
 
-    def test_execute_macro(self, client: KMClient):
+    def test_execute_macro(self, client: KMClient) -> None:
         """Test macro execution."""
         # Mock _send_command
         with patch.object(client, "_send_command") as mock_send:
@@ -71,7 +71,7 @@ class TestKMClientCore:
                 {"macro_id": "test-macro", "trigger_value": "test-value"},
             )
 
-    def test_register_and_unregister_trigger(self, client: KMClient):
+    def test_register_and_unregister_trigger(self, client: KMClient) -> None:
         """Test trigger registration and unregistration."""
         trigger_def = TriggerDefinition(
             trigger_id=TriggerId("trigger1"),
@@ -97,7 +97,7 @@ class TestKMClientCore:
             assert result.is_right()
             assert result.get_right() is True
 
-    def test_macro_listing_methods(self, client: KMClient):
+    def test_macro_listing_methods(self, client: KMClient) -> None:
         """Test various macro listing methods."""
         test_macros = [
             {"name": "Macro 1", "id": "123", "group": "Test"},
@@ -125,7 +125,7 @@ class TestKMClientCore:
             assert result.is_right()
             assert len(result.get_right()) == 2
 
-    def test_create_macro(self, client: KMClient):
+    def test_create_macro(self, client: KMClient) -> None:
         """Test macro creation."""
         macro_data = {
             "name": "New Macro",
@@ -148,7 +148,7 @@ class TestKMClientCore:
         assert result.is_left()
         assert result.get_left().code == "VALIDATION_ERROR"
 
-    def test_list_macros_with_details(self, client: KMClient):
+    def test_list_macros_with_details(self, client: KMClient) -> None:
         """Test detailed macro listing."""
         with patch.object(client, "_send_command") as mock_send:
             mock_send.return_value = Either.right(
@@ -175,7 +175,7 @@ class TestKMClientCore:
             assert macros[0]["triggers"] == 2
             assert "metadata" in macros[0]
 
-    def test_connection_check(self, client: KMClient):
+    def test_connection_check(self, client: KMClient) -> None:
         """Test connection checking."""
         with patch.object(client, "_send_command") as mock_send:
             mock_send.return_value = Either.right({"alive": True})
@@ -184,7 +184,7 @@ class TestKMClientCore:
             assert result.is_right()
             assert result.get_right() is True
 
-    def test_macro_status(self, client: KMClient):
+    def test_macro_status(self, client: KMClient) -> None:
         """Test getting macro status."""
         with patch.object(client, "_send_command") as mock_send:
             mock_send.return_value = Either.right(
@@ -202,7 +202,7 @@ class TestKMClientCore:
             assert status["running"] is True
             assert status["progress"] == 50
 
-    def test_trigger_management(self, client: KMClient):
+    def test_trigger_management(self, client: KMClient) -> None:
         """Test trigger activation, deactivation, listing."""
         # Activate trigger
         with patch.object(client, "_send_command") as mock_send:
@@ -256,7 +256,7 @@ class TestKMClientAsync:
         return KMClient()
 
     @pytest.mark.asyncio
-    async def test_register_trigger_async(self, client: KMClient):
+    async def test_register_trigger_async(self, client: KMClient) -> None:
         """Test async trigger registration."""
         trigger_def = TriggerDefinition(
             trigger_id=TriggerId("trigger1"),
@@ -283,7 +283,7 @@ class TestKMClientAsync:
         assert result.get_right() == TriggerId("trigger1")
 
     @pytest.mark.asyncio
-    async def test_activate_trigger_async(self, client: KMClient):
+    async def test_activate_trigger_async(self, client: KMClient) -> None:
         """Test async trigger activation."""
         with patch.object(client, "activate_trigger") as mock_activate:
             mock_activate.return_value = Either.right(True)
@@ -293,7 +293,7 @@ class TestKMClientAsync:
             assert result.get_right() is True
 
     @pytest.mark.asyncio
-    async def test_deactivate_trigger_async(self, client: KMClient):
+    async def test_deactivate_trigger_async(self, client: KMClient) -> None:
         """Test async trigger deactivation."""
         with patch.object(client, "deactivate_trigger") as mock_deactivate:
             mock_deactivate.return_value = Either.right(True)
@@ -303,7 +303,7 @@ class TestKMClientAsync:
             assert result.get_right() is True
 
     @pytest.mark.asyncio
-    async def test_list_triggers_async(self, client: KMClient):
+    async def test_list_triggers_async(self, client: KMClient) -> None:
         """Test async trigger listing."""
         with patch.object(client, "list_triggers") as mock_list:
             mock_list.return_value = Either.right([{"id": "trigger1"}])
@@ -313,7 +313,7 @@ class TestKMClientAsync:
             assert len(result.get_right()) == 1
 
     @pytest.mark.asyncio
-    async def test_list_macros_async(self, client: KMClient):
+    async def test_list_macros_async(self, client: KMClient) -> None:
         """Test async macro listing with fallback."""
         # Test AppleScript success
         with patch.object(client, "_list_macros_applescript") as mock_as:
@@ -351,7 +351,7 @@ class TestKMClientAsync:
 class TestKMClientPrivateMethods:
     """Test private methods for better coverage."""
 
-    def test_safe_send_applescript(self):
+    def test_safe_send_applescript(self) -> None:
         """Test _safe_send with AppleScript."""
         config = ConnectionConfig(method=ConnectionMethod.APPLESCRIPT)
 
@@ -372,7 +372,7 @@ class TestKMClientPrivateMethods:
             assert result.is_right()
             assert result.get_right()["alive"] is True
 
-    def test_safe_send_web_api(self):
+    def test_safe_send_web_api(self) -> None:
         """Test _safe_send with Web API."""
         config = ConnectionConfig(method=ConnectionMethod.WEB_API)
 
@@ -392,7 +392,7 @@ class TestKMClientPrivateMethods:
             assert result.is_right()
             assert result.get_right()["success"] is True
 
-    def test_safe_send_unsupported(self):
+    def test_safe_send_unsupported(self) -> None:
         """Test _safe_send with unsupported method."""
         # Most commands don't support REMOTE_TRIGGER
         config = ConnectionConfig(method=ConnectionMethod.REMOTE_TRIGGER)
@@ -405,7 +405,7 @@ class TestKMClientPrivateMethods:
 class TestKMError:
     """Test KMError factory methods."""
 
-    def test_error_types(self):
+    def test_error_types(self) -> None:
         """Test all error type creation."""
         # Connection error
         error = KMError.connection_error("Failed to connect")
@@ -439,7 +439,7 @@ class TestKMError:
 class TestConnectionConfig:
     """Test ConnectionConfig functionality."""
 
-    def test_immutability(self):
+    def test_immutability(self) -> None:
         """Test that ConnectionConfig is immutable."""
         config = ConnectionConfig()
         new_config = config.with_timeout(Duration.from_seconds(60))
@@ -458,7 +458,7 @@ class TestConnectionConfig:
 class TestTriggerDefinition:
     """Test TriggerDefinition functionality."""
 
-    def test_to_dict(self):
+    def test_to_dict(self) -> None:
         """Test converting to dictionary."""
         trigger_def = TriggerDefinition(
             trigger_id=TriggerId("trigger1"),

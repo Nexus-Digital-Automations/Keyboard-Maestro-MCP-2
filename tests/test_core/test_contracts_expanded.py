@@ -147,7 +147,7 @@ class TestInvariantErrorContext:
 
         @invariant(lambda self: self.value >= 0)
         class PositiveValue:
-            def __init__(self, value: int):
+            def __init__(self, value: int) -> None:
                 self.value = value
 
             def subtract(self, amount: int) -> None:
@@ -180,7 +180,7 @@ class TestInvariantErrorContext:
 
         @invariant(lambda self: len(self.items) <= self.max_capacity)
         class LimitedContainer:
-            def __init__(self, max_capacity: int):
+            def __init__(self, max_capacity: int) -> None:
                 self.items = []
                 self.max_capacity = max_capacity
 
@@ -303,7 +303,7 @@ class TestContractIntegration:
 
         @invariant(lambda self: self.balance >= 0)
         class BankAccount:
-            def __init__(self, initial_balance: float):
+            def __init__(self, initial_balance: float) -> None:
                 self.balance = initial_balance
 
             @require(lambda self, amount: amount > 0, "Deposit amount must be positive")
