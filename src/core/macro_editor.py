@@ -44,7 +44,7 @@ class MacroModification:
 
     @require(lambda self: self.operation in EditOperation)
     @require(lambda self: self.position is None or self.position >= 0)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate modification specification."""
 
 
@@ -72,7 +72,7 @@ class MacroInspection:
     @require(lambda self: self.condition_count >= 0)
     @require(lambda self: 0 <= self.complexity_score <= 100)
     @require(lambda self: 0 <= self.health_score <= 100)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate inspection results."""
 
 
@@ -89,7 +89,7 @@ class DebugSession:
     @require(lambda self: 0 < self.timeout_seconds <= 300)
     @require(lambda self: len(self.breakpoints) <= 50)
     @require(lambda self: len(self.watch_variables) <= 20)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate debug session configuration."""
 
 
@@ -104,7 +104,7 @@ class MacroComparison:
     recommendation: str
 
     @require(lambda self: 0.0 <= self.similarity_score <= 1.0)
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate comparison results."""
 
 

@@ -158,7 +158,7 @@ class Duration:
 
     seconds: float
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.seconds < 0:
             raise ValueError("Duration cannot be negative")
 

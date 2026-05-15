@@ -80,7 +80,7 @@ class ConditionSpec:
     timeout_seconds: int = 10
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Contract validation
         if len(self.operand) > 1000:
             raise ValueError("Operand too long (max 1000 characters)")
@@ -97,7 +97,7 @@ class TextCondition:
     comparison_value: str
     case_sensitive: bool = True
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if len(self.comparison_value) > 1000:
             raise ValueError("Comparison value too long")
         if self.operator == ComparisonOperator.MATCHES_REGEX:
@@ -114,7 +114,7 @@ class ApplicationCondition:
     operator: ComparisonOperator
     expected_value: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if len(self.app_identifier) == 0:
             raise ValueError("App identifier cannot be empty")
         if ".." in self.app_identifier or "/" in self.app_identifier:
@@ -144,7 +144,7 @@ class SystemCondition:
         "cpu_usage",
     }
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.property_name not in self.ALLOWED_PROPERTIES:
             raise ValueError(f"Invalid system property: {self.property_name}")
 
@@ -158,7 +158,7 @@ class VariableCondition:
     comparison_value: str
     convert_to_number: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if len(self.variable_name) == 0:
             raise ValueError("Variable name cannot be empty")
         if len(self.variable_name) > 255:
@@ -175,7 +175,7 @@ class LogicCondition:
     operator: LogicOperator
     conditions: list[ConditionSpec]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if len(self.conditions) == 0:
             raise ValueError("Logic condition requires at least one condition")
         if len(self.conditions) > 10:
@@ -319,7 +319,7 @@ class ConditionValidator:
 class ConditionBuilder:
     """Fluent API for building type-safe conditions."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._condition_id = ConditionId(str(uuid.uuid4()))
         self._condition_type: ConditionType | None = None
         self._operator: ComparisonOperator | None = None

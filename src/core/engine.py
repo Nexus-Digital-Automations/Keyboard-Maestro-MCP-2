@@ -133,7 +133,7 @@ class MacroEngine:
     )
     _execution_lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize engine state."""
         # Initialize mutable state using object.__setattr__ for frozen dataclass
         object.__setattr__(self, "_active_executions", {})
@@ -593,7 +593,7 @@ class MacroEngine:
 class EngineMetrics:
     """Metrics and monitoring for the macro engine."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.execution_count = 0
         self.success_count = 0
         self.failure_count = 0
