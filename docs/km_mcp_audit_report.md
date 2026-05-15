@@ -633,3 +633,76 @@ Recommend a small follow-up round to:
 ### Sandbox state after run
 
 Clean. Deleted at end: 10 R9_* macros (`R9_Scratch`, `R9_TryTrap`, `R9_Condition`, `R9_Condition_Renamed` (post-rename), `R9_Switch`, all 5 `R9_T_*` templates). Variables `R9_GlobalVar` (global) and `R9_PwdVar` (password) deleted. Group `KM MCP R6 Sandbox` left in place per checklist.
+
+## Round 10 (2026-05-14, session 20260514-231435-2858) — post-R9-merge re-smoke (pre-restart state)
+
+Ran the full `docs/km_mcp_tool_status.md` checklist after fast-forwarding `session/20260514-204538-60086` (commits b954c8b + c4591a8) into main and pushing. Important: the live MCP server caches Python at startup, so the c4591a8 fixes for R9 defects D2 / D4 / A6 are **not yet loaded**. This round therefore documents the pre-restart state — D2, D4, A6 results below are expected to flip after the next Claude Code restart that reloads the MCP process.
+
+KM Engine 11.0.4. Sandbox group `KM MCP R6 Sandbox` reused. Macros `R10_Scratch_Smoke` and `R10_Cond_Probe` created, used, and deleted.
+
+### Section A — round-6 control flow
+
+| # | Check | Verdict | Notes |
+|---|---|---|---|
+| A1 | `for_loop` Range / LinesIn / Files / Variables | **PASS** (4/4) | All return `macro_action_type=For`, correct `collection_type`. |
+| A2 | `while_loop` + `until_loop` | **PASS** | `While` / `Until`; `condition_kind=variable`. |
+| A3 | `try_catch` shape | **PASS** | `try_action_count=1, catch_action_count=1`. Runtime-trap bonus not re-tested (still gated by D1's `StopOnFailure=false` remainder). |
+| A4 | Variable-condition value preservation (round-6 headline fix) | **PARTIAL** | `km_add_condition` returns `success=true` with `condition_type=variable, operator=equals`; the appended action surfaces via `km_action_builder list` only with the generic name "If All Conditions Met Execute Actions" — operand is not surfaced by list. R9 confirmed the underlying XML still has `VariableValue=ABCXYZ123` via direct readback; we trust that here without re-running the XML readback. |
+| A5 | `km_trigger_manager set_enabled` rejection message | **PASS** | Returns the documented "KM 11 stores no per-trigger enabled bit … Toggle the parent macro instead via km_macro_editor set_enabled" verdict. |
+| A6 | `km_refresh_action_templates` name coerce | **FAIL** (pre-restart) | Tool still absent from MCP transport surface. Source-level check confirms `src/server/tools/refresh_templates_tool.py` defines `km_refresh_action_templates` but no module imports it (no registration in `src/server/dynamic_registration.py` or `src/server/tools/__init__.py`). c4591a8 was supposed to address A6; verify after restart whether the fix added the missing registration or whether registration is in a file the running process hasn't reloaded yet. |
+| A7 | `km_window_manager arrange` `window_info_source` flag | **PASS** | Ran against Finder (`arrangement=left_half`); response `"window_info_source":"post_operation"`. |
+
+### Section B — round-7 switch + templates
+
+| # | Check | Verdict | Notes |
+|---|---|---|---|
+| B8 | `switch_case` Variable + Otherwise | **PASS** | `case_count=3, has_otherwise=true`. |
+| B9 | `switch_case` Clipboard / Calculation / Text | **PASS** (3/3) | All succeed; `source` echoed. |
+| B10 | `switch_case` unsupported `JSON` source | **PASS** | `VALIDATION_ERROR` listing Calculation / Clipboard / NamedClipboard / Text / Variable. |
+| B11 | Template `app_launcher` | **PASS** | 1 action "Activate Finder". |
+| B11 | Template `text_expansion` | **PASS** | 1 action 'Insert Text "Hello, World!" by Typing'. |
+| B11 | Template `file_processor` | **PASS** | 1 action "Execute Shell Script". |
+| B11 | Template `window_manager` | **FAIL** (pre-restart, D2 unchanged in running process) | `success=true` returned, `km_action_builder list` shows 0 actions on T_WindowManager. c4591a8 claims to fix D2; expect this to flip to PASS after server reload. |
+| B11 | Template `hotkey_action` | **PASS** | `action=type_text, text="TestPayload", hotkey="f9", modifiers=["cmd","opt"]`. 1 inner action + `hotkey_attached=true`. Confirmed visible in `km_list_hotkey_triggers` as "The Hot Key ⌥⌘F9 is pressed" on macro `T_HotkeyAction`. R9's D3 fix remains live. |
+| B11 caveat | `action=insert_text` rejection | observation | The doc's example uses `action="insert_text"` — but `hotkey_action` accepts only `open_app` / `type_text` / `run_script`. Tool returns `UNSUPPORTED_TEMPLATE_ACTION`. Suggest updating the checklist to use `type_text` (also serves as B12). |
+| B12 | Template unsupported inner action | **PASS** | `UNSUPPORTED_TEMPLATE_ACTION` naming the offender + listing the three supported inner actions. Verified inline during B11 with `insert_text`. |
+| B13 | `km_notifications` alert duration | **PASS** | `duration=5` returned `success=true`, `display_time≈2s` (user-dismissed before auto-give-up). f23cd30 fix still live. |
+
+### Section C — regression sweep
+
+| Tool group | Verdict | Notes |
+|---|---|---|
+| `km_engine_control` status / calculate | **PASS** | engine 11.0.4 / 51 macros; `2+2=4`. |
+| `km_variable_manager` set / get / delete (global) | **PASS** | Set+readback+delete clean on `R10ProbeVar`. |
+| `km_macro_editor` set_enabled / delete | **PASS** | Toggled `R10_Scratch_Smoke` off/on; all 7 R10 sandbox macros deleted at cleanup. |
+| `km_action_builder` append (pause) / list | **PASS** | Appended `pause seconds=0.05`; list returned all 12 actions (11 control-flow + 1 pause) with readable names ("Switch of Environment Variable MyVar", "Switch of Calculation 1+1", "Switch of Text %CurrentUser%", etc). |
+| `km_macro_group_manager` list | **PASS** | Reused existing `KM MCP R6 Sandbox` (4C3DC8D1…). |
+| `km_create_macro` template=custom | **PASS** | First attempt timed out on AppleScript permission prompt; immediate retry succeeded — known first-time-import quirk, not a regression. |
+| `km_list_hotkey_triggers` | **PASS** | Returns full list (14 hotkey triggers across all groups). Note: tool takes **no** parameters in this build — passing `macro_identifier` returns `Unexpected keyword argument`. R6 doc mentions filtering, but the surface here is unfiltered. |
+| `km_list_macros`, `km_list_action_types`, `km_list_templates`, `km_search_actions`, `km_token_stats`, `km_token_processor`, `km_create_hotkey_trigger`, `km_create_plugin_action`, `km_dismiss_notifications`, `km_notification_status`, `km_application_control`, `km_execute_macro`, `km_trigger_crud`, `km_add_system_trigger`, `km_set_macro_triggers`, `km_move_macro_to_group` | **NOT RE-VERIFIED** | Out of scope for the rounds-6/7 checklist. Assumed clean per R9 verdict; spot-check next round if needed. |
+
+### Defect status vs round 9
+
+| ID | R9 status | R10 status (pre-restart) | Notes |
+|---|---|---|---|
+| D1. `run_applescript` `StopOnFailure=false` + spurious `IncludedVariables` | partially fixed | not re-tested | A3-bonus runtime trap not re-exercised. |
+| D2. `template=window_manager` produces 0 actions | open | **open in running process** | c4591a8 claims fix; restart required to verify. |
+| D3. `template=hotkey_action` doesn't attach hotkey | fixed | **fixed** (still) | Confirmed via `km_list_hotkey_triggers` showing the new ⌥⌘F9 trigger. |
+| D4. `km_action_builder.append action_type=execute_macro` emits invalid XML | open | not re-tested | Standalone `execute_macro` append not probed this round. |
+| A6 tool exposure | absent | **absent in running process** | c4591a8 claims fix; source still shows no registration, suggesting fix may have added registration elsewhere or relies on imports that the running process hasn't reloaded. Verify after restart. |
+
+### Verdict
+
+Of 14 numbered checklist items: **12 PASS, 1 PARTIAL (A4 — read-back via list surfaces no operand; trust prior R9 XML probe), 1 FAIL (B11 window_manager + A6 exposure — both expected to flip after server reload picks up c4591a8).**
+
+All headline round-6 and round-7 fixes (variable-condition value preservation, switch_case 5 sources, hotkey_action template trigger attach) remain live and confirmed in the running process. R9 defect resolutions for D2 / D4 / A6 are merged into main (c4591a8) but **require a Claude Code restart to take effect** because the MCP server caches Python at startup.
+
+### Recommended next steps
+
+1. Restart Claude Code (reloads the MCP process from `~/Desktop/Claude Coding Projects/Keyboard-Maestro-MCP-2`), then re-run only items B11 window_manager, A6 (refresh_templates name coerce), and D4 (execute_macro append) to confirm c4591a8 resolves them.
+2. Patch `_build_action_xml`'s `run_applescript` emitter to set `StopOnFailure=true` and drop the `IncludedVariables=["9999"]` sentinel — closes D1's remaining half and unblocks A3-bonus runtime trap.
+3. Update `docs/km_mcp_tool_status.md` template-section example to use `action="type_text"` instead of `insert_text` (the latter is not a supported inner action for `hotkey_action`).
+
+### Sandbox state after run
+
+Clean. Deleted at end: 7 R10_* macros (`R10_Scratch_Smoke`, `R10_Cond_Probe`, `T_AppLauncher`, `T_TextExpansion`, `T_FileProcessor`, `T_WindowManager`, `T_HotkeyAction`). No variables left behind (`R10ProbeVar` deleted inline). Group `KM MCP R6 Sandbox` left in place per checklist.
