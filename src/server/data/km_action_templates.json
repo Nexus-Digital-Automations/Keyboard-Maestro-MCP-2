@@ -309,6 +309,16 @@
     "parameter_paths": {},
     "xml": "<dict>\n\t<key>DisplayKind</key>\n\t<string>Window</string>\n\t<key>HonourFailureSettings</key>\n\t<true/>\n\t<key>IncludeStdErr</key>\n\t<false/>\n\t<key>IncludedVariables</key>\n\t<array>\n\t\t<string>9999</string>\n\t</array>\n\t<key>MacroActionType</key>\n\t<string>ExecuteSwift</string>\n\t<key>Path</key>\n\t<string></string>\n\t<key>Text</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n\t<key>TrimResults</key>\n\t<true/>\n\t<key>TrimResultsNew</key>\n\t<true/>\n\t<key>UseText</key>\n\t<true/>\n</dict>"
   },
+  "ExecuteWorkflow": {
+    "captured_at": "2026-05-15",
+    "category_path": [
+      "Execute",
+      "Execute an Automator Workflow"
+    ],
+    "km_version": "11.x",
+    "parameter_paths": {},
+    "xml": "<dict>\n\t<key>MacroActionType</key>\n\t<string>ExecuteWorkflow</string>\n\t<key>Path</key>\n\t<string></string>\n\t<key>TimeOutAbortsMacro</key>\n\t<true/>\n</dict>"
+  },
   "File": {
     "captured_at": "2026-05-13",
     "category_path": [
