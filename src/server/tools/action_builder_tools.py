@@ -110,21 +110,37 @@ def _build_action_xml(action_type: str, config: dict[str, Any]) -> str | None:
         )
     if action_type == "run_applescript":
         source = _xml_escape(str(config.get("source", "")))
+        # UseText=true is required: KM defaults to UseText=false (the file-path
+        # mode) and renders the action as "Execute 'Unknown' AppleScript" when
+        # the key is absent, ignoring the inline `Text` body entirely.
         return (
             "<dict>"
             "<key>MacroActionType</key><string>ExecuteAppleScript</string>"
             f"<key>Text</key><string>{source}</string>"
             "<key>TextSource</key><string>Text</string>"
+            "<key>UseText</key><true/>"
             "</dict>"
         )
     if action_type == "execute_macro":
-        target = config.get("target_macro")
-        if not target:
+        # KM's ExecuteMacro action stores Macro as a *nested dict* of
+        # MacroName + MacroUID, not a bare <string>. A string here is a
+        # plist type mismatch and KM silently substitutes the action with
+        # Log "Invalid XML From AppleScript". The caller (_do_append) must
+        # resolve target_macro → (name, uid) and inject both before
+        # calling this emitter.
+        uid = config.get("target_macro_uid")
+        name = config.get("target_macro_name") or config.get("target_macro")
+        if not uid or not name:
             return None
         return (
             "<dict>"
+            "<key>Macro</key>"
+            "<dict>"
+            f"<key>MacroName</key><string>{_xml_escape(str(name))}</string>"
+            f"<key>MacroUID</key><string>{_xml_escape(str(uid))}</string>"
+            "</dict>"
             "<key>MacroActionType</key><string>ExecuteMacro</string>"
-            f"<key>Macro</key><string>{_xml_escape(str(target))}</string>"
+            "<key>TargetingType</key><string>Specific</string>"
             "</dict>"
         )
     if action_type == "activate_application":
@@ -317,6 +333,37 @@ def _build_plug_in_xml(config: dict[str, Any]) -> str | None:
     )
 
 
+async def _resolve_execute_macro_target(
+    target_macro: Any,
+) -> tuple[str, str] | None:
+    """Resolve target_macro (name or UUID) to ``(name, uid)`` for ExecuteMacro XML.
+
+    KM's ExecuteMacro action stores the target as ``Macro = {MacroName, MacroUID}``;
+    a bare name doesn't survive plist validation. Returns ``None`` if the
+    target is missing, malformed, or not present in KM's macro list.
+    """
+    if not target_macro or not isinstance(target_macro, str):
+        return None
+    target = target_macro.strip()
+    if not target:
+        return None
+    list_result = await get_km_client().list_macros_async(enabled_only=False)
+    if list_result.is_left():
+        logger.warning(
+            "execute_macro target resolve: list_macros failed: %s",
+            list_result.get_left().message,
+        )
+        return None
+    for record in list_result.get_right():
+        record_uid = str(record.get("id") or record.get("macroId") or "")
+        record_name = str(record.get("name") or record.get("macroName") or "")
+        if not record_uid or not record_name:
+            continue
+        if target in (record_uid, record_name):
+            return record_name, record_uid
+    return None
+
+
 async def _do_list(macro_id: str | None) -> dict[str, Any]:
     if not macro_id or not macro_id.strip():
         return _failure("VALIDATION_ERROR", "macro_id is required.", "Pass macro_id.")
@@ -337,8 +384,19 @@ async def _do_append(
             "macro_id and action_type are required for operation='append'.",
             "Pass both, plus action_config with type-appropriate fields.",
         )
+    config = dict(action_config or {})
+    if action_type == "execute_macro":
+        resolved = await _resolve_execute_macro_target(config.get("target_macro"))
+        if resolved is None:
+            return _failure(
+                "EXECUTE_MACRO_TARGET_NOT_FOUND",
+                f"target_macro {config.get('target_macro')!r} did not resolve to a "
+                "known macro. KM's ExecuteMacro action requires a real MacroUID.",
+                "Pass an existing macro name or UUID; list with km_list_macros.",
+            )
+        config["target_macro_name"], config["target_macro_uid"] = resolved
     try:
-        xml = _build_action_xml(action_type, action_config or {})
+        xml = _build_action_xml(action_type, config)
     except ValueError as exc:
         logger.warning("action_builder render failed: type=%s err=%s", action_type, exc)
         return _failure(
