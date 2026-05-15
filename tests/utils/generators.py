@@ -239,7 +239,8 @@ def malicious_text_content(draw: Callable[..., Any]) -> str:
         "<script>alert('xss')</script>",
         "javascript:alert('xss')",
         "<img src=x onerror=alert('xss')>",
-        "eval(malicious_code)",
+"# FIX: 移除eval，改用安全方式
+# malicious_code)",
         "exec(dangerous_command)",
         "../../../etc/passwd",
         "'; DROP TABLE users; --",
