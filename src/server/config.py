@@ -7,6 +7,7 @@ import logging
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, cast
 
 from fastmcp import FastMCP
 
@@ -94,13 +95,13 @@ def get_server_config() -> ServerConfig:
     return ServerConfig()
 
 
-def load_config_from_file(config_path: str) -> dict:
+def load_config_from_file(config_path: str) -> dict[str, Any]:
     """Load configuration from JSON file."""
     import json
 
     try:
         with open(config_path) as f:
-            return json.load(f)
+            return cast(dict[str, Any], json.load(f))
     except FileNotFoundError:
         return {}
     except json.JSONDecodeError:

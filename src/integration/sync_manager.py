@@ -594,4 +594,4 @@ class MacroSyncManager:
     def _is_cache_valid(self, macro: EnhancedMacroMetadata) -> bool:
         """Check if cached macro metadata is still valid."""
         cache_age = datetime.now(UTC) - macro.last_analyzed
-        return cache_age < self.config.cache_ttl
+        return bool(cache_age < self.config.cache_ttl)

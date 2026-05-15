@@ -27,7 +27,7 @@ import os
 import plistlib
 import tempfile
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from src.core.either import Either
 from src.core.logging import get_logger
@@ -103,7 +103,7 @@ def _parse_action_dicts(actions_xml: str) -> list[dict[str, Any]]:
         '"http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
         f'<plist version="1.0"><array>{stripped}</array></plist>'
     )
-    return plistlib.loads(envelope.encode("utf-8"))
+    return cast(list[dict[str, Any]], plistlib.loads(envelope.encode("utf-8")))
 
 
 async def _resolve_group(

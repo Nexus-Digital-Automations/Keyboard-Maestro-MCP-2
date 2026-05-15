@@ -110,7 +110,7 @@ def require(
             return await func(*args, **kwargs)
 
         @wraps(func)
-        def sync_wrapper(*args: Any, **kwargs: Any) -> bool:
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             # Evaluate precondition
             if not ContractValidator.evaluate_condition(condition, args, kwargs):
                 context = create_error_context(
@@ -191,7 +191,7 @@ def ensure(
             return result
 
         @wraps(func)
-        def sync_wrapper(*args: Any, **kwargs: Any) -> bool:
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             # Execute the original sync function
             result = func(*args, **kwargs)
 
@@ -278,14 +278,14 @@ def invariant(
 
         # Wrap __init__ to check invariant after construction
         @wraps(original_init)
-        def wrapped_init(self: Any, *args: Any, **kwargs: Any) -> bool:
+        def wrapped_init(self: Any, *args: Any, **kwargs: Any) -> None:
             original_init(self, *args, **kwargs)
             check_invariant(self)
 
         # Wrap public methods to check invariant before and after
-        def wrap_method(method_name: str, method: Callable[..., Any] | str) -> bool:
+        def wrap_method(method_name: str, method: Callable[..., Any] | str) -> Callable[..., Any]:
             @wraps(method)
-            def wrapped_method(self: Any, *args: Any, **kwargs: Any) -> bool:
+            def wrapped_method(self: Any, *args: Any, **kwargs: Any) -> Any:
                 # Check invariant before method execution
                 try:
                     check_invariant(self)

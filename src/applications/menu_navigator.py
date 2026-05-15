@@ -366,4 +366,4 @@ class MenuNavigator:
 
         cache_data = self._menu_cache[cache_key]
         cache_time = cache_data.get("timestamp", 0)
-        return time.time() - cache_time < self._cache_timeout
+        return bool(time.time() - cache_time < self._cache_timeout)

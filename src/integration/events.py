@@ -12,7 +12,7 @@ from dataclasses import dataclass, field, replace
 from datetime import datetime
 from enum import Enum
 from functools import reduce
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from ..core.contracts import ensure
 
@@ -297,14 +297,14 @@ def get_default_event_pipeline_cached() -> EventHandler:
     """Get the default event processing pipeline (cached version)."""
     if not hasattr(get_default_event_pipeline_cached, "_cached"):
         get_default_event_pipeline_cached._cached = get_default_event_pipeline()
-    return get_default_event_pipeline_cached._cached
+    return cast(EventHandler, get_default_event_pipeline_cached._cached)
 
 
 def get_security_focused_pipeline_cached() -> EventHandler:
     """Get the security-focused event processing pipeline (cached version)."""
     if not hasattr(get_security_focused_pipeline_cached, "_cached"):
         get_security_focused_pipeline_cached._cached = get_security_focused_pipeline()
-    return get_security_focused_pipeline_cached._cached
+    return cast(EventHandler, get_security_focused_pipeline_cached._cached)
 
 
 # Event Management Classes for test compatibility

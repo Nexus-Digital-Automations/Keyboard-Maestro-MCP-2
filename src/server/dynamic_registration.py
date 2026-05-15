@@ -7,7 +7,8 @@ server, eliminating the need for manual tool registration boilerplate.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, cast
 
 from .tool_registry import ToolMetadata, get_tool_registry
 
@@ -52,7 +53,7 @@ class DynamicToolRegistrar:
         # Store reference to prevent garbage collection
         setattr(self, f"_tool_{metadata.name}", decorated_func)
 
-    def _create_tool_wrapper(self, metadata: ToolMetadata) -> callable:
+    def _create_tool_wrapper(self, metadata: ToolMetadata) -> Callable[..., Any]:
         """Return the underlying tool function so FastMCP can introspect its real signature.
 
         A previous version wrapped every tool in a closure with ``(*args, **kwargs)``
@@ -61,7 +62,7 @@ class DynamicToolRegistrar:
         """
         try:
             module = __import__(metadata.module_name, fromlist=[metadata.name])
-            return getattr(module, metadata.name)
+            return cast(Callable[..., Any], getattr(module, metadata.name))
         except (ImportError, AttributeError) as import_error:
             error_message = str(import_error)
             logger.error(
