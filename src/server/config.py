@@ -34,7 +34,7 @@ class ToolConfig:
     tool_timeout: float = 30.0
     max_concurrent_tools: int = 10
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.enabled_tools is None:
             self.enabled_tools = []
         if self.disabled_tools is None:

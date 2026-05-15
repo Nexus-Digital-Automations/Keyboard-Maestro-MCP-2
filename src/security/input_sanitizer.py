@@ -51,7 +51,7 @@ class InputSanitizer:
         r"[/\\]\.\.[/\\]",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.strict_mode = False
 
     def sanitize_macro_identifier(self, identifier: str) -> Either[SecurityError, str]:

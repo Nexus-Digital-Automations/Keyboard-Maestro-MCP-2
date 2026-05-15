@@ -53,7 +53,7 @@ class AppIdentifier:
     bundle_id: str | None = None
     app_name: str | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Contract: At least one identifier must be provided
         if not self.bundle_id and not self.app_name:
             raise ValueError("Either bundle_id or app_name must be provided")
@@ -85,7 +85,7 @@ class MenuPath:
 
     path: list[str]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Contract: Path must not be empty
         if len(self.path) == 0:
             raise ValueError("Menu path cannot be empty")
@@ -116,7 +116,7 @@ class LaunchConfiguration:
     activate_on_launch: bool = True
     launch_arguments: list[str] = field(default_factory=list)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Validate timeout
         if self.timeout.total_seconds() <= 0:
             raise ValueError("Timeout must be positive")
@@ -177,7 +177,7 @@ class AppController:
     - Menu automation with accessibility API integration
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Application whitelist for security (empty = allow all)
         self._app_whitelist: set[str] = set()
         # Application blacklist for security

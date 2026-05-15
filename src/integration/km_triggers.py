@@ -26,7 +26,7 @@ logger = get_logger(__name__)
 class KMTriggerIntegrator:
     """Integrates advanced triggers with Keyboard Maestro."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.supported_triggers = {
             TriggerType.TIME_SCHEDULED,
             TriggerType.TIME_RECURRING,

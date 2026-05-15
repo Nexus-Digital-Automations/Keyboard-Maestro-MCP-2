@@ -33,7 +33,7 @@ class MenuNavigator:
     - Error recovery and fallback strategies
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Menu security patterns to block dangerous items
         self._dangerous_menu_patterns = [
             r"delete.*all",

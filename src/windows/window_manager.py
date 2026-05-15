@@ -26,7 +26,7 @@ class Position:
     x: int
     y: int
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Contract: Coordinates must be within reasonable bounds
         if not (-10000 <= self.x <= 10000):
             raise ValueError(f"X coordinate out of bounds: {self.x}")
@@ -59,7 +59,7 @@ class Size:
     width: int
     height: int
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Contract: Size must be positive and reasonable
         if self.width <= 0:
             raise ValueError(f"Width must be positive: {self.width}")
@@ -213,7 +213,7 @@ class WindowManager:
     - Security validation and error recovery
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Screen information cache
         self._screen_cache: list[ScreenInfo] = []
         self._cache_timeout = 30.0  # seconds

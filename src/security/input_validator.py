@@ -31,7 +31,7 @@ class ValidationResult:
     sanitized_input: str = ""
     confidence_score: float = 0.0
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.detected_threats is None:
             self.detected_threats = []
 
@@ -39,7 +39,7 @@ class ValidationResult:
 class InputValidator:
     """Comprehensive input validator for security threats."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize validator with threat patterns."""
         self.sql_patterns = [
             r"';.*--",  # SQL comment injection

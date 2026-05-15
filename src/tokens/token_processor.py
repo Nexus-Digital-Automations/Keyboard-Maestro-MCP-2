@@ -61,7 +61,7 @@ class TokenExpression:
         lambda self: self._is_safe_token_expression(self.text),
         "Token expression contains unsafe patterns",
     )
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         pass
 
     def _is_safe_token_expression(self, text: str) -> bool:
@@ -110,7 +110,7 @@ class TokenProcessingResult:
 class TokenProcessor:
     """Secure token processing with KM integration and comprehensive validation."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.system_tokens = self._initialize_system_tokens()
         self._processing_stats = {
             "total_processed": 0,

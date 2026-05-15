@@ -34,7 +34,7 @@ class KMConditionIntegrator:
     - Managing condition lifecycle in KM macros
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.km_client = KMClient()
 
     async def add_condition_to_macro(

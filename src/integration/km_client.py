@@ -2748,7 +2748,7 @@ def create_client_with_fallback(
     """Create client that falls back to secondary method on failure."""
 
     class FallbackClient(KMClient):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__(primary_config)
             self._fallback = KMClient(fallback_config)
 
@@ -2766,7 +2766,7 @@ def create_client_with_fallback(
 
 
 # Add test compatibility methods by overriding the original methods
-def _add_test_compatibility_to_kmclient():
+def _add_test_compatibility_to_kmclient() -> None:
     """Add test compatibility methods to KMClient class."""
 
     # Store original methods
@@ -2775,7 +2775,7 @@ def _add_test_compatibility_to_kmclient():
     original_create_macro = KMClient.create_macro
 
     def list_macros_simple(
-        self,
+        self: KMClient,
         group_filter: str | None = None,
     ) -> list[dict[str, Any]]:
         """Get list of macros as plain list for test compatibility."""
@@ -2785,9 +2785,9 @@ def _add_test_compatibility_to_kmclient():
         return []  # Return empty list on error for test compatibility
 
     def execute_macro_simple(
-        self,
+        self: KMClient,
         macro_id: MacroId,
-        **kwargs,
+        **kwargs: Any,
     ) -> dict[str, Any] | None:
         """Execute macro and return simple result for test compatibility."""
         result = original_execute_macro(self, macro_id, **kwargs)
@@ -2795,7 +2795,7 @@ def _add_test_compatibility_to_kmclient():
             return result.get_right()
         return None  # Return None on error for test compatibility
 
-    def create_macro_simple(self, macro_data: dict[str, Any]) -> dict[str, Any] | None:
+    def create_macro_simple(self: KMClient, macro_data: dict[str, Any]) -> dict[str, Any] | None:
         """Create macro and return simple result for test compatibility."""
         result = original_create_macro(self, macro_data)
         if result.is_right():

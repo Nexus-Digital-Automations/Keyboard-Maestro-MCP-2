@@ -87,7 +87,7 @@ class ToolConfiguration:
 class ToolConfigurationManager:
     """Manages tool configurations and policies."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.configurations: dict[str, ToolConfiguration] = {}
         self._load_default_configurations()
 

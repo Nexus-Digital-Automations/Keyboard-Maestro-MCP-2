@@ -72,7 +72,7 @@ class FilterResult:
 class SmartMacroFilter:
     """Advanced filtering and search for macro discovery."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._search_patterns = self._build_search_patterns()
         self._similarity_threshold = 0.7
 

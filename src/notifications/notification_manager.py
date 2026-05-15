@@ -93,7 +93,7 @@ class NotificationSpec:
     priority: NotificationPriority = NotificationPriority.NORMAL
     dismissible: bool = True
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate notification specification."""
         # Title validation
         if not self.title or len(self.title) > 100:

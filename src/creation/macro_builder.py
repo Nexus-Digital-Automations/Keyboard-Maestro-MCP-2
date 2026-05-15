@@ -34,7 +34,7 @@ class MacroCreationRequest:
     enabled: bool = True
     parameters: dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate creation request parameters."""
         self._validate_name()
         self._validate_parameters()

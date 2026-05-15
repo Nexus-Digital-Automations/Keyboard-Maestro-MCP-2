@@ -120,7 +120,7 @@ class HotkeySpec:
     tap_count: int = 1
     allow_repeat: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate hotkey specification."""
         self._validate_key()
         self._validate_tap_count()
