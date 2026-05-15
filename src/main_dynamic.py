@@ -43,47 +43,37 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+_USAGE_GUIDE_PATH = Path(__file__).resolve().parents[1] / "docs" / "MCP_USAGE_GUIDE.md"
+
+_INSTRUCTIONS_FALLBACK = (
+    "Keyboard Maestro MCP server.\n"
+    "Usage guide missing at docs/MCP_USAGE_GUIDE.md — call km_list_action_types "
+    "/ km_list_templates / km_list_macros to discover the surface."
+)
+
+
+def _load_usage_guide() -> str:
+    """Read the on-disk usage guide.
+
+    Falls back to a tiny default if the file is missing so the server still
+    starts; logs the miss so the deployment can repair it.
+    """
+    try:
+        return _USAGE_GUIDE_PATH.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        logger.warning("Usage guide not found at %s", _USAGE_GUIDE_PATH)
+        return _INSTRUCTIONS_FALLBACK
+
+
 def create_mcp_server() -> FastMCP:
-    """Create and configure the FastMCP server with comprehensive instructions."""
-    # Get tool configuration for dynamic capability description
-    config_manager = get_tool_config_manager()
-    category_summary = config_manager.get_category_summary()
+    """Create and configure the FastMCP server.
 
-    # Capabilities are deliberately narrow: this server drives Keyboard
-    # Maestro and nothing else. No OCR, no IoT, no analytics, no LLMs, no
-    # voice, no identity layer, no raw-input/mouse tools — use the
-    # computer-use MCP for those.
-    capabilities = [
-        "CORE:",
-        "- Macro execution and listing",
-        "- Variable get / set / list / delete (global, local, instance, password scopes)",
-        "",
-        "MACRO AUTHORING:",
-        "- Macro group CRUD",
-        "- Macro CRUD (create via .kmmacros import, rename, duplicate, enable/disable, delete, move between groups)",
-        "- Action builder (append / list / delete / clear actions)",
-        "- Condition + control-flow assembly (validation surface; XML emitters are partial — see docs/km_mcp_audit_report.md)",
-        "- Trigger CRUD (hotkey, application, system) and dedicated hotkey-trigger creation",
-        "- Plugin-action authoring",
-        "",
-        "ENGINE INFRASTRUCTURE:",
-        "- Engine reload, calculation, token processing, regex search/replace",
-        "- Token-processor statistics",
-        "",
-        "KEYBOARD MAESTRO ACTION WRAPPERS:",
-        "- Window management (move, resize, arrange, get_info, get_screens)",
-        "- Application control (launch, quit, activate, list_running, get_state)",
-        "- Notifications (notification, hud, alert, sound) with status + dismiss",
-        "",
-        f"TOOL SUMMARY: {sum(category_summary.values())} tools across {len(category_summary)} categories",
-        "",
-        "Use these tools to drive Keyboard Maestro. For raw mouse, keyboard,",
-        "or screen interaction, use the computer-use MCP instead — this server",
-        "intentionally does not duplicate that surface.",
-    ]
-
-    mcp: FastMCP = FastMCP(name="KeyboardMaestroMCP", instructions="\n".join(capabilities))
-
+    The ``instructions`` field is the full client-steering guide (see
+    docs/MCP_USAGE_GUIDE.md). Clients receive it on connection and use it
+    to pick the right tool without round-tripping through the schemas.
+    """
+    instructions = _load_usage_guide()
+    mcp: FastMCP = FastMCP(name="KeyboardMaestroMCP", instructions=instructions)
     return mcp
 
 
