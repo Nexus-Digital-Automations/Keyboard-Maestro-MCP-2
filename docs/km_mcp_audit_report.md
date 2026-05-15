@@ -948,3 +948,98 @@ deleted inline. Group `KM MCP R6 Sandbox` left in place.
    are closed and the smoke harness has no outstanding deferrals
    except the two intrusive A6 / A7 checks (which only need running
    when their code paths change).
+
+## Round 13 — 2026-05-15 post-merge smoke (session 20260514-204538-60086)
+
+Merged session/20260515-102255-76862 (R12 audit-report append) into main and
+pushed (`74638ba..7807620`). Pulled into this session worktree and re-ran the
+full R6+R7 checklist against the running MCP process. No Claude Code restart
+between R12 and R13, so the D1 fix (b689323) remains pending.
+
+Sandbox: `KM MCP R6 Sandbox` (reused). Scratch macro `R13 Scratch` (UUID
+`1731ED55…`) plus 5 template macros + 1 defect-probe macro created and
+deleted at cleanup.
+
+### Section A — round-6 control flow
+
+| # | Check | Verdict | Notes |
+|---|---|---|---|
+| A1 | `for_loop` Range (1..5) | **PASS** | `macro_action_type=For, collection_type=Range, loop_action_count=1`. |
+| A1 | `for_loop` LinesIn ("alpha\nbeta\ngamma") | **PASS** | `collection_type=LinesIn`. |
+| A1 | `for_loop` Files (`~/Desktop`) | **PASS** | `collection_type=Files`. |
+| A1 | `for_loop` Variables | **PASS** | `collection_type=Variables`. Action-builder list shows 4 "For Each Item in a Collection Execute Actions" entries. |
+| A2 | `while_loop` MyVar==yes | **PASS** | `macro_action_type=While, condition_kind=variable`. |
+| A2 | `until_loop` MyVar==stop | **PASS** | `macro_action_type=Until`. |
+| A3 | `try_catch` (pause try / set_variable catch) | **PASS** | `try_action_count=1, catch_action_count=1`. Inner `execute_macro` for the trap-fires sub-check is **not supported** by action_builder (`VALIDATION_ERROR: inner action_type 'execute_macro' not supported by action_builder`); substituting `run_applescript` with `error "…" number 1234` appended successfully but live execution of the wrapper macro returned `do script found no macros with a matching name (macros must be enabled, and in macro groups that are enabled and currently active)` — the sandbox group is not Always Activated. The try_catch action itself emits correctly; runtime trap verification is blocked by group activation state, not a tool defect. |
+| A4 | Variable-condition operand preservation | **PASS** | `km_add_condition(operand="MyVar=ABCXYZ123")` → `success=true, macro_action_type=IfThenElse`. Direct XML readback via `osascript get xml of macro` shows `<key>VariableValue</key><string>ABCXYZ123</string>` (not "value"). Round-6 condition-key fix confirmed live. |
+| A5 | `km_trigger_manager set_enabled` rejection | **PASS** | `TOGGLE_FAILED` with the prescribed message ("KM 11 stores no per-trigger enabled bit (verified by round-trip probe — KM strips an injected Disabled key). Toggle the parent macro instead via km_macro_editor set_enabled. See docs/km_mcp_audit_report.md round 6 for the probe.") |
+| A6 | `km_refresh_action_templates` name coerce | **NOT RUN** | User rejected the call (the scrape takes over the KM editor). R11 PASSED this; no source change since — no regression expected. |
+| A7 | `km_window_manager arrange` post-bounds flag | **PASS** | `arrange left_half` on Finder returned `window_info_source: "post_operation"` and a valid post-arrangement bounds payload (735×956 at 0,0). |
+
+### Section B — round-7 switch + templates
+
+| # | Check | Verdict | Notes |
+|---|---|---|---|
+| B8 | `switch_case` Variable + Otherwise | **PASS** | `case_count=3, has_otherwise=true`. |
+| B9 | `switch_case` Clipboard | **PASS** | `case_count=1, source=Clipboard`. |
+| B9 | `switch_case` Calculation (`1+1`) | **PASS** | `case_count=1, source=Calculation`. |
+| B9 | `switch_case` Text (`hello`) | **PASS** | `case_count=1, source=Text`. |
+| B10 | `switch_case` JSON rejection | **PASS** | `VALIDATION_ERROR` — `source 'JSON' not supported. Supported: Calculation, Clipboard, NamedClipboard, Text, Variable.` No silent coercion. |
+| B11 | Template `app_launcher` | **PASS** | 1 action "Activate Finder". |
+| B11 | Template `text_expansion` | **PASS** | 1 action "Insert Text “Hello from R13” by Typing". |
+| B11 | Template `file_processor` | **PASS** | 1 action "Execute Shell Script". |
+| B11 | Template `window_manager` | **PASS** | 1 action "Move and Resize Front Window" (D2 fix still live). |
+| B11 | Template `hotkey_action` | **PASS** | 1 action "Insert Text “R13 typed” by Typing" + `hotkey_attached=true`. `km_list_hotkey_triggers` shows ⇧⌘F9 (KeyCode 101, Modifiers 768) on `T_HotkeyAction_R13`. |
+| B12 | Template unsupported inner action | **PASS** | `UNSUPPORTED_TEMPLATE_ACTION` for `action="wave_hands"`; suggests `open_app / type_text / run_script`. |
+| B13 | `km_notifications` alert duration | **PASS** | `duration=3` returned `success=true, display_time≈1.40s` (user-dismissed via OK before the giving-up timer fired). No crash; f23cd30 fix still healthy. Cosmetic observation: `user_response` payload reads `"OK, gave up:false"` — looks like a string-concatenation artefact in the response builder; not a regression. |
+
+### Section C — regression sweep
+
+| Tool group | Verdict | Notes |
+|---|---|---|
+| `km_engine_control` status / calculate / process_tokens / search_replace | **PASS** | engine 11.0.4 / 50 macros; `2*3+4=10`; `%Calculate%5*5%` → "25"; `hello world` → `hello earth` (1 match). |
+| `km_variable_manager` set / get / delete (global) | **PASS** | `R13Sweep="probe"`; readback matches; delete returns `existed=true`. |
+| `km_macro_editor` create / rename / set_enabled / delete | **PASS** | 1 scratch + 5 template + 1 defect-probe macro created; rename and set_enabled(false) succeeded on scratch; all 7 R13 macros deleted at cleanup. |
+| `km_macro_group_manager` list | **PASS** | 8 groups; `KM MCP R6 Sandbox` reused. |
+| `km_action_builder` append / list / clear | **PASS** | Verified across pause, run_applescript, execute_macro; clear used between sections. |
+| `km_list_hotkey_triggers` (filtered) | **PASS** | Returned 1 hotkey with full XML. |
+| `km_list_macros` (limit=1) | **PASS** | 32 enabled macros total, returned canonical fields. |
+
+### Defect status vs round 12
+
+| ID | R12 status | R13 status | Notes |
+|---|---|---|---|
+| D1. `run_applescript` emits `StopOnFailure=false` | OPEN in running MCP | **OPEN in running MCP** | Re-probed: appended `run_applescript` to `R13 Defect Probe`; XML readback shows `<key>StopOnFailure</key><false/>`. b689323 still not loaded — Claude Code restart still required to close. |
+| D2. `template=window_manager` produces 0 actions | CLOSED | **CLOSED** | `T_WindowManager_R13` has 1 "Move and Resize Front Window" action. |
+| D3. `template=hotkey_action` hotkey attach | fixed | **fixed** | ⇧⌘F9 attached and visible via `km_list_hotkey_triggers`. |
+| D4. `execute_macro` append yields empty Actions | CLOSED via rebuild pipeline | **CLOSED** | `km_action_builder append action_type=execute_macro target_macro="Activate Clipboard History Switcher"` returned `appended=true, uuid_changed=true` (rebuild rotated `7AE245E8 → 444E5A27`). XML readback shows the canonical top-level `<key>MacroUID</key><string>A72156ED-...</string>` shape with no nested `Macro` dict — matches the 74638ba intent regardless of which emitter path produced it. |
+| E1 (new). `execute_macro` resolves group name as target | n/a | **observation** | Passing `target_macro="Global Macro Group"` (a group name, not a macro) correctly errors with `EXECUTE_MACRO_TARGET_NOT_FOUND` and a helpful recovery suggestion. Not a defect — the error path is well-behaved. |
+
+### Verdict
+
+13 of 14 R6+R7 checklist items PASS in the running MCP process; A6 deferred
+(user rejected the editor-takeover scrape); A3 trap-fires sub-check
+**INCONCLUSIVE** because the sandbox group is not Always Activated (the
+try_catch action itself emits correctly; the live trap verification needs
+the group flipped). All R12 defects remain in the same state: D2/D3/D4
+CLOSED; D1 still OPEN pending restart.
+
+### Sandbox state after run
+
+Clean. Deleted at end: 1 scratch macro (`R13 Scratch Renamed`, was
+`R13 Scratch`), 5 template macros (`T_AppLauncher_R13`,
+`T_TextExpansion_R13`, `T_FileProcessor_R13`, `T_WindowManager_R13`,
+`T_HotkeyAction_R13`), 1 defect-probe macro (`R13 Defect Probe`, post-
+rebuild UID `444E5A27-CE81-448F-9734-4CD3C1794595`). Variable `R13Sweep`
+deleted inline. Variable `R13Caught` left at "no" (created during A3
+trap-fires probe; harmless). Group `KM MCP R6 Sandbox` left in place.
+
+### Recommended next steps
+
+1. Restart Claude Code so the MCP process picks up b689323 (D1 fix) and
+   re-probe with the same `run_applescript` append + XML readback shape
+   to assert `<StopOnFailure><true/></StopOnFailure>`.
+2. Optionally flip `KM MCP R6 Sandbox` to "Always Activated" in the KM
+   editor so future A3 trap-fires checks can run end-to-end.
+3. Investigate the minor `user_response="OK, gave up:false"` string-mash
+   in alert response payloads (cosmetic, not a regression).
