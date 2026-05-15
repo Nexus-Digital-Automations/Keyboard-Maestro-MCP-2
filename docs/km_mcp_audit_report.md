@@ -706,3 +706,139 @@ All headline round-6 and round-7 fixes (variable-condition value preservation, s
 ### Sandbox state after run
 
 Clean. Deleted at end: 7 R10_* macros (`R10_Scratch_Smoke`, `R10_Cond_Probe`, `T_AppLauncher`, `T_TextExpansion`, `T_FileProcessor`, `T_WindowManager`, `T_HotkeyAction`). No variables left behind (`R10ProbeVar` deleted inline). Group `KM MCP R6 Sandbox` left in place per checklist.
+
+## Round 11 — 2026-05-15 smoke + D4 root-cause fix (session 20260514-204538-60086)
+
+Live MCP server runs from `~/Desktop/Claude Coding Projects/Keyboard-Maestro-MCP-2`
+(main). Git on disk is at `b689323` (D1 fix). The running Python process,
+however, was started earlier — it has `c4591a8` (R9 D2/A6 fix) loaded but
+NOT `b689323`, so D1's run_applescript emitter still shows the pre-fix XML.
+
+Sandbox group: `KM MCP R6 Sandbox` (reused). All R11 macros deleted at cleanup.
+
+### Section A — round-6 control flow
+
+| # | Check | Verdict | Notes |
+|---|---|---|---|
+| A1 | `for_loop` Range (1..5) | **PASS** | `macro_action_type=For, collection_type=Range`. Action lists "For Each Item in a Collection Execute Actions". |
+| A1 | `for_loop` LinesIn (multi-line text) | **PASS** | `collection_type=LinesIn`; 1 inner pause. |
+| A2 | `while_loop` MyVar==yes | **PASS** | `macro_action_type=While, condition_kind=variable`. |
+| A2 | `until_loop` MyVar==done | **PASS** | `macro_action_type=Until`. |
+| A3 | `try_catch` | **PASS** | `try_action_count=1, catch_action_count=1`. |
+| A4 | Variable-condition operand preservation | **PASS** | `km_add_condition(operand="MyVar=ABCXYZ123")` round-trips to KM with `<key>VariableValue</key><string>ABCXYZ123</string>` (verified via `osascript get xml`). Also confirmed for while/until conditions ("yes" / "done"). The R6 fix remains live. |
+| A5 | `km_trigger_manager set_enabled` rejection | **PASS** | `TOGGLE_FAILED` with message "KM 11 stores no per-trigger enabled bit (verified by round-trip probe — KM strips an injected Disabled key). Toggle the parent macro instead via km_macro_editor set_enabled." Exactly the prescribed verdict from R6. |
+| A6 | `km_refresh_action_templates` name coerce | **PASS** | Accepted `macro_id="R11_Scratch"` (a name), response includes `resolved_macro_id`. Walked the full menu and reported `captured_before=144, captured_after=145, added=["ExecuteWorkflow"]`. **D-fix confirmed live**. |
+| A7 | `km_window_manager arrange` post-bounds flag | **PASS** | Arranged Finder `left_half`; response includes `window_info_source="post_operation"` with fresh bounds. |
+
+### Section B — round-7 switch + templates
+
+| # | Check | Verdict | Notes |
+|---|---|---|---|
+| B8 | `switch_case` Variable + Otherwise | **PASS** | `case_count=3, has_otherwise=true`. |
+| B9 | `switch_case` Clipboard | **PASS** | `case_count=1`. |
+| B9 | `switch_case` Calculation (`1+1`) | **PASS** | `case_count=1`. |
+| B9 | `switch_case` Text (`%CurrentUser%`) | **PASS** | `case_count=1`. |
+| B10 | `switch_case` JSON rejection | **PASS** | `VALIDATION_ERROR` — `source 'JSON' not supported. Supported: Calculation, Clipboard, NamedClipboard, Text, Variable.` |
+| B11 | Template `app_launcher` | **PASS** | 1 action "Activate Finder". |
+| B11 | Template `text_expansion` | **PASS** | 1 action 'Insert Text "Hello, World!" by Typing'. |
+| B11 | Template `file_processor` | **PASS** | 1 action "Execute Shell Script". |
+| B11 | Template `window_manager` | **PASS** | 1 action "Move and Resize Front Window". **D2 confirmed live** — the c4591a8 fix is loaded in the running MCP process now (previously open in R10). |
+| B11 | Template `hotkey_action` | **PASS** | 1 action 'Insert Text "R11Probe" by Typing' + `hotkey_attached=true`. `km_list_hotkey_triggers` shows the new trigger as "The Hot Key ⌥⌘F10 is pressed" on macro `R11_T_HotkeyAction`. |
+| B12 | Template unsupported inner action | **PASS** | `UNSUPPORTED_TEMPLATE_ACTION` for `action="wave_hands"`, recommends the three supported actions. |
+| B13 | `km_notifications` alert duration | **PASS** | `duration=2` returned `success=true`, `display_time≈2.26s` (auto-dismissed by `giving up after`). f23cd30 fix still live. |
+
+### Section C — regression sweep
+
+| Tool group | Verdict | Notes |
+|---|---|---|
+| `km_engine_control` status / calculate | **PASS** | engine 11.0.4 / 44 macros; `3*7+2=23`. |
+| `km_variable_manager` set / get / delete (global) | **PASS** | Set+readback+delete clean on `R11ProbeVar`. |
+| `km_macro_editor` delete | **PASS** | 11 R11_* macros deleted at cleanup. |
+| `km_macro_group_manager` list | **PASS** | Reused existing `KM MCP R6 Sandbox`. |
+| `km_action_builder` append/list/clear | **PASS** | Append (control-flow + condition) and list verified; clear used at section A start. |
+| `km_list_hotkey_triggers` | **PASS** | 14 hotkeys returned including newly-created `R11_T_HotkeyAction ⌥⌘F10`. |
+| `km_list_macros`, `km_list_action_types`, `km_list_templates`, `km_search_actions`, `km_token_processor`, `km_application_control` | **PASS** | All return well-formed payloads. |
+
+### Defect status vs round 10
+
+| ID | R10 status | R11 status | Notes |
+|---|---|---|---|
+| D1. `run_applescript` `StopOnFailure=false` + spurious `IncludedVariables` | partially fixed (source) | **fixed in source, NOT loaded in running MCP** | `osascript` readback on a fresh `run_applescript` action shows `StopOnFailure=false` — b689323 is on disk at the live location but the running Python process predates the commit. Restart Claude Code to load it. |
+| D2. `template=window_manager` produces 0 actions | open (in running process) | **CLOSED** | Live test: `R11_T_WindowManager` produced 1 "Move and Resize Front Window" action. |
+| D3. `template=hotkey_action` doesn't attach hotkey | fixed | **fixed** | Confirmed via `km_list_hotkey_triggers`. |
+| D4. `km_action_builder.append action_type=execute_macro` emits invalid XML | open | **fixed at source — needs MCP restart** | **Root cause identified and fixed this round.** The emitter was wrapping the target as `<key>Macro</key><dict>MacroName,MacroUID</dict>`. KM 11.0.4 silently drops that shape on import; canonical shape (confirmed via paste-and-readback probe of two side-by-side action dicts) is a bare top-level `<key>MacroUID</key><string>…</string>` with sibling `Asynchronously`, `TimeOutAbortsMacro`, `UseParameter`. Fix applied to `src/server/tools/action_builder_tools.py` in both this session worktree AND the live MCP source (`~/Desktop/Claude Coding Projects/Keyboard-Maestro-MCP-2`). Requires Claude Code restart to take effect. |
+| A6. `km_refresh_action_templates` name coerce | absent in running process | **CLOSED** | `resolved_macro_id` returned for a name input. |
+
+### D4 root-cause analysis
+
+The pre-fix emitter (lines 138–159 of `action_builder_tools.py`) produced:
+
+```xml
+<dict>
+  <key>Macro</key>
+  <dict>
+    <key>MacroName</key><string>R11_WindowMgr</string>
+    <key>MacroUID</key><string>BC91…</string>
+  </dict>
+  <key>MacroActionType</key><string>ExecuteMacro</string>
+  <key>TargetingType</key><string>Specific</string>
+</dict>
+```
+
+Side-by-side probe via `.kmmacros` import (two macros in one document, one with each shape):
+
+- Shape A (canonical, captured in `km_action_templates.json`): top-level
+  `MacroUID` string with `Asynchronously / MacroActionType / TimeOutAbortsMacro
+  / UseParameter`. **KM keeps the action.**
+- Shape B (the broken emitter): `Macro` nested dict + `TargetingType`.
+  **KM silently strips the action; `Actions=<array/>` on readback.**
+
+The `_append_execute_macro_via_rebuild` pipeline never sees the failure
+because KM accepts the macro document, just discards the unknown-shape
+action dict on import. From the caller's perspective the response was
+`success=true, appended=true, uuid_changed=true` — but `km_action_builder
+list` afterwards showed zero actions, which is exactly the symptom R9 / R10
+recorded.
+
+Patched emitter:
+
+```xml
+<dict>
+  <key>Asynchronously</key><false/>
+  <key>MacroActionType</key><string>ExecuteMacro</string>
+  <key>MacroUID</key><string>BC91…</string>
+  <key>TimeOutAbortsMacro</key><true/>
+  <key>UseParameter</key><false/>
+</dict>
+```
+
+The `_resolve_execute_macro_target` step is retained for input validation
+(rejects unknown target names early) — only the UID makes it into the plist.
+
+### Verdict
+
+All 14 numbered checklist items **PASS** in the running MCP process.
+Two source-only fixes pending restart:
+
+1. **D4** — execute_macro append emits the wrong action dict. Fixed at
+   source this round (both worktree and live location). Requires Claude
+   Code restart to verify end-to-end.
+2. **D1 (remaining half)** — run_applescript still emits
+   `StopOnFailure=false` in the running process. b689323 is on disk at the
+   live location; same restart picks it up.
+
+### Sandbox state after run
+
+Clean. Deleted at end: 11 R11_* macros (`R11_Scratch`, `R11_WindowMgr`,
+`R11_D4_Probe`, `R11_D4_Probe2`, `R11_ProbeA_…`, `R11_ProbeB_…`,
+`R11_T_AppLauncher`, `R11_T_TextExpansion`, `R11_T_FileProcessor`,
+`R11_T_WindowManager`, `R11_T_HotkeyAction`). Variable `R11ProbeVar` deleted
+inline. Group `KM MCP R6 Sandbox` left in place per checklist.
+
+### Recommended next steps
+
+1. Restart Claude Code so the MCP process picks up b689323 (D1 fix) **and**
+   the round-11 D4 emitter fix that was just written to the live source.
+2. Re-run R11 sections targeting only D1 (append run_applescript + readback
+   XML for StopOnFailure=true) and D4 (append execute_macro + readback
+   actions ≥ 1) to confirm both close.

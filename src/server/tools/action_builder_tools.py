@@ -136,25 +136,24 @@ def _build_action_xml(action_type: str, config: dict[str, Any]) -> str | None:
             "</dict>"
         )
     if action_type == "execute_macro":
-        # KM's ExecuteMacro action stores Macro as a *nested dict* of
-        # MacroName + MacroUID, not a bare <string>. A string here is a
-        # plist type mismatch and KM silently substitutes the action with
-        # Log "Invalid XML From AppleScript". The caller (_do_append) must
-        # resolve target_macro → (name, uid) and inject both before
-        # calling this emitter.
+        # KM 11's ExecuteMacro stores the target as a bare top-level
+        # MacroUID string — verified by inject-and-read-back probe against
+        # KM 11.0.4 (canonical shape captured in km_action_templates.json).
+        # Earlier shapes (Macro=<dict>MacroName,MacroUID</dict>, bare
+        # Macro=<string>) are silently dropped on import — the resulting
+        # macro shows Actions=<array/> with no warning. The caller
+        # (_do_append) resolves target_macro → (name, uid); only uid is
+        # written into the plist.
         uid = config.get("target_macro_uid")
-        name = config.get("target_macro_name") or config.get("target_macro")
-        if not uid or not name:
+        if not uid:
             return None
         return (
             "<dict>"
-            "<key>Macro</key>"
-            "<dict>"
-            f"<key>MacroName</key><string>{_xml_escape(str(name))}</string>"
-            f"<key>MacroUID</key><string>{_xml_escape(str(uid))}</string>"
-            "</dict>"
+            "<key>Asynchronously</key><false/>"
             "<key>MacroActionType</key><string>ExecuteMacro</string>"
-            "<key>TargetingType</key><string>Specific</string>"
+            f"<key>MacroUID</key><string>{_xml_escape(str(uid))}</string>"
+            "<key>TimeOutAbortsMacro</key><true/>"
+            "<key>UseParameter</key><false/>"
             "</dict>"
         )
     if action_type == "activate_application":
