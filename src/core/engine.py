@@ -661,7 +661,8 @@ def get_engine_metrics() -> EngineMetrics:
 
 def create_test_macro(name: str, command_types: list[CommandType]) -> MacroDefinition:
     """Create a test macro with specified command types."""
-    commands = []
+    # PlaceholderCommand implements MacroCommand structurally.
+    commands: list[MacroCommand] = []
     for i, cmd_type in enumerate(command_types):
         # Create basic parameters for each command type
         if cmd_type == CommandType.TEXT_INPUT:

@@ -136,8 +136,11 @@ class KMFileMonitor:
                 logger.info(
                     f"File monitoring stopped (processed {self._change_count} changes)",
                 )
+                return True
             except Exception as e:
                 logger.exception(f"Error stopping file monitor: {e}")
+                return False
+        return True
 
     def get_status(self) -> dict:
         """Get monitoring status."""
@@ -282,7 +285,7 @@ if WATCHDOG_AVAILABLE:
 
 else:
     # Fallback implementation when watchdog is not available
-    class KMFileEventHandler:
+    class KMFileEventHandler:  # type: ignore[no-redef]
         def __init__(self, callback: Callable[..., Any]):
             self.callback = callback
             logger.warning("KMFileEventHandler created without watchdog support")

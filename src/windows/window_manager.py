@@ -473,6 +473,12 @@ class WindowManager:
 
             if resize_result.is_right():
                 window_info = resize_result.get_right().window_info
+                if window_info is None:
+                    return Either.left(
+                        KMError.execution_error(
+                            "Resize succeeded but returned no window info",
+                        ),
+                    )
                 return Either.right(
                     WindowOperationResult.success_result(
                         window_info,
@@ -480,7 +486,7 @@ class WindowManager:
                         f"Applied {arrangement.value} arrangement",
                     ),
                 )
-            return resize_result
+            return Either.left(resize_result.get_left())
 
         except Exception as e:
             operation_time = Duration.from_seconds(time.time() - start_time)

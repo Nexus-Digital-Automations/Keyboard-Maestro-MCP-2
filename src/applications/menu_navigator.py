@@ -350,13 +350,19 @@ class MenuNavigator:
             )
 
     def clear_menu_cache(self, app_id: AppIdentifier | None = None) -> bool:
-        """Clear menu structure cache."""
+        """Clear menu structure cache.
+
+        Returns True if anything was cleared.
+        """
         if app_id:
             cache_key = app_id.primary_identifier()
             if cache_key in self._menu_cache:
                 del self._menu_cache[cache_key]
-        else:
-            self._menu_cache.clear()
+                return True
+            return False
+        had_entries = bool(self._menu_cache)
+        self._menu_cache.clear()
+        return had_entries
 
     def _is_menu_cache_valid(self, app_id: AppIdentifier) -> bool:
         """Check if menu cache is still valid."""

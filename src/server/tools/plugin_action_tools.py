@@ -391,7 +391,7 @@ async def km_create_plugin_action(
         str,
         Field(description="'error' (default) refuses overwrite; 'replace' rmtrees first."),
     ] = "error",
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Emit a Keyboard Maestro third-party plug-in action bundle to disk.
 

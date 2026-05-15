@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Annotated, Any
 
 from fastmcp import FastMCP
-from fastmcp.prompts import Message
+from mcp.types import PromptMessage
 from pydantic import Field
 
 from .server.dynamic_registration import (
@@ -115,7 +115,7 @@ def register_resources_and_prompts(mcp: FastMCP) -> None:
                 description="Specific application or context for the automation",
             ),
         ] = "",
-    ) -> list[Message]:
+    ) -> list[PromptMessage]:
         """Generate a structured prompt for creating Keyboard Maestro macros."""
         return create_macro_prompt(task_description, app_context)
 
@@ -235,6 +235,7 @@ def main() -> int:
     except Exception as e:
         logger.error(f"❌ Server error: {e}")
         return 1
+    return 0
 
 
 if __name__ == "__main__":

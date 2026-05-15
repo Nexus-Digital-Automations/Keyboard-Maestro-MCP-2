@@ -649,10 +649,15 @@ class AppController:
             return AppState.UNKNOWN
 
     def _invalidate_state_cache(self, app_id: AppIdentifier) -> bool:
-        """Invalidate cached state for application."""
+        """Invalidate cached state for application.
+
+        Returns True if an entry was removed.
+        """
         cache_key = app_id.primary_identifier()
         if cache_key in self._state_cache:
             del self._state_cache[cache_key]
+            return True
+        return False
 
     def _is_force_quit_allowed(self, app_id: AppIdentifier) -> bool:
         """Check if force quit is allowed for application."""

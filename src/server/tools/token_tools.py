@@ -58,7 +58,7 @@ async def km_token_processor(
             pattern=r"^(minimal|standard|strict)$",
         ),
     ] = "standard",
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Process Keyboard Maestro tokens with comprehensive security and context support.
 
@@ -288,7 +288,7 @@ async def km_token_processor(
         }
 
 
-async def km_token_stats(ctx: Context = None) -> dict[str, Any]:
+async def km_token_stats(ctx: Context | None = None) -> dict[str, Any]:
     """Get token processing statistics and system status.
 
     Returns:

@@ -78,7 +78,7 @@ async def km_refresh_action_templates(
             le=500,
         ),
     ] = 0,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Refresh km_action_templates.json by driving KM's editor menu.
 

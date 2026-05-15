@@ -262,7 +262,13 @@ class NotificationManager:
             result = await self.km_client.execute_applescript_async(applescript)
 
             if result.is_left():
-                return Either.left(result.get_left())
+                km_err = result.get_left()
+                return Either.left(
+                    MacroEngineError(
+                        message=km_err.message,
+                        category=ErrorCategory.EXECUTION,
+                    ),
+                )
 
             display_time = time.time() - start_time
 

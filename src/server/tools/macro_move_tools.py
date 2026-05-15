@@ -51,7 +51,7 @@ async def km_move_macro_to_group(
         int,
         Field(default=30, ge=5, le=120, description="Operation timeout in seconds"),
     ] = 30,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Move a macro from its current group to ``target_group``.
 

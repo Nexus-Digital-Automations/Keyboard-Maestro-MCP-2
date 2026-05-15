@@ -12,9 +12,12 @@ import logging
 import pkgutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Annotated, Any, get_args, get_type_hints
+from typing import TYPE_CHECKING, Annotated, Any, get_args, get_type_hints
 
-from pydantic import Field
+from pydantic.fields import FieldInfo
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +30,7 @@ class ToolParameter:
     annotation: type[Any]
     default: Any = None
     description: str = ""
-    field_info: Field | None = None
+    field_info: FieldInfo | None = None
     is_optional: bool = False
 
 
@@ -36,7 +39,7 @@ class ToolMetadata:
     """Comprehensive metadata for a discovered tool."""
 
     name: str
-    function: callable
+    function: Callable[..., Any]
     module_name: str
     docstring: str
     parameters: list[ToolParameter] = field(default_factory=list)
@@ -57,6 +60,9 @@ class ToolDiscovery:
         try:
             # Import the tools package
             tools_module = importlib.import_module(self.tools_package)
+            if tools_module.__file__ is None:
+                msg = f"Cannot resolve tools package path: {self.tools_package}"
+                raise RuntimeError(msg)
             tools_path = Path(tools_module.__file__).parent
 
             logger.info(f"Discovering tools in: {tools_path}")
@@ -103,7 +109,7 @@ class ToolDiscovery:
     def _extract_tool_metadata(
         self,
         name: str,
-        func: callable,
+        func: Callable[..., Any],
         module_name: str,
     ) -> ToolMetadata | None:
         """Extract comprehensive metadata from a tool function."""
@@ -167,7 +173,9 @@ class ToolDiscovery:
                     # Look for Field information in annotations
                     for arg in args[1:]:
                         try:
-                            if isinstance(arg, Field):
+                            # Field() returns FieldInfo; isinstance against the
+                            # class directly.
+                            if isinstance(arg, FieldInfo):
                                 field_info = arg
                                 description = getattr(arg, "description", "") or ""
                                 break

@@ -10,7 +10,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, NewType, Protocol, TypeVar
+from typing import Any, ClassVar, NewType, Protocol, TypeVar
 
 # Branded Types for Type Safety
 MacroId = NewType("MacroId", str)
@@ -197,8 +197,8 @@ class Duration:
             return self.seconds == other.seconds
         return False
 
-    # Class constants
-    ZERO = None  # Will be set after class definition
+    # Class constants — patched below after class definition.
+    ZERO: ClassVar[Duration]
 
 
 @dataclass(frozen=True)

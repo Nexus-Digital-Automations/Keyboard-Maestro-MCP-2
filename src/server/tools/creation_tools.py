@@ -92,7 +92,7 @@ async def km_create_macro(
         dict[str, Any] | None,
         Field(description="Template-specific parameters"),
     ] = None,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Create a new Keyboard Maestro macro with comprehensive validation and security.
 
@@ -448,7 +448,7 @@ _TEMPLATE_TRANSLATORS = {
 }
 
 
-async def km_list_templates(ctx: Context = None) -> dict[str, Any]:
+async def km_list_templates(ctx: Context | None = None) -> dict[str, Any]:
     """List available macro templates with descriptions and parameter requirements.
 
     Provides comprehensive information about each template including:

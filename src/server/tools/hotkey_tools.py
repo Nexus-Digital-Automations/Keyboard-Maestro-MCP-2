@@ -182,7 +182,7 @@ async def km_create_hotkey_trigger(
                     for c in conflicts
                 ]
 
-                response = {
+                response: dict[str, Any] = {
                     "success": False,
                     "error": {
                         "code": "CONFLICT_ERROR",

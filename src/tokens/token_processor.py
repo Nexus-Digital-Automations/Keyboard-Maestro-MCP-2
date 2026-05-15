@@ -210,7 +210,7 @@ class TokenProcessor:
                 ),
             )
 
-    def _initialize_system_tokens(self) -> dict[str, Callable[[], str]]:
+    def _initialize_system_tokens(self) -> dict[str, Callable[[], str | None]]:
         """Initialize system token resolvers with security boundaries."""
         return {
             "CurrentUser": self._get_current_user,
@@ -550,7 +550,12 @@ class TokenProcessor:
             if token_pattern in processed:
                 try:
                     value = resolver()
-                    processed = processed.replace(token_pattern, value)
+                    if value is not None:
+                        processed = processed.replace(token_pattern, value)
+                    else:
+                        processed = processed.replace(
+                            token_pattern, f"[{token_name} Unavailable]",
+                        )
                 except Exception:
                     processed = processed.replace(
                         token_pattern, f"[{token_name} Error]"

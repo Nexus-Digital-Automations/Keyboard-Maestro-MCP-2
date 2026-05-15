@@ -5,7 +5,7 @@ and other security threats with detailed threat analysis.
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -27,13 +27,9 @@ class ValidationResult:
 
     is_safe: bool
     threat_description: str = ""
-    detected_threats: list[ThreatType] = None
+    detected_threats: list[ThreatType] = field(default_factory=list)
     sanitized_input: str = ""
     confidence_score: float = 0.0
-
-    def __post_init__(self) -> None:
-        if self.detected_threats is None:
-            self.detected_threats = []  # type: ignore[unreachable]  # runtime guard for callers passing None
 
 
 class InputValidator:

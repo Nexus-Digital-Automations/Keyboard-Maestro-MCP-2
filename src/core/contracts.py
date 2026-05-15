@@ -127,8 +127,11 @@ def require(
             # Execute the original sync function
             return func(*args, **kwargs)
 
-        # Return appropriate wrapper based on function type
-        wrapper = async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+        # Return appropriate wrapper based on function type — typed Any so we
+        # can stash contract metadata via attribute assignment.
+        wrapper: Any = (
+            async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+        )
 
         # Add contract metadata
         wrapper.__contracts__ = getattr(func, "__contracts__", {})
@@ -216,8 +219,11 @@ def ensure(
 
             return result
 
-        # Return appropriate wrapper based on function type
-        wrapper = async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+        # Return appropriate wrapper based on function type — typed Any so we
+        # can stash contract metadata via attribute assignment.
+        wrapper: Any = (
+            async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+        )
 
         # Add contract metadata
         wrapper.__contracts__ = getattr(func, "__contracts__", {})
@@ -253,16 +259,16 @@ def invariant(
 
     def class_decorator(cls: type) -> type:
         # Store original methods
-        original_init = cls.__init__
-        original_methods = {}
+        original_init: Callable[..., Any] = cls.__init__  # type: ignore[misc]
+        original_methods: dict[str, Callable[..., Any]] = {}
 
         # Collect all public methods
         for name in dir(cls):
             if not name.startswith("_") and callable(getattr(cls, name)):
                 original_methods[name] = getattr(cls, name)
 
-        def check_invariant(instance: Any) -> bool:
-            """Check the class invariant."""
+        def check_invariant(instance: Any) -> None:
+            """Check the class invariant; raises on violation."""
             if not condition(instance):
                 context = create_error_context(
                     operation="invariant_check",
@@ -283,34 +289,38 @@ def invariant(
             check_invariant(self)
 
         # Wrap public methods to check invariant before and after
-        def wrap_method(method_name: str, method: Callable[..., Any] | str) -> Callable[..., Any]:
+        def wrap_method(
+            method_name: str,
+            method: Callable[..., Any],
+        ) -> Callable[..., Any]:
             @wraps(method)
             def wrapped_method(self: Any, *args: Any, **kwargs: Any) -> Any:
-                # Check invariant before method execution
                 try:
                     check_invariant(self)
                 except ContractViolationError as e:
-                    # Add method context for debugging
-                    e.context = f"Before {method_name}: {e.context}"
-                    raise
+                    raise ContractViolationError(
+                        contract_type=e.contract_type,
+                        condition=f"Before {method_name}: {e.condition}",
+                        context=e.context,
+                    ) from e
 
-                # Execute method
                 result = method(self, *args, **kwargs)
 
-                # Check invariant after method execution
                 try:
                     check_invariant(self)
                 except ContractViolationError as e:
-                    # Add method context for debugging
-                    e.context = f"After {method_name}: {e.context}"
-                    raise
+                    raise ContractViolationError(
+                        contract_type=e.contract_type,
+                        condition=f"After {method_name}: {e.condition}",
+                        context=e.context,
+                    ) from e
 
                 return result
 
             return wrapped_method
 
         # Apply wrapping
-        cls.__init__ = wrapped_init
+        cls.__init__ = wrapped_init  # type: ignore[misc]
         for name, method in original_methods.items():
             setattr(cls, name, wrap_method(name, method))
 
@@ -388,7 +398,7 @@ def get_contract_info(func_or_class: Any) -> dict[str, Any]:
     """
     contracts = getattr(func_or_class, "__contracts__", {})
 
-    info = {
+    info: dict[str, Any] = {
         "has_contracts": bool(contracts),
         "preconditions": len(contracts.get("preconditions", [])),
         "postconditions": len(contracts.get("postconditions", [])),

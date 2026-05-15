@@ -102,7 +102,7 @@ async def km_notifications(
         bool,
         Field(description="Whether notification can be dismissed by user"),
     ] = True,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Display user notifications with comprehensive formatting and interaction support.
 
@@ -185,6 +185,7 @@ async def km_notifications(
                     correlation_id,
                     "INVALID_TYPE",
                     f"Invalid notification type: {notification_type}",
+                    "",
                     "Supported types: notification, alert, hud, sound",
                     (datetime.now() - start_time).total_seconds(),
                 )
@@ -197,6 +198,7 @@ async def km_notifications(
                     correlation_id,
                     "INVALID_PRIORITY",
                     f"Invalid priority: {priority}",
+                    "",
                     "Supported priorities: low, normal, high, urgent",
                     (datetime.now() - start_time).total_seconds(),
                 )
@@ -209,6 +211,7 @@ async def km_notifications(
                     correlation_id,
                     "INVALID_POSITION",
                     f"Invalid HUD position: {position}",
+                    "",
                     "Supported positions: center, top, bottom, left, right, top_left, top_right, bottom_left, bottom_right",
                     (datetime.now() - start_time).total_seconds(),
                 )
@@ -399,7 +402,7 @@ async def km_notification_status(
             description="Notification ID to check status for (optional)",
         ),
     ] = None,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Get status of active notifications with detailed information.
 
@@ -512,7 +515,7 @@ async def km_dismiss_notifications(
             description="Specific notification ID to dismiss (optional - dismisses all if not provided)",
         ),
     ] = None,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Dismiss active notifications with optional ID filtering.
 

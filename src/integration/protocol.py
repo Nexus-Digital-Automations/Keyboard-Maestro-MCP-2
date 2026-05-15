@@ -174,7 +174,12 @@ class MCPProtocolHandler:
                 f"Parameter validation failed: {', '.join(validation.errors)}",
             )
 
-        # Find and execute handler
+        # Find and execute handler — request messages must always carry a
+        # method; the validator would have rejected None earlier.
+        if message.method is None:
+            return MCPMessage.create_error(
+                message.id, "INVALID_PARAMS", "method is required",
+            )
         handler = self._method_handlers.get(message.method)
         if not handler:
             return MCPMessage.create_error(
@@ -184,7 +189,7 @@ class MCPProtocolHandler:
             )
 
         # Execute handler with validated parameters
-        result = handler(validation.sanitized_params)
+        result = handler(validation.sanitized_params or {})
 
         if result.is_right():
             return MCPMessage.create_response(message.id, result.get_right())
@@ -219,8 +224,8 @@ class MCPProtocolHandler:
         params: dict[str, Any],
     ) -> MCPValidationResult:
         """Validate execute_macro parameters."""
-        errors = []
-        sanitized = {}
+        errors: list[str] = []
+        sanitized: dict[str, Any] = {}
 
         # Required: macro_id
         macro_id = params.get("macro_id")
@@ -255,8 +260,8 @@ class MCPProtocolHandler:
         params: dict[str, Any],
     ) -> MCPValidationResult:
         """Validate list_macros parameters."""
-        sanitized = {}
-        errors = []
+        sanitized: dict[str, Any] = {}
+        errors: list[str] = []
 
         # Optional: group_filter
         group_filter = params.get("group_filter")

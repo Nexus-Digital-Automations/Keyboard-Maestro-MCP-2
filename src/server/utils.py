@@ -49,21 +49,24 @@ def parse_group_applescript_records(applescript_output: str) -> list[dict[str, A
     for pair in pairs:
         if ":" in pair:
             # Split only on the first colon to handle values with colons
-            key, value = pair.split(":", 1)
+            key, raw_value = pair.split(":", 1)
             key = key.strip()
-            value = value.strip()
+            raw_value = raw_value.strip()
 
             # Clean up the value - remove extra quotes if present
-            if value.startswith('"') and value.endswith('"'):
-                value = value[1:-1]
+            if raw_value.startswith('"') and raw_value.endswith('"'):
+                raw_value = raw_value[1:-1]
 
             # Convert values to appropriate types
-            if value == "true":
+            value: Any
+            if raw_value == "true":
                 value = True
-            elif value == "false":
+            elif raw_value == "false":
                 value = False
-            elif value.isdigit() or value.replace("-", "").isdigit():
-                value = int(value)
+            elif raw_value.isdigit() or raw_value.replace("-", "").isdigit():
+                value = int(raw_value)
+            else:
+                value = raw_value
 
             # If we see groupName and we already have a record, start a new one
             if key == "groupName" and current_record:

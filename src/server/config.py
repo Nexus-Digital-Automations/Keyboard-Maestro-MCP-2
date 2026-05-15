@@ -5,7 +5,7 @@ Contains server configuration, logging setup, and FastMCP initialization.
 
 import logging
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, cast
 
@@ -30,16 +30,10 @@ class ServerConfig:
 class ToolConfig:
     """Configuration for tool management."""
 
-    enabled_tools: list[str] = None
-    disabled_tools: list[str] = None
+    enabled_tools: list[str] = field(default_factory=list)
+    disabled_tools: list[str] = field(default_factory=list)
     tool_timeout: float = 30.0
     max_concurrent_tools: int = 10
-
-    def __post_init__(self) -> None:
-        if self.enabled_tools is None:
-            self.enabled_tools = []  # type: ignore[unreachable]  # runtime guard for callers passing None
-        if self.disabled_tools is None:
-            self.disabled_tools = []  # type: ignore[unreachable]  # runtime guard for callers passing None
 
 
 def setup_logging(config: ServerConfig) -> logging.Logger:
@@ -49,7 +43,7 @@ def setup_logging(config: ServerConfig) -> logging.Logger:
     logs_path.mkdir(exist_ok=True)
 
     # Configure logging to stderr to avoid corrupting MCP communications
-    handlers = [logging.StreamHandler(sys.stderr)]
+    handlers: list[logging.Handler] = [logging.StreamHandler(sys.stderr)]
 
     # Add file handler if logs directory exists
     if logs_path.exists():

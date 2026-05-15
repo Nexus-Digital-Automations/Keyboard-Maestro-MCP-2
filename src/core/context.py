@@ -8,9 +8,13 @@ from __future__ import annotations
 
 import threading
 import time
-from contextlib import AbstractContextManager, contextmanager
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 from .contracts import ensure
 from .errors import (
@@ -160,8 +164,8 @@ class SecurityContextManager:
                 missing=list(missing),
             )
             raise PermissionDeniedError(
-                required_permissions=list(required_permissions),
-                available_permissions=list(context.permissions),
+                required_permissions=required_permissions,
+                available_permissions=context.permissions,
                 context=error_context,
             )
 
@@ -193,7 +197,7 @@ class SecurityContextManager:
 def security_context(
     context: ExecutionContext,
     required_permissions: frozenset[Permission],
-) -> AbstractContextManager[ExecutionContext]:
+) -> Iterator[ExecutionContext]:
     """Context manager for secure execution with permission validation.
 
     Args:

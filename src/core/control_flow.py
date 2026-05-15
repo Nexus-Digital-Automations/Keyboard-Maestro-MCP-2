@@ -1039,6 +1039,7 @@ class ControlFlowOptimizer:
 
         return SwitchCaseNode(
             node_id=node.node_id,
+            flow_type=node.flow_type,
             switch_variable=node.switch_variable,
             cases=optimized_cases,
             default_case=node.default_case,
@@ -1131,6 +1132,7 @@ def create_loop_with_controls(
             )
 
     # Create the appropriate loop type
+    node: ForLoopNode | WhileLoopNode
     if loop_type == "for" and isinstance(condition_or_config, LoopConfiguration):
         node = ForLoopNode(
             flow_type=ControlFlowType.FOR_LOOP,

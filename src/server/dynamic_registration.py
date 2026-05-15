@@ -143,11 +143,6 @@ def validate_tool_signature(metadata: ToolMetadata) -> bool:
 
     """
     try:
-        # Check if function exists and is callable
-        if not callable(metadata.function):
-            logger.warning(f"Tool {metadata.name} is not callable")
-            return False
-
         # Check if async function for MCP compatibility
         if not metadata.is_async:
             logger.warning(f"Tool {metadata.name} is not async (recommended for MCP)")

@@ -154,7 +154,7 @@ async def km_list_action_types(
             le=200,
         ),
     ] = 50,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """List action types this server can append to a macro via km_action_builder.
 
@@ -268,7 +268,7 @@ async def km_search_actions(
         int,
         Field(default=10, description="Maximum results to return.", ge=1, le=100),
     ] = 10,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Rank built-in and plug-in action types by relevance to a task query.
 

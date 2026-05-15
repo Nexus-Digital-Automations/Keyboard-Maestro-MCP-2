@@ -292,7 +292,7 @@ class KMMacroEditor:
             macro2 = macro2_result.get_right()
 
             # Calculate differences
-            differences = []
+            differences: list[dict[str, Any]] = []
 
             # Compare basic properties
             if macro1.macro_name != macro2.macro_name:

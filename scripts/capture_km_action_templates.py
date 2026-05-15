@@ -169,7 +169,7 @@ def capture_one(macro_id: str, action_name: str) -> dict[str, Any] | None:
     clear_macro(macro_id)
     if not raw:
         return None
-    plist = plistlib.loads(raw.encode("utf-8"))
+    plist: dict[str, Any] = plistlib.loads(raw.encode("utf-8"))
     plist.pop("ActionUID", None)
     text = plist.get("Text")
     if plist.get("MacroActionType") == "Log" and text == _PLACEHOLDER_TEXT:

@@ -7,7 +7,8 @@ import asyncio
 import logging
 from typing import Annotated, Any
 
-from fastmcp.prompts import Message
+from fastmcp.prompts import Message  # function alias
+from mcp.types import PromptMessage
 from pydantic import Field
 
 from .initialization import get_km_client
@@ -185,7 +186,7 @@ def create_macro_prompt(
             description="Specific application or context for the automation",
         ),
     ] = None,
-) -> list[Message]:
+) -> list[PromptMessage]:
     """Generate a structured prompt for creating Keyboard Maestro macros."""
     system_prompt = """You are an expert Keyboard Maestro macro developer. Help create efficient, reliable macros for macOS automation tasks."""
 
@@ -206,13 +207,13 @@ Please provide a detailed macro design including:
 Focus on reliability, user experience, and maintainability.
     """
 
-    return [
-        Message(role="system", content=system_prompt),
-        Message(role="user", content=user_prompt.strip()),
-    ]
+    # MCP prompts only allow user/assistant roles, so the "system" instructions
+    # are concatenated into the user turn rather than sent as a system message.
+    combined_user = f"{system_prompt}\n\n{user_prompt.strip()}"
+    return [Message(role="user", content=combined_user)]
 
 
-def get_tool_help(tool_name: str = None) -> str:
+def get_tool_help(tool_name: str | None = None) -> str:
     """Get help for a specific tool or all tools."""
     if tool_name:
         # Return help for specific tool

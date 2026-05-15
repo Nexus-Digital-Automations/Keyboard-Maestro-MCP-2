@@ -9,7 +9,10 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 class ErrorCategory(Enum):
@@ -142,15 +145,30 @@ class ValidationError(MacroEngineError):
 
 
 class SecurityViolationError(MacroEngineError):
-    """Raised when security boundaries are violated."""
+    """Raised when security boundaries are violated.
+
+    Supports two construction shapes for back-compat:
+    - ``(violation_type, details, context=None)``: legacy two-string form.
+    - ``(violation_type, value, details, context=None)``: template-style form
+      where ``value`` is the offending input captured in the message.
+    """
 
     def __init__(
         self,
         violation_type: str,
-        details: str,
+        value: Any = None,
+        details: str | None = None,
         context: ErrorContext | None = None,
     ):
-        message = f"Security violation: {violation_type} - {details}"
+        # Back-compat: callers that pass two strings put the message in ``value``.
+        if details is None and isinstance(value, str):
+            details_text = value
+            value_repr: Any = None
+        else:
+            details_text = details or ""
+            value_repr = value
+        suffix = f" (value={value_repr!r})" if value_repr is not None else ""
+        message = f"Security violation: {violation_type} - {details_text}{suffix}"
         recovery = "Review security permissions and input validation"
         super().__init__(
             message=message,
@@ -160,6 +178,7 @@ class SecurityViolationError(MacroEngineError):
             recovery_suggestion=recovery,
         )
         self.violation_type = violation_type
+        self.offending_value = value_repr
 
 
 class PermissionDeniedError(MacroEngineError):
@@ -167,13 +186,20 @@ class PermissionDeniedError(MacroEngineError):
 
     def __init__(
         self,
-        required_permissions: list[str],
-        available_permissions: list[str],
+        required_permissions: Iterable[Any],
+        available_permissions: Iterable[Any],
         context: ErrorContext | None = None,
     ):
-        missing = set(required_permissions) - set(available_permissions)
-        message = f"Missing required permissions: {list(missing)}"
-        recovery = f"Grant the following permissions: {list(missing)}"
+        required_list = list(required_permissions)
+        available_list = list(available_permissions)
+        missing = set(required_list) - set(available_list)
+        # Use ``.value`` when items are enums so the message shows the stable
+        # string code rather than the repr.
+        missing_codes = [
+            getattr(m, "value", m) for m in missing
+        ]
+        message = f"Missing required permissions: {missing_codes}"
+        recovery = f"Grant the following permissions: {missing_codes}"
         super().__init__(
             message=message,
             category=ErrorCategory.PERMISSION,
@@ -181,8 +207,8 @@ class PermissionDeniedError(MacroEngineError):
             context=context,
             recovery_suggestion=recovery,
         )
-        self.required_permissions = required_permissions
-        self.available_permissions = available_permissions
+        self.required_permissions = required_list
+        self.available_permissions = available_list
 
 
 class ExecutionError(MacroEngineError):

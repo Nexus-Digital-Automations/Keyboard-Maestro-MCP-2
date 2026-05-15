@@ -23,7 +23,7 @@ from typing import Any
 try:
     from fastmcp import Server  # type: ignore[attr-defined]
 except ImportError:
-    Server = None  # type: ignore[assignment,misc]
+    Server = None
 
 from src.core.logging import get_logger
 from src.core.types import MacroId

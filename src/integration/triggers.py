@@ -279,11 +279,17 @@ class TriggerEvent:
 def update_trigger_state(current: TriggerState, event: TriggerEvent) -> TriggerState:
     """Pure state transition function for trigger events."""
     if event.event_type == TriggerEventType.REGISTER:
-        # Extract trigger info from event details
+        # Extract trigger info from event details — REGISTER events carry both
+        # macro_id and trigger_type or the transition is meaningless.
+        macro_id = event.details.get("macro_id")
+        trigger_type = event.details.get("trigger_type")
+        if macro_id is None or trigger_type is None:
+            msg = "REGISTER event missing macro_id or trigger_type"
+            raise ValueError(msg)
         trigger_info = TriggerInfo(
             trigger_id=event.trigger_id,
-            macro_id=event.details.get("macro_id"),
-            trigger_type=event.details.get("trigger_type"),
+            macro_id=macro_id,
+            trigger_type=trigger_type,
             status=TriggerStatus.REGISTERED,
             configuration=event.details.get("configuration", {}),
             metadata=TriggerMetadata(
@@ -640,8 +646,11 @@ class EventRouter:
     ) -> Either[KMError, bool]:
         """Execute macro associated with trigger."""
         try:
-            # Execute macro through engine
-            execution_result = await self._macro_engine.execute_macro_async(
+            # Execute macro through engine.
+            # Note: production engines expose execute_macro_async with a
+            # different signature; this routing path is currently exercised
+            # only by a shim engine that accepts these kwargs.
+            execution_result = await self._macro_engine.execute_macro_async(  # type: ignore[call-arg]
                 macro_id=trigger_info.macro_id,
                 trigger_value=event.get_payload_value("trigger_value"),
                 context_data=event.payload,

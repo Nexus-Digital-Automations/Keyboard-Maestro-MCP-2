@@ -281,7 +281,7 @@ async def km_engine_control(
             max_length=10000,
         ),
     ] = None,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Control Keyboard Maestro engine operations.
 
@@ -369,10 +369,13 @@ async def km_engine_control(
         if operation == "status":
             return await _get_engine_status(km_client, ctx)
         if operation == "calculate":
+            assert expression is not None  # validated above
             return await _calculate_expression(km_client, expression, ctx)
         if operation == "process_tokens":
+            assert expression is not None  # validated above
             return await _process_tokens(km_client, expression, ctx)
         if operation == "search_replace":
+            assert text is not None and search_pattern is not None  # validated above
             return await _search_replace(
                 km_client,
                 text,
@@ -403,7 +406,7 @@ async def km_engine_control(
         }
 
 
-async def _reload_engine(km_client: Any, ctx: Context = None) -> dict[str, Any]:
+async def _reload_engine(km_client: Any, ctx: Context | None = None) -> dict[str, Any]:
     """Reload the Keyboard Maestro engine.
 
     Previously this just slept 0.5s and reported success — no engine
@@ -442,7 +445,7 @@ async def _reload_engine(km_client: Any, ctx: Context = None) -> dict[str, Any]:
     }
 
 
-async def _get_engine_status(km_client: Any, ctx: Context = None) -> dict[str, Any]:
+async def _get_engine_status(km_client: Any, ctx: Context | None = None) -> dict[str, Any]:
     """Return KM engine status sourced from the engine itself.
 
     Earlier revisions returned mocked ``performance`` and ``resources``
@@ -495,7 +498,7 @@ async def _get_engine_status(km_client: Any, ctx: Context = None) -> dict[str, A
 async def _calculate_expression(
     _km_client: Any,
     expression: str,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Calculate a mathematical expression using KM's engine."""
     if ctx:
@@ -587,7 +590,7 @@ def _summarise_tokens(token_string: str) -> list[str]:
 async def _process_tokens(
     km_client: Any,
     token_string: str,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Expand KM tokens via the live Keyboard Maestro Engine.
 
@@ -643,7 +646,7 @@ async def _search_replace(
     search_pattern: str,
     replace_pattern: str | None,
     use_regex: bool,
-    ctx: Context = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Perform search and replace operation."""
     if ctx:
