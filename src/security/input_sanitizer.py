@@ -84,7 +84,7 @@ class InputSanitizer:
         # Check for dangerous patterns
         security_check = self._check_security_patterns(clean_id, "macro_identifier")
         if security_check.is_left():
-            return security_check
+            return Either.left(security_check.get_left())
 
         # UUID pattern check
         uuid_pattern = r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
@@ -131,7 +131,7 @@ class InputSanitizer:
         # Security pattern checks
         security_check = self._check_security_patterns(text, "text_content")
         if security_check.is_left():
-            return security_check
+            return Either.left(security_check.get_left())
 
         # HTML escape for safety
         sanitized = html.escape(text)
@@ -192,7 +192,7 @@ class InputSanitizer:
         # Additional security checks
         security_check = self._check_security_patterns(clean_path, "file_path")
         if security_check.is_left():
-            return security_check
+            return Either.left(security_check.get_left())
 
         return Either.right(clean_path)
 
@@ -288,7 +288,7 @@ class InputSanitizer:
         # Security checks
         security_check = self._check_security_patterns(clean_name, "variable_name")
         if security_check.is_left():
-            return security_check
+            return Either.left(security_check.get_left())
 
         return Either.right(clean_name)
 
@@ -400,6 +400,6 @@ class InputSanitizer:
         # Security checks
         security_check = self._check_security_patterns(clean_url, "url")
         if security_check.is_left():
-            return security_check
+            return Either.left(security_check.get_left())
 
         return Either.right(clean_url)

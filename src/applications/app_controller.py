@@ -68,11 +68,13 @@ class AppIdentifier:
 
     def primary_identifier(self) -> str:
         """Get primary identifier for operations - prefer bundle ID for specificity."""
-        return self.bundle_id if self.bundle_id else self.app_name
+        # __post_init__ guarantees at least one is set
+        return self.bundle_id or self.app_name or ""
 
     def display_name(self) -> str:
         """Get human-readable display name."""
-        return self.app_name if self.app_name else self.bundle_id
+        # __post_init__ guarantees at least one is set
+        return self.app_name or self.bundle_id or ""
 
     def is_bundle_id(self) -> bool:
         """Check if primary identifier is a bundle ID."""
@@ -247,7 +249,7 @@ class AppController:
             # Phase 1: Security validation
             security_check = self._validate_app_security(app_id)
             if security_check.is_left():
-                return security_check
+                return Either.left(security_check.get_left())
 
             # Phase 2: Check current state
             current_state = await self._get_app_state_async(app_id)
@@ -276,7 +278,7 @@ class AppController:
                 wait_result = await self._wait_for_launch(app_id, config.timeout)
                 if wait_result.is_left():
                     operation_time = Duration.from_seconds(time.time() - start_time)
-                    return wait_result
+                    return Either.left(wait_result.get_left())
                 final_state = wait_result.get_right()
 
             # Phase 5: Handle post-launch configuration
@@ -441,7 +443,7 @@ class AppController:
             # Attempt graceful quit first
             quit_result = await self._quit_via_applescript(app_id, force, timeout)
             if quit_result.is_left():
-                return quit_result
+                return Either.left(quit_result.get_left())
 
             # Wait for termination
             final_state = await self._wait_for_termination(app_id, timeout)
@@ -489,7 +491,7 @@ class AppController:
             # Activate via AppleScript
             activate_result = await self._activate_via_applescript(app_id)
             if activate_result.is_left():
-                return activate_result
+                return Either.left(activate_result.get_left())
 
             # Update state cache
             self._invalidate_state_cache(app_id)
@@ -544,7 +546,7 @@ class AppController:
 
             operation_time = Duration.from_seconds(time.time() - start_time)
             if menu_result.is_left():
-                return menu_result
+                return Either.left(menu_result.get_left())
 
             return Either.right(
                 AppOperationResult.success_result(
@@ -705,7 +707,7 @@ class AppController:
 
             result = await self._execute_applescript(script, config.timeout)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -759,7 +761,7 @@ class AppController:
 
             result = await self._execute_applescript(script, timeout)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -796,7 +798,7 @@ class AppController:
 
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -852,7 +854,7 @@ class AppController:
 
             result = await self._execute_applescript(script, timeout)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -979,7 +981,7 @@ class AppController:
 
             result = await self._execute_applescript(script, Duration.from_seconds(5))
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):

@@ -19,7 +19,7 @@ import asyncio
 import json
 import logging
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Any
 
@@ -157,7 +157,7 @@ async def km_refresh_action_templates(
             "resolved_macro_id": resolved_id,
         },
         "metadata": {
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "correlation_id": correlation_id,
         },
     }

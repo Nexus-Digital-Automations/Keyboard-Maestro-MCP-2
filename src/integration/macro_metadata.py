@@ -7,7 +7,7 @@ action complexity scoring, usage patterns, and relationship mapping.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
@@ -121,7 +121,7 @@ class EnhancedMacroMetadata:
     optimization_suggestions: list[str] = field(default_factory=list)
 
     # Metadata
-    last_analyzed: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_analyzed: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     analysis_version: str = "1.0.0"
 
 
@@ -148,7 +148,7 @@ class MacroMetadataExtractor:
         # Get detailed macro information from KM
         macro_details_result = await self._get_detailed_macro_info(macro_id)
         if macro_details_result.is_left():
-            return macro_details_result
+            return Either.left(macro_details_result.get_left())
 
         macro_details = macro_details_result.get_right()
 
@@ -404,7 +404,7 @@ class MacroMetadataExtractor:
                 enabled_only=False,  # Include disabled macros for metadata extraction
             )
             if macros_result.is_left():
-                return macros_result
+                return Either.left(macros_result.get_left())
 
             macros = macros_result.get_right()
             for macro in macros:
@@ -435,7 +435,7 @@ class MacroMetadataExtractor:
 
             # Macro not found
             return Either.left(
-                KMError.not_found(f"Macro with ID '{macro_id}' not found"),
+                KMError.not_found_error(f"Macro with ID '{macro_id}' not found"),
             )
 
         except Exception as e:
@@ -454,7 +454,7 @@ class MacroMetadataExtractor:
                 total_executions=10,
                 successful_executions=9,
                 failed_executions=1,
-                last_executed=datetime.now(UTC) - timedelta(days=2),
+                last_executed=datetime.now(timezone.utc) - timedelta(days=2),
                 average_execution_time=Duration.from_seconds(1.2),
                 last_30_days_executions=5,
                 success_rate=0.9,
@@ -515,7 +515,7 @@ class MacroMetadataExtractor:
             return None
 
         cached_metadata = self._metadata_cache[macro_id]
-        if datetime.now(UTC) - cached_metadata.last_analyzed > self._cache_ttl:
+        if datetime.now(timezone.utc) - cached_metadata.last_analyzed > self._cache_ttl:
             del self._metadata_cache[macro_id]
             return None
 

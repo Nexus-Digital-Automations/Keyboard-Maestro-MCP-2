@@ -535,7 +535,7 @@ class TriggerRegistrationManager:
             # Get current state from KM
             km_result = await self._km_client.list_triggers_async()
             if km_result.is_left():
-                return km_result
+                return Either.left(km_result.get_left())
 
             km_triggers = km_result.get_right()
 
@@ -663,7 +663,7 @@ class EventRouter:
                 )
             return Either.left(
                 KMError.execution_error(
-                    f"Macro execution failed: {execution_result.error_message}",
+                    f"Macro execution failed: {execution_result.error_details}",
                 ),
             )
 

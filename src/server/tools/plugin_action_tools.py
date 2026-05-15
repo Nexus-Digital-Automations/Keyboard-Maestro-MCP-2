@@ -38,7 +38,7 @@ import plistlib
 import re
 import shutil
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -242,7 +242,7 @@ def _error_envelope(code: str, message: str, *, field: str | None = None) -> dic
         "error": error,
         "metadata": {
             "tool": "km_build_plugin_action",
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         },
     }
 
@@ -487,7 +487,7 @@ async def km_create_plugin_action(
         },
         "metadata": {
             "tool": "km_build_plugin_action",
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "duration_ms": duration_ms,
             "install_hint": (
                 "Copy the bundle into "

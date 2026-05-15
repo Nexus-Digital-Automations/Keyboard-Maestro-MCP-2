@@ -25,7 +25,7 @@ the same change.
 import asyncio
 import logging
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Annotated, Any
 
 from fastmcp import Context
@@ -211,7 +211,7 @@ async def km_list_action_types(
             "categories": category_counts,
         },
         "metadata": {
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "correlation_id": correlation_id,
             "registry_version": "2.0.0",
         },
@@ -315,7 +315,7 @@ async def km_search_actions(
             },
         },
         "metadata": {
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "correlation_id": correlation_id,
             "ranker": "rapidfuzz-WRatio-field-weighted",
         },

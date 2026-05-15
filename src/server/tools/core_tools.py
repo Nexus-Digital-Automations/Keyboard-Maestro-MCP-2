@@ -8,7 +8,7 @@ import logging
 import re
 import subprocess
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Annotated, Any
 
 from fastmcp import Context
@@ -216,7 +216,7 @@ async def km_execute_macro(
                                 "name_to_uuid_retry": True,
                             },
                             "metadata": {
-                                "timestamp": datetime.now(UTC).isoformat(),
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
                                 "server_version": "1.0.0",
                                 "correlation_id": execution_id,
                             },
@@ -259,7 +259,7 @@ async def km_execute_macro(
                 "trigger_value": sanitized_trigger,
             },
             "metadata": {
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "server_version": "1.0.0",
                 "correlation_id": execution_id,
             },
@@ -452,7 +452,7 @@ async def km_list_macros(
                 },
             },
             "metadata": {
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "server_version": "1.0.0",
                 "data_source": "keyboard_maestro_live",
                 "connection_method": "applescript_with_web_fallback",

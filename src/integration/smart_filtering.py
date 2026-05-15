@@ -48,10 +48,10 @@ class SearchQuery:
 
     text: str | None = None
     scope: SearchScope = SearchScope.NAME_AND_GROUP
-    action_categories: set[ActionCategory] = None
-    trigger_categories: set[TriggerCategory] = None
-    complexity_levels: set[ComplexityLevel] = None
-    groups: set[str] = None
+    action_categories: set[ActionCategory] | None = None
+    trigger_categories: set[TriggerCategory] | None = None
+    complexity_levels: set[ComplexityLevel] | None = None
+    groups: set[str] | None = None
     enabled_only: bool = True
     min_usage_count: int = 0
     max_days_since_used: int | None = None
@@ -90,7 +90,7 @@ class SmartMacroFilter:
 
         # Apply filters sequentially
         filtered_macros = macros.copy()
-        applied_filters = {}
+        applied_filters: dict[str, Any] = {}
 
         # Text search
         if query.text:
@@ -154,9 +154,11 @@ class SmartMacroFilter:
 
         # Time-based filter
         if query.max_days_since_used is not None:
-            from datetime import UTC, timedelta
+            from datetime import timedelta, timezone
 
-            cutoff_date = datetime.now(UTC) - timedelta(days=query.max_days_since_used)
+            cutoff_date = datetime.now(timezone.utc) - timedelta(
+                days=query.max_days_since_used,
+            )
             filtered_macros = [
                 m
                 for m in filtered_macros
@@ -193,7 +195,7 @@ class SmartMacroFilter:
         self,
         target_macro: EnhancedMacroMetadata,
         macro_library: list[EnhancedMacroMetadata],
-        similarity_threshold: float = None,
+        similarity_threshold: float | None = None,
     ) -> list[EnhancedMacroMetadata]:
         """Find macros similar to the target macro."""
         threshold = similarity_threshold or self._similarity_threshold
@@ -457,7 +459,7 @@ class SmartMacroFilter:
             return 1.0
 
         # Count matching characters at same positions
-        matches = sum(
+        matches: float = sum(
             1 for i, c in enumerate(shorter) if i < len(longer) and longer[i] == c
         )
 

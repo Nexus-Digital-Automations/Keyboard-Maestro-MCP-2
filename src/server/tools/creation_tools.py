@@ -10,7 +10,7 @@ import. Single KM round-trip per macro creation; no N+1 appends.
 """
 
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Annotated, Any
 
 from fastmcp import Context
@@ -55,7 +55,7 @@ def _error_envelope(
         "success": False,
         "error": error_block,
         "metadata": {
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "template_type": template,
         },
     }
@@ -275,10 +275,10 @@ async def _create_via_kmmacros(  # noqa: PLR0913 - thin orchestration wrapper
             "group_name": payload["group_name"],
             "enabled": enabled,
             "hotkey_attached": hotkey_attached,
-            "creation_timestamp": datetime.now(UTC).isoformat(),
+            "creation_timestamp": datetime.now(timezone.utc).isoformat(),
         },
         "metadata": {
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "creation_method": "kmmacros_import",
             "template_type": template,
         },
@@ -597,7 +597,7 @@ async def km_list_templates(ctx: Context = None) -> dict[str, Any]:
             "template_names": list(templates.keys()),
         },
         "metadata": {
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "template_version": "1.0.0",
             "security_validated": True,
         },

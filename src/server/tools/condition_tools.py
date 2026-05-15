@@ -21,9 +21,9 @@ Failure modes:
 from typing import Any
 
 try:
-    from fastmcp import Server
+    from fastmcp import Server  # type: ignore[attr-defined]
 except ImportError:
-    Server = None
+    Server = None  # type: ignore[assignment,misc]
 
 from src.core.logging import get_logger
 from src.core.types import MacroId

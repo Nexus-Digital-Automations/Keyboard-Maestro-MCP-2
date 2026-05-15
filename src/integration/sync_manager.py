@@ -12,7 +12,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
@@ -60,7 +60,7 @@ class MacroChange:
     group_name: str | None = None
     old_state: dict[str, Any] | None = None
     new_state: dict[str, Any] | None = None
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
@@ -151,7 +151,7 @@ class MacroSyncManager:
 
         # Performance tracking
         self._sync_times: list[float] = []
-        self._last_activity_check = datetime.now(UTC)
+        self._last_activity_check = datetime.now(timezone.utc)
 
     async def start_sync(self) -> Either[KMError, bool]:
         """Start real-time synchronization."""
@@ -161,7 +161,7 @@ class MacroSyncManager:
             # Initialize with full sync
             initial_sync_result = await self._perform_full_sync()
             if initial_sync_result.is_left():
-                return initial_sync_result
+                return Either.left(initial_sync_result.get_left())
 
             # Start background tasks
             self._sync_task = asyncio.create_task(self._sync_loop())
@@ -315,7 +315,7 @@ class MacroSyncManager:
             await self._generate_change_events(old_cache, self._macro_cache)
 
             # Update sync state
-            self.sync_state.last_full_sync = datetime.now(UTC)
+            self.sync_state.last_full_sync = datetime.now(timezone.utc)
             self.sync_state.consecutive_errors = 0
 
             # Update performance metrics
@@ -388,7 +388,7 @@ class MacroSyncManager:
             # Adjust polling interval based on activity
             if changes_detected:
                 self.sync_state.current_poll_interval = self.config.fast_poll_interval
-                self.sync_state.last_change_detected = datetime.now(UTC)
+                self.sync_state.last_change_detected = datetime.now(timezone.utc)
             else:
                 # Gradually increase interval if no changes
                 current_interval = self.sync_state.current_poll_interval.total_seconds()
@@ -593,5 +593,5 @@ class MacroSyncManager:
 
     def _is_cache_valid(self, macro: EnhancedMacroMetadata) -> bool:
         """Check if cached macro metadata is still valid."""
-        cache_age = datetime.now(UTC) - macro.last_analyzed
+        cache_age = datetime.now(timezone.utc) - macro.last_analyzed
         return bool(cache_age < self.config.cache_ttl)

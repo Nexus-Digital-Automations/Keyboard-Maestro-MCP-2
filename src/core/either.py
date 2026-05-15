@@ -264,7 +264,7 @@ def sequence(eithers: list[Either[A, B]]) -> Either[A, list[B]]:
     results = []
     for either in eithers:
         if either.is_left():
-            return either
+            return Either.left(either.get_left())
         results.append(either.get_right())
     return Either.right(results)
 
@@ -280,7 +280,7 @@ def traverse(values: list[A], f: Callable[[A], Either[B, C]]) -> Either[B, list[
     for value in values:
         result = f(value)
         if result.is_left():
-            return result
+            return Either.left(result.get_left())
         results.append(result.get_right())
     return Either.right(results)
 

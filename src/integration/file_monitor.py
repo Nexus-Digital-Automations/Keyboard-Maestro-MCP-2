@@ -150,7 +150,7 @@ class KMFileMonitor:
             "km_macros_path": str(self.km_macros_path),
         }
 
-    def _on_file_change(self, event: FileSystemEvent) -> bool:
+    def _on_file_change(self, event: FileSystemEvent) -> None:
         """Handle file system change events."""
         current_time = time.time()
 
@@ -309,7 +309,6 @@ class SimpleFileMonitor:
 
         # Start monitoring task
         self._monitor_task = asyncio.create_task(self._monitor_loop(paths))
-        return True
 
     async def stop_monitoring(self) -> None:
         """Stop simple file monitoring."""

@@ -5,7 +5,7 @@ validation, and security boundaries for Keyboard Maestro automation.
 """
 
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Annotated, Any
 
 from fastmcp import Context
@@ -146,7 +146,7 @@ async def km_create_hotkey_trigger(
                     "error_id": f"validation-{correlation_id}",
                 },
                 "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "correlation_id": correlation_id,
                     "server_version": "1.0.0",
                 },
@@ -196,7 +196,7 @@ async def km_create_hotkey_trigger(
                         "error_id": f"conflict-{correlation_id}",
                     },
                     "metadata": {
-                        "timestamp": datetime.now(UTC).isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                         "correlation_id": correlation_id,
                         "server_version": "1.0.0",
                     },
@@ -259,7 +259,7 @@ async def km_create_hotkey_trigger(
                     "error_id": f"creation-{correlation_id}",
                 },
                 "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "correlation_id": correlation_id,
                     "server_version": "1.0.0",
                 },
@@ -285,12 +285,12 @@ async def km_create_hotkey_trigger(
                     "display_string": hotkey_spec.to_display_string(),
                     "km_string": hotkey_spec.to_km_string(),
                 },
-                "creation_time": datetime.now(UTC).isoformat(),
+                "creation_time": datetime.now(timezone.utc).isoformat(),
                 "conflicts_checked": check_conflicts,
                 "status": "active",
             },
             "metadata": {
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "correlation_id": correlation_id,
                 "server_version": "1.0.0",
                 "creation_method": "km_create_hotkey_trigger",
@@ -317,7 +317,7 @@ async def km_create_hotkey_trigger(
                 "error_id": f"system-{correlation_id}",
             },
             "metadata": {
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "correlation_id": correlation_id,
                 "server_version": "1.0.0",
             },
@@ -377,7 +377,7 @@ async def km_list_hotkey_triggers(
                     "recovery_suggestion": "Verify Keyboard Maestro is running.",
                 },
                 "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "server_version": "1.0.0",
                 },
             }
@@ -415,7 +415,7 @@ async def km_list_hotkey_triggers(
                 "conflicts_included": include_conflicts,
             },
             "metadata": {
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "server_version": "1.0.0",
             },
         }
@@ -435,7 +435,7 @@ async def km_list_hotkey_triggers(
                 "recovery_suggestion": "Check system status and retry operation",
             },
             "metadata": {
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "server_version": "1.0.0",
             },
         }

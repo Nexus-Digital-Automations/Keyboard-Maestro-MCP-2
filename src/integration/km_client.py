@@ -313,7 +313,7 @@ class KMClient:
         trigger_value: str | None = None,
     ) -> Either[KMError, dict[str, Any]]:
         """Execute macro with functional error handling."""
-        command_data = {"macro_id": macro_id}
+        command_data: dict[str, Any] = {"macro_id": macro_id}
         if trigger_value:
             command_data["trigger_value"] = trigger_value
 
@@ -452,7 +452,7 @@ class KMClient:
             # Validate trigger definition structure
             validation_result = self._validate_trigger_definition(trigger_def)
             if validation_result.is_left():
-                return validation_result
+                return Either.left(validation_result.get_left())
 
             # Sanitize trigger data for security
             sanitized_data = self._sanitize_trigger_data(trigger_def.configuration)
@@ -472,14 +472,14 @@ class KMClient:
                 trigger_def.trigger_id,
             )
             if script_result.is_left():
-                return script_result
+                return Either.left(script_result.get_left())
 
             script = script_result.get_right()
 
             # Execute with proper timeout and error handling
             execution_result = await self._execute_applescript_safe(script)
             if execution_result.is_left():
-                return execution_result
+                return Either.left(execution_result.get_left())
 
             # Validate the response and extract trigger ID
             km_response = execution_result.get_right()
@@ -785,25 +785,28 @@ class KMClient:
         for pair in pairs:
             if ":" in pair:
                 # Split only on the first colon to handle values with colons
-                key, value = pair.split(":", 1)
+                key, raw_value = pair.split(":", 1)
                 key = key.strip()
-                value = value.strip()
+                raw_value = raw_value.strip()
 
                 # Clean up the value - remove extra quotes if present
-                if value.startswith('"') and value.endswith('"'):
-                    value = value[1:-1]
+                if raw_value.startswith('"') and raw_value.endswith('"'):
+                    raw_value = raw_value[1:-1]
 
                 # Convert values to appropriate types
-                if value == "true":
+                value: Any
+                if raw_value == "true":
                     value = True
-                elif value == "false":
+                elif raw_value == "false":
                     value = False
-                elif value.isdigit() or (
-                    value.startswith("-") and value[1:].isdigit()
+                elif raw_value.isdigit() or (
+                    raw_value.startswith("-") and raw_value[1:].isdigit()
                 ):
                     # UUIDs (``99999999-2222-...``) also pass ``replace('-','').isdigit()``;
                     # only coerce real integers (optional leading ``-`` then digits).
-                    value = int(value)
+                    value = int(raw_value)
+                else:
+                    value = raw_value
 
                 if key == record_start_key and current_record:
                     if record_start_key in current_record:
@@ -1509,7 +1512,7 @@ class KMClient:
 
             result = await self.execute_applescript_async(script)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             # Parse the AppleScript output into a list of dictionaries
             output = result.get_right()
@@ -1588,7 +1591,7 @@ class KMClient:
             if create_missing:
                 group_check = await self._ensure_target_group_exists(target_group)
                 if group_check.is_left():
-                    return group_check
+                    return Either.left(group_check.get_left())
 
             # Phase 1: Validate inputs and get current state
             validation_result = await self._validate_move_operation(
@@ -1596,7 +1599,7 @@ class KMClient:
                 target_group,
             )
             if validation_result.is_left():
-                return validation_result
+                return Either.left(validation_result.get_left())
 
             source_group, macro_info = validation_result.get_right()
 
@@ -1607,7 +1610,7 @@ class KMClient:
                 target_group,
             )
             if conflict_check.is_left():
-                return conflict_check
+                return Either.left(conflict_check.get_left())
 
             conflicts_found = conflict_check.get_right()
 
@@ -1618,7 +1621,7 @@ class KMClient:
                 target_group,
             )
             if move_result.is_left():
-                return move_result
+                return Either.left(move_result.get_left())
 
             execution_time = Duration.from_seconds(time.time() - start_time)
 
@@ -1630,7 +1633,7 @@ class KMClient:
             if verification_result.is_left():
                 # Attempt rollback
                 await self._rollback_macro_move(macro_id, target_group, source_group)
-                return verification_result
+                return Either.left(verification_result.get_left())
 
             return Either.right(
                 MacroMoveResult(
@@ -1657,13 +1660,13 @@ class KMClient:
             # Find macro and its current group
             find_result = await self._find_macro_current_group(macro_id)
             if find_result.is_left():
-                return find_result
+                return Either.left(find_result.get_left())
 
             source_group, macro_info = find_result.get_right()
 
             group_check = await self._validate_group_exists(target_group)
             if group_check.is_left():
-                return group_check
+                return Either.left(group_check.get_left())
 
             # source_group is always the UID; target_group may be name or UID.
             target = str(target_group)
@@ -1708,7 +1711,7 @@ class KMClient:
 
             result = await self.execute_applescript_async(script)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -1755,7 +1758,7 @@ class KMClient:
 
             result = await self.execute_applescript_async(script)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -1806,7 +1809,7 @@ class KMClient:
 
             result = await self.execute_applescript_async(script)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("CONFLICT:"):
@@ -1848,7 +1851,7 @@ class KMClient:
 
             result = await self.execute_applescript_async(script)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -1888,7 +1891,7 @@ class KMClient:
 
             result = await self.execute_applescript_async(script)
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):

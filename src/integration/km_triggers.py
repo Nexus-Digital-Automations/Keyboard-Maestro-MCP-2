@@ -137,7 +137,7 @@ class KMTriggerIntegrator:
             # Add trigger-specific configuration
             config_result = self._add_trigger_config(root, trigger_spec)
             if config_result.is_left():
-                return config_result
+                return Either.left(config_result.get_left())
 
             # Add conditions if present
             if trigger_spec.conditions:

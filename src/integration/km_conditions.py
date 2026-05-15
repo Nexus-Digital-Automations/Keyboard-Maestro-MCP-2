@@ -246,7 +246,7 @@ class KMConditionIntegrator:
             # Validate generated XML for security
             security_check = self._validate_xml_security(xml_string)
             if security_check.is_left():
-                return security_check
+                return Either.left(security_check.get_left())
 
             return Either.right(xml_string)
 

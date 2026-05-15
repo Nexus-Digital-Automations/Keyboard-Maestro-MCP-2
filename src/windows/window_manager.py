@@ -259,7 +259,7 @@ class WindowManager:
             screens = await self._get_screen_info()
             if not screens:
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return Either.left(KMError.system_error("No screens detected"))
+                return Either.left(KMError.execution_error("No screens detected"))
 
             target_screen = self._select_target_screen(screens, screen_target)
             if not target_screen:
@@ -281,7 +281,7 @@ class WindowManager:
             current_info = await self._get_window_info(app_identifier, window_index)
             if current_info.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return current_info
+                return Either.left(current_info.get_left())
 
             # Phase 4: Execute window movement via AppleScript
             move_result = await self._move_window_applescript(
@@ -291,7 +291,7 @@ class WindowManager:
             )
             if move_result.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return move_result
+                return Either.left(move_result.get_left())
 
             # Phase 5: Verify movement and get updated window info
             updated_info = await self._get_window_info(app_identifier, window_index)
@@ -307,7 +307,7 @@ class WindowManager:
                     ),
                 )
             return Either.left(
-                KMError.system_error("Failed to verify window movement"),
+                KMError.execution_error("Failed to verify window movement"),
             )
 
         except Exception as e:
@@ -341,7 +341,7 @@ class WindowManager:
             current_info = await self._get_window_info(app_identifier, window_index)
             if current_info.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return current_info
+                return Either.left(current_info.get_left())
 
             # Phase 3: Execute window resize via AppleScript
             resize_result = await self._resize_window_applescript(
@@ -351,7 +351,7 @@ class WindowManager:
             )
             if resize_result.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return resize_result
+                return Either.left(resize_result.get_left())
 
             # Phase 4: Get updated window information
             updated_info = await self._get_window_info(app_identifier, window_index)
@@ -367,7 +367,7 @@ class WindowManager:
                     ),
                 )
             return Either.left(
-                KMError.system_error("Failed to verify window resize"),
+                KMError.execution_error("Failed to verify window resize"),
             )
 
         except Exception as e:
@@ -393,7 +393,7 @@ class WindowManager:
             current_info = await self._get_window_info(app_identifier, window_index)
             if current_info.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return current_info
+                return Either.left(current_info.get_left())
 
             # Execute state change via AppleScript
             state_result = await self._set_window_state_applescript(
@@ -403,7 +403,7 @@ class WindowManager:
             )
             if state_result.is_left():
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return state_result
+                return Either.left(state_result.get_left())
 
             # Get updated window information
             updated_info = await self._get_window_info(app_identifier, window_index)
@@ -419,7 +419,7 @@ class WindowManager:
                     ),
                 )
             return Either.left(
-                KMError.system_error("Failed to verify window state change"),
+                KMError.execution_error("Failed to verify window state change"),
             )
 
         except Exception as e:
@@ -446,7 +446,7 @@ class WindowManager:
             screens = await self._get_screen_info()
             if not screens:
                 operation_time = Duration.from_seconds(time.time() - start_time)
-                return Either.left(KMError.system_error("No screens detected"))
+                return Either.left(KMError.execution_error("No screens detected"))
 
             target_screen = self._select_target_screen(screens, screen_target)
             if not target_screen:
@@ -790,7 +790,7 @@ class WindowManager:
 
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -830,7 +830,7 @@ class WindowManager:
 
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):
@@ -887,7 +887,7 @@ class WindowManager:
 
             result = await self._execute_applescript(script, Duration.from_seconds(10))
             if result.is_left():
-                return result
+                return Either.left(result.get_left())
 
             output = result.get_right().strip()
             if output.startswith("ERROR:"):

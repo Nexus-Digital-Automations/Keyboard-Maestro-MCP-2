@@ -203,7 +203,7 @@ def sanitize_output(data: Any) -> Any:
 
 def validate_input_schema(data: dict, schema: dict) -> dict:
     """Validate input data against a schema."""
-    result = {"valid": True, "errors": [], "data": {}}
+    result: dict[str, Any] = {"valid": True, "errors": [], "data": {}}
 
     for field_name, field_config in schema.items():
         field_type = field_config.get("type", str)

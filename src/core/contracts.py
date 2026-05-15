@@ -9,7 +9,7 @@ from __future__ import annotations
 import inspect
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from .errors import ContractViolationError, create_error_context
 
@@ -138,7 +138,7 @@ def require(
         )
         wrapper.__contracts__["preconditions"].append((condition, message))
 
-        return wrapper
+        return cast("F", wrapper)
 
     return decorator
 
@@ -227,7 +227,7 @@ def ensure(
         )
         wrapper.__contracts__["postconditions"].append((condition, message))
 
-        return wrapper
+        return cast("F", wrapper)
 
     return decorator
 
@@ -314,10 +314,11 @@ def invariant(
         for name, method in original_methods.items():
             setattr(cls, name, wrap_method(name, method))
 
-        # Add contract metadata
-        cls.__contracts__ = getattr(cls, "__contracts__", {})
-        cls.__contracts__["invariants"] = cls.__contracts__.get("invariants", [])
-        cls.__contracts__["invariants"].append((condition, message))
+        # Add contract metadata — type-erased; classes don't statically declare this attr.
+        contracts_dict: dict[str, Any] = getattr(cls, "__contracts__", {})
+        contracts_dict["invariants"] = contracts_dict.get("invariants", [])
+        contracts_dict["invariants"].append((condition, message))
+        cls.__contracts__ = contracts_dict  # type: ignore[attr-defined]
 
         return cls
 

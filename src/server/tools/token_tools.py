@@ -6,7 +6,7 @@ token parsing, context-aware processing, and comprehensive security validation.
 
 import logging
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Annotated, Any
 
 from fastmcp import Context
@@ -106,7 +106,7 @@ async def km_token_processor(
                     "message": "Invalid security level specified",
                     "details": {"security_level": security_level},
                 },
-                "metadata": {"timestamp": datetime.now(UTC).isoformat()},
+                "metadata": {"timestamp": datetime.now(timezone.utc).isoformat()},
             }
 
         # Create token expression with validation
@@ -126,7 +126,7 @@ async def km_token_processor(
                         "text": text[:100] + "..." if len(text) > 100 else text,
                     },
                 },
-                "metadata": {"timestamp": datetime.now(UTC).isoformat()},
+                "metadata": {"timestamp": datetime.now(timezone.utc).isoformat()},
             }
 
         if preview_only:
@@ -156,7 +156,7 @@ async def km_token_processor(
                     "security_level": security_level,
                 },
                 "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "preview_mode": True,
                     "processing_id": str(uuid.uuid4()),
                 },
@@ -227,7 +227,7 @@ async def km_token_processor(
                     },
                 },
                 "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "processing_id": str(uuid.uuid4()),
                 },
             }
@@ -260,7 +260,7 @@ async def km_token_processor(
                 "has_security_issues": result.has_security_issues(),
             },
             "metadata": {
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "processing_id": str(uuid.uuid4()),
                 "engine": engine_used,
                 "context": context,
@@ -282,7 +282,7 @@ async def km_token_processor(
                 },
             },
             "metadata": {
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "processing_id": str(uuid.uuid4()),
             },
         }
@@ -342,7 +342,7 @@ async def km_token_stats(ctx: Context = None) -> dict[str, Any]:
                 "monitoring": "enabled",
             },
             "metadata": {
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "stats_id": str(uuid.uuid4()),
             },
         }
@@ -354,5 +354,5 @@ async def km_token_stats(ctx: Context = None) -> dict[str, Any]:
                 "code": "STATS_ERROR",
                 "message": f"Failed to retrieve statistics: {e!s}",
             },
-            "metadata": {"timestamp": datetime.now(UTC).isoformat()},
+            "metadata": {"timestamp": datetime.now(timezone.utc).isoformat()},
         }
