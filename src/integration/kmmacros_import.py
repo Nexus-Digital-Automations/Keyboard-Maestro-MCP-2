@@ -52,6 +52,7 @@ def build_kmmacros_plist(
     macro_name: str,
     macro_uid: str,
     actions_xml: str = "",
+    triggers_xml: str = "",
 ) -> bytes:
     """Build the minimal XML .kmmacros plist for one macro.
 
@@ -65,8 +66,16 @@ def build_kmmacros_plist(
     through plistlib normalizes whitespace and key ordering, but the
     emitter outputs are already KM-canonical (verified by KM-author probe)
     so the parsed dicts re-serialize to equivalent plist.
+
+    ``triggers_xml`` follows the same shape — a concatenation of trigger
+    ``<dict>`` strings — and is embedded in the macro's ``Triggers``
+    array. Embedding triggers at import time is the only race-free way to
+    attach a hotkey to a freshly-created macro; the post-import
+    ``make new trigger`` AppleScript path is rejected by KM 11's strict
+    dictionary when the macro's group hasn't fully activated yet.
     """
     actions = _parse_action_dicts(actions_xml)
+    triggers = _parse_action_dicts(triggers_xml)
     document = [
         {
             "Activate": "Normal",
@@ -77,7 +86,7 @@ def build_kmmacros_plist(
                     "CreationDate": 0,
                     "ModificationDate": 0,
                     "Name": macro_name,
-                    "Triggers": [],
+                    "Triggers": triggers,
                     "UID": macro_uid,
                 },
             ],
@@ -170,6 +179,7 @@ async def create_empty_macro(
     group_id: str,
     new_name: str,
     actions_xml: str = "",
+    triggers_xml: str = "",
 ) -> Either[KMError, dict[str, Any]]:
     """Import a macro called ``new_name`` into the group ``group_id``.
 
@@ -177,6 +187,11 @@ async def create_empty_macro(
     ``<dict>`` strings to embed in the macro at creation time. Empty by
     default — kept for backward compatibility with callers that wanted
     just an empty macro to fill via subsequent ``km_action_builder.append``.
+
+    ``triggers_xml`` (optional): pre-rendered concatenation of trigger
+    ``<dict>`` strings to embed at the same time. Required for hotkey
+    templates because the post-import ``make new trigger`` path races
+    against KM's macro-group activation and silently no-ops.
 
     Returns ``{"macro_id", "name", "group_id", "group_name"}`` on success.
     """
@@ -187,7 +202,7 @@ async def create_empty_macro(
 
     macro_uid = _new_macro_uid()
     plist_bytes = build_kmmacros_plist(
-        group_name, group_uid, new_name, macro_uid, actions_xml,
+        group_name, group_uid, new_name, macro_uid, actions_xml, triggers_xml,
     )
 
     # delete=False because KM imports the file by path; we unlink in finally.

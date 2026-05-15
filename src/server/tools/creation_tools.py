@@ -18,10 +18,10 @@ from pydantic import Field
 
 from ...core.types import MacroId
 from ...creation.types import MacroTemplate
+from ...integration.km_client import _trigger_config_to_xml
 from ...integration.kmmacros_import import create_empty_macro
 from ..initialization import get_km_client
 from .action_builder_tools import _build_action_xml
-from .hotkey_tools import km_create_hotkey_trigger
 
 _KMMACROS_TEMPLATES = {
     "custom",
@@ -210,7 +210,7 @@ async def _create_via_kmmacros(  # noqa: PLR0913 - thin orchestration wrapper
         )
 
     try:
-        actions_xml, hotkey_spec = _render_template_actions(template, parameters)
+        actions_xml, triggers_xml = _render_template_actions(template, parameters)
     except _UnsupportedTemplateAction as exc:
         return _error_envelope(
             "UNSUPPORTED_TEMPLATE_ACTION",
@@ -229,7 +229,11 @@ async def _create_via_kmmacros(  # noqa: PLR0913 - thin orchestration wrapper
     if ctx:
         await ctx.info(f"Importing {template} macro '{name}' into '{group_name}'")
     result = await create_empty_macro(
-        get_km_client(), group_name, name, actions_xml=actions_xml,
+        get_km_client(),
+        group_name,
+        name,
+        actions_xml=actions_xml,
+        triggers_xml=triggers_xml,
     )
     if result.is_left():
         err = result.get_left()
@@ -255,9 +259,11 @@ async def _create_via_kmmacros(  # noqa: PLR0913 - thin orchestration wrapper
                 toggle.get_left().message,
             )
 
-    hotkey_attached = False
-    if hotkey_spec:
-        hotkey_attached = await _attach_hotkey(macro_id, hotkey_spec, ctx)
+    # Hotkey is now embedded in the .kmmacros plist Triggers array at import
+    # time (D3 fix); a non-empty triggers_xml means it landed atomically with
+    # the macro. The previous post-import km_create_hotkey_trigger call lost
+    # the trigger to a KM 11 race against macro-group activation.
+    hotkey_attached = bool(triggers_xml)
 
     return {
         "success": True,
@@ -282,24 +288,41 @@ async def _create_via_kmmacros(  # noqa: PLR0913 - thin orchestration wrapper
 def _render_template_actions(
     template: str,
     parameters: dict[str, Any],
-) -> tuple[str, dict[str, Any] | None]:
-    """Translate template parameters to action XML + optional hotkey spec.
+) -> tuple[str, str]:
+    """Translate template parameters to actions XML + triggers XML.
 
-    Returns ``(actions_xml, hotkey_spec_or_None)``. The first is a
-    concatenation of action ``<dict>`` strings ready for embedding in a
-    .kmmacros plist. The second is non-None only for ``hotkey_action``
-    when the caller supplied hotkey parameters.
+    Returns ``(actions_xml, triggers_xml)`` — concatenations of action /
+    trigger ``<dict>`` strings ready for embedding in a .kmmacros plist.
+    ``triggers_xml`` is non-empty only for ``hotkey_action`` when the
+    caller supplied a hotkey parameter.
 
     Raises ``_UnsupportedTemplateAction`` if a translator requests an
-    action_type that ``_build_action_xml`` does not yet support.
+    action_type that ``_build_action_xml`` does not yet support, or if
+    the hotkey spec is invalid (key/modifier names unknown to KM).
     """
     if template == "custom":
-        return "", None
+        return "", ""
     translator = _TEMPLATE_TRANSLATORS.get(template)
     if translator is None:
         raise ValueError(f"No translator registered for template {template!r}")
     action_dicts, hotkey_spec = translator(parameters)
-    return _action_dicts_to_xml(action_dicts, template), hotkey_spec
+    actions_xml = _action_dicts_to_xml(action_dicts, template)
+    triggers_xml = _render_hotkey_trigger_xml(hotkey_spec) if hotkey_spec else ""
+    return actions_xml, triggers_xml
+
+
+def _render_hotkey_trigger_xml(hotkey_spec: dict[str, Any]) -> str:
+    """Translate ``{key, modifiers, activation_mode?}`` to a KM trigger ``<dict>``.
+
+    Reuses ``_trigger_config_to_xml`` from km_client (the same emitter that
+    ``attach_trigger_async`` uses) so the .kmmacros embed path and the
+    post-import attach path produce identical XML — no schema drift.
+    Raises ``ValueError`` if KM's validator rejects the spec.
+    """
+    result = _trigger_config_to_xml("hotkey", hotkey_spec)
+    if result.is_left():
+        raise ValueError(result.get_left().message)
+    return result.get_right()
 
 
 def _action_dicts_to_xml(action_dicts: list[dict[str, Any]], template: str) -> str:
@@ -382,8 +405,10 @@ def _translate_hotkey_action(
     """hotkey_action's parameters describe BOTH the inner action AND the trigger.
 
     Inner action set: ``open_app`` (→ activate_application), ``type_text``
-    (→ type_text), ``run_script`` (→ execute_shell_script). Hotkey trigger
-    is attached after macro creation via km_create_hotkey_trigger.
+    (→ type_text), ``run_script`` (→ execute_shell_script). The hotkey
+    trigger is embedded directly in the .kmmacros plist Triggers array at
+    import time (see _create_via_kmmacros), not attached as a follow-up
+    AppleScript call.
     """
     inner = parameters.get("action", "type_text")
     if inner == "open_app":
@@ -421,27 +446,6 @@ _TEMPLATE_TRANSLATORS = {
     "window_manager": _translate_window_manager,
     "hotkey_action": _translate_hotkey_action,
 }
-
-
-async def _attach_hotkey(
-    macro_id: str,
-    hotkey_spec: dict[str, Any],
-    ctx: Context | None,
-) -> bool:
-    """Attach a HotKey trigger to a freshly-created macro via km_create_hotkey_trigger."""
-    key = hotkey_spec.get("key", "")
-    modifiers = hotkey_spec.get("modifiers", [])
-    try:
-        result = await km_create_hotkey_trigger(
-            macro_id=macro_id,
-            key=key,
-            modifiers=modifiers,
-            ctx=ctx,
-        )
-    except Exception as exc:
-        logger.warning("Hotkey attach raised %s for macro %s", exc, macro_id)
-        return False
-    return bool(result.get("success"))
 
 
 async def km_list_templates(ctx: Context = None) -> dict[str, Any]:
