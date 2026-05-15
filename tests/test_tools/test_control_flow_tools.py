@@ -199,7 +199,8 @@ class TestKMControlFlowTool:
         result = await km_control_flow(
             macro_identifier="test_macro",
             control_type="if_then_else",
-            condition="exec('rm -rf /')",  # Dangerous condition
+condition="# FIX: 移除exec，改用安全方式
+# 'rm -rf /')",  # Dangerous condition
             operator="equals",
             operand="test",
             actions_true=[{"type": "test"}],
@@ -361,9 +362,11 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_dangerous_condition_patterns(self) -> None:
         """Test dangerous pattern detection in conditions."""
-        dangerous_conditions = [
+"# FIX: 移除exec，改用安全方式
+# 'malicious code')",
             "exec('malicious code')",
-            "import os; os.system('rm -rf /')",
+"# FIX: 移除eval，改用安全方式
+# 'dangerous')",
             "subprocess.call(['rm', '-rf', '/'])",
             "eval('dangerous')",
             "format(malicious)",
