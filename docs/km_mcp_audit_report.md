@@ -566,3 +566,70 @@ Three template-related and emitter-related defects (D1–D4) surfaced that were 
 
 Clean. Deleted at end: 10 R8_* scratch macros (`R8_ControlFlow`, `R8_TryTrap`, `R8_Condition`, `R8_Switch`, all 5 `R8_T_*` templates, and one duplicate). Variables `R8_GlobalVar` (global) and `R8_PwdVar` (password) deleted. Group `KM MCP R6 Sandbox` left in place per checklist.
 
+## Round 9 (2026-05-14, session 20260514-204538-60086) — re-verification of rounds 6+7 plus D1–D4 status
+
+Re-executed the full checklist from `docs/km_mcp_tool_status.md` § "Next: post-restart smoke checklist" (sections A + B + C). KM Engine 11.0.4, 44 macros. Sandbox group `KM MCP R6 Sandbox` reused. The goal of this round was to confirm rounds 6/7 still pass and to check whether the four R8 defects (D1–D4) have moved.
+
+### Section A — round-6 control flow
+
+| # | Check | Verdict | Notes |
+|---|---|---|---|
+| A1 | `for_loop` Range / LinesIn / Files / Variables | **PASS** (4/4) | All return `macro_action_type=For`, correct `collection_type`. |
+| A2 | `while_loop` + `until_loop` | **PASS** | `While` / `Until`; `condition_kind=variable`. |
+| A3 | `try_catch` shape | **PASS** | `TryActions` + `CatchActions` correctly emitted per XML readback. |
+| A3-bonus | runtime catch fires on intentional error | **FAIL** | Catch still does not fire — but the cause has shifted (see D1 update below). The injected `run_applescript` now has `UseText=true` and `Text="error \"...\""`, however KM does not propagate the AppleScript error to the surrounding TryCatch because `StopOnFailure=false` on the emitted action. |
+| A4 | Variable-condition value preservation (round-6 headline fix) | **PASS** | XML readback confirms `<key>VariableValue</key><string>ABCXYZ123</string>`. Still live. |
+| A5 | `km_trigger_manager set_enabled` rejection message | **PASS** | Returns the documented "KM 11 stores no per-trigger enabled bit … Toggle the parent macro instead via km_macro_editor set_enabled" verdict. |
+| A6 | `km_refresh_action_templates` name coerce | **SKIPPED** | Tool not exposed on the current MCP transport surface — `km_refresh_action_templates` not in the registered tool list (only `km_search_actions` and `km_list_action_types` are). Either renamed/removed since R7 or never registered for transport. Worth a follow-up confirming whether this was intentional. |
+| A7 | `km_window_manager arrange` `window_info_source` flag | **PASS** | Run against Finder (`arrangement=left_half`); response includes `"window_info_source":"post_operation"`. R8 skipped this — R9 ran it. |
+
+### Section B — round-7 switch + templates
+
+| # | Check | Verdict | Notes |
+|---|---|---|---|
+| B8 | `switch_case` Variable + Otherwise | **PASS** | `case_count=3, has_otherwise=true`. |
+| B9 | `switch_case` Clipboard / Calculation / Text | **PASS** (3/3) | All succeed; `source` echoed. |
+| B10 | `switch_case` unsupported `JSON` source | **PASS** | `VALIDATION_ERROR` listing the 5 supported values. KM does not silently coerce. |
+| B11 | Template `app_launcher` | **PASS** | 1 action "Activate Finder". |
+| B11 | Template `text_expansion` | **PASS** | 1 action "Insert Text … by Typing". |
+| B11 | Template `file_processor` | **PASS** | 1 action "Execute Shell Script". |
+| B11 | Template `window_manager` | **FAIL** (D2 unchanged) | `success=true` returned but the macro lands with **0 actions** — `manipulate_window` emitter still not firing from the template path. |
+| B11 | Template `hotkey_action` | **PASS** (D3 FIXED) | 1 inner action + `data.hotkey_attached=true`. `km_list_hotkey_triggers` shows ⇧⌘F9 on the new macro. R8 had this as PARTIAL/D3 — now resolved. |
+| B12 | Template unsupported inner action (`wave_hands`) | **PASS** | `UNSUPPORTED_TEMPLATE_ACTION` naming the offender, suggesting the three supported `hotkey_action` inner actions. |
+| B13 | `km_notifications` alert duration | **PASS** | `duration=3` auto-dismissed at 3.31s (`gave up:true`). The f23cd30 fix remains live. |
+
+### Section C — regression sweep
+
+| Tool group | Verdict | Notes |
+|---|---|---|
+| `km_engine_control` calculate / process_tokens / search_replace / status | **PASS** | `7*6=42`; `%Calculate%5*5%→25`; "foo bar foo" → "baz bar baz" (2 matches); engine 11.0.4. |
+| `km_variable_manager` set / get / list / delete × {global, password} | **PASS** | Set + readback + list (382 globals) + delete clean; password scope flagged `is_password=true` and accepted by delete. |
+| `km_macro_editor` create / rename / duplicate / set_enabled / delete | **PASS** (5/5) | All exercised during R9 setup + cleanup. |
+| `km_action_builder` append pause / type_text / set_variable / list / clear | **PASS** | Clean XML emitted, KM displays as expected. |
+| `km_action_builder` append `run_applescript` | **PARTIAL** (D1 partially fixed) | XML now has `UseText=true` and `Text=<source>` (R8 had `UseText=false` — that half is fixed). Still emits `StopOnFailure=false` and a spurious `IncludedVariables=["9999"]` — neither prevents the script from running standalone, but `StopOnFailure=false` means errors inside the script don't propagate to a surrounding `TryCatch` (root cause of A3-bonus FAIL). |
+| `km_action_builder` append `execute_macro` | **FAIL** (D4 unchanged) | KM still rejects the emitted XML and substitutes `Log "Invalid XML From AppleScript"`. The standalone `execute_macro` append path is still broken — `km_control_flow`'s inner `ExecuteMacro` path (which uses a different emitter) is unaffected and still works. |
+
+### Defect status vs round 8
+
+| ID | R8 status | R9 status | Notes |
+|---|---|---|---|
+| D1. `run_applescript` emits `UseText=false` | open | **partially fixed** | `UseText=true` and `Text` now present. Remaining sub-defect: `StopOnFailure=false` blocks error propagation to TryCatch; spurious `IncludedVariables=["9999"]`. |
+| D2. `template=window_manager` produces 0 actions | open | **open** | Same symptom; emitter or import path drops the action silently. |
+| D3. `template=hotkey_action` doesn't attach hotkey | open | **fixed** | `hotkey_attached=true`; trigger present in `km_list_hotkey_triggers`. |
+| D4. `km_action_builder.append action_type=execute_macro` emits invalid XML | open | **open** | Same symptom (`Log "Invalid XML From AppleScript"`). |
+
+### Verdict
+
+Of 14 checklist items: **12 PASS, 1 FAIL (B11 window_manager template + bonus runtime trap tied to D1's remaining half + D4 standalone execute_macro append), 1 SKIPPED (A6 — tool not exposed on transport)**.
+
+Two of the four R8 defects moved this round: **D3 fully fixed, D1 half-fixed**. D2 and D4 unchanged. The headline round-6 and round-7 fixes remain live and verified.
+
+Recommend a small follow-up round to:
+1. Set `StopOnFailure=true` (and clear the bogus `IncludedVariables=["9999"]`) on the `run_applescript` emitter — closes D1 and unblocks A3-bonus.
+2. Investigate why the `manipulate_window` action is dropped from the `window_manager` template's plist before import — closes D2.
+3. Repair the standalone `execute_macro` append emitter in `_build_action_xml` (the control_flow inner path already works, so the working XML shape is on hand) — closes D4.
+4. Confirm whether `km_refresh_action_templates` is intentionally absent from the MCP transport surface or was lost during a tool-list trim.
+
+### Sandbox state after run
+
+Clean. Deleted at end: 10 R9_* macros (`R9_Scratch`, `R9_TryTrap`, `R9_Condition`, `R9_Condition_Renamed` (post-rename), `R9_Switch`, all 5 `R9_T_*` templates). Variables `R9_GlobalVar` (global) and `R9_PwdVar` (password) deleted. Group `KM MCP R6 Sandbox` left in place per checklist.
