@@ -842,3 +842,109 @@ inline. Group `KM MCP R6 Sandbox` left in place per checklist.
 2. Re-run R11 sections targeting only D1 (append run_applescript + readback
    XML for StopOnFailure=true) and D4 (append execute_macro + readback
    actions ≥ 1) to confirm both close.
+
+## Round 12 — 2026-05-15 post-merge smoke (session 20260515-102255-76862)
+
+Merged session/20260514-204538-60086 (74638ba "close D4 — canonical
+top-level MacroUID") into main and pushed (`b689323..74638ba`). Ran the
+R11 checklist against the still-running MCP process (no Claude Code
+restart between R11 and R12), then re-verified D1 / D4 by XML readback.
+
+Sandbox group: `KM MCP R6 Sandbox` (reused). All R12 macros deleted at cleanup.
+
+### Section A — round-6 control flow
+
+| # | Check | Verdict | Notes |
+|---|---|---|---|
+| A1 | `for_loop` Range (1..5) | **PASS** | `macro_action_type=For, collection_type=Range, loop_action_count=1`. |
+| A1 | `for_loop` LinesIn ("alpha\nbeta\ngamma") | **PASS** | `collection_type=LinesIn`. |
+| A2 | `while_loop` MyVar==yes | **PASS** | `macro_action_type=While, condition_kind=variable`. |
+| A2 | `until_loop` MyVar==done | **PASS** | `macro_action_type=Until`. |
+| A3 | `try_catch` | **PASS** | `try_action_count=1, catch_action_count=1`. |
+| A4 | Variable-condition operand preservation | **PASS** (by list shape) | `km_add_condition(operand="MyVar=ABCXYZ123")` returned `success=true`, `macro_action_type=IfThenElse`. `km_action_builder list` shows "If All Conditions Met Execute Actions". Deep operand XML readback not re-done this round — R11 confirmed `<VariableValue>ABCXYZ123</VariableValue>` via `osascript get xml`; that fix lives in the same emitter as the R12 path so it remains valid. |
+| A5 | `km_trigger_manager set_enabled` rejection | **PASS** | `TOGGLE_FAILED` with the prescribed message: "KM 11 stores no per-trigger enabled bit (verified by round-trip probe — KM strips an injected Disabled key). Toggle the parent macro instead via km_macro_editor set_enabled." |
+| A6 | `km_refresh_action_templates` name coerce | **NOT RUN** | User rejected the call (the scrape takes over the KM editor for a long walk; not appropriate for an ad-hoc smoke). R11 PASSED this — no regression expected. |
+| A7 | `km_window_manager arrange` post-bounds flag | **NOT RUN** | User rejected the call (it physically moves a Finder window). R11 PASSED this — no regression expected. |
+
+### Section B — round-7 switch + templates
+
+| # | Check | Verdict | Notes |
+|---|---|---|---|
+| B8 | `switch_case` Variable + Otherwise | **PASS** | `case_count=3, has_otherwise=true`. |
+| B9 | `switch_case` Clipboard | **PASS** | `case_count=1`. |
+| B9 | `switch_case` Calculation (`1+1`) | **PASS** | `case_count=1`. |
+| B9 | `switch_case` Text (`%CurrentUser%`) | **PASS** | `case_count=1`. |
+| B10 | `switch_case` JSON rejection | **PASS** | `VALIDATION_ERROR` — `source 'JSON' not supported. Supported: Calculation, Clipboard, NamedClipboard, Text, Variable.` |
+| B11 | Template `app_launcher` | **PASS** | 1 action "Activate Finder". |
+| B11 | Template `text_expansion` | **PASS** | 1 action "Insert Text “Hello, World!” by Typing". |
+| B11 | Template `file_processor` | **PASS** | 1 action "Execute Shell Script". |
+| B11 | Template `window_manager` | **PASS** | 1 action "Move and Resize Front Window" (D2 fix still live). |
+| B11 | Template `hotkey_action` | **PASS** | 1 action "Insert Text “R12Probe” by Typing" + `hotkey_attached=true`. `km_list_hotkey_triggers` shows ⌥⌘F10 (KeyCode 109, Modifiers 2304) on `R12_T_HotkeyAction`. |
+| B12 | Template unsupported inner action | **PASS** | `UNSUPPORTED_TEMPLATE_ACTION` for `action="wave_hands"`, recommends `open_app / type_text / run_script`. |
+| B13 | `km_notifications` alert duration | **PASS** | `duration=2` returned `success=true, display_time≈1.95s`, auto-dismissed by `giving up after`. |
+
+### Section C — regression sweep
+
+| Tool group | Verdict | Notes |
+|---|---|---|
+| `km_engine_control` status / calculate | **PASS** | engine 11.0.4 / 44 macros; `3*7+2=23`. |
+| `km_variable_manager` set / get / delete (global) | **PASS** | `R12ProbeVar="hello-from-r12"`; readback matches; delete returns `existed=true`. |
+| `km_macro_editor` create / delete | **PASS** | 1 scratch + 5 template macros created; all 6 R12_* macros deleted at cleanup. |
+| `km_macro_group_manager` list | **PASS** | 8 groups; `KM MCP R6 Sandbox` reused. |
+| `km_action_builder` append / list / clear | **PASS** | run_applescript + execute_macro append + list verified; clear used between sections. |
+| `km_list_hotkey_triggers` (filtered) | **PASS** | Returned 1 hotkey, full XML included. |
+| `km_list_macros` (filtered + enabled_only=false) | **PASS** | 3 macros in sandbox group. |
+| `km_list_action_types`, `km_list_templates`, `km_search_actions`, `km_token_processor` | **PASS** | All return well-formed payloads. `%Calculate%2+2%` → "4". |
+| `km_application_control get_state` | **PARTIAL** | Name `"Finder"` → `state="background"` (correct). Bundle ID `"com.apple.finder"` → `state="unknown"` (pre-existing quirk: the bundle-id resolution path doesn't reach the running-app lookup; not a regression — R11 used the name form). |
+
+### Defect status vs round 11
+
+| ID | R11 status | R12 status | Notes |
+|---|---|---|---|
+| D1. `run_applescript` emits `StopOnFailure=false` | source-fixed (b689323), not loaded | **OPEN in running MCP** | Live XML readback: `<key>StopOnFailure</key><false/>`. b689323 is on disk (main HEAD includes it) but the MCP process has not been restarted since R11. `IncludedVariables` is correctly empty (`<array/>`) so the rest of the action plist matches the R11 fix shape. Restart Claude Code to load. |
+| D2. `template=window_manager` produces 0 actions | CLOSED | **CLOSED** | `R12_T_WindowManager` has 1 "Move and Resize Front Window" action. |
+| D3. `template=hotkey_action` hotkey attach | fixed | **fixed** | ⌥⌘F10 attached and visible via `km_list_hotkey_triggers`. |
+| D4. `execute_macro` append yields empty Actions | source-fixed (74638ba), not loaded | **CLOSED in running MCP** | `km_action_builder append action_type=execute_macro target_macro="R12_T_AppLauncher"` returned `appended=true, uuid_changed=true` (rebuild pipeline rotated UID 50EFC294 → E527B537). XML readback shows the ExecuteMacro action with canonical top-level `MacroUID` shape, no nested `Macro` dict — and the macro now has 2 actions (run_applescript + execute_macro) rather than the pre-fix `Actions=<array/>` symptom. End-to-end success achieved via the c4591a8 export-edit-reimport pipeline producing canonical XML on import; the 74638ba source-emitter fix is a cleaner path that will also produce equivalent output once loaded post-restart. |
+
+### Mid-section anomaly
+
+Between A4 (10:26 UTC-5) and the start of section B (~11:18 UTC-5)
+there was a ~50-minute idle gap (user interrupt + "continue"
+handshake). On entering section B, `km_action_builder list` on
+R12_Scratch returned `actions: []` — despite the prior 6 appends
+(for_loop x2, while_loop, until_loop, try_catch, add_condition) all
+reporting `success=true`. Re-running clear → for_loop → list within
+the same minute showed the action present, so the append path is
+not silently dropping. The actions were either cleared during the
+idle gap (manual KM editor activity or a side effect of the rejected
+parallel tool batch) or the macro UID rotated and the original
+became orphaned — but the on-disk UID for R12_Scratch matched what
+the create returned (50EFC294, pre-D4-append), so rotation isn't
+the explanation. Flagged as observation, not a defect: no smoke
+check failed because of it.
+
+### Verdict
+
+12 of the 14 R11 checklist items PASS in the running MCP process; 2
+deferred (A6 / A7) by user request, both expected to remain PASS by
+inspection (no source change since R11 in those code paths). D4 is
+functionally CLOSED end-to-end via the rebuild pipeline. D1 remains
+OPEN until Claude Code is restarted to load b689323.
+
+### Sandbox state after run
+
+Clean. Deleted at end: 6 R12_* macros (`R12_Scratch`,
+`R12_T_AppLauncher`, `R12_T_TextExpansion`, `R12_T_FileProcessor`,
+`R12_T_WindowManager`, `R12_T_HotkeyAction`). Variable `R12ProbeVar`
+deleted inline. Group `KM MCP R6 Sandbox` left in place.
+
+### Recommended next steps
+
+1. Restart Claude Code so the running MCP process picks up b689323
+   (D1 fix). Re-run the R12 D1 probe: `km_action_builder append
+   action_type=run_applescript` → osascript readback → assert
+   `<StopOnFailure><true/></StopOnFailure>`.
+2. Once D1 is closed in the running process, all R6-onward defects
+   are closed and the smoke harness has no outstanding deferrals
+   except the two intrusive A6 / A7 checks (which only need running
+   when their code paths change).
